@@ -1,0 +1,13 @@
+{
+  "name": "task-progress",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Link-first read-only task progress reports for public pages and local projects.",
+  "scripts": {
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

@@ -1,0 +1,20 @@
+node_modules/
+__pycache__/
+
+# Visual Studio / .NET CLI
+.vs/
+**/bin/
+**/obj/
+TestResults/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.trx
+*.coverage
+*.coveragexml
+
+Build/
+.DS_Store
+*.log
+coverage/

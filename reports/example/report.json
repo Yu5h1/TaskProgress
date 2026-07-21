@@ -1,0 +1,34 @@
+{
+  "schema_version": "1.0",
+  "report_id": "example-public-demo",
+  "scope_id": "example",
+  "title": "example 公開進展範例",
+  "updated_at": "2026-07-21T02:30:00+08:00",
+  "tasks": [
+    {
+      "id": "scope-link",
+      "title": "公開 scope 連結",
+      "status": "done",
+      "summary": "Viewer 可將 scope ID 解析為固定的公開報告路徑。",
+      "completed_items": [
+        "支援 ?scope=example",
+        "限制 scope 為安全的穩定 ID",
+        "保留 ?report= 的明確路徑模式"
+      ],
+      "progress": {
+        "completed": 3,
+        "total": 3
+      }
+    },
+    {
+      "id": "pages-deployment",
+      "title": "GitHub Pages 部署",
+      "status": "planned",
+      "summary": "將 Viewer 與選擇公開的 report.json 部署到 Pages。",
+      "pending_items": [
+        "建立部署產物",
+        "確認公開報告不包含 Developer 資料"
+      ]
+    }
+  ]
+}
