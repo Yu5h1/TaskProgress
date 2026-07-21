@@ -20,17 +20,6 @@ async function readJson(relativePath) {
   return JSON.parse(await readFile(path.join(ROOT, relativePath), "utf8"));
 }
 
-for (const scope of ["yu5h1lib", "unity-project"]) {
-  test(`${scope} examples satisfy the runtime contract`, async () => {
-    const report = await readJson(`examples/${scope}/report.json`);
-    const dev = await readJson(`examples/${scope}/report.dev.json`);
-    assert.deepEqual(validateReport(report), []);
-    assert.deepEqual(validateDeveloperReport(dev), []);
-    const merged = mergeReports(report, dev);
-    assert.equal(merged.developerAvailable, true);
-  });
-}
-
 test("the public example scope report satisfies the runtime contract", async () => {
   const report = await readJson("reports/example/report.json");
   assert.deepEqual(validateReport(report), []);
@@ -96,8 +85,13 @@ test("project progress is zero when only archived tasks exist", () => {
 });
 
 test("a version mismatch keeps viewer data and ignores the overlay", async () => {
-  const report = await readJson("examples/yu5h1lib/report.json");
-  const dev = await readJson("examples/invalid/version-mismatch.report.dev.json");
+  const report = await readJson("reports/example/report.json");
+  const dev = {
+    schema_version: "2.0",
+    report_id: report.report_id,
+    updated_at: "2026-07-21T00:00:00Z",
+    tasks: [],
+  };
   const merged = mergeReports(report, dev);
   assert.equal(merged.developerAvailable, false);
   assert.equal(merged.diagnostics[0].code, "schema_mismatch");
@@ -105,8 +99,13 @@ test("a version mismatch keeps viewer data and ignores the overlay", async () =>
 });
 
 test("an orphan developer task produces a diagnostic without guessing", async () => {
-  const report = await readJson("examples/yu5h1lib/report.json");
-  const dev = await readJson("examples/invalid/orphan-task.report.dev.json");
+  const report = await readJson("reports/example/report.json");
+  const dev = {
+    schema_version: report.schema_version,
+    report_id: report.report_id,
+    updated_at: "2026-07-21T00:00:00Z",
+    tasks: [{ id: "orphan-task", next_step: "Do not guess a match" }],
+  };
   const merged = mergeReports(report, dev);
   assert.equal(merged.developerAvailable, true);
   assert.equal(merged.diagnostics[0].code, "orphan_developer_task");
