@@ -1,0 +1,37 @@
+{
+  "schema_version": "1.0",
+  "report_id": "sample-unity-release",
+  "scope_id": "sample-unity-project",
+  "title": "Sample UnityProject Release",
+  "updated_at": "2026-07-20T16:00:00Z",
+  "tasks": [
+    {
+      "id": "vertical-slice",
+      "title": "Playable vertical slice",
+      "status": "done",
+      "summary": "The first complete gameplay loop is ready for internal review.",
+      "completed_items": [
+        "Core loop",
+        "Save and resume",
+        "Controller navigation"
+      ],
+      "progress": {
+        "completed": 3,
+        "total": 3
+      }
+    },
+    {
+      "id": "console-certification",
+      "title": "Console certification pass",
+      "status": "blocked",
+      "summary": "Certification work is waiting for the final platform test account.",
+      "completed_items": [
+        "Compliance checklist review"
+      ],
+      "pending_items": [
+        "Run platform account scenarios",
+        "Submit candidate build"
+      ]
+    }
+  ]
+}

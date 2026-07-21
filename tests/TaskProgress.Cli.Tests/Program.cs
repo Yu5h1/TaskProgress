@@ -19,6 +19,9 @@ internal static class Program
         try
         {
             var root = settings.ViewerRoot;
+            var repositoryRoot = Directory.GetParent(root)?.FullName
+                ?? throw new InvalidOperationException("Viewer root has no repository parent");
+            Equal("viewer", Path.GetFileName(root), "Launcher did not discover the viewer directory");
             Equal(
                 "bonghuo-vr",
                 ScopeId.FromFolderName(Path.Combine(testHome, "BonghuoVR")),
@@ -27,7 +30,7 @@ internal static class Program
             var derivedFolder = Path.Combine(testHome, "BonghuoVR");
             Directory.CreateDirectory(derivedFolder);
             var reportSource = await File.ReadAllTextAsync(
-                Path.Combine(root, "examples", "yu5h1lib", "report.json"),
+                Path.Combine(repositoryRoot, "examples", "yu5h1lib", "report.json"),
                 cancellation.Token);
             await File.WriteAllTextAsync(
                 Path.Combine(derivedFolder, "report.json"),
@@ -40,8 +43,8 @@ internal static class Program
                 store.Resolve("bonghuo-vr"),
                 "Derived scope was not persisted");
 
-            var firstReport = ReportFolder.Load(Path.Combine(root, "examples", "yu5h1lib"));
-            var secondReport = ReportFolder.Load(Path.Combine(root, "examples", "unity-project"));
+            var firstReport = ReportFolder.Load(Path.Combine(repositoryRoot, "examples", "yu5h1lib"));
+            var secondReport = ReportFolder.Load(Path.Combine(repositoryRoot, "examples", "unity-project"));
 
             int firstProcessId;
             using (var first = await LocalWebServiceClient.EnsureAsync(settings, cancellation.Token))

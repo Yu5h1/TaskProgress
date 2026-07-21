@@ -115,7 +115,7 @@ internal sealed class LocalWebServiceClient : IDisposable
         var query = $"?scope={Uri.EscapeDataString(report.Scope)}";
         if (report.DeveloperPath is not null)
         {
-            query += $"&dev=reports/{Uri.EscapeDataString(report.Scope)}/report.dev.json";
+            query += $"&dev=../reports/{Uri.EscapeDataString(report.Scope)}/report.dev.json";
         }
         return new Uri(_settings.BaseUri, query);
     }

@@ -6,7 +6,7 @@ TaskProgress 將不同專案或 Agent scope 的任務狀態整理成可分享、
 
 - `report.json` 與 `report.dev.json` 的 JSON Schema。
 - 兩個不同 scope 的配對範例與錯誤案例。
-- 由 `?scope=`、`?report=`、`?dev=` 自動載入資料的 `index.html`。
+- 由 `?scope=`、`?report=`、`?dev=` 自動載入資料的 `viewer/index.html`。
 - 僅綁定 loopback、可啟動或重用 LocalWebService 的 C# `task-progress.exe`。
 
 ## 快速開始
@@ -66,11 +66,11 @@ task-progress://open?scope=yu5h1lib
 
 ```text
 ?scope=yu5h1lib
-?report=reports/project-a/report.json
-?report=reports/project-a/report.json&dev=reports/project-a/report.dev.json
+?report=../reports/project-a/report.json
+?report=../reports/project-a/report.json&dev=../reports/project-a/report.dev.json
 ```
 
-`scope=yu5h1lib` 會固定載入 `reports/yu5h1lib/report.json`。當 `scope` 與 `report` 同時存在時，以明確指定的 `report` 為準。scope 只接受小寫英數字，以及點、底線或連字號。
+`scope=yu5h1lib` 會固定載入 Viewer 上一層的 `reports/yu5h1lib/report.json`。當 `scope` 與 `report` 同時存在時，以明確指定的 `report` 為準。scope 只接受小寫英數字，以及點、底線或連字號。
 
 `report.dev.json` 是選用 overlay。遺失、無法載入或找不到對應 task 時，基本觀看者報告仍可使用，Viewer 會顯示診斷而不猜測資料。
 
@@ -85,16 +85,18 @@ task-progress://open?scope=yu5h1lib
 開發工作區預設將 `LocalWebService` 視為 `TaskProgress` 的相鄰資料夾。不同配置可使用：
 
 - `TASK_PROGRESS_LOCAL_WEB_SERVICE`：`localHost.py` 絕對路徑。
-- `TASK_PROGRESS_VIEWER_ROOT`：包含 `index.html` 與 `assets/` 的 Viewer root。
+- `TASK_PROGRESS_VIEWER_ROOT`：`viewer/` 的絕對路徑；其中包含 `index.html` 與 `assets/`。
 - `TASK_PROGRESS_PYTHON`：Python 執行檔或命令。
 - `TASK_PROGRESS_HOME`：scope 設定與服務 state 的使用者資料目錄。
 - `TASK_PROGRESS_SERVICE_STATE`：需要自訂時使用的完整 state file 路徑。
 
-GitHub Pages 可直接從 repository 根目錄發布，入口是根目錄的 `index.html`：
+Viewer 原始碼位於 `viewer/`，報告位於 repository 頂層的 `reports/`。公開網站可將 `viewer/` 的內容部署至任一個位於網站根目錄下一層的路徑，並保持 `reports/` 在網站根目錄：
 
 ```text
-https://<user>.github.io/<repository>/?scope=yu5h1lib
+https://<user>.github.io/<repository>/task-progress/?scope=yu5h1lib
 ```
+
+建議由內容網站將本 repository 放在 `vendor/task-progress` submodule，再由 GitHub Actions 只複製 `viewer/` 到 Pages artifact。`src/`、`tests/`、`Build/` 與其他 CLI 檔案不得進入公開 artifact。
 
 ## 資料格式
 

@@ -1,0 +1,47 @@
+{
+  "schema_version": "1.0",
+  "report_id": "yu5h1lib-2026-q3",
+  "scope_id": "yu5h1lib",
+  "title": "Yu5h1Lib 開發進展",
+  "updated_at": "2026-07-21T01:20:00+08:00",
+  "tasks": [
+    {
+      "id": "task-progress-mvp",
+      "title": "TaskProgress MVP",
+      "status": "in_progress",
+      "summary": "建立共用報告格式、唯讀 Viewer 與本機啟動流程。",
+      "completed_items": [
+        "產品方向與命名已收斂",
+        "公開與開發者資料已分層"
+      ],
+      "pending_items": [
+        "完成 Viewer MVP",
+        "驗證本機捷徑流程"
+      ],
+      "progress": {
+        "completed": 2,
+        "total": 4
+      }
+    },
+    {
+      "id": "adapter-docs",
+      "title": "Adapter 文件整理",
+      "status": "planned",
+      "summary": "整理現有 Adapter API 的使用情境與範例。",
+      "pending_items": [
+        "盤點公開 API",
+        "建立最小使用範例"
+      ]
+    },
+    {
+      "id": "legacy-binding-cleanup",
+      "title": "舊 Binding 清理",
+      "status": "archive",
+      "summary": "舊介面已由 IValuePort 取代，保留紀錄供追溯。",
+      "completed_items": [
+        "移除 IBindable",
+        "統一 BindTo 與 Unbind 流程"
+      ]
+    }
+  ]
+}

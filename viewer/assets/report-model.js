@@ -40,7 +40,7 @@ export function buildScopeHref(scope, developer = false) {
     throw new Error("scope 無效。");
   }
   const params = new URLSearchParams({ scope });
-  if (developer) params.set("dev", `reports/${scope}/report.dev.json`);
+  if (developer) params.set("dev", `../reports/${scope}/report.dev.json`);
   return `?${params}`;
 }
 
@@ -57,7 +57,7 @@ export function resolveReportRequest(params) {
   }
   return {
     source: "scope",
-    reportSource: `reports/${scope}/report.json`,
+    reportSource: `../reports/${scope}/report.json`,
     scope,
   };
 }

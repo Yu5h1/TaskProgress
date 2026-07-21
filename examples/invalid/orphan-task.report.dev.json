@@ -1,0 +1,13 @@
+{
+  "schema_version": "1.0",
+  "report_id": "yu5h1lib-2026-q3",
+  "updated_at": "2026-07-21T01:20:00+08:00",
+  "tasks": [
+    {
+      "id": "missing-viewer-task",
+      "next_steps": [
+        "This overlay must produce a diagnostic instead of a guessed task."
+      ]
+    }
+  ]
+}

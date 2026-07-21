@@ -79,13 +79,10 @@ internal sealed record LauncherSettings(
     {
         var configured = Environment.GetEnvironmentVariable("TASK_PROGRESS_LOCAL_WEB_SERVICE");
         var script = string.IsNullOrWhiteSpace(configured)
-            ? Path.Combine(
-                Directory.GetParent(viewerRoot)?.FullName ?? viewerRoot,
-                "LocalWebService",
-                "localHost.py")
+            ? FindServiceScript(viewerRoot)
             : Path.GetFullPath(Environment.ExpandEnvironmentVariables(configured));
 
-        if (!File.Exists(script))
+        if (script is null || !File.Exists(script))
         {
             throw new CliException(
                 $"找不到 LocalWebService：{script}。請設定 TASK_PROGRESS_LOCAL_WEB_SERVICE。 ");
@@ -101,6 +98,27 @@ internal sealed record LauncherSettings(
             if (IsViewerRoot(directory.FullName))
             {
                 return directory.FullName;
+            }
+
+            var viewer = Path.Combine(directory.FullName, "viewer");
+            if (IsViewerRoot(viewer))
+            {
+                return viewer;
+            }
+            directory = directory.Parent;
+        }
+        return null;
+    }
+
+    private static string? FindServiceScript(string viewerRoot)
+    {
+        var directory = new DirectoryInfo(Path.GetFullPath(viewerRoot));
+        while (directory is not null)
+        {
+            var script = Path.Combine(directory.FullName, "LocalWebService", "localHost.py");
+            if (File.Exists(script))
+            {
+                return script;
             }
             directory = directory.Parent;
         }
