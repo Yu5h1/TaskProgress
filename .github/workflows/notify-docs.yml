@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - viewer/**
+      - .github/workflows/notify-docs.yml
   workflow_dispatch:
 
 permissions:
