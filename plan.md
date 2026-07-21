@@ -61,6 +61,12 @@ https://<user>.github.io/task-progress/
 
 Viewer 根據連結自動讀取資料，不顯示檔案選擇器。只有確認可公開的資料才能部署至 Pages；`report.dev.json` 預設不發布。
 
+#### 部署來源與自動同步
+
+Viewer 的唯一原始碼保留在 `Yu5h1/TaskProgress` 的 `viewer/`，不在內容網站保存第二份複本，也不使用 submodule。`Yu5h1/docs` 的 Pages workflow 在 runner 中只 sparse-checkout `viewer/`，組裝為公開的 `task-progress/`，並將 docs repository 頂層的 `reports/` 保持在網站根目錄。
+
+`TaskProgress/.github/workflows/notify-docs.yml` 只在 `viewer/**` 或通知 workflow 本身更新時觸發，透過 `repository_dispatch` 通知 docs 部署。docs 自己的 reports、pages 或網站設定 push 則直接觸發其 Pages workflow。公開 artifact 必須排除 CLI、tests、Documentation、schemas、examples、Build 與 `report.dev.json`；更新 handoff、plan 等內部文件不應造成 Viewer 部署。
+
 ### 本機捷徑模式
 
 概念命令：
