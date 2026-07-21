@@ -105,7 +105,7 @@ https://<user>.github.io/<repository>/?scope=yu5h1lib
 
 觀看者 task 的必要欄位是 `id`、`title`、`status` 與 `summary`。狀態支援 `planned`、`in_progress`、`blocked`、`done`、`archive`；`done` 與 `archive` 會分開統計。
 
-只有來源明確提供 `progress.completed` 與 `progress.total` 時，Viewer 才顯示數量進展。沒有明確分母時不推算百分比。
+Viewer 會優先依 `completed_items` 與 `pending_items` 的實際項目數顯示進度；沒有列出工作項目時，才使用來源提供的 `progress.completed` 與 `progress.total`。兩者都沒有時，則依任務狀態顯示單一進度單位。
 
 ## 驗證
 

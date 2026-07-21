@@ -63,13 +63,13 @@ export function resolveReportRequest(params) {
 }
 
 export function calculateTaskProgress(task) {
-  if (task.progress) return { ...task.progress };
-
   const completedItems = task.completed_items?.length ?? 0;
   const pendingItems = task.pending_items?.length ?? 0;
   if (completedItems + pendingItems > 0) {
     return { completed: completedItems, total: completedItems + pendingItems };
   }
+
+  if (task.progress) return { ...task.progress };
 
   return { completed: task.status === "done" ? 1 : 0, total: 1 };
 }
