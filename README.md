@@ -126,3 +126,9 @@ dotnet publish .\src\TaskProgress.Cli\TaskProgress.Cli.csproj -c Release -o .\Bu
 ```
 
 發布後 `Build\win-x64` 只包含 `task-progress.exe`。Launcher 整合測試會啟動真實 LocalWebService、連續註冊兩個 scope、確認共用 process 與授權 shutdown；Viewer 測試涵蓋兩層報告合併、scope 路徑、版本不符與不安全 scope。
+
+## 授權
+
+TaskProgress 以 [MIT License](LICENSE) 授權。
+
+Copyright (c) 2026 Yu5h1
