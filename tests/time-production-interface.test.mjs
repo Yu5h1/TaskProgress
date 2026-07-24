@@ -21,6 +21,15 @@ test("unfinished work is independent from deadline data", () => {
   }, 0.4), 1800);
 });
 
+test("unfinished work prefers the direct pending-estimate sum", () => {
+  assert.equal(remainingWorkload({
+    total_estimated_minutes: 19440,
+    calibrated_total_minutes: 19440,
+    remaining_estimated_minutes: 6960,
+    execution_calibration: { factor: 1 },
+  }, 0.62), 6960);
+});
+
 test("production Viewer exposes a neutral undated estimate surface", () => {
   assert.match(timeViewSource, /交付日未定/);
   assert.match(timeViewSource, /time-summary-button no-deadline/);

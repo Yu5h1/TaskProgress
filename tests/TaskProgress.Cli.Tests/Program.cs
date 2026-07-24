@@ -137,6 +137,18 @@ internal static class Program
                 deadlineAnalysis.OutputPath,
                 cancellation.Token);
             True(HasDeadline(deadlineJson), "Deadline analysis omitted summary.deadline");
+            Equal(
+                "deterministic-capacity-feasibility",
+                ReadMethodName(deadlineJson),
+                "Deadline analysis did not use the v0.3 capacity method");
+            Equal(
+                960d,
+                ReadSummaryNumber(deadlineJson, "remaining_estimated_minutes"),
+                "Remaining demand did not sum the two pending default estimates");
+            Equal(
+                "on_track",
+                ReadDeadlineString(deadlineJson, "urgency"),
+                "Feasible remaining demand should remain on track");
             False(deadlineJson.Contains("private reason", StringComparison.Ordinal),
                 "Private capacity reason leaked into the public analysis");
             True(HasPublicLabel(deadlineJson, "休假"),
@@ -246,6 +258,34 @@ internal static class Program
         return document.RootElement
             .GetProperty("summary")
             .TryGetProperty("deadline", out _);
+    }
+
+    private static string? ReadMethodName(string source)
+    {
+        using var document = JsonDocument.Parse(source);
+        return document.RootElement
+            .GetProperty("method")
+            .GetProperty("name")
+            .GetString();
+    }
+
+    private static double ReadSummaryNumber(string source, string property)
+    {
+        using var document = JsonDocument.Parse(source);
+        return document.RootElement
+            .GetProperty("summary")
+            .GetProperty(property)
+            .GetDouble();
+    }
+
+    private static string? ReadDeadlineString(string source, string property)
+    {
+        using var document = JsonDocument.Parse(source);
+        return document.RootElement
+            .GetProperty("summary")
+            .GetProperty("deadline")
+            .GetProperty(property)
+            .GetString();
     }
 
     private static bool HasPublicLabel(string source, string expected)

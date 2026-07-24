@@ -35,12 +35,37 @@
       "required": ["name", "version"],
       "properties": {
         "name": {
-          "const": "deterministic-progress-pressure"
+          "enum": [
+            "deterministic-progress-pressure",
+            "deterministic-capacity-feasibility"
+          ]
         },
         "version": {
-          "const": "0.2"
+          "enum": ["0.2", "0.3"]
         }
-      }
+      },
+      "oneOf": [
+        {
+          "properties": {
+            "name": {
+              "const": "deterministic-progress-pressure"
+            },
+            "version": {
+              "const": "0.2"
+            }
+          }
+        },
+        {
+          "properties": {
+            "name": {
+              "const": "deterministic-capacity-feasibility"
+            },
+            "version": {
+              "const": "0.3"
+            }
+          }
+        }
+      ]
     },
     "inputs": {
       "type": "object",
@@ -316,6 +341,21 @@
           "type": "integer",
           "exclusiveMinimum": 0
         },
+        "remaining_capacity_minutes": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "remaining_estimated_minutes": {
+          "type": "number",
+          "minimum": 0
+        },
+        "capacity_balance_minutes": {
+          "type": "number"
+        },
+        "feasibility_ratio": {
+          "type": "number",
+          "minimum": 0
+        },
         "time_progress_ratio": {
           "type": "number",
           "minimum": 0,
@@ -337,6 +377,16 @@
         "urgency": {
           "type": "string",
           "enum": ["on_track", "at_risk", "critical", "complete"]
+        },
+        "risk_basis": {
+          "type": "string",
+          "enum": [
+            "complete",
+            "boundary",
+            "capacity_shortfall",
+            "capacity_tight",
+            "progress_pressure"
+          ]
         }
       },
       "allOf": [
@@ -483,6 +533,11 @@
             "at_risk_max": {
               "type": "number",
               "exclusiveMinimum": 0
+            },
+            "capacity_at_risk_ratio": {
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "maximum": 1
             }
           }
         },
@@ -530,6 +585,10 @@
           "minimum": 0
         },
         "calibrated_total_minutes": {
+          "type": "number",
+          "minimum": 0
+        },
+        "remaining_estimated_minutes": {
           "type": "number",
           "minimum": 0
         },

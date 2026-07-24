@@ -8,6 +8,7 @@ const deadline = {
   started_at: "2026-07-20T09:00:00+08:00",
   delivery_at: "2026-08-01T00:00:00+08:00",
   work_progress_ratio: 0.2,
+  remaining_estimated_minutes: 3360,
   schedule: {
     timezone: "Asia/Taipei",
     workday_start_local: "09:00",
@@ -15,6 +16,7 @@ const deadline = {
     risk_thresholds: {
       on_track_max: 1.1,
       at_risk_max: 1.5,
+      capacity_at_risk_ratio: 0.8,
     },
     capacity_timeline: [
       "2026-07-20",
@@ -49,6 +51,19 @@ test("risk advances with preview time while work progress stays static", () => {
   assert.equal(afterFiveDays.time_progress_ratio, 0.5);
   assert.equal(afterFiveDays.progress_pressure_ratio, 1.6);
   assert.equal(afterFiveDays.urgency, "critical");
+});
+
+test("demo deadline engine makes an infeasible capacity gap critical", () => {
+  const result = engine.calculate({
+    ...deadline,
+    work_progress_ratio: 0.8,
+    remaining_estimated_minutes: 3600,
+  }, "2026-07-22T17:00:00+08:00");
+
+  assert.ok(result.progress_pressure_ratio < 1);
+  assert.equal(result.capacity_balance_minutes, -240);
+  assert.equal(result.risk_basis, "capacity_shortfall");
+  assert.equal(result.urgency, "critical");
 });
 
 test("delivery and completion use explicit boundary states", () => {

@@ -81,6 +81,9 @@ export function inspectTimeAnalysis(value, expectedScopeId) {
     return { errors, deadlineAvailable: false, deadlineErrors };
   }
   const summary = value.summary;
+  const capacityFeasibilityMethod =
+    value.method?.name === "deterministic-capacity-feasibility"
+    && value.method?.version === "0.3";
   for (const field of [
     "nominal_daily_capacity_minutes",
     "total_estimated_minutes",
@@ -95,6 +98,11 @@ export function inspectTimeAnalysis(value, expectedScopeId) {
     || summary.execution_calibration.factor <= 0) {
     errors.push("summary.execution_calibration.factor 必須大於零。");
   }
+  if (capacityFeasibilityMethod
+    && (!Number.isFinite(summary.remaining_estimated_minutes)
+      || summary.remaining_estimated_minutes < 0)) {
+    errors.push("v0.3 需要有效的 summary.remaining_estimated_minutes。");
+  }
   const deadlineAvailable = isRecord(summary.deadline);
   if (deadlineAvailable) {
     if (!isRecord(summary.deadline.schedule)) {
@@ -106,6 +114,11 @@ export function inspectTimeAnalysis(value, expectedScopeId) {
       deadlineErrors.push("deadline 的開始或交付時間無效。");
     }
     const schedule = deadline.schedule;
+    if (capacityFeasibilityMethod
+      && (!Number.isFinite(deadline.remaining_estimated_minutes)
+        || deadline.remaining_estimated_minutes < 0)) {
+      deadlineErrors.push("v0.3 期限分析缺少 remaining_estimated_minutes。");
+    }
     if (typeof schedule.timezone !== "string"
       || typeof schedule.workday_start_local !== "string"
       || typeof schedule.workday_end_local !== "string"
@@ -228,17 +241,44 @@ export function calculateDeadlineRisk(deadline, nowValue = new Date()) {
   );
   const timeProgressRatio = elapsedCapacityMinutes / totalCapacityMinutes;
   const evaluatedAt = now.toISOString();
+  const remainingEstimatedValue = Number(deadline.remaining_estimated_minutes);
+  const capacityAware =
+    Number.isFinite(remainingEstimatedValue) && remainingEstimatedValue >= 0;
+  const remainingEstimatedMinutes = capacityAware ? remainingEstimatedValue : null;
+  const capacityMetrics = (elapsedMinutes) => {
+    const remainingCapacityMinutes = Math.max(
+      0,
+      totalCapacityMinutes - elapsedMinutes,
+    );
+    if (!capacityAware) return { remaining_capacity_minutes: remainingCapacityMinutes };
+    const capacityBalanceMinutes =
+      remainingCapacityMinutes - remainingEstimatedMinutes;
+    return {
+      remaining_capacity_minutes: remainingCapacityMinutes,
+      remaining_estimated_minutes: remainingEstimatedMinutes,
+      capacity_balance_minutes: capacityBalanceMinutes,
+      ...(remainingCapacityMinutes > 0
+        ? {
+          feasibility_ratio:
+            remainingEstimatedMinutes / remainingCapacityMinutes,
+        }
+        : {}),
+    };
+  };
 
-  if (workProgressRatio >= 1) {
+  if (workProgressRatio >= 1
+    || (capacityAware && remainingEstimatedMinutes <= 0)) {
     return {
       evaluated_at: evaluatedAt,
       elapsed_capacity_minutes: elapsedCapacityMinutes,
       total_capacity_minutes: totalCapacityMinutes,
+      ...capacityMetrics(elapsedCapacityMinutes),
       time_progress_ratio: timeProgressRatio,
       work_progress_ratio: workProgressRatio,
       progress_pressure_ratio: 0,
       boundary_state: "complete",
       urgency: "complete",
+      ...(capacityAware ? { risk_basis: "complete" } : {}),
     };
   }
   if (now >= deliveryAt) {
@@ -246,10 +286,12 @@ export function calculateDeadlineRisk(deadline, nowValue = new Date()) {
       evaluated_at: evaluatedAt,
       elapsed_capacity_minutes: totalCapacityMinutes,
       total_capacity_minutes: totalCapacityMinutes,
+      ...capacityMetrics(totalCapacityMinutes),
       time_progress_ratio: 1,
       work_progress_ratio: workProgressRatio,
       boundary_state: "delivery_reached",
       urgency: "critical",
+      ...(capacityAware ? { risk_basis: "boundary" } : {}),
     };
   }
   if (timeProgressRatio >= 1) {
@@ -257,10 +299,12 @@ export function calculateDeadlineRisk(deadline, nowValue = new Date()) {
       evaluated_at: evaluatedAt,
       elapsed_capacity_minutes: totalCapacityMinutes,
       total_capacity_minutes: totalCapacityMinutes,
+      ...capacityMetrics(totalCapacityMinutes),
       time_progress_ratio: 1,
       work_progress_ratio: workProgressRatio,
       boundary_state: "capacity_exhausted",
       urgency: "critical",
+      ...(capacityAware ? { risk_basis: "boundary" } : {}),
     };
   }
 
@@ -273,20 +317,37 @@ export function calculateDeadlineRisk(deadline, nowValue = new Date()) {
     || thresholds.at_risk_max < thresholds.on_track_max) {
     throw new Error("風險門檻無效。");
   }
-  const urgency = progressPressureRatio <= thresholds.on_track_max
+  const progressUrgency = progressPressureRatio <= thresholds.on_track_max
     ? "on_track"
     : progressPressureRatio <= thresholds.at_risk_max
       ? "at_risk"
       : "critical";
+  const metrics = capacityMetrics(elapsedCapacityMinutes);
+  const capacityAtRiskRatio = Number.isFinite(thresholds.capacity_at_risk_ratio)
+    ? thresholds.capacity_at_risk_ratio
+    : 0.8;
+  let urgency = progressUrgency;
+  let riskBasis = "progress_pressure";
+  if (capacityAware && metrics.capacity_balance_minutes < 0) {
+    urgency = "critical";
+    riskBasis = "capacity_shortfall";
+  } else if (capacityAware
+    && metrics.feasibility_ratio > capacityAtRiskRatio
+    && progressUrgency === "on_track") {
+    urgency = "at_risk";
+    riskBasis = "capacity_tight";
+  }
   return {
     evaluated_at: evaluatedAt,
     elapsed_capacity_minutes: elapsedCapacityMinutes,
     total_capacity_minutes: totalCapacityMinutes,
+    ...metrics,
     time_progress_ratio: timeProgressRatio,
     work_progress_ratio: workProgressRatio,
     progress_pressure_ratio: progressPressureRatio,
     boundary_state: "active",
     urgency,
+    ...(capacityAware ? { risk_basis: riskBasis } : {}),
   };
 }
 

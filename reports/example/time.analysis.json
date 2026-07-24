@@ -4,8 +4,8 @@
   "analysis_id": "example-time-analysis-v1",
   "as_of": "2026-07-24T17:00:00+08:00",
   "method": {
-    "name": "deterministic-progress-pressure",
-    "version": "0.2"
+    "name": "deterministic-capacity-feasibility",
+    "version": "0.3"
   },
   "inputs": {
     "config_updated_at": "2026-07-24T09:00:00+08:00",
@@ -28,6 +28,7 @@
     },
     "total_estimated_minutes": 2100,
     "calibrated_total_minutes": 2100,
+    "remaining_estimated_minutes": 1200,
     "actual_recorded_minutes": 0,
     "estimated_total_days": 4.375,
     "display_total_days": 5,
@@ -48,7 +49,8 @@
         "workday_end_local": "17:00",
         "risk_thresholds": {
           "on_track_max": 1.0,
-          "at_risk_max": 1.25
+          "at_risk_max": 1.25,
+          "capacity_at_risk_ratio": 0.8
         },
         "capacity_profile": {
           "total_minutes_per_day": 1440,
@@ -80,11 +82,16 @@
       },
       "elapsed_capacity_minutes": 2400,
       "total_capacity_minutes": 4320,
+      "remaining_capacity_minutes": 1920,
+      "remaining_estimated_minutes": 1200,
+      "capacity_balance_minutes": 720,
+      "feasibility_ratio": 0.625,
       "time_progress_ratio": 0.5555555556,
       "work_progress_ratio": 0.6,
       "progress_pressure_ratio": 0.9,
       "boundary_state": "active",
-      "urgency": "on_track"
+      "urgency": "on_track",
+      "risk_basis": "progress_pressure"
     }
   },
   "tasks": [

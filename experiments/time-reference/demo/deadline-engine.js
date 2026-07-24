@@ -91,17 +91,44 @@ function calculateDeadlineRisk(deadline, nowValue = new Date()) {
   );
   const timeProgressRatio = elapsedCapacityMinutes / totalCapacityMinutes;
   const evaluatedAt = now.toISOString();
+  const remainingEstimatedValue = Number(deadline.remaining_estimated_minutes);
+  const capacityAware =
+    Number.isFinite(remainingEstimatedValue) && remainingEstimatedValue >= 0;
+  const remainingEstimatedMinutes = capacityAware ? remainingEstimatedValue : null;
+  const capacityMetrics = (elapsedMinutes) => {
+    const remainingCapacityMinutes = Math.max(
+      0,
+      totalCapacityMinutes - elapsedMinutes,
+    );
+    if (!capacityAware) return { remaining_capacity_minutes: remainingCapacityMinutes };
+    const capacityBalanceMinutes =
+      remainingCapacityMinutes - remainingEstimatedMinutes;
+    return {
+      remaining_capacity_minutes: remainingCapacityMinutes,
+      remaining_estimated_minutes: remainingEstimatedMinutes,
+      capacity_balance_minutes: capacityBalanceMinutes,
+      ...(remainingCapacityMinutes > 0
+        ? {
+          feasibility_ratio:
+            remainingEstimatedMinutes / remainingCapacityMinutes,
+        }
+        : {}),
+    };
+  };
 
-  if (workProgressRatio >= 1) {
+  if (workProgressRatio >= 1
+    || (capacityAware && remainingEstimatedMinutes <= 0)) {
     return {
       evaluated_at: evaluatedAt,
       elapsed_capacity_minutes: elapsedCapacityMinutes,
       total_capacity_minutes: totalCapacityMinutes,
+      ...capacityMetrics(elapsedCapacityMinutes),
       time_progress_ratio: timeProgressRatio,
       work_progress_ratio: workProgressRatio,
       progress_pressure_ratio: 0,
       boundary_state: "complete",
       urgency: "complete",
+      ...(capacityAware ? { risk_basis: "complete" } : {}),
     };
   }
 
@@ -110,10 +137,12 @@ function calculateDeadlineRisk(deadline, nowValue = new Date()) {
       evaluated_at: evaluatedAt,
       elapsed_capacity_minutes: totalCapacityMinutes,
       total_capacity_minutes: totalCapacityMinutes,
+      ...capacityMetrics(totalCapacityMinutes),
       time_progress_ratio: 1,
       work_progress_ratio: workProgressRatio,
       boundary_state: "delivery_reached",
       urgency: "critical",
+      ...(capacityAware ? { risk_basis: "boundary" } : {}),
     };
   }
 
@@ -122,10 +151,12 @@ function calculateDeadlineRisk(deadline, nowValue = new Date()) {
       evaluated_at: evaluatedAt,
       elapsed_capacity_minutes: totalCapacityMinutes,
       total_capacity_minutes: totalCapacityMinutes,
+      ...capacityMetrics(totalCapacityMinutes),
       time_progress_ratio: 1,
       work_progress_ratio: workProgressRatio,
       boundary_state: "capacity_exhausted",
       urgency: "critical",
+      ...(capacityAware ? { risk_basis: "boundary" } : {}),
     };
   }
 
@@ -141,21 +172,38 @@ function calculateDeadlineRisk(deadline, nowValue = new Date()) {
   ) {
     throw new Error("風險門檻無效。");
   }
-  const urgency = progressPressureRatio <= thresholds.on_track_max
+  const progressUrgency = progressPressureRatio <= thresholds.on_track_max
     ? "on_track"
     : progressPressureRatio <= thresholds.at_risk_max
       ? "at_risk"
       : "critical";
+  const metrics = capacityMetrics(elapsedCapacityMinutes);
+  const capacityAtRiskRatio = Number.isFinite(thresholds.capacity_at_risk_ratio)
+    ? thresholds.capacity_at_risk_ratio
+    : 0.8;
+  let urgency = progressUrgency;
+  let riskBasis = "progress_pressure";
+  if (capacityAware && metrics.capacity_balance_minutes < 0) {
+    urgency = "critical";
+    riskBasis = "capacity_shortfall";
+  } else if (capacityAware
+    && metrics.feasibility_ratio > capacityAtRiskRatio
+    && progressUrgency === "on_track") {
+    urgency = "at_risk";
+    riskBasis = "capacity_tight";
+  }
 
   return {
     evaluated_at: evaluatedAt,
     elapsed_capacity_minutes: elapsedCapacityMinutes,
     total_capacity_minutes: totalCapacityMinutes,
+    ...metrics,
     time_progress_ratio: timeProgressRatio,
     work_progress_ratio: workProgressRatio,
     progress_pressure_ratio: progressPressureRatio,
     boundary_state: "active",
     urgency,
+    ...(capacityAware ? { risk_basis: riskBasis } : {}),
   };
 }
 

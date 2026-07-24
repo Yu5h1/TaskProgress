@@ -3,8 +3,8 @@ const DATA_URL = "../examples/time.analysis.json";
 const FALLBACK_ANALYSIS = {
   as_of: "2026-07-22T17:00:00+08:00",
   method: {
-    name: "deterministic-progress-pressure",
-    version: "0.2",
+    name: "deterministic-capacity-feasibility",
+    version: "0.3",
   },
   summary: {
     executor_count: 1,
@@ -14,6 +14,7 @@ const FALLBACK_ANALYSIS = {
       effective_sample_count: 0,
     },
     total_estimated_minutes: 2640,
+    remaining_estimated_minutes: 2112,
     display_total_days: 6,
     estimate_composition: {
       ai_minutes: 0,
@@ -32,6 +33,7 @@ const FALLBACK_ANALYSIS = {
         risk_thresholds: {
           on_track_max: 1.1,
           at_risk_max: 1.5,
+          capacity_at_risk_ratio: 0.8,
         },
         capacity_profile: {
           total_minutes_per_day: 1440,
@@ -66,11 +68,16 @@ const FALLBACK_ANALYSIS = {
       },
       elapsed_capacity_minutes: 1440,
       total_capacity_minutes: 4320,
+      remaining_capacity_minutes: 2880,
+      remaining_estimated_minutes: 2112,
+      capacity_balance_minutes: 768,
+      feasibility_ratio: 0.733333,
       time_progress_ratio: 0.3333,
       work_progress_ratio: 0.2,
       progress_pressure_ratio: 1.2,
       boundary_state: "active",
       urgency: "at_risk",
+      risk_basis: "progress_pressure",
     },
   },
   tasks: [
@@ -358,9 +365,9 @@ const confidenceMeta = {
 };
 
 const urgencyMeta = {
-  on_track: { label: "進度正常", lampLabel: "綠色燈號", className: "on-track" },
-  at_risk: { label: "進度有風險", lampLabel: "黃色燈號", className: "at-risk" },
-  critical: { label: "進度危急", lampLabel: "紅色燈號", className: "critical" },
+  on_track: { label: "交付可行", lampLabel: "綠色燈號", className: "on-track" },
+  at_risk: { label: "交付有風險", lampLabel: "黃色燈號", className: "at-risk" },
+  critical: { label: "交付不可行", lampLabel: "紅色燈號", className: "critical" },
   complete: { label: "已完成", lampLabel: "完成燈號", className: "on-track" },
 };
 
@@ -1011,6 +1018,18 @@ function deadlineExplanation(deadline, urgency) {
       formula: "time_progress = 1 AND work_progress < 1 → critical",
     };
   }
+  if (deadline.risk_basis === "capacity_shortfall") {
+    return {
+      text: `預估未完成工作為 ${hours(deadline.remaining_estimated_minutes)}，但交付前只剩 ${hours(deadline.remaining_capacity_minutes)}；容量缺口 ${hours(Math.abs(deadline.capacity_balance_minutes))}，因此直接判定為「容量不足」。`,
+      formula: `${hours(deadline.remaining_capacity_minutes)} - ${hours(deadline.remaining_estimated_minutes)} = -${hours(Math.abs(deadline.capacity_balance_minutes))}`,
+    };
+  }
+  if (deadline.risk_basis === "capacity_tight") {
+    return {
+      text: `預估未完成工作將使用剩餘容量的 ${percent(deadline.feasibility_ratio)}，已超過 ${percent(deadline.schedule.risk_thresholds.capacity_at_risk_ratio ?? 0.8)} 的容量警戒線，因此判定為「容量緊繃」。`,
+      formula: `${hours(deadline.remaining_estimated_minutes)} ÷ ${hours(deadline.remaining_capacity_minutes)} = ${deadline.feasibility_ratio.toFixed(4)}`,
+    };
+  }
 
   const pressure = deadline.progress_pressure_ratio;
   const thresholds = deadline.schedule.risk_thresholds;
@@ -1065,6 +1084,10 @@ function deliveryCountdown(deadline) {
 }
 
 function remainingWorkload(summary, workProgressRatio = BASE_WORK_PROGRESS) {
+  if (Number.isFinite(summary.remaining_estimated_minutes)
+    && summary.remaining_estimated_minutes >= 0) {
+    return { minutes: summary.remaining_estimated_minutes };
+  }
   const factor = summary.execution_calibration.factor;
   const calibratedTotal = summary.calibrated_total_minutes
     ?? summary.total_estimated_minutes / factor;
@@ -1077,6 +1100,8 @@ function remainingWorkload(summary, workProgressRatio = BASE_WORK_PROGRESS) {
 function publicRiskLabel(deadline, urgency) {
   if (deadline.boundary_state === "complete") return "已完成";
   if (deadline.boundary_state === "delivery_reached") return "已逾期";
+  if (deadline.risk_basis === "capacity_shortfall") return "容量不足";
+  if (deadline.risk_basis === "capacity_tight") return "容量緊繃";
   if (deadline.urgency === "critical") return "預計超期";
   return urgency.label;
 }
@@ -1387,7 +1412,7 @@ function createEvaluationFlowPanel(summary, deadline, urgency, remaining) {
 
   const intro = document.createElement("p");
   intro.className = "evaluation-flow-intro";
-  intro.textContent = "工程需求與可工作時間分開計算，再用目前進度判斷交付風險。";
+  intro.textContent = "工程需求與可工作時間分開計算；容量不足會優先判定交付不可行，再用進度壓力補充趨勢。";
 
   const remainingCapacity = Math.max(
     0,
@@ -1414,7 +1439,9 @@ function createEvaluationFlowPanel(summary, deadline, urgency, remaining) {
     evaluationNode(
       "預估未完成工時",
       hours(remaining.minutes),
-      "工程總估算 × 未完成比例",
+      Number.isFinite(summary.remaining_estimated_minutes)
+        ? "直接加總未完成項目的校準後估算"
+        : "舊版資料：工程總估算 × 未完成比例",
       "evaluation-node-result",
     ),
   );
@@ -1452,7 +1479,9 @@ function createEvaluationFlowPanel(summary, deadline, urgency, remaining) {
   const balance = evaluationNode(
     "需求與容量比較",
     `${balanceLabel} ${hours(Math.abs(capacityBalance))}`,
-    "目前作為可行性參考，尚未直接改變燈號",
+    capacityBalance < 0
+      ? "容量不足會直接改為紅燈"
+      : "使用超過 80% 剩餘容量時至少為黃燈",
     capacityBalance >= 0 ? "evaluation-node-balance" : "evaluation-node-shortage",
   );
   merge.append(mergeArrow, balance);
@@ -1473,14 +1502,14 @@ function createEvaluationFlowPanel(summary, deadline, urgency, remaining) {
     evaluationNode(
       "目前風險評估",
       publicRiskLabel(deadline, urgency),
-      "deterministic-progress-pressure v0.2",
+      "deterministic-capacity-feasibility v0.3",
       `evaluation-node-risk ${urgency.className}`,
     ),
   );
 
   const note = document.createElement("p");
   note.className = "evaluation-flow-note";
-  note.textContent = "目前 v0.2 燈號只採進度壓力；容量缺口先作摘要參考，待公式升版後才可合併成總結風險。";
+  note.textContent = "v0.3 先檢查剩餘工程需求與真實工作容量：缺口為紅燈、容量使用率超過 80% 至少為黃燈；容量足夠時再採進度壓力判斷。";
 
   panel.append(intro, lanes, merge, riskRow, note);
   return panel;

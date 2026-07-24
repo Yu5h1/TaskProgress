@@ -16,6 +16,9 @@ internal sealed record TimeAnalysisGenerationResult(
 internal static class TimeAnalysisGenerator
 {
     private const string TimeSchemaVersion = "0.2";
+    private const string RiskMethodName = "deterministic-capacity-feasibility";
+    private const string RiskMethodVersion = "0.3";
+    private const double CapacityAtRiskRatio = 0.8;
     private const int MinutesPerDay = 1440;
     private static readonly JsonSerializerOptions OutputOptions = new()
     {
@@ -77,6 +80,7 @@ internal static class TimeAnalysisGenerator
         };
         var confidences = new List<string>();
         var totalEstimatedMinutes = 0;
+        double remainingBaseMinutes = 0;
         var itemCount = 0;
 
         foreach (var task in reportTasks.Where(task => task.Status != "archive"))
@@ -101,6 +105,7 @@ internal static class TimeAnalysisGenerator
                 var likely = RequiredPositiveInteger(taskLevel, "likely_minutes", "active estimate");
                 taskMinutes += likely;
                 totalEstimatedMinutes += likely;
+                remainingBaseMinutes += likely * CalculateTaskRemainingRatio(task);
                 composition[mode] += likely;
                 confidences.Add(RequiredConfidence(taskLevel));
                 diagnostics.Add(new Diagnostic(
@@ -120,6 +125,7 @@ internal static class TimeAnalysisGenerator
                     items.Add(itemAnalysis);
                     taskMinutes += likely;
                     totalEstimatedMinutes += likely;
+                    if (!item.Completed) remainingBaseMinutes += likely;
                     composition[mode] += likely;
                     confidences.Add(itemAnalysis["confidence"]!.GetValue<string>());
                     itemCount++;
@@ -168,6 +174,9 @@ internal static class TimeAnalysisGenerator
         var actualMinutes = CalculateActualMinutes(eventsSource);
         var calibration = CreateCalibration(config, diagnostics);
         var calibratedMinutes = Math.Round(totalEstimatedMinutes * config.CalibrationFactor, 2);
+        var remainingEstimatedMinutes = Math.Round(
+            remainingBaseMinutes * config.CalibrationFactor,
+            2);
         var estimatedTotalDays = config.DailyCapacityMinutes > 0
             ? Math.Round(calibratedMinutes / (config.DailyCapacityMinutes * config.ExecutorCount), 4)
             : 0;
@@ -178,6 +187,7 @@ internal static class TimeAnalysisGenerator
             ["execution_calibration"] = calibration,
             ["total_estimated_minutes"] = totalEstimatedMinutes,
             ["calibrated_total_minutes"] = calibratedMinutes,
+            ["remaining_estimated_minutes"] = remainingEstimatedMinutes,
             ["actual_recorded_minutes"] = actualMinutes,
             ["estimated_total_days"] = estimatedTotalDays,
             ["display_total_days"] = DisplayDays(estimatedTotalDays, config.RoundDays),
@@ -192,7 +202,14 @@ internal static class TimeAnalysisGenerator
         };
 
         var workProgress = CalculateProjectProgress(reportTasks);
-        var deadline = CreateDeadline(config, eventsSource, report, asOf, workProgress, diagnostics);
+        var deadline = CreateDeadline(
+            config,
+            eventsSource,
+            report,
+            asOf,
+            workProgress,
+            remainingEstimatedMinutes,
+            diagnostics);
         if (deadline is not null) summary["deadline"] = deadline;
 
         var analysisId = ReadExistingAnalysisId(outputPath, scopeId)
@@ -205,8 +222,8 @@ internal static class TimeAnalysisGenerator
             ["as_of"] = asOf.ToString("O", CultureInfo.InvariantCulture),
             ["method"] = new JsonObject
             {
-                ["name"] = "deterministic-progress-pressure",
-                ["version"] = TimeSchemaVersion
+                ["name"] = RiskMethodName,
+                ["version"] = RiskMethodVersion
             },
             ["inputs"] = new JsonObject
             {
@@ -406,8 +423,22 @@ internal static class TimeAnalysisGenerator
             var legacyItemCount = 0;
             var completedCount = 0;
             var pendingCount = 0;
-            ReadItems(task["completed_items"], id, itemIds, items, ref legacyItemCount, ref completedCount);
-            ReadItems(task["pending_items"], id, itemIds, items, ref legacyItemCount, ref pendingCount);
+            ReadItems(
+                task["completed_items"],
+                id,
+                itemIds,
+                items,
+                completed: true,
+                ref legacyItemCount,
+                ref completedCount);
+            ReadItems(
+                task["pending_items"],
+                id,
+                itemIds,
+                items,
+                completed: false,
+                ref legacyItemCount,
+                ref pendingCount);
             int? progressCompleted = null;
             int? progressTotal = null;
             if (task["progress"] is JsonObject progress)
@@ -433,6 +464,7 @@ internal static class TimeAnalysisGenerator
         string taskId,
         HashSet<string> ids,
         List<ReportItem> items,
+        bool completed,
         ref int legacyCount,
         ref int listCount)
     {
@@ -454,7 +486,7 @@ internal static class TimeAnalysisGenerator
             var id = RequiredString(item, "id", "report item");
             ScopeId.Validate(id);
             if (!ids.Add(id)) throw new CliException($"{taskId} 的 item id 重複：{id}");
-            items.Add(new ReportItem(id));
+            items.Add(new ReportItem(id, completed));
         }
     }
 
@@ -609,6 +641,7 @@ internal static class TimeAnalysisGenerator
         JsonObject report,
         DateTimeOffset asOf,
         double workProgress,
+        double remainingEstimatedMinutes,
         List<Diagnostic> diagnostics)
     {
         if (config.DeliveryAt is null) return null;
@@ -649,36 +682,69 @@ internal static class TimeAnalysisGenerator
                 config.WorkdayEnd,
                 totalCapacity);
             var timeProgress = Math.Round(elapsedCapacity / (double)totalCapacity, 6);
+            var remainingCapacity = Math.Max(0, totalCapacity - elapsedCapacity);
+            var capacityBalance = Math.Round(
+                remainingCapacity - remainingEstimatedMinutes,
+                2);
             var boundary = "active";
             var urgency = "on_track";
+            var riskBasis = "progress_pressure";
             double? pressure = null;
-            if (workProgress >= 1)
+            double? feasibility = remainingCapacity > 0
+                ? Math.Round(remainingEstimatedMinutes / remainingCapacity, 6)
+                : null;
+            if (workProgress >= 1 || remainingEstimatedMinutes <= 0)
             {
                 boundary = "complete";
                 urgency = "complete";
+                riskBasis = "complete";
             }
             else if (asOf >= delivery)
             {
                 boundary = "delivery_reached";
                 urgency = "critical";
+                riskBasis = "boundary";
                 elapsedCapacity = totalCapacity;
                 timeProgress = 1;
+                remainingCapacity = 0;
+                capacityBalance = -remainingEstimatedMinutes;
+                feasibility = null;
             }
             else if (elapsedCapacity >= totalCapacity)
             {
                 boundary = "capacity_exhausted";
                 urgency = "critical";
+                riskBasis = "boundary";
                 elapsedCapacity = totalCapacity;
                 timeProgress = 1;
+                remainingCapacity = 0;
+                capacityBalance = -remainingEstimatedMinutes;
+                feasibility = null;
             }
             else
             {
                 pressure = Math.Round((1 - workProgress) / (1 - timeProgress), 6);
-                urgency = pressure <= config.OnTrackMaximum
+                var progressUrgency = pressure <= config.OnTrackMaximum
                     ? "on_track"
                     : pressure <= config.AtRiskMaximum
                         ? "at_risk"
                         : "critical";
+                if (capacityBalance < 0)
+                {
+                    urgency = "critical";
+                    riskBasis = "capacity_shortfall";
+                }
+                else if (feasibility > CapacityAtRiskRatio
+                    && progressUrgency == "on_track")
+                {
+                    urgency = "at_risk";
+                    riskBasis = "capacity_tight";
+                }
+                else
+                {
+                    urgency = progressUrgency;
+                    riskBasis = "progress_pressure";
+                }
             }
 
             var profileExceptions = new JsonArray();
@@ -713,7 +779,8 @@ internal static class TimeAnalysisGenerator
                     ["risk_thresholds"] = new JsonObject
                     {
                         ["on_track_max"] = config.OnTrackMaximum,
-                        ["at_risk_max"] = config.AtRiskMaximum
+                        ["at_risk_max"] = config.AtRiskMaximum,
+                        ["capacity_at_risk_ratio"] = CapacityAtRiskRatio
                     },
                     ["capacity_profile"] = new JsonObject
                     {
@@ -730,12 +797,17 @@ internal static class TimeAnalysisGenerator
                 },
                 ["elapsed_capacity_minutes"] = elapsedCapacity,
                 ["total_capacity_minutes"] = totalCapacity,
+                ["remaining_capacity_minutes"] = remainingCapacity,
+                ["remaining_estimated_minutes"] = remainingEstimatedMinutes,
+                ["capacity_balance_minutes"] = capacityBalance,
                 ["time_progress_ratio"] = timeProgress,
                 ["work_progress_ratio"] = Math.Round(workProgress, 6),
                 ["boundary_state"] = boundary,
-                ["urgency"] = urgency
+                ["urgency"] = urgency,
+                ["risk_basis"] = riskBasis
             };
             if (pressure is not null) result["progress_pressure_ratio"] = pressure.Value;
+            if (feasibility is not null) result["feasibility_ratio"] = feasibility.Value;
             return result;
         }
         catch (Exception error) when (error is TimeZoneNotFoundException or InvalidTimeZoneException)
@@ -875,6 +947,23 @@ internal static class TimeAnalysisGenerator
             }
         }
         return total == 0 ? 0 : completed / (double)total;
+    }
+
+    private static double CalculateTaskRemainingRatio(ReportTask task)
+    {
+        if (task.Status == "done") return 0;
+        if (task.CompletedCount + task.PendingCount > 0)
+        {
+            return task.PendingCount / (double)(task.CompletedCount + task.PendingCount);
+        }
+        if (task.ProgressCompleted is not null && task.ProgressTotal is not null)
+        {
+            return 1 - Math.Clamp(
+                task.ProgressCompleted.Value / (double)task.ProgressTotal.Value,
+                0,
+                1);
+        }
+        return 1;
     }
 
     private static string OverallConfidence(IReadOnlyCollection<string> values)
@@ -1106,7 +1195,7 @@ internal static class TimeAnalysisGenerator
         return date.DayOfWeek == DayOfWeek.Sunday ? 7 : (int)date.DayOfWeek;
     }
 
-    private sealed record ReportItem(string Id);
+    private sealed record ReportItem(string Id, bool Completed);
 
     private sealed record ReportTask(
         string Id,

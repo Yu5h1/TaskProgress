@@ -24,7 +24,8 @@ test("progress report exposes one switching panel with three overview tabs", () 
   assert.ok(engineeringIndex > flowIndex);
   assert.ok(capacityIndex > engineeringIndex);
   assert.match(appSource, /technical\.append\(tabList, flowPanel, engineeringPanel, capacityPanel\)/);
-  assert.match(appSource, /目前 v0\.2 燈號只採進度壓力/);
+  assert.match(appSource, /v0\.3 先檢查剩餘工程需求與真實工作容量/);
+  assert.match(appSource, /deterministic-capacity-feasibility v0\.3/);
 });
 
 test("the demo can showcase estimate-only work without a deadline", () => {

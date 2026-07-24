@@ -29,6 +29,38 @@ test("Viewer accepts the example time analysis and indexes a real deadline", () 
   assert.ok(Math.abs(result.progress_pressure_ratio - 0.9) < 0.000001);
 });
 
+test("capacity shortfall overrides a green progress-pressure result", () => {
+  const deadline = structuredClone(analysis.summary.deadline);
+  deadline.remaining_estimated_minutes = 3000;
+
+  const result = calculateDeadlineRisk(
+    deadline,
+    "2026-07-24T17:00:00+08:00",
+  );
+
+  assert.ok(result.progress_pressure_ratio < 1);
+  assert.equal(result.remaining_capacity_minutes, 1920);
+  assert.equal(result.capacity_balance_minutes, -1080);
+  assert.equal(result.risk_basis, "capacity_shortfall");
+  assert.equal(result.urgency, "critical");
+});
+
+test("using more than 80 percent of remaining capacity is at least yellow", () => {
+  const deadline = structuredClone(analysis.summary.deadline);
+  deadline.work_progress_ratio = 0.8;
+  deadline.remaining_estimated_minutes = 1600;
+
+  const result = calculateDeadlineRisk(
+    deadline,
+    "2026-07-24T17:00:00+08:00",
+  );
+
+  assert.equal(result.remaining_capacity_minutes, 1920);
+  assert.ok(result.feasibility_ratio > 0.8);
+  assert.equal(result.risk_basis, "capacity_tight");
+  assert.equal(result.urgency, "at_risk");
+});
+
 test("Viewer resolves the optional sidecar beside report.json", () => {
   assert.equal(
     resolveTimeAnalysisSource(

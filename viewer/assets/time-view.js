@@ -7,9 +7,9 @@ import {
 } from "./time-model.js";
 
 const URGENCY_META = Object.freeze({
-  on_track: { label: "進度正常", lamp: "綠色燈號", className: "on-track" },
-  at_risk: { label: "進度有風險", lamp: "黃色燈號", className: "at-risk" },
-  critical: { label: "進度危急", lamp: "紅色燈號", className: "critical" },
+  on_track: { label: "交付可行", lamp: "綠色燈號", className: "on-track" },
+  at_risk: { label: "交付有風險", lamp: "黃色燈號", className: "at-risk" },
+  critical: { label: "交付不可行", lamp: "紅色燈號", className: "critical" },
   complete: { label: "已完成", lamp: "完成燈號", className: "on-track" },
 });
 
@@ -86,11 +86,17 @@ function pressureLabel(deadline) {
 function publicRiskLabel(deadline, urgency) {
   if (deadline.boundary_state === "complete") return "已完成";
   if (deadline.boundary_state === "delivery_reached") return "已逾期";
+  if (deadline.risk_basis === "capacity_shortfall") return "容量不足";
+  if (deadline.risk_basis === "capacity_tight") return "容量緊繃";
   if (deadline.urgency === "critical") return "預計超期";
   return urgency.label;
 }
 
 export function remainingWorkload(summary, workProgressRatio) {
+  if (Number.isFinite(summary.remaining_estimated_minutes)
+    && summary.remaining_estimated_minutes >= 0) {
+    return summary.remaining_estimated_minutes;
+  }
   const factor = summary.execution_calibration.factor;
   const total = summary.calibrated_total_minutes
     ?? summary.total_estimated_minutes * factor;
@@ -172,6 +178,19 @@ function deadlineExplanation(deadline, urgency) {
     return {
       text: "交付前排定容量已全部消耗，但工作仍未完成，因此判定為進度危急。",
       formula: "time_progress = 1 AND work_progress < 1 → critical",
+    };
+  }
+  if (deadline.risk_basis === "capacity_shortfall") {
+    return {
+      text: `預估未完成工作為 ${hours(deadline.remaining_estimated_minutes)}，但交付前只剩 ${hours(deadline.remaining_capacity_minutes)}；容量缺口 ${hours(Math.abs(deadline.capacity_balance_minutes))}，因此直接判定為「容量不足」。`,
+      formula: `${hours(deadline.remaining_capacity_minutes)} - ${hours(deadline.remaining_estimated_minutes)} = -${hours(Math.abs(deadline.capacity_balance_minutes))}`,
+    };
+  }
+  if (deadline.risk_basis === "capacity_tight") {
+    const capacityRatio = deadline.feasibility_ratio;
+    return {
+      text: `預估未完成工作將使用剩餘容量的 ${percent(capacityRatio)}，已超過 ${percent(deadline.schedule.risk_thresholds.capacity_at_risk_ratio ?? 0.8)} 的容量警戒線，因此判定為「容量緊繃」。`,
+      formula: `${hours(deadline.remaining_estimated_minutes)} ÷ ${hours(deadline.remaining_capacity_minutes)} = ${capacityRatio.toFixed(4)}`,
     };
   }
   const pressure = deadline.progress_pressure_ratio;
@@ -302,7 +321,7 @@ export function createTimeReferenceController({
     panel.append(el(
       "p",
       "time-flow-intro",
-      "工程需求與可工作時間分開計算，再用目前進度判斷交付風險。",
+      "工程需求與可工作時間分開計算；容量不足會優先判定交付不可行，再用進度壓力補充趨勢。",
     ));
     const remainingCapacity = Math.max(
       0,
@@ -322,7 +341,9 @@ export function createTimeReferenceController({
       evaluationNode(
         "預估未完成工時",
         hours(remaining),
-        "工程總估算 × 未完成比例",
+        Number.isFinite(summary.remaining_estimated_minutes)
+          ? "直接加總未完成項目的校準後估算"
+          : "舊版資料：工程總估算 × 未完成比例",
         "time-evaluation-result",
       ),
     );
@@ -351,7 +372,9 @@ export function createTimeReferenceController({
       evaluationNode(
         "需求與容量比較",
         `${balanceLabel} ${hours(Math.abs(balanceMinutes))}`,
-        "目前作為可行性參考，尚未直接改變燈號",
+        balanceMinutes < 0
+          ? "容量不足會直接改為紅燈"
+          : "使用超過 80% 剩餘容量時至少為黃燈",
         balanceMinutes >= 0 ? "time-evaluation-balance" : "time-evaluation-shortage",
       ),
     );
@@ -367,7 +390,7 @@ export function createTimeReferenceController({
       evaluationNode(
         "目前風險評估",
         publicRiskLabel(deadline, meta),
-        "deterministic-progress-pressure v0.2",
+        "deterministic-capacity-feasibility v0.3",
         `time-evaluation-risk ${meta.className}`,
       ),
     );
@@ -378,7 +401,7 @@ export function createTimeReferenceController({
       el(
         "p",
         "time-flow-note",
-        "目前 v0.2 燈號只採進度壓力；容量缺口先作摘要參考，待公式升版後才可合併成總結風險。",
+        "v0.3 先檢查剩餘工程需求與真實工作容量：缺口為紅燈、容量使用率超過 80% 至少為黃燈；容量足夠時再採進度壓力判斷。",
       ),
     );
     return panel;

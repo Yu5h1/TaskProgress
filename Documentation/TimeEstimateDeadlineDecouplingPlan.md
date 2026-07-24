@@ -68,14 +68,14 @@ Draft 0.2 的 `summary.deadline` 在 Schema 中已是選用欄位，第一階段
 
 `work_progress_ratio` 不再只能從 `summary.deadline` 取得。Viewer 優先使用目前 `report.json` 工作項目計算出的進度；發布快照中的期限進度只用於重現與交叉檢查。
 
-未完成工時維持確定性公式：
+未完成工時維持確定性，但 v0.3 改為直接加總未完成項目的校準後估算：
 
 ```text
 unfinished_minutes
-= calibrated_total_minutes × (1 - current_work_progress_ratio)
+= sum(active estimates for pending items) × execution_calibration_factor
 ```
 
-它不依賴交付日期、容量時間線或風險門檻。
+只有 task-level estimate 沒有 item-level 對應時，才依該任務的可驗證進度比例分配剩餘量。它不依賴交付日期、容量時間線或風險門檻。
 
 ## Viewer 解耦
 
