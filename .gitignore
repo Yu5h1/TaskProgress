@@ -18,7 +18,6 @@ Build/
 .DS_Store
 *.log
 coverage/
-tests/
 
 # Local report fixtures are intentionally not versioned. The tracked public
 # sample lives under reports/example/.
