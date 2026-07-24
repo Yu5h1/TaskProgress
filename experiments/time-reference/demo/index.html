@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <meta
+      name="description"
+      content="TaskProgress Viewer 正式排版中的時間參考整合實驗。"
+    />
+    <title>TaskProgress · 時間參考整合 Demo</title>
+    <script src="../../../viewer/assets/theme-bootstrap.js"></script>
+    <link rel="stylesheet" href="../../../viewer/assets/styles.css" />
+    <link rel="stylesheet" href="./styles.css?v=20260724-025" />
+    <script defer src="./editing-policy.js?v=20260724-025"></script>
+    <script defer src="./task-editing-model.js?v=20260724-025"></script>
+    <script defer src="./time-data-policy.js?v=20260724-025"></script>
+    <script defer src="./estimate-engine.js?v=20260724-025"></script>
+    <script defer src="./capacity-engine.js?v=20260724-025"></script>
+    <script defer src="./deadline-engine.js?v=20260724-025"></script>
+    <script defer src="./app.js?v=20260724-025"></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">跳至主要內容</a>
+    <div class="page-shell">
+      <header class="site-header">
+        <a class="brand" href="#main-content" aria-label="TaskProgress 時間參考 Demo 首頁">
+          <span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></span>
+          <span>TaskProgress</span>
+        </a>
+        <div class="header-actions">
+          <div class="mode-badge">Time experiment</div>
+          <label class="theme-picker mode-picker" for="time-scenario-select">
+            <span>情境</span>
+            <select class="theme-control view-mode-control" id="time-scenario-select" aria-label="時間資料情境">
+              <option value="undated" selected>交付日未定</option>
+              <option value="deadline">8/1 交付</option>
+            </select>
+          </label>
+          <label class="theme-picker mode-picker" for="view-mode-select">
+            <span>模式</span>
+            <select class="theme-control view-mode-control" id="view-mode-select" aria-label="操作模式">
+              <option value="preview">預覽模式</option>
+              <option value="edit">編輯模式</option>
+            </select>
+          </label>
+          <label class="theme-picker" for="theme-select">
+            <span>主題</span>
+            <select class="theme-control" id="theme-select" aria-label="顯示主題">
+              <option value="system">系統選擇</option>
+              <option value="light">亮色</option>
+              <option value="dark">暗色</option>
+            </select>
+          </label>
+        </div>
+      </header>
+
+      <main id="main-content">
+        <section class="hero" aria-labelledby="report-title">
+          <div class="project-copy">
+            <p class="eyebrow">TIME-REFERENCE</p>
+            <div class="project-title-line">
+              <h1 id="report-title">TaskProgress 時間參考開發進度</h1>
+              <button
+                class="time-summary-button loading"
+                id="time-summary-button"
+                type="button"
+                aria-label="工期摘要，正在載入時間分析"
+                disabled
+                hidden
+              >
+                <span id="time-summary-text">載入時間分析…</span>
+                <span class="risk-dot" aria-hidden="true"></span>
+                <span class="time-chevron" aria-hidden="true">›</span>
+              </button>
+            </div>
+            <p class="hero-summary">4 個狀態測試任務；第一張卡使用隔離時間分析範例。</p>
+          </div>
+
+          <dl class="report-meta">
+            <div id="analysis-method-meta" hidden>
+              <dt>最後更新</dt>
+              <dd id="updated-at">—</dd>
+            </div>
+            <div>
+              <dt>Report ID</dt>
+              <dd>time-reference-demo</dd>
+            </div>
+            <div>
+              <dt>Method</dt>
+              <dd id="analysis-method">—</dd>
+            </div>
+          </dl>
+
+          <div class="project-progress">
+            <div class="project-progress-label">
+              <strong id="project-progress-value">整體約 0%</strong>
+            </div>
+            <progress
+              class="project-progress-meter"
+              id="project-progress-meter"
+              max="100"
+              value="0"
+              aria-label="整體進度 0%"
+            ></progress>
+          </div>
+        </section>
+
+        <div class="global-edit-save" id="global-edit-save" hidden>
+          <button type="button" id="global-edit-save-button">儲存</button>
+        </div>
+
+        <section id="report-content">
+          <div class="overview-grid" aria-label="報告摘要">
+            <article class="overview-card overview-active" data-status="in_progress">
+              <span class="overview-value">1</span>
+              <span class="overview-label">目前進行</span>
+            </article>
+            <article class="overview-card overview-success" data-status="done">
+              <span class="overview-value">1</span>
+              <span class="overview-label">已完成</span>
+            </article>
+            <article class="overview-card overview-danger" data-status="blocked">
+              <span class="overview-value">1</span>
+              <span class="overview-label">受阻</span>
+            </article>
+            <article class="overview-card" data-status="archive">
+              <span class="overview-value">1</span>
+              <span class="overview-label">已封存</span>
+            </article>
+          </div>
+
+          <div class="task-toolbar">
+            <p class="section-kicker">工作項目</p>
+            <div class="filters" id="status-filters" aria-label="依狀態篩選；編輯模式可拖曳調整排序">
+              <button class="filter-button" type="button" data-filter="all" aria-pressed="true">全部 4</button>
+              <button class="filter-button" type="button" data-filter="in_progress" aria-pressed="false">進行中 1</button>
+              <button class="filter-button" type="button" data-filter="done" aria-pressed="false">已完成 1</button>
+              <button class="filter-button" type="button" data-filter="blocked" aria-pressed="false">受阻 1</button>
+              <button class="filter-button" type="button" data-filter="archive" aria-pressed="false">已封存 1</button>
+            </div>
+          </div>
+
+          <div class="task-list" id="task-list">
+            <article class="task-card status-active" id="task-card" data-task-id="time-reference-prototype" data-status="in_progress" data-base-completed="0" data-base-total="4" aria-busy="true">
+              <header class="task-header time-task-header">
+                <div class="time-task-copy">
+                  <div class="time-task-status-line">
+                    <span class="time-task-state">
+                      <span class="task-state-dot state-active" aria-hidden="true"></span>
+                      進行中
+                    </span>
+                  </div>
+                  <div class="time-task-title-line">
+                    <h3>建立時間參考原型</h3>
+                    <span class="task-duration" id="task-duration" hidden>約需 — hr</span>
+                  </div>
+                </div>
+                <div class="task-header-meta">
+                  <strong class="task-fraction" id="task-total" aria-label="子項目完成 0，共 4">0 / 4</strong>
+                  <code class="task-id">time-reference-prototype</code>
+                </div>
+              </header>
+              <p class="task-summary">
+                驗證時間估算、交付期限與風險燈號放入正式 Viewer 密度後的閱讀效果。
+              </p>
+              <div class="work-columns">
+                <section class="detail-section pending-work">
+                  <h4 class="detail-heading">尚未完成</h4>
+                  <ul class="detail-list task-child-list" id="work-list" data-task-child-list="time-reference-prototype"></ul>
+                </section>
+              </div>
+            </article>
+
+            <article class="task-card status-success" data-task-id="viewer-theme-system" data-status="done" data-base-completed="3" data-base-total="3">
+              <header class="task-header time-task-header">
+                <div class="time-task-copy">
+                  <div class="time-task-status-line">
+                    <span class="time-task-state">
+                      <span class="task-state-dot state-success" aria-hidden="true"></span>
+                      已完成
+                    </span>
+                  </div>
+                  <div class="time-task-title-line">
+                    <h3>完成 Viewer 主題系統</h3>
+                    <span class="task-duration" hidden>約需 16 hr</span>
+                  </div>
+                </div>
+                <div class="task-header-meta">
+                  <strong class="task-fraction" aria-label="子項目完成 3，共 3">3 / 3</strong>
+                  <code class="task-id">viewer-theme-system</code>
+                </div>
+              </header>
+              <p class="task-summary">狀態篩選測試資料：系統、亮色、暗色與自訂主題均已驗證。</p>
+              <div class="work-columns task-child-panel" hidden>
+                <section class="detail-section pending-work">
+                  <h4 class="detail-heading">尚未完成</h4>
+                  <ul class="detail-list task-child-list" data-task-child-list="viewer-theme-system"></ul>
+                </section>
+              </div>
+            </article>
+
+            <article class="task-card status-danger" data-task-id="history-calibration-model" data-status="blocked" data-base-completed="0" data-base-total="2">
+              <header class="task-header time-task-header">
+                <div class="time-task-copy">
+                  <div class="time-task-status-line">
+                    <span class="time-task-state">
+                      <span class="task-state-dot state-danger" aria-hidden="true"></span>
+                      受阻
+                    </span>
+                  </div>
+                  <div class="time-task-title-line">
+                    <h3>建立歷史校準模型</h3>
+                    <span class="task-duration" hidden>約需 32 hr</span>
+                  </div>
+                </div>
+                <div class="task-header-meta">
+                  <strong class="task-fraction" aria-label="子項目完成 0，共 2">0 / 2</strong>
+                  <code class="task-id">history-calibration-model</code>
+                </div>
+              </header>
+              <p class="task-summary">狀態篩選測試資料：等待足夠的相似完成樣本後再啟用加權校準。</p>
+              <div class="work-columns task-child-panel" hidden>
+                <section class="detail-section pending-work">
+                  <h4 class="detail-heading">尚未完成</h4>
+                  <ul class="detail-list task-child-list" data-task-child-list="history-calibration-model"></ul>
+                </section>
+              </div>
+            </article>
+
+            <article class="task-card" data-task-id="legacy-time-label" data-status="archive" data-base-completed="1" data-base-total="1">
+              <header class="task-header time-task-header">
+                <div class="time-task-copy">
+                  <div class="time-task-status-line">
+                    <span class="time-task-state">
+                      <span class="task-state-dot state-muted" aria-hidden="true"></span>
+                      已封存
+                    </span>
+                  </div>
+                  <div class="time-task-title-line">
+                    <h3>封存舊版時間標籤</h3>
+                    <span class="task-duration" hidden>約需 8 hr</span>
+                  </div>
+                </div>
+                <div class="task-header-meta">
+                  <strong class="task-fraction" aria-label="子項目完成 1，共 1">1 / 1</strong>
+                  <code class="task-id">legacy-time-label</code>
+                </div>
+              </header>
+              <p class="task-summary">狀態篩選測試資料：保留決策紀錄，不再使用舊版灰底按鈕方案。</p>
+              <div class="work-columns task-child-panel" hidden>
+                <section class="detail-section pending-work">
+                  <h4 class="detail-heading">尚未完成</h4>
+                  <ul class="detail-list task-child-list" data-task-child-list="legacy-time-label"></ul>
+                </section>
+              </div>
+            </article>
+          </div>
+        </section>
+      </main>
+
+      <footer>
+        <span>TaskProgress Viewer layout</span>
+        <span>Time reference is experimental</span>
+      </footer>
+    </div>
+
+    <dialog class="theme-dialog time-detail-dialog" id="detail-dialog" aria-labelledby="dialog-title">
+      <div class="theme-dialog-heading">
+        <div>
+          <p class="section-kicker" id="dialog-kicker">時間參考</p>
+          <h2 id="dialog-title">計算方式</h2>
+        </div>
+        <form method="dialog">
+          <button class="theme-close" type="submit" aria-label="關閉詳細內容">×</button>
+        </form>
+      </div>
+      <div class="dialog-content" id="dialog-content"></div>
+    </dialog>
+
+    <noscript>這個實驗頁需要 JavaScript 才能載入分析範例。</noscript>
+  </body>
+</html>

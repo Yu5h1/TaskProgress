@@ -1,0 +1,257 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://taskprogress.local/schemas/time-reference/time.config.schema.json",
+  "title": "TaskProgress Time Reference Configuration (Draft)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "scope_id",
+    "updated_at",
+    "timezone",
+    "standard_allocation",
+    "project",
+    "estimate_defaults",
+    "estimate_resolution",
+    "execution_calibration",
+    "urgency_thresholds",
+    "display"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "0.2"
+    },
+    "scope_id": {
+      "$ref": "#/$defs/id"
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "timezone": {
+      "type": "string",
+      "minLength": 1,
+      "examples": ["Asia/Taipei"]
+    },
+    "standard_allocation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "total_minutes_per_day",
+        "sleep_minutes_per_day",
+        "life_minutes_per_day",
+        "other_unavailable_minutes_per_day",
+        "capacity_minutes_per_executor_day",
+        "working_weekdays"
+      ],
+      "properties": {
+        "total_minutes_per_day": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1440
+        },
+        "sleep_minutes_per_day": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1440
+        },
+        "life_minutes_per_day": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1440
+        },
+        "other_unavailable_minutes_per_day": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1440
+        },
+        "capacity_minutes_per_executor_day": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1440
+        },
+        "working_weekdays": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 7
+          }
+        },
+        "workday_start_local": {
+          "type": "string",
+          "pattern": "^(?:[01][0-9]|2[0-3]):[0-5][0-9]$"
+        },
+        "workday_end_local": {
+          "type": "string",
+          "pattern": "^(?:[01][0-9]|2[0-3]):[0-5][0-9]$"
+        }
+      }
+    },
+    "project": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["executor_count"],
+      "properties": {
+        "executor_count": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Draft 0.1 officially supports one executor only."
+        },
+        "not_before": {
+          "type": "string",
+          "format": "date"
+        },
+        "delivery_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Exclusive delivery boundary. Work must stop when this instant is reached."
+        },
+        "capacity_exceptions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["date", "available_minutes"],
+            "properties": {
+              "date": {
+                "type": "string",
+                "format": "date"
+              },
+              "available_minutes": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 1440
+              },
+              "reason": {
+                "type": "string",
+                "maxLength": 500
+              },
+              "public_label": {
+                "type": "string",
+                "maxLength": 500,
+                "description": "Optional publication-safe label. Private reason text is never projected automatically."
+              }
+            }
+          }
+        }
+      }
+    },
+    "estimate_defaults": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "unplanned_item_likely_minutes",
+        "unplanned_item_confidence",
+        "allow_range"
+      ],
+      "properties": {
+        "unplanned_item_likely_minutes": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "unplanned_item_confidence": {
+          "$ref": "#/$defs/confidence"
+        },
+        "allow_range": {
+          "type": "boolean"
+        }
+      }
+    },
+    "estimate_resolution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "automatic_source_order",
+        "manual_resolution",
+        "preserve_history"
+      ],
+      "properties": {
+        "automatic_source_order": {
+          "type": "array",
+          "prefixItems": [
+            { "const": "historical" },
+            { "const": "ai" },
+            { "const": "default" }
+          ],
+          "items": false,
+          "minItems": 3,
+          "maxItems": 3
+        },
+        "manual_resolution": {
+          "const": "final_override"
+        },
+        "preserve_history": {
+          "const": true
+        }
+      }
+    },
+    "execution_calibration": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "initial_factor",
+        "prior_equivalent_samples",
+        "automatic_adjustment"
+      ],
+      "properties": {
+        "initial_factor": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 4
+        },
+        "prior_equivalent_samples": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "automatic_adjustment": {
+          "type": "boolean"
+        }
+      }
+    },
+    "urgency_thresholds": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "on_track_max_pressure_ratio",
+        "at_risk_max_pressure_ratio"
+      ],
+      "properties": {
+        "on_track_max_pressure_ratio": {
+          "type": "number",
+          "minimum": 1
+        },
+        "at_risk_max_pressure_ratio": {
+          "type": "number",
+          "minimum": 1
+        }
+      }
+    },
+    "display": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["project_day_rounding", "item_unit"],
+      "properties": {
+        "project_day_rounding": {
+          "type": "string",
+          "enum": ["ceiling", "nearest"]
+        },
+        "item_unit": {
+          "const": "hour"
+        }
+      }
+    }
+  },
+  "$defs": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:[._-][a-z0-9]+)*$"
+    },
+    "confidence": {
+      "type": "string",
+      "enum": ["low", "medium", "high"]
+    }
+  }
+}

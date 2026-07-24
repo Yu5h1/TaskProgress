@@ -54,6 +54,19 @@ test("custom palettes accept only complete hexadecimal colors", () => {
   assert.equal(Object.keys(palette).length, CUSTOM_COLOR_FIELDS.length + 1);
 });
 
+test("the default dark palette stays Obsidian-style blue-gray", () => {
+  assert.deepEqual(DEFAULT_CUSTOM_PALETTES.dark, {
+    pageBackground: "#171a21",
+    panelBackground: "#202530",
+    heading: "#eef2f7",
+    panelHeading: "#dfe6ef",
+    itemText: "#cbd4df",
+    secondaryText: "#9da9b8",
+    border: "#343c49",
+    accent: "#7f9fd1",
+  });
+});
+
 test("theme storage preserves a custom palette while switching modes", () => {
   const storage = createStorage();
   const custom = createCustomPalette("dark", { accent: "#12ab34" });

@@ -6,6 +6,7 @@ internal sealed record ReportFolder(
     string DirectoryPath,
     string ReportPath,
     string? DeveloperPath,
+    string? TimeAnalysisPath,
     string Scope,
     string ReportId)
 {
@@ -52,10 +53,16 @@ internal sealed record ReportFolder(
             resolvedDeveloperPath = Path.GetFullPath(developerPath);
         }
 
+        var timeAnalysisPath = Path.Combine(directory, "time.analysis.json");
+        var resolvedTimeAnalysisPath = File.Exists(timeAnalysisPath)
+            ? Path.GetFullPath(timeAnalysisPath)
+            : null;
+
         return new ReportFolder(
             Path.GetFullPath(directory),
             Path.GetFullPath(reportPath),
             resolvedDeveloperPath,
+            resolvedTimeAnalysisPath,
             scope,
             report.ReportId);
     }

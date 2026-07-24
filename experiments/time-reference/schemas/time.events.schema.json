@@ -1,0 +1,164 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://taskprogress.local/schemas/time-reference/time.events.schema.json",
+  "title": "TaskProgress Time Events (Draft)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "scope_id", "updated_at", "events"],
+  "properties": {
+    "schema_version": {
+      "const": "0.2"
+    },
+    "scope_id": {
+      "$ref": "#/$defs/id"
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "events": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/event"
+      }
+    }
+  },
+  "$defs": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:[._-][a-z0-9]+)*$"
+    },
+    "event": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "event_id",
+        "task_id",
+        "kind",
+        "occurred_at",
+        "recorded_at",
+        "source"
+      ],
+      "properties": {
+        "event_id": {
+          "$ref": "#/$defs/id"
+        },
+        "task_id": {
+          "$ref": "#/$defs/id"
+        },
+        "item_id": {
+          "$ref": "#/$defs/id"
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "work_session_recorded",
+            "status_changed",
+            "blocker_started",
+            "blocker_ended",
+            "estimate_revised"
+          ]
+        },
+        "occurred_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "recorded_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "source": {
+          "type": "string",
+          "enum": ["manual", "agent", "timer", "import"]
+        },
+        "session": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["started_at", "ended_at"],
+          "properties": {
+            "started_at": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "ended_at": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "break_minutes": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        },
+        "status_change": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["from", "to"],
+          "properties": {
+            "from": {
+              "$ref": "#/$defs/status"
+            },
+            "to": {
+              "$ref": "#/$defs/status"
+            }
+          }
+        },
+        "estimate_id": {
+          "$ref": "#/$defs/id"
+        },
+        "note": {
+          "type": "string",
+          "maxLength": 1000
+        },
+        "supersedes_event_id": {
+          "$ref": "#/$defs/id"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "work_session_recorded"
+              }
+            },
+            "required": ["kind"]
+          },
+          "then": {
+            "required": ["session"]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "status_changed"
+              }
+            },
+            "required": ["kind"]
+          },
+          "then": {
+            "required": ["status_change"]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "estimate_revised"
+              }
+            },
+            "required": ["kind"]
+          },
+          "then": {
+            "required": ["estimate_id"]
+          }
+        }
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": ["planned", "in_progress", "blocked", "done", "archived"]
+    }
+  }
+}

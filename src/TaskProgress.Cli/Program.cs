@@ -60,6 +60,9 @@ internal static class Program
             case "start":
                 await StartAsync(ParseStartRequest(args[1..]), store, cancellationToken);
                 return 0;
+            case "analyze":
+                Analyze(ParseAnalyzeRequest(args[1..], store));
+                return 0;
             case "open":
                 await OpenAsync(ParseOpenRequest(args[1..], store), cancellationToken);
                 return 0;
@@ -245,6 +248,72 @@ internal static class Program
         return new StartRequest(port, openBrowser);
     }
 
+    private static AnalyzeRequest ParseAnalyzeRequest(string[] args, ScopeStore store)
+    {
+        string? folder = null;
+        string? scope = null;
+        string? output = null;
+        DateTimeOffset? asOf = null;
+        for (var index = 0; index < args.Length; index++)
+        {
+            var value = args[index];
+            switch (value.ToLowerInvariant())
+            {
+                case "--scope":
+                    scope = ScopeId.Validate(ReadOptionValue(args, ref index, value));
+                    break;
+                case "--output":
+                    output = ReadOptionValue(args, ref index, value);
+                    break;
+                case "--as-of":
+                    var timestamp = ReadOptionValue(args, ref index, value);
+                    if (!DateTimeOffset.TryParse(
+                        timestamp,
+                        System.Globalization.CultureInfo.InvariantCulture,
+                        System.Globalization.DateTimeStyles.RoundtripKind,
+                        out var parsed))
+                    {
+                        throw new CliException("--as-of 必須是包含時區的 ISO 8601 時間。");
+                    }
+                    asOf = parsed;
+                    break;
+                default:
+                    if (value.StartsWith('-'))
+                    {
+                        throw new CliException($"不支援的 analyze 選項：{value}");
+                    }
+                    if (folder is not null)
+                    {
+                        throw new CliException("analyze 只能指定一個 report folder。");
+                    }
+                    folder = value;
+                    break;
+            }
+        }
+        if (folder is not null && scope is not null)
+        {
+            throw new CliException("report folder 與 --scope 不可同時指定。");
+        }
+        if (scope is not null) folder = store.Resolve(scope);
+        folder ??= ".";
+        return new AnalyzeRequest(folder, output, asOf);
+    }
+
+    private static void Analyze(AnalyzeRequest request)
+    {
+        var result = TimeAnalysisGenerator.Generate(
+            request.Folder,
+            request.AsOf,
+            request.Output);
+        Console.WriteLine($"已產生：{result.OutputPath}");
+        Console.WriteLine($"工程估算：{result.TotalEstimatedMinutes} 分鐘");
+        Console.WriteLine($"分析範圍：{result.TaskCount} 個 task，{result.ItemCount} 個穩定 item");
+        Console.WriteLine(result.DeadlineIncluded
+            ? "期限分析：已產生"
+            : "期限分析：交付日未定");
+        Console.WriteLine($"診斷：{result.DiagnosticCount} 項");
+    }
+
     private static async Task StartAsync(
         StartRequest request,
         ScopeStore store,
@@ -266,6 +335,10 @@ internal static class Program
             {
                 throw new CliException(
                     $"scope「{expectedScope}」與 {report.ReportPath} 的 scope_id「{report.Scope}」不一致。 ");
+            }
+            if (TryAutoGenerate(item.Value))
+            {
+                report = ReportFolder.Load(item.Value);
             }
             reports.Add(report);
         }
@@ -311,6 +384,10 @@ internal static class Program
             throw new CliException(
                 $"scope「{request.ExpectedScope}」與 report.json 的 scope_id「{report.Scope}」不一致。 ");
         }
+        if (TryAutoGenerate(request.Folder))
+        {
+            report = ReportFolder.Load(request.Folder);
+        }
 
         var settings = LauncherSettings.Create(request.Port);
         using var service = await LocalWebServiceClient.EnsureAsync(settings, cancellationToken);
@@ -323,6 +400,24 @@ internal static class Program
         if (request.OpenBrowser)
         {
             Process.Start(new ProcessStartInfo(viewerUri.AbsoluteUri) { UseShellExecute = true });
+        }
+    }
+
+    private static bool TryAutoGenerate(string folder)
+    {
+        if (!TimeAnalysisGenerator.HasInputs(folder)) return false;
+        try
+        {
+            var result = TimeAnalysisGenerator.Generate(folder);
+            Console.WriteLine(
+                $"時間分析已更新：{result.TotalEstimatedMinutes} 分鐘，"
+                + (result.DeadlineIncluded ? "含期限風險" : "交付日未定"));
+            return true;
+        }
+        catch (CliException error)
+        {
+            Console.Error.WriteLine($"警告：時間分析自動更新失敗：{error.Message}");
+            return false;
         }
     }
 
@@ -403,6 +498,8 @@ internal static class Program
         Console.WriteLine();
         Console.WriteLine("命令：");
         Console.WriteLine("  start                            啟動服務並載入所有已登記 scope");
+        Console.WriteLine("  analyze <report-folder>          產生或更新 time.analysis.json");
+        Console.WriteLine("  analyze --scope <scope-id>       分析已登記的 scope");
         Console.WriteLine("  open <report-folder>             開啟指定資料夾的報告");
         Console.WriteLine("  open --scope <scope-id>          開啟已登記的 scope");
         Console.WriteLine("  scope add <report-folder>        以資料夾名稱自動產生並登記 scope");
@@ -416,12 +513,15 @@ internal static class Program
         Console.WriteLine();
         Console.WriteLine("選項：");
         Console.WriteLine("  --scope <scope-id>               使用已登記的 scope");
+        Console.WriteLine("  --as-of <ISO timestamp>          固定分析時間，便於重現與測試");
+        Console.WriteLine("  --output <path>                  指定分析輸出，預設 time.analysis.json");
         Console.WriteLine("  --port <port>                    指定連接埠，預設 8001");
         Console.WriteLine("  --no-browser                     不自動開啟瀏覽器");
         Console.WriteLine("  -h, -help, --help                顯示本說明");
         Console.WriteLine();
         Console.WriteLine("範例：");
         Console.WriteLine("  scope add \"W:\\UnityProject\\BonghuoVR\"");
+        Console.WriteLine("  analyze --scope bonghuo-vr");
         Console.WriteLine("  start");
         Console.WriteLine("  open --scope bonghuo-vr --no-browser");
         Console.WriteLine("  http://127.0.0.1:8001/?scope=bonghuo-vr");
@@ -436,4 +536,9 @@ internal static class Program
         bool OpenBrowser);
 
     private sealed record StartRequest(int Port, bool OpenBrowser);
+
+    private sealed record AnalyzeRequest(
+        string Folder,
+        string? Output,
+        DateTimeOffset? AsOf);
 }

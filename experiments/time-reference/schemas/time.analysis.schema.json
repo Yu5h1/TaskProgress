@@ -1,0 +1,700 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://taskprogress.local/schemas/time-reference/time.analysis.schema.json",
+  "title": "TaskProgress Time Analysis Snapshot (Draft)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "scope_id",
+    "analysis_id",
+    "as_of",
+    "method",
+    "inputs",
+    "summary",
+    "tasks",
+    "diagnostics"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "0.2"
+    },
+    "scope_id": {
+      "$ref": "#/$defs/id"
+    },
+    "analysis_id": {
+      "$ref": "#/$defs/id"
+    },
+    "as_of": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "method": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "version"],
+      "properties": {
+        "name": {
+          "const": "deterministic-progress-pressure"
+        },
+        "version": {
+          "const": "0.2"
+        }
+      }
+    },
+    "inputs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "config_updated_at",
+        "estimates_updated_at",
+        "events_updated_at",
+        "task_state_updated_at"
+      ],
+      "properties": {
+        "config_updated_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "estimates_updated_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "events_updated_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "task_state_updated_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "summary": {
+      "$ref": "#/$defs/summary"
+    },
+    "tasks": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/task_analysis"
+      }
+    },
+    "diagnostics": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/diagnostic"
+      }
+    }
+  },
+  "$defs": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:[._-][a-z0-9]+)*$"
+    },
+    "confidence": {
+      "type": "string",
+      "enum": ["low", "medium", "high"]
+    },
+    "estimate_mode": {
+      "type": "string",
+      "enum": ["manual", "mixed", "ai", "default"]
+    },
+    "contributor_kind": {
+      "type": "string",
+      "enum": [
+        "human_estimate",
+        "human_parameter",
+        "ai_analysis",
+        "historical_evidence",
+        "system_default",
+        "deterministic_formula"
+      ]
+    },
+    "contributor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "summary"],
+      "properties": {
+        "kind": {
+          "$ref": "#/$defs/contributor_kind"
+        },
+        "summary": {
+          "type": "string",
+          "maxLength": 500
+        },
+        "reference": {
+          "type": "string",
+          "maxLength": 500
+        }
+      }
+    },
+    "input_parameter": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "value", "origin"],
+      "properties": {
+        "name": {
+          "$ref": "#/$defs/id"
+        },
+        "value": {
+          "type": ["number", "string", "boolean"]
+        },
+        "unit": {
+          "type": "string",
+          "maxLength": 50
+        },
+        "origin": {
+          "type": "string",
+          "enum": ["human", "ai", "historical", "default"]
+        },
+        "note": {
+          "type": "string",
+          "maxLength": 500
+        }
+      }
+    },
+    "analysis_method": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "version", "performed_by", "explanation"],
+      "properties": {
+        "name": {
+          "$ref": "#/$defs/id"
+        },
+        "version": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 50
+        },
+        "performed_by": {
+          "type": "string",
+          "enum": ["ai", "human", "system"]
+        },
+        "explanation": {
+          "type": "string",
+          "maxLength": 1000
+        }
+      }
+    },
+    "calculation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["algorithm_id", "formula", "version", "explanation"],
+      "properties": {
+        "algorithm_id": {
+          "$ref": "#/$defs/id"
+        },
+        "formula": {
+          "type": "string",
+          "maxLength": 500
+        },
+        "version": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 50
+        },
+        "explanation": {
+          "type": "string",
+          "maxLength": 1000
+        }
+      }
+    },
+    "calibration": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "factor",
+        "prior_factor",
+        "prior_equivalent_samples",
+        "raw_sample_count",
+        "effective_sample_count",
+        "data_weight",
+        "confidence",
+        "automatic_applied"
+      ],
+      "properties": {
+        "factor": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "prior_factor": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "prior_equivalent_samples": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "observed_factor": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "confidence": {
+          "$ref": "#/$defs/confidence"
+        },
+        "raw_sample_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "effective_sample_count": {
+          "type": "number",
+          "minimum": 0
+        },
+        "data_weight": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "automatic_applied": {
+          "type": "boolean"
+        }
+      }
+    },
+    "composition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "ai_minutes",
+        "mixed_minutes",
+        "manual_minutes",
+        "default_minutes"
+      ],
+      "properties": {
+        "ai_minutes": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "mixed_minutes": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "manual_minutes": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "default_minutes": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "deadline_analysis": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "started_at",
+        "delivery_at",
+        "schedule",
+        "elapsed_capacity_minutes",
+        "total_capacity_minutes",
+        "time_progress_ratio",
+        "work_progress_ratio",
+        "boundary_state",
+        "urgency"
+      ],
+      "properties": {
+        "started_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "delivery_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "evaluated_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "schedule": {
+          "$ref": "#/$defs/runtime_schedule"
+        },
+        "elapsed_capacity_minutes": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "total_capacity_minutes": {
+          "type": "integer",
+          "exclusiveMinimum": 0
+        },
+        "time_progress_ratio": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "work_progress_ratio": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "progress_pressure_ratio": {
+          "type": "number",
+          "minimum": 0
+        },
+        "boundary_state": {
+          "type": "string",
+          "enum": ["active", "capacity_exhausted", "delivery_reached", "complete"]
+        },
+        "urgency": {
+          "type": "string",
+          "enum": ["on_track", "at_risk", "critical", "complete"]
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "boundary_state": {
+                "const": "active"
+              }
+            },
+            "required": ["boundary_state"]
+          },
+          "then": {
+            "required": ["progress_pressure_ratio"]
+          }
+        }
+      ]
+    },
+    "capacity_day": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["date", "capacity_minutes"],
+      "properties": {
+        "date": {
+          "type": "string",
+          "format": "date"
+        },
+        "capacity_minutes": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "capacity_exception": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["date", "available_minutes"],
+      "properties": {
+        "date": {
+          "type": "string",
+          "format": "date"
+        },
+        "available_minutes": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1440
+        },
+        "public_label": {
+          "type": "string",
+          "maxLength": 500
+        }
+      }
+    },
+    "capacity_profile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "total_minutes_per_day",
+        "sleep_minutes_per_day",
+        "life_minutes_per_day",
+        "other_unavailable_minutes_per_day",
+        "capacity_minutes_per_executor_day",
+        "working_weekdays",
+        "capacity_exceptions"
+      ],
+      "properties": {
+        "total_minutes_per_day": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1440
+        },
+        "sleep_minutes_per_day": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1440
+        },
+        "life_minutes_per_day": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1440
+        },
+        "other_unavailable_minutes_per_day": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1440
+        },
+        "capacity_minutes_per_executor_day": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1440
+        },
+        "working_weekdays": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 7
+          }
+        },
+        "capacity_exceptions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/capacity_exception"
+          }
+        }
+      }
+    },
+    "runtime_schedule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "timezone",
+        "workday_start_local",
+        "workday_end_local",
+        "risk_thresholds",
+        "capacity_profile",
+        "capacity_timeline"
+      ],
+      "properties": {
+        "timezone": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "workday_start_local": {
+          "type": "string",
+          "pattern": "^(?:[01][0-9]|2[0-3]):[0-5][0-9]$"
+        },
+        "workday_end_local": {
+          "type": "string",
+          "pattern": "^(?:[01][0-9]|2[0-3]):[0-5][0-9]$"
+        },
+        "risk_thresholds": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["on_track_max", "at_risk_max"],
+          "properties": {
+            "on_track_max": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "at_risk_max": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            }
+          }
+        },
+        "capacity_profile": {
+          "$ref": "#/$defs/capacity_profile"
+        },
+        "capacity_timeline": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/capacity_day"
+          }
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "executor_count",
+        "nominal_daily_capacity_minutes",
+        "execution_calibration",
+        "total_estimated_minutes",
+        "calibrated_total_minutes",
+        "actual_recorded_minutes",
+        "estimated_total_days",
+        "display_total_days",
+        "overall_confidence",
+        "estimate_composition"
+      ],
+      "properties": {
+        "executor_count": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "nominal_daily_capacity_minutes": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "execution_calibration": {
+          "$ref": "#/$defs/calibration"
+        },
+        "total_estimated_minutes": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "calibrated_total_minutes": {
+          "type": "number",
+          "minimum": 0
+        },
+        "actual_recorded_minutes": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "estimated_total_days": {
+          "type": "number",
+          "minimum": 0
+        },
+        "display_total_days": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "overall_confidence": {
+          "$ref": "#/$defs/confidence"
+        },
+        "estimate_composition": {
+          "$ref": "#/$defs/composition"
+        },
+        "deadline": {
+          "$ref": "#/$defs/deadline_analysis"
+        }
+      }
+    },
+    "item_analysis": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "estimate_id",
+        "item_id",
+        "likely_minutes",
+        "display_hours",
+        "mode",
+        "contributors",
+        "human_confirmed",
+        "confidence",
+        "explanation"
+      ],
+      "dependentRequired": {
+        "low_minutes": ["high_minutes"],
+        "high_minutes": ["low_minutes"]
+      },
+      "properties": {
+        "estimate_id": {
+          "$ref": "#/$defs/id"
+        },
+        "supersedes_estimate_id": {
+          "$ref": "#/$defs/id"
+        },
+        "item_id": {
+          "$ref": "#/$defs/id"
+        },
+        "low_minutes": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "likely_minutes": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "high_minutes": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "display_hours": {
+          "type": "number",
+          "minimum": 0
+        },
+        "mode": {
+          "$ref": "#/$defs/estimate_mode"
+        },
+        "contributors": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/contributor"
+          }
+        },
+        "human_confirmed": {
+          "type": "boolean"
+        },
+        "inputs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/input_parameter"
+          }
+        },
+        "analysis_method": {
+          "$ref": "#/$defs/analysis_method"
+        },
+        "calculation": {
+          "$ref": "#/$defs/calculation"
+        },
+        "confidence": {
+          "$ref": "#/$defs/confidence"
+        },
+        "explanation": {
+          "type": "string",
+          "maxLength": 1000
+        },
+        "human_note": {
+          "type": "string",
+          "maxLength": 1000
+        },
+        "reference": {
+          "type": "string",
+          "maxLength": 500
+        }
+      }
+    },
+    "task_analysis": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "task_id",
+        "total_likely_minutes",
+        "estimated_days",
+        "display_days",
+        "items"
+      ],
+      "properties": {
+        "task_id": {
+          "$ref": "#/$defs/id"
+        },
+        "total_likely_minutes": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "estimated_days": {
+          "type": "number",
+          "minimum": 0
+        },
+        "display_days": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/item_analysis"
+          }
+        }
+      }
+    },
+    "diagnostic": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["level", "code", "message"],
+      "properties": {
+        "level": {
+          "type": "string",
+          "enum": ["info", "warning", "error"]
+        },
+        "code": {
+          "$ref": "#/$defs/id"
+        },
+        "message": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1000
+        }
+      }
+    }
+  }
+}

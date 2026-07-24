@@ -79,6 +79,7 @@ internal sealed class LocalWebServiceClient : IDisposable
     {
         var reportUrl = $"/reports/{report.Scope}/report.json";
         var developerUrl = $"/reports/{report.Scope}/report.dev.json";
+        var timeAnalysisUrl = $"/reports/{report.Scope}/time.analysis.json";
         await RegisterFileAsync(reportUrl, report.ReportPath, cancellationToken);
 
         if (report.DeveloperPath is not null)
@@ -88,6 +89,15 @@ internal sealed class LocalWebServiceClient : IDisposable
         else
         {
             await UnregisterUrlIfPresentAsync(developerUrl, cancellationToken);
+        }
+
+        if (report.TimeAnalysisPath is not null)
+        {
+            await RegisterFileAsync(timeAnalysisUrl, report.TimeAnalysisPath, cancellationToken);
+        }
+        else
+        {
+            await UnregisterUrlIfPresentAsync(timeAnalysisUrl, cancellationToken);
         }
     }
 
@@ -112,12 +122,9 @@ internal sealed class LocalWebServiceClient : IDisposable
 
     public Uri BuildViewerUri(ReportFolder report)
     {
-        var query = $"?scope={Uri.EscapeDataString(report.Scope)}";
-        if (report.DeveloperPath is not null)
-        {
-            query += $"&dev=../reports/{Uri.EscapeDataString(report.Scope)}/report.dev.json";
-        }
-        return new Uri(_settings.BaseUri, query);
+        return new Uri(
+            _settings.BaseUri,
+            $"?scope={Uri.EscapeDataString(report.Scope)}");
     }
 
     public async Task ShutdownAsync(CancellationToken cancellationToken)
@@ -453,7 +460,10 @@ internal sealed class LocalWebServiceClient : IDisposable
         var segments = urlPath.Trim('/').Split('/');
         if (segments.Length != 3
             || !string.Equals(segments[0], "reports", StringComparison.Ordinal)
-            || segments[2] is not ("report.json" or "report.dev.json"))
+            || segments[2] is not (
+                "report.json"
+                or "report.dev.json"
+                or "time.analysis.json"))
         {
             return false;
         }

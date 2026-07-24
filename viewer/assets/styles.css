@@ -94,39 +94,39 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --theme-page-bg: #111714;
-    --theme-panel-bg: #19211d;
-    --theme-heading: #edf3ef;
-    --theme-panel-heading: #e4ebe7;
-    --theme-item-text: #d5ddd8;
-    --theme-secondary-text: #aebbb4;
-    --theme-muted-text: #89968f;
-    --theme-border: #35423b;
-    --theme-accent: #70c49c;
-    --theme-focus: #9dccf0;
-    --theme-on-solid: #111714;
-    --theme-brand-bars: #111714;
-    --theme-elevated-bg: rgba(38, 49, 43, 0.92);
-    --theme-panel-translucent: rgba(25, 33, 29, 0.9);
-    --theme-line-subtle: rgba(145, 161, 152, 0.28);
-    --theme-progress-track: rgba(74, 89, 81, 0.72);
-    --theme-progress-end: #96d6b7;
-    --theme-dashed-border: #536159;
-    --theme-reference-bg: #29342e;
-    --theme-active-text: #9dccf0;
-    --theme-active-bg: #1d3445;
-    --theme-active-border: #36556b;
-    --theme-success-text: #92d7b3;
-    --theme-success-bg: #1c3a2c;
-    --theme-success-border: #356049;
+    --theme-page-bg: #171a21;
+    --theme-panel-bg: #202530;
+    --theme-heading: #eef2f7;
+    --theme-panel-heading: #dfe6ef;
+    --theme-item-text: #cbd4df;
+    --theme-secondary-text: #9da9b8;
+    --theme-muted-text: #7d8998;
+    --theme-border: #343c49;
+    --theme-accent: #7f9fd1;
+    --theme-focus: #9fc5f8;
+    --theme-on-solid: #171a21;
+    --theme-brand-bars: #171a21;
+    --theme-elevated-bg: rgba(42, 49, 61, 0.94);
+    --theme-panel-translucent: rgba(32, 37, 48, 0.92);
+    --theme-line-subtle: rgba(132, 145, 162, 0.3);
+    --theme-progress-track: rgba(65, 75, 89, 0.78);
+    --theme-progress-end: #9bbce5;
+    --theme-dashed-border: #556171;
+    --theme-reference-bg: #2a313c;
+    --theme-active-text: #9fc5f8;
+    --theme-active-bg: #24364c;
+    --theme-active-border: #3e5876;
+    --theme-success-text: #8fd3c7;
+    --theme-success-bg: #203b3b;
+    --theme-success-border: #37615f;
     --theme-danger-text: #f1aaa6;
     --theme-danger-bg: #462524;
     --theme-danger-border: #70413f;
     --theme-warning-text: #f1c27d;
     --theme-warning-bg: #46331f;
     --theme-warning-border: #725333;
-    --theme-muted-status-text: #b3bdb7;
-    --theme-muted-status-bg: #2a322e;
+    --theme-muted-status-text: #b1bbc8;
+    --theme-muted-status-bg: #2b313b;
     --shadow: 0 6px 18px rgba(0, 0, 0, 0.16);
   }
 }
@@ -173,39 +173,39 @@
 :root[data-theme="dark"],
 :root[data-theme="custom"][data-theme-base="dark"] {
   color-scheme: dark;
-  --theme-page-bg: #111714;
-  --theme-panel-bg: #19211d;
-  --theme-heading: #edf3ef;
-  --theme-panel-heading: #e4ebe7;
-  --theme-item-text: #d5ddd8;
-  --theme-secondary-text: #aebbb4;
-  --theme-muted-text: #89968f;
-  --theme-border: #35423b;
-  --theme-accent: #70c49c;
-  --theme-focus: #9dccf0;
-  --theme-on-solid: #111714;
-  --theme-brand-bars: #111714;
-  --theme-elevated-bg: rgba(38, 49, 43, 0.92);
-  --theme-panel-translucent: rgba(25, 33, 29, 0.9);
-  --theme-line-subtle: rgba(145, 161, 152, 0.28);
-  --theme-progress-track: rgba(74, 89, 81, 0.72);
-  --theme-progress-end: #96d6b7;
-  --theme-dashed-border: #536159;
-  --theme-reference-bg: #29342e;
-  --theme-active-text: #9dccf0;
-  --theme-active-bg: #1d3445;
-  --theme-active-border: #36556b;
-  --theme-success-text: #92d7b3;
-  --theme-success-bg: #1c3a2c;
-  --theme-success-border: #356049;
+  --theme-page-bg: #171a21;
+  --theme-panel-bg: #202530;
+  --theme-heading: #eef2f7;
+  --theme-panel-heading: #dfe6ef;
+  --theme-item-text: #cbd4df;
+  --theme-secondary-text: #9da9b8;
+  --theme-muted-text: #7d8998;
+  --theme-border: #343c49;
+  --theme-accent: #7f9fd1;
+  --theme-focus: #9fc5f8;
+  --theme-on-solid: #171a21;
+  --theme-brand-bars: #171a21;
+  --theme-elevated-bg: rgba(42, 49, 61, 0.94);
+  --theme-panel-translucent: rgba(32, 37, 48, 0.92);
+  --theme-line-subtle: rgba(132, 145, 162, 0.3);
+  --theme-progress-track: rgba(65, 75, 89, 0.78);
+  --theme-progress-end: #9bbce5;
+  --theme-dashed-border: #556171;
+  --theme-reference-bg: #2a313c;
+  --theme-active-text: #9fc5f8;
+  --theme-active-bg: #24364c;
+  --theme-active-border: #3e5876;
+  --theme-success-text: #8fd3c7;
+  --theme-success-bg: #203b3b;
+  --theme-success-border: #37615f;
   --theme-danger-text: #f1aaa6;
   --theme-danger-bg: #462524;
   --theme-danger-border: #70413f;
   --theme-warning-text: #f1c27d;
   --theme-warning-bg: #46331f;
   --theme-warning-border: #725333;
-  --theme-muted-status-text: #b3bdb7;
-  --theme-muted-status-bg: #2a322e;
+  --theme-muted-status-text: #b1bbc8;
+  --theme-muted-status-bg: #2b313b;
   --shadow: 0 6px 18px rgba(0, 0, 0, 0.16);
 }
 
@@ -769,6 +769,34 @@ h1 {
   font-size: 0.72rem;
 }
 
+.filter-button.status-sortable {
+  cursor: grab;
+  border-style: dashed;
+  touch-action: pan-y;
+}
+
+.filter-button.status-sortable::before {
+  margin-right: 3px;
+  color: var(--muted);
+  content: "⋮";
+}
+
+.filter-button.status-sortable:active {
+  cursor: grabbing;
+}
+
+.filter-button.status-dragging {
+  opacity: 0.45;
+}
+
+.filter-button.status-drop-before {
+  box-shadow: -4px 0 0 var(--color-active-text);
+}
+
+.filter-button.status-drop-after {
+  box-shadow: 4px 0 0 var(--color-active-text);
+}
+
 .filter-button:hover,
 .filter-button[aria-pressed="true"] {
   color: var(--color-control-text);
@@ -926,7 +954,7 @@ h1 {
 .work-columns .pending-work li::after {
   color: var(--muted);
   background: var(--muted-soft);
-  content: "待做";
+  content: "待處理";
 }
 
 .detail-heading {
@@ -1284,5 +1312,689 @@ footer {
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
+  }
+}
+
+/* Optional time-reference layer. Hidden entirely when time.analysis.json is absent. */
+.project-title-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+}
+
+.project-title-line h1 {
+  min-width: 0;
+}
+
+.time-summary-button,
+.time-item-button,
+.time-small-button,
+.time-tab,
+.time-source-badge,
+.time-confidence {
+  border-radius: 999px;
+}
+
+.time-summary-button {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 7px;
+  min-height: 30px;
+  padding: 4px 10px 4px 12px;
+  border: 1px solid var(--color-active-border);
+  background: transparent;
+  color: var(--color-active-text);
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 760;
+  cursor: pointer;
+}
+
+.time-summary-button:hover {
+  background: var(--color-active-bg);
+}
+
+.time-summary-button:focus-visible,
+.time-item-button:focus-visible,
+.time-small-button:focus-visible,
+.time-tab:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.time-summary-button[hidden],
+.time-project-details[hidden],
+.time-tab-panel[hidden],
+.time-item-technical[hidden],
+.time-editor-error[hidden] {
+  display: none;
+}
+
+.time-summary-button:disabled {
+  cursor: default;
+  opacity: 0.58;
+}
+
+.time-risk-dot {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: var(--color-warning-text);
+  box-shadow: 0 0 0 3px var(--color-warning-bg);
+}
+
+.time-summary-button.on-track .time-risk-dot,
+.time-risk-dot.on-track {
+  background: var(--color-success-text);
+  box-shadow: 0 0 0 3px var(--color-success-bg);
+}
+
+.time-summary-button.at-risk .time-risk-dot,
+.time-risk-dot.at-risk {
+  background: var(--color-warning-text);
+  box-shadow: 0 0 0 3px var(--color-warning-bg);
+}
+
+.time-summary-button.critical .time-risk-dot,
+.time-risk-dot.critical {
+  background: var(--color-danger-text);
+  box-shadow: 0 0 0 3px var(--color-danger-bg);
+}
+
+.time-chevron {
+  color: var(--color-muted-text);
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.task-duration {
+  color: var(--color-muted-text);
+  font-size: 0.72rem;
+  font-weight: 720;
+  white-space: nowrap;
+}
+
+.task-title-group {
+  align-items: flex-start;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.time-task-status-line,
+.time-task-title-line {
+  display: flex;
+  align-items: center;
+}
+
+.time-task-status-line {
+  min-height: 22px;
+}
+
+.time-task-status-line .status-badge {
+  border: 1px solid var(--color-border);
+  background: transparent;
+}
+
+.time-task-status-line .status-badge.status-active {
+  border-color: var(--color-active-border);
+  background: transparent;
+}
+
+.time-task-status-line .status-badge.status-success {
+  border-color: var(--color-success-border);
+  background: transparent;
+}
+
+.time-task-status-line .status-badge.status-danger {
+  border-color: var(--color-danger-border);
+  background: transparent;
+}
+
+.time-task-title-line {
+  flex-wrap: wrap;
+  gap: 4px 8px;
+}
+
+.time-task-title-line h3 {
+  margin: 0;
+}
+
+.time-task-title-line .task-duration::before {
+  margin-right: 8px;
+  color: var(--color-border);
+  content: "·";
+}
+
+.work-columns .detail-list li.time-work-item {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.time-work-title {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.time-item-button,
+.time-small-button,
+.time-tab {
+  border: 1px solid var(--color-active-border);
+  background: transparent;
+  color: var(--color-active-text);
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 720;
+  cursor: pointer;
+}
+
+.time-item-button {
+  flex: 0 0 auto;
+  padding: 3px 9px;
+  white-space: nowrap;
+}
+
+.time-item-button:hover,
+.time-small-button:hover,
+.time-tab:hover,
+.time-tab[aria-selected="true"] {
+  background: var(--color-active-bg);
+}
+
+.time-dialog {
+  width: min(680px, calc(100% - 32px));
+  max-height: min(820px, calc(100vh - 32px));
+}
+
+.time-dialog-content {
+  color: var(--color-item-text);
+}
+
+.time-detail-toolbar,
+.time-capacity-toolbar,
+.time-editor-heading,
+.time-editor-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.time-detail-toolbar {
+  min-height: 32px;
+  margin-bottom: 12px;
+}
+
+.time-report-caption {
+  color: var(--color-accent);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+}
+
+.time-small-button {
+  padding: 4px 10px;
+}
+
+.time-report-overview {
+  padding: 15px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-panel-translucent);
+}
+
+.time-report-grid,
+.time-metric-grid {
+  display: grid;
+  gap: 10px;
+}
+
+.time-report-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.time-report-field,
+.time-metric {
+  min-width: 0;
+}
+
+.time-report-field > span,
+.time-metric > span {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--color-muted-text);
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+
+.time-report-field strong {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--color-heading);
+  font-size: 0.96rem;
+}
+
+.time-report-updated,
+.time-flow-intro,
+.time-flow-note,
+.time-empty-note,
+.time-capacity-toolbar p {
+  color: var(--color-muted-text);
+  font-size: 0.72rem;
+  line-height: 1.55;
+}
+
+.time-report-updated {
+  margin: 12px 0 0;
+}
+
+.time-project-details {
+  margin-top: 16px;
+}
+
+.time-tab-list {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 14px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--color-border);
+  overflow-x: auto;
+}
+
+.time-tab {
+  min-width: max-content;
+  padding: 5px 11px;
+}
+
+.time-tab-panel {
+  display: grid;
+  gap: 14px;
+}
+
+.time-flow-intro,
+.time-flow-note {
+  margin: 0;
+}
+
+.time-flow-lanes {
+  display: grid;
+  gap: 10px;
+}
+
+.time-flow-lane {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: stretch;
+  gap: 8px;
+}
+
+.time-flow-arrow {
+  align-self: center;
+  color: var(--color-muted-text);
+  font-weight: 800;
+}
+
+.time-evaluation-node {
+  display: grid;
+  align-content: start;
+  gap: 5px;
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-panel-translucent);
+}
+
+.time-evaluation-node > span,
+.time-evaluation-node > small {
+  color: var(--color-muted-text);
+  font-size: 0.68rem;
+  line-height: 1.4;
+}
+
+.time-evaluation-node > strong {
+  overflow-wrap: anywhere;
+  color: var(--color-heading);
+  font-size: 0.82rem;
+}
+
+.time-evaluation-result {
+  border-color: var(--color-active-border);
+}
+
+.time-flow-merge {
+  display: grid;
+  justify-items: center;
+  gap: 7px;
+}
+
+.time-flow-merge .time-evaluation-node {
+  width: min(100%, 360px);
+}
+
+.time-evaluation-balance {
+  border-color: var(--color-success-border);
+  background: var(--color-success-bg);
+}
+
+.time-evaluation-shortage,
+.time-evaluation-risk.critical {
+  border-color: var(--color-danger-border);
+  background: var(--color-danger-bg);
+}
+
+.time-evaluation-risk.at-risk {
+  border-color: var(--color-warning-border);
+  background: var(--color-warning-bg);
+}
+
+.time-evaluation-risk.on-track {
+  border-color: var(--color-success-border);
+  background: var(--color-success-bg);
+}
+
+.time-flow-note {
+  padding: 10px 12px;
+  border-left: 3px solid var(--color-active-border);
+  background: var(--color-reference-bg);
+}
+
+.time-metric-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.time-metric {
+  padding: 10px 11px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.time-metric strong {
+  color: var(--color-heading);
+  font-size: 0.82rem;
+  overflow-wrap: anywhere;
+}
+
+.time-explanation-card,
+.time-composition,
+.time-capacity-editor {
+  padding: 13px 14px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-panel-translucent);
+}
+
+.time-explanation-card h3,
+.time-composition h3,
+.time-capacity-editor h3 {
+  margin: 0 0 7px;
+  color: var(--color-panel-heading);
+  font-size: 0.8rem;
+}
+
+.time-explanation-card p,
+.time-source-row p {
+  margin: 0;
+  color: var(--color-secondary-text);
+  font-size: 0.74rem;
+  line-height: 1.55;
+}
+
+.time-formula-heading {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.time-formula,
+.time-reference {
+  display: block;
+  margin-top: 10px;
+  padding: 9px 10px;
+  border-radius: var(--radius-sm);
+  background: var(--color-reference-bg);
+  color: var(--color-item-text);
+  font-size: 0.7rem;
+  line-height: 1.5;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.time-source-list {
+  display: grid;
+  gap: 8px;
+}
+
+.time-source-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--color-line-subtle);
+}
+
+.time-source-row:last-child {
+  border-bottom: 0;
+}
+
+.time-source-row strong {
+  color: var(--color-heading);
+  font-size: 0.76rem;
+}
+
+.time-source-row > span {
+  flex: 0 0 auto;
+  color: var(--color-heading);
+  font-size: 0.74rem;
+  font-weight: 760;
+}
+
+.time-capacity-toolbar {
+  align-items: flex-start;
+}
+
+.time-capacity-toolbar p {
+  margin: 0;
+}
+
+.time-editor-heading > span,
+.time-exceptions-editor small {
+  color: var(--color-muted-text);
+  font-size: 0.66rem;
+}
+
+.time-editor-fields {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.time-editor-field,
+.time-exceptions-editor {
+  display: grid;
+  gap: 6px;
+  color: var(--color-secondary-text);
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.time-editor-control {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.time-editor-control input,
+.time-exceptions-editor textarea {
+  width: 100%;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-panel-bg);
+  color: var(--color-heading);
+  font: inherit;
+}
+
+.time-editor-control input {
+  min-width: 0;
+  padding: 7px 8px;
+}
+
+.time-exceptions-editor textarea {
+  box-sizing: border-box;
+  padding: 9px;
+  resize: vertical;
+}
+
+.time-capacity-derived {
+  margin: 10px 0;
+  color: var(--color-active-text);
+  font-size: 0.74rem;
+  font-weight: 760;
+}
+
+.time-weekdays {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  margin: 0 0 12px;
+  padding: 10px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  color: var(--color-secondary-text);
+  font-size: 0.7rem;
+}
+
+.time-weekdays legend {
+  padding: 0 5px;
+  color: var(--color-heading);
+  font-weight: 760;
+}
+
+.time-weekdays label {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.time-editor-error {
+  margin: 9px 0;
+  color: var(--color-danger-text);
+  font-size: 0.72rem;
+  font-weight: 720;
+}
+
+.time-editor-actions {
+  justify-content: flex-end;
+  margin-top: 12px;
+}
+
+.time-confidence,
+.time-source-badge {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--color-border);
+  font-size: 0.66rem;
+  font-weight: 760;
+  line-height: 1;
+}
+
+.time-confidence {
+  padding: 5px 9px;
+  color: var(--color-secondary-text);
+}
+
+.time-confidence.confidence-high {
+  border-color: var(--color-success-border);
+  color: var(--color-success-text);
+}
+
+.time-confidence.confidence-low {
+  border-color: var(--color-warning-border);
+  color: var(--color-warning-text);
+}
+
+.time-estimate-readout {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.time-estimate-readout > strong {
+  flex: 0 0 auto;
+  color: var(--color-heading);
+  font-size: 1rem;
+}
+
+.time-estimate-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  color: var(--color-heading);
+  font-size: 0.76rem;
+  font-weight: 760;
+}
+
+.time-source-badge {
+  padding: 4px 7px;
+  color: var(--color-active-text);
+  border-color: var(--color-active-border);
+}
+
+.time-item-technical {
+  display: grid;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+@media (max-width: 600px) {
+  .project-title-line {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .time-task-title-line {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .time-task-title-line .task-duration::before {
+    display: none;
+  }
+
+  .time-dialog {
+    width: min(100% - 20px, 680px);
+    max-height: calc(100vh - 20px);
+    padding: 16px 13px;
+  }
+
+  .time-report-grid,
+  .time-metric-grid,
+  .time-editor-fields {
+    grid-template-columns: 1fr;
+  }
+
+  .time-flow-lane {
+    grid-template-columns: 1fr;
+  }
+
+  .time-flow-lane > .time-flow-arrow {
+    justify-self: center;
+    transform: rotate(90deg);
+  }
+
+  .time-source-row,
+  .time-estimate-readout {
+    align-items: flex-start;
   }
 }

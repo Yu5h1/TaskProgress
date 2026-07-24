@@ -25,14 +25,14 @@ export const DEFAULT_CUSTOM_PALETTES = Object.freeze({
     accent: "#1f684f",
   }),
   dark: Object.freeze({
-    pageBackground: "#111714",
-    panelBackground: "#19211d",
-    heading: "#edf3ef",
-    panelHeading: "#e4ebe7",
-    itemText: "#d5ddd8",
-    secondaryText: "#aebbb4",
-    border: "#35423b",
-    accent: "#70c49c",
+    pageBackground: "#171a21",
+    panelBackground: "#202530",
+    heading: "#eef2f7",
+    panelHeading: "#dfe6ef",
+    itemText: "#cbd4df",
+    secondaryText: "#9da9b8",
+    border: "#343c49",
+    accent: "#7f9fd1",
   }),
 });
 

@@ -8,6 +8,7 @@ import {
   calculateProjectProgress,
   calculateTaskProgress,
   mergeReports,
+  resolveDeveloperReportSource,
   resolveReportRequest,
   validateScopeCatalog,
   validateDeveloperReport,
@@ -65,6 +66,28 @@ test("task progress derives displayed item fractions before using explicit progr
     }),
     { completed: 1, total: 2 },
   );
+});
+
+test("stable item objects are accepted while legacy item strings remain compatible", () => {
+  const report = {
+    schema_version: "1.0",
+    report_id: "stable-items",
+    scope_id: "stable-items",
+    title: "Stable items",
+    updated_at: "2026-07-24T00:00:00Z",
+    tasks: [{
+      id: "task-a",
+      title: "Task A",
+      status: "in_progress",
+      summary: "Supports both item representations.",
+      completed_items: [{ id: "item-a", title: "Stable item" }],
+      pending_items: ["Legacy item"],
+    }],
+  };
+
+  assert.deepEqual(validateReport(report), []);
+  report.tasks[0].completed_items.push({ id: "item-a", title: "Duplicate" });
+  assert.ok(validateReport(report).some((error) => error.code === "duplicate_item"));
 });
 
 test("project progress includes child item fractions", () => {
@@ -149,6 +172,72 @@ test("an explicit report takes precedence over scope", () => {
   });
 });
 
+test("local scope automatically resolves its developer report", () => {
+  const params = new URLSearchParams("scope=task-progress");
+  const request = resolveReportRequest(params);
+  assert.equal(
+    resolveDeveloperReportSource(
+      params,
+      request,
+      "http://127.0.0.1:8001/",
+    ).href,
+    "http://127.0.0.1:8001/reports/task-progress/report.dev.json",
+  );
+  assert.equal(
+    resolveDeveloperReportSource(
+      params,
+      request,
+      "http://localhost:8001/viewer/",
+    ).href,
+    "http://localhost:8001/reports/task-progress/report.dev.json",
+  );
+});
+
+test("public scope remains base-only unless dev is explicit", () => {
+  const params = new URLSearchParams("scope=task-progress");
+  const request = resolveReportRequest(params);
+  assert.equal(
+    resolveDeveloperReportSource(params, request, "https://example.com/viewer/"),
+    null,
+  );
+
+  const explicitParams = new URLSearchParams(
+    "scope=task-progress&dev=../private/task-progress.dev.json",
+  );
+  assert.equal(
+    resolveDeveloperReportSource(
+      explicitParams,
+      resolveReportRequest(explicitParams),
+      "https://example.com/viewer/",
+    ).href,
+    "https://example.com/private/task-progress.dev.json",
+  );
+});
+
+test("dev none disables the local automatic developer report", () => {
+  const params = new URLSearchParams("scope=task-progress&dev=none");
+  assert.equal(
+    resolveDeveloperReportSource(
+      params,
+      resolveReportRequest(params),
+      "http://127.0.0.1:8001/",
+    ),
+    null,
+  );
+});
+
+test("explicit report paths do not guess a developer report", () => {
+  const params = new URLSearchParams("report=../reports/custom/report.json");
+  assert.equal(
+    resolveDeveloperReportSource(
+      params,
+      resolveReportRequest(params),
+      "http://127.0.0.1:8001/",
+    ),
+    null,
+  );
+});
+
 test("scope rejects path traversal and non-stable identifiers", () => {
   for (const scope of ["../private", "nested/path", "Yu5h1Lib", "scope with spaces"]) {
     assert.throws(
@@ -172,7 +261,11 @@ test("scope catalog exposes safe links without local folder paths", () => {
   ]);
   assert.equal(buildScopeHref("bonghuo-vr"), "?scope=bonghuo-vr");
   assert.equal(
-    buildScopeHref("bonghuo-vr", true),
+    buildScopeHref("bonghuo-vr", "none"),
+    "?scope=bonghuo-vr&dev=none",
+  );
+  assert.equal(
+    buildScopeHref("bonghuo-vr", "explicit"),
     "?scope=bonghuo-vr&dev=..%2Freports%2Fbonghuo-vr%2Freport.dev.json",
   );
 });
@@ -186,4 +279,5 @@ test("scope catalog rejects duplicate or unsafe IDs", () => {
     ],
   }), /無效或重複/);
   assert.throws(() => buildScopeHref("../private"), /scope 無效/);
+  assert.throws(() => buildScopeHref("safe", "unknown"), /顯示模式無效/);
 });

@@ -11,9 +11,18 @@
       "status": "done",
       "summary": "Viewer 可將 scope ID 解析為固定的公開報告路徑。",
       "completed_items": [
-        "支援 ?scope=example",
-        "限制 scope 為安全的穩定 ID",
-        "保留 ?report= 的明確路徑模式"
+        {
+          "id": "support-scope-query",
+          "title": "支援 ?scope=example"
+        },
+        {
+          "id": "validate-scope-id",
+          "title": "限制 scope 為安全的穩定 ID"
+        },
+        {
+          "id": "preserve-report-mode",
+          "title": "保留 ?report= 的明確路徑模式"
+        }
       ],
       "progress": {
         "completed": 3,
@@ -26,8 +35,14 @@
       "status": "planned",
       "summary": "將 Viewer 與選擇公開的 report.json 部署到 Pages。",
       "pending_items": [
-        "建立部署產物",
-        "確認公開報告不包含 Developer 資料"
+        {
+          "id": "build-deployment-artifact",
+          "title": "建立部署產物"
+        },
+        {
+          "id": "verify-public-separation",
+          "title": "確認公開報告不包含 Developer 資料"
+        }
       ]
     }
   ]

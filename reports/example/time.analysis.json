@@ -1,0 +1,292 @@
+{
+  "schema_version": "0.2",
+  "scope_id": "example",
+  "analysis_id": "example-time-analysis-v1",
+  "as_of": "2026-07-24T17:00:00+08:00",
+  "method": {
+    "name": "deterministic-progress-pressure",
+    "version": "0.2"
+  },
+  "inputs": {
+    "config_updated_at": "2026-07-24T09:00:00+08:00",
+    "estimates_updated_at": "2026-07-24T09:00:00+08:00",
+    "events_updated_at": "2026-07-24T17:00:00+08:00",
+    "task_state_updated_at": "2026-07-24T17:00:00+08:00"
+  },
+  "summary": {
+    "executor_count": 1,
+    "nominal_daily_capacity_minutes": 480,
+    "execution_calibration": {
+      "factor": 1.0,
+      "prior_factor": 1.0,
+      "prior_equivalent_samples": 5,
+      "raw_sample_count": 0,
+      "effective_sample_count": 0,
+      "data_weight": 0,
+      "confidence": "low",
+      "automatic_applied": false
+    },
+    "total_estimated_minutes": 2100,
+    "calibrated_total_minutes": 2100,
+    "actual_recorded_minutes": 0,
+    "estimated_total_days": 4.375,
+    "display_total_days": 5,
+    "overall_confidence": "medium",
+    "estimate_composition": {
+      "ai_minutes": 480,
+      "mixed_minutes": 900,
+      "manual_minutes": 240,
+      "default_minutes": 480
+    },
+    "deadline": {
+      "started_at": "2026-07-20T09:00:00+08:00",
+      "delivery_at": "2026-08-01T00:00:00+08:00",
+      "evaluated_at": "2026-07-24T17:00:00+08:00",
+      "schedule": {
+        "timezone": "Asia/Taipei",
+        "workday_start_local": "09:00",
+        "workday_end_local": "17:00",
+        "risk_thresholds": {
+          "on_track_max": 1.0,
+          "at_risk_max": 1.25
+        },
+        "capacity_profile": {
+          "total_minutes_per_day": 1440,
+          "sleep_minutes_per_day": 480,
+          "life_minutes_per_day": 480,
+          "other_unavailable_minutes_per_day": 0,
+          "capacity_minutes_per_executor_day": 480,
+          "working_weekdays": [1, 2, 3, 4, 5],
+          "capacity_exceptions": [
+            {
+              "date": "2026-07-29",
+              "available_minutes": 0,
+              "public_label": "休假"
+            }
+          ]
+        },
+        "capacity_timeline": [
+          { "date": "2026-07-20", "capacity_minutes": 480 },
+          { "date": "2026-07-21", "capacity_minutes": 480 },
+          { "date": "2026-07-22", "capacity_minutes": 480 },
+          { "date": "2026-07-23", "capacity_minutes": 480 },
+          { "date": "2026-07-24", "capacity_minutes": 480 },
+          { "date": "2026-07-27", "capacity_minutes": 480 },
+          { "date": "2026-07-28", "capacity_minutes": 480 },
+          { "date": "2026-07-29", "capacity_minutes": 0 },
+          { "date": "2026-07-30", "capacity_minutes": 480 },
+          { "date": "2026-07-31", "capacity_minutes": 480 }
+        ]
+      },
+      "elapsed_capacity_minutes": 2400,
+      "total_capacity_minutes": 4320,
+      "time_progress_ratio": 0.5555555556,
+      "work_progress_ratio": 0.6,
+      "progress_pressure_ratio": 0.9,
+      "boundary_state": "active",
+      "urgency": "on_track"
+    }
+  },
+  "tasks": [
+    {
+      "task_id": "scope-link",
+      "total_likely_minutes": 900,
+      "estimated_days": 1.875,
+      "display_days": 2,
+      "items": [
+        {
+          "estimate_id": "estimate-support-scope-query-v1",
+          "item_id": "support-scope-query",
+          "low_minutes": 120,
+          "likely_minutes": 180,
+          "high_minutes": 300,
+          "display_hours": 3,
+          "mode": "mixed",
+          "contributors": [
+            {
+              "kind": "human_parameter",
+              "summary": "由人工指定需支援 scope 查詢參數。"
+            },
+            {
+              "kind": "ai_analysis",
+              "summary": "AI 將路由解析、錯誤處理與測試拆成工作步驟。"
+            },
+            {
+              "kind": "deterministic_formula",
+              "summary": "工作步驟工時加總。"
+            }
+          ],
+          "human_confirmed": true,
+          "inputs": [
+            {
+              "name": "route_case_count",
+              "value": 3,
+              "unit": "case",
+              "origin": "human"
+            }
+          ],
+          "analysis_method": {
+            "name": "ai-task-decomposition",
+            "version": "1",
+            "performed_by": "ai",
+            "explanation": "依路由、驗證與測試三個步驟分析。"
+          },
+          "calculation": {
+            "algorithm_id": "step-sum",
+            "formula": "60 + 60 + 60 = 180 min",
+            "version": "1",
+            "explanation": "三個工程步驟各配置一小時。"
+          },
+          "confidence": "medium",
+          "explanation": "需修改來源解析、呈現錯誤並補齊查詢參數測試。",
+          "human_note": "範例由人工確認。",
+          "reference": "reports/example/report.json#support-scope-query"
+        },
+        {
+          "estimate_id": "estimate-validate-scope-id-v1",
+          "item_id": "validate-scope-id",
+          "low_minutes": 180,
+          "likely_minutes": 240,
+          "high_minutes": 360,
+          "display_hours": 4,
+          "mode": "manual",
+          "contributors": [
+            {
+              "kind": "human_estimate",
+              "summary": "由人工直接輸入最可能工時。"
+            }
+          ],
+          "human_confirmed": true,
+          "inputs": [
+            {
+              "name": "manual_minutes",
+              "value": 240,
+              "unit": "min",
+              "origin": "human"
+            }
+          ],
+          "confidence": "medium",
+          "explanation": "需建立格式限制、拒絕不安全值並覆蓋錯誤路徑。",
+          "human_note": "人工預估 4 hr。",
+          "reference": "reports/example/report.json#validate-scope-id"
+        },
+        {
+          "estimate_id": "estimate-preserve-report-mode-v1",
+          "item_id": "preserve-report-mode",
+          "likely_minutes": 480,
+          "display_hours": 8,
+          "mode": "default",
+          "contributors": [
+            {
+              "kind": "system_default",
+              "summary": "缺少足夠工程資料，使用預設 8 hr。"
+            }
+          ],
+          "human_confirmed": false,
+          "inputs": [
+            {
+              "name": "default_minutes",
+              "value": 480,
+              "unit": "min",
+              "origin": "default"
+            }
+          ],
+          "confidence": "low",
+          "explanation": "目前只有需求描述，先採單一工作項目的預設工時。",
+          "reference": "reports/example/report.json#preserve-report-mode"
+        }
+      ]
+    },
+    {
+      "task_id": "pages-deployment",
+      "total_likely_minutes": 1200,
+      "estimated_days": 2.5,
+      "display_days": 3,
+      "items": [
+        {
+          "estimate_id": "estimate-build-deployment-artifact-v1",
+          "item_id": "build-deployment-artifact",
+          "low_minutes": 480,
+          "likely_minutes": 720,
+          "high_minutes": 1080,
+          "display_hours": 12,
+          "mode": "mixed",
+          "contributors": [
+            {
+              "kind": "human_parameter",
+              "summary": "人工指定須保留既有 Viewer 結構。"
+            },
+            {
+              "kind": "ai_analysis",
+              "summary": "AI 分析建置、路徑驗證與部署檢查。"
+            },
+            {
+              "kind": "deterministic_formula",
+              "summary": "依工程步驟加總估值。"
+            }
+          ],
+          "human_confirmed": false,
+          "inputs": [
+            {
+              "name": "deployment_stage_count",
+              "value": 3,
+              "unit": "stage",
+              "origin": "ai"
+            }
+          ],
+          "analysis_method": {
+            "name": "ai-task-decomposition",
+            "version": "1",
+            "performed_by": "ai",
+            "explanation": "拆成產物建立、公開路徑驗證與部署驗收。"
+          },
+          "calculation": {
+            "algorithm_id": "stage-sum",
+            "formula": "240 + 240 + 240 = 720 min",
+            "version": "1",
+            "explanation": "三個階段各配置半個工作日。"
+          },
+          "confidence": "medium",
+          "explanation": "部署流程包含產物、公開路徑與實際載入驗證。",
+          "reference": "reports/example/report.json#build-deployment-artifact"
+        },
+        {
+          "estimate_id": "estimate-verify-public-separation-v1",
+          "item_id": "verify-public-separation",
+          "low_minutes": 300,
+          "likely_minutes": 480,
+          "high_minutes": 720,
+          "display_hours": 8,
+          "mode": "ai",
+          "contributors": [
+            {
+              "kind": "ai_analysis",
+              "summary": "AI 依公開資料邊界與測試範圍分析。"
+            },
+            {
+              "kind": "historical_evidence",
+              "summary": "參考既有公開與 Developer overlay 分離方式。"
+            }
+          ],
+          "human_confirmed": false,
+          "analysis_method": {
+            "name": "ai-analogy-estimate",
+            "version": "1",
+            "performed_by": "ai",
+            "explanation": "參照既有資料隔離工作並加入驗證緩衝。"
+          },
+          "confidence": "medium",
+          "explanation": "需檢查部署產物、網路回應及 Developer 資料未被註冊。",
+          "reference": "reports/example/report.json#verify-public-separation"
+        }
+      ]
+    }
+  ],
+  "diagnostics": [
+    {
+      "level": "info",
+      "code": "no-execution-history",
+      "message": "目前沒有足夠執行紀錄，校準因子維持 1.0。"
+    }
+  ]
+}

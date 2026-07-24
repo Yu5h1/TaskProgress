@@ -1,7 +1,7 @@
 export const SUPPORTED_SCHEMA_VERSION = "1.0";
 
 export const STATUS_META = Object.freeze({
-  planned: { label: "待規劃", tone: "neutral" },
+  planned: { label: "待處理", tone: "neutral" },
   in_progress: { label: "進行中", tone: "active" },
   blocked: { label: "受阻", tone: "danger" },
   done: { label: "已完成", tone: "success" },
@@ -35,12 +35,18 @@ export function validateScopeCatalog(catalog) {
   });
 }
 
-export function buildScopeHref(scope, developer = false) {
+export function buildScopeHref(scope, developerMode = "auto") {
   if (typeof scope !== "string" || scope.length > 100 || !ID_PATTERN.test(scope)) {
     throw new Error("scope 無效。");
   }
+  if (!["auto", "none", "explicit"].includes(developerMode)) {
+    throw new Error("Developer 顯示模式無效。");
+  }
   const params = new URLSearchParams({ scope });
-  if (developer) params.set("dev", `../reports/${scope}/report.dev.json`);
+  if (developerMode === "none") params.set("dev", "none");
+  if (developerMode === "explicit") {
+    params.set("dev", `../reports/${scope}/report.dev.json`);
+  }
   return `?${params}`;
 }
 
@@ -60,6 +66,29 @@ export function resolveReportRequest(params) {
     reportSource: `../reports/${scope}/report.json`,
     scope,
   };
+}
+
+function isLoopbackHostname(hostname) {
+  const normalized = hostname.toLowerCase();
+  return normalized === "localhost"
+    || normalized === "127.0.0.1"
+    || normalized === "::1"
+    || normalized === "[::1]";
+}
+
+export function resolveDeveloperReportSource(params, request, baseUrl) {
+  const explicitDeveloperSource = params.get("dev");
+  if (explicitDeveloperSource === "none") return null;
+  if (explicitDeveloperSource) {
+    return new URL(explicitDeveloperSource, baseUrl);
+  }
+  if (request?.source !== "scope" || !request.scope) return null;
+
+  const viewerUrl = new URL(baseUrl);
+  if (!isLoopbackHostname(viewerUrl.hostname)) return null;
+
+  const reportUrl = new URL(request.reportSource, viewerUrl);
+  return new URL("report.dev.json", reportUrl);
 }
 
 export function calculateTaskProgress(task) {
@@ -112,6 +141,33 @@ function validateStringList(value, path, errors) {
   value.forEach((item, index) => requireString(item, `${path}[${index}]`, errors));
 }
 
+function validateTaskItemList(value, path, errors, ids) {
+  if (value === undefined) return;
+  if (!Array.isArray(value)) {
+    errors.push(issue("invalid_list", path, `${path} 必須是項目陣列。`));
+    return;
+  }
+  value.forEach((item, index) => {
+    const itemPath = `${path}[${index}]`;
+    if (typeof item === "string") {
+      requireString(item, itemPath, errors);
+      return;
+    }
+    if (!isObject(item)) {
+      errors.push(issue("invalid_item", itemPath, `${itemPath} 必須是文字或穩定項目物件。`));
+      return;
+    }
+    requireString(item.id, `${itemPath}.id`, errors, { id: true });
+    requireString(item.title, `${itemPath}.title`, errors);
+    if (typeof item.id === "string") {
+      if (ids.has(item.id)) {
+        errors.push(issue("duplicate_item", `${itemPath}.id`, `item id「${item.id}」重複。`));
+      }
+      ids.add(item.id);
+    }
+  });
+}
+
 function validateTimestamp(value, path, errors) {
   requireString(value, path, errors);
   if (typeof value === "string" && Number.isNaN(Date.parse(value))) {
@@ -155,8 +211,9 @@ export function validateReport(report) {
       }
       ids.add(task.id);
     }
-    validateStringList(task.completed_items, `${path}.completed_items`, errors);
-    validateStringList(task.pending_items, `${path}.pending_items`, errors);
+    const itemIds = new Set();
+    validateTaskItemList(task.completed_items, `${path}.completed_items`, errors, itemIds);
+    validateTaskItemList(task.pending_items, `${path}.pending_items`, errors, itemIds);
 
     if (task.progress !== undefined) {
       if (!isObject(task.progress)) {
