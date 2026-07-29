@@ -858,7 +858,7 @@ AI 分析與同類歷史不各自產生一個數字再和人工工時平均。�
 
 但 Editor UI 尚未模組化完成。`viewer/assets/app.js` 約 1,334 行／43 個函式，同時協調全域 state、資料載入、程序式 DOM render、task/item 草稿、事件與儲存；`viewer/assets/time-view.js` 約 974 行／37 個函式，同時處理 Dialog、時間呈現、容量表單與交易 hook。任務卡不是可重用 Editor component，目前也沒有一致的 `DraftSession`、`EditCommand`、欄位 schema、Undo/Redo command history 或多 sidecar transaction adapter。
 
-因此目前定位是「核心與安全邊界有模組化、UI 有 102 項回歸測試保護的可用直接實作」。它適合維持現有桌面功能，但人工估算、交付日、敏感歷史等跨檔案功能不得繼續直接堆入 `app.js`／`time-view.js`。下一個大型 Editor 功能開始前，應先完成 Framework Phase 1 的 framework-neutral core；導入框架不能取代這個步驟，否則只是把相同耦合搬入 component。
+因此目前定位是「核心與安全邊界有模組化、UI 有 109 項回歸測試保護的可用直接實作」。它適合維持現有桌面功能，但人工估算、交付日、敏感歷史等跨檔案功能不得繼續直接堆入 `app.js`／`time-view.js`。下一個大型 Editor 功能開始前，應先完成 Framework Phase 1 的 framework-neutral core；導入框架不能取代這個步驟，否則只是把相同耦合搬入 component。
 
 #### 不變的產品與介面契約
 
@@ -915,7 +915,7 @@ Editor state 至少拆成四層：
 #### 遷移階段
 
 1. **Framework Phase 0—凍結可用基準**
-   - 保留目前 Demo、正式本機 Editor 及 102 項 Node 測試。
+   - 保留目前 Demo、正式本機 Editor 及原先 102 項 Node 基準測試；Phase 1 第一段加入 7 項 Editor Core／整合契約測試後目前共 109 項。
    - 桌面滑鼠／鍵盤的草稿放棄、固定儲存列與真實檔案儲存 E2E 已完成；行動版與觸控另列 P1。
    - 把目前畫面、文字、模式切換、儲存與放棄語意視為遷移驗收規格。
 
@@ -923,6 +923,8 @@ Editor state 至少拆成四層：
    - 從 `app.js` 抽出 editor state、actions、dirty/diff、discard、validation、progress recalculation 與 time invalidation。
    - 純 core 不讀 DOM、`localStorage` 或 framework API；以 task/item stable ID 定位。
    - 目前 Demo 先改用相同 core，證明抽離沒有改變 UI。
+   - 2026-07-30 已完成第一段：新增 `viewer/assets/editor-core.js`，抽出 report DraftSession、task／item stable-ID commands、dirty、discard、commit 與獨立 save snapshot；正式 Viewer 的任務／子項目 mutation 與儲存準備已改走此 core，且純 Node 測試覆蓋 clone、legacy item 正規化、修改、刪除、放棄、dirty 回復、save snapshot 及錯誤 command。
+   - Phase 1 尚未完成：report validation、結構化 diff、derived progress、time invalidation、Undo／Redo 與跨檔案 adapter 仍需抽離；Demo 尚未共用此 core，因此目前不進入框架選型。
 
 3. **Framework Phase 2—候選 spike 與決策**
    - 優先以 Svelte、Vue 與原生基準實作一張真實 task card 流程。

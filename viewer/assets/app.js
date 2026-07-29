@@ -17,6 +17,10 @@ import {
   validateDeveloperReport,
   validateReport,
 } from "./report-model.js";
+import {
+  createReportEditorSession,
+  normalizeMeaningfulText,
+} from "./editor-core.js";
 import { initializeThemeControls } from "./theme.js";
 import {
   inspectTimeAnalysis,
@@ -95,10 +99,12 @@ const state = {
     available: false,
     editing: false,
     dirty: false,
+    externalDirty: false,
     saving: false,
     scope: null,
     revision: null,
     token: null,
+    session: null,
   },
 };
 
@@ -139,33 +145,34 @@ function prioritySelect(value, onChange, ariaLabel) {
   return select;
 }
 
-function markEditorDirty(message = "有尚未儲存的修改") {
-  state.editor.dirty = true;
-  elements.editSaveButton.disabled = false;
-  elements.editSaveStatus.textContent = message;
-}
-
-function meaningfulText(value) {
-  const normalized = String(value ?? "").trim().replace(/\s+/g, " ");
-  return /[\p{L}\p{N}]/u.test(normalized) ? normalized : "";
-}
-
-function nextStableId(prefix, existingIds) {
-  let index = 1;
-  let candidate = prefix;
-  while (existingIds.has(candidate)) {
-    candidate = `${prefix}-${index}`;
-    index += 1;
-  }
-  return candidate;
-}
-
-function allItemIds(task) {
-  return new Set(
-    [...(task.completed_items ?? []), ...(task.pending_items ?? [])]
-      .filter((item) => item && typeof item === "object")
-      .map((item) => item.id),
+function syncEditorDirty(message = "有尚未儲存的修改") {
+  state.editor.dirty = Boolean(
+    state.editor.externalDirty || state.editor.session?.dirty,
   );
+  elements.editSaveButton.disabled = !state.editor.dirty;
+  elements.editSaveStatus.textContent = state.editor.dirty ? message : "尚未修改";
+}
+
+function markEditorDirty(message = "有尚未儲存的修改") {
+  state.editor.externalDirty = true;
+  syncEditorDirty(message);
+}
+
+function applyEditorCommand(
+  command,
+  message = "有尚未儲存的修改",
+  { render = false } = {},
+) {
+  if (!state.editor.session) throw new Error("Editor Core 尚未啟動。");
+  const changed = state.editor.session.dispatch(command);
+  state.report = state.editor.session.draft;
+  if (!changed) return false;
+  syncEditorDirty(message);
+  if (render) {
+    rebuildMergedTasks();
+    renderReport();
+  }
+  return true;
 }
 
 function appendItemAdder(section, task, field) {
@@ -188,21 +195,27 @@ function appendItemAdder(section, task, field) {
     input.focus();
     form.addEventListener("submit", (event) => {
       event.preventDefault();
-      const title = meaningfulText(input.value);
+      const title = normalizeMeaningfulText(input.value);
       if (!title) {
         renderTasks();
         return;
       }
-      const ids = allItemIds(task);
       const prefix = `item-${task.id}-${Date.now().toString(36)}`;
-      task[field] ??= [];
-      task[field].push({
-        id: nextStableId(prefix, ids),
-        title,
-        priority: PRIORITY_POLICY.fallbackValue,
-      });
-      markEditorDirty("已新增子任務，尚未儲存");
-      renderReport();
+      const id = state.editor.session.createItemId(task.id, prefix);
+      applyEditorCommand(
+        {
+          type: "add-item",
+          taskId: task.id,
+          field,
+          item: {
+            id,
+            title,
+            priority: PRIORITY_POLICY.fallbackValue,
+          },
+        },
+        "已新增子任務，尚未儲存",
+        { render: true },
+      );
     });
     input.addEventListener("keydown", (event) => {
       if (event.key === "Escape") renderTasks();
@@ -233,11 +246,16 @@ function appendList(
       remove.type = "button";
       remove.setAttribute("aria-label", `刪除 ${itemTitle}`);
       remove.addEventListener("click", () => {
-        const target = editContext.task[editContext.field];
-        const index = target.indexOf(item);
-        if (index >= 0) target.splice(index, 1);
-        markEditorDirty("已刪除子任務，尚未儲存");
-        renderReport();
+        applyEditorCommand(
+          {
+            type: "delete-item",
+            taskId: editContext.taskId,
+            field: editContext.field,
+            itemId: item.id,
+          },
+          "已刪除子任務，尚未儲存",
+          { render: true },
+        );
       });
       const input = el("input", "inline-edit-input");
       input.type = "text";
@@ -245,27 +263,56 @@ function appendList(
       input.value = itemTitle;
       input.setAttribute("aria-label", "子任務描述");
       input.addEventListener("input", () => {
-        item.title = input.value;
-        markEditorDirty();
+        applyEditorCommand({
+          type: "set-item-field",
+          taskId: editContext.taskId,
+          field: editContext.field,
+          itemId: item.id,
+          property: "title",
+          value: input.value,
+        });
       });
       input.addEventListener("change", () => {
-        const value = meaningfulText(input.value);
+        const value = normalizeMeaningfulText(input.value);
         if (!value) {
-          input.value = item.title;
+          applyEditorCommand({
+            type: "set-item-field",
+            taskId: editContext.taskId,
+            field: editContext.field,
+            itemId: item.id,
+            property: "title",
+            value: itemTitle,
+          });
+          input.value = itemTitle;
           return;
         }
-        item.title = value;
+        applyEditorCommand({
+          type: "set-item-field",
+          taskId: editContext.taskId,
+          field: editContext.field,
+          itemId: item.id,
+          property: "title",
+          value,
+        });
         input.value = value;
-        markEditorDirty();
       });
       row.append(
         remove,
         prioritySelect(
           item.priority,
           (priority) => {
-            item.priority = priority;
-            markEditorDirty();
-            renderReport();
+            applyEditorCommand(
+              {
+                type: "set-item-field",
+                taskId: editContext.taskId,
+                field: editContext.field,
+                itemId: item.id,
+                property: "priority",
+                value: priority,
+              },
+              "有尚未儲存的修改",
+              { render: true },
+            );
           },
           `${itemTitle} 優先級`,
         ),
@@ -668,7 +715,7 @@ function renderDeveloperDetails(task, parent) {
 
 function renderTask(task) {
   const editableTask = state.editor.editing
-    ? state.report.tasks.find((candidate) => candidate.id === task.id) ?? task
+    ? state.editor.session?.task(task.id) ?? task
     : task;
   const meta = STATUS_META[task.status];
   const progress = calculateTaskProgress(task);
@@ -688,11 +735,11 @@ function renderTask(task) {
     remove.type = "button";
     remove.setAttribute("aria-label", `刪除任務 ${task.title}`);
     remove.addEventListener("click", () => {
-      const index = state.report.tasks.indexOf(editableTask);
-      if (index >= 0) state.report.tasks.splice(index, 1);
-      markEditorDirty("已刪除任務，尚未儲存");
-      rebuildMergedTasks();
-      renderReport();
+      applyEditorCommand(
+        { type: "delete-task", taskId: task.id },
+        "已刪除任務，尚未儲存",
+        { render: true },
+      );
     });
     headerMeta.append(remove);
   }
@@ -707,20 +754,32 @@ function renderTask(task) {
       statusSelect.append(option);
     });
     statusSelect.addEventListener("change", () => {
-      editableTask.status = statusSelect.value;
-      markEditorDirty();
-      rebuildMergedTasks();
-      renderReport();
+      applyEditorCommand(
+        {
+          type: "set-task-field",
+          taskId: task.id,
+          field: "status",
+          value: statusSelect.value,
+        },
+        "有尚未儲存的修改",
+        { render: true },
+      );
     });
     statusLine.append(
       statusSelect,
       prioritySelect(
         editableTask.priority,
         (priority) => {
-          editableTask.priority = priority;
-          markEditorDirty();
-          rebuildMergedTasks();
-          renderReport();
+          applyEditorCommand(
+            {
+              type: "set-task-field",
+              taskId: task.id,
+              field: "priority",
+              value: priority,
+            },
+            "有尚未儲存的修改",
+            { render: true },
+          );
         },
         `${task.title} 優先級`,
       ),
@@ -731,18 +790,32 @@ function renderTask(task) {
     titleInput.value = task.title;
     titleInput.setAttribute("aria-label", "任務名稱");
     titleInput.addEventListener("input", () => {
-      editableTask.title = titleInput.value;
-      markEditorDirty();
+      applyEditorCommand({
+        type: "set-task-field",
+        taskId: task.id,
+        field: "title",
+        value: titleInput.value,
+      });
     });
     titleInput.addEventListener("change", () => {
-      const value = meaningfulText(titleInput.value);
+      const value = normalizeMeaningfulText(titleInput.value);
       if (!value) {
+        applyEditorCommand({
+          type: "set-task-field",
+          taskId: task.id,
+          field: "title",
+          value: task.title,
+        });
         titleInput.value = task.title;
         return;
       }
-      editableTask.title = value;
+      applyEditorCommand({
+        type: "set-task-field",
+        taskId: task.id,
+        field: "title",
+        value,
+      });
       titleInput.value = value;
-      markEditorDirty();
     });
     titleLine.append(titleInput);
   } else {
@@ -763,18 +836,32 @@ function renderTask(task) {
     summary.value = editableTask.summary;
     summary.setAttribute("aria-label", `${task.title} 任務描述`);
     summary.addEventListener("input", () => {
-      editableTask.summary = summary.value;
-      markEditorDirty();
+      applyEditorCommand({
+        type: "set-task-field",
+        taskId: task.id,
+        field: "summary",
+        value: summary.value,
+      });
     });
     summary.addEventListener("change", () => {
-      const value = meaningfulText(summary.value);
+      const value = normalizeMeaningfulText(summary.value);
       if (!value) {
-        summary.value = editableTask.summary;
+        applyEditorCommand({
+          type: "set-task-field",
+          taskId: task.id,
+          field: "summary",
+          value: task.summary,
+        });
+        summary.value = task.summary;
         return;
       }
-      editableTask.summary = value;
+      applyEditorCommand({
+        type: "set-task-field",
+        taskId: task.id,
+        field: "summary",
+        value,
+      });
       summary.value = value;
-      markEditorDirty();
     });
     card.append(summary);
   } else {
@@ -811,7 +898,7 @@ function renderTask(task) {
         true,
         state.editor.editing
           ? {
-              task: editableTask,
+              taskId: editableTask.id,
               field: group.status === "done" ? "completed_items" : "pending_items",
             }
           : null,
@@ -829,21 +916,6 @@ function rebuildMergedTasks() {
   const merged = mergeReports(state.report, state.developerReport);
   state.tasks = merged.tasks;
   state.developerAvailable = merged.developerAvailable;
-}
-
-function normalizeEditableItems(report) {
-  report.tasks.forEach((task) => {
-    const existingIds = allItemIds(task);
-    for (const field of ["completed_items", "pending_items"]) {
-      task[field] = (task[field] ?? []).map((item, index) => {
-        if (item && typeof item === "object") return item;
-        const prefix = `item-${task.id}-${field === "completed_items" ? "done" : "todo"}-${index + 1}`;
-        const id = nextStableId(prefix, existingIds);
-        existingIds.add(id);
-        return { id, title: String(item), priority: PRIORITY_POLICY.fallbackValue };
-      });
-    }
-  });
 }
 
 function renderTaskAdder() {
@@ -873,26 +945,29 @@ function renderTaskAdder() {
     title.focus();
     form.addEventListener("submit", (event) => {
       event.preventDefault();
-      const taskTitle = meaningfulText(title.value);
-      const taskSummary = meaningfulText(summary.value);
+      const taskTitle = normalizeMeaningfulText(title.value);
+      const taskSummary = normalizeMeaningfulText(summary.value);
       if (!taskTitle || !taskSummary) {
         renderTaskAdder();
         return;
       }
-      const ids = new Set(state.report.tasks.map((task) => task.id));
-      const id = nextStableId(`task-${Date.now().toString(36)}`, ids);
-      state.report.tasks.push({
-        id,
-        title: taskTitle,
-        status: "planned",
-        summary: taskSummary,
-        priority: PRIORITY_POLICY.fallbackValue,
-        completed_items: [],
-        pending_items: [],
-      });
-      markEditorDirty("已新增任務，尚未儲存");
-      rebuildMergedTasks();
-      renderReport();
+      const id = state.editor.session.createTaskId(`task-${Date.now().toString(36)}`);
+      applyEditorCommand(
+        {
+          type: "add-task",
+          task: {
+            id,
+            title: taskTitle,
+            status: "planned",
+            summary: taskSummary,
+            priority: PRIORITY_POLICY.fallbackValue,
+            completed_items: [],
+            pending_items: [],
+          },
+        },
+        "已新增任務，尚未儲存",
+        { render: true },
+      );
     });
     form.addEventListener("keydown", (event) => {
       if (event.key === "Escape") renderTaskAdder();
@@ -989,15 +1064,16 @@ async function startEditing() {
     const session = await response.json();
     state.editor.token = session.token;
     state.editor.revision = session.revision;
+    state.editor.session = createReportEditorSession(state.persistedReport, {
+      fallbackPriority: PRIORITY_POLICY.fallbackValue,
+    });
+    state.editor.externalDirty = false;
     state.editor.editing = true;
-    state.editor.dirty = false;
-    state.report = structuredClone(state.persistedReport);
-    normalizeEditableItems(state.report);
+    state.report = state.editor.session.draft;
     rebuildMergedTasks();
     state.timeController?.setEditing(true);
     elements.editSaveBar.hidden = false;
-    elements.editSaveButton.disabled = true;
-    elements.editSaveStatus.textContent = "尚未修改";
+    syncEditorDirty("尚未修改");
     renderReport();
   } catch (error) {
     elements.viewModeToggle.textContent = "預覽模式";
@@ -1015,6 +1091,9 @@ async function startEditing() {
 async function cancelEditing() {
   if (!state.editor.editing) return;
   const token = state.editor.token;
+  state.editor.session?.discard();
+  state.editor.session = null;
+  state.editor.externalDirty = false;
   state.editor.editing = false;
   state.editor.dirty = false;
   state.editor.token = null;
@@ -1042,8 +1121,10 @@ async function cancelEditing() {
 
 async function saveEditing() {
   if (!state.editor.editing || !state.editor.dirty || state.editor.saving) return;
-  state.report.updated_at = new Date().toISOString();
-  const errors = validateReport(state.report);
+  const reportToSave = state.editor.session
+    ? state.editor.session.prepareSave(new Date().toISOString())
+    : structuredClone(state.report);
+  const errors = validateReport(reportToSave);
   if (errors.length) {
     elements.editSaveStatus.textContent = errors[0].message;
     return;
@@ -1066,7 +1147,7 @@ async function saveEditing() {
           "If-Match": `"${state.editor.revision}"`,
           "X-TaskProgress-Editor": "1",
         },
-        body: JSON.stringify(state.report),
+        body: JSON.stringify(reportToSave),
       },
     );
     if (!response.ok) {
@@ -1074,6 +1155,8 @@ async function saveEditing() {
     }
     timeSave?.commit();
     elements.editSaveStatus.textContent = "已安全儲存，正在重新載入…";
+    state.editor.session?.commit(reportToSave);
+    state.editor.externalDirty = false;
     state.editor.dirty = false;
     window.location.reload();
   } catch (error) {

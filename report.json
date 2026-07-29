@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-07-30T01:55:10+08:00",
+  "updated_at": "2026-07-30T02:09:28+08:00",
   "tasks": [
     {
       "id": "viewer-core",
@@ -65,7 +65,7 @@
       "title": "本機任務編輯",
       "status": "in_progress",
       "priority": 1,
-      "summary": "正式 Viewer 已具備本機限定的安全 report 編輯與單一全域模式：任務、子項目、容量預覽及儲存共享同一交易語意，公開部署不顯示入口。人工工時／依據的正式寫入、交付日、390px／觸控及 framework-neutral Editor core 為後續演進。",
+      "summary": "正式 Viewer 已具備本機限定的安全 report 編輯與單一全域模式，並開始抽離 framework-neutral Editor Core：任務與子項目的 DraftSession、stable-ID commands、dirty、discard 及 save snapshot 已不依賴 DOM。公開部署不顯示入口；其餘 core、Demo 共用、人工估算、交付日與行動版仍待完成。",
       "completed_items": [
         "完成第一版編輯範圍、階段、風險與正式上線條件規劃",
         "完成只在 file 與 exact loopback 開放的 Demo 編輯政策",
@@ -74,7 +74,7 @@
         "完成 Unicode 描述驗證、穩定 item ID 與 items_by_task 本機保存",
         "完成記憶體草稿、局部重新計算預覽與固定於 viewport 底部且對齊內容面板右緣的唯一全域儲存；儲存會再次計算並真正寫入分析時間",
         "完成不依賴編輯模式的狀態拖曳排序、階層同步與鍵盤移動",
-        "完成 102 項 Node 回歸測試並保持公開部署沒有編輯入口",
+        "完成 109 項 Node 回歸測試並保持公開部署沒有編輯入口",
         {
           "id": "structured-item-priority",
           "title": "完成任務卡與子任務的五級結構化優先級、共享命名設定、編輯及穩定排序，不再從名稱解析",
@@ -134,6 +134,11 @@
           "id": "preserve-item-time-detail-action",
           "title": "全域編輯模式保留既有子項目工時膠囊與估算明細入口，並維持唯讀語意",
           "priority": 1
+        },
+        {
+          "id": "extract-report-editor-session",
+          "title": "完成正式 Viewer 第一階段 Editor Core 抽離：DraftSession、task／item commands、stable ID、dirty、discard 與獨立 save snapshot，並加入純 Node 測試",
+          "priority": 1
         }
       ],
       "pending_items": [
@@ -144,7 +149,7 @@
         },
         {
           "id": "framework-editor-migration",
-          "title": "抽離 framework-neutral editor core，比較第三方框架並以行為 parity 漸進建立正式 Editor",
+          "title": "完成 Editor Core 的 validation／diff／derived progress／time invalidation，讓 Demo 共用後再比較第三方框架並進行 parity spike",
           "priority": 1
         },
         {

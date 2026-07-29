@@ -20,10 +20,15 @@ test("production Viewer keeps local editing hidden until the host grants capabil
 
 test("local editor uses a memory-only session, revision precondition, and explicit save", async () => {
   const app = await readFile(appUrl, "utf8");
+  assert.match(app, /createReportEditorSession\(state\.persistedReport/);
+  assert.match(app, /state\.editor\.session\.dispatch\(command\)/);
+  assert.match(app, /state\.editor\.session\.prepareSave\(/);
   assert.match(app, /X-TaskProgress-Editor/);
   assert.match(app, /Authorization: `Bearer \$\{state\.editor\.token\}`/);
   assert.match(app, /"If-Match": `"\$\{state\.editor\.revision\}"`/);
   assert.match(app, /window\.location\.reload\(\)/);
+  assert.doesNotMatch(app, /state\.report\.tasks\.(?:push|splice)\(/);
+  assert.doesNotMatch(app, /editableTask\.(?:title|summary|status|priority)\s*=/);
   assert.doesNotMatch(app, /localStorage\.setItem\([^)]*token/i);
   assert.match(app, /viewModeToggle\.addEventListener\("click"/);
 });
