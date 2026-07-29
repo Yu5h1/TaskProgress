@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "report_id": "task-progress-development",
-  "updated_at": "2026-07-30T02:09:28+08:00",
+  "updated_at": "2026-07-30T02:20:43+08:00",
   "tasks": [
     {
       "id": "viewer-core",
@@ -93,11 +93,11 @@
     },
     {
       "id": "local-task-editing",
-      "next_step": "延續 Framework Phase 1：把 report validation／diff／derived progress／time invalidation 納入 Editor Core，再讓 Demo 使用同一套 DraftSession 與 commands；完成 parity 後才開始 Svelte／Vue／原生候選 spike。",
+      "next_step": "延續 Framework Phase 1：讓 Demo 使用正式 Viewer 的 Editor Core DraftSession／commands／derived state，先完成既有互動 parity；再補 Undo／Redo 與跨檔案 transaction adapter 邊界。",
       "blockers": [
         "交付日會跨越 report.json、time.config.json 與衍生 time.analysis.json，尚需定義全部成功才提交的跨檔案交易及失敗復原。",
         "正式人工工時／依據編輯需版本化更新 time.estimates.json 並重新產生 time.analysis.json；目前子項目工時膠囊只開啟唯讀估算明細。",
-        "正式 Viewer 的 report DraftSession 與 task／item mutation 已抽離至 framework-neutral Editor Core；validation／diff／derived progress／time invalidation、Demo 共用及 time-view 跨檔案 adapter 尚未抽離。",
+        "正式 Viewer 的 report DraftSession、task／item mutation、validation、diff、derived progress 與 time invalidation 已抽離至 framework-neutral Editor Core；Demo 共用、Undo／Redo 及 time-view 跨檔案 adapter 尚未完成。",
         "390px 版面與觸控編輯尚未驗證，因此目前正式編輯範圍仍以桌面滑鼠／鍵盤為準。"
       ],
       "decisions": [

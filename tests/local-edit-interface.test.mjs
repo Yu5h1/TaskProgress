@@ -23,6 +23,8 @@ test("local editor uses a memory-only session, revision precondition, and explic
   assert.match(app, /createReportEditorSession\(state\.persistedReport/);
   assert.match(app, /state\.editor\.session\.dispatch\(command\)/);
   assert.match(app, /state\.editor\.session\.prepareSave\(/);
+  assert.match(app, /state\.editor\.session\.derived\.progress\.project/);
+  assert.match(app, /state\.editor\.session\.validate\(reportToSave\)/);
   assert.match(app, /X-TaskProgress-Editor/);
   assert.match(app, /Authorization: `Bearer \$\{state\.editor\.token\}`/);
   assert.match(app, /"If-Match": `"\$\{state\.editor\.revision\}"`/);

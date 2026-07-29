@@ -146,8 +146,12 @@ function prioritySelect(value, onChange, ariaLabel) {
 }
 
 function syncEditorDirty(message = "有尚未儲存的修改") {
+  const derived = state.editor.session?.derived;
   state.editor.dirty = Boolean(
-    state.editor.externalDirty || state.editor.session?.dirty,
+    state.editor.externalDirty || derived?.dirty,
+  );
+  state.timeController?.setReportStructureStale(
+    Boolean(derived?.timeInvalidation.stale),
   );
   elements.editSaveButton.disabled = !state.editor.dirty;
   elements.editSaveStatus.textContent = state.editor.dirty ? message : "尚未修改";
@@ -173,6 +177,21 @@ function applyEditorCommand(
     renderReport();
   }
   return true;
+}
+
+function currentProjectProgress(tasks) {
+  if (state.editor.editing && state.editor.session) {
+    return state.editor.session.derived.progress.project;
+  }
+  return calculateProjectProgress(tasks);
+}
+
+function currentTaskProgress(task) {
+  if (state.editor.editing && state.editor.session) {
+    return state.editor.session.derived.progress.tasks[task.id]
+      ?? calculateTaskProgress(task);
+  }
+  return calculateTaskProgress(task);
 }
 
 function appendItemAdder(section, task, field) {
@@ -429,7 +448,7 @@ function renderOverview() {
 }
 
 function renderProjectProgress() {
-  const progress = calculateProjectProgress(state.tasks);
+  const progress = currentProjectProgress(state.tasks);
   elements.projectProgressValue.textContent = `整體約 ${progress.percentage}%`;
   elements.projectProgressMeter.value = progress.percentage;
   elements.projectProgressMeter.setAttribute(
@@ -718,7 +737,7 @@ function renderTask(task) {
     ? state.editor.session?.task(task.id) ?? task
     : task;
   const meta = STATUS_META[task.status];
-  const progress = calculateTaskProgress(task);
+  const progress = currentTaskProgress(task);
   const card = el("article", `task-card status-${meta.tone}`);
   const header = el("header", "task-header");
   const titleGroup = el("div", "task-title-group");
@@ -1098,6 +1117,7 @@ async function cancelEditing() {
   state.editor.dirty = false;
   state.editor.token = null;
   state.timeController?.setEditing(false);
+  state.timeController?.setReportStructureStale(false);
   state.report = structuredClone(state.persistedReport);
   rebuildMergedTasks();
   elements.editSaveBar.hidden = true;
@@ -1124,7 +1144,9 @@ async function saveEditing() {
   const reportToSave = state.editor.session
     ? state.editor.session.prepareSave(new Date().toISOString())
     : structuredClone(state.report);
-  const errors = validateReport(reportToSave);
+  const errors = state.editor.session
+    ? state.editor.session.validate(reportToSave)
+    : validateReport(reportToSave);
   if (errors.length) {
     elements.editSaveStatus.textContent = errors[0].message;
     return;

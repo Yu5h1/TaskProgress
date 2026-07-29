@@ -242,6 +242,7 @@ export function createTimeReferenceController({
   const storageKey = `taskprogress.time-capacity.${report.scope_id}.v1`;
   let detailsExpanded = false;
   let activeTab = "flow";
+  let reportStructureStale = false;
   let capacityEditorOpen = false;
   let pendingCapacityProfile = null;
   let persistedCapacityProfile = null;
@@ -284,6 +285,17 @@ export function createTimeReferenceController({
   }
 
   function renderSummaryButton() {
+    if (reportStructureStale) {
+      summaryButton.hidden = false;
+      summaryButton.disabled = true;
+      summaryButton.className = "time-summary-button stale";
+      summaryButton.replaceChildren(el("span", "", "時間待重新分析"));
+      summaryButton.setAttribute(
+        "aria-label",
+        "任務結構已變更，時間資料須儲存並重新分析",
+      );
+      return;
+    }
     if (!deadlineAvailable) {
       summaryButton.hidden = false;
       summaryButton.disabled = false;
@@ -933,6 +945,7 @@ export function createTimeReferenceController({
   }
 
   function createItemTimeButton(itemId, title) {
+    if (reportStructureStale) return null;
     const item = index.items.get(itemId);
     if (!item) return null;
     const button = el("button", "time-item-button", hours(item.likely_minutes));
@@ -943,8 +956,21 @@ export function createTimeReferenceController({
   }
 
   function taskDuration(taskId) {
+    if (reportStructureStale) return null;
     const task = index.tasks.get(taskId);
     return task ? hours(task.total_likely_minutes) : null;
+  }
+
+  function setReportStructureStale(stale) {
+    reportStructureStale = Boolean(stale);
+    if (
+      reportStructureStale
+      && dialog.open
+      && ["project", "item"].includes(currentDialog)
+    ) {
+      dialog.close();
+    }
+    renderSummaryButton();
   }
 
   function refresh(now = new Date()) {
@@ -969,6 +995,7 @@ export function createTimeReferenceController({
     prepareSave,
     refresh,
     setEditing,
+    setReportStructureStale,
     taskDuration,
   });
 }

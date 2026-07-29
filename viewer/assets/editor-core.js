@@ -1,3 +1,9 @@
+import {
+  calculateProjectProgress,
+  calculateTaskProgress,
+  validateReport,
+} from "./report-model.js";
+
 const ITEM_FIELDS = Object.freeze(["completed_items", "pending_items"]);
 const TASK_FIELDS = new Set(["title", "summary", "status", "priority"]);
 const ITEM_PROPERTIES = new Set(["title", "priority"]);
@@ -76,13 +82,145 @@ function reportSignature(report) {
   return JSON.stringify(report);
 }
 
+function itemLocations(task) {
+  const locations = new Map();
+  ITEM_FIELDS.forEach((field) => {
+    (task?.[field] ?? []).forEach((item) => {
+      if (item && typeof item === "object" && !Array.isArray(item)) {
+        locations.set(item.id, { field, item });
+      }
+    });
+  });
+  return locations;
+}
+
+export function diffEditableReports(baselineReport, draftReport) {
+  const baselineTasks = new Map(
+    (baselineReport.tasks ?? []).map((task) => [task.id, task]),
+  );
+  const draftTasks = new Map(
+    (draftReport.tasks ?? []).map((task) => [task.id, task]),
+  );
+  const taskIds = new Set([...baselineTasks.keys(), ...draftTasks.keys()]);
+  const changes = [];
+  const timeAffectedTaskIds = new Set();
+  const timeAffectedItemIds = new Set();
+
+  taskIds.forEach((taskId) => {
+    const baselineTask = baselineTasks.get(taskId);
+    const draftTask = draftTasks.get(taskId);
+    if (!baselineTask || !draftTask) {
+      const task = draftTask ?? baselineTask;
+      changes.push({
+        kind: baselineTask ? "task-deleted" : "task-added",
+        taskId,
+      });
+      timeAffectedTaskIds.add(taskId);
+      itemLocations(task).forEach((_location, itemId) => {
+        timeAffectedItemIds.add(itemId);
+      });
+      return;
+    }
+
+    const changedFields = [...TASK_FIELDS].filter(
+      (field) => reportSignature(baselineTask[field]) !== reportSignature(draftTask[field]),
+    );
+    if (
+      reportSignature(baselineTask.progress)
+      !== reportSignature(draftTask.progress)
+    ) {
+      changedFields.push("progress");
+    }
+    if (changedFields.length) {
+      changes.push({ kind: "task-updated", taskId, fields: changedFields });
+      if (changedFields.some((field) => ["status", "progress"].includes(field))) {
+        timeAffectedTaskIds.add(taskId);
+      }
+    }
+
+    const baselineItems = itemLocations(baselineTask);
+    const draftItems = itemLocations(draftTask);
+    const itemIds = new Set([...baselineItems.keys(), ...draftItems.keys()]);
+    itemIds.forEach((itemId) => {
+      const baselineLocation = baselineItems.get(itemId);
+      const draftLocation = draftItems.get(itemId);
+      if (!baselineLocation || !draftLocation) {
+        changes.push({
+          kind: baselineLocation ? "item-deleted" : "item-added",
+          taskId,
+          itemId,
+          field: (draftLocation ?? baselineLocation).field,
+        });
+        timeAffectedTaskIds.add(taskId);
+        timeAffectedItemIds.add(itemId);
+        return;
+      }
+      if (baselineLocation.field !== draftLocation.field) {
+        changes.push({
+          kind: "item-state-changed",
+          taskId,
+          itemId,
+          from: baselineLocation.field,
+          to: draftLocation.field,
+        });
+        timeAffectedTaskIds.add(taskId);
+        timeAffectedItemIds.add(itemId);
+      }
+      const changedItemFields = [...ITEM_PROPERTIES].filter(
+        (field) => (
+          reportSignature(baselineLocation.item[field])
+          !== reportSignature(draftLocation.item[field])
+        ),
+      );
+      if (changedItemFields.length) {
+        changes.push({
+          kind: "item-updated",
+          taskId,
+          itemId,
+          fields: changedItemFields,
+        });
+      }
+    });
+  });
+
+  return Object.freeze({
+    changes,
+    dirty: reportSignature(baselineReport) !== reportSignature(draftReport),
+    timeInvalidation: Object.freeze({
+      stale: timeAffectedTaskIds.size > 0,
+      taskIds: [...timeAffectedTaskIds],
+      itemIds: [...timeAffectedItemIds],
+    }),
+  });
+}
+
+export function deriveReportEditorState(baselineReport, draftReport) {
+  const diff = diffEditableReports(baselineReport, draftReport);
+  return Object.freeze({
+    diff,
+    dirty: diff.dirty,
+    progress: Object.freeze({
+      project: calculateProjectProgress(draftReport.tasks ?? []),
+      tasks: Object.fromEntries(
+        (draftReport.tasks ?? []).map((task) => [
+          task.id,
+          calculateTaskProgress(task),
+        ]),
+      ),
+    }),
+    timeInvalidation: diff.timeInvalidation,
+    validation: validateReport(draftReport),
+  });
+}
+
 export function createReportEditorSession(
   persistedReport,
   { fallbackPriority = 4 } = {},
 ) {
   let persisted = cloneValue(persistedReport);
   let draft = normalizeEditableReport(persisted, fallbackPriority);
-  let baselineSignature = reportSignature(draft);
+  let baseline = cloneValue(draft);
+  let derived = deriveReportEditorState(baseline, draft);
 
   function dispatch(command) {
     if (!command || typeof command !== "object") {
@@ -149,12 +287,15 @@ export function createReportEditorSession(
       default:
         throw new Error(`不支援的 Editor command「${command.type}」。`);
     }
-    return before !== reportSignature(draft);
+    const changed = before !== reportSignature(draft);
+    if (changed) derived = deriveReportEditorState(baseline, draft);
+    return changed;
   }
 
   function discard() {
     draft = normalizeEditableReport(persisted, fallbackPriority);
-    baselineSignature = reportSignature(draft);
+    baseline = cloneValue(draft);
+    derived = deriveReportEditorState(baseline, draft);
     return draft;
   }
 
@@ -181,8 +322,11 @@ export function createReportEditorSession(
     get draft() {
       return draft;
     },
+    get derived() {
+      return derived;
+    },
     get dirty() {
-      return reportSignature(draft) !== baselineSignature;
+      return derived.dirty;
     },
     commit,
     createItemId,
@@ -192,6 +336,9 @@ export function createReportEditorSession(
     prepareSave,
     task(taskId) {
       return findTask(draft, taskId);
+    },
+    validate(report = draft) {
+      return validateReport(report);
     },
   });
 }

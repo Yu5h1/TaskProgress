@@ -3,6 +3,8 @@ import test from "node:test";
 
 import {
   createReportEditorSession,
+  deriveReportEditorState,
+  diffEditableReports,
   nextStableId,
   normalizeEditableReport,
   normalizeMeaningfulText,
@@ -128,6 +130,73 @@ test("editor core clears dirty when commands restore the baseline", () => {
     value: "Summary A",
   });
   assert.equal(session.dirty, false);
+});
+
+test("editor core derives validation and progress from the current draft", () => {
+  const session = createReportEditorSession(sampleReport());
+  const initial = session.derived;
+
+  assert.deepEqual(initial.validation, []);
+  assert.deepEqual(initial.progress.project, {
+    completed: 1,
+    total: 2,
+    percentage: 50,
+  });
+  assert.deepEqual(initial.progress.tasks["task-a"], {
+    completed: 1,
+    total: 2,
+  });
+
+  session.dispatch({
+    type: "set-task-field",
+    taskId: "task-a",
+    field: "title",
+    value: "",
+  });
+
+  assert.ok(session.derived.validation.some(
+    (error) => error.path === "tasks[0].title",
+  ));
+});
+
+test("content-only edits do not invalidate time projections", () => {
+  const baseline = normalizeEditableReport(sampleReport());
+  const draft = structuredClone(baseline);
+  draft.tasks[0].summary = "Updated summary";
+  draft.tasks[0].pending_items[0].title = "Renamed item";
+  draft.tasks[0].priority = 0;
+
+  const derived = deriveReportEditorState(baseline, draft);
+
+  assert.equal(derived.dirty, true);
+  assert.equal(derived.timeInvalidation.stale, false);
+  assert.deepEqual(
+    derived.diff.changes.map((change) => change.kind),
+    ["task-updated", "item-updated"],
+  );
+});
+
+test("structural and completion-state changes identify stale time targets", () => {
+  const baseline = normalizeEditableReport(sampleReport());
+  const draft = structuredClone(baseline);
+  const moved = draft.tasks[0].pending_items.pop();
+  draft.tasks[0].completed_items.push(moved);
+  draft.tasks[0].pending_items.push({
+    id: "item-new",
+    title: "New work",
+    priority: 2,
+  });
+
+  const diff = diffEditableReports(baseline, draft);
+
+  assert.equal(diff.timeInvalidation.stale, true);
+  assert.deepEqual(diff.timeInvalidation.taskIds, ["task-a"]);
+  assert.deepEqual(
+    new Set(diff.timeInvalidation.itemIds),
+    new Set(["item-a", "item-new"]),
+  );
+  assert.ok(diff.changes.some((change) => change.kind === "item-state-changed"));
+  assert.ok(diff.changes.some((change) => change.kind === "item-added"));
 });
 
 test("editor core rejects duplicate IDs and unsupported commands", () => {

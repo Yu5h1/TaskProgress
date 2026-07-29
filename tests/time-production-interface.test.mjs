@@ -91,3 +91,22 @@ test("production item time actions remain visible in global edit mode", () => {
     /查看估算依據/,
   );
 });
+
+test("production structural edits disable stale time projections", () => {
+  assert.match(
+    appSource,
+    /derived\?\.timeInvalidation\.stale/,
+  );
+  assert.match(
+    appSource,
+    /state\.timeController\?\.setReportStructureStale/,
+  );
+  assert.match(
+    timeViewSource,
+    /summaryButton\.replaceChildren\(el\("span", "", "時間待重新分析"\)\)/,
+  );
+  assert.match(
+    timeViewSource,
+    /if \(reportStructureStale\) return null;[\s\S]*?function taskDuration/,
+  );
+});
