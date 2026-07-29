@@ -22,6 +22,8 @@ internal static class Program
             var repositoryRoot = Directory.GetParent(root)?.FullName
                 ?? throw new InvalidOperationException("Viewer root has no repository parent");
             Equal("viewer", Path.GetFileName(root), "Launcher did not discover the viewer directory");
+            True(File.Exists(settings.EditHostScript), "TaskProgress edit host was not discovered");
+            True(File.Exists(settings.ReportSchema), "TaskProgress report schema was not discovered");
             Equal(
                 "bonghuo-vr",
                 ScopeId.FromFolderName(Path.Combine(testHome, "BonghuoVR")),
@@ -182,6 +184,18 @@ internal static class Program
                 var firstJson = await http.GetStringAsync(
                     new Uri(settings.BaseUri, "reports/bonghuo-vr/report.json"),
                     cancellation.Token);
+                var editHealthJson = await http.GetStringAsync(
+                    new Uri(settings.BaseUri, "__taskprogress/v1/health"),
+                    cancellation.Token);
+                True(
+                    editHealthJson.Contains("taskprogress-edit-host", StringComparison.Ordinal),
+                    "TaskProgress edit host health was not available");
+                var capabilityJson = await http.GetStringAsync(
+                    new Uri(settings.BaseUri, "__taskprogress/v1/capabilities/bonghuo-vr"),
+                    cancellation.Token);
+                True(
+                    capabilityJson.Contains("\"editable\":true", StringComparison.Ordinal),
+                    "Registered scope did not expose local edit capability");
                 var secondJson = await http.GetStringAsync(
                     new Uri(settings.BaseUri, "reports/sample-unity-project/report.json"),
                     cancellation.Token);

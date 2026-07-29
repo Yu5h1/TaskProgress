@@ -27,6 +27,15 @@
         </a>
         <div class="header-actions">
           <div class="mode-badge" id="mode-badge" hidden>Developer overlay</div>
+          <button
+            class="view-mode-toggle"
+            id="view-mode-toggle"
+            type="button"
+            aria-pressed="false"
+            hidden
+          >
+            預覽模式
+          </button>
           <label class="theme-picker" for="theme-select">
             <span>主題</span>
             <select id="theme-select" aria-label="顯示主題">
@@ -45,7 +54,9 @@
             <p class="section-kicker">Custom theme</p>
             <h2 id="theme-dialog-title">自訂 Viewer 顏色</h2>
           </div>
-          <button class="theme-close" id="theme-close" type="button" aria-label="關閉自訂主題">×</button>
+          <button class="theme-close" id="theme-close" type="button" aria-label="關閉自訂主題">
+            <span aria-hidden="true">×</span>
+          </button>
         </div>
         <p class="theme-dialog-description">
           選擇基底後調整主要介面顏色；任務狀態色會沿用基底，保持完成、進行中與受阻容易辨識。
@@ -73,7 +84,9 @@
             <p class="section-kicker" id="time-dialog-kicker">時間參考</p>
             <h2 id="time-dialog-title">進度報告</h2>
           </div>
-          <button class="theme-close" id="time-dialog-close" type="button" aria-label="關閉時間參考">×</button>
+          <button class="theme-close" id="time-dialog-close" type="button" aria-label="關閉時間參考">
+            <span aria-hidden="true">×</span>
+          </button>
         </div>
         <div class="time-dialog-content" id="time-dialog-content"></div>
       </dialog>
@@ -134,6 +147,7 @@
           </div>
 
           <div class="task-list" id="task-list"></div>
+          <div class="task-add-shell" id="task-add-shell" hidden></div>
           <p class="empty-state" id="empty-state" hidden>這個篩選條件下沒有任務。</p>
         </section>
 
@@ -157,8 +171,14 @@
 
       <footer>
         <span>TaskProgress Viewer</span>
-        <span>Viewer is read-only</span>
+        <span id="viewer-mode-label">Viewer is read-only</span>
       </footer>
     </div>
+    <aside class="edit-save-bar" id="edit-save-bar" aria-live="polite" hidden>
+      <span class="edit-save-status" id="edit-save-status">尚未修改</span>
+      <button class="primary-button edit-save-button" id="edit-save-button" type="button">
+        儲存
+      </button>
+    </aside>
   </body>
 </html>

@@ -8,7 +8,7 @@ TaskProgress 將不同專案或 Agent scope 的任務狀態整理成可分享、
 - 可從專案 report 與選用時間輸入確定性產生 `time.analysis.json` 的 Launcher 分析器。
 - 位於 `reports/example/` 的公開報告範例。
 - 由 `?scope=`、`?report=`、`?dev=` 自動載入資料的 `viewer/index.html`；本機 scope 預設合併存在的 Developer report。
-- 僅綁定 loopback、可啟動或重用 LocalWebService 的 C# `task-progress.exe`。
+- 僅綁定 loopback、可啟動或重用 LocalWebService 的 C# `task-progress.exe`，以及只對 Launcher 精確註冊 scope 開放的安全本機編輯 Host。
 
 ## 快速開始
 
@@ -23,6 +23,8 @@ TaskProgress 將不同專案或 Agent scope 的任務狀態整理成可分享、
 Launcher 會自動讀取資料夾內的 `report.json`，並在存在時一併載入 `report.dev.json` 與 `time.analysis.json`。若資料夾包含 `time.config.json`、`time.estimates.json` 或 `time.events.json`，`open`／`start` 會先重新產生分析快照；沒有任何時間輸入的舊專案不會被自動加入時間資料。加入 `--no-browser` 可只輸出連結，`--port` 可選擇另一個固定 port。
 
 第一次執行會在 `127.0.0.1:8001` 啟動 LocalWebService；之後開啟其他 scope 會重用同一個 process，並透過受保護的控制 API 註冊精確 JSON 路徑。Launcher 結束不會停止服務。
+
+本機 Viewer 在確認目前 scope 是由 Launcher 精確註冊後，頁首才會出現「預覽模式／編輯模式」。編輯資料先留在記憶體；切回預覽會直接放棄草稿，只有固定在內容面板右下方的「儲存」會寫回 `report.json`。服務以短效 scope session、來源 revision、完整 Schema 驗證、重複 ID 檢查與同目錄原子取代保護來源；另一分頁或 Agent 已修改檔案時會拒絕覆寫。公開網站沒有編輯 API，因此不會顯示編輯選項。子項目工時膠囊在編輯模式仍可開啟估算明細，但目前是唯讀；人工工時／依據的版本化 `time.estimates.json` 寫入，以及交付日／`time.config.json` 編輯尚未納入此版。
 
 檢查或停止服務：
 
@@ -51,7 +53,7 @@ REM 或明確指定 scope
 
 ## 自動產生時間分析
 
-只要 `report.json` 的工作項目使用穩定 `{id, title}`，即可明確執行：
+只要 `report.json` 的任務卡與工作項目使用穩定資料（兩層皆可另帶 `priority`），即可明確執行：
 
 ```cmd
 .\Build\win-x64\task-progress.exe analyze "C:\Project\your-project"
@@ -101,7 +103,7 @@ task-progress://open?scope=yu5h1lib
 
 `time.analysis.json` 也是選用 sidecar，預設從 `report.json` 同一個資料夾載入。沒有檔案時不顯示任何時間元件，也不視為錯誤。有工程估算但沒有期限時，Viewer 顯示中性的 `交付日未定 ›`、task/item 工時及工程估算面板，不建立燈號、倒數或容量頁；存在有效期限時才加入 `M/D 交付 ● ›` 與「評估流程／工程估算／工作容量」三個切換頁。期限區塊無效時只隔離期限並保留有效估算。可用 `?time=none` 明確停用，或以 `?time=<path>` 指定其他來源。
 
-期限風險會在 Viewer 初始化、每分鐘、頁面恢復與回到前景時，依瀏覽當下時間重新計算。這只更新時間進度與燈號，不執行 AI，也不改寫已發布的工程估算。工作容量的本機調整只保存在 loopback／`file://` 瀏覽器的 `localStorage`，公開網站保持唯讀。
+期限風險會在 Viewer 初始化、每分鐘、頁面恢復與回到前景時，依瀏覽當下時間重新計算。這只更新時間進度與燈號，不執行 AI，也不改寫已發布的工程估算。工作容量只在本機全域編輯模式顯示設定表單；「重新計算」更新記憶體預覽，全域「儲存」成功後才提交 loopback 瀏覽器的 `localStorage`，切回預覽或 report 儲存失敗會回復。公開網站保持唯讀。
 
 ## Viewer 主題
 
@@ -116,6 +118,8 @@ task-progress://open?scope=yu5h1lib
 開發工作區預設將 `LocalWebService` 視為 `TaskProgress` 的相鄰資料夾。不同配置可使用：
 
 - `TASK_PROGRESS_LOCAL_WEB_SERVICE`：`localHost.py` 絕對路徑。
+- `TASK_PROGRESS_EDIT_HOST`：TaskProgress `service/taskprogress_host.py` 的絕對路徑。
+- `TASK_PROGRESS_REPORT_SCHEMA`：`schemas/report.schema.json` 的絕對路徑。
 - `TASK_PROGRESS_VIEWER_ROOT`：`viewer/` 的絕對路徑；其中包含 `index.html` 與 `assets/`。
 - `TASK_PROGRESS_PYTHON`：Python 執行檔或命令。
 - `TASK_PROGRESS_HOME`：scope 設定與服務 state 的使用者資料目錄。
@@ -143,7 +147,7 @@ https://<user>.github.io/<repository>/task-progress/?scope=yu5h1lib
 
 Viewer 會優先依 `completed_items` 與 `pending_items` 的實際項目數顯示進度；沒有列出工作項目時，才使用來源提供的 `progress.completed` 與 `progress.total`。兩者都沒有時，則依任務狀態顯示單一進度單位。
 
-工作項目仍接受舊版純字串；要把 item 工時與分析結果可靠對齊時，改用 `{ "id": "stable-item-id", "title": "顯示文字" }`。同一 task 內的 item id 必須唯一。時間資料缺少或只使用舊字串項目時，基本進度顯示不受影響。
+任務卡與工作項目的 `priority` 都可省略，資料只保存 `0` 到 `4`；缺少欄位的舊資料以 `4`「未指定」投影，新建任務與子項目則預設 `2`「一般」。顯示名稱由共享 `viewer/assets/priority-policy.js` 統一提供，目前為「立即、優先、一般、次要、未指定」；正常預覽不顯示「未指定」標籤，但編輯下拉仍可選擇。policy 會完整驗證 minimum 到 maximum 的標籤；任何標籤缺漏、空白或重複造成設定不完整時，暫停隱藏規則並將所有層級統一降級為 `P0` 到 `Pmax`，排序與數值不受影響。Viewer 先依狀態群組，再於同組內依 priority 穩定排序。工作項目仍接受舊版純字串；要把 item 工時與分析結果可靠對齊時，改用 `{ "id": "stable-item-id", "title": "顯示文字", "priority": 0 }`。優先級不是過濾器，也不從 title 前綴解析。同一 task 內的 item id 必須唯一。時間資料缺少或只使用舊字串項目時，基本進度顯示不受影響。
 
 ## 驗證
 

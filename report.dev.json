@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "report_id": "task-progress-development",
-  "updated_at": "2026-07-24T21:56:00+08:00",
+  "updated_at": "2026-07-30T01:55:10+08:00",
   "tasks": [
     {
       "id": "viewer-core",
@@ -61,7 +61,7 @@
           "reference": "Documentation/TimeEstimateDeadlineDecouplingPlan.md#相容策略"
         },
         {
-          "summary": "Draft 0.2 燈號只使用工作進度相對於已消耗容量的進度壓力；容量缺口暫時只作可行性參考。",
+          "summary": "deterministic-capacity-feasibility v0.3 直接加總未完成項目估算並先比較剩餘容量：缺口為紅燈、容量使用超過 80% 至少黃燈；容量足夠時再採進度壓力，舊版 v0.2 sidecar 仍可讀取。",
           "reference": "plan.md#期限與急迫程度"
         },
         {
@@ -93,10 +93,12 @@
     },
     {
       "id": "local-task-editing",
-      "next_step": "先完成工作項目底部「＋」與最外層任務建立契約，再依 report.json 的 P0 清單補齊同步、安全寫入與瀏覽器驗證。",
+      "next_step": "等待使用者完成本輪 commit 後指定下一步；在此之前不自行啟動 Editor 框架遷移、人工估算正式寫入或交付日跨檔案交易。",
       "blockers": [
-        "正式保存仍缺少 scope 限定 capability、來源版本與衝突檢查；Demo localStorage 不能作為 canonical 任務來源。",
-        "結構變更後的完整進度重算、跨任務時間 sidecar 失效與瀏覽器 E2E／行動版驗證尚未完成。"
+        "交付日會跨越 report.json、time.config.json 與衍生 time.analysis.json，尚需定義全部成功才提交的跨檔案交易及失敗復原。",
+        "正式人工工時／依據編輯需版本化更新 time.estimates.json 並重新產生 time.analysis.json；目前子項目工時膠囊只開啟唯讀估算明細。",
+        "目前資料模型、安全 Host 與純計算已有模組邊界，但 app.js／time-view.js 仍以程序式 DOM 集中 UI、draft 與事件協調；繼續加入跨檔案編輯前應先抽離 framework-neutral editor core。",
+        "390px 版面與觸控編輯尚未驗證，因此目前正式編輯範圍仍以桌面滑鼠／鍵盤為準。"
       ],
       "decisions": [
         {
@@ -112,8 +114,44 @@
           "reference": "plan.md#編輯互動與資料操作"
         },
         {
+          "summary": "任務卡與子項目只保存 0–4；共享 policy 正常只顯示立即、優先、一般、次要、未指定，編輯下拉亦不加 P 前綴。缺少欄位視為隱藏標籤的值 4，新建資料預設值 2；標籤設定不完整時暫停隱藏並統一降級為 P0–Pmax。",
+          "reference": "plan.md#優先級資料與排序"
+        },
+        {
           "summary": "工作項目底部的「＋」新增最外層任務卡；卡片子面板底部的「＋」只新增該卡片的尚未完成子項目。",
           "reference": "report.json"
+        },
+        {
+          "summary": "新最外層任務必填 title 與 summary，stable task ID 不由名稱產生，預設狀態為 planned／待處理；所有 mutation 統一重算狀態數、fraction 與 project progress，結構變更則停用受影響的時間投影。",
+          "reference": "plan.md#編輯互動與資料操作"
+        },
+        {
+          "summary": "切回預覽模式代表放棄全部未儲存草稿並還原 persisted snapshot；固定儲存按鈕使用白字，右緣對齊內容面板而非螢幕。",
+          "reference": "plan.md#編輯互動與資料操作"
+        },
+        {
+          "summary": "目前 Demo 持續作為可用且可回退的 browser-local UI MVP；正式 Editor 才評估 Svelte、Vue、React、Lit／Web Components 與原生基準，先抽離純 editor core，再以 parity spike 選型，不進行一次性重寫。",
+          "reference": "plan.md#editor-框架化與大改-draft-01"
+        },
+        {
+          "summary": "目前實作不是完全未分層：report/time model、priority/status policy 與本機安全寫入已獨立；但 app.js 與 time-view.js 仍是大型程序式 UI 控制器。跨檔案 Editor 新功能不得繼續直接堆入這兩個檔案，應先建立 DraftSession、EditCommand、validation 與 transaction adapter 邊界。",
+          "reference": "plan.md#目前實作盤點-2026-07-30"
+        },
+        {
+          "summary": "人工直接輸入工時時，該版 active estimate 的 likely_minutes 由 direct-human-estimate 固定公式產生；human_note 保存人工依據，human_confirmed 只表示是否接受結果。AI 與同類歷史是 contributors／方法／證據，不與人工數字直接平均，也不得靜默覆蓋人工估值。",
+          "reference": "plan.md#正式人工估算編輯契約"
+        },
+        {
+          "summary": "交付日編輯必須更新 canonical time.config.json 的 project.delivery_at，再由既有分析器重建衍生 time.analysis.json；Viewer 不直接修改分析快照。",
+          "reference": "plan.md#交付日編輯與敏感修改歷史-draft-01"
+        },
+        {
+          "summary": "敏感修改歷史只記錄遮蔽事件、欄位路徑、原因與前後值指紋，不保存可還原的敏感原文，也不進入公開報告。",
+          "reference": "plan.md#交付日編輯與敏感修改歷史-draft-01"
+        },
+        {
+          "summary": "正式 Viewer 只在 TaskProgress 本機 Host 回覆已註冊 scope capability 後顯示全域編輯模式；短效 token 僅存在記憶體，儲存使用 If-Match revision、完整 report schema、同目錄原子取代與衝突拒絕，control token 不進入瀏覽器。",
+          "reference": "plan.md#本機與公開能力邊界"
         }
       ],
       "routes": [
@@ -129,22 +167,66 @@
         },
         {
           "title": "直接修改來源 report.json",
+          "state": "selected",
+          "reason": "正式本機 Viewer 已採用；只允許 Launcher 精確註冊的 scope，並以短效 session、revision compare-and-swap、schema 驗證及原子取代保護來源。"
+        },
+        {
+          "title": "taskprogress.local.json 統一 override 與修改歷史",
           "state": "candidate",
-          "reason": "資料最直接，但必須先具備原子保存、衝突偵測與復原能力。"
+          "reason": "可在同一 revision 原子保存目前交付日覆寫與遮蔽歷史，仍需定義與 time.config.json 的合併及分析器讀取順序。"
+        }
+      ]
+    },
+    {
+      "id": "extension-modules",
+      "next_step": "執行 Phase 0，先核定 report.modules.json 命名、module type／instance identity、visibility 發布語意、unknown module 診斷及 stale projection 的共同最低行為。",
+      "decisions": [
+        {
+          "summary": "report.json 保持任務與進度核心；時間、難度、價值、估價及其他領域使用可選 sidecar，不持續增加核心欄位。",
+          "reference": "Documentation/ExtensionModuleArchitecturePlan.md#核心決策"
+        },
+        {
+          "summary": "time.analysis.json 是第一個具有模組特性的參考實作，但目前 Viewer、Launcher 與 LocalWebService 仍硬編碼 time，因此尚未形成通用接口。",
+          "reference": "Documentation/ExtensionModuleArchitecturePlan.md#背景"
+        },
+        {
+          "summary": "模組資料可由外部工具產生；Viewer 只執行隨 TaskProgress 發布或明確安裝的可信任 Renderer，manifest 不得指定任意可執行程式。",
+          "reference": "Documentation/ExtensionModuleArchitecturePlan.md#資料擴充與程式擴充分離"
+        },
+        {
+          "summary": "交易、付款、身份驗證與電子簽署維持外部系統責任，TaskProgress 只接收經裁切且可追溯的狀態投影。",
+          "reference": "Documentation/ExtensionModuleArchitecturePlan.md#模組類別"
+        }
+      ],
+      "routes": [
+        {
+          "title": "選用 manifest＋可信任內建 registry",
+          "state": "selected",
+          "reason": "能統一發現、驗證、掛載與降級，同時不允許報告資料取得任意程式執行權。"
+        },
+        {
+          "title": "持續在核心硬編碼每個 sidecar",
+          "state": "rejected",
+          "reason": "每新增一個領域都必須修改 Viewer、Launcher、路由白名單與測試，無法承接未知資訊。"
+        },
+        {
+          "title": "manifest 直接載入遠端 JavaScript plugin",
+          "state": "rejected",
+          "reason": "會引入供應鏈、XSS、權限與更新信任問題，不屬於第一版資料模組接口。"
         }
       ]
     },
     {
       "id": "project-reporting",
-      "next_step": "專案狀態或驗證結果改變時，從 handoff 與 repository state 重新產生兩層報告。",
+      "next_step": "專案狀態或驗證結果改變時，更新 canonical entry 指向的 report.json／report.dev.json，並檢查指路仍有效；不把 report 內容複製回 plan 或 handoff。",
       "decisions": [
         {
           "summary": "本次 TaskProgress 專案報告只包含任務與 Developer 資料，不建立時間分析 sidecar。",
           "reference": "report.json"
         },
         {
-          "summary": "report.dev.json 是 handoff 與 plan 的唯讀投影，不取代 live claim 或 canonical plan。",
-          "reference": "C:/Users/Yu5h1/Dev/VSProjects/Yu5h1Lib/.agents/AgentsRule.md"
+          "summary": "plan／handoff 維持 canonical，但可用路徑與 Task ID 指向 report 的結構化內容而不重複抄寫；缺少 report 時才在 canonical Markdown 完整記錄。",
+          "reference": "plan.md#任務入口與報告更新規則"
         }
       ]
     }

@@ -20,6 +20,7 @@ internal sealed class LocalWebServiceClient : IDisposable
     private const string StatusPath = "/__localwebservice/v1/status";
     private const string FilesPath = "/__localwebservice/v1/files";
     private const string ShutdownPath = "/__localwebservice/v1/shutdown";
+    private const string EditHealthPath = "/__taskprogress/v1/health";
     private static readonly TimeSpan ProbeTimeout = TimeSpan.FromSeconds(1);
     private static readonly TimeSpan StartupTimeout = TimeSpan.FromSeconds(10);
     private readonly HttpClient _http;
@@ -60,7 +61,17 @@ internal sealed class LocalWebServiceClient : IDisposable
             startedNewProcess = true;
         }
 
-        return await ConnectAsync(settings, health, startedNewProcess, cancellationToken);
+        var client = await ConnectAsync(settings, health, startedNewProcess, cancellationToken);
+        try
+        {
+            await client.VerifyEditHostAsync(cancellationToken);
+            return client;
+        }
+        catch
+        {
+            client.Dispose();
+            throw;
+        }
     }
 
     public static async Task<LocalWebServiceClient?> TryConnectAsync(
@@ -279,7 +290,7 @@ internal sealed class LocalWebServiceClient : IDisposable
                 return WindowsConsoleProcess.Start(
                     settings.PythonExecutable,
                     arguments,
-                    Path.GetDirectoryName(settings.ServiceScript)!,
+                    Path.GetDirectoryName(settings.EditHostScript)!,
                     $"TaskProgress LocalWebService :{settings.Port}");
             }
             catch (Exception error) when (error is Win32Exception
@@ -294,7 +305,7 @@ internal sealed class LocalWebServiceClient : IDisposable
         var startInfo = new ProcessStartInfo
         {
             FileName = settings.PythonExecutable,
-            WorkingDirectory = Path.GetDirectoryName(settings.ServiceScript)!,
+            WorkingDirectory = Path.GetDirectoryName(settings.EditHostScript)!,
             UseShellExecute = false,
             CreateNoWindow = true,
             WindowStyle = ProcessWindowStyle.Hidden,
@@ -318,19 +329,55 @@ internal sealed class LocalWebServiceClient : IDisposable
         }
     }
 
-    private static string[] BuildServiceArguments(LauncherSettings settings) =>
-    [
-        settings.ServiceScript,
-        "--root",
-        settings.ViewerRoot,
-        "--host",
-        LauncherSettings.LoopbackHost,
-        "--port",
-        settings.Port.ToString(System.Globalization.CultureInfo.InvariantCulture),
-        "--control-state",
-        settings.StateFile,
-        "--no-browser",
-    ];
+    private static string[] BuildServiceArguments(LauncherSettings settings)
+    {
+        var arguments = new List<string>
+        {
+            settings.EditHostScript,
+            "--root",
+            settings.ViewerRoot,
+            "--host",
+            LauncherSettings.LoopbackHost,
+            "--port",
+            settings.Port.ToString(System.Globalization.CultureInfo.InvariantCulture),
+            "--control-state",
+            settings.StateFile,
+            "--local-web-service",
+            settings.ServiceScript,
+            "--report-schema",
+            settings.ReportSchema,
+            "--analyzer-executable",
+            settings.AnalyzerExecutable,
+            "--no-browser",
+        };
+        if (settings.AnalyzerAssembly is not null)
+        {
+            arguments.Add("--analyzer-assembly");
+            arguments.Add(settings.AnalyzerAssembly);
+        }
+        return [.. arguments];
+    }
+
+    private async Task VerifyEditHostAsync(CancellationToken cancellationToken)
+    {
+        using var response = await _http.GetAsync(EditHealthPath, cancellationToken);
+        if (!response.IsSuccessStatusCode)
+        {
+            throw new CliException(
+                "目前執行中的 LocalWebService 不支援安全編輯。請先執行 service stop，再重新開啟 report。 ");
+        }
+        var health = await response.Content.ReadFromJsonAsync<EditHostHealth>(
+            cancellationToken: cancellationToken);
+        if (health is null
+            || !string.Equals(
+                health.Service,
+                "taskprogress-edit-host",
+                StringComparison.Ordinal)
+            || health.ApiVersion != 1)
+        {
+            throw new CliException("TaskProgress 本機編輯 Host health 回應不相容。 ");
+        }
+    }
 
     private static void PrepareStateFileForStart(LauncherSettings settings)
     {
@@ -598,5 +645,14 @@ internal sealed class LocalWebServiceClient : IDisposable
 
         [JsonPropertyName("code")]
         public string? Code { get; init; }
+    }
+
+    private sealed record EditHostHealth
+    {
+        [JsonPropertyName("service")]
+        public string Service { get; init; } = string.Empty;
+
+        [JsonPropertyName("api_version")]
+        public int ApiVersion { get; init; }
     }
 }

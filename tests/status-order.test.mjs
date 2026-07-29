@@ -117,7 +117,10 @@ test("production Viewer exposes mouse, touch, and keyboard status ordering", asy
   assert.match(app, /addEventListener\("dragstart"/);
   assert.match(app, /addEventListener\("pointerdown"/);
   assert.match(app, /Alt\+ArrowLeft Alt\+ArrowRight/);
-  assert.match(app, /stableSortByStatus\(state\.tasks, state\.statusOrder\)/);
+  assert.match(
+    app,
+    /stableSortByStatus\(\s*stableSortTasksByPriority\(state\.tasks\),\s*state\.statusOrder/,
+  );
   assert.match(app, /taskMatchesViewStatus\(task, state\.filter\)/);
   assert.match(app, /title: "待處理"/);
   assert.match(css, /\.filter-button\.status-sortable/);

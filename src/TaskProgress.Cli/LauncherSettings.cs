@@ -3,7 +3,11 @@ namespace TaskProgress;
 internal sealed record LauncherSettings(
     string ViewerRoot,
     string ServiceScript,
+    string EditHostScript,
+    string ReportSchema,
     string PythonExecutable,
+    string AnalyzerExecutable,
+    string? AnalyzerAssembly,
     string StateFile,
     string ScopeCatalogFile,
     int Port)
@@ -22,6 +26,16 @@ internal sealed record LauncherSettings(
 
         var viewerRoot = ResolveViewerRoot();
         var serviceScript = ResolveServiceScript(viewerRoot);
+        var editHostScript = ResolveProjectFile(
+            viewerRoot,
+            "TASK_PROGRESS_EDIT_HOST",
+            Path.Combine("service", "taskprogress_host.py"),
+            "TaskProgress 本機編輯 Host");
+        var reportSchema = ResolveProjectFile(
+            viewerRoot,
+            "TASK_PROGRESS_REPORT_SCHEMA",
+            Path.Combine("schemas", "report.schema.json"),
+            "TaskProgress report schema");
         var pythonExecutable = Environment.GetEnvironmentVariable("TASK_PROGRESS_PYTHON");
         if (string.IsNullOrWhiteSpace(pythonExecutable))
         {
@@ -43,10 +57,27 @@ internal sealed record LauncherSettings(
             stateFile = Path.GetFullPath(Environment.ExpandEnvironmentVariables(stateFile));
         }
 
+        var analyzerExecutable = Environment.ProcessPath
+            ?? throw new CliException("無法判斷 TaskProgress analyzer 執行檔。 ");
+        var analyzerAssembly = string.Equals(
+            Path.GetFileNameWithoutExtension(analyzerExecutable),
+            "dotnet",
+            StringComparison.OrdinalIgnoreCase)
+            ? Path.Combine(AppContext.BaseDirectory, "task-progress.dll")
+            : null;
+        if (analyzerAssembly is not null && !File.Exists(analyzerAssembly))
+        {
+            analyzerAssembly = null;
+        }
+
         return new LauncherSettings(
             viewerRoot,
             serviceScript,
+            editHostScript,
+            reportSchema,
             pythonExecutable,
+            analyzerExecutable,
+            analyzerAssembly,
             stateFile,
             Path.Combine(applicationHome, $"scope-catalog-{port}.json"),
             port);
@@ -123,6 +154,24 @@ internal sealed record LauncherSettings(
             directory = directory.Parent;
         }
         return null;
+    }
+
+    private static string ResolveProjectFile(
+        string viewerRoot,
+        string environmentVariable,
+        string relativePath,
+        string label)
+    {
+        var configured = Environment.GetEnvironmentVariable(environmentVariable);
+        var path = string.IsNullOrWhiteSpace(configured)
+            ? Path.Combine(Directory.GetParent(viewerRoot)?.FullName ?? viewerRoot, relativePath)
+            : Path.GetFullPath(Environment.ExpandEnvironmentVariables(configured));
+        if (!File.Exists(path))
+        {
+            throw new CliException(
+                $"找不到 {label}：{path}。請設定 {environmentVariable}。 ");
+        }
+        return Path.GetFullPath(path);
     }
 
     private static void EnsureViewerRoot(string root)

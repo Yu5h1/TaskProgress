@@ -4,12 +4,18 @@ import path from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
 import {
+  PRIORITY_META,
+  PRIORITY_POLICY,
   buildScopeHref,
   calculateProjectProgress,
   calculateTaskProgress,
   mergeReports,
   resolveDeveloperReportSource,
   resolveReportRequest,
+  stableSortTasksByPriority,
+  stableSortTaskItemsByPriority,
+  taskPriority,
+  taskItemPriority,
   validateScopeCatalog,
   validateDeveloperReport,
   validateReport,
@@ -68,7 +74,7 @@ test("task progress derives displayed item fractions before using explicit progr
   );
 });
 
-test("stable item objects are accepted while legacy item strings remain compatible", () => {
+test("stable item objects accept structured priority while legacy item strings remain compatible", () => {
   const report = {
     schema_version: "1.0",
     report_id: "stable-items",
@@ -80,7 +86,7 @@ test("stable item objects are accepted while legacy item strings remain compatib
       title: "Task A",
       status: "in_progress",
       summary: "Supports both item representations.",
-      completed_items: [{ id: "item-a", title: "Stable item" }],
+      completed_items: [{ id: "item-a", title: "Stable item", priority: 0 }],
       pending_items: ["Legacy item"],
     }],
   };
@@ -88,6 +94,77 @@ test("stable item objects are accepted while legacy item strings remain compatib
   assert.deepEqual(validateReport(report), []);
   report.tasks[0].completed_items.push({ id: "item-a", title: "Duplicate" });
   assert.ok(validateReport(report).some((error) => error.code === "duplicate_item"));
+});
+
+test("task and item priority use five named levels with unspecified as the legacy fallback", () => {
+  const items = [
+    { id: "deferred-a", title: "Deferred first", priority: 3 },
+    "Legacy general",
+    { id: "urgent", title: "Urgent", priority: 0 },
+    { id: "irrelevant", title: "Irrelevant", priority: 4 },
+    { id: "deferred-b", title: "Deferred second", priority: 3 },
+    { id: "important", title: "Important", priority: 1 },
+    { id: "general", title: "General", priority: 2 },
+  ];
+
+  assert.equal(taskItemPriority(items[2]), 0);
+  assert.equal(taskItemPriority(items[1]), 4);
+  assert.equal(PRIORITY_META[4].label, "未指定");
+  assert.equal(PRIORITY_META[4].hidden, true);
+  assert.equal(PRIORITY_POLICY.labelsValid, true);
+  assert.equal(PRIORITY_POLICY.fallbackValue, 4);
+  assert.equal(PRIORITY_POLICY.creationDefaultValue, 2);
+  assert.equal(PRIORITY_POLICY.format(0), "立即");
+  assert.equal(PRIORITY_POLICY.format(4), "未指定");
+  const brokenLabels = PRIORITY_POLICY.create(
+    PRIORITY_POLICY.levels.map((level) => (
+      level.value === 3 ? { ...level, label: " " } : level
+    )),
+  );
+  assert.equal(brokenLabels.labelsValid, false);
+  assert.equal(brokenLabels.format(0), "P0");
+  assert.equal(brokenLabels.format(brokenLabels.maximum), "P4");
+  assert.deepEqual(
+    stableSortTaskItemsByPriority(items).map((item) => item.id ?? item),
+    [
+      "urgent",
+      "important",
+      "general",
+      "deferred-a",
+      "deferred-b",
+      "Legacy general",
+      "irrelevant",
+    ],
+  );
+
+  const tasks = [
+    { id: "general-default" },
+    { id: "irrelevant", priority: 4 },
+    { id: "important", priority: 1 },
+    { id: "general-explicit", priority: 2 },
+  ];
+  assert.equal(taskPriority(tasks[0]), 4);
+  assert.deepEqual(
+    stableSortTasksByPriority(tasks).map((task) => task.id),
+    ["important", "general-explicit", "general-default", "irrelevant"],
+  );
+
+  const report = {
+    schema_version: "1.0",
+    report_id: "invalid-priority",
+    scope_id: "invalid-priority",
+    title: "Invalid priority",
+    updated_at: "2026-07-29T00:00:00Z",
+    tasks: [{
+      id: "task-a",
+      title: "Task A",
+      status: "planned",
+      summary: "Rejects a sixth priority level.",
+      priority: 5,
+      pending_items: [{ id: "item-a", title: "Invalid", priority: 5 }],
+    }],
+  };
+  assert.ok(validateReport(report).some((error) => error.code === "invalid_priority"));
 });
 
 test("project progress includes child item fractions", () => {

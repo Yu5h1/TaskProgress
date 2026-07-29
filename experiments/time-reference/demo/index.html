@@ -11,14 +11,15 @@
     <title>TaskProgress · 時間參考整合 Demo</title>
     <script src="../../../viewer/assets/theme-bootstrap.js"></script>
     <link rel="stylesheet" href="../../../viewer/assets/styles.css" />
-    <link rel="stylesheet" href="./styles.css?v=20260724-025" />
+    <link rel="stylesheet" href="./styles.css?v=20260729-034" />
+    <script defer src="../../../viewer/assets/priority-policy.js?v=20260729-033"></script>
     <script defer src="./editing-policy.js?v=20260724-025"></script>
-    <script defer src="./task-editing-model.js?v=20260724-025"></script>
+    <script defer src="./task-editing-model.js?v=20260729-032"></script>
     <script defer src="./time-data-policy.js?v=20260724-025"></script>
     <script defer src="./estimate-engine.js?v=20260724-025"></script>
     <script defer src="./capacity-engine.js?v=20260724-025"></script>
     <script defer src="./deadline-engine.js?v=20260724-025"></script>
-    <script defer src="./app.js?v=20260724-025"></script>
+    <script defer src="./app.js?v=20260729-034"></script>
   </head>
   <body>
     <a class="skip-link" href="#main-content">跳至主要內容</a>
@@ -112,6 +113,10 @@
 
         <section id="report-content">
           <div class="overview-grid" aria-label="報告摘要">
+            <article class="overview-card" data-status="planned">
+              <span class="overview-value">0</span>
+              <span class="overview-label">待處理</span>
+            </article>
             <article class="overview-card overview-active" data-status="in_progress">
               <span class="overview-value">1</span>
               <span class="overview-label">目前進行</span>
@@ -134,6 +139,7 @@
             <p class="section-kicker">工作項目</p>
             <div class="filters" id="status-filters" aria-label="依狀態篩選；編輯模式可拖曳調整排序">
               <button class="filter-button" type="button" data-filter="all" aria-pressed="true">全部 4</button>
+              <button class="filter-button" type="button" data-filter="planned" aria-pressed="false">待處理 0</button>
               <button class="filter-button" type="button" data-filter="in_progress" aria-pressed="false">進行中 1</button>
               <button class="filter-button" type="button" data-filter="done" aria-pressed="false">已完成 1</button>
               <button class="filter-button" type="button" data-filter="blocked" aria-pressed="false">受阻 1</button>
@@ -142,7 +148,7 @@
           </div>
 
           <div class="task-list" id="task-list">
-            <article class="task-card status-active" id="task-card" data-task-id="time-reference-prototype" data-status="in_progress" data-base-completed="0" data-base-total="4" aria-busy="true">
+            <article class="task-card status-active" id="task-card" data-task-id="time-reference-prototype" data-status="in_progress" data-priority="1" data-base-completed="0" data-base-total="4" aria-busy="true">
               <header class="task-header time-task-header">
                 <div class="time-task-copy">
                   <div class="time-task-status-line">
@@ -172,7 +178,7 @@
               </div>
             </article>
 
-            <article class="task-card status-success" data-task-id="viewer-theme-system" data-status="done" data-base-completed="3" data-base-total="3">
+            <article class="task-card status-success" data-task-id="viewer-theme-system" data-status="done" data-priority="2" data-base-completed="3" data-base-total="3">
               <header class="task-header time-task-header">
                 <div class="time-task-copy">
                   <div class="time-task-status-line">
@@ -200,7 +206,7 @@
               </div>
             </article>
 
-            <article class="task-card status-danger" data-task-id="history-calibration-model" data-status="blocked" data-base-completed="0" data-base-total="2">
+            <article class="task-card status-danger" data-task-id="history-calibration-model" data-status="blocked" data-priority="0" data-base-completed="0" data-base-total="2">
               <header class="task-header time-task-header">
                 <div class="time-task-copy">
                   <div class="time-task-status-line">
@@ -228,7 +234,7 @@
               </div>
             </article>
 
-            <article class="task-card" data-task-id="legacy-time-label" data-status="archive" data-base-completed="1" data-base-total="1">
+            <article class="task-card" data-task-id="legacy-time-label" data-status="archive" data-priority="4" data-base-completed="1" data-base-total="1">
               <header class="task-header time-task-header">
                 <div class="time-task-copy">
                   <div class="time-task-status-line">
@@ -256,6 +262,7 @@
               </div>
             </article>
           </div>
+          <div class="task-card-add-host" id="task-card-add-host" hidden></div>
         </section>
       </main>
 

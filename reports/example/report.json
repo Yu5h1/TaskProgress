@@ -3,12 +3,13 @@
   "report_id": "example-public-demo",
   "scope_id": "example",
   "title": "example 公開進展範例",
-  "updated_at": "2026-07-21T02:30:00+08:00",
+  "updated_at": "2026-07-29T19:59:19+08:00",
   "tasks": [
     {
       "id": "scope-link",
       "title": "公開 scope 連結",
       "status": "done",
+      "priority": 2,
       "summary": "Viewer 可將 scope ID 解析為固定的公開報告路徑。",
       "completed_items": [
         {
@@ -33,15 +34,18 @@
       "id": "pages-deployment",
       "title": "GitHub Pages 部署",
       "status": "planned",
+      "priority": 1,
       "summary": "將 Viewer 與選擇公開的 report.json 部署到 Pages。",
       "pending_items": [
         {
           "id": "build-deployment-artifact",
-          "title": "建立部署產物"
+          "title": "建立部署產物",
+          "priority": 1
         },
         {
           "id": "verify-public-separation",
-          "title": "確認公開報告不包含 Developer 資料"
+          "title": "確認公開報告不包含 Developer 資料",
+          "priority": 3
         }
       ]
     }

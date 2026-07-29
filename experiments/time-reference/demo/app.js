@@ -273,11 +273,32 @@ const labels = {
   "document-fallback": "整理原型說明",
   "decouple-estimates-from-deadline": "工時估算與截止日解耦",
 };
-const BASE_TASK_ITEMS = Object.entries(labels).map(([id, title], index) => ({
-  id,
-  title,
-  status: ["active", "blocked", "pending"][index] ?? "pending",
-}));
+const BASE_TASK_ITEMS = [
+  {
+    id: "define-draft-schemas",
+    title: labels["define-draft-schemas"],
+    status: "active",
+    priority: 0,
+  },
+  {
+    id: "evaluate-unknown-route",
+    title: labels["evaluate-unknown-route"],
+    status: "blocked",
+    priority: 0,
+  },
+  {
+    id: "document-fallback",
+    title: labels["document-fallback"],
+    status: "pending",
+    priority: 2,
+  },
+  {
+    id: "decouple-estimates-from-deadline",
+    title: labels["decouple-estimates-from-deadline"],
+    status: "pending",
+    priority: 1,
+  },
+];
 
 const contributorMeta = {
   human_estimate: { label: "人工估算", className: "source-manual", surface: true },
@@ -310,26 +331,52 @@ const inputLabelMeta = {
 
 const DEMO_OVERRIDES_KEY = "taskprogress.time-reference-demo.overrides.v1";
 const DEMO_STATUS_ORDER_KEY = "taskprogress.time-reference-demo.status-order.v1";
-const TASK_CONTENT_REVISION = 2;
+const TASK_CONTENT_REVISION = 5;
 const editingPolicy = globalThis.TimeEditingPolicy;
 const taskEditingModel = globalThis.TimeTaskEditingModel;
+const priorityPolicy = globalThis.TaskProgressPriorityPolicy;
 const timeDataPolicy = globalThis.TimeDataPolicy;
 const estimateEngine = globalThis.TimeEstimateEngine;
 const capacityEngine = globalThis.TimeCapacityEngine;
 const deadlineEngine = globalThis.TimeDeadlineEngine;
 if (!editingPolicy) throw new Error("編輯環境政策未載入。");
 if (!taskEditingModel) throw new Error("任務編輯模型未載入。");
+if (!priorityPolicy) throw new Error("優先級設定未載入。");
 if (!timeDataPolicy) throw new Error("時間資料政策未載入。");
 if (!estimateEngine) throw new Error("估算算法引擎未載入。");
 if (!capacityEngine) throw new Error("工作容量引擎未載入。");
 if (!deadlineEngine) throw new Error("期限風險引擎未載入。");
 const localEditingAllowed = editingPolicy.canEditFromLocation(window.location);
 const BASE_REPORT_UPDATED_AT = "2026-07-21T23:44:00+08:00";
-const BASE_WORK_PROGRESS = 0.2;
-const DEFAULT_STATUS_ORDER = ["in_progress", "done", "blocked", "archive"];
+const DEFAULT_STATUS_ORDER = ["planned", "in_progress", "done", "blocked", "archive"];
+const DEFAULT_PRIORITY = priorityPolicy.fallbackValue;
+const CREATION_PRIORITY = priorityPolicy.creationDefaultValue;
+const priorityMeta = Object.fromEntries(
+  priorityPolicy.levels.map((level) => [
+    level.value,
+    {
+      ...level,
+      className: `priority-${level.tone}`,
+    },
+  ]),
+);
+const taskStatusMeta = {
+  planned: { label: "待處理", cardClass: "", dotClass: "state-muted" },
+  in_progress: { label: "進行中", cardClass: "status-active", dotClass: "state-active" },
+  done: { label: "已完成", cardClass: "status-success", dotClass: "state-success" },
+  blocked: { label: "受阻", cardClass: "status-danger", dotClass: "state-danger" },
+  archive: { label: "已封存", cardClass: "", dotClass: "state-muted" },
+};
+const filterStatusLabels = {
+  planned: "待處理",
+  in_progress: "進行中",
+  done: "已完成",
+  blocked: "受阻",
+  archive: "已封存",
+};
 const itemStatusGroup = {
   active: "in_progress",
-  pending: "pending",
+  pending: "planned",
   done: "done",
   success: "done",
   blocked: "blocked",
@@ -349,7 +396,7 @@ const itemStatusWithinGroup = {
 };
 const itemStatusMeta = {
   active: { label: "進行中", className: "active" },
-  pending: { label: "待做", className: "pending" },
+  pending: { label: "待處理", className: "pending" },
   done: { label: "已完成", className: "success" },
   success: { label: "已完成", className: "success" },
   blocked: { label: "受阻", className: "danger" },
@@ -392,6 +439,8 @@ const elements = {
   filterButtons: [...document.querySelectorAll("#status-filters [data-filter]")],
   taskList: document.querySelector("#task-list"),
   taskCards: [...document.querySelectorAll("#task-list [data-status]")],
+  taskCardAddHost: document.querySelector("#task-card-add-host"),
+  heroSummary: document.querySelector(".hero-summary"),
   timeScenarioSelect: document.querySelector("#time-scenario-select"),
   viewModeSelect: document.querySelector("#view-mode-select"),
   themeSelect: document.querySelector("#theme-select"),
@@ -412,6 +461,7 @@ let viewMode = "preview";
 let statusOrder = loadStatusOrderPreference();
 let draggedStatus = null;
 let suppressFilterClick = false;
+let activeTaskFilter = "all";
 const primaryTaskId = elements.taskCard.dataset.taskId;
 let taskItems = BASE_TASK_ITEMS.map((item) => ({ ...item }));
 let persistedTaskItems = BASE_TASK_ITEMS.map((item) => ({ ...item }));
@@ -424,7 +474,19 @@ let persistedAuxiliaryTaskItems = cloneValue(auxiliaryTaskItems);
 let taskContentDirty = false;
 let taskStructureChanged = false;
 let addingTaskId = null;
+let addingTopLevelTask = false;
 let lastDeletedTaskItem = null;
+const baseTaskDefinitions = elements.taskCards.map((card) => ({
+  id: card.dataset.taskId,
+  title: card.querySelector("h3")?.textContent.trim() ?? card.dataset.taskId,
+  summary: card.querySelector(".task-summary")?.textContent.trim() ?? "",
+  status: card.dataset.status,
+  priority: taskEditingModel.normalizePriority(card.dataset.priority, DEFAULT_PRIORITY),
+  baseCompleted: Number(card.dataset.baseCompleted ?? 0),
+  baseTotal: Number(card.dataset.baseTotal ?? 0),
+}));
+let taskDefinitions = cloneValue(baseTaskDefinitions);
+let persistedTaskDefinitions = cloneValue(baseTaskDefinitions);
 const baseTaskSummaries = Object.fromEntries(
   elements.taskCards.map((card) => [
     card.dataset.taskId,
@@ -433,6 +495,10 @@ const baseTaskSummaries = Object.fromEntries(
 );
 let taskSummaries = { ...baseTaskSummaries };
 let persistedTaskSummaries = { ...baseTaskSummaries };
+const estimateDrafts = new Map();
+let capacityDraft = null;
+let timeInputDirty = false;
+let timeDraftError = null;
 
 const weekdayLabels = new Map([
   [1, "一"],
@@ -568,21 +634,13 @@ function saveStatusOrderPreference() {
   }
 }
 
-function saveDemoOverride(item) {
-  if (!localEditingAllowed) return;
-  const overrides = readDemoOverrides();
-  overrides[item.item_id] = {
-    inputs: Object.fromEntries(
-      item.inputs
-        .filter((input) => input.origin === "human")
-        .map((input) => [input.name, input.value]),
-    ),
-    human_note: item.human_note ?? "",
-  };
+function writeDemoOverrides(overrides) {
+  if (!localEditingAllowed) return false;
   try {
     localStorage.setItem(DEMO_OVERRIDES_KEY, JSON.stringify(overrides));
+    return true;
   } catch {
-    // The interactive demo still works in memory when browser storage is unavailable.
+    return false;
   }
 }
 
@@ -604,9 +662,80 @@ function syncTaskLabels() {
   });
 }
 
+function taskDefinitionFor(taskId) {
+  return taskDefinitions.find((task) => task.id === taskId) ?? null;
+}
+
+function taskProgressSnapshot(taskId) {
+  const definition = taskDefinitionFor(taskId);
+  const items = taskItemsFor(taskId);
+  const itemCompleted = items.filter(
+    (item) => item.status === "done" || item.status === "success",
+  ).length;
+  if (taskId === primaryTaskId) {
+    return {
+      completed: itemCompleted,
+      total: items.length,
+      status: definition?.status ?? "in_progress",
+    };
+  }
+  return {
+    completed: Number(definition?.baseCompleted ?? 0) + itemCompleted,
+    total: Number(definition?.baseTotal ?? 0) + items.length,
+    status: definition?.status ?? "planned",
+  };
+}
+
+function currentProgressSummary() {
+  return taskEditingModel.calculateProgressUnits(
+    taskDefinitions.map((task) => ({
+      ...taskProgressSnapshot(task.id),
+      status: task.status,
+    })),
+  );
+}
+
+function updateStatusAndProgressSummaries() {
+  const counts = Object.fromEntries(DEFAULT_STATUS_ORDER.map((status) => [status, 0]));
+  taskDefinitions.forEach((task) => {
+    if (task.status in counts) counts[task.status] += 1;
+  });
+  elements.filterButtons.forEach((button) => {
+    const status = button.dataset.filter;
+    button.textContent = status === "all"
+      ? `全部 ${taskDefinitions.length}`
+      : `${filterStatusLabels[status] ?? status} ${counts[status] ?? 0}`;
+  });
+  elements.overviewCards.forEach((card) => {
+    const status = card.dataset.status;
+    const value = card.querySelector(".overview-value");
+    if (value) value.textContent = String(counts[status] ?? 0);
+  });
+  elements.heroSummary.textContent =
+    `${taskDefinitions.length} 個狀態測試任務；第一張卡使用隔離時間分析範例。`;
+
+  const progress = currentProgressSummary();
+  elements.progressValue.textContent = `整體約 ${progress.percentage}%`;
+  elements.progressMeter.value = progress.percentage;
+  elements.progressMeter.textContent = `${progress.percentage}%`;
+  elements.progressMeter.setAttribute(
+    "aria-label",
+    `整體進度 ${progress.percentage}%，完成 ${progress.completed}，共 ${progress.total}`,
+  );
+  return progress;
+}
+
+function baseStructureFor(taskId) {
+  if (taskId === primaryTaskId) return BASE_TASK_ITEMS.map((item) => item.id);
+  return baseTaskDefinitions.some((task) => task.id === taskId) ? [] : null;
+}
+
 function updateTaskStructureChanged() {
-  taskStructureChanged = taskItems.map((item) => item.id).join("|")
-    !== BASE_TASK_ITEMS.map((item) => item.id).join("|");
+  taskStructureChanged = taskDefinitions.some((task) => {
+    const baseItems = baseStructureFor(task.id);
+    if (baseItems === null) return true;
+    return taskItemsFor(task.id).map((item) => item.id).join("|") !== baseItems.join("|");
+  });
 }
 
 function taskItemsFor(taskId) {
@@ -621,6 +750,10 @@ function allTaskItemIds() {
   );
 }
 
+function allTaskIds() {
+  return taskDefinitions.map((task) => task.id);
+}
+
 function orderedTaskItems(items) {
   const rank = new Map(statusOrder.map((status, index) => [status, index]));
   return items
@@ -631,6 +764,10 @@ function orderedTaskItems(items) {
       const groupDifference = (rank.get(leftGroup) ?? statusOrder.length)
         - (rank.get(rightGroup) ?? statusOrder.length);
       if (groupDifference) return groupDifference;
+      const priorityDifference =
+        (taskEditingModel.normalizePriority(left.item.priority, DEFAULT_PRIORITY))
+        - (taskEditingModel.normalizePriority(right.item.priority, DEFAULT_PRIORITY));
+      if (priorityDifference) return priorityDifference;
       const withinDifference = (itemStatusWithinGroup[left.item.status] ?? 0)
         - (itemStatusWithinGroup[right.item.status] ?? 0);
       return withinDifference || left.index - right.index;
@@ -638,8 +775,16 @@ function orderedTaskItems(items) {
     .map(({ item }) => item);
 }
 
-function taskContentSignature(summaries, primaryItems, auxiliaryItems) {
+function taskContentSignature(definitions, summaries, primaryItems, auxiliaryItems) {
   return JSON.stringify({
+    tasks: definitions.map((task) => ({
+      id: task.id,
+      title: task.title,
+      status: task.status,
+      priority: task.priority,
+      baseCompleted: task.baseCompleted,
+      baseTotal: task.baseTotal,
+    })),
     summaries,
     items_by_task: Object.fromEntries(
       elements.taskCards.map((card) => {
@@ -649,7 +794,12 @@ function taskContentSignature(summaries, primaryItems, auxiliaryItems) {
           : (auxiliaryItems[taskId] ?? []);
         return [
           taskId,
-          items.map(({ id, title, status }) => ({ id, title, status })),
+          items.map(({ id, title, status, priority }) => ({
+            id,
+            title,
+            status,
+            priority,
+          })),
         ];
       }),
     ),
@@ -657,20 +807,102 @@ function taskContentSignature(summaries, primaryItems, auxiliaryItems) {
 }
 
 function renderGlobalEditSave() {
-  elements.globalEditSave.hidden = !globalEditingEnabled() || !taskContentDirty;
+  elements.globalEditSave.hidden =
+    !globalEditingEnabled() || (!taskContentDirty && !timeInputDirty);
+}
+
+function updateTimeInputDirty() {
+  timeInputDirty = estimateDrafts.size > 0 || capacityDraft !== null;
+  renderGlobalEditSave();
 }
 
 function updateTaskContentDirty() {
   taskContentDirty = taskContentSignature(
+    taskDefinitions,
     taskSummaries,
     taskItems,
     auxiliaryTaskItems,
   ) !== taskContentSignature(
+    persistedTaskDefinitions,
     persistedTaskSummaries,
     persistedTaskItems,
     persistedAuxiliaryTaskItems,
   );
   renderGlobalEditSave();
+}
+
+function createTaskCard(definition) {
+  const meta = taskStatusMeta[definition.status] ?? taskStatusMeta.planned;
+  const card = document.createElement("article");
+  card.className = `task-card ${meta.cardClass}`.trim();
+  card.dataset.taskId = definition.id;
+  card.dataset.status = definition.status;
+  card.dataset.priority = String(
+    taskEditingModel.normalizePriority(definition.priority, DEFAULT_PRIORITY),
+  );
+  card.dataset.baseCompleted = String(definition.baseCompleted ?? 0);
+  card.dataset.baseTotal = String(definition.baseTotal ?? 0);
+
+  const header = document.createElement("header");
+  header.className = "task-header time-task-header";
+  const copy = document.createElement("div");
+  copy.className = "time-task-copy";
+  const statusLine = document.createElement("div");
+  statusLine.className = "time-task-status-line";
+  const state = document.createElement("span");
+  state.className = "time-task-state";
+  const dot = document.createElement("span");
+  dot.className = `task-state-dot ${meta.dotClass}`;
+  dot.setAttribute("aria-hidden", "true");
+  state.append(dot, meta.label);
+  statusLine.append(state);
+  const titleLine = document.createElement("div");
+  titleLine.className = "time-task-title-line";
+  const title = document.createElement("h3");
+  title.textContent = definition.title;
+  const duration = document.createElement("span");
+  duration.className = "task-duration";
+  duration.hidden = true;
+  duration.textContent = "時間待重新分析";
+  titleLine.append(title, duration);
+  copy.append(statusLine, titleLine);
+
+  const headerMeta = document.createElement("div");
+  headerMeta.className = "task-header-meta";
+  const fraction = document.createElement("strong");
+  fraction.className = "task-fraction";
+  fraction.textContent = "0 / 0";
+  fraction.setAttribute("aria-label", "子項目完成 0，共 0");
+  const id = document.createElement("code");
+  id.className = "task-id";
+  id.textContent = definition.id;
+  headerMeta.append(fraction, id);
+  header.append(copy, headerMeta);
+
+  const summary = document.createElement("p");
+  summary.className = "task-summary";
+  summary.textContent = definition.summary;
+  const columns = document.createElement("div");
+  columns.className = "work-columns task-child-panel";
+  columns.hidden = true;
+  const section = document.createElement("section");
+  section.className = "detail-section pending-work";
+  const heading = document.createElement("h4");
+  heading.className = "detail-heading";
+  heading.textContent = "尚未完成";
+  const list = document.createElement("ul");
+  list.className = "detail-list task-child-list";
+  list.dataset.taskChildList = definition.id;
+  section.append(heading, list);
+  columns.append(section);
+  card.append(header, summary, columns);
+
+  elements.taskList.append(card);
+  elements.taskCards.push(card);
+  elements.taskDurations.push(duration);
+  auxiliaryTaskItems[definition.id] ??= [];
+  taskSummaries[definition.id] ??= definition.summary;
+  return card;
 }
 
 function loadTaskContentOverrides() {
@@ -681,8 +913,48 @@ function loadTaskContentOverrides() {
     return;
   }
 
+  if (Array.isArray(content.tasks)) {
+    const knownTaskIds = new Set(allTaskIds());
+    content.tasks.forEach((task) => {
+      const id = String(task?.id ?? "");
+      const title = taskEditingModel.normalizeTaskDescription(task?.title, 200);
+      const summary = taskEditingModel.normalizeTaskDescription(task?.summary, 1000);
+      if (
+        knownTaskIds.has(id)
+        || !/^[a-z0-9]+(?:[._-][a-z0-9]+)*$/.test(id)
+        || !title.ok
+        || !summary.ok
+        || !taskStatusMeta[task?.status]
+      ) {
+        return;
+      }
+      const definition = {
+        id,
+        title: title.value,
+        summary: summary.value,
+        status: task.status,
+        priority: taskEditingModel.normalizePriority(task.priority, DEFAULT_PRIORITY),
+        baseCompleted: 0,
+        baseTotal: 0,
+      };
+      knownTaskIds.add(id);
+      taskDefinitions.push(definition);
+      createTaskCard(definition);
+    });
+  }
+
+  const taskPriorities = content.task_priorities && typeof content.task_priorities === "object"
+    ? content.task_priorities
+    : {};
+  taskDefinitions.forEach((task) => {
+    task.priority = taskEditingModel.normalizePriority(
+      taskPriorities[task.id],
+      taskEditingModel.normalizePriority(task.priority, DEFAULT_PRIORITY),
+    );
+  });
+
   if (content.summaries && typeof content.summaries === "object") {
-    Object.keys(baseTaskSummaries).forEach((taskId) => {
+    taskDefinitions.forEach(({ id: taskId }) => {
       const result = taskEditingModel.normalizeTaskDescription(
         content.summaries[taskId],
         1000,
@@ -721,6 +993,10 @@ function loadTaskContentOverrides() {
         id,
         title: title.value,
         status: itemStatusMeta[item.status] ? item.status : "pending",
+        priority: taskEditingModel.normalizePriority(
+          item.priority,
+          BASE_TASK_ITEMS.find((candidate) => candidate.id === id)?.priority ?? DEFAULT_PRIORITY,
+        ),
       });
     });
     if (
@@ -745,12 +1021,11 @@ function loadTaskContentOverrides() {
   persistedTaskItems = taskItems.map((item) => ({ ...item }));
   persistedAuxiliaryTaskItems = cloneValue(auxiliaryTaskItems);
   persistedTaskSummaries = { ...taskSummaries };
+  persistedTaskDefinitions = cloneValue(taskDefinitions);
   updateTaskContentDirty();
 }
 
-function saveTaskContentOverrides() {
-  if (!localEditingAllowed) return;
-  const overrides = readDemoOverrides();
+function stageTaskContentOverrides(overrides) {
   const itemsByTask = Object.fromEntries(
     elements.taskCards.map((card) => {
       const taskId = card.dataset.taskId;
@@ -759,18 +1034,27 @@ function saveTaskContentOverrides() {
   );
   overrides.__task_content = {
     base_revision: TASK_CONTENT_REVISION,
+    tasks: taskDefinitions
+      .filter((task) => !baseTaskDefinitions.some((base) => base.id === task.id))
+      .map((task) => ({ ...task, summary: taskSummaries[task.id] })),
     summaries: { ...taskSummaries },
+    task_priorities: Object.fromEntries(
+      taskDefinitions.map((task) => [
+        task.id,
+        taskEditingModel.normalizePriority(task.priority, DEFAULT_PRIORITY),
+      ]),
+    ),
     items_by_task: itemsByTask,
     items: taskItems.map((item) => ({ ...item })),
   };
-  try {
-    localStorage.setItem(DEMO_OVERRIDES_KEY, JSON.stringify(overrides));
-  } catch {
-    // The isolated Demo remains editable in memory when storage is unavailable.
-  }
+  return overrides;
+}
+
+function commitPersistedTaskContent() {
   persistedTaskItems = taskItems.map((item) => ({ ...item }));
   persistedAuxiliaryTaskItems = cloneValue(auxiliaryTaskItems);
   persistedTaskSummaries = { ...taskSummaries };
+  persistedTaskDefinitions = cloneValue(taskDefinitions);
   updateTaskContentDirty();
 }
 
@@ -800,7 +1084,48 @@ function renderTaskSummaryControls() {
   });
 }
 
+function hasUnsavedDrafts() {
+  return taskContentDirty || timeInputDirty;
+}
+
+function discardGlobalDrafts() {
+  const persistedTaskIds = new Set(
+    persistedTaskDefinitions.map((task) => task.id),
+  );
+  elements.taskCards = elements.taskCards.filter((card) => {
+    if (persistedTaskIds.has(card.dataset.taskId)) return true;
+    card.remove();
+    return false;
+  });
+  elements.taskDurations = elements.taskDurations.filter(
+    (duration) => duration.isConnected,
+  );
+
+  taskDefinitions = cloneValue(persistedTaskDefinitions);
+  taskSummaries = { ...persistedTaskSummaries };
+  taskItems = persistedTaskItems.map((item) => ({ ...item }));
+  auxiliaryTaskItems = cloneValue(persistedAuxiliaryTaskItems);
+  addingTaskId = null;
+  addingTopLevelTask = false;
+  lastDeletedTaskItem = null;
+
+  estimateDrafts.clear();
+  capacityDraft = null;
+  timeDraftError = null;
+  timeInputDirty = false;
+
+  syncTaskLabels();
+  updateTaskStructureChanged();
+  updateTaskContentDirty();
+  if (loadedAnalysisSource) {
+    render(prepareDemoAnalysis(loadedAnalysisSource));
+  } else {
+    renderWithoutTime();
+  }
+}
+
 function setViewMode(nextMode) {
+  const leavingEditMode = nextMode !== "edit" && viewMode === "edit";
   viewMode = nextMode === "edit" && localEditingAllowed ? "edit" : "preview";
   document.documentElement.dataset.viewMode = viewMode;
   elements.viewModeSelect.value = viewMode;
@@ -808,11 +1133,14 @@ function setViewMode(nextMode) {
   if (!localEditingAllowed) {
     elements.viewModeSelect.title = "編輯模式只在本機 Demo 開放";
   }
+  if (leavingEditMode && hasUnsavedDrafts()) discardGlobalDrafts();
   addingTaskId = null;
   if (elements.dialog.open) elements.dialog.close();
   renderTaskSummaryControls();
   renderTaskItems();
+  renderTopLevelTaskAdd();
   renderGlobalEditSave();
+  return true;
 }
 
 function applyCapacityProfile(data, profile, updatedAt = null) {
@@ -826,20 +1154,6 @@ function applyCapacityProfile(data, profile, updatedAt = null) {
   data.summary.nominal_daily_capacity_minutes =
     safeProfile.capacity_minutes_per_executor_day;
   if (updatedAt && data.inputs) data.inputs.config_updated_at = updatedAt;
-}
-
-function saveCapacityOverride(profile) {
-  if (!localEditingAllowed) return;
-  const overrides = readDemoOverrides();
-  overrides.__capacity_profile = {
-    profile: cloneValue(profile),
-    updated_at: new Date().toISOString(),
-  };
-  try {
-    localStorage.setItem(DEMO_OVERRIDES_KEY, JSON.stringify(overrides));
-  } catch {
-    // The interactive demo still works in memory when browser storage is unavailable.
-  }
 }
 
 function applyDemoOverrides(data) {
@@ -877,8 +1191,17 @@ function applyDemoOverrides(data) {
 }
 
 function sortStatusBoundElements() {
+  const priorityOrderedCards = elements.taskCards
+    .map((card, index) => ({ card, index }))
+    .sort((left, right) => {
+      const difference =
+        taskEditingModel.normalizePriority(left.card.dataset.priority, DEFAULT_PRIORITY)
+        - taskEditingModel.normalizePriority(right.card.dataset.priority, DEFAULT_PRIORITY);
+      return difference || left.index - right.index;
+    })
+    .map(({ card }) => card);
   taskEditingModel.stableSortByStatus(
-    elements.taskCards,
+    priorityOrderedCards,
     statusOrder,
     (card) => card.dataset.status,
   )
@@ -950,6 +1273,7 @@ function clearStatusDragIndicators() {
 }
 
 function applyTaskFilter(filter) {
+  activeTaskFilter = filter;
   sortStatusBoundElements();
   elements.taskCards.forEach((card) => {
     card.hidden = filter !== "all" && card.dataset.status !== filter;
@@ -990,6 +1314,7 @@ function analysisTime(value) {
 function updateRuntimeDeadline(data, now = new Date()) {
   const deadline = data?.summary?.deadline;
   if (!deadline?.schedule) return;
+  deadline.work_progress_ratio = currentProgressSummary().ratio;
   Object.assign(deadline, deadlineEngine.calculate(deadline, now));
 }
 
@@ -1083,7 +1408,7 @@ function deliveryCountdown(deadline) {
   return difference > 0 ? amount : `已逾期 ${amount}`;
 }
 
-function remainingWorkload(summary, workProgressRatio = BASE_WORK_PROGRESS) {
+function remainingWorkload(summary, workProgressRatio = currentProgressSummary().ratio) {
   if (Number.isFinite(summary.remaining_estimated_minutes)
     && summary.remaining_estimated_minutes >= 0) {
     return { minutes: summary.remaining_estimated_minutes };
@@ -1146,7 +1471,7 @@ function workingDaysLabel(weekdays) {
   return sorted.map((day) => `週${weekdayLabels.get(day)}`).join("、");
 }
 
-function capacityHourInput(name, label, minutes) {
+function capacityHourInput(name, label, valueInHours) {
   const field = document.createElement("label");
   field.className = "item-editor-field";
   const title = document.createElement("span");
@@ -1160,7 +1485,7 @@ function capacityHourInput(name, label, minutes) {
   input.max = "24";
   input.step = "0.5";
   input.required = true;
-  input.value = String(roundHours(minutes / 60));
+  input.value = String(valueInHours);
   const unit = document.createElement("span");
   unit.textContent = "hr";
   control.append(input, unit);
@@ -1168,27 +1493,88 @@ function capacityHourInput(name, label, minutes) {
   return field;
 }
 
+function capacityDraftFromProfile(profile) {
+  return {
+    sleep_hours: String(roundHours(profile.sleep_minutes_per_day / 60)),
+    life_hours: String(roundHours(profile.life_minutes_per_day / 60)),
+    other_hours: String(roundHours(profile.other_unavailable_minutes_per_day / 60)),
+    working_weekdays: [...profile.working_weekdays],
+    capacity_exceptions: profile.capacity_exceptions
+      .map((exception) => (
+        `${exception.date} | ${roundHours(exception.available_minutes / 60)} | ${exception.public_label ?? ""}`
+      ))
+      .join("\n"),
+  };
+}
+
+function readCapacityDraft(form) {
+  const formData = new FormData(form);
+  return {
+    sleep_hours: String(formData.get("sleep_hours") ?? ""),
+    life_hours: String(formData.get("life_hours") ?? ""),
+    other_hours: String(formData.get("other_hours") ?? ""),
+    working_weekdays: formData
+      .getAll("working_weekday")
+      .map(Number)
+      .sort((left, right) => left - right),
+    capacity_exceptions: String(formData.get("capacity_exceptions") ?? ""),
+  };
+}
+
+function capacityProfileFromDraft(draft) {
+  const sleepMinutes = Math.round(Number(draft.sleep_hours) * 60);
+  const lifeMinutes = Math.round(Number(draft.life_hours) * 60);
+  const otherMinutes = Math.round(Number(draft.other_hours) * 60);
+  const capacityMinutes = 1440 - sleepMinutes - lifeMinutes - otherMinutes;
+  if (
+    ![sleepMinutes, lifeMinutes, otherMinutes].every(
+      (value) => Number.isFinite(value) && value >= 0,
+    )
+    || capacityMinutes <= 0
+  ) {
+    throw new Error("睡眠、生活與其他不可工作時間合計必須小於 24 hr。");
+  }
+  if (!draft.working_weekdays.length) throw new Error("至少選擇一個工作日。");
+  const profile = {
+    total_minutes_per_day: 1440,
+    sleep_minutes_per_day: sleepMinutes,
+    life_minutes_per_day: lifeMinutes,
+    other_unavailable_minutes_per_day: otherMinutes,
+    capacity_minutes_per_executor_day: capacityMinutes,
+    working_weekdays: [...draft.working_weekdays],
+    capacity_exceptions: capacityEngine.parseExceptions(draft.capacity_exceptions),
+  };
+  if (analysis.summary.deadline) {
+    const timeline = capacityEngine.buildTimeline(analysis.summary.deadline, profile);
+    if (!timeline.some((day) => day.capacity_minutes > 0)) {
+      throw new Error("交付前必須至少保留一段可工作容量。");
+    }
+  }
+  return profile;
+}
+
 function createCapacityEditor(profile) {
   const form = document.createElement("form");
   form.className = "item-editor capacity-editor";
+  const draft = capacityDraft ?? capacityDraftFromProfile(profile);
 
   const heading = document.createElement("div");
   heading.className = "item-editor-heading";
   const title = document.createElement("h3");
   title.textContent = "編輯工作容量";
   const localNote = document.createElement("span");
-  localNote.textContent = "僅保存在此瀏覽器";
+  localNote.textContent = "草稿暫存在記憶體；重新計算只預覽，全域儲存才寫入";
   heading.append(title, localNote);
 
   const fields = document.createElement("div");
   fields.className = "item-editor-fields";
   fields.append(
-    capacityHourInput("sleep_hours", "每日睡眠", profile.sleep_minutes_per_day),
-    capacityHourInput("life_hours", "每日生活時間", profile.life_minutes_per_day),
+    capacityHourInput("sleep_hours", "每日睡眠", draft.sleep_hours),
+    capacityHourInput("life_hours", "每日生活時間", draft.life_hours),
     capacityHourInput(
       "other_hours",
       "其他固定不可工作",
-      profile.other_unavailable_minutes_per_day,
+      draft.other_hours,
     ),
   );
 
@@ -1215,7 +1601,7 @@ function createCapacityEditor(profile) {
     input.type = "checkbox";
     input.name = "working_weekday";
     input.value = String(day);
-    input.checked = profile.working_weekdays.includes(day);
+    input.checked = draft.working_weekdays.includes(day);
     option.append(input, `週${label}`);
     weekdayField.append(option);
   });
@@ -1228,89 +1614,37 @@ function createCapacityEditor(profile) {
   exceptions.name = "capacity_exceptions";
   exceptions.rows = 4;
   exceptions.placeholder = "2026-07-29 | 0 | 休假";
-  exceptions.value = profile.capacity_exceptions
-    .map((exception) => (
-      `${exception.date} | ${roundHours(exception.available_minutes / 60)} | ${exception.public_label ?? ""}`
-    ))
-    .join("\n");
+  exceptions.value = draft.capacity_exceptions;
   const exceptionsHelp = document.createElement("small");
   exceptionsHelp.textContent = "每行：日期 | 當日可工作 hr | 公開標籤（不要填私人細節）";
   exceptionsField.append(exceptionsLabel, exceptions, exceptionsHelp);
 
   const error = document.createElement("p");
   error.className = "item-editor-error";
-  error.hidden = true;
+  error.hidden = timeDraftError?.kind !== "capacity";
+  error.textContent = error.hidden ? "" : timeDraftError.message;
 
   const actions = document.createElement("div");
   actions.className = "item-editor-actions";
-  const cancel = document.createElement("button");
-  cancel.className = "item-editor-cancel";
-  cancel.type = "button";
-  cancel.textContent = "取消";
-  const submit = document.createElement("button");
-  submit.className = "item-editor-submit";
-  submit.type = "submit";
-  submit.textContent = "重新計算";
-  actions.append(cancel, submit);
+  const preview = document.createElement("button");
+  preview.className = "item-editor-preview";
+  preview.type = "button";
+  preview.textContent = "重新計算";
+  preview.addEventListener("click", () => previewTimeDrafts({
+    kind: "capacity",
+  }));
+  actions.append(preview);
 
   form.append(heading, fields, derived, weekdayField, exceptionsField, error, actions);
-  form.addEventListener("input", updateDerived);
-  cancel.addEventListener("click", () => {
-    capacityEditorOpen = false;
-    showProjectDetail();
+  form.addEventListener("input", () => {
+    capacityDraft = readCapacityDraft(form);
+    if (timeDraftError?.kind === "capacity") timeDraftError = null;
+    error.hidden = true;
+    updateDerived();
+    updateTimeInputDirty();
   });
   form.addEventListener("submit", (event) => {
     event.preventDefault();
-    error.hidden = true;
-    try {
-      const formData = new FormData(form);
-      const sleepMinutes = Math.round(Number(formData.get("sleep_hours")) * 60);
-      const lifeMinutes = Math.round(Number(formData.get("life_hours")) * 60);
-      const otherMinutes = Math.round(Number(formData.get("other_hours")) * 60);
-      const capacityMinutes = 1440 - sleepMinutes - lifeMinutes - otherMinutes;
-      if (
-        ![sleepMinutes, lifeMinutes, otherMinutes].every(
-          (value) => Number.isFinite(value) && value >= 0,
-        )
-        || capacityMinutes <= 0
-      ) {
-        throw new Error("睡眠、生活與其他不可工作時間合計必須小於 24 hr。");
-      }
-      const workingWeekdays = formData
-        .getAll("working_weekday")
-        .map(Number)
-        .sort((left, right) => left - right);
-      if (!workingWeekdays.length) throw new Error("至少選擇一個工作日。");
-      const nextProfile = {
-        total_minutes_per_day: 1440,
-        sleep_minutes_per_day: sleepMinutes,
-        life_minutes_per_day: lifeMinutes,
-        other_unavailable_minutes_per_day: otherMinutes,
-        capacity_minutes_per_executor_day: capacityMinutes,
-        working_weekdays: workingWeekdays,
-        capacity_exceptions: capacityEngine.parseExceptions(
-          String(formData.get("capacity_exceptions") ?? ""),
-        ),
-      };
-      const timeline = capacityEngine.buildTimeline(
-        analysis.summary.deadline,
-        nextProfile,
-      );
-      if (!timeline.some((day) => day.capacity_minutes > 0)) {
-        throw new Error("交付前必須至少保留一段可工作容量。");
-      }
-      saveCapacityOverride(nextProfile);
-      applyCapacityProfile(analysis, nextProfile, new Date().toISOString());
-      recomputeAnalysis(analysis, "config");
-      updateRuntimeDeadline(analysis);
-      renderRuntimeRiskSurface(analysis);
-      capacityEditorOpen = false;
-      projectDetailTab = "capacity";
-      showProjectDetail();
-    } catch (reason) {
-      error.textContent = reason instanceof Error ? reason.message : String(reason);
-      error.hidden = false;
-    }
   });
   updateDerived();
   return form;
@@ -1517,7 +1851,7 @@ function createEvaluationFlowPanel(summary, deadline, urgency, remaining) {
 
 function showUndatedProjectDetail() {
   const { summary } = analysis;
-  const workProgressRatio = BASE_WORK_PROGRESS;
+  const workProgressRatio = currentProgressSummary().ratio;
   const remaining = remainingWorkload(summary, workProgressRatio);
   const content = document.createElement("div");
   const toolbar = document.createElement("div");
@@ -1550,6 +1884,46 @@ function showUndatedProjectDetail() {
   const technical = document.createElement("section");
   technical.className = "project-detail-tabs undated-engineering-panel";
   technical.hidden = !timeDetailsExpanded;
+
+  const tabList = document.createElement("div");
+  tabList.className = "project-tab-list";
+  tabList.setAttribute("role", "tablist");
+  tabList.setAttribute("aria-label", "進度報告詳細資訊");
+  const flowTab = document.createElement("button");
+  flowTab.id = "project-flow-tab";
+  flowTab.className = "project-tab";
+  flowTab.type = "button";
+  flowTab.disabled = true;
+  flowTab.setAttribute("role", "tab");
+  flowTab.setAttribute("aria-selected", "false");
+  flowTab.setAttribute("aria-disabled", "true");
+  flowTab.title = "需要交付日才能評估流程";
+  flowTab.textContent = "評估流程";
+  const engineeringTab = document.createElement("button");
+  engineeringTab.id = "project-engineering-tab";
+  engineeringTab.className = "project-tab";
+  engineeringTab.type = "button";
+  engineeringTab.setAttribute("role", "tab");
+  engineeringTab.setAttribute("aria-selected", "true");
+  engineeringTab.setAttribute("aria-controls", "project-engineering-panel");
+  engineeringTab.textContent = "工程估算";
+  const capacityTab = document.createElement("button");
+  capacityTab.id = "project-capacity-tab";
+  capacityTab.className = "project-tab";
+  capacityTab.type = "button";
+  capacityTab.disabled = true;
+  capacityTab.setAttribute("role", "tab");
+  capacityTab.setAttribute("aria-selected", "false");
+  capacityTab.setAttribute("aria-disabled", "true");
+  capacityTab.title = "需要交付日才能計算交付前工作容量";
+  capacityTab.textContent = "工作容量";
+  tabList.append(flowTab, engineeringTab, capacityTab);
+
+  const engineeringPanel = document.createElement("section");
+  engineeringPanel.className = "project-tab-panel";
+  engineeringPanel.id = "project-engineering-panel";
+  engineeringPanel.setAttribute("role", "tabpanel");
+  engineeringPanel.setAttribute("aria-labelledby", "project-engineering-tab");
   const title = document.createElement("h3");
   title.className = "detail-heading";
   title.textContent = "工程估算";
@@ -1592,7 +1966,8 @@ function showUndatedProjectDetail() {
       list.append(sourceRow(label, hours(minutes), description));
     });
   composition.append(compositionTitle, list);
-  technical.append(title, grid, note, composition);
+  engineeringPanel.append(title, grid, note, composition);
+  technical.append(tabList, engineeringPanel);
 
   toggle.addEventListener("click", () => {
     timeDetailsExpanded = !timeDetailsExpanded;
@@ -1772,13 +2147,22 @@ function showProjectDetail() {
 function createItemEditor(item) {
   const form = document.createElement("form");
   form.className = "item-editor";
+  const existingDraft = estimateDrafts.get(item.item_id);
+  const draft = existingDraft ?? {
+    inputs: Object.fromEntries(
+      item.inputs
+        .filter((input) => input.origin === "human")
+        .map((input) => [input.name, String(input.value)]),
+    ),
+    human_note: item.human_note ?? "",
+  };
 
   const heading = document.createElement("div");
   heading.className = "item-editor-heading";
   const title = document.createElement("h3");
   title.textContent = "編輯人工輸入";
   const note = document.createElement("span");
-  note.textContent = "Demo 會保存在此瀏覽器";
+  note.textContent = "草稿暫存在記憶體；重新計算只預覽，全域儲存才寫入";
   heading.append(title, note);
 
   const fields = document.createElement("div");
@@ -1798,7 +2182,7 @@ function createItemEditor(item) {
       value.step = "0.1";
       value.required = true;
       value.name = input.name;
-      value.value = String(input.value);
+      value.value = draft.inputs[input.name] ?? String(input.value);
       const unit = document.createElement("span");
       unit.textContent = input.unit ?? "";
       control.append(value, unit);
@@ -1814,56 +2198,49 @@ function createItemEditor(item) {
   reason.name = "human_note";
   reason.rows = 3;
   reason.maxLength = 1000;
-  reason.value = item.human_note ?? "";
+  reason.value = draft.human_note;
   reasonField.append(reasonLabel, reason);
 
   const error = document.createElement("p");
   error.className = "item-editor-error";
-  error.hidden = true;
+  error.hidden = !(timeDraftError?.kind === "estimate"
+    && timeDraftError.itemId === item.item_id);
+  error.textContent = error.hidden ? "" : timeDraftError.message;
 
   const actions = document.createElement("div");
   actions.className = "item-editor-actions";
-  const cancel = document.createElement("button");
-  cancel.className = "item-editor-cancel";
-  cancel.type = "button";
-  cancel.textContent = "取消";
-  cancel.addEventListener("click", () => showItemDetail(item));
-  const submit = document.createElement("button");
-  submit.className = "item-editor-submit";
-  submit.type = "submit";
-  submit.textContent = "重新計算";
-  actions.append(cancel, submit);
+  const preview = document.createElement("button");
+  preview.className = "item-editor-preview";
+  preview.type = "button";
+  preview.textContent = "重新計算";
+  preview.addEventListener("click", () => previewTimeDrafts({
+    kind: "estimate",
+    itemId: item.item_id,
+  }));
+  actions.append(preview);
 
   form.append(heading, fields, reasonField, error, actions);
+  form.addEventListener("input", () => {
+    const values = new FormData(form);
+    estimateDrafts.set(item.item_id, {
+      inputs: Object.fromEntries(
+        item.inputs
+          .filter((input) => input.origin === "human")
+          .map((input) => [input.name, String(values.get(input.name) ?? "")]),
+      ),
+      human_note: String(values.get("human_note") ?? ""),
+    });
+    if (
+      timeDraftError?.kind === "estimate"
+      && timeDraftError.itemId === item.item_id
+    ) {
+      timeDraftError = null;
+    }
+    error.hidden = true;
+    updateTimeInputDirty();
+  });
   form.addEventListener("submit", (event) => {
     event.preventDefault();
-    const values = new FormData(form);
-    const nextInputs = item.inputs.map((input) => ({ ...input }));
-    nextInputs.forEach((input) => {
-      if (input.origin === "human" && values.has(input.name)) {
-        input.value = Number(values.get(input.name));
-      }
-    });
-    const nextHumanNote = String(values.get("human_note") ?? "").trim();
-    try {
-      const result = calculateEstimate({
-        ...item,
-        inputs: nextInputs,
-        human_note: nextHumanNote,
-      });
-      item.inputs = nextInputs;
-      item.human_note = nextHumanNote;
-      applyEstimateResult(item, result);
-      saveDemoOverride(item);
-      recomputeAnalysis(analysis);
-      render(analysis);
-      showItemDetail(item);
-    } catch (calculationError) {
-      error.hidden = false;
-      error.textContent = calculationError instanceof Error
-        ? calculationError.message
-        : String(calculationError);
-    }
   });
   return form;
 }
@@ -2056,6 +2433,94 @@ function createTaskItemStatus(item) {
   return status;
 }
 
+function createTaskItemPriorityBadge(item) {
+  return createPriorityBadge(
+    taskEditingModel.normalizePriority(item.priority, DEFAULT_PRIORITY),
+    "item-priority-badge",
+  );
+}
+
+function createPriorityBadge(priority, className) {
+  const normalized = taskEditingModel.normalizePriority(priority, DEFAULT_PRIORITY);
+  const meta = priorityMeta[normalized];
+  if (priorityPolicy.labelsValid && meta.hidden) {
+    return document.createDocumentFragment();
+  }
+  const badge = document.createElement("span");
+  badge.className = `${className} priority-badge ${meta.className}`;
+  badge.textContent = priorityPolicy.format(normalized);
+  badge.title = `${priorityPolicy.format(normalized)}；同一狀態內依優先級排序`;
+  badge.setAttribute("aria-label", `優先級：${priorityPolicy.format(normalized)}`);
+  return badge;
+}
+
+function applyPrioritySelectTone(select) {
+  Object.values(priorityMeta).forEach((meta) => select.classList.remove(meta.className));
+  const priority = taskEditingModel.normalizePriority(select.value, DEFAULT_PRIORITY);
+  select.classList.add(priorityMeta[priority].className);
+}
+
+function createPrioritySelect(value, ariaLabel, className) {
+  const select = document.createElement("select");
+  select.className = className;
+  select.setAttribute("aria-label", ariaLabel);
+  Object.entries(priorityMeta).forEach(([priority, meta]) => {
+    const option = document.createElement("option");
+    option.value = priority;
+    option.textContent = priorityPolicy.labelsValid && meta.hidden
+      ? priorityPolicy.format(priority)
+      : `● ${priorityPolicy.format(priority)}`;
+    option.className = meta.className;
+    select.append(option);
+  });
+  select.value = String(taskEditingModel.normalizePriority(value, DEFAULT_PRIORITY));
+  applyPrioritySelectTone(select);
+  select.addEventListener("change", () => applyPrioritySelectTone(select));
+  return select;
+}
+
+function createTaskItemPrioritySelect(item, ariaLabel = `設定「${item.title}」的優先級`) {
+  return createPrioritySelect(
+    item.priority,
+    ariaLabel,
+    "task-item-priority-select",
+  );
+}
+
+function renderTaskPriorityControls() {
+  elements.taskCards.forEach((card) => {
+    const definition = taskDefinitionFor(card.dataset.taskId);
+    const statusLine = card.querySelector(".time-task-status-line");
+    if (!definition || !statusLine) return;
+    card.dataset.priority = String(
+      taskEditingModel.normalizePriority(definition.priority, DEFAULT_PRIORITY),
+    );
+    statusLine.querySelector(".task-priority-control")?.remove();
+    if (globalEditingEnabled()) {
+      const select = createPrioritySelect(
+        definition.priority,
+        `設定「${definition.title}」任務卡優先級`,
+        "task-priority-select task-priority-control",
+      );
+      select.addEventListener("change", () => {
+        definition.priority = taskEditingModel.normalizePriority(
+          select.value,
+          DEFAULT_PRIORITY,
+        );
+        updateTaskContentDirty();
+        renderTaskItems();
+      });
+      statusLine.append(select);
+      return;
+    }
+    const badge = createPriorityBadge(
+      definition.priority,
+      "task-priority-badge task-priority-control",
+    );
+    statusLine.append(badge);
+  });
+}
+
 function deleteTaskItem(taskId, item) {
   const items = taskItemsFor(taskId);
   const index = items.findIndex((candidate) => candidate.id === item.id);
@@ -2096,6 +2561,16 @@ function createTaskItemDeleteButton(item, taskId = primaryTaskId) {
   return remove;
 }
 
+function createTaskItemPriorityEditor(item) {
+  const select = createTaskItemPrioritySelect(item);
+  select.addEventListener("change", () => {
+    item.priority = taskEditingModel.normalizePriority(select.value, DEFAULT_PRIORITY);
+    updateTaskContentDirty();
+    renderTaskItems();
+  });
+  return select;
+}
+
 function createWorkRow(item, index, taskItem) {
   const row = document.createElement("li");
   row.className = "time-work-item";
@@ -2110,6 +2585,7 @@ function createWorkRow(item, index, taskItem) {
     row.append(
       createTaskItemTitleInput(taskItem, primaryTaskId),
       createTaskItemDeleteButton(taskItem, primaryTaskId),
+      createTaskItemPriorityEditor(taskItem),
       button,
       createTaskItemStatus(taskItem),
     );
@@ -2121,7 +2597,7 @@ function createWorkRow(item, index, taskItem) {
   const title = document.createElement("span");
   title.className = "time-work-title";
   title.textContent = taskItem.title;
-  copy.append(title, button);
+  copy.append(createTaskItemPriorityBadge(taskItem), title, button);
   row.append(copy, createTaskItemStatus(taskItem));
   return row;
 }
@@ -2137,6 +2613,7 @@ function createWorkRowWithoutTime(taskItem) {
     row.append(
       createTaskItemTitleInput(taskItem, primaryTaskId),
       createTaskItemDeleteButton(taskItem, primaryTaskId),
+      createTaskItemPriorityEditor(taskItem),
       missing,
       createTaskItemStatus(taskItem),
     );
@@ -2148,12 +2625,12 @@ function createWorkRowWithoutTime(taskItem) {
   const title = document.createElement("span");
   title.className = "time-work-title";
   title.textContent = taskItem.title;
-  copy.append(title, missing);
+  copy.append(createTaskItemPriorityBadge(taskItem), title, missing);
   row.append(copy, createTaskItemStatus(taskItem));
   return row;
 }
 
-function saveTaskItemDrafts() {
+function validateTaskItemDrafts() {
   let firstInvalidInput = null;
 
   document.querySelectorAll("#task-list .task-summary-direct-input").forEach((input) => {
@@ -2184,14 +2661,199 @@ function saveTaskItemDrafts() {
   if (firstInvalidInput) {
     firstInvalidInput.focus();
     firstInvalidInput.reportValidity();
+    return false;
+  }
+
+  return true;
+}
+
+function prepareEstimateDrafts() {
+  return [...estimateDrafts.entries()].map(([itemId, draft]) => {
+    try {
+      const item = analysis?.tasks
+        ?.flatMap((task) => task.items)
+        .find((candidate) => candidate.item_id === itemId);
+      if (!item) throw new Error(`找不到待重新計算的估算項目：${itemId}`);
+      const nextInputs = item.inputs.map((input) => ({
+        ...input,
+        value: input.origin === "human" && draft.inputs[input.name] !== undefined
+          ? Number(draft.inputs[input.name])
+          : input.value,
+      }));
+      const nextHumanNote = draft.human_note.trim();
+      const result = calculateEstimate({
+        ...item,
+        inputs: nextInputs,
+        human_note: nextHumanNote,
+      });
+      return { item, nextInputs, nextHumanNote, result };
+    } catch (reason) {
+      const error = reason instanceof Error ? reason : new Error(String(reason));
+      error.itemId = itemId;
+      throw error;
+    }
+  });
+}
+
+function revealTimeDraftError(error) {
+  timeDraftError = error;
+  if (error.kind === "capacity" && analysis?.summary?.deadline) {
+    timeDetailsExpanded = true;
+    projectDetailTab = "capacity";
+    showProjectDetail();
+    return;
+  }
+  if (error.kind === "estimate") {
+    const item = analysis?.tasks
+      ?.flatMap((task) => task.items)
+      .find((candidate) => candidate.item_id === error.itemId);
+    if (item) showItemDetail(item);
+    if (item) return;
+  }
+  elements.globalEditSaveButton.setCustomValidity(error.message);
+  elements.globalEditSaveButton.reportValidity();
+  elements.globalEditSaveButton.setCustomValidity("");
+}
+
+function previewTimeDrafts(target) {
+  let preparedEstimates;
+  let preparedCapacity = null;
+  try {
+    preparedEstimates = prepareEstimateDrafts();
+  } catch (reason) {
+    revealTimeDraftError({
+      kind: "estimate",
+      itemId: reason?.itemId ?? target.itemId,
+      message: reason instanceof Error ? reason.message : String(reason),
+    });
+    return;
+  }
+  try {
+    if (capacityDraft) preparedCapacity = capacityProfileFromDraft(capacityDraft);
+  } catch (reason) {
+    revealTimeDraftError({
+      kind: "capacity",
+      message: reason instanceof Error ? reason.message : String(reason),
+    });
+    return;
+  }
+
+  preparedEstimates.forEach((change) => {
+    change.item.inputs = change.nextInputs;
+    change.item.human_note = change.nextHumanNote;
+    applyEstimateResult(change.item, change.result, { createVersion: false });
+  });
+  if (preparedCapacity) {
+    if (analysis.summary.deadline) {
+      applyCapacityProfile(analysis, preparedCapacity);
+    } else {
+      analysis.summary.nominal_daily_capacity_minutes =
+        preparedCapacity.capacity_minutes_per_executor_day;
+    }
+  }
+  recomputeDerivedTotals(analysis);
+  if (analysis.summary.deadline) updateRuntimeDeadline(analysis);
+  render(analysis);
+  renderGlobalEditSave();
+
+  if (target.kind === "capacity" && analysis.summary.deadline) {
+    timeDetailsExpanded = true;
+    projectDetailTab = "capacity";
+    showProjectDetail();
+    return;
+  }
+  const item = analysis.tasks
+    .flatMap((task) => task.items)
+    .find((candidate) => candidate.item_id === target.itemId);
+  if (item) showItemDetail(item);
+}
+
+function saveGlobalDrafts() {
+  if (!validateTaskItemDrafts()) return;
+
+  let preparedEstimates;
+  let preparedCapacity = null;
+  try {
+    preparedEstimates = prepareEstimateDrafts();
+  } catch (reason) {
+    revealTimeDraftError({
+      kind: "estimate",
+      itemId: reason?.itemId ?? [...estimateDrafts.keys()][0],
+      message: reason instanceof Error ? reason.message : String(reason),
+    });
+    return;
+  }
+  try {
+    if (capacityDraft) preparedCapacity = capacityProfileFromDraft(capacityDraft);
+  } catch (reason) {
+    revealTimeDraftError({
+      kind: "capacity",
+      message: reason instanceof Error ? reason.message : String(reason),
+    });
     return;
   }
 
   syncTaskLabels();
   updateTaskStructureChanged();
-  saveTaskContentOverrides();
+  const stagedOverrides = stageTaskContentOverrides(readDemoOverrides());
+  preparedEstimates.forEach((change) => {
+    stagedOverrides[change.item.item_id] = {
+      inputs: Object.fromEntries(
+        change.nextInputs
+          .filter((input) => input.origin === "human")
+          .map((input) => [input.name, input.value]),
+      ),
+      human_note: change.nextHumanNote,
+    };
+  });
+  const capacityUpdatedAt = preparedCapacity ? new Date().toISOString() : null;
+  if (preparedCapacity) {
+    stagedOverrides.__capacity_profile = {
+      profile: cloneValue(preparedCapacity),
+      updated_at: capacityUpdatedAt,
+    };
+  }
+  if (!writeDemoOverrides(stagedOverrides)) {
+    elements.globalEditSaveButton.setCustomValidity("儲存失敗；草稿仍保留，沒有部分提交。");
+    elements.globalEditSaveButton.reportValidity();
+    elements.globalEditSaveButton.setCustomValidity("");
+    return;
+  }
+  commitPersistedTaskContent();
+
+  preparedEstimates.forEach((change) => {
+    change.item.inputs = change.nextInputs;
+    change.item.human_note = change.nextHumanNote;
+    applyEstimateResult(change.item, change.result);
+  });
+  if (preparedCapacity) {
+    if (analysis.summary.deadline) {
+      applyCapacityProfile(analysis, preparedCapacity, capacityUpdatedAt);
+    } else {
+      analysis.summary.nominal_daily_capacity_minutes =
+        preparedCapacity.capacity_minutes_per_executor_day;
+      if (analysis.inputs) analysis.inputs.config_updated_at = capacityUpdatedAt;
+    }
+  }
+
+  const timeChanged = preparedEstimates.length > 0 || preparedCapacity !== null;
+  estimateDrafts.clear();
+  capacityDraft = null;
+  timeDraftError = null;
+  updateTimeInputDirty();
+
+  if (timeChanged) {
+    recomputeAnalysis(analysis, preparedCapacity ? "config" : "estimates");
+    if (preparedCapacity && preparedEstimates.length && analysis.inputs) {
+      analysis.inputs.estimates_updated_at = analysis.as_of;
+    }
+    if (analysis.summary.deadline) updateRuntimeDeadline(analysis);
+    if (elements.dialog.open) elements.dialog.close();
+    render(analysis);
+  }
   renderTaskSummaryControls();
   renderTaskItems();
+  renderGlobalEditSave();
 }
 
 function createDeletedTaskItemNotice(taskId) {
@@ -2243,6 +2905,10 @@ function createTaskItemAddRow(taskId = primaryTaskId) {
   input.maxLength = 300;
   input.placeholder = "新增尚未完成的任務描述";
   input.setAttribute("aria-label", "新增子項目描述");
+  const prioritySelect = createTaskItemPrioritySelect(
+    { title: "新子項目", priority: CREATION_PRIORITY },
+    "新子項目優先級",
+  );
   const error = document.createElement("span");
   error.className = "task-inline-error";
   error.hidden = true;
@@ -2254,7 +2920,7 @@ function createTaskItemAddRow(taskId = primaryTaskId) {
   submit.type = "submit";
   submit.className = "task-inline-save";
   submit.textContent = "新增";
-  form.append(input, error, cancel, submit);
+  form.append(input, prioritySelect, cancel, submit, error);
   row.append(form);
 
   const close = () => {
@@ -2281,7 +2947,15 @@ function createTaskItemAddRow(taskId = primaryTaskId) {
       return;
     }
     const id = taskEditingModel.createStableItemId(allTaskItemIds());
-    taskItemsFor(taskId).push({ id, title: result.value, status: "pending" });
+    taskItemsFor(taskId).push({
+      id,
+      title: result.value,
+      status: "pending",
+      priority: taskEditingModel.normalizePriority(
+        prioritySelect.value,
+        CREATION_PRIORITY,
+      ),
+    });
     labels[id] = result.value;
     addingTaskId = null;
     lastDeletedTaskItem = null;
@@ -2291,6 +2965,119 @@ function createTaskItemAddRow(taskId = primaryTaskId) {
   });
   queueMicrotask(() => input.focus());
   return row;
+}
+
+function renderTopLevelTaskAdd() {
+  const host = elements.taskCardAddHost;
+  host.hidden = !globalEditingEnabled();
+  if (host.hidden) {
+    host.replaceChildren();
+    addingTopLevelTask = false;
+    return;
+  }
+
+  if (!addingTopLevelTask) {
+    const add = document.createElement("button");
+    add.type = "button";
+    add.className = "task-card-add";
+    add.textContent = "+";
+    add.setAttribute("aria-label", "新增最外層任務卡");
+    add.addEventListener("click", () => {
+      addingTopLevelTask = true;
+      renderTopLevelTaskAdd();
+    });
+    host.replaceChildren(add);
+    return;
+  }
+
+  const form = document.createElement("form");
+  form.className = "task-card-add-form";
+  const title = document.createElement("input");
+  title.type = "text";
+  title.maxLength = 200;
+  title.placeholder = "任務名稱";
+  title.setAttribute("aria-label", "新任務名稱");
+  const summary = document.createElement("textarea");
+  summary.rows = 2;
+  summary.maxLength = 1000;
+  summary.placeholder = "任務描述";
+  summary.setAttribute("aria-label", "新任務描述");
+  const prioritySelect = createPrioritySelect(
+    CREATION_PRIORITY,
+    "新任務卡優先級",
+    "task-priority-select",
+  );
+  const contract = document.createElement("span");
+  contract.className = "task-add-contract";
+  contract.textContent = "預設狀態：待處理；預設優先級：一般；ID 會獨立產生";
+  const error = document.createElement("span");
+  error.className = "task-inline-error";
+  error.hidden = true;
+  const actions = document.createElement("div");
+  actions.className = "task-inline-actions";
+  const cancel = document.createElement("button");
+  cancel.type = "button";
+  cancel.className = "task-inline-cancel";
+  cancel.textContent = "取消";
+  const submit = document.createElement("button");
+  submit.type = "submit";
+  submit.className = "task-inline-save";
+  submit.textContent = "新增任務";
+  actions.append(cancel, submit);
+  form.append(title, summary, prioritySelect, contract, error, actions);
+  host.replaceChildren(form);
+
+  const close = () => {
+    addingTopLevelTask = false;
+    renderTopLevelTaskAdd();
+  };
+  cancel.addEventListener("click", close);
+  form.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+      event.preventDefault();
+      close();
+    }
+  });
+  form.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const titleResult = taskEditingModel.normalizeTaskDescription(title.value, 200);
+    const summaryResult = taskEditingModel.normalizeTaskDescription(summary.value, 1000);
+    if (!titleResult.ok || !summaryResult.ok) {
+      if (titleResult.cancelled && summaryResult.cancelled) {
+        close();
+        return;
+      }
+      error.textContent = !titleResult.ok
+        ? (titleResult.cancelled ? "請填寫任務名稱。" : titleResult.error)
+        : (summaryResult.cancelled ? "請填寫任務描述。" : summaryResult.error);
+      error.hidden = false;
+      return;
+    }
+    const definition = {
+      id: taskEditingModel.createStableTaskId(allTaskIds()),
+      title: titleResult.value,
+      summary: summaryResult.value,
+      status: "planned",
+      priority: taskEditingModel.normalizePriority(
+        prioritySelect.value,
+        CREATION_PRIORITY,
+      ),
+      baseCompleted: 0,
+      baseTotal: 0,
+    };
+    taskDefinitions.push(definition);
+    auxiliaryTaskItems[definition.id] = [];
+    taskSummaries[definition.id] = definition.summary;
+    createTaskCard(definition);
+    addingTopLevelTask = false;
+    lastDeletedTaskItem = null;
+    updateTaskStructureChanged();
+    updateTaskContentDirty();
+    renderTaskSummaryControls();
+    renderTaskItems();
+    renderTopLevelTaskAdd();
+  });
+  queueMicrotask(() => title.focus());
 }
 
 function createAuxiliaryWorkRow(taskId, taskItem) {
@@ -2304,6 +3091,7 @@ function createAuxiliaryWorkRow(taskId, taskItem) {
     row.append(
       createTaskItemTitleInput(taskItem, taskId),
       createTaskItemDeleteButton(taskItem, taskId),
+      createTaskItemPriorityEditor(taskItem),
       missing,
       createTaskItemStatus(taskItem),
     );
@@ -2315,7 +3103,7 @@ function createAuxiliaryWorkRow(taskId, taskItem) {
   const title = document.createElement("span");
   title.className = "time-work-title";
   title.textContent = taskItem.title;
-  copy.append(title, missing);
+  copy.append(createTaskItemPriorityBadge(taskItem), title, missing);
   row.append(copy, createTaskItemStatus(taskItem));
   return row;
 }
@@ -2342,18 +3130,28 @@ function renderAuxiliaryTaskItems() {
       list.replaceChildren(...rows);
       panel.hidden = !globalEditingEnabled() && items.length === 0;
 
-      const completed = Number(card.dataset.baseCompleted);
-      const baseTotal = Number(card.dataset.baseTotal);
-      const total = baseTotal + items.length;
+      const { completed, total } = taskProgressSnapshot(taskId);
       const fraction = card.querySelector(".task-fraction");
       fraction.textContent = `${completed} / ${total}`;
       fraction.setAttribute("aria-label", `子項目完成 ${completed}，共 ${total}`);
+
+      const duration = card.querySelector(".task-duration");
+      if (duration) {
+        const stale = baseStructureFor(taskId)?.join("|")
+          !== items.map((item) => item.id).join("|");
+        duration.hidden = !stale;
+        if (stale) duration.textContent = "時間待重新分析";
+      }
     });
 }
 
 function renderTaskItems() {
+  updateTaskStructureChanged();
+  const primaryStructureStale = baseStructureFor(primaryTaskId).join("|")
+    !== taskItems.map((item) => item.id).join("|");
   const estimates = new Map(
-    (analysis?.tasks?.[0]?.items ?? []).map((item) => [item.item_id, item]),
+    (primaryStructureStale ? [] : (analysis?.tasks?.[0]?.items ?? []))
+      .map((item) => [item.item_id, item]),
   );
   const rows = orderedTaskItems(taskItems).map((taskItem, index) => {
     const estimate = estimates.get(taskItem.id);
@@ -2370,35 +3168,47 @@ function renderTaskItems() {
   if (globalEditingEnabled()) rows.push(createTaskItemAddRow(primaryTaskId));
   elements.workList.replaceChildren(...rows);
 
-  elements.taskTotal.textContent = `0 / ${taskItems.length}`;
-  elements.taskTotal.setAttribute("aria-label", `子項目完成 0，共 ${taskItems.length}`);
+  const primaryProgress = taskProgressSnapshot(primaryTaskId);
+  elements.taskTotal.textContent = `${primaryProgress.completed} / ${primaryProgress.total}`;
+  elements.taskTotal.setAttribute(
+    "aria-label",
+    `子項目完成 ${primaryProgress.completed}，共 ${primaryProgress.total}`,
+  );
   const staleNote = elements.taskCard.querySelector(".task-structure-note")
     ?? document.createElement("p");
   staleNote.className = "task-structure-note";
-  staleNote.textContent = "任務結構已在此瀏覽器修改；時間總量等待重新分析。";
+  staleNote.textContent = "任務結構已修改；受影響的時間資料已失效，等待重新分析。";
   staleNote.hidden = !taskStructureChanged;
   if (!staleNote.isConnected) elements.workList.after(staleNote);
   if (analysis && taskStructureChanged) {
     elements.taskDuration.textContent = "時間待重新分析";
-    elements.taskDuration.hidden = false;
+    elements.taskDuration.hidden = !primaryStructureStale;
+    elements.timeButton.hidden = false;
+    elements.timeButton.disabled = true;
+    elements.timeButton.className = "time-summary-button no-deadline";
+    elements.timeText.textContent = "時間待重新分析";
+    elements.timeButton.setAttribute(
+      "aria-label",
+      "進度報告：任務結構已修改，時間資料等待重新分析",
+    );
   }
   renderAuxiliaryTaskItems();
+  renderTaskPriorityControls();
+  updateStatusAndProgressSummaries();
   renderStatusOrder();
+  applyTaskFilter(activeTaskFilter);
 }
 
 function renderBaseProgress() {
-  const workPercent = Math.round(BASE_WORK_PROGRESS * 100);
-  elements.progressValue.textContent = `整體約 ${workPercent}%`;
-  elements.progressMeter.value = workPercent;
-  elements.progressMeter.textContent = `${workPercent}%`;
-  elements.progressMeter.setAttribute("aria-label", `整體進度 ${workPercent}%`);
+  updateStatusAndProgressSummaries();
 }
 
 function renderRuntimeRiskSurface(data) {
   const { summary } = data;
   const deadline = summary.deadline;
+  const progress = currentProgressSummary();
   if (!deadline) {
-    const workPercent = Math.round(BASE_WORK_PROGRESS * 100);
+    const workPercent = progress.percentage;
     elements.timeButton.className = "time-summary-button no-deadline";
     elements.timeText.textContent = "交付日未定";
     elements.timeButton.setAttribute(
@@ -2412,7 +3222,7 @@ function renderRuntimeRiskSurface(data) {
     return;
   }
   const urgency = urgencyMeta[deadline.urgency] ?? urgencyMeta.at_risk;
-  const workPercent = Math.round(deadline.work_progress_ratio * 100);
+  const workPercent = progress.percentage;
 
   elements.timeButton.className = `time-summary-button ${urgency.className}`;
   elements.timeText.textContent = `${deliveryLabel(deadline.delivery_at)} 交付`;
@@ -2571,7 +3381,7 @@ elements.filterButtons.forEach((button) => {
   });
 });
 
-elements.globalEditSaveButton.addEventListener("click", saveTaskItemDrafts);
+elements.globalEditSaveButton.addEventListener("click", saveGlobalDrafts);
 
 elements.viewModeSelect.addEventListener("change", () => {
   setViewMode(elements.viewModeSelect.value);
@@ -2601,6 +3411,11 @@ elements.themeSelect.addEventListener("change", () => {
 
 window.setInterval(refreshRuntimeRisk, 60_000);
 window.addEventListener("pageshow", refreshRuntimeRisk);
+window.addEventListener("beforeunload", (event) => {
+  if (!hasUnsavedDrafts()) return;
+  event.preventDefault();
+  event.returnValue = "";
+});
 document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "visible") refreshRuntimeRisk();
 });

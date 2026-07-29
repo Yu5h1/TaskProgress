@@ -1,3 +1,7 @@
+(function initializeTimeTaskEditingModel(global) {
+const priorityPolicy = global.TaskProgressPriorityPolicy;
+if (!priorityPolicy) throw new Error("優先級設定未載入。");
+
 function normalizeTaskDescription(value, maxLength = 1000) {
   const description = String(value ?? "").trim();
   if (!description) {
@@ -37,6 +41,45 @@ function createStableItemId(existingIds, seed = null) {
     suffix += 1;
   }
   return candidate;
+}
+
+function createStableTaskId(existingIds, seed = null) {
+  const ids = new Set(existingIds ?? []);
+  const randomPart = globalThis.crypto?.randomUUID
+    ? globalThis.crypto.randomUUID().replaceAll("-", "").slice(0, 12)
+    : Math.random().toString(36).slice(2, 14);
+  const safeSeed = String(seed ?? `${Date.now().toString(36)}-${randomPart}`)
+    .toLowerCase()
+    .replace(/[^a-z0-9._-]+/g, "-")
+    .replace(/^[._-]+|[._-]+$/g, "") || "new";
+  const base = `demo-task-${safeSeed}`;
+  let candidate = base;
+  let suffix = 2;
+  while (ids.has(candidate)) {
+    candidate = `${base}-${suffix}`;
+    suffix += 1;
+  }
+  return candidate;
+}
+
+function calculateProgressUnits(tasks) {
+  const progress = (tasks ?? [])
+    .filter((task) => task.status !== "archive")
+    .map((task) => {
+      const completed = Number(task.completed ?? 0);
+      const total = Number(task.total ?? 0);
+      return total > 0
+        ? { completed, total }
+        : { completed: task.status === "done" ? 1 : 0, total: 1 };
+    });
+  const completed = progress.reduce((sum, item) => sum + item.completed, 0);
+  const total = progress.reduce((sum, item) => sum + item.total, 0);
+  return {
+    completed,
+    total,
+    ratio: total === 0 ? 0 : completed / total,
+    percentage: total === 0 ? 0 : Math.round((completed / total) * 100),
+  };
 }
 
 function normalizeStatusOrder(value, defaultOrder) {
@@ -79,10 +122,18 @@ function stableSortByStatus(items, order, getStatus = (item) => item.status) {
     .map(({ item }) => item);
 }
 
-globalThis.TimeTaskEditingModel = Object.freeze({
+function normalizePriority(value, fallback = null) {
+  return priorityPolicy.normalize(value, fallback);
+}
+
+global.TimeTaskEditingModel = Object.freeze({
   normalizeTaskDescription,
   createStableItemId,
+  createStableTaskId,
+  calculateProgressUnits,
   normalizeStatusOrder,
   moveStatusOrder,
   stableSortByStatus,
+  normalizePriority,
 });
+}(globalThis));

@@ -224,6 +224,7 @@ export function createTimeReferenceController({
   dialogContent,
   workProgressRatio,
   onRiskChange,
+  onDraftChange,
 }) {
   const analysis = cloneValue(sourceAnalysis);
   const deadlineAvailable = Boolean(analysis.summary.deadline);
@@ -242,6 +243,8 @@ export function createTimeReferenceController({
   let detailsExpanded = false;
   let activeTab = "flow";
   let capacityEditorOpen = false;
+  let pendingCapacityProfile = null;
+  let persistedCapacityProfile = null;
   let currentDialog = null;
 
   function applyCapacityProfile(profile) {
@@ -260,6 +263,11 @@ export function createTimeReferenceController({
     } catch {
       // Invalid or unavailable local storage must not block the published report.
     }
+  }
+  if (deadlineAvailable) {
+    persistedCapacityProfile = cloneValue(
+      capacityProfileFor(analysis.summary, analysis.summary.deadline),
+    );
   }
 
   function updateDeadline(now = new Date()) {
@@ -522,8 +530,8 @@ export function createTimeReferenceController({
     const form = el("form", "time-capacity-editor");
     const heading = el("div", "time-editor-heading");
     heading.append(
-      el("h3", "", "編輯工作容量"),
-      el("span", "", "本機瀏覽器暫存，不修改來源檔"),
+      el("h3", "", "設定"),
+      el("span", "", "重新計算只更新預覽；全域儲存才提交本機設定"),
     );
     const fields = el("div", "time-editor-fields");
     fields.append(
@@ -574,17 +582,11 @@ export function createTimeReferenceController({
     const error = el("p", "time-editor-error");
     error.hidden = true;
     const actions = el("div", "time-editor-actions");
-    const cancel = el("button", "secondary-button", "取消");
-    cancel.type = "button";
     const submit = el("button", "primary-button", "重新計算");
     submit.type = "submit";
-    actions.append(cancel, submit);
+    actions.append(submit);
     form.append(heading, fields, derived, weekdays, exceptionsField, error, actions);
     form.addEventListener("input", updateDerived);
-    cancel.addEventListener("click", () => {
-      capacityEditorOpen = false;
-      showProjectDetail();
-    });
     form.addEventListener("submit", (event) => {
       event.preventDefault();
       error.hidden = true;
@@ -613,12 +615,9 @@ export function createTimeReferenceController({
           throw new Error("至少選擇一個工作日。");
         }
         applyCapacityProfile(nextProfile);
-        localStorage.setItem(storageKey, JSON.stringify({
-          profile: nextProfile,
-          updated_at: new Date().toISOString(),
-        }));
-        capacityEditorOpen = false;
+        pendingCapacityProfile = cloneValue(nextProfile);
         activeTab = "capacity";
+        onDraftChange?.("工作容量已重新計算，尚未全域儲存");
         refresh();
         showProjectDetail();
       } catch (reason) {
@@ -642,16 +641,6 @@ export function createTimeReferenceController({
       "",
       "工作容量由每日分配、工作日及休假例外共同產生。",
     ));
-    if (localOverridesAllowed) {
-      const edit = el("button", "time-small-button", capacityEditorOpen ? "編輯中" : "編輯");
-      edit.type = "button";
-      edit.disabled = capacityEditorOpen;
-      edit.addEventListener("click", () => {
-        capacityEditorOpen = true;
-        showProjectDetail();
-      });
-      toolbar.append(edit);
-    }
     const remainingCapacity = Math.max(
       0,
       deadline.total_capacity_minutes - deadline.elapsed_capacity_minutes,
@@ -690,11 +679,52 @@ export function createTimeReferenceController({
       list.append(el("p", "time-empty-note", "目前沒有休假或其他容量例外。"));
     }
     exceptions.append(list);
-    panel.append(toolbar, grid, formula, exceptions);
     if (capacityEditorOpen && localOverridesAllowed) {
       panel.append(createCapacityEditor(profile));
     }
+    panel.append(toolbar, grid, formula, exceptions);
     return panel;
+  }
+
+  function setEditing(enabled) {
+    if (!deadlineAvailable || !localOverridesAllowed) return;
+    capacityEditorOpen = Boolean(enabled);
+    if (!capacityEditorOpen && pendingCapacityProfile && persistedCapacityProfile) {
+      applyCapacityProfile(persistedCapacityProfile);
+      pendingCapacityProfile = null;
+      updateDeadline();
+    }
+    if (dialog.open && currentDialog === "project") {
+      showProjectDetail();
+    }
+  }
+
+  function prepareSave() {
+    if (!pendingCapacityProfile || !localOverridesAllowed) return null;
+    const savingProfile = cloneValue(pendingCapacityProfile);
+    const previousValue = localStorage.getItem(storageKey);
+    localStorage.setItem(storageKey, JSON.stringify({
+      profile: savingProfile,
+      updated_at: new Date().toISOString(),
+    }));
+    let settled = false;
+    return Object.freeze({
+      commit() {
+        if (settled) return;
+        persistedCapacityProfile = cloneValue(savingProfile);
+        pendingCapacityProfile = null;
+        settled = true;
+      },
+      rollback() {
+        if (settled) return;
+        if (previousValue === null) {
+          localStorage.removeItem(storageKey);
+        } else {
+          localStorage.setItem(storageKey, previousValue);
+        }
+        settled = true;
+      },
+    });
   }
 
   function showProjectDetail() {
@@ -927,7 +957,6 @@ export function createTimeReferenceController({
 
   summaryButton.addEventListener("click", showProjectDetail);
   dialog.addEventListener("close", () => {
-    capacityEditorOpen = false;
     currentDialog = null;
     delete dialog.dataset.timeDialog;
   });
@@ -937,7 +966,9 @@ export function createTimeReferenceController({
     analysis,
     createItemTimeButton,
     deadlineAvailable,
+    prepareSave,
     refresh,
+    setEditing,
     taskDuration,
   });
 }

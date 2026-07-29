@@ -1,12 +1,12 @@
 # 任務進展系統計畫
 
-> 狀態：核心 MVP 已實作；時間參考 Draft 0.2 已接入正式 Viewer，確定性分析器與無截止日模式已完成，歷史校正仍待實作。
+> 狀態：核心 MVP 已實作；時間參考 Draft 0.2 已接入正式 Viewer，確定性分析器與無截止日模式已完成；擴充資訊模組接口已完成 Draft 0.1 架構計畫，尚未進入實作。
 
 ## 定位
 
 任務進展系統用來整理並顯示不同專案或 Agent scope 的任務狀態。它應可套用於 `Yu5h1Lib\.agents`、`Yu5h1Lib\Unity\.agents` 與其他 UnityProject，而不綁定單一 repository、單一目錄名稱或 GitHub。
 
-系統的核心是共用資料格式與顯示方式。HTML 是供人閱讀的 View，不是 Agent 狀態的唯一來源；各 scope 的 `tasks.md` 負責把 tracked task 導向 canonical entry，`handoff.md`、plan、實作與驗證結果則提供報告事實。
+系統的核心是共用資料格式與顯示方式。HTML 是供人閱讀的 View；各 scope 的 `tasks.md` 只負責路由，plan／handoff 維持 canonical entry，並可用路徑與 Task ID 指向 `report.json`／`report.dev.json` 的結構化內容而不重複抄寫。
 
 ## 命名
 
@@ -46,6 +46,22 @@
 ```
 
 線上與本機模式只更換資料取得方式，不重新開發 UI。
+
+### 擴充資訊模組方向
+
+TaskProgress 未來需要接入專案難度、價值、成本、估價及其他目前未知的資訊，但這些領域不得持續擴張 `report.json` 或在核心載入器加入個別特例。既有 `time.analysis.json` 已證明選用 sidecar 可以獨立驗證、呈現與降級；它是第一個具有模組特性的內建功能，但目前 Viewer、Launcher、LocalWebService 與分析器仍直接知道 time 的檔名及流程，尚不是通用模組接口。
+
+模組架構採以下方向：
+
+- `report.json` 保持任務與進度核心；新領域使用獨立 sidecar。
+- scope 以選用 manifest 宣告模組資料，Viewer 再透過可信任的內建 registry 配對 Validator、Adapter、Renderer 與 Runtime Controller。
+- 外部工具可以產生 JSON 投影，但 manifest 不得指定任意 JavaScript、HTML、CSS 或可執行公式。
+- 模組以 `scope_id`、`task_id` 與 stable `item_id` 對應主報告，並各自保存 Schema、版本、來源、信心及產生時間。
+- 任一模組缺少、未知、過期或無效時只隔離該模組，不使基本 Viewer 失敗。
+- time 先遷移為第一個正式模組，再以 difficulty 或 value 驗證接口沒有只為時間功能量身打造。
+- 交易、付款、身份認證與電子簽署由外部系統負責；TaskProgress 只顯示經裁切的狀態投影與 reference。
+
+完整 Draft 0.1、概念接口、遷移階段、安全政策及驗證矩陣見 `Documentation/ExtensionModuleArchitecturePlan.md`。實作狀態與下一步由 `report.json`／`report.dev.json` 的 `extension-modules` task 記錄。
 
 ### GitHub Pages 模式
 
@@ -213,9 +229,8 @@ Backlog.md 已提供 Agent-friendly Markdown tasks、CLI、JSON 與本機 Web bo
 
 1. `task-progress` 使用 PowerShell、.NET CLI 或其他實作方式。
 2. localhost server 的 port、session token、安全 allowlist 與結束條件。
-3. JSON 是 Agent 直接維護的原始狀態，還是由既有 plan/handoff 產生的 snapshot。
-4. `?scope=` 的索引資料放置方式與跨 scope 總覽是否進入第一版。
-5. Viewer 第一版的視覺層級、卡片／列表形式與行動裝置支援程度。
+3. `?scope=` 的索引資料放置方式與跨 scope 總覽是否進入第一版。
+4. Viewer 第一版的視覺層級、卡片／列表形式與行動裝置支援程度。
 
 ## 人類任務編輯器擴充計畫
 
@@ -233,7 +248,7 @@ Backlog.md 已提供 Agent-friendly Markdown tasks、CLI、JSON 與本機 Web bo
 
 ### 介面決策
 
-頁首在主題控制旁提供一個頁面層級模式選單：`預覽模式` 與 `編輯模式`。第一版先在隔離 Demo 驗證全域模式；切到編輯模式後，任務描述、子項目新增／編輯／刪除、人工估算參數與工作容量使用同一個 capability 解鎖，不再由每個時間面板各放一個「編輯」入口。切回預覽模式時所有寫入控制與尚未提交的 inline form 一起關閉，閱讀版面恢復原狀。
+頁首在主題控制旁提供一個頁面層級模式選單：`預覽模式` 與 `編輯模式`。第一版先在隔離 Demo 驗證全域模式；切到編輯模式後，任務描述、子項目新增／編輯／刪除、人工估算參數與工作容量使用同一個 capability 解鎖，不再由每個時間面板各放一個「編輯」入口。切回預覽模式時直接放棄本次記憶體草稿，所有寫入控制與尚未提交的 inline form 一起關閉，並還原最後一次成功儲存的閱讀版面。
 
 公開模式與沒有有效 edit capability 的本機服務固定在預覽模式，不能只靠 CSS 隱藏寫入控制。若未來任務欄位增加到不適合卡片原地編輯，仍可在全域編輯模式內使用主從式工作區：
 
@@ -269,22 +284,22 @@ Backlog.md 已提供 Agent-friendly Markdown tasks、CLI、JSON 與本機 Web bo
 
 ### 任務項目編輯需求
 
-目前 schema 將 `completed_items` 與 `pending_items` 保存為純字串陣列。這足以顯示，但無法可靠判斷兩個人或 Agent 編輯的是不是同一個 item，也不利於重新命名、排序和三方合併。正式開放共同編輯前，應先提供具有穩定 item id 的新版資料模型，例如：
+目前 schema 同時接受 legacy 純字串及具有穩定 ID 的 item 物件；任務卡與 item 物件都可保存五級整數 priority。正式共同編輯使用物件格式，避免靠顯示名稱判斷兩個人或 Agent 編輯的是不是同一個 item，也支援可靠的重新命名、排序和三方合併，例如：
 
 ```json
 {
   "id": "validate-local-launch",
   "title": "驗證本機啟動流程",
-  "state": "pending"
+  "priority": 0
 }
 ```
 
-Viewer 在過渡期同時讀取舊字串陣列與新版 items；舊報告只有在使用者預覽並確認遷移後才改寫，避免開啟編輯器就產生大面積 diff。
+完成狀態仍由 item 所在的 `completed_items`／`pending_items` 清單表達。Viewer 在過渡期同時讀取舊字串與穩定 item 物件；舊報告只有在使用者預覽並確認遷移後才改寫，避免開啟編輯器就產生大面積 diff。
 
 每個 task item 需要支援：
 
 1. **快速新增**：單筆新增，以及貼上多行後拆成多筆；空白與完全重複項目要提示。
-2. **文字編輯**：直接修改 title，保留穩定 id，不因改字造成刪除加新增。
+2. **文字與優先級編輯**：直接修改 title 及「立即／優先／一般／次要／未指定」，保留穩定 id，不因改字造成刪除加新增。
 3. **完成切換**：勾選 pending／done；切換只改 state，不移除 item。
 4. **排序與移動**：鍵盤按鈕與拖曳排序；跨 task 移動需顯示來源與目的 task，並保留 item id。
 5. **刪除與復原**：刪除先進入本次編輯交易的可復原狀態；儲存後由 Git 歷史復原，不另建永久垃圾桶。
@@ -439,7 +454,7 @@ TaskProgress 仍是唯讀報告與分析介面，不直接成為行事曆或計�
 
 子項目可以是人工直接估算，也可以由人工參數、歷史證據、AI 工程分析與固定公式共同得出。沒有足夠資料時才採一個標準工作日，也就是 8 小時，並以 `system_default` contributor 與低信心標記，不能偽裝成經過工程分析的精確估算。人工若補充或修正參數，產生新估算版本並保留 `supersedes` 關係，但不自動把 `human_confirmed` 改為 true。
 
-任務總估算是其所有子項目目前有效估算的總和；專案總估算是所有任務估算的總和。第一版不從已投入時間推導剩餘工時；面板顯示的「未完成工作量」只依最後回報的工作進度比例衍生。若任務沒有子項目，該任務本身視為一個估算單位，沒有歷史模板且 AI 無法分析時同樣使用預設 8 小時。
+任務總估算是其所有子項目目前有效估算的總和；專案總估算是所有任務估算的總和。`deterministic-capacity-feasibility` v0.3 不從已投入 session 時間扣除工程估算，而是直接加總目前未完成項目的有效估算，再套用一次執行校準，得到 `remaining_estimated_minutes`。若只有 task-level estimate，才依該任務的可驗證完成比例分配剩餘量。若任務沒有子項目，該任務本身視為一個估算單位，沒有歷史模板且 AI 無法分析時同樣使用預設 8 小時。
 
 #### 3. 執行校正：實際運作紀錄
 
@@ -465,17 +480,17 @@ TaskProgress 仍是唯讀報告與分析介面，不直接成為行事曆或計�
 
 #### 時間期限與急迫程度
 
-期限本身不增加或減少工程工時，而是提供固定交付界線。第一版只使用含 UTC offset 的 `delivery_at`，沒有 soft/hard 分類；例如 `2026-08-01T00:00:00+08:00` 表示 8/1 一開始即交付，最後可工作時間在 7/31。系統不用剩餘工時判斷顏色，而是比較從開始到交付前的時間進度 `t` 與實際工作進度 `p`。
+期限本身不增加或減少工程工時，而是提供固定交付界線。第一版只使用含 UTC offset 的 `delivery_at`，沒有 soft/hard 分類；例如 `2026-08-01T00:00:00+08:00` 表示 8/1 一開始即交付，最後可工作時間在 7/31。v0.3 先比較剩餘工程需求與交付前剩餘容量，再以從開始到交付前的時間進度 `t` 與實際工作進度 `p` 補充進度趨勢。
 
 | 狀態 | 建議條件 | 顯示 |
 |---|---|---|
-| 正常 | 進度壓力不高於綠色門檻 | 綠色＋「進度正常」 |
-| 風險 | 進度壓力超過綠色門檻但未達紅色門檻 | 黃色＋「進度有風險」 |
-| 危急 | 進度壓力超過紅色門檻，或已到交付時間仍未完成 | 紅色＋「進度危急」 |
+| 可行 | 剩餘需求不高於 80% 剩餘容量，且進度壓力不高於綠色門檻 | 綠色＋「交付可行」 |
+| 風險 | 剩餘需求使用超過 80% 容量但尚未超額，或進度壓力進入黃色區間 | 黃色＋「交付有風險」 |
+| 不可行 | 剩餘需求超過剩餘容量、進度壓力進入紅色區間，或已到交付時間仍未完成 | 紅色＋「交付不可行」 |
 | 無期限 | 未設定 `delivery_at` | Theme 預設 Label 顏色 |
 | 完成 | 工作進度已達 100% | 完成狀態色 |
 
-時間進度由已消耗可用容量除以開始至交付前的全部可用容量；可用容量依工作日與例外計算，未設定容量日曆時才退回一般日曆時間。進度壓力為 `(1 - p) / (1 - t)`：等於 1 表示剩餘期間只需維持原計畫速度，大於 1 表示後續必須加速。第一版暫定不高於 1.10 為綠色、超過 1.10 至 1.50 為黃色、超過 1.50 為紅色。顏色只作輔助，必須提供無障礙文字；信心不改變顏色，只在點擊後面板說明。
+時間進度由已消耗可用容量除以開始至交付前的全部可用容量；可用容量依工作日與例外計算。容量可行性比率為 `remaining_estimated_minutes / remaining_capacity_minutes`：大於 1 直接紅燈，超過 0.8 至 1 至少黃燈。容量足夠時再計算進度壓力 `(1 - p) / (1 - t)`：不高於 1.10 為綠色、超過 1.10 至 1.50 為黃色、超過 1.50 為紅色。兩者取較嚴重結果；容量缺口不再只是參考。顏色只作輔助，必須提供無障礙文字；信心不改變顏色，只在點擊後面板說明。
 
 ### 資料分層
 
@@ -484,7 +499,7 @@ TaskProgress 仍是唯讀報告與分析介面，不直接成為行事曆或計�
 1. **標準分配來源**：`time.config.json` 保存時區、無身分的單一執行者容量、專案執行者數量、例外日、承諾與固定 `delivery_at`，預設只保存在本機。
 2. **項目估算來源鏈**：保存每個 task item 的輸入參數與單位、contributors、AI 或固定規則的分析方法、版本化公式、獨立的人工確認狀態、信心、evidence reference 與版本關係。
 3. **執行紀錄來源**：保存工作 session、狀態轉換、阻塞與估算修訂，作為執行校正的主要證據。
-4. **分析快照**：由固定的 `as_of` 時間保存發布時的原始工時、校正工時、工作日數、工作進度、時間進度、進度壓力與急迫程度，並附帶公式版本、可供說明的 `capacity_profile`，以及可供靜態 Viewer 重算期限風險的容量時間線。`capacity_profile` 是本機 config 的公開投影，包含 8／8／8、工作日及休假例外；例外只投影人工確認可公開的 `public_label`（例如「休假」），私人行程或醫療細節不得從 config 原樣發布。Viewer 仍以已展開的 `capacity_timeline` 計算，不再次扣除。瀏覽器產生的 `evaluated_at` 只代表本次預覽計算時間，不回寫發布快照。
+4. **分析快照**：由固定的 `as_of` 時間保存發布時的原始工時、校正工時、直接加總的剩餘工時、工作日數、工作進度、時間進度、進度壓力、容量餘裕／缺口、風險依據與急迫程度，並附帶公式版本、可供說明的 `capacity_profile`，以及可供靜態 Viewer 重算期限風險的容量時間線。`capacity_profile` 是本機 config 的公開投影，包含 8／8／8、工作日及休假例外；例外只投影人工確認可公開的 `public_label`（例如「休假」），私人行程或醫療細節不得從 config 原樣發布。Viewer 仍以已展開的 `capacity_timeline` 計算，不再次扣除。瀏覽器產生的 `evaluated_at` 只代表本次預覽計算時間，不回寫發布快照。
 5. **Viewer 投影**：`report.json` 只包含可公開的時間摘要與狀態；`report.dev.json` 才包含內部估算、假設、信心、證據 reference 與較完整診斷。
 
 隔離原型使用四份契約：`time.config.json` 保存政策與專案設定、`time.estimates.json` 保存個別工程估算、`time.events.json` 保存實際證據、`time.analysis.json` 保存可重算結果。這些來源不應因 Viewer 未顯示就被誤認為可公開。
@@ -581,8 +596,8 @@ Viewer 表面只呈現使用者立即需要的結果；公式、分配與期限�
 - 寬螢幕時，專案標題、時間 Label 與整體進度在同一列垂直置中；進度條與最後更新／report id 維持在下一列，不因時間功能改變原順序。
 - 工期摘要按鈕沿用主題選擇器與狀態標籤的圓弧控制語言，但使用透明背景、Theme 中性邊框與完全膠囊圓角；沒有灰色填色、額外方形背景或包裹面板。
 - 工程量不放在外部按鈕，避免和交付倒數混淆；「進度報告」內的工程總量、未完成量與剩餘容量統一使用 `hr`，不再並列「約 N 工作日」。task 卡片是否保留工作日是獨立的既有呈現決策。
-- 期限顏色只使用工作進度與從開始至交付前的可用容量；「未完成工作量」可以作為預覽者摘要顯示，但不另行改變燈號公式。
-- 目前 `deterministic-progress-pressure` v0.2 的燈號直接使用 `p` 與容量時間進度 `t`。單純把所有工作日容量從 8 小時等比例改成 4 小時時，elapsed／total 同比例縮放，燈號不一定改變；工作日、例外日或工作時段改變則可能改變 `t`。預設項目 8 小時會影響工程總耗時與未完成工作量，但目前不直接進入燈號。若未來把「未完成工作量 ÷ 交付前剩餘容量」納入風險，必須升級公式版本並避免和既有進度壓力重複計算。
+- 期限顏色先使用直接加總的未完成工程需求與交付前剩餘容量，再以工作進度與容量時間進度補充趨勢；容量缺口會直接改為紅燈。
+- `deterministic-capacity-feasibility` v0.3 的容量比率大於 1 為紅燈，超過 0.8 至 1 至少為黃燈；容量足夠時仍保留 v0.2 的進度壓力門檻，兩者取較嚴重結果。睡眠、生活時間、工作日與例外先在容量時間線扣除一次，Viewer 不得重複扣除。
 - 日數採整數約數；完整精度保留在計算資料，不在表面製造假精度。
 - 有期限時同列顯示 `M/D 交付`；沒有期限時只顯示約工作日，按鈕使用 Theme 預設顏色。
 - Label 外部只以圓形燈號對應綠、黃、紅或中性狀態，不顯示「進度有風險」等判定文字；點擊後的面板保留「目前判定」與完整文字，燈號另有螢幕閱讀器可讀的顏色名稱。
@@ -591,10 +606,10 @@ Viewer 表面只呈現使用者立即需要的結果；公式、分配與期限�
 
 點擊專案時間 Label 後開啟標題為「進度報告」的面板；`約 N 工作日` 不再作為 dialog title。面板採兩層閱讀：
 
-1. **預覽者摘要**：預設顯示距離交付、由最後回報進度衍生的「預估未完成工時（hr）」、對應燈號的風險評估與最後回報時間。期限前紅色使用「預計超期」，到達交付時間後才使用「已逾期」。
-2. **詳細資訊**：展開後用三個 Tab 共用同一內容區並切換顯示。`評估流程` 以雙軌節點圖說明工程需求與工作容量如何形成未完成工時、剩餘容量、容量餘裕／缺口及現行風險；`工程估算` 顯示工程總預估工時、預估未完成工時、時間／工作進度、壓力、本次風險計算時間、公式、執行校準與互斥估算組成；`工作容量` 顯示每日容量、交付前總／剩餘容量、8／8／8 分配、工作日、時區及休假／其他例外。工程量欄位統一使用 `hr`。
+1. **預覽者摘要**：預設顯示距離交付、直接加總未完成項目估算所得的「預估未完成工時（hr）」、對應燈號的風險評估與最後回報時間。容量缺口使用「容量不足」，其他期限前紅色使用「預計超期」，到達交付時間後才使用「已逾期」。
+2. **詳細資訊**：展開後固定保留三個 Tab 並共用同一內容區。`評估流程` 以雙軌節點圖說明工程需求與工作容量如何形成未完成工時、剩餘容量、容量餘裕／缺口及現行風險；`工程估算` 顯示工程總預估工時、預估未完成工時、時間／工作進度、壓力、本次風險計算時間、公式、執行校準與互斥估算組成；`工作容量` 顯示每日容量、交付前總／剩餘容量、8／8／8 分配、工作日、時區及休假／其他例外。工程量欄位統一使用 `hr`。缺少交付日時仍保留 Tab 列並選中 `工程估算`，需要期限資料的 `評估流程`／`工作容量` 顯示為 disabled，不能被選取。
 
-即時摘要永遠位於 Tab 上方，不因切換內容而消失。詳細資訊第一次開啟預設顯示 `評估流程`，切換後在本次頁面生命週期保留最後選擇；三個 Tab 使用同一面板位置，不同內容不並排堆疊。`評估流程` 必須明確標示 v0.2 的容量缺口只是可行性參考，現行燈號仍由進度壓力決定，避免把預定的公式升版誤當成已完成能力。`工作容量` 是唯讀觀看名稱，不在公開頁面誤稱為可寫入設定；本機環境才於 Tab 內顯示「編輯」。專案進度報告與所有子項目面板共用同一個頁面層級 `timeDetailsExpanded` flag；任一面板展開或收合後，其他時間面板沿用相同狀態。關閉 dialog 不重置，重新載入頁面才恢復預設收合。編輯狀態不共用。
+即時摘要永遠位於 Tab 上方，不因切換內容而消失。詳細資訊第一次開啟預設顯示 `評估流程`，切換後在本次頁面生命週期保留最後選擇；三個 Tab 使用同一面板位置，不同內容不並排堆疊。`評估流程` 必須明確標示 v0.3 的容量優先規則：容量缺口直接紅燈，剩餘需求使用超過 80% 容量時至少黃燈，容量足夠時再採進度壓力。`工作容量` 是唯讀觀看名稱，不在公開頁面誤稱為可寫入設定；本機環境才於 Tab 內顯示「編輯」。專案進度報告與所有子項目面板共用同一個頁面層級 `timeDetailsExpanded` flag；任一面板展開或收合後，其他時間面板沿用相同狀態。關閉 dialog 不重置，重新載入頁面才恢復預設收合。編輯狀態不共用。
 
 #### 任務卡片
 
@@ -640,19 +655,19 @@ Viewer 表面只呈現使用者立即需要的結果；公式、分配與期限�
 
 - `time.analysis.json` 是可選 sidecar：有且通過驗證時才掛載專案工期摘要、task 總工時與 item 工時；檔案不存在時視為正常的「無時間資料」，原版 Viewer 照常顯示且不保留空白占位。
 - 缺少時間資料時 Viewer 不自行補 `0 hr` 或預設 8 小時；預設工時只能由分析器建立一筆明確的 `system_default` 估算。sidecar 存在但無效時，時間功能整體降級為不顯示並留下診斷，不使 `report.json` 或整個 Viewer 失敗。
-- 靜態發布採兩層計算。本機分析器負責 AI／人工工程估算、公式選擇、工作進度快照與期限前每日容量時間線；靜態 Viewer 只依已發布的 `work_progress_ratio`、`delivery_at`、時區、工作時段、容量時間線與門檻，在瀏覽器目前時間重新計算 `elapsed_capacity_minutes`、`time_progress_ratio`、`progress_pressure_ratio`、邊界狀態與燈號。
+- 靜態發布採兩層計算。本機分析器負責 AI／人工工程估算、公式選擇、直接加總 `remaining_estimated_minutes`、工作進度快照與期限前每日容量時間線；靜態 Viewer 依已發布的剩餘工程需求、`work_progress_ratio`、`delivery_at`、時區、工作時段、容量時間線與門檻，在瀏覽器目前時間重新計算剩餘容量、容量缺口、可行性比率、進度壓力、邊界狀態與燈號。
 - Viewer 在初始化／reload 時計算一次；頁面保持開啟時每分鐘更新，分頁由背景回到前景或從瀏覽器快取恢復時立即更新。這些觸發只更新會隨時鐘前進的期限風險，不呼叫 AI、不改寫 sidecar，也不改變工程工時或最後回報的工作進度。
 - 若沒有新狀態回報，工作進度維持發布快照而時間繼續前進，風險可以自然提高；Viewer 必須同時保留報告最後更新時間與本次風險計算時間，讓觀看者區分「資料何時回報」和「燈號何時計算」。
 - 時間結果是衍生快照，不是人工維護的固定文字。截止日期、可用容量、人工參數、算法版本或工作進度改變時，系統依受影響的依賴重新計算；重新整理只負責取得最新快照，不應是唯一計算觸發方式。
-- 截止日期改變只重算容量時間線、時間進度與期限壓力，不改寫工程所需工時。人工估算參數改變則重算 item、task 與 project 工時／工作日；依目前進度壓力公式，它不必然改變燈號。
+- 截止日期改變只重算容量時間線、剩餘容量、可行性與進度壓力，不改寫工程所需工時。人工估算參數改變則重算 item、task、project 與剩餘工程需求，因此可能直接改變燈號。
 - AI 選擇 `algorithm_id`、整理參數與解釋方法；公式引擎只執行已登錄、具輸入契約與版本的算法。AI 回傳的任意字串公式不得以 `eval` 或同等方式直接執行。
 - 當參數值改變但 `algorithm_id` 與輸入結構仍有效時，不再呼叫 AI，直接由固定算法重算。只有任務本質、輸入結構、方法適用性或缺少資料發生變化，或使用者主動要求時，才重新進行 AI 分析。
-- 子項目面板對具有人工輸入的估算提供「編輯」按鈕。編輯模式只開放 `origin: human` 的參數及獨立 `human_note`；AI 分析、歷史證據與公式版本保持唯讀。
-- 專案進度報告的 `工作容量` Tab 在相同本機環境政策下提供「編輯」。可調整睡眠、生活、其他固定不可工作時間、每週工作日及逐日例外；每日工作容量固定由 `24 hr - 睡眠 - 生活 - 其他固定不可工作時間` 衍生，不能同時輸入互相矛盾的第四個值。
+- 全域編輯模式對具有人工輸入的子項目直接顯示可編輯表單，只開放 `origin: human` 的參數及獨立 `human_note`；AI 分析、歷史證據與公式版本保持唯讀。
+- 專案進度報告的 `工作容量` Tab 在相同全域編輯模式直接顯示容量表單。可調整睡眠、生活、其他固定不可工作時間、每週工作日及逐日例外；每日工作容量固定由 `24 hr - 睡眠 - 生活 - 其他固定不可工作時間` 衍生，不能同時輸入互相矛盾的第四個值。
 - 本機 config 的休假與例外採 `date + available_minutes + reason`；公開分析快照只保存經確認的 `public_label`。`0 hr` 表示整日不可工作，非零值可表達半日請假或額外可工作時間。儲存後立即重建從開始日至交付日前的 `capacity_timeline`，再用既有確定性期限算法重算容量進度與燈號，不呼叫 AI。
 - 第一版編輯環境政策只允許 `file://`、`localhost`、`127.0.0.1` 與 IPv6 loopback；非本機來源不顯示「編輯」按鈕，也不讀取或套用瀏覽器中的 Demo 覆寫。這是可替換的環境政策，不把未來正式授權綁死在 `report.dev.json` 是否存在。
-- 按下「重新計算」後，系統驗證數值與單位、使用已登錄算法產生新結果、建立下一個 `estimate_id`、以版本關係保留舊結果，並將 `human_confirmed` 重設為 false。人工需要在看過新結果後另外確認。
-- 隔離 Demo 使用瀏覽器本機儲存保存人工估算參數、理由與工作容量覆寫；正式 Viewer 第一版只接入工作容量覆寫，且同樣只保存於本機瀏覽器、立即重建時間線並重算。任何回寫來源 JSON、人工估算版本或正式歷史的持久化，仍必須由未來本機寫入服務驗證 Schema、原子保存並建立版本。
+- 人工估算與容量表單不提供局部「取消」，但保留「重新計算」作為未儲存預覽：只以記憶體草稿更新畫面與期限風險，不寫入 localStorage、不更新正式 `as_of`、不建立下一個 `estimate_id`。切回預覽模式即統一放棄所有未儲存草稿；按下頁面唯一的全域「儲存」時必須再次驗證及重新計算，成功後才建立版本、更新分析時間並寫入；任一草稿無效時不部分提交。
+- 隔離 Demo 的未儲存人工估算、理由與工作容量只暫存在目前頁面記憶體；全域儲存成功後才寫入瀏覽器本機儲存。敏感草稿不得進入 persistent cache／localStorage；若未來需要 reload／crash recovery，必須另行採遮蔽、期限與明確同意的 session draft。正式 Viewer 的持久化仍必須由未來本機寫入服務驗證 Schema、原子保存並建立版本。
 
 #### 隱式細節與互動邊界
 
@@ -765,7 +780,7 @@ Agent 先依穩定 task/item id 與可驗證特徵尋找相似歷史資料，再
 
 ## 本機任務編輯 Draft 0.1
 
-> 狀態：狀態標籤拖曳排序已作為唯讀檢視偏好上線正式 Viewer；任務內容編輯仍只在隔離 Demo 驗證，正式寫入、Schema、Launcher 與 LocalWebService 尚未核准。
+> 任務狀態、完成／待處理項目：`report.json` 的 `local-task-editing`；Developer 下一步、阻礙與決策：`report.dev.json` 的同 ID entry。
 
 ### 目標與第一版範圍
 
@@ -773,22 +788,23 @@ Agent 先依穩定 task/item id 與可驗證特徵尋找相似歷史資料，再
 
 目前將需求解讀為：
 
-- 頁首在主題控制旁加入頁面層級「預覽模式／編輯模式」選單。
+- 頁首在主題控制旁使用單一頁面層級 toggle；預覽時顯示「預覽模式」，按下進入編輯並改顯示「編輯模式」，再次按下直接放棄草稿回到預覽。
 - 未開啟編輯模式時，不顯示刪除、單項編輯與新增控制。
-- 開啟編輯模式後，每個子項目直接變成單列輸入框，後接「刪除」、工時與狀態；不再建立單項編輯模式。
+- 開啟編輯模式後，每個子項目直接變成單列輸入列，包含明確的「刪除」、priority、描述輸入、既有工時膠囊與狀態；不再建立單項 task-content 編輯模式。工時膠囊目前只開啟唯讀估算明細。
 - 任務卡的描述（目前資料欄位為 `task.summary`）在全域編輯模式直接變成 textarea，不提供局部「編輯描述」、取消或獨立儲存。
-- 每張任務卡的子項目清單底部都顯示膠囊狀「＋」；按下後就地顯示輸入欄，新增項目歸屬於按下控制的任務卡。
+- `×` 只表示關閉 Dialog 並在圓形關閉按鈕置中；任務與子任務刪除使用明確的「刪除」文字鍵。全域儲存固定使用深色背景與白字，不能受亮色主題控制色影響而變成白底白字。
+- 每張任務卡只在全部已完成／待處理子項目之後顯示一個膠囊狀「＋」；它不跟隨兩個子面板各自重複出現。按下後就地顯示輸入欄，新增項目歸屬於該任務卡並一律進入 `pending_items`／待處理。
+- 工作項目清單底部另有最外層任務「＋」；新任務必填 title 與 summary，使用不依名稱的 stable task ID，預設狀態為 `planned`／待處理。
 - 不受編輯模式限制，可拖曳狀態標籤調整優先序；「全部」固定不動。正式 Viewer 支援 `planned`、`in_progress`、`blocked`、`done`、`archive`，順序同步套用摘要卡與整張任務卡，因此卡片內的子面板會跟著移動；Demo 另會排序具有狀態的子項目。
 - 排序屬於獨立的 browser-local 檢視偏好，拖曳後立即保存；它不修改任務資料、不讓全域「儲存」出現，也不寫入 `__task_content`。鍵盤可用 `Alt + ←／→` 移動目前標籤。
-- 人工估算參數與工作容量沿用同一個全域模式；編輯模式開啟時直接顯示適用表單，不再顯示各自的局部「編輯」按鈕。
+- Demo 的人工估算參數與正式 Viewer 的工作容量沿用同一個全域模式；編輯模式開啟時直接顯示適用表單，不再顯示各自的局部「編輯」或取消按鈕。「重新計算」只預覽目前記憶體草稿；頁面唯一的全域「儲存」會再次重新計算，成功後才真正寫入與更新分析時間。正式 Viewer 的 item estimate 目前仍是唯讀，必須完成版本化 `time.estimates.json` 交易後才能提供人工估算表單。
 - 新增內容先做 Unicode trim；空字串、只有空白或只有標點／特殊符號時不建立項目並結束新增。只要含有至少一個 Unicode 字母或數字，描述內的正常空白與標點可保留。
 - Enter 儲存，Escape 或明確取消按鈕取消；失焦不默默建立空項目。
 - 新增項目使用獨立於描述的穩定 ID，格式符合既有 schema；不從中文描述硬轉 slug，避免空 ID、碰撞或修改描述導致 ID 改變。
 
 第一版不包含：
 
-- 新增、刪除或重新命名最外層 task。
-- 修改 task status、title、stable ID、Developer overlay 或時間估算參數。
+- 修改 task stable ID、Developer overlay 或正式時間估算參數；task title、summary、status 與 priority 已納入本機 Editor。
 - 在公開網址開放寫入。
 - 因新增項目而猜測 `0 hr`、預設工時或自動執行 AI。
 
@@ -798,42 +814,221 @@ Agent 先依穩定 task/item id 與可驗證特徵尋找相似歷史資料，再
 
 僅判斷 `localhost`／`127.0.0.1` 仍不足以授予檔案寫入權，因為其他本機網頁可能對 loopback 發出請求。若第一版需要真正寫檔，必須另設瀏覽器可使用、scope 限定、短生命週期的 edit capability，並保留現有 control token 不進入 URL、HTML、JavaScript 或瀏覽器儲存。
 
+2026-07-30 已實作此邊界。TaskProgress Launcher 不修改共用 LocalWebService 的領域規則，而是啟動 `service/taskprogress_host.py` 包裝其通用 exact-file registry。只有被 Launcher 精確註冊且 `scope_id` 相符的 `report.json` 會回覆 capability；公開靜態部署沒有這組 API，因此頁首模式選單與儲存列保持 `hidden`。建立編輯工作階段及寫入要求都必須來自同一 loopback origin，並帶明確的 Editor header；短效 token 只保存在頁面記憶體，桌面 control token 不進入瀏覽器。
+
 ### 保存模型決策
 
-目前產品把 `report.json` 定義為唯讀投影，canonical task 狀態可能實際存在於 `tasks.md`、`handoff.md` 或其他來源。直接修改 `report.json` 可能在下次 Agent 產生報告時被覆蓋，也可能讓 Viewer 與 canonical 狀態分岔。因此實作前必須在以下方案選定一種：
+`report.json` 是 canonical entry 可引用的結構化任務紀錄，但公開 Viewer 仍是唯讀介面。正式本機 Editor 已選定「直接回寫被 Launcher 精確註冊的來源 `report.json`」；隔離 Demo 的 browser-local overlay 繼續作為展示與回退，不宣稱修改專案報告。曾評估的方案如下：
 
 1. **瀏覽器本機 overlay（建議作為 UI MVP）**：以 `report_id + scope_id` 與來源版本指紋保存於 `localStorage`。優點是不擴充服務、不碰來源檔；缺點是只在同一瀏覽器可見，Agent 與其他裝置讀不到。
 2. **獨立 `report.local.json` sidecar（建議作為可交換的正式本機方案）**：本機服務原子寫入 overlay，Viewer 將它合併到 `report.json`。優點是保留原始投影且可由 Agent 讀取；缺點是需要定義 overlay schema、衝突規則與安全寫入 API。
-3. **直接回寫 `report.json`**：只有在確認該檔就是這個 scope 的可寫來源時採用。服務必須驗證完整 schema、使用 compare-and-swap 或 ETag 防止覆寫新版本、原子取代檔案並保留可恢復備份。
+3. **直接回寫 `report.json`（正式本機 Viewer 已採用）**：只有被 Launcher exact registry 註冊、檔案內 scope/report identity 相符時可寫。服務驗證完整 Draft 2020-12 Schema 與重複 ID，使用 SHA-256 revision／`If-Match` compare-and-swap，限制 1 MiB，同目錄 temporary file、flush、fsync 後原子取代；來源已變更、分析失敗或寫入失敗時拒絕提交並保留草稿。
 
 在保存成功前，畫面不得先永久改變；失敗時保留輸入、顯示可行動的錯誤並允許重試或取消。成功後才更新目前 state、進度分數、篩選數量與 `updated_at` 顯示。若採本機 overlay，介面需顯示「本機修改」狀態並提供清除／還原來源資料的入口。
 
+目前 report-only 儲存已完成：全域模式可修改 task title／summary／status／priority、子項目 title／priority、新增或刪除兩層任務；每張卡只在最底部保留一個新增待處理項目的「＋」。切回預覽直接從 persisted snapshot 重建，離頁只在 dirty 時警告。全域儲存成功後重新載入 canonical report。若同目錄有時間輸入，服務會呼叫既有 analyzer；分析失敗時還原原始 report。既有 item 工時膠囊在編輯模式仍可查看估算明細，但不提供修改。`time.estimates.json` 的人工工時／依據、`time.config.json` 的交付日與敏感修改歷史仍屬後續跨檔案交易階段。
+
+工作容量介面不再持有第二套編輯狀態。預覽模式的「工作容量」頁完全唯讀；進入全域編輯後，標題精簡為「設定」的容量表單直接置於該頁最上方，不顯示「編輯工作容量」、局部「編輯中」或「取消」。面板內唯一動作是「重新計算」，它只把驗證後的容量 profile 套到記憶體分析並更新期限預覽，同時將全域草稿標為 dirty。全域儲存開始時才暫存 localStorage 變更；report 寫入成功後提交，失敗則回復原 localStorage。切回預覽會用 persisted capacity profile 還原分析及畫面。
+
+### 正式人工估算編輯契約
+
+正式 item estimate Editor 的第一個人工表單只提供三個可寫欄位：人工工時、人工依據與人工確認。人工直接輸入最可能工時時，系統以 `direct-human-estimate` 的版本化固定公式換算為該 estimate version 的 `likely_minutes`；`human_note` 保存人工原始依據，`human_confirmed` 只表示是否接受最後結果，不能由「曾填人工參數」自動推定。
+
+AI 分析與同類歷史不各自產生一個數字再和人工工時平均。它們以 `contributors`、`analysis_method`、`template_id`、`effective_sample_count` 或具來源的 inputs 提供方法與證據；最後顯示值永遠來自同一 target 唯一 `active: true` estimate 的 `likely_minutes`。人工修改工時或依據時建立新的 `estimate_id`，以 `supersedes_estimate_id` 指向舊版，不覆寫歷史。資料完全不足時才採 `system_default` 8 小時與低信心。
+
+介面中 AI 依據、歷史樣本、固定公式、估算範圍與 contributors 初版保持唯讀。按下「重新計算」只更新記憶體預覽；全域「儲存」必須在同一 scope/revision 交易中驗證並版本化寫入 `time.estimates.json`、重新產生 `time.analysis.json`，任一階段失敗都不得只提交 `report.json` 或部分時間資料。
+
+### Editor 框架化與大改 Draft 0.1
+
+> 這是正式 Editor 的後續架構計畫，不是停止或拆除目前 Demo 的通知。實作狀態與優先序仍由 `report.json`／`report.dev.json` 的 `local-task-editing` entry 指路。
+
+目前的原生 Demo 已證明全域預覽／編輯模式、任務與子項目編輯、五級優先級、狀態排序、時間重新計算預覽、統一儲存及放棄草稿等互動方向。它仍是一套可使用的 UI MVP：
+
+- 可直接從 `file://` 或 exact loopback 開啟。
+- 編輯資料先停留在記憶體，成功儲存後才寫入該瀏覽器的 `localStorage`。
+- 切回預覽模式會放棄未儲存內容並還原 persisted snapshot。
+- 不會安全寫回 canonical `report.json`、`time.config.json` 或修改歷史，因此不能宣稱是正式跨工具 Editor。
+- 唯讀 Viewer、公開 Pages 與既有 Launcher 流程不依賴框架改造，框架遷移失敗時仍可回到目前 Demo。
+
+框架化的原因不是目前 UI 不直觀，而是狀態與交易邊界逐漸超出手動 DOM 更新適合承擔的範圍。正式 Editor 將同時處理 persisted／draft、跨檔案驗證、重新計算預覽、放棄、Undo／Redo、來源 revision、衝突、敏感歷史及寫入失敗恢復；若繼續把這些責任集中在單一 `app.js`，每次欄位新增都需要人工同步多組陣列、DOM 與 derived state，回歸風險會持續增加。
+
+#### 目前實作盤點（2026-07-30）
+
+目前不是完全未分層的「暴力寫法」。`report-model.js`、`time-model.js`、`status-order.js`、`priority-policy.js` 與本機 Host 已各自承擔純計算、policy 或安全寫入責任；scope capability、revision compare-and-swap、schema 驗證、原子取代及分析失敗回復也沒有混入畫面元件。
+
+但 Editor UI 尚未模組化完成。`viewer/assets/app.js` 約 1,334 行／43 個函式，同時協調全域 state、資料載入、程序式 DOM render、task/item 草稿、事件與儲存；`viewer/assets/time-view.js` 約 974 行／37 個函式，同時處理 Dialog、時間呈現、容量表單與交易 hook。任務卡不是可重用 Editor component，目前也沒有一致的 `DraftSession`、`EditCommand`、欄位 schema、Undo/Redo command history 或多 sidecar transaction adapter。
+
+因此目前定位是「核心與安全邊界有模組化、UI 有 102 項回歸測試保護的可用直接實作」。它適合維持現有桌面功能，但人工估算、交付日、敏感歷史等跨檔案功能不得繼續直接堆入 `app.js`／`time-view.js`。下一個大型 Editor 功能開始前，應先完成 Framework Phase 1 的 framework-neutral core；導入框架不能取代這個步驟，否則只是把相同耦合搬入 component。
+
+#### 不變的產品與介面契約
+
+- 保留目前以卡片為中心的直觀介面，不因換框架改成後台表格或多頁精靈。
+- 頁首仍只有全域「預覽模式／編輯模式」，不恢復每個欄位的獨立編輯模式。
+- 任務卡、子項目、優先級、時間表單、重新計算與固定儲存列維持目前操作語意。
+- 切回預覽模式代表放棄本次未儲存草稿；「儲存」才進入正式驗證與寫入交易。
+- 狀態標籤排序仍是立即保存的 view preference，不混入任務資料交易。
+- 第一版正式 Editor 以本機桌面滑鼠與鍵盤為 P0；390px 版面與觸控編輯驗證列為 P1，不阻擋桌面版。
+
+#### 架構邊界
+
+```text
+editor-core/
+  DraftSession、EditCommand、validation、diff、derived progress、time invalidation
+
+editor-ui/
+  第三方框架元件、focus、表單、dialog、save bar、錯誤呈現
+
+viewer/
+  維持輕量唯讀，不要求載入 Editor 框架
+
+local-service/
+  transaction adapters、edit capability、scope/revision、原子寫入、重新分析、歷史與恢復
+```
+
+Editor state 至少拆成四層：
+
+```js
+{
+  persisted: { reports, timeConfig, revision },
+  draft: { tasks, items, priorities, estimates, capacity, delivery },
+  derived: { dirty, diff, progress, validation, timePreview },
+  session: { mode, filter, expandedPanels, focusTarget }
+}
+```
+
+`persisted` 只能在載入或成功提交後改變；所有輸入先產生 action 更新 `draft`，`derived` 由純函式重算。放棄等同以 `persisted` 重建 `draft`；儲存失敗不得把 staged state 誤標為 persisted。框架只負責讓 UI 成為 state 的投影，不能持有另一份隱藏的 canonical state。
+
+#### 第三方方案候選
+
+| 候選 | 適合點 | 主要疑慮 | 初步定位 |
+|---|---|---|---|
+| 保留原生 JavaScript | 零依賴、直接 `file://`、既有 Demo 已可用 | 複雜 draft、交易與元件生命週期仍需自建 | 保留為基準與可回退 Demo，不作正式大改首選 |
+| Svelte | 元件語法接近 HTML，適合保留目前卡片版面；編譯後 runtime 輕 | 需要新建置鏈、測試與團隊維護規則 | 正式 Editor 首要 spike 候選 |
+| Vue | template 與表單模型清楚，狀態與元件生態成熟 | runtime 與應用規範較目前更重，需要避免把 domain logic 寫進 component | 與 Svelte 並列比較 |
+| React | 生態、測試與複雜應用案例充足 | 對目前 HTML-first 介面可能帶來較多樣板與狀態選型成本 | 若未來需要更大型團隊或既有 React 整合再採用 |
+| Lit／Web Components | 可逐元件嵌入現有頁面，Viewer 與 Editor 可能共享 custom elements | 複雜應用 state、交易與路由仍需自行建立約束 | 適合局部漸進升級，不先假設能取代完整 Editor 架構 |
+
+候選比較不得只看 bundle 大小。Spike 必須以同一段真實流程實作：切換編輯、修改 task summary、修改子項目 priority、新增／刪除／復原、重新計算預覽、放棄、儲存失敗保留草稿。比較項目包括元件清晰度、純 core 可測性、鍵盤與 focus、錯誤隔離、建置輸出、CSP、依賴更新成本及與 LocalWebService 的整合。
+
+正式 Editor 本來就需要 loopback 寫入服務，因此不要求框架版繼續以 `file://` 作為正式執行方式；`file://` 支援由現有 Demo 保留，作為互動展示與緊急回退。框架建置產物仍須是可由 LocalWebService 靜態提供的相對路徑資產，不得依賴公開 CDN 或把 capability 寫進 bundle。
+
+#### 遷移階段
+
+1. **Framework Phase 0—凍結可用基準**
+   - 保留目前 Demo、正式本機 Editor 及 102 項 Node 測試。
+   - 桌面滑鼠／鍵盤的草稿放棄、固定儲存列與真實檔案儲存 E2E 已完成；行動版與觸控另列 P1。
+   - 把目前畫面、文字、模式切換、儲存與放棄語意視為遷移驗收規格。
+
+2. **Framework Phase 1—抽離 framework-neutral core**
+   - 從 `app.js` 抽出 editor state、actions、dirty/diff、discard、validation、progress recalculation 與 time invalidation。
+   - 純 core 不讀 DOM、`localStorage` 或 framework API；以 task/item stable ID 定位。
+   - 目前 Demo 先改用相同 core，證明抽離沒有改變 UI。
+
+3. **Framework Phase 2—候選 spike 與決策**
+   - 優先以 Svelte、Vue 與原生基準實作一張真實 task card 流程。
+   - 產出 Architecture Decision Record，記錄選用、拒絕原因、建置命令、依賴政策及升級責任。
+   - 未通過行為 parity、鍵盤、CSP、靜態資產及 core 測試時，不開始整頁搬移。
+
+4. **Framework Phase 3—Editor shell parity**
+   - 建立 `editor-ui`，先只讀載入相同 report/time data，再逐步接上 draft actions。
+   - 沿用目前 CSS token 與可見版面，不同時進行視覺重新設計。
+   - 以 feature flag 或獨立本機路徑保留舊 Demo，兩者可並行比較。
+
+5. **Framework Phase 4—安全寫入整合**
+   - report.json 已接上 scope 限定、短生命週期 capability、revision compare-and-swap、schema 驗證與原子交易；交付日及歷史仍需擴充為跨檔案交易。
+   - 儲存成功後才更新 persisted；衝突、分析失敗或歷史失敗時保留 draft。
+   - 完成交付日、敏感修改歷史及跨檔案 diff 後，才宣稱正式 Editor 可取代 browser-local Demo。
+
+6. **Framework Phase 5—切換與收斂**
+   - 桌面正式流程通過後，由 Launcher 導向新 Editor；唯讀 Viewer 不變。
+   - 舊 Demo 保留為 experiment/reference，直到新 Editor 完整覆蓋所有已核定互動及回退演練。
+   - 移除舊路徑前必須確認沒有唯一功能、唯一資料遷移能力或未轉移測試。
+
+#### 大改驗收條件
+
+- 使用者可不重新學習操作完成目前 Demo 的全部流程。
+- 任一 action 可用純 core 測試重現；UI 不直接修改 canonical report object。
+- 切回預覽、Undo／Redo、儲存成功、儲存失敗與來源衝突各有單一且可驗證的 state transition。
+- framework bundle 不含 control token、private reason、來源絕對路徑或動態可執行 report code。
+- 公開 Viewer bundle、公開報告 schema 與既有 link-first URL 不因 Editor 框架化而變重或失效。
+- 舊 Demo 在遷移期間持續可用；任何階段未達 parity 都不得以未完成框架版取代它。
+
+### 交付日編輯與敏感修改歷史 Draft 0.1
+
+> 實作狀態與待處理項目：`report.json` 的 `local-task-editing`；Developer 下一步與阻礙：`report.dev.json` 的同 ID entry。
+
+交付日的 canonical 輸入是 `time.config.json` 的 `project.delivery_at`；`time.analysis.json` 是分析器產生的公開衍生快照，不得由 Viewer 直接修改。初版必須支援設定、修改及清除期限為「交付日未定」，並以日期、時間與目前 timezone 明確呈現排他的截止瞬間，不能只用日期猜測當日 `00:00` 或 `23:59`。
+
+編輯模式中的初版互動：
+
+- 交付膠囊與時間報告面板在全域編輯模式顯示日期、時間、唯讀 timezone、交付日未定切換及修改原因。
+- 尚未儲存時使用 draft 重建容量時間線及期限風險，只作預覽，不改寫來源或歷史。
+- 與其他任務修改共用固定於 viewport 底部、右緣對齊內容面板的全域「儲存」；離開或 reload 前沿用未儲存內容保護，切回預覽模式則直接放棄草稿。
+- 儲存時檢查 `scope_id`、來源 `updated_at`／內容指紋及目前 revision，禁止另一分頁或 Agent 更新後仍採最後寫入者覆蓋。
+- 服務先驗證 staged `time.config`，執行既有確定性 `task-progress analyze` 並驗證新 `time.analysis.json`；全部成功後才提交。估算工時不因交付日改變而重算，容量時間線、時間進度與期限風險必須重算。
+
+敏感修改歷史：
+
+- 歷史只存在本機且不得註冊為 Viewer 靜態路由、寫入 `report.json`／`report.dev.json`、投影到公開 `time.analysis.json` 或發布至 Pages。
+- 一般欄位可記錄 before／after；敏感欄位只記錄欄位路徑、操作、時間、操作者類型、修改原因、遮蔽標記及前後值指紋，不保存可還原的原始舊值。
+- 第一版操作者只區分 `human`／`agent`／`system`；瀏覽器無法可靠證明真實身分，因此這是可追蹤修改歷史，不宣稱為法律或資安稽核身分證明。
+- 建議以 scope 限定的 `taskprogress.local.json` 同時保存目前 override、來源 revision 與 append-only history，讓一次原子取代可同時提交有效值與對應事件。若最終選擇直接回寫 `time.config.json`，必須另設 prepared／committed journal 或可回復交易，避免資料已變更但歷史遺失。
+- 一般交付日期可從歷史建立「還原此版本」草稿；敏感值因不保存原文，歷史不能自動還原，只能再次輸入新值。
+
+初版完成條件：
+
+- exact loopback 之外沒有編輯或歷史入口，loopback 也必須取得 scope 限定、短生命週期的 edit capability。
+- 設定、修改、清除交付日後能產生有效且版本相符的分析快照；任一步驟失敗時保留舊資料。
+- 歷史與目前 override 同一 revision 提交，敏感值不會出現在瀏覽器儲存、URL、公開報告、診斷或歷史原文。
+- 通過日期／時區／過期期限、無期限、來源衝突、分析失敗、歷史寫入失敗、桌面、390px、鍵盤與 reload 測試。
+
+### 任務入口與報告更新規則
+
+- `tasks.md` 只保存穩定 Task ID 與 canonical entry 的路由，不保存進度、估算、需求、下一步或驗證結果。
+- `plan.md`／`handoff.md` 依共用規則維持 canonical：plan 保存長期產品設計、架構理由、資料契約與驗收條件；handoff 保存目前狀態入口、即時 claim、工作樹、服務狀態與交接注意事項。
+- canonical entry 可以用報告路徑及 Task ID 指向 `report.json` 的 task 狀態、項目與進度，或指向 `report.dev.json` 的 next step、blocker、decision 與 route。這個指路本身就是 canonical 紀錄，不必再複製被指向的內容。
+- `report.json`／`report.dev.json` 仍是 Viewer 投影；當 canonical entry 已明確指向它們時，plan／handoff 不保留第二份相同清單。
+- 時間來源與分析結果同樣由 canonical entry 指向 `time.config.json`、`time.estimates.json`、`time.events.json` 及 `time.analysis.json`，不在 plan／handoff 複製數值。
+- 沒有對應 report 時，plan 或 handoff 必須完整記錄 task／Developer 狀態。report 建立並由 canonical entry 接受為目標後，原處改成指路；若 report 移除或失效，canonical entry 必須恢復足以交接的完整內容。
+- 若 report 與 repository／測試事實不一致，以可驗證的 repository reality 為準並修正 report；不能用在 plan／handoff 再寫一份不同內容來迴避衝突。
+- 不建立額外 `task.json`。只有未來 Viewer／外部工具需要直接建立及修改 canonical 任務，而且 Markdown 已無法可靠交換時，才另行設計具版本、穩定 ID、衝突與 Schema 驗證的 task entry 格式。
+- 當人類提供足以確認 scope、Task ID、目標、目前狀態與已驗證事實的描述時，Agent 更新 canonical entry 指向的資料，並維持指路有效，不做跨檔同步複製。只有提供或維護時間輸入，或明確要求估算／期限風險時，才執行分析器更新 `time.analysis.json`；不能只因任務文字改變就猜測工時或期限。
+
 ### 編輯互動與資料操作
 
-編輯模式是頁面層級狀態，重新載入後預設關閉。切換篩選器或重繪任務卡時不得遺失尚未送出的輸入；若使用者要關閉編輯模式而仍有未保存內容，需提示先儲存或放棄。
+編輯模式是頁面層級狀態，重新載入後預設關閉。切換篩選器或重繪任務卡時不得遺失尚未送出的輸入；使用者切回預覽模式代表明確放棄本次未保存內容，直接還原 persisted snapshot，不再以驗證訊息阻止模式切換。
 
-隔離 Demo 採 browser-local overlay 驗證互動，並以以下原型決策實作：新增的是卡片內尚未完成子項目；每張卡片底部使用一個 `＋`；刪除後提供「復原」；`summary` 與所有 item title 都直接受全域編輯模式控制，並共用一個固定在 viewport 右下角、不隨內容捲動的全域「儲存」；描述至少包含一個 Unicode 字母或數字。這些決策不自動核准正式 Viewer 的持久化模型。
+隔離 Demo 採 browser-local overlay 驗證互動，並以以下原型決策實作：新增的是卡片內尚未完成子項目；每張卡片底部使用一個 `＋`；刪除後提供「復原」；`summary` 與所有 item title 都直接受全域編輯模式控制，並共用一個固定在 viewport 底部、右緣對齊內容面板且不隨內容捲動的全域「儲存」；描述至少包含一個 Unicode 字母或數字。這些決策不自動核准正式 Viewer 的持久化模型。
 
 狀態排序（檢視偏好，不是資料編輯）：
 
 - 正式 Viewer 與 Demo 都能拖曳狀態標籤；「全部」維持固定，其他標籤的普通 click 仍然執行過濾。
 - 正式 Viewer 將 `planned` 任務與 `pending_items` 統一投影為「待處理」檢視群組，但 `archive` 維持「已封存」且不加入待處理。標籤數量是符合條件的任務卡數量，避免混合 task 與 item 兩種單位。
 - 點擊「待處理」會顯示狀態為 `planned`，或至少有一個 `pending_item` 的任務；因此它是可與「進行中」重疊的工作檢視，不改寫任務的原始狀態。
-- 正式 Viewer 的標籤順序同步套用到摘要卡與整張任務卡；卡片內的「待處理／已完成」子面板也依兩個標籤的相對順序排列。同一狀態群組內維持報告原始穩定順序。Demo 另會同步排序狀態可辨識的子項目。
+- 正式 Viewer 的標籤順序同步套用到摘要卡與整張任務卡；卡片內的「待處理／已完成」子面板也依兩個標籤的相對順序排列。同一狀態群組內先依 priority、同級再依報告原始順序穩定排列。Demo 另會同步排序狀態可辨識的子項目。
 - 正式 Viewer 立即寫入獨立的 `taskprogress.viewer.status-order.v1` localStorage key；Demo 使用 `taskprogress.time-reference-demo.status-order.v1`。兩者都不修改 report、不進入 `__task_content`、不受本機 edit capability 限制，也不觸發全域「儲存」。
 - Demo 舊版若曾把 `status_order` 寫入 `__task_content`，第一次載入可作為遷移來源；後續只讀寫獨立檢視偏好。
 - 桌面可使用原生拖曳，觸控以 Pointer Events 支援水平拖曳；鍵盤使用者可用 `Alt + ←／→` 移動目前標籤。三者共用相同的純資料排序模型。
+
+#### 優先級資料與排序
+
+- 優先級是 task 與 item 各自的資料屬性，不是狀態過濾器，也不得從 `title`／itemName 前綴解析。兩層只保存 `priority: 0 | 1 | 2 | 3 | 4`；共享 `viewer/assets/priority-policy.js` 統一提供 minimum、maximum、預設值、名稱、格式與色彩語意。
+- 目前投影為「立即、優先、一般、次要、未指定」；只有標籤設定失效時才顯示 `P0` 到 `Pmax`。task、`completed_items` 與 `pending_items` 繼續相容缺少 priority 的舊資料；缺少欄位時投影為 `4`「未指定」，新建任務及子項目則明確預設 `2`「一般」。
+- 正常預覽不為「未指定」建立標籤，但編輯下拉保留「未指定」。共享 policy 必須確認 minimum 到 maximum 每個整數都有唯一且非空白的標籤；任一標籤設定不完整時，暫停隱藏規則，任務卡、子項目與編輯下拉統一只顯示 `P0` 到 `Pmax`，不得影響原始數值、排序或儲存。
+- 正式 Viewer 先依可拖曳的狀態順序排列任務卡，再於同狀態內依 priority 穩定排序；每個已完成／待處理面板也使用相同五級排序。同級維持 report 原始順序，不新增優先級過濾器。
+- Demo 編輯模式用原生選單同時修改任務卡與子項目的五級 priority，新任務及新子項目預設「一般」。下拉與可見預覽標籤都由共享 policy 格式化；有效標籤只顯示名稱，不加 `P0` 等數值前綴，改標籤文字不修改 report、排序或既有任務資料。
+- priority 變更與 title、子項目及時間草稿由同一個全域儲存提交。優先級是可見資料提示與排序依據，不是完成狀態；P0 等開發工作優先簡稱仍可存在於計畫文字，但不得作為 Viewer 的顯示名稱。
 
 任務描述編輯：
 
 - 在全域編輯模式中，對應任務卡的 `summary` 直接替換為輸入欄；不顯示局部編輯按鈕、取消或第二個儲存動作。
 - 套用與新增項目相同的文字規則，並遵守 schema 的 1–1000 字元上限。
-- 由頁面唯一的全域「儲存」一起提交描述與子項目變更；儲存後不改變 task ID、status、title 或 Developer overlay。
+- 由頁面唯一的全域「儲存」一起提交描述、子項目、人工估算參數與工作容量草稿；全部驗證成功後才保存並統一重新計算。儲存後不改變 task ID、status、title 或 Developer overlay。
 
 子項目編輯：
 
-- 編輯只改 `title`，不改 stable item ID，也不在「已完成」與「尚未完成」間自動移動。
-- legacy string item 第一次成功修改時，在本機編輯層正規化為 `{id, title}`；產生的 ID 必須在該 task 的兩份清單間唯一。
+- 編輯可改 `title` 與 `priority`，不改 stable item ID，也不在「已完成」與「尚未完成」間自動移動。
+- legacy string item 第一次成功修改時，在本機編輯層正規化為 `{id, title, priority}`；產生的 ID 必須在該 task 的兩份清單間唯一。
 - 新增項目一律是按下「＋」所在任務卡的尚未完成項目；Demo 立即更新該卡 fraction，新項目的時間顯示為「待估」。
 
 子項目刪除：
@@ -898,13 +1093,11 @@ Agent 先依穩定 task/item id 與可驗證特徵尋找相似歷史資料，再
 
 完成條件：既有唯讀流程與公開部署不回歸，本機修改的保存範圍、恢復方式及限制均有文件。
 
-### 實作前疑慮
+### 已核定互動決策
 
-1. 「新增任務」實際是新增最外層 task，還是新增任務卡內的 completed／pending 子項目？目前 Draft 依後者規劃。
-2. 編輯結果要只保存在目前瀏覽器，寫入獨立 `report.local.json`，還是直接修改來源 `report.json`？
-3. 「＋」要同時出現在已完成與尚未完成清單底部，還是每張任務卡只放一個並一律新增為「尚未完成」？
-4. 子項目刪除採刪除前確認，或刪除後提供「復原」？是否也允許刪除已完成項目？
-5. 任務描述是 `summary`，還是也要能改任務標題 `title`？
-6. 新增、刪除等結構變更使 `time.analysis.json` 過期時，是否接受暫停顯示時間資料直到 Agent 重新分析？
-7. 空白與特殊符號規則是否採「至少含一個 Unicode 字母或數字」？若要允許 emoji-only 描述，需要另外放寬。
-8. 當 completed／pending 都是空陣列時，兩個清單都顯示空狀態與「＋」，還是只顯示「尚未完成＋」？
+1. 工作項目清單底部的「＋」新增最外層 task；每張卡片子面板底部的「＋」新增該卡片的 pending child item。
+2. 新最外層 task 必填 title 與 summary，使用獨立 stable task ID 並預設為 `planned`；空白 title／summary 不建立，Escape 或取消按鈕關閉新增表單。
+3. 子項目刪除後提供復原；任務描述欄位是 summary，既有 task title 不在此階段修改。
+4. 描述至少包含一個 Unicode 字母或數字；emoji-only／純標點不接受。
+5. 結構變更立即重算狀態數、task fraction 與 project progress，並停止顯示受影響的 item／task／project 時間投影直到重新分析。
+6. Demo 儲存以單一 payload 寫入，失敗時保留全部草稿且不更新 persisted snapshot；正式保存仍必須改用 scope 限定 capability、來源 revision、原子檔案取代與衝突拒絕。

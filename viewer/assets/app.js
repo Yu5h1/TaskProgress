@@ -1,4 +1,6 @@
 import {
+  PRIORITY_META,
+  PRIORITY_POLICY,
   STATUS_META,
   SUPPORTED_SCHEMA_VERSION,
   buildScopeHref,
@@ -7,6 +9,10 @@ import {
   mergeReports,
   resolveDeveloperReportSource,
   resolveReportRequest,
+  stableSortTasksByPriority,
+  stableSortTaskItemsByPriority,
+  taskPriority,
+  taskItemPriority,
   validateScopeCatalog,
   validateDeveloperReport,
   validateReport,
@@ -60,6 +66,12 @@ const elements = {
   exampleLink: document.querySelector("#example-link"),
   scopeDirectory: document.querySelector("#scope-directory"),
   modeBadge: document.querySelector("#mode-badge"),
+  viewModeToggle: document.querySelector("#view-mode-toggle"),
+  viewerModeLabel: document.querySelector("#viewer-mode-label"),
+  editSaveBar: document.querySelector("#edit-save-bar"),
+  editSaveStatus: document.querySelector("#edit-save-status"),
+  editSaveButton: document.querySelector("#edit-save-button"),
+  taskAddShell: document.querySelector("#task-add-shell"),
   timeSummaryButton: document.querySelector("#time-summary-button"),
   timeDialog: document.querySelector("#time-dialog"),
   timeDialogClose: document.querySelector("#time-dialog-close"),
@@ -70,6 +82,8 @@ const elements = {
 
 const state = {
   report: null,
+  persistedReport: null,
+  developerReport: null,
   tasks: [],
   filter: "all",
   diagnostics: [],
@@ -77,6 +91,15 @@ const state = {
   timeAnalysis: null,
   timeController: null,
   statusOrder: loadStatusOrder(statusOrderStorage, supportedStatuses),
+  editor: {
+    available: false,
+    editing: false,
+    dirty: false,
+    saving: false,
+    scope: null,
+    revision: null,
+    token: null,
+  },
 };
 
 let draggedStatus = null;
@@ -90,17 +113,176 @@ function el(tag, className, text) {
   return node;
 }
 
-function appendList(parent, title, items, className = "", timeItems = false) {
-  if (!Array.isArray(items) || items.length === 0) return;
+function createPriorityBadge(priority, className) {
+  const meta = PRIORITY_META[priority];
+  if (!meta || (PRIORITY_POLICY.labelsValid && meta.hidden)) return null;
+  const badge = el(
+    "span",
+    `${className} priority-badge priority-${meta.tone}`,
+    PRIORITY_POLICY.format(priority),
+  );
+  badge.title = `${PRIORITY_POLICY.format(priority)}；同一狀態內依優先級排序`;
+  badge.setAttribute("aria-label", `優先級：${PRIORITY_POLICY.format(priority)}`);
+  return badge;
+}
+
+function prioritySelect(value, onChange, ariaLabel) {
+  const select = el("select", "inline-priority-select");
+  select.setAttribute("aria-label", ariaLabel);
+  PRIORITY_POLICY.levels.forEach((level) => {
+    const option = el("option", "", PRIORITY_POLICY.format(level.value));
+    option.value = String(level.value);
+    option.selected = level.value === taskItemPriority({ priority: value });
+    select.append(option);
+  });
+  select.addEventListener("change", () => onChange(Number(select.value)));
+  return select;
+}
+
+function markEditorDirty(message = "有尚未儲存的修改") {
+  state.editor.dirty = true;
+  elements.editSaveButton.disabled = false;
+  elements.editSaveStatus.textContent = message;
+}
+
+function meaningfulText(value) {
+  const normalized = String(value ?? "").trim().replace(/\s+/g, " ");
+  return /[\p{L}\p{N}]/u.test(normalized) ? normalized : "";
+}
+
+function nextStableId(prefix, existingIds) {
+  let index = 1;
+  let candidate = prefix;
+  while (existingIds.has(candidate)) {
+    candidate = `${prefix}-${index}`;
+    index += 1;
+  }
+  return candidate;
+}
+
+function allItemIds(task) {
+  return new Set(
+    [...(task.completed_items ?? []), ...(task.pending_items ?? [])]
+      .filter((item) => item && typeof item === "object")
+      .map((item) => item.id),
+  );
+}
+
+function appendItemAdder(section, task, field) {
+  const shell = el("div", "inline-add-shell");
+  const trigger = el("button", "inline-add-trigger", "+");
+  trigger.type = "button";
+  trigger.setAttribute("aria-label", "增加待處理子任務");
+  shell.append(trigger);
+  trigger.addEventListener("click", () => {
+    const form = el("form", "inline-add-form");
+    const input = el("input", "inline-edit-input");
+    input.type = "text";
+    input.maxLength = 300;
+    input.placeholder = "輸入任務描述";
+    input.setAttribute("aria-label", "新增子任務描述");
+    const add = el("button", "secondary-button", "加入");
+    add.type = "submit";
+    form.append(input, add);
+    shell.replaceChildren(form);
+    input.focus();
+    form.addEventListener("submit", (event) => {
+      event.preventDefault();
+      const title = meaningfulText(input.value);
+      if (!title) {
+        renderTasks();
+        return;
+      }
+      const ids = allItemIds(task);
+      const prefix = `item-${task.id}-${Date.now().toString(36)}`;
+      task[field] ??= [];
+      task[field].push({
+        id: nextStableId(prefix, ids),
+        title,
+        priority: PRIORITY_POLICY.fallbackValue,
+      });
+      markEditorDirty("已新增子任務，尚未儲存");
+      renderReport();
+    });
+    input.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") renderTasks();
+    });
+  });
+  section.append(shell);
+}
+
+function appendList(
+  parent,
+  title,
+  items,
+  className = "",
+  timeItems = false,
+  editContext = null,
+) {
+  if ((!Array.isArray(items) || items.length === 0) && !editContext) return;
   const section = el("section", `detail-section ${className}`.trim());
   section.append(el("h4", "detail-heading", title));
   const list = el("ul", "detail-list");
-  items.forEach((item) => {
+  stableSortTaskItemsByPriority(items ?? []).forEach((item) => {
     const stableItem = item !== null && typeof item === "object" && !Array.isArray(item);
     const itemTitle = stableItem ? item.title : item;
     const row = el("li");
+    if (editContext && stableItem) {
+      row.classList.add("editable-work-item");
+      const remove = el("button", "inline-delete-button", "刪除");
+      remove.type = "button";
+      remove.setAttribute("aria-label", `刪除 ${itemTitle}`);
+      remove.addEventListener("click", () => {
+        const target = editContext.task[editContext.field];
+        const index = target.indexOf(item);
+        if (index >= 0) target.splice(index, 1);
+        markEditorDirty("已刪除子任務，尚未儲存");
+        renderReport();
+      });
+      const input = el("input", "inline-edit-input");
+      input.type = "text";
+      input.maxLength = 300;
+      input.value = itemTitle;
+      input.setAttribute("aria-label", "子任務描述");
+      input.addEventListener("input", () => {
+        item.title = input.value;
+        markEditorDirty();
+      });
+      input.addEventListener("change", () => {
+        const value = meaningfulText(input.value);
+        if (!value) {
+          input.value = item.title;
+          return;
+        }
+        item.title = value;
+        input.value = value;
+        markEditorDirty();
+      });
+      row.append(
+        remove,
+        prioritySelect(
+          item.priority,
+          (priority) => {
+            item.priority = priority;
+            markEditorDirty();
+            renderReport();
+          },
+          `${itemTitle} 優先級`,
+        ),
+        input,
+      );
+      if (timeItems) {
+        const button = state.timeController?.createItemTimeButton(item.id, itemTitle);
+        if (button) row.append(button);
+      }
+      list.append(row);
+      return;
+    }
     if (timeItems) {
       row.classList.add("time-work-item");
+      const priority = taskItemPriority(item);
+      const badge = createPriorityBadge(priority, "item-priority-badge");
+      if (badge) row.append(badge);
       row.append(el("span", "time-work-title", itemTitle));
       if (stableItem) {
         const button = state.timeController?.createItemTimeButton(item.id, itemTitle);
@@ -485,6 +667,9 @@ function renderDeveloperDetails(task, parent) {
 }
 
 function renderTask(task) {
+  const editableTask = state.editor.editing
+    ? state.report.tasks.find((candidate) => candidate.id === task.id) ?? task
+    : task;
   const meta = STATUS_META[task.status];
   const progress = calculateTaskProgress(task);
   const card = el("article", `task-card status-${meta.tone}`);
@@ -498,17 +683,110 @@ function renderTask(task) {
     "aria-label",
     `子項目完成 ${progress.completed}，共 ${progress.total}`,
   );
+  if (state.editor.editing) {
+    const remove = el("button", "inline-delete-button task-delete-button", "刪除");
+    remove.type = "button";
+    remove.setAttribute("aria-label", `刪除任務 ${task.title}`);
+    remove.addEventListener("click", () => {
+      const index = state.report.tasks.indexOf(editableTask);
+      if (index >= 0) state.report.tasks.splice(index, 1);
+      markEditorDirty("已刪除任務，尚未儲存");
+      rebuildMergedTasks();
+      renderReport();
+    });
+    headerMeta.append(remove);
+  }
   statusLine.append(el("span", `status-badge status-${meta.tone}`, meta.label));
-  titleLine.append(el("h3", "", task.title));
+  if (state.editor.editing) {
+    const statusSelect = el("select", "inline-status-select");
+    statusSelect.setAttribute("aria-label", `${task.title} 狀態`);
+    Object.entries(STATUS_META).forEach(([status, statusMeta]) => {
+      const option = el("option", "", statusMeta.label);
+      option.value = status;
+      option.selected = status === task.status;
+      statusSelect.append(option);
+    });
+    statusSelect.addEventListener("change", () => {
+      editableTask.status = statusSelect.value;
+      markEditorDirty();
+      rebuildMergedTasks();
+      renderReport();
+    });
+    statusLine.append(
+      statusSelect,
+      prioritySelect(
+        editableTask.priority,
+        (priority) => {
+          editableTask.priority = priority;
+          markEditorDirty();
+          rebuildMergedTasks();
+          renderReport();
+        },
+        `${task.title} 優先級`,
+      ),
+    );
+    const titleInput = el("input", "task-title-input");
+    titleInput.type = "text";
+    titleInput.maxLength = 160;
+    titleInput.value = task.title;
+    titleInput.setAttribute("aria-label", "任務名稱");
+    titleInput.addEventListener("input", () => {
+      editableTask.title = titleInput.value;
+      markEditorDirty();
+    });
+    titleInput.addEventListener("change", () => {
+      const value = meaningfulText(titleInput.value);
+      if (!value) {
+        titleInput.value = task.title;
+        return;
+      }
+      editableTask.title = value;
+      titleInput.value = value;
+      markEditorDirty();
+    });
+    titleLine.append(titleInput);
+  } else {
+    const priorityBadge = createPriorityBadge(taskPriority(task), "task-priority-badge");
+    if (priorityBadge) statusLine.append(priorityBadge);
+    titleLine.append(el("h3", "", task.title));
+  }
   const duration = state.timeController?.taskDuration(task.id);
   if (duration) titleLine.append(el("span", "task-duration", `約需 ${duration}`));
   titleGroup.append(statusLine, titleLine);
   headerMeta.append(fraction, el("code", "task-id", task.id));
   header.append(titleGroup, headerMeta);
-  card.append(header, el("p", "task-summary", task.summary));
+  card.append(header);
+  if (state.editor.editing) {
+    const summary = el("textarea", "task-summary task-summary-input");
+    summary.maxLength = 1000;
+    summary.rows = 3;
+    summary.value = editableTask.summary;
+    summary.setAttribute("aria-label", `${task.title} 任務描述`);
+    summary.addEventListener("input", () => {
+      editableTask.summary = summary.value;
+      markEditorDirty();
+    });
+    summary.addEventListener("change", () => {
+      const value = meaningfulText(summary.value);
+      if (!value) {
+        summary.value = editableTask.summary;
+        return;
+      }
+      editableTask.summary = value;
+      summary.value = value;
+      markEditorDirty();
+    });
+    card.append(summary);
+  } else {
+    card.append(el("p", "task-summary", task.summary));
+  }
   renderDeveloperDetails(task, card);
 
-  if (task.completed_items?.length || task.pending_items?.length) {
+  if (
+    state.editor.editing
+    || task.completed_items?.length
+    || task.pending_items?.length
+  ) {
     const columns = el("div", "work-columns");
     const workGroups = [
       {
@@ -525,20 +803,114 @@ function renderTask(task) {
       },
     ];
     stableSortByStatus(workGroups, state.statusOrder).forEach((group) => {
-      appendList(columns, group.title, group.items, group.className, true);
+      appendList(
+        columns,
+        group.title,
+        group.items,
+        group.className,
+        true,
+        state.editor.editing
+          ? {
+              task: editableTask,
+              field: group.status === "done" ? "completed_items" : "pending_items",
+            }
+          : null,
+      );
     });
+    if (state.editor.editing) {
+      appendItemAdder(columns, editableTask, "pending_items");
+    }
     card.append(columns);
   }
   return card;
 }
 
+function rebuildMergedTasks() {
+  const merged = mergeReports(state.report, state.developerReport);
+  state.tasks = merged.tasks;
+  state.developerAvailable = merged.developerAvailable;
+}
+
+function normalizeEditableItems(report) {
+  report.tasks.forEach((task) => {
+    const existingIds = allItemIds(task);
+    for (const field of ["completed_items", "pending_items"]) {
+      task[field] = (task[field] ?? []).map((item, index) => {
+        if (item && typeof item === "object") return item;
+        const prefix = `item-${task.id}-${field === "completed_items" ? "done" : "todo"}-${index + 1}`;
+        const id = nextStableId(prefix, existingIds);
+        existingIds.add(id);
+        return { id, title: String(item), priority: PRIORITY_POLICY.fallbackValue };
+      });
+    }
+  });
+}
+
+function renderTaskAdder() {
+  elements.taskAddShell.replaceChildren();
+  elements.taskAddShell.hidden = !state.editor.editing;
+  if (!state.editor.editing) return;
+  const trigger = el("button", "task-add-trigger", "+");
+  trigger.type = "button";
+  trigger.setAttribute("aria-label", "增加工作項目");
+  elements.taskAddShell.append(trigger);
+  trigger.addEventListener("click", () => {
+    const form = el("form", "task-add-form");
+    const title = el("input", "inline-edit-input");
+    title.type = "text";
+    title.maxLength = 160;
+    title.placeholder = "任務名稱";
+    title.setAttribute("aria-label", "新任務名稱");
+    const summary = el("textarea", "task-summary-input");
+    summary.maxLength = 1000;
+    summary.rows = 2;
+    summary.placeholder = "任務描述（必填）";
+    summary.setAttribute("aria-label", "新任務描述");
+    const submit = el("button", "secondary-button", "加入任務");
+    submit.type = "submit";
+    form.append(title, summary, submit);
+    elements.taskAddShell.replaceChildren(form);
+    title.focus();
+    form.addEventListener("submit", (event) => {
+      event.preventDefault();
+      const taskTitle = meaningfulText(title.value);
+      const taskSummary = meaningfulText(summary.value);
+      if (!taskTitle || !taskSummary) {
+        renderTaskAdder();
+        return;
+      }
+      const ids = new Set(state.report.tasks.map((task) => task.id));
+      const id = nextStableId(`task-${Date.now().toString(36)}`, ids);
+      state.report.tasks.push({
+        id,
+        title: taskTitle,
+        status: "planned",
+        summary: taskSummary,
+        priority: PRIORITY_POLICY.fallbackValue,
+        completed_items: [],
+        pending_items: [],
+      });
+      markEditorDirty("已新增任務，尚未儲存");
+      rebuildMergedTasks();
+      renderReport();
+    });
+    form.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") renderTaskAdder();
+    });
+  });
+}
+
 function renderTasks() {
-  const orderedTasks = stableSortByStatus(state.tasks, state.statusOrder);
+  const orderedTasks = stableSortByStatus(
+    stableSortTasksByPriority(state.tasks),
+    state.statusOrder,
+  );
   const tasks = state.filter === "all"
     ? orderedTasks
     : orderedTasks.filter((task) => taskMatchesViewStatus(task, state.filter));
   elements.taskList.replaceChildren(...tasks.map(renderTask));
   elements.empty.hidden = tasks.length !== 0;
+  renderTaskAdder();
 }
 
 function renderReport() {
@@ -553,11 +925,167 @@ function renderReport() {
   elements.content.hidden = false;
   elements.start.hidden = true;
   elements.modeBadge.hidden = !state.developerAvailable;
+  elements.viewerModeLabel.textContent = state.editor.editing
+    ? "Local edit session"
+    : "Viewer is read-only";
+  elements.viewModeToggle.textContent = state.editor.editing
+    ? "編輯模式"
+    : "預覽模式";
+  elements.viewModeToggle.setAttribute(
+    "aria-pressed",
+    state.editor.editing ? "true" : "false",
+  );
   renderDiagnostics();
   renderProjectProgress();
   renderOverview();
   renderFilters();
   renderTasks();
+}
+
+async function readProblem(response, fallback) {
+  try {
+    const problem = await response.json();
+    return problem.detail ? `${problem.title}：${problem.detail}` : problem.title ?? fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+async function discoverLocalEditor(scope) {
+  if (!scope) return;
+  try {
+    const response = await fetch(
+      `/__taskprogress/v1/capabilities/${encodeURIComponent(scope)}`,
+      { headers: { Accept: "application/json" }, cache: "no-store" },
+    );
+    if (!response.ok) return;
+    const capability = await response.json();
+    if (!capability.editable || capability.scope_id !== scope) return;
+    state.editor.available = true;
+    state.editor.scope = scope;
+    state.editor.revision = capability.revision;
+    elements.viewModeToggle.hidden = false;
+  } catch {
+    // Public/static hosting intentionally has no editor capability.
+  }
+}
+
+async function startEditing() {
+  if (!state.editor.available || state.editor.editing) return;
+  elements.viewModeToggle.disabled = true;
+  try {
+    const response = await fetch("/__taskprogress/v1/edit-sessions", {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+        "X-TaskProgress-Editor": "1",
+      },
+      body: JSON.stringify({ scope_id: state.editor.scope }),
+    });
+    if (!response.ok) {
+      throw new Error(await readProblem(response, "無法建立本機編輯工作階段。"));
+    }
+    const session = await response.json();
+    state.editor.token = session.token;
+    state.editor.revision = session.revision;
+    state.editor.editing = true;
+    state.editor.dirty = false;
+    state.report = structuredClone(state.persistedReport);
+    normalizeEditableItems(state.report);
+    rebuildMergedTasks();
+    state.timeController?.setEditing(true);
+    elements.editSaveBar.hidden = false;
+    elements.editSaveButton.disabled = true;
+    elements.editSaveStatus.textContent = "尚未修改";
+    renderReport();
+  } catch (error) {
+    elements.viewModeToggle.textContent = "預覽模式";
+    elements.viewModeToggle.setAttribute("aria-pressed", "false");
+    state.diagnostics.push({
+      level: "error",
+      message: error instanceof Error ? error.message : "無法進入編輯模式。",
+    });
+    renderDiagnostics();
+  } finally {
+    elements.viewModeToggle.disabled = false;
+  }
+}
+
+async function cancelEditing() {
+  if (!state.editor.editing) return;
+  const token = state.editor.token;
+  state.editor.editing = false;
+  state.editor.dirty = false;
+  state.editor.token = null;
+  state.timeController?.setEditing(false);
+  state.report = structuredClone(state.persistedReport);
+  rebuildMergedTasks();
+  elements.editSaveBar.hidden = true;
+  renderReport();
+  if (!token) return;
+  try {
+    await fetch(
+      `/__taskprogress/v1/edit-sessions/${encodeURIComponent(state.editor.scope)}`,
+      {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "X-TaskProgress-Editor": "1",
+        },
+      },
+    );
+  } catch {
+    // The short-lived server session expires automatically.
+  }
+}
+
+async function saveEditing() {
+  if (!state.editor.editing || !state.editor.dirty || state.editor.saving) return;
+  state.report.updated_at = new Date().toISOString();
+  const errors = validateReport(state.report);
+  if (errors.length) {
+    elements.editSaveStatus.textContent = errors[0].message;
+    return;
+  }
+  state.editor.saving = true;
+  elements.editSaveButton.disabled = true;
+  elements.viewModeToggle.disabled = true;
+  elements.editSaveStatus.textContent = "正在驗證、儲存並重新分析…";
+  let timeSave = null;
+  try {
+    timeSave = state.timeController?.prepareSave() ?? null;
+    const response = await fetch(
+      `/__taskprogress/v1/reports/${encodeURIComponent(state.editor.scope)}`,
+      {
+        method: "PUT",
+        headers: {
+          Accept: "application/json",
+          Authorization: `Bearer ${state.editor.token}`,
+          "Content-Type": "application/json",
+          "If-Match": `"${state.editor.revision}"`,
+          "X-TaskProgress-Editor": "1",
+        },
+        body: JSON.stringify(state.report),
+      },
+    );
+    if (!response.ok) {
+      throw new Error(await readProblem(response, "儲存失敗；原始檔案未變更。"));
+    }
+    timeSave?.commit();
+    elements.editSaveStatus.textContent = "已安全儲存，正在重新載入…";
+    state.editor.dirty = false;
+    window.location.reload();
+  } catch (error) {
+    timeSave?.rollback();
+    elements.editSaveStatus.textContent = error instanceof Error
+      ? error.message
+      : "儲存失敗；原始檔案未變更。";
+    elements.editSaveButton.disabled = false;
+  } finally {
+    state.editor.saving = false;
+    elements.viewModeToggle.disabled = false;
+  }
 }
 
 async function loadScopeCatalog() {
@@ -699,6 +1227,8 @@ async function main() {
 
     const merged = mergeReports(report, developerReport);
     state.report = report;
+    state.persistedReport = structuredClone(report);
+    state.developerReport = developerReport;
     state.tasks = merged.tasks;
     state.developerAvailable = merged.developerAvailable;
     state.diagnostics.push(...merged.diagnostics);
@@ -757,6 +1287,7 @@ async function main() {
           workProgressRatio: projectProgress.total
             ? projectProgress.completed / projectProgress.total
             : 0,
+          onDraftChange: (message) => markEditorDirty(message),
         });
       } catch (error) {
         state.timeAnalysis = null;
@@ -770,6 +1301,7 @@ async function main() {
         });
       }
     }
+    await discoverLocalEditor(request.scope);
     renderReport();
   } catch (error) {
     showFatal(error instanceof Error ? error.message : "發生未知錯誤。");
@@ -777,6 +1309,14 @@ async function main() {
 }
 
 initializeThemeControls();
+elements.viewModeToggle.addEventListener("click", () => {
+  if (state.editor.editing) {
+    cancelEditing();
+  } else {
+    startEditing();
+  }
+});
+elements.editSaveButton.addEventListener("click", saveEditing);
 elements.timeDialogClose.addEventListener("click", () => elements.timeDialog.close());
 elements.timeDialog.addEventListener("click", (event) => {
   if (event.target === elements.timeDialog) elements.timeDialog.close();
@@ -785,5 +1325,10 @@ window.setInterval(() => state.timeController?.refresh(), 60_000);
 window.addEventListener("pageshow", () => state.timeController?.refresh());
 document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "visible") state.timeController?.refresh();
+});
+window.addEventListener("beforeunload", (event) => {
+  if (!state.editor.dirty) return;
+  event.preventDefault();
+  event.returnValue = "";
 });
 main();

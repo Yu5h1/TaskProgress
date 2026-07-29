@@ -14,6 +14,10 @@ const cssSource = await readFile(
   new URL("../experiments/time-reference/demo/styles.css", import.meta.url),
   "utf8",
 );
+const priorityPolicySource = await readFile(
+  new URL("../viewer/assets/priority-policy.js", import.meta.url),
+  "utf8",
+);
 
 test("progress report exposes one switching panel with three overview tabs", () => {
   const flowIndex = appSource.indexOf('flowTab.textContent = "評估流程"');
@@ -33,9 +37,16 @@ test("the demo can showcase estimate-only work without a deadline", () => {
   assert.match(htmlSource, /value="undated" selected>交付日未定/);
   assert.match(htmlSource, /value="deadline">8\/1 交付/);
   assert.match(appSource, /item_id: "decouple-estimates-from-deadline"/);
-  assert.match(appSource, /const TASK_CONTENT_REVISION = 2/);
+  assert.match(appSource, /const TASK_CONTENT_REVISION = 5/);
   assert.match(appSource, /Number\(content\.base_revision \?\? 1\) < TASK_CONTENT_REVISION/);
   assert.match(appSource, /function showUndatedProjectDetail\(\)/);
+  const undatedStart = appSource.indexOf("function showUndatedProjectDetail(");
+  const undatedEnd = appSource.indexOf("function showProjectDetail(", undatedStart);
+  const undatedSource = appSource.slice(undatedStart, undatedEnd);
+  assert.match(undatedSource, /flowTab\.disabled = true/);
+  assert.match(undatedSource, /engineeringTab\.setAttribute\("aria-selected", "true"\)/);
+  assert.match(undatedSource, /capacityTab\.disabled = true/);
+  assert.match(undatedSource, /technical\.append\(tabList, engineeringPanel\)/);
   assert.match(appSource, /elements\.timeText\.textContent = "交付日未定"/);
   assert.match(appSource, /if \(!analysis\?\.summary\?\.deadline\) return;/);
   assert.match(
@@ -60,12 +71,17 @@ test("global edit mode owns summary and child-item mutations", () => {
   assert.match(appSource, /task-summary-direct-input/);
   assert.match(appSource, /createTaskItemTitleInput/);
   assert.match(appSource, /createTaskItemDeleteButton/);
+  assert.match(appSource, /createTaskItemPriorityEditor/);
+  assert.match(appSource, /createTaskItemPriorityBadge/);
   assert.match(appSource, /createTaskItemAddRow/);
   assert.match(appSource, /createDeletedTaskItemNotice/);
   assert.match(appSource, /taskEditingModel\.normalizeTaskDescription/);
   assert.match(appSource, /items_by_task/);
   assert.match(htmlSource, /id="global-edit-save"/);
-  assert.match(appSource, /elements\.globalEditSave\.hidden = !globalEditingEnabled\(\) \|\| !taskContentDirty/);
+  assert.match(
+    appSource,
+    /!globalEditingEnabled\(\) \|\| \(!taskContentDirty && !timeInputDirty\)/,
+  );
   assert.doesNotMatch(appSource, /task-summary-edit-button|openTaskSummaryEditor|saveTaskSummaryOverrides/);
   assert.doesNotMatch(appSource, /editingTaskItemId/);
 });
@@ -77,9 +93,9 @@ test("all child items become one-row inputs in global edit mode", () => {
 
   assert.match(
     workRowSource,
-    /createTaskItemTitleInput\(taskItem, primaryTaskId\),\s*createTaskItemDeleteButton\(taskItem, primaryTaskId\),\s*button,\s*createTaskItemStatus\(taskItem\)/,
+    /createTaskItemTitleInput\(taskItem, primaryTaskId\),\s*createTaskItemDeleteButton\(taskItem, primaryTaskId\),\s*createTaskItemPriorityEditor\(taskItem\),\s*button,\s*createTaskItemStatus\(taskItem\)/,
   );
-  assert.match(appSource, /elements\.globalEditSaveButton\.addEventListener\("click", saveTaskItemDrafts\)/);
+  assert.match(appSource, /elements\.globalEditSaveButton\.addEventListener\("click", saveGlobalDrafts\)/);
   assert.match(
     cssSource,
     /\.work-columns \.detail-list li\.time-work-item::before\s*\{\s*display: none;/,
@@ -97,6 +113,10 @@ test("every task card has a bottom add control in global edit mode", () => {
   );
   assert.match(appSource, /taskItemsFor\(taskId\)\.push/);
   assert.match(appSource, /taskEditingModel\.createStableItemId\(allTaskItemIds\(\)\)/);
+  assert.match(
+    appSource,
+    /priority: taskEditingModel\.normalizePriority\(\s*prioritySelect\.value,\s*CREATION_PRIORITY,\s*\)/,
+  );
 });
 
 test("task descriptions are direct global-mode inputs without a local editor", () => {
@@ -110,7 +130,7 @@ test("task descriptions are direct global-mode inputs without a local editor", (
   assert.doesNotMatch(cssSource, /\.task-summary-editor|\.task-summary-edit-button/);
 });
 
-test("global save stays fixed at the viewport bottom", () => {
+test("global save stays fixed at the panel-aligned viewport bottom", () => {
   assert.match(htmlSource, /class="global-edit-save" id="global-edit-save" hidden/);
   assert.doesNotMatch(
     htmlSource,
@@ -118,9 +138,64 @@ test("global save stays fixed at the viewport bottom", () => {
   );
   assert.match(
     cssSource,
-    /\.global-edit-save\s*\{[\s\S]*?position: fixed;[\s\S]*?right: calc\([\s\S]*?bottom: calc\([\s\S]*?z-index: 40;/,
+    /\.global-edit-save\s*\{[\s\S]*?position: fixed;[\s\S]*?left: 50%;[\s\S]*?width: min\(960px, calc\(100% - 32px\)\);[\s\S]*?bottom: calc\([\s\S]*?transform: translateX\(-50%\);/,
   );
   assert.match(cssSource, /env\(safe-area-inset-bottom, 0px\)/);
+  assert.match(cssSource, /#global-edit-save-button\s*\{[\s\S]*?color: #fff;/);
+  assert.match(
+    cssSource,
+    /@media \(max-width: 600px\)[\s\S]*?\.global-edit-save\s*\{[\s\S]*?width: min\(960px, calc\(100% - 24px\)\);/,
+  );
+});
+
+test("leaving edit mode discards drafts and restores the persisted preview", () => {
+  assert.match(appSource, /function discardGlobalDrafts\(\)/);
+  assert.match(appSource, /taskDefinitions = cloneValue\(persistedTaskDefinitions\)/);
+  assert.match(appSource, /taskItems = persistedTaskItems\.map/);
+  assert.match(appSource, /estimateDrafts\.clear\(\)/);
+  assert.match(appSource, /render\(prepareDemoAnalysis\(loadedAnalysisSource\)\)/);
+  assert.match(
+    appSource,
+    /if \(leavingEditMode && hasUnsavedDrafts\(\)\) discardGlobalDrafts\(\)/,
+  );
+  assert.doesNotMatch(appSource, /尚有未儲存內容，請先按下全域/);
+});
+
+test("estimate and capacity editing preview locally and persist through global save", () => {
+  const capacityStart = appSource.indexOf("function createCapacityEditor(");
+  const capacityEnd = appSource.indexOf("function createCapacityPanel(", capacityStart);
+  const capacitySource = appSource.slice(capacityStart, capacityEnd);
+  const itemStart = appSource.indexOf("function createItemEditor(");
+  const itemEnd = appSource.indexOf("function showItemDetail(", itemStart);
+  const itemSource = appSource.slice(itemStart, itemEnd);
+  const saveStart = appSource.indexOf("function saveGlobalDrafts(");
+  const saveEnd = appSource.indexOf("function createDeletedTaskItemNotice(", saveStart);
+  const saveSource = appSource.slice(saveStart, saveEnd);
+  const previewStart = appSource.indexOf("function previewTimeDrafts(");
+  const previewEnd = appSource.indexOf("function saveGlobalDrafts(", previewStart);
+  const previewSource = appSource.slice(previewStart, previewEnd);
+
+  assert.doesNotMatch(
+    capacitySource,
+    /textContent = "取消"|item-editor-cancel/,
+  );
+  assert.doesNotMatch(
+    itemSource,
+    /textContent = "取消"|item-editor-cancel/,
+  );
+  assert.match(capacitySource, /preview\.textContent = "重新計算"/);
+  assert.match(itemSource, /preview\.textContent = "重新計算"/);
+  assert.match(capacitySource, /capacityDraft = readCapacityDraft\(form\)/);
+  assert.match(itemSource, /estimateDrafts\.set\(item\.item_id/);
+  assert.match(previewSource, /applyEstimateResult\(change\.item, change\.result, \{ createVersion: false \}\)/);
+  assert.match(previewSource, /recomputeDerivedTotals\(analysis\)/);
+  assert.doesNotMatch(previewSource, /saveDemoOverride|saveCapacityOverride|recomputeAnalysis/);
+  assert.match(saveSource, /prepareEstimateDrafts\(\)/);
+  assert.match(saveSource, /capacityProfileFromDraft\(capacityDraft\)/);
+  assert.match(saveSource, /stageTaskContentOverrides\(readDemoOverrides\(\)\)/);
+  assert.match(saveSource, /writeDemoOverrides\(stagedOverrides\)/);
+  assert.match(saveSource, /沒有部分提交/);
+  assert.match(saveSource, /recomputeAnalysis\(analysis/);
 });
 
 test("status ordering is an always-available view preference", () => {
@@ -128,7 +203,7 @@ test("status ordering is an always-available view preference", () => {
   const moveEnd = appSource.indexOf("function moveStatusByOffset", moveStart);
   const moveSource = appSource.slice(moveStart, moveEnd);
 
-  assert.match(appSource, /const DEFAULT_STATUS_ORDER = \["in_progress", "done", "blocked", "archive"\]/);
+  assert.match(appSource, /const DEFAULT_STATUS_ORDER = \["planned", "in_progress", "done", "blocked", "archive"\]/);
   assert.match(appSource, /const DEMO_STATUS_ORDER_KEY = "taskprogress\.time-reference-demo\.status-order\.v1"/);
   assert.match(appSource, /function saveStatusOrderPreference\(\)/);
   assert.match(appSource, /button\.draggable = true/);
@@ -144,8 +219,64 @@ test("status ordering is an always-available view preference", () => {
   assert.match(appSource, /orderedTaskItems\(items\)/);
   assert.match(appSource, /orderedTaskItems\(taskItems\)/);
   assert.match(
+    appSource,
+    /taskEditingModel\.normalizePriority\(left\.item\.priority, DEFAULT_PRIORITY\)/,
+  );
+  assert.match(
     htmlSource,
     /class="overview-card overview-active" data-status="in_progress"/,
   );
   assert.match(cssSource, /\.filter-button\.status-sortable\s*\{[\s\S]*?cursor: grab;/);
+});
+
+test("P0 top-level task creation has a stable contract and a bottom add control", () => {
+  assert.match(htmlSource, /id="task-card-add-host" hidden/);
+  assert.match(htmlSource, /data-filter="planned"[^>]*>待處理 0/);
+  assert.match(appSource, /function renderTopLevelTaskAdd\(\)/);
+  assert.match(appSource, /add\.setAttribute\("aria-label", "新增最外層任務卡"\)/);
+  assert.match(appSource, /taskEditingModel\.createStableTaskId\(allTaskIds\(\)\)/);
+  assert.match(appSource, /status: "planned"/);
+  assert.match(appSource, /priority: taskEditingModel\.normalizePriority\(\s*prioritySelect\.value/);
+  assert.match(appSource, /title: titleResult\.value/);
+  assert.match(appSource, /summary: summaryResult\.value/);
+  assert.match(appSource, /tasks: taskDefinitions/);
+  assert.match(cssSource, /@media \(max-width: 600px\)[\s\S]*?\.task-card-add-form\s*\{\s*grid-template-columns: 1fr;/);
+});
+
+test("task cards and child items share the five named priority levels", () => {
+  assert.match(priorityPolicySource, /value: 0, label: "立即"/);
+  assert.match(priorityPolicySource, /value: 1, label: "優先"/);
+  assert.match(priorityPolicySource, /value: 2, label: "一般"/);
+  assert.match(priorityPolicySource, /value: 3, label: "次要"/);
+  assert.match(priorityPolicySource, /value: 4, label: "未指定"[\s\S]*?hidden: true/);
+  assert.match(priorityPolicySource, /labelsValid \? level\.label : `P\$\{level\.value\}`/);
+  assert.match(htmlSource, /priority-policy\.js[^<]*<\/script>[\s\S]*task-editing-model\.js/);
+  assert.match(appSource, /const priorityPolicy = globalThis\.TaskProgressPriorityPolicy/);
+  assert.match(appSource, /const DEFAULT_PRIORITY = priorityPolicy\.fallbackValue/);
+  assert.match(appSource, /const CREATION_PRIORITY = priorityPolicy\.creationDefaultValue/);
+  assert.match(appSource, /priorityPolicy\.labelsValid && meta\.hidden/);
+  assert.match(appSource, /function renderTaskPriorityControls\(\)/);
+  assert.match(appSource, /task_priorities: Object\.fromEntries/);
+  assert.match(appSource, /card\.dataset\.priority/);
+  assert.match(appSource, /priorityOrderedCards/);
+  assert.match(appSource, /select\.className = className/);
+  assert.match(appSource, /預設優先級：一般/);
+  assert.doesNotMatch(appSource, /預設優先級：P2/);
+  assert.doesNotMatch(appSource, /label: "(立即|優先|一般|次要|未指定)"/);
+  assert.match(cssSource, /\.task-priority-select\.priority-urgent/);
+  assert.match(cssSource, /\.task-priority-select\.priority-unspecified/);
+});
+
+test("P0 protects drafts, recalculates progress, and invalidates stale time projections", () => {
+  assert.match(appSource, /function hasUnsavedDrafts\(\)/);
+  assert.match(appSource, /window\.addEventListener\("beforeunload"/);
+  assert.match(appSource, /if \(leavingEditMode && hasUnsavedDrafts\(\)\) discardGlobalDrafts\(\)/);
+  assert.match(appSource, /function updateStatusAndProgressSummaries\(\)/);
+  assert.match(appSource, /taskEditingModel\.calculateProgressUnits/);
+  assert.match(appSource, /elements\.filterButtons\.forEach/);
+  assert.match(appSource, /elements\.overviewCards\.forEach/);
+  assert.match(appSource, /function updateTaskStructureChanged\(\)/);
+  assert.match(appSource, /受影響的時間資料已失效/);
+  assert.match(appSource, /primaryStructureStale \? \[\]/);
+  assert.match(appSource, /elements\.timeText\.textContent = "時間待重新分析"/);
 });

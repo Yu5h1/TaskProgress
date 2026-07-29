@@ -1,3 +1,5 @@
+import "./priority-policy.js";
+
 export const SUPPORTED_SCHEMA_VERSION = "1.0";
 
 export const STATUS_META = Object.freeze({
@@ -7,6 +9,12 @@ export const STATUS_META = Object.freeze({
   done: { label: "已完成", tone: "success" },
   archive: { label: "已封存", tone: "muted" },
 });
+
+export const PRIORITY_POLICY = globalThis.TaskProgressPriorityPolicy;
+export const PRIORITY_META = Object.freeze(
+  Object.fromEntries(PRIORITY_POLICY.levels.map((level) => [level.value, level])),
+);
+export const DEFAULT_PRIORITY = PRIORITY_POLICY.fallbackValue;
 
 const ID_PATTERN = /^[a-z0-9]+(?:[._-][a-z0-9]+)*$/;
 
@@ -113,6 +121,43 @@ export function calculateProjectProgress(tasks) {
   return { completed, total, percentage };
 }
 
+function normalizedPriority(value) {
+  return PRIORITY_POLICY.normalize(value, DEFAULT_PRIORITY);
+}
+
+export function taskPriority(task) {
+  return normalizedPriority(task?.priority);
+}
+
+export function taskItemPriority(item) {
+  return normalizedPriority(
+    item !== null && typeof item === "object" && !Array.isArray(item)
+      ? item.priority
+      : undefined,
+  );
+}
+
+export function stableSortTasksByPriority(tasks) {
+  return [...(tasks ?? [])]
+    .map((task, index) => ({ task, index }))
+    .sort((left, right) => (
+      taskPriority(left.task) - taskPriority(right.task)
+      || left.index - right.index
+    ))
+    .map(({ task }) => task);
+}
+
+export function stableSortTaskItemsByPriority(items) {
+  return [...(items ?? [])]
+    .map((item, index) => ({ item, index }))
+    .sort((left, right) => {
+      const leftPriority = taskItemPriority(left.item);
+      const rightPriority = taskItemPriority(right.item);
+      return leftPriority - rightPriority || left.index - right.index;
+    })
+    .map(({ item }) => item);
+}
+
 function isObject(value) {
   return value !== null && typeof value === "object" && !Array.isArray(value);
 }
@@ -159,6 +204,16 @@ function validateTaskItemList(value, path, errors, ids) {
     }
     requireString(item.id, `${itemPath}.id`, errors, { id: true });
     requireString(item.title, `${itemPath}.title`, errors);
+    if (
+      item.priority !== undefined
+      && (!Number.isInteger(item.priority) || item.priority < 0 || item.priority > 4)
+    ) {
+      errors.push(issue(
+        "invalid_priority",
+        `${itemPath}.priority`,
+        `${itemPath}.priority 必須是 0、1、2、3 或 4。`,
+      ));
+    }
     if (typeof item.id === "string") {
       if (ids.has(item.id)) {
         errors.push(issue("duplicate_item", `${itemPath}.id`, `item id「${item.id}」重複。`));
@@ -204,6 +259,16 @@ export function validateReport(report) {
     requireString(task.summary, `${path}.summary`, errors);
     if (!Object.hasOwn(STATUS_META, task.status)) {
       errors.push(issue("invalid_status", `${path}.status`, `${path}.status 不是支援的狀態。`));
+    }
+    if (
+      task.priority !== undefined
+      && (!Number.isInteger(task.priority) || task.priority < 0 || task.priority > 4)
+    ) {
+      errors.push(issue(
+        "invalid_priority",
+        `${path}.priority`,
+        `${path}.priority 必須是 0、1、2、3 或 4。`,
+      ));
     }
     if (typeof task.id === "string") {
       if (ids.has(task.id)) {

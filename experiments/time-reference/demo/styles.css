@@ -87,10 +87,16 @@ html[data-view-mode="edit"] .view-mode-control {
 .item-editor button:focus-visible,
 .task-summary-direct-input:focus-visible,
 .task-item-title-input:focus-visible,
+.task-item-priority-select:focus-visible,
+.task-priority-select:focus-visible,
 .task-item-delete:focus-visible,
 .task-item-add:focus-visible,
 .task-item-add-form input:focus-visible,
 .task-item-add-form button:focus-visible,
+.task-card-add:focus-visible,
+.task-card-add-form input:focus-visible,
+.task-card-add-form textarea:focus-visible,
+.task-card-add-form button:focus-visible,
 .task-item-undo-row button:focus-visible,
 #global-edit-save-button:focus-visible {
   outline: 3px solid color-mix(in srgb, var(--color-focus) 38%, transparent);
@@ -163,6 +169,7 @@ html[data-view-mode="edit"] .view-mode-control {
 }
 
 .time-task-status-line {
+  gap: 7px;
   min-height: 19px;
   margin-bottom: 4px;
 }
@@ -235,6 +242,7 @@ html[data-view-mode="edit"] .view-mode-control {
 }
 
 .task-item-title-input,
+.task-item-priority-select,
 .task-item-add-form input {
   box-sizing: border-box;
   width: 100%;
@@ -339,9 +347,51 @@ html[data-view-mode="edit"] .view-mode-control {
   padding: 6px 8px;
 }
 
+.task-item-priority-select,
+.task-priority-select {
+  flex: 0 0 auto;
+  width: auto;
+  min-width: 88px;
+  padding: 5px 7px;
+  color: var(--color-item-text);
+  background: var(--color-panel-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 7px;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.66rem;
+  font-weight: 720;
+}
+
+.task-item-priority-select.priority-urgent,
+.task-priority-select.priority-urgent {
+  color: var(--color-danger-text);
+  border-color: var(--color-danger-border);
+}
+
+.task-item-priority-select.priority-important,
+.task-priority-select.priority-important {
+  color: var(--color-warning-text);
+  border-color: var(--color-warning-border);
+}
+
+.task-item-priority-select.priority-normal,
+.task-priority-select.priority-normal {
+  color: var(--color-active-text);
+  border-color: var(--color-active-border);
+}
+
+.task-item-priority-select.priority-secondary,
+.task-priority-select.priority-secondary,
+.task-item-priority-select.priority-unspecified,
+.task-priority-select.priority-unspecified {
+  color: var(--color-muted-text);
+  border-color: var(--color-border);
+}
+
 .task-item-add-form {
   display: grid;
-  grid-template-columns: minmax(120px, 1fr) auto auto;
+  grid-template-columns: minmax(120px, 1fr) auto auto auto;
   align-items: center;
   flex: 1 1 auto;
   gap: 6px;
@@ -353,19 +403,25 @@ html[data-view-mode="edit"] .view-mode-control {
   padding: 6px 8px;
 }
 
+.task-item-add-form .task-item-priority-select {
+  width: auto;
+}
+
 .task-item-add-form .task-inline-error {
   grid-column: 1 / -1;
-  grid-row: 2;
 }
 
 .global-edit-save {
   position: fixed;
-  right: calc(16px + env(safe-area-inset-right, 0px));
+  left: 50%;
+  width: min(960px, calc(100% - 32px));
   bottom: calc(16px + env(safe-area-inset-bottom, 0px));
   z-index: 40;
   display: flex;
   justify-content: flex-end;
   margin: 0;
+  pointer-events: none;
+  transform: translateX(-50%);
 }
 
 .global-edit-save[hidden] {
@@ -374,7 +430,7 @@ html[data-view-mode="edit"] .view-mode-control {
 
 #global-edit-save-button {
   padding: 8px 16px;
-  color: var(--color-active-text);
+  color: #fff;
   background: var(--color-active-bg);
   border: 1px solid var(--color-active-border);
   border-radius: 999px;
@@ -385,6 +441,7 @@ html[data-view-mode="edit"] .view-mode-control {
   font: inherit;
   font-size: 0.7rem;
   font-weight: 760;
+  pointer-events: auto;
 }
 
 .work-columns .detail-list li.task-item-add-row,
@@ -430,6 +487,77 @@ html[data-view-mode="edit"] .view-mode-control {
   gap: 10px;
   color: var(--color-secondary-text);
   font-size: 0.7rem;
+}
+
+.task-card-add-host {
+  display: flex;
+  justify-content: center;
+  padding: 12px 0 2px;
+}
+
+.task-card-add-host[hidden] {
+  display: none;
+}
+
+.task-card-add {
+  min-width: 54px;
+  min-height: 30px;
+  padding: 3px 18px;
+  color: var(--color-active-text);
+  background: var(--color-panel-bg);
+  border: 1px solid var(--color-active-border);
+  border-radius: 999px;
+  cursor: pointer;
+  font: inherit;
+  font-size: 1rem;
+  font-weight: 760;
+  line-height: 1;
+}
+
+.task-card-add-form {
+  display: grid;
+  grid-template-columns: minmax(160px, 0.7fr) minmax(220px, 1.3fr) auto;
+  align-items: start;
+  gap: 8px;
+  width: min(100%, 760px);
+  padding: 12px;
+  background: var(--color-panel-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.task-card-add-form input,
+.task-card-add-form textarea,
+.task-card-add-form select {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 7px 9px;
+  color: var(--color-item-text);
+  background: var(--color-page-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 7px;
+  font: inherit;
+  line-height: 1.45;
+}
+
+.task-card-add-form textarea {
+  resize: vertical;
+}
+
+.task-card-add-form .task-inline-actions {
+  align-self: center;
+  grid-column: -2 / -1;
+  justify-self: end;
+}
+
+.task-add-contract {
+  grid-column: 1 / -1;
+  color: var(--color-muted-text);
+  font-size: 0.66rem;
+}
+
+.task-card-add-form .task-inline-error {
+  grid-column: 1 / -1;
 }
 
 .task-structure-note {
@@ -539,8 +667,7 @@ html[data-view-mode="edit"] .view-mode-control {
 .item-detail-actions,
 .item-editor-heading,
 .item-editor-field,
-.item-editor-control,
-.item-editor-actions {
+.item-editor-control {
   display: flex;
   align-items: center;
 }
@@ -706,30 +833,20 @@ html[data-view-mode="edit"] .view-mode-control {
 }
 
 .item-editor-actions {
+  display: flex;
   justify-content: flex-end;
-  gap: 7px;
   margin-top: 10px;
 }
 
-.item-editor-cancel,
-.item-editor-submit {
+.item-editor-preview {
   padding: 5px 10px;
-  border: 1px solid var(--color-border);
+  color: var(--color-active-text);
+  background: var(--color-active-bg);
+  border: 1px solid var(--color-active-border);
   border-radius: 999px;
   cursor: pointer;
   font-size: 0.68rem;
   font-weight: 700;
-}
-
-.item-editor-cancel {
-  color: var(--color-secondary-text);
-  background: transparent;
-}
-
-.item-editor-submit {
-  color: var(--color-active-text);
-  background: var(--color-active-bg);
-  border-color: var(--color-active-border);
 }
 
 .item-editor-error {
@@ -942,6 +1059,11 @@ html[data-view-mode="edit"] .view-mode-control {
   color: var(--color-active-text);
   background: var(--color-active-bg);
   border-color: var(--color-active-border);
+}
+
+.project-tab:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
 }
 
 .project-tab-panel {
@@ -1198,6 +1320,10 @@ html[data-view-mode="edit"] .view-mode-control {
 }
 
 @media (max-width: 600px) {
+  .global-edit-save {
+    width: min(960px, calc(100% - 24px));
+  }
+
   .mode-badge {
     display: none;
   }
@@ -1237,6 +1363,18 @@ html[data-view-mode="edit"] .view-mode-control {
   .task-item-add-form {
     grid-template-columns: 1fr auto auto;
     width: 100%;
+  }
+
+  .task-item-add-form input {
+    grid-column: 1 / -1;
+  }
+
+  .task-card-add-form {
+    grid-template-columns: 1fr;
+  }
+
+  .task-card-add-form .task-inline-actions {
+    justify-content: flex-end;
   }
 
   .metric-grid {
