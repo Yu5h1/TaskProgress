@@ -335,6 +335,7 @@ const TASK_CONTENT_REVISION = 5;
 const editingPolicy = globalThis.TimeEditingPolicy;
 const taskEditingModel = globalThis.TimeTaskEditingModel;
 const priorityPolicy = globalThis.TaskProgressPriorityPolicy;
+const editorCoreRuntime = globalThis.TaskProgressEditorCoreRuntime;
 const timeDataPolicy = globalThis.TimeDataPolicy;
 const estimateEngine = globalThis.TimeEstimateEngine;
 const capacityEngine = globalThis.TimeCapacityEngine;
@@ -342,6 +343,7 @@ const deadlineEngine = globalThis.TimeDeadlineEngine;
 if (!editingPolicy) throw new Error("編輯環境政策未載入。");
 if (!taskEditingModel) throw new Error("任務編輯模型未載入。");
 if (!priorityPolicy) throw new Error("優先級設定未載入。");
+if (!editorCoreRuntime) throw new Error("Editor Core runtime 未載入。");
 if (!timeDataPolicy) throw new Error("時間資料政策未載入。");
 if (!estimateEngine) throw new Error("估算算法引擎未載入。");
 if (!capacityEngine) throw new Error("工作容量引擎未載入。");
@@ -473,6 +475,7 @@ let auxiliaryTaskItems = Object.fromEntries(
 let persistedAuxiliaryTaskItems = cloneValue(auxiliaryTaskItems);
 let taskContentDirty = false;
 let taskStructureChanged = false;
+let demoEditorSession = null;
 let addingTaskId = null;
 let addingTopLevelTask = false;
 let lastDeletedTaskItem = null;
@@ -652,6 +655,78 @@ function globalEditingEnabled() {
   return localEditingAllowed && viewMode === "edit";
 }
 
+function demoCalculateTaskProgress(task) {
+  const completed = task.completed_items?.length ?? 0;
+  const pending = task.pending_items?.length ?? 0;
+  if (completed + pending > 0) {
+    return { completed, total: completed + pending };
+  }
+  if (task.progress) return { ...task.progress };
+  return { completed: task.status === "done" ? 1 : 0, total: 1 };
+}
+
+function demoCalculateProjectProgress(tasks) {
+  const units = tasks
+    .filter((task) => task.status !== "archive")
+    .map(demoCalculateTaskProgress);
+  const completed = units.reduce((sum, item) => sum + item.completed, 0);
+  const total = units.reduce((sum, item) => sum + item.total, 0);
+  return {
+    completed,
+    total,
+    percentage: total === 0 ? 0 : Math.round((completed / total) * 100),
+  };
+}
+
+function demoValidateReport(report) {
+  const errors = [];
+  const taskIds = new Set();
+  (report.tasks ?? []).forEach((task, taskIndex) => {
+    const taskPath = `tasks[${taskIndex}]`;
+    if (!task.id || taskIds.has(task.id)) {
+      errors.push({ path: `${taskPath}.id`, message: "任務 ID 不可空白或重複。" });
+    }
+    taskIds.add(task.id);
+    if (!taskEditingModel.normalizeTaskDescription(task.title, 200).ok) {
+      errors.push({ path: `${taskPath}.title`, message: "任務名稱無效。" });
+    }
+    if (!taskEditingModel.normalizeTaskDescription(task.summary, 1000).ok) {
+      errors.push({ path: `${taskPath}.summary`, message: "任務描述無效。" });
+    }
+    if (!taskStatusMeta[task.status]) {
+      errors.push({ path: `${taskPath}.status`, message: "任務狀態無效。" });
+    }
+    const itemIds = new Set();
+    ["completed_items", "pending_items"].forEach((field) => {
+      (task[field] ?? []).forEach((item, itemIndex) => {
+        if (!item.id || itemIds.has(item.id)) {
+          errors.push({
+            path: `${taskPath}.${field}[${itemIndex}].id`,
+            message: "子項目 ID 不可空白或重複。",
+          });
+        }
+        itemIds.add(item.id);
+        if (
+          !item.demoSynthetic
+          && !taskEditingModel.normalizeTaskDescription(item.title, 300).ok
+        ) {
+          errors.push({
+            path: `${taskPath}.${field}[${itemIndex}].title`,
+            message: "子項目描述無效。",
+          });
+        }
+      });
+    });
+  });
+  return errors;
+}
+
+const demoEditorCore = editorCoreRuntime.createEditorCore({
+  calculateProjectProgress: demoCalculateProjectProgress,
+  calculateTaskProgress: demoCalculateTaskProgress,
+  validateReport: demoValidateReport,
+});
+
 function syncTaskLabels() {
   Object.keys(labels).forEach((id) => delete labels[id]);
   [
@@ -687,6 +762,9 @@ function taskProgressSnapshot(taskId) {
 }
 
 function currentProgressSummary() {
+  if (demoEditorSession) {
+    return demoEditorSession.derived.progress.project;
+  }
   return taskEditingModel.calculateProgressUnits(
     taskDefinitions.map((task) => ({
       ...taskProgressSnapshot(task.id),
@@ -731,6 +809,10 @@ function baseStructureFor(taskId) {
 }
 
 function updateTaskStructureChanged() {
+  if (demoEditorSession) {
+    taskStructureChanged = demoEditorSession.derived.timeInvalidation.stale;
+    return;
+  }
   taskStructureChanged = taskDefinitions.some((task) => {
     const baseItems = baseStructureFor(task.id);
     if (baseItems === null) return true;
@@ -742,6 +824,161 @@ function taskItemsFor(taskId) {
   return taskId === primaryTaskId
     ? taskItems
     : (auxiliaryTaskItems[taskId] ?? []);
+}
+
+function demoCoreItem(item, order) {
+  return {
+    id: item.id,
+    title: item.title,
+    priority: taskEditingModel.normalizePriority(item.priority, DEFAULT_PRIORITY),
+    demoStatus: item.status,
+    demoOrder: order,
+  };
+}
+
+function demoSyntheticItem(taskId, kind, index) {
+  return {
+    id: `demo-base-${taskId}-${kind}-${index + 1}`,
+    title: kind === "done" ? "既有完成進度" : "既有待處理進度",
+    priority: DEFAULT_PRIORITY,
+    demoSynthetic: true,
+    demoStatus: kind === "done" ? "done" : "pending",
+    demoOrder: -1,
+  };
+}
+
+function demoReportFromLegacyState() {
+  return {
+    schema_version: "1.0",
+    report_id: "time-reference-demo",
+    scope_id: "time-reference-demo",
+    title: "TaskProgress 時間參考開發進度",
+    updated_at: BASE_REPORT_UPDATED_AT,
+    tasks: taskDefinitions.map((definition) => {
+      const items = taskItemsFor(definition.id);
+      const completedItems = items
+        .map(demoCoreItem)
+        .filter((item) => ["done", "success"].includes(item.demoStatus));
+      const pendingItems = items
+        .map(demoCoreItem)
+        .filter((item) => !["done", "success"].includes(item.demoStatus));
+      const baseCompleted = definition.id === primaryTaskId
+        ? 0
+        : Number(definition.baseCompleted ?? 0);
+      const baseTotal = definition.id === primaryTaskId
+        ? 0
+        : Number(definition.baseTotal ?? 0);
+      completedItems.unshift(...Array.from(
+        { length: baseCompleted },
+        (_value, index) => demoSyntheticItem(definition.id, "done", index),
+      ));
+      pendingItems.unshift(...Array.from(
+        { length: Math.max(0, baseTotal - baseCompleted) },
+        (_value, index) => demoSyntheticItem(definition.id, "todo", index),
+      ));
+      return {
+        id: definition.id,
+        title: definition.title,
+        summary: taskSummaries[definition.id] ?? definition.summary,
+        status: definition.status,
+        priority: taskEditingModel.normalizePriority(
+          definition.priority,
+          DEFAULT_PRIORITY,
+        ),
+        completed_items: completedItems,
+        pending_items: pendingItems,
+        demoBaseCompleted: baseCompleted,
+        demoBaseTotal: baseTotal,
+      };
+    }),
+  };
+}
+
+function syncLegacyStateFromEditorSession() {
+  if (!demoEditorSession) return;
+  const draftTasks = demoEditorSession.draft.tasks;
+  const taskIds = new Set(draftTasks.map((task) => task.id));
+  elements.taskCards = elements.taskCards.filter((card) => {
+    if (taskIds.has(card.dataset.taskId)) return true;
+    card.remove();
+    return false;
+  });
+  elements.taskDurations = elements.taskDurations.filter(
+    (duration) => duration.isConnected,
+  );
+
+  const nextDefinitions = [];
+  const nextSummaries = {};
+  const nextItemsByTask = {};
+  draftTasks.forEach((task) => {
+    nextDefinitions.push({
+      id: task.id,
+      title: task.title,
+      summary: task.summary,
+      status: task.status,
+      priority: taskEditingModel.normalizePriority(task.priority, DEFAULT_PRIORITY),
+      baseCompleted: Number(task.demoBaseCompleted ?? 0),
+      baseTotal: Number(task.demoBaseTotal ?? 0),
+    });
+    nextSummaries[task.id] = task.summary;
+    nextItemsByTask[task.id] = [
+      ...(task.completed_items ?? []).map((item) => ({ field: "completed", item })),
+      ...(task.pending_items ?? []).map((item) => ({ field: "pending", item })),
+    ]
+      .filter(({ item }) => !item.demoSynthetic)
+      .sort((left, right) => (
+        Number(left.item.demoOrder ?? 0) - Number(right.item.demoOrder ?? 0)
+      ))
+      .map(({ field, item }) => ({
+        id: item.id,
+        title: item.title,
+        status: item.demoStatus ?? (field === "completed" ? "done" : "pending"),
+        priority: taskEditingModel.normalizePriority(item.priority, DEFAULT_PRIORITY),
+      }));
+  });
+
+  taskDefinitions = nextDefinitions;
+  taskSummaries = nextSummaries;
+  taskItems = nextItemsByTask[primaryTaskId] ?? [];
+  auxiliaryTaskItems = Object.fromEntries(
+    nextDefinitions
+      .filter((task) => task.id !== primaryTaskId)
+      .map((task) => [task.id, nextItemsByTask[task.id] ?? []]),
+  );
+
+  nextDefinitions.forEach((definition) => {
+    let card = elements.taskCards.find(
+      (candidate) => candidate.dataset.taskId === definition.id,
+    );
+    if (!card) card = createTaskCard(definition);
+    card.dataset.status = definition.status;
+    card.dataset.priority = String(definition.priority);
+    card.dataset.baseCompleted = String(definition.baseCompleted);
+    card.dataset.baseTotal = String(definition.baseTotal);
+    const title = card.querySelector("h3");
+    if (title) title.textContent = definition.title;
+  });
+  syncTaskLabels();
+}
+
+function initializeDemoEditorSession() {
+  demoEditorSession = demoEditorCore.createReportEditorSession(
+    demoReportFromLegacyState(),
+    { fallbackPriority: DEFAULT_PRIORITY },
+  );
+  syncLegacyStateFromEditorSession();
+  updateTaskStructureChanged();
+  updateTaskContentDirty();
+}
+
+function applyDemoEditorCommand(command) {
+  if (!demoEditorSession) throw new Error("Demo Editor Core 尚未啟動。");
+  const changed = demoEditorSession.dispatch(command);
+  if (!changed) return false;
+  syncLegacyStateFromEditorSession();
+  updateTaskStructureChanged();
+  updateTaskContentDirty();
+  return true;
 }
 
 function allTaskItemIds() {
@@ -817,6 +1054,11 @@ function updateTimeInputDirty() {
 }
 
 function updateTaskContentDirty() {
+  if (demoEditorSession) {
+    taskContentDirty = demoEditorSession.derived.dirty;
+    renderGlobalEditSave();
+    return;
+  }
   taskContentDirty = taskContentSignature(
     taskDefinitions,
     taskSummaries,
@@ -1051,6 +1293,12 @@ function stageTaskContentOverrides(overrides) {
 }
 
 function commitPersistedTaskContent() {
+  if (demoEditorSession) {
+    demoEditorSession.commit(
+      demoEditorSession.prepareSave(new Date().toISOString()),
+    );
+    syncLegacyStateFromEditorSession();
+  }
   persistedTaskItems = taskItems.map((item) => ({ ...item }));
   persistedAuxiliaryTaskItems = cloneValue(auxiliaryTaskItems);
   persistedTaskSummaries = { ...taskSummaries };
@@ -1077,8 +1325,12 @@ function renderTaskSummaryControls() {
     input.setAttribute("aria-label", "任務描述");
     input.addEventListener("input", () => {
       input.setCustomValidity("");
-      taskSummaries[taskId] = input.value;
-      updateTaskContentDirty();
+      applyDemoEditorCommand({
+        type: "set-task-field",
+        taskId,
+        field: "summary",
+        value: input.value,
+      });
     });
     summary.after(input);
   });
@@ -1089,22 +1341,8 @@ function hasUnsavedDrafts() {
 }
 
 function discardGlobalDrafts() {
-  const persistedTaskIds = new Set(
-    persistedTaskDefinitions.map((task) => task.id),
-  );
-  elements.taskCards = elements.taskCards.filter((card) => {
-    if (persistedTaskIds.has(card.dataset.taskId)) return true;
-    card.remove();
-    return false;
-  });
-  elements.taskDurations = elements.taskDurations.filter(
-    (duration) => duration.isConnected,
-  );
-
-  taskDefinitions = cloneValue(persistedTaskDefinitions);
-  taskSummaries = { ...persistedTaskSummaries };
-  taskItems = persistedTaskItems.map((item) => ({ ...item }));
-  auxiliaryTaskItems = cloneValue(persistedAuxiliaryTaskItems);
+  demoEditorSession?.discard();
+  syncLegacyStateFromEditorSession();
   addingTaskId = null;
   addingTopLevelTask = false;
   lastDeletedTaskItem = null;
@@ -2503,11 +2741,15 @@ function renderTaskPriorityControls() {
         "task-priority-select task-priority-control",
       );
       select.addEventListener("change", () => {
-        definition.priority = taskEditingModel.normalizePriority(
-          select.value,
-          DEFAULT_PRIORITY,
-        );
-        updateTaskContentDirty();
+        applyDemoEditorCommand({
+          type: "set-task-field",
+          taskId: definition.id,
+          field: "priority",
+          value: taskEditingModel.normalizePriority(
+            select.value,
+            DEFAULT_PRIORITY,
+          ),
+        });
         renderTaskItems();
       });
       statusLine.append(select);
@@ -2526,10 +2768,15 @@ function deleteTaskItem(taskId, item) {
   const index = items.findIndex((candidate) => candidate.id === item.id);
   if (index < 0) return;
   lastDeletedTaskItem = { taskId, item: { ...items[index] }, index };
-  items.splice(index, 1);
-  updateTaskStructureChanged();
-  syncTaskLabels();
-  updateTaskContentDirty();
+  const field = ["done", "success"].includes(item.status)
+    ? "completed_items"
+    : "pending_items";
+  applyDemoEditorCommand({
+    type: "delete-item",
+    taskId,
+    field,
+    itemId: item.id,
+  });
   renderTaskItems();
 }
 
@@ -2544,9 +2791,17 @@ function createTaskItemTitleInput(item, taskId = primaryTaskId) {
   input.dataset.taskId = taskId;
   input.addEventListener("input", () => {
     input.setCustomValidity("");
-    item.title = input.value;
-    labels[item.id] = input.value.trim() || item.id;
-    updateTaskContentDirty();
+    const field = ["done", "success"].includes(item.status)
+      ? "completed_items"
+      : "pending_items";
+    applyDemoEditorCommand({
+      type: "set-item-field",
+      taskId,
+      field,
+      itemId: item.id,
+      property: "title",
+      value: input.value,
+    });
   });
   return input;
 }
@@ -2564,8 +2819,18 @@ function createTaskItemDeleteButton(item, taskId = primaryTaskId) {
 function createTaskItemPriorityEditor(item) {
   const select = createTaskItemPrioritySelect(item);
   select.addEventListener("change", () => {
-    item.priority = taskEditingModel.normalizePriority(select.value, DEFAULT_PRIORITY);
-    updateTaskContentDirty();
+    const taskId = select.closest("[data-task-id]")?.dataset.taskId ?? primaryTaskId;
+    const field = ["done", "success"].includes(item.status)
+      ? "completed_items"
+      : "pending_items";
+    applyDemoEditorCommand({
+      type: "set-item-field",
+      taskId,
+      field,
+      itemId: item.id,
+      property: "priority",
+      value: taskEditingModel.normalizePriority(select.value, DEFAULT_PRIORITY),
+    });
     renderTaskItems();
   });
   return select;
@@ -2641,7 +2906,12 @@ function validateTaskItemDrafts() {
       return;
     }
     input.setCustomValidity("");
-    taskSummaries[input.dataset.taskId] = result.value;
+    applyDemoEditorCommand({
+      type: "set-task-field",
+      taskId: input.dataset.taskId,
+      field: "summary",
+      value: result.value,
+    });
   });
 
   document.querySelectorAll("#task-list .task-item-title-input").forEach((input) => {
@@ -2655,7 +2925,16 @@ function validateTaskItemDrafts() {
       return;
     }
     input.setCustomValidity("");
-    item.title = result.value;
+    applyDemoEditorCommand({
+      type: "set-item-field",
+      taskId: input.dataset.taskId,
+      field: ["done", "success"].includes(item.status)
+        ? "completed_items"
+        : "pending_items",
+      itemId: item.id,
+      property: "title",
+      value: result.value,
+    });
   });
 
   if (firstInvalidInput) {
@@ -2865,13 +3144,23 @@ function createDeletedTaskItemNotice(taskId) {
   undo.type = "button";
   undo.textContent = "復原";
   undo.addEventListener("click", () => {
-    const items = taskItemsFor(taskId);
-    const insertionIndex = Math.min(lastDeletedTaskItem.index, items.length);
-    items.splice(insertionIndex, 0, lastDeletedTaskItem.item);
+    const restored = lastDeletedTaskItem.item;
+    const field = ["done", "success"].includes(restored.status)
+      ? "completed_items"
+      : "pending_items";
+    applyDemoEditorCommand({
+      type: "add-item",
+      taskId,
+      field,
+      item: {
+        id: restored.id,
+        title: restored.title,
+        priority: restored.priority,
+        demoStatus: restored.status,
+        demoOrder: lastDeletedTaskItem.index - 0.5,
+      },
+    });
     lastDeletedTaskItem = null;
-    updateTaskStructureChanged();
-    syncTaskLabels();
-    updateTaskContentDirty();
     renderTaskItems();
   });
   row.append(copy, undo);
@@ -2946,21 +3235,27 @@ function createTaskItemAddRow(taskId = primaryTaskId) {
       error.hidden = false;
       return;
     }
-    const id = taskEditingModel.createStableItemId(allTaskItemIds());
-    taskItemsFor(taskId).push({
-      id,
-      title: result.value,
-      status: "pending",
-      priority: taskEditingModel.normalizePriority(
-        prioritySelect.value,
-        CREATION_PRIORITY,
-      ),
+    const id = demoEditorSession.createItemId(
+      taskId,
+      `item-${Date.now().toString(36)}`,
+    );
+    applyDemoEditorCommand({
+      type: "add-item",
+      taskId,
+      field: "pending_items",
+      item: {
+        id,
+        title: result.value,
+        priority: taskEditingModel.normalizePriority(
+          prioritySelect.value,
+          CREATION_PRIORITY,
+        ),
+        demoStatus: "pending",
+        demoOrder: taskItemsFor(taskId).length,
+      },
     });
-    labels[id] = result.value;
     addingTaskId = null;
     lastDeletedTaskItem = null;
-    updateTaskStructureChanged();
-    updateTaskContentDirty();
     renderTaskItems();
   });
   queueMicrotask(() => input.focus());
@@ -3054,7 +3349,7 @@ function renderTopLevelTaskAdd() {
       return;
     }
     const definition = {
-      id: taskEditingModel.createStableTaskId(allTaskIds()),
+      id: demoEditorSession.createTaskId(`task-${Date.now().toString(36)}`),
       title: titleResult.value,
       summary: summaryResult.value,
       status: "planned",
@@ -3065,14 +3360,22 @@ function renderTopLevelTaskAdd() {
       baseCompleted: 0,
       baseTotal: 0,
     };
-    taskDefinitions.push(definition);
-    auxiliaryTaskItems[definition.id] = [];
-    taskSummaries[definition.id] = definition.summary;
-    createTaskCard(definition);
+    applyDemoEditorCommand({
+      type: "add-task",
+      task: {
+        id: definition.id,
+        title: definition.title,
+        summary: definition.summary,
+        status: definition.status,
+        priority: definition.priority,
+        completed_items: [],
+        pending_items: [],
+        demoBaseCompleted: 0,
+        demoBaseTotal: 0,
+      },
+    });
     addingTopLevelTask = false;
     lastDeletedTaskItem = null;
-    updateTaskStructureChanged();
-    updateTaskContentDirty();
     renderTaskSummaryControls();
     renderTaskItems();
     renderTopLevelTaskAdd();
@@ -3421,6 +3724,7 @@ document.addEventListener("visibilitychange", () => {
 });
 
 loadTaskContentOverrides();
+initializeDemoEditorSession();
 setViewMode("preview");
 
 const queryParams = new URLSearchParams(window.location.search);

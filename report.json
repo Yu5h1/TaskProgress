@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-07-30T02:20:43+08:00",
+  "updated_at": "2026-07-30T02:35:48+08:00",
   "tasks": [
     {
       "id": "viewer-core",
@@ -65,7 +65,7 @@
       "title": "本機任務編輯",
       "status": "in_progress",
       "priority": 1,
-      "summary": "正式 Viewer 已具備本機限定的安全 report 編輯與單一全域模式；framework-neutral Editor Core 現已管理 DraftSession、stable-ID commands、validation、diff、derived progress、dirty／discard、save snapshot 與結構性時間失效。公開部署不顯示入口；Demo 共用、Undo／Redo、跨檔案 adapter、人工估算、交付日與行動版仍待完成。",
+      "summary": "正式 Viewer 與 file／loopback Demo 已共用 framework-neutral Editor Core，統一管理 DraftSession、stable-ID commands、validation、diff、derived progress、dirty／discard、save snapshot 與結構性時間失效；Demo 只保留舊 UI／localStorage adapter。公開部署不顯示編輯入口；Undo／Redo、跨檔案 adapter、人工估算、交付日與行動版仍待完成。",
       "completed_items": [
         "完成第一版編輯範圍、階段、風險與正式上線條件規劃",
         "完成只在 file 與 exact loopback 開放的 Demo 編輯政策",
@@ -74,7 +74,7 @@
         "完成 Unicode 描述驗證、穩定 item ID 與 items_by_task 本機保存",
         "完成記憶體草稿、局部重新計算預覽與固定於 viewport 底部且對齊內容面板右緣的唯一全域儲存；儲存會再次計算並真正寫入分析時間",
         "完成不依賴編輯模式的狀態拖曳排序、階層同步與鍵盤移動",
-        "完成 113 項 Node 回歸測試並保持公開部署沒有編輯入口",
+        "完成 115 項 Node 回歸測試並保持公開部署沒有編輯入口",
         {
           "id": "structured-item-priority",
           "title": "完成任務卡與子任務的五級結構化優先級、共享命名設定、編輯及穩定排序，不再從名稱解析",
@@ -144,6 +144,11 @@
           "id": "derive-editor-state-and-invalidate-time",
           "title": "將 report validation、結構化 diff、derived progress 與 time invalidation 納入 Editor Core；正式 Viewer 結構變更時停用舊工時投影，內容修改則保留有效估算",
           "priority": 1
+        },
+        {
+          "id": "adopt-editor-core-in-demo",
+          "title": "讓 file／loopback Demo 與正式 Viewer 共用同一 Editor Core runtime、DraftSession、commands、dirty／discard 與 derived progress，並保留 browser-local adapter",
+          "priority": 1
         }
       ],
       "pending_items": [
@@ -154,7 +159,7 @@
         },
         {
           "id": "framework-editor-migration",
-          "title": "讓 Demo 共用 Editor Core，補上 Undo／Redo 與跨檔案 adapter 邊界，再比較第三方框架並進行 parity spike",
+          "title": "補上 Editor Core Undo／Redo 與跨檔案 transaction adapter 邊界，再比較第三方框架並進行 parity spike",
           "priority": 1
         },
         {

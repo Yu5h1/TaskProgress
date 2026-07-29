@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "report_id": "task-progress-development",
-  "updated_at": "2026-07-30T02:20:43+08:00",
+  "updated_at": "2026-07-30T02:35:48+08:00",
   "tasks": [
     {
       "id": "viewer-core",
@@ -93,11 +93,11 @@
     },
     {
       "id": "local-task-editing",
-      "next_step": "延續 Framework Phase 1：讓 Demo 使用正式 Viewer 的 Editor Core DraftSession／commands／derived state，先完成既有互動 parity；再補 Undo／Redo 與跨檔案 transaction adapter 邊界。",
+      "next_step": "延續 Framework Phase 1：為共用 Editor Core 補上 Undo／Redo command history 與跨檔案 transaction adapter 邊界，再以同一段 task card 流程進行框架 parity spike。",
       "blockers": [
         "交付日會跨越 report.json、time.config.json 與衍生 time.analysis.json，尚需定義全部成功才提交的跨檔案交易及失敗復原。",
         "正式人工工時／依據編輯需版本化更新 time.estimates.json 並重新產生 time.analysis.json；目前子項目工時膠囊只開啟唯讀估算明細。",
-        "正式 Viewer 的 report DraftSession、task／item mutation、validation、diff、derived progress 與 time invalidation 已抽離至 framework-neutral Editor Core；Demo 共用、Undo／Redo 及 time-view 跨檔案 adapter 尚未完成。",
+        "正式 Viewer 與 Demo 已共用 framework-neutral Editor Core；Undo／Redo 及 time-view 跨檔案 transaction adapter 尚未完成。",
         "390px 版面與觸控編輯尚未驗證，因此目前正式編輯範圍仍以桌面滑鼠／鍵盤為準。"
       ],
       "decisions": [
@@ -152,6 +152,10 @@
         {
           "summary": "正式 Viewer 只在 TaskProgress 本機 Host 回覆已註冊 scope capability 後顯示全域編輯模式；短效 token 僅存在記憶體，儲存使用 If-Match revision、完整 report schema、同目錄原子取代與衝突拒絕，control token 不進入瀏覽器。",
           "reference": "plan.md#本機與公開能力邊界"
+        },
+        {
+          "summary": "Demo 必須繼續直接支援 file://，因此共用 Core 採 classic-compatible runtime 加正式 Viewer ES module wrapper；兩者使用同一份 DraftSession 與 command 實作，Demo adapter 只投影既有 DOM/localStorage 資料。",
+          "reference": "plan.md#editor-框架化與大改-draft-01"
         }
       ],
       "routes": [

@@ -858,7 +858,7 @@ AI 分析與同類歷史不各自產生一個數字再和人工工時平均。�
 
 但 Editor UI 尚未模組化完成。`viewer/assets/app.js` 約 1,334 行／43 個函式，同時協調全域 state、資料載入、程序式 DOM render、task/item 草稿、事件與儲存；`viewer/assets/time-view.js` 約 974 行／37 個函式，同時處理 Dialog、時間呈現、容量表單與交易 hook。任務卡不是可重用 Editor component，目前也沒有一致的 `DraftSession`、`EditCommand`、欄位 schema、Undo/Redo command history 或多 sidecar transaction adapter。
 
-因此目前定位是「核心與安全邊界有模組化、UI 有 113 項回歸測試保護的可用直接實作」。它適合維持現有桌面功能，但人工估算、交付日、敏感歷史等跨檔案功能不得繼續直接堆入 `app.js`／`time-view.js`。下一個大型 Editor 功能開始前，應先完成 Framework Phase 1 的 framework-neutral core；導入框架不能取代這個步驟，否則只是把相同耦合搬入 component。
+因此目前定位是「核心與安全邊界有模組化、UI 有 115 項回歸測試保護的可用直接實作」。它適合維持現有桌面功能，但人工估算、交付日、敏感歷史等跨檔案功能不得繼續直接堆入 `app.js`／`time-view.js`。下一個大型 Editor 功能開始前，應先完成 Framework Phase 1 的 Undo／Redo 與 transaction adapter；導入框架不能取代這個步驟，否則只是把相同耦合搬入 component。
 
 #### 不變的產品與介面契約
 
@@ -915,7 +915,7 @@ Editor state 至少拆成四層：
 #### 遷移階段
 
 1. **Framework Phase 0—凍結可用基準**
-   - 保留目前 Demo、正式本機 Editor 及原先 102 項 Node 基準測試；Phase 1 前兩段加入 11 項 Editor Core／整合契約測試後目前共 113 項。
+   - 保留目前 Demo、正式本機 Editor 及原先 102 項 Node 基準測試；Phase 1 三段加入 13 項 Editor Core／整合契約測試後目前共 115 項。
    - 桌面滑鼠／鍵盤的草稿放棄、固定儲存列與真實檔案儲存 E2E 已完成；行動版與觸控另列 P1。
    - 把目前畫面、文字、模式切換、儲存與放棄語意視為遷移驗收規格。
 
@@ -925,7 +925,8 @@ Editor state 至少拆成四層：
    - 目前 Demo 先改用相同 core，證明抽離沒有改變 UI。
    - 2026-07-30 已完成第一段：新增 `viewer/assets/editor-core.js`，抽出 report DraftSession、task／item stable-ID commands、dirty、discard、commit 與獨立 save snapshot；正式 Viewer 的任務／子項目 mutation 與儲存準備已改走此 core，且純 Node 測試覆蓋 clone、legacy item 正規化、修改、刪除、放棄、dirty 回復、save snapshot 及錯誤 command。
    - 2026-07-30 第二段已完成：Core 以既有 `report-model.js` 規則產生 validation 與 task/project derived progress，並輸出 stable-ID diff 及精確的 time invalidation targets。正式 Viewer 已改讀 derived progress；新增、刪除、task status/progress 或 pending/completed 歸屬變更會停用舊工時投影並顯示「時間待重新分析」，只修改 title、summary 或 priority 則保留有效估算。
-   - Phase 1 尚未完成：Undo／Redo 與跨檔案 adapter 仍需抽離；Demo 尚未共用此 core，因此目前不進入框架選型。
+   - 2026-07-30 第三段已完成：將 Core 主體移至可由傳統 `<script>` 使用的 `viewer/assets/editor-core-runtime.js`，`viewer/assets/editor-core.js` 保留為正式 Viewer 的 ES module wrapper。file／loopback Demo 透過 adapter 將既有 task definitions、子項目與 base progress 投影為 report draft，所有描述／優先級／新增／刪除／復原 mutation、dirty、整體進度、時間失效、儲存 commit 與切回預覽 discard 均使用同一 DraftSession；localStorage 與程序式 DOM 仍留在 Demo 邊界。
+   - Phase 1 尚未完成：Undo／Redo command history 與跨檔案 transaction adapter 仍需抽離；完成後才進入框架選型。
 
 3. **Framework Phase 2—候選 spike 與決策**
    - 優先以 Svelte、Vue 與原生基準實作一張真實 task card 流程。

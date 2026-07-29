@@ -1,5 +1,7 @@
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
 import test from "node:test";
+import vm from "node:vm";
 
 import {
   createReportEditorSession,
@@ -214,4 +216,51 @@ test("editor core rejects duplicate IDs and unsupported commands", () => {
     /不支援/,
   );
   assert.equal(nextStableId("task-a", new Set(["task-a"])), "task-a-1");
+});
+
+test("editor core runtime works as a classic script for the file Demo", async () => {
+  const source = await readFile(
+    new URL("../viewer/assets/editor-core-runtime.js", import.meta.url),
+    "utf8",
+  );
+  const context = vm.createContext({ structuredClone });
+  context.globalThis = context;
+  vm.runInContext(source, context);
+
+  const runtimeCore = context.TaskProgressEditorCoreRuntime.createEditorCore({
+    calculateTaskProgress(task) {
+      return {
+        completed: task.completed_items.length,
+        total: task.completed_items.length + task.pending_items.length,
+      };
+    },
+    calculateProjectProgress(tasks) {
+      const progress = tasks.map((task) => ({
+        completed: task.completed_items.length,
+        total: task.completed_items.length + task.pending_items.length,
+      }));
+      const completed = progress.reduce((sum, item) => sum + item.completed, 0);
+      const total = progress.reduce((sum, item) => sum + item.total, 0);
+      return { completed, total, percentage: Math.round((completed / total) * 100) };
+    },
+    validateReport() {
+      return [];
+    },
+  });
+  const session = runtimeCore.createReportEditorSession(sampleReport());
+
+  session.dispatch({
+    type: "add-item",
+    taskId: "task-a",
+    field: "completed_items",
+    item: { id: "item-classic", title: "Classic item", priority: 1 },
+  });
+
+  assert.equal(session.dirty, true);
+  assert.deepEqual(
+    { ...session.derived.progress.project },
+    { completed: 2, total: 3, percentage: 67 },
+  );
+  session.discard();
+  assert.equal(session.dirty, false);
 });

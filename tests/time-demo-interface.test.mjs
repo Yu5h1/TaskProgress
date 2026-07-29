@@ -111,8 +111,8 @@ test("every task card has a bottom add control in global edit mode", () => {
     appSource,
     /if \(globalEditingEnabled\(\)\) rows\.push\(createTaskItemAddRow\(taskId\)\)/,
   );
-  assert.match(appSource, /taskItemsFor\(taskId\)\.push/);
-  assert.match(appSource, /taskEditingModel\.createStableItemId\(allTaskItemIds\(\)\)/);
+  assert.match(appSource, /demoEditorSession\.createItemId\(/);
+  assert.match(appSource, /type: "add-item"/);
   assert.match(
     appSource,
     /priority: taskEditingModel\.normalizePriority\(\s*prioritySelect\.value,\s*CREATION_PRIORITY,\s*\)/,
@@ -150,8 +150,8 @@ test("global save stays fixed at the panel-aligned viewport bottom", () => {
 
 test("leaving edit mode discards drafts and restores the persisted preview", () => {
   assert.match(appSource, /function discardGlobalDrafts\(\)/);
-  assert.match(appSource, /taskDefinitions = cloneValue\(persistedTaskDefinitions\)/);
-  assert.match(appSource, /taskItems = persistedTaskItems\.map/);
+  assert.match(appSource, /demoEditorSession\?\.discard\(\)/);
+  assert.match(appSource, /syncLegacyStateFromEditorSession\(\)/);
   assert.match(appSource, /estimateDrafts\.clear\(\)/);
   assert.match(appSource, /render\(prepareDemoAnalysis\(loadedAnalysisSource\)\)/);
   assert.match(
@@ -234,13 +234,27 @@ test("P0 top-level task creation has a stable contract and a bottom add control"
   assert.match(htmlSource, /data-filter="planned"[^>]*>待處理 0/);
   assert.match(appSource, /function renderTopLevelTaskAdd\(\)/);
   assert.match(appSource, /add\.setAttribute\("aria-label", "新增最外層任務卡"\)/);
-  assert.match(appSource, /taskEditingModel\.createStableTaskId\(allTaskIds\(\)\)/);
+  assert.match(appSource, /demoEditorSession\.createTaskId\(/);
+  assert.match(appSource, /type: "add-task"/);
   assert.match(appSource, /status: "planned"/);
   assert.match(appSource, /priority: taskEditingModel\.normalizePriority\(\s*prioritySelect\.value/);
   assert.match(appSource, /title: titleResult\.value/);
   assert.match(appSource, /summary: summaryResult\.value/);
   assert.match(appSource, /tasks: taskDefinitions/);
   assert.match(cssSource, /@media \(max-width: 600px\)[\s\S]*?\.task-card-add-form\s*\{\s*grid-template-columns: 1fr;/);
+});
+
+test("Demo and production Viewer share the same Editor Core runtime", () => {
+  assert.match(
+    htmlSource,
+    /viewer\/assets\/editor-core-runtime\.js/,
+  );
+  assert.match(appSource, /globalThis\.TaskProgressEditorCoreRuntime/);
+  assert.match(appSource, /editorCoreRuntime\.createEditorCore/);
+  assert.match(appSource, /demoEditorCore\.createReportEditorSession/);
+  assert.match(appSource, /demoEditorSession\.dispatch\(command\)/);
+  assert.match(appSource, /demoEditorSession\.derived\.progress\.project/);
+  assert.match(appSource, /demoEditorSession\.derived\.timeInvalidation\.stale/);
 });
 
 test("task cards and child items share the five named priority levels", () => {
