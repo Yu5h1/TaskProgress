@@ -383,6 +383,15 @@ const editorSurface = editorSurfaceRuntime.createEditorSurface({
     cardStatusClass: (status, meta) => (
       ["active", "success", "danger"].includes(meta?.tone) ? `status-${meta.tone}` : ""
     ),
+    itemRowClass: "time-work-item",
+    itemEditingClass: "",
+    itemCopyClass: "time-work-copy",
+    itemTitleClass: "time-work-title",
+    itemInputClass: "task-item-title-input",
+    itemDeleteClass: "task-item-delete",
+    itemPrioritySelectClass: "task-item-priority-select",
+    itemEditOrder: ["title", "delete", "priority", "content", "trailing"],
+    itemPreviewWrap: true,
   },
 });
 const filterStatusLabels = {
@@ -2647,13 +2656,6 @@ function createTaskItemStatus(item) {
   return status;
 }
 
-function createTaskItemPriorityBadge(item) {
-  return createPriorityBadge(
-    taskEditingModel.normalizePriority(item.priority, DEFAULT_PRIORITY),
-    "item-priority-badge",
-  );
-}
-
 function createPriorityBadge(priority, className) {
   return editorSurface.createPriorityBadge(priority, className)
     ?? document.createDocumentFragment();
@@ -2726,119 +2728,60 @@ function deleteTaskItem(taskId, item) {
   renderTaskItems();
 }
 
-function createTaskItemTitleInput(item, taskId = primaryTaskId) {
-  const input = document.createElement("input");
-  input.type = "text";
-  input.className = "task-item-title-input";
-  input.maxLength = 300;
-  input.value = item.title;
-  input.setAttribute("aria-label", "子項目描述");
-  input.dataset.itemId = item.id;
-  input.dataset.taskId = taskId;
-  input.addEventListener("input", () => {
-    input.setCustomValidity("");
-    const field = ["done", "success"].includes(item.status)
-      ? "completed_items"
-      : "pending_items";
-    applyDemoEditorCommand({
-      type: "set-item-field",
-      taskId,
-      field,
-      itemId: item.id,
-      property: "title",
-      value: input.value,
-    });
-  });
-  return input;
+function taskItemField(item) {
+  return ["done", "success"].includes(item.status)
+    ? "completed_items"
+    : "pending_items";
 }
 
-function createTaskItemDeleteButton(item, taskId = primaryTaskId) {
-  const remove = document.createElement("button");
-  remove.type = "button";
-  remove.className = "task-item-delete";
-  remove.textContent = "刪除";
-  remove.setAttribute("aria-label", `刪除子項目：${item.title}`);
-  remove.addEventListener("click", () => deleteTaskItem(taskId, item));
-  return remove;
-}
-
-function createTaskItemPriorityEditor(item) {
-  const select = createTaskItemPrioritySelect(item);
-  select.addEventListener("change", () => {
-    const taskId = select.closest("[data-task-id]")?.dataset.taskId ?? primaryTaskId;
-    const field = ["done", "success"].includes(item.status)
-      ? "completed_items"
-      : "pending_items";
-    applyDemoEditorCommand({
-      type: "set-item-field",
-      taskId,
-      field,
-      itemId: item.id,
-      property: "priority",
-      value: taskEditingModel.normalizePriority(select.value, DEFAULT_PRIORITY),
-    });
-    renderTaskItems();
-  });
-  return select;
-}
-
-function createWorkRow(item, index, taskItem) {
-  const row = document.createElement("li");
-  row.className = "time-work-item";
-  const button = document.createElement("button");
-  button.className = "time-estimate-button";
-  button.type = "button";
-  button.textContent = `${item.display_hours} hr`;
-  button.setAttribute("aria-label", `${taskItem.title}，約 ${item.display_hours} 小時，查看估算依據`);
-  button.addEventListener("click", () => showItemDetail(item));
-
-  if (globalEditingEnabled()) {
-    row.append(
-      createTaskItemTitleInput(taskItem, primaryTaskId),
-      createTaskItemDeleteButton(taskItem, primaryTaskId),
-      createTaskItemPriorityEditor(taskItem),
-      button,
-      createTaskItemStatus(taskItem),
+function createDemoItemRow(taskId, taskItem, estimate = null) {
+  const time = document.createElement(estimate ? "button" : "span");
+  if (estimate) {
+    time.className = "time-estimate-button";
+    time.type = "button";
+    time.textContent = `${estimate.display_hours} hr`;
+    time.setAttribute(
+      "aria-label",
+      `${taskItem.title}，約 ${estimate.display_hours} 小時，查看估算依據`,
     );
-    return row;
+    time.addEventListener("click", () => showItemDetail(estimate));
+  } else {
+    time.className = "time-estimate-missing";
+    time.textContent = "待估";
   }
 
-  const copy = document.createElement("div");
-  copy.className = "time-work-copy";
-  const title = document.createElement("span");
-  title.className = "time-work-title";
-  title.textContent = taskItem.title;
-  copy.append(createTaskItemPriorityBadge(taskItem), title, button);
-  row.append(copy, createTaskItemStatus(taskItem));
-  return row;
-}
-
-function createWorkRowWithoutTime(taskItem) {
-  const row = document.createElement("li");
-  row.className = "time-work-item";
-  const missing = document.createElement("span");
-  missing.className = "time-estimate-missing";
-  missing.textContent = "待估";
-
-  if (globalEditingEnabled()) {
-    row.append(
-      createTaskItemTitleInput(taskItem, primaryTaskId),
-      createTaskItemDeleteButton(taskItem, primaryTaskId),
-      createTaskItemPriorityEditor(taskItem),
-      missing,
-      createTaskItemStatus(taskItem),
-    );
-    return row;
-  }
-
-  const copy = document.createElement("div");
-  copy.className = "time-work-copy";
-  const title = document.createElement("span");
-  title.className = "time-work-title";
-  title.textContent = taskItem.title;
-  copy.append(createTaskItemPriorityBadge(taskItem), title, missing);
-  row.append(copy, createTaskItemStatus(taskItem));
-  return row;
+  return editorSurface.createItemRow(taskItem, {
+    editing: globalEditingEnabled(),
+    showPriority: true,
+    contentNodes: [time],
+    trailingNodes: [createTaskItemStatus(taskItem)],
+    inputDataset: { itemId: taskItem.id, taskId },
+    titleAriaLabel: "子項目描述",
+    priorityAriaLabel: `設定「${taskItem.title}」的優先級`,
+    deleteAriaLabel: `刪除子項目：${taskItem.title}`,
+    onTitleInput: (value) => {
+      applyDemoEditorCommand({
+        type: "set-item-field",
+        taskId,
+        field: taskItemField(taskItem),
+        itemId: taskItem.id,
+        property: "title",
+        value,
+      });
+    },
+    onDelete: () => deleteTaskItem(taskId, taskItem),
+    onPriorityChange: (priority) => {
+      applyDemoEditorCommand({
+        type: "set-item-field",
+        taskId,
+        field: taskItemField(taskItem),
+        itemId: taskItem.id,
+        property: "priority",
+        value: priority,
+      });
+      renderTaskItems();
+    },
+  }).row;
 }
 
 function validateTaskItemDrafts() {
@@ -3329,34 +3272,6 @@ function renderTopLevelTaskAdd() {
   queueMicrotask(() => title.focus());
 }
 
-function createAuxiliaryWorkRow(taskId, taskItem) {
-  const row = document.createElement("li");
-  row.className = "time-work-item";
-  const missing = document.createElement("span");
-  missing.className = "time-estimate-missing";
-  missing.textContent = "待估";
-
-  if (globalEditingEnabled()) {
-    row.append(
-      createTaskItemTitleInput(taskItem, taskId),
-      createTaskItemDeleteButton(taskItem, taskId),
-      createTaskItemPriorityEditor(taskItem),
-      missing,
-      createTaskItemStatus(taskItem),
-    );
-    return row;
-  }
-
-  const copy = document.createElement("div");
-  copy.className = "time-work-copy";
-  const title = document.createElement("span");
-  title.className = "time-work-title";
-  title.textContent = taskItem.title;
-  copy.append(createTaskItemPriorityBadge(taskItem), title, missing);
-  row.append(copy, createTaskItemStatus(taskItem));
-  return row;
-}
-
 function renderAuxiliaryTaskItems() {
   elements.taskCards
     .filter((card) => card.dataset.taskId !== primaryTaskId)
@@ -3368,7 +3283,7 @@ function renderAuxiliaryTaskItems() {
       if (!list || !panel) return;
 
       const rows = orderedTaskItems(items)
-        .map((item) => createAuxiliaryWorkRow(taskId, item));
+        .map((item) => createDemoItemRow(taskId, item));
       if (
         globalEditingEnabled()
         && lastDeletedTaskItem?.taskId === taskId
@@ -3402,11 +3317,9 @@ function renderTaskItems() {
     (primaryStructureStale ? [] : (analysis?.tasks?.[0]?.items ?? []))
       .map((item) => [item.item_id, item]),
   );
-  const rows = orderedTaskItems(taskItems).map((taskItem, index) => {
+  const rows = orderedTaskItems(taskItems).map((taskItem) => {
     const estimate = estimates.get(taskItem.id);
-    return estimate
-      ? createWorkRow(estimate, index, taskItem)
-      : createWorkRowWithoutTime(taskItem);
+    return createDemoItemRow(primaryTaskId, taskItem, estimate);
   });
   if (
     globalEditingEnabled()

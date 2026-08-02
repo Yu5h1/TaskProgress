@@ -32,6 +32,15 @@ function createEditorSurface({
     priorityOptionMarker: "",
     priorityOptionTone: false,
     cardStatusClass: (status, meta) => (meta ? `status-${meta.tone}` : ""),
+    itemRowClass: "time-work-item",
+    itemEditingClass: "editable-work-item",
+    itemCopyClass: "",
+    itemTitleClass: "time-work-title",
+    itemInputClass: "inline-edit-input",
+    itemDeleteClass: "inline-delete-button",
+    itemPrioritySelectClass: "inline-priority-select",
+    itemEditOrder: ["delete", "priority", "title", "content", "trailing"],
+    itemPreviewWrap: false,
     ...presentation,
   };
 
@@ -112,6 +121,114 @@ function createEditorSurface({
     return select;
   }
 
+  function appendNodes(parent, nodes) {
+    (Array.isArray(nodes) ? nodes : [nodes])
+      .filter(Boolean)
+      .forEach((node) => parent.append(node));
+  }
+
+  // One child-item row shared by both hosts. The Surface owns field ordering,
+  // controls, and accessibility; hosts inject time/status extensions and map
+  // callbacks to their own Editor Core session.
+  function createItemRow(item, {
+    editing = false,
+    showPriority = true,
+    rowClass,
+    titleClass,
+    contentNodes = [],
+    trailingNodes = [],
+    inputDataset = {},
+    titleAriaLabel = "子任務描述",
+    priorityAriaLabel,
+    deleteAriaLabel,
+    onTitleInput,
+    onTitleCommit,
+    onDelete,
+    onPriorityChange,
+  } = {}) {
+    const stableItem = item !== null && typeof item === "object" && !Array.isArray(item);
+    const itemTitle = stableItem ? String(item.title ?? "") : String(item ?? "");
+    const isEditing = editing && stableItem;
+    const classes = [rowClass ?? style.itemRowClass];
+    if (isEditing && style.itemEditingClass) classes.push(style.itemEditingClass);
+    const row = el("li", classes.filter(Boolean).join(" "));
+    if (stableItem && item.id !== undefined) row.dataset.itemId = String(item.id);
+
+    if (!isEditing) {
+      const priorityBadge = showPriority && stableItem
+        ? createPriorityBadge(item.priority, "item-priority-badge")
+        : null;
+      const title = el("span", titleClass ?? style.itemTitleClass, itemTitle);
+      let copy = null;
+      if (style.itemPreviewWrap) {
+        copy = el("div", style.itemCopyClass);
+        appendNodes(copy, [priorityBadge, title, ...contentNodes]);
+        row.append(copy);
+      } else {
+        appendNodes(row, [priorityBadge, title, ...contentNodes]);
+      }
+      appendNodes(row, trailingNodes);
+      return {
+        row,
+        copy,
+        priorityBadge,
+        title,
+        input: null,
+        deleteButton: null,
+        prioritySelect: null,
+      };
+    }
+
+    const input = el("input", style.itemInputClass);
+    input.type = "text";
+    input.maxLength = 300;
+    input.value = itemTitle;
+    input.setAttribute("aria-label", titleAriaLabel);
+    Object.entries(inputDataset).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) input.dataset[key] = String(value);
+    });
+    input.addEventListener("input", () => {
+      input.setCustomValidity?.("");
+      if (typeof onTitleInput === "function") onTitleInput(input.value, input);
+    });
+    input.addEventListener("change", () => {
+      if (typeof onTitleCommit !== "function") return;
+      const committedValue = onTitleCommit(input.value, input);
+      if (typeof committedValue === "string") input.value = committedValue;
+    });
+
+    const deleteButton = el("button", style.itemDeleteClass, "刪除");
+    deleteButton.type = "button";
+    deleteButton.setAttribute("aria-label", deleteAriaLabel ?? `刪除 ${itemTitle}`);
+    deleteButton.addEventListener("click", () => {
+      if (typeof onDelete === "function") onDelete(item);
+    });
+
+    const prioritySelect = createPrioritySelect(item.priority, {
+      className: style.itemPrioritySelectClass,
+      ariaLabel: priorityAriaLabel ?? `${itemTitle} 優先級`,
+      onChange: onPriorityChange,
+    });
+    const slots = {
+      title: [input],
+      delete: [deleteButton],
+      priority: [prioritySelect],
+      content: contentNodes,
+      trailing: trailingNodes,
+    };
+    style.itemEditOrder.forEach((slot) => appendNodes(row, slots[slot] ?? []));
+
+    return {
+      row,
+      copy: null,
+      priorityBadge: null,
+      title: null,
+      input,
+      deleteButton,
+      prioritySelect,
+    };
+  }
+
   // Preview-mode skeleton shared by both hosts. Callers receive every insertion
   // point so editing controls, developer details, work columns, and time
   // capsules remain host responsibilities in this slice.
@@ -177,6 +294,7 @@ function createEditorSurface({
   }
 
   return Object.freeze({
+    createItemRow,
     createPriorityBadge,
     createPrioritySelect,
     createStatusIndicator,

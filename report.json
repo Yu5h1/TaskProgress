@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-07-29T19:35:01.000Z",
+  "updated_at": "2026-08-02T21:27:41+08:00",
   "tasks": [
     {
       "id": "viewer-core",
@@ -171,7 +171,7 @@
       "title": "本機任務編輯",
       "status": "in_progress",
       "priority": 1,
-      "summary": "正式 Viewer 與 file／loopback Demo 已共用 framework-neutral Editor Core，統一管理 DraftSession、stable-ID commands、validation、diff、derived progress、dirty／discard、save snapshot 與結構性時間失效；Demo 只保留舊 UI／localStorage adapter。公開部署不顯示編輯入口；Undo／Redo、跨檔案 adapter、人工估算、交付日與行動版仍待完成。",
+      "summary": "正式 Viewer 與 file／loopback Demo 已共用 framework-neutral Editor Core，並共用 Editor Surface 的 TaskCard、ItemRow 與優先級控制；DraftSession、stable-ID commands、validation、diff、derived progress、dirty／discard、save snapshot 與結構性時間失效已集中管理。公開部署不顯示編輯入口；其餘 Surface、Undo／Redo、跨檔案 adapter、人工估算、交付日與行動版仍待完成。",
       "completed_items": [
         {
           "id": "item-local-task-editing-done-1",
@@ -292,6 +292,11 @@
           "id": "share-task-card-surface",
           "title": "抽出共用 Editor Surface 的 TaskCard shell 與優先級徽章／下拉；正式 Viewer 與 Demo 改由同一模組產生任務卡結構、排序與無障礙文字，各自的 class 與狀態呈現留在 presentation adapter",
           "priority": 1
+        },
+        {
+          "id": "share-item-row-surface",
+          "title": "凍結 ItemRow parity matrix 並抽出共用子項目列；Surface 統一標題、優先級、編輯輸入、文字刪除與無障礙結構，Viewer／Demo 以 slots 保留工時及狀態差異",
+          "priority": 1
         }
       ],
       "pending_items": [
@@ -302,7 +307,7 @@
         },
         {
           "id": "share-editor-surface-controls",
-          "title": "延續共用 Editor Surface：先凍結 ItemRow parity matrix，再依序收斂子項目列、模式切換、新增控制、驗證訊息與儲存列；Demo 專屬時間情境仍留在 Demo shell",
+          "title": "延續共用 Editor Surface：ItemRow 已共用，接著依序收斂模式切換、新增控制、驗證訊息與儲存列；Demo 專屬時間情境仍留在 Demo shell",
           "priority": 1
         },
         {

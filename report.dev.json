@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "report_id": "task-progress-development",
-  "updated_at": "2026-07-30T03:35:01+08:00",
+  "updated_at": "2026-08-02T21:27:41+08:00",
   "tasks": [
     {
       "id": "viewer-core",
@@ -93,12 +93,12 @@
     },
     {
       "id": "local-task-editing",
-      "next_step": "延續共用 Editor Surface：TaskCard shell 與優先級控制已共用，接著凍結 ItemRow parity matrix 並收斂子項目列，再往模式切換、新增控制、驗證訊息與儲存列推進；Undo／Redo 與跨檔案 transaction adapter 仍在同一條路徑上。",
+      "next_step": "延續共用 Editor Surface：TaskCard、ItemRow 與優先級控制已共用，下一片先收斂全域模式切換，再依序處理新增控制、驗證訊息與儲存列；完成 Surface 後補 Undo／Redo 與跨檔案 transaction adapter。",
       "blockers": [
         "交付日會跨越 report.json、time.config.json 與衍生 time.analysis.json，尚需定義全部成功才提交的跨檔案交易及失敗復原。",
         "正式人工工時／依據編輯需版本化更新 time.estimates.json 並重新產生 time.analysis.json；目前子項目工時膠囊只開啟唯讀估算明細。",
-        "正式 Viewer 與 Demo 已共用 framework-neutral Editor Core 與 TaskCard surface；Undo／Redo 及 time-view 跨檔案 transaction adapter 尚未完成。",
-        "Demo 的四張狀態測試卡仍是 index.html 靜態標記，與共用 surface 產生的動態卡片是兩份來源；ItemRow 收斂時需一併決定是否改由 surface 產生。",
+        "正式 Viewer 與 Demo 已共用 framework-neutral Editor Core，以及 TaskCard、ItemRow、優先級控制 Surface；模式切換、新增、驗證、儲存列、Undo／Redo 及 time-view 跨檔案 transaction adapter 尚未完成。",
+        "Demo 的四張狀態測試卡仍是 index.html 靜態標記，與共用 surface 產生的動態卡片是兩份來源；後續 TaskCard host 收斂時需決定是否改由 surface 產生。",
         "390px 版面與觸控編輯尚未驗證，因此目前正式編輯範圍仍以桌面滑鼠／鍵盤為準。"
       ],
       "decisions": [

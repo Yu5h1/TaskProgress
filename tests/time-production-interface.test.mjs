@@ -84,7 +84,7 @@ test("production item time actions remain visible in global edit mode", () => {
 
   assert.match(
     appendListBody,
-    /if \(timeItems\) \{\s*const button = state\.timeController\?\.createItemTimeButton\(item\.id, itemTitle\);\s*if \(button\) row\.append\(button\);\s*\}\s*list\.append\(row\)/,
+    /const timeButton = timeItems && stableItem[\s\S]*?state\.timeController\?\.createItemTimeButton\(item\.id, itemTitle\)[\s\S]*?contentNodes: timeButton \? \[timeButton\] : \[\]/,
   );
   assert.match(
     timeViewSource,

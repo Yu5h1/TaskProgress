@@ -10,7 +10,6 @@ import {
   resolveReportRequest,
   stableSortTasksByPriority,
   stableSortTaskItemsByPriority,
-  taskItemPriority,
   validateScopeCatalog,
   validateDeveloperReport,
   validateReport,
@@ -20,7 +19,7 @@ import {
   normalizeMeaningfulText,
 } from "./editor-core.js";
 import {
-  createPriorityBadge,
+  createItemRow,
   createPrioritySelect,
   createTaskCardShell,
 } from "./editor-surface.js";
@@ -243,13 +242,19 @@ function appendList(
   stableSortTaskItemsByPriority(items ?? []).forEach((item) => {
     const stableItem = item !== null && typeof item === "object" && !Array.isArray(item);
     const itemTitle = stableItem ? item.title : item;
-    const row = el("li");
-    if (editContext && stableItem) {
-      row.classList.add("editable-work-item");
-      const remove = el("button", "inline-delete-button", "刪除");
-      remove.type = "button";
-      remove.setAttribute("aria-label", `刪除 ${itemTitle}`);
-      remove.addEventListener("click", () => {
+    const timeButton = timeItems && stableItem
+      ? state.timeController?.createItemTimeButton(item.id, itemTitle)
+      : null;
+    const { row } = createItemRow(item, {
+      editing: Boolean(editContext),
+      showPriority: timeItems,
+      rowClass: editContext && stableItem ? "" : (timeItems ? "time-work-item" : ""),
+      titleClass: timeItems ? "time-work-title" : "",
+      contentNodes: timeButton ? [timeButton] : [],
+      titleAriaLabel: "子任務描述",
+      priorityAriaLabel: `${itemTitle} 優先級`,
+      deleteAriaLabel: `刪除 ${itemTitle}`,
+      onDelete: () => {
         applyEditorCommand(
           {
             type: "delete-item",
@@ -260,24 +265,19 @@ function appendList(
           "已刪除子任務，尚未儲存",
           { render: true },
         );
-      });
-      const input = el("input", "inline-edit-input");
-      input.type = "text";
-      input.maxLength = 300;
-      input.value = itemTitle;
-      input.setAttribute("aria-label", "子任務描述");
-      input.addEventListener("input", () => {
+      },
+      onTitleInput: (value) => {
         applyEditorCommand({
           type: "set-item-field",
           taskId: editContext.taskId,
           field: editContext.field,
           itemId: item.id,
           property: "title",
-          value: input.value,
+          value,
         });
-      });
-      input.addEventListener("change", () => {
-        const value = normalizeMeaningfulText(input.value);
+      },
+      onTitleCommit: (draftValue) => {
+        const value = normalizeMeaningfulText(draftValue);
         if (!value) {
           applyEditorCommand({
             type: "set-item-field",
@@ -287,8 +287,7 @@ function appendList(
             property: "title",
             value: itemTitle,
           });
-          input.value = itemTitle;
-          return;
+          return itemTitle;
         }
         applyEditorCommand({
           type: "set-item-field",
@@ -298,50 +297,23 @@ function appendList(
           property: "title",
           value,
         });
-        input.value = value;
-      });
-      row.append(
-        remove,
-        prioritySelect(
-          item.priority,
-          (priority) => {
-            applyEditorCommand(
-              {
-                type: "set-item-field",
-                taskId: editContext.taskId,
-                field: editContext.field,
-                itemId: item.id,
-                property: "priority",
-                value: priority,
-              },
-              "有尚未儲存的修改",
-              { render: true },
-            );
+        return value;
+      },
+      onPriorityChange: (priority) => {
+        applyEditorCommand(
+          {
+            type: "set-item-field",
+            taskId: editContext.taskId,
+            field: editContext.field,
+            itemId: item.id,
+            property: "priority",
+            value: priority,
           },
-          `${itemTitle} 優先級`,
-        ),
-        input,
-      );
-      if (timeItems) {
-        const button = state.timeController?.createItemTimeButton(item.id, itemTitle);
-        if (button) row.append(button);
-      }
-      list.append(row);
-      return;
-    }
-    if (timeItems) {
-      row.classList.add("time-work-item");
-      const priority = taskItemPriority(item);
-      const badge = createPriorityBadge(priority, "item-priority-badge");
-      if (badge) row.append(badge);
-      row.append(el("span", "time-work-title", itemTitle));
-      if (stableItem) {
-        const button = state.timeController?.createItemTimeButton(item.id, itemTitle);
-        if (button) row.append(button);
-      }
-    } else {
-      row.textContent = itemTitle;
-    }
+          "有尚未儲存的修改",
+          { render: true },
+        );
+      },
+    });
     list.append(row);
   });
   section.append(list);

@@ -73,10 +73,10 @@ test("the demo exposes one global preview and edit mode control", () => {
 
 test("global edit mode owns summary and child-item mutations", () => {
   assert.match(appSource, /task-summary-direct-input/);
-  assert.match(appSource, /createTaskItemTitleInput/);
-  assert.match(appSource, /createTaskItemDeleteButton/);
-  assert.match(appSource, /createTaskItemPriorityEditor/);
-  assert.match(appSource, /createTaskItemPriorityBadge/);
+  assert.match(appSource, /editorSurface\.createItemRow/);
+  assert.match(appSource, /itemInputClass: "task-item-title-input"/);
+  assert.match(appSource, /itemDeleteClass: "task-item-delete"/);
+  assert.match(appSource, /itemPrioritySelectClass: "task-item-priority-select"/);
   assert.match(appSource, /createTaskItemAddRow/);
   assert.match(appSource, /createDeletedTaskItemNotice/);
   assert.match(appSource, /taskEditingModel\.normalizeTaskDescription/);
@@ -91,14 +91,14 @@ test("global edit mode owns summary and child-item mutations", () => {
 });
 
 test("all child items become one-row inputs in global edit mode", () => {
-  const workRowStart = appSource.indexOf("function createWorkRow(");
-  const workRowEnd = appSource.indexOf("function createWorkRowWithoutTime", workRowStart);
+  const workRowStart = appSource.indexOf("function createDemoItemRow(");
+  const workRowEnd = appSource.indexOf("function validateTaskItemDrafts", workRowStart);
   const workRowSource = appSource.slice(workRowStart, workRowEnd);
 
-  assert.match(
-    workRowSource,
-    /createTaskItemTitleInput\(taskItem, primaryTaskId\),\s*createTaskItemDeleteButton\(taskItem, primaryTaskId\),\s*createTaskItemPriorityEditor\(taskItem\),\s*button,\s*createTaskItemStatus\(taskItem\)/,
-  );
+  assert.match(workRowSource, /editing: globalEditingEnabled\(\)/);
+  assert.match(workRowSource, /contentNodes: \[time\]/);
+  assert.match(workRowSource, /trailingNodes: \[createTaskItemStatus\(taskItem\)\]/);
+  assert.match(appSource, /itemEditOrder: \["title", "delete", "priority", "content", "trailing"\]/);
   assert.match(appSource, /elements\.globalEditSaveButton\.addEventListener\("click", saveGlobalDrafts\)/);
   assert.match(
     cssSource,

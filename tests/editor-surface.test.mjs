@@ -136,6 +136,15 @@ function demoSurface() {
       cardStatusClass: (status, meta) => (
         ["active", "success", "danger"].includes(meta?.tone) ? `status-${meta.tone}` : ""
       ),
+      itemRowClass: "time-work-item",
+      itemEditingClass: "",
+      itemCopyClass: "time-work-copy",
+      itemTitleClass: "time-work-title",
+      itemInputClass: "task-item-title-input",
+      itemDeleteClass: "task-item-delete",
+      itemPrioritySelectClass: "task-item-priority-select",
+      itemEditOrder: ["title", "delete", "priority", "content", "trailing"],
+      itemPreviewWrap: true,
     },
   });
 }
@@ -293,6 +302,86 @@ test("shared priority select reports normalized values and keeps host option sty
   assert.ok(!demo.className.split(" ").includes("priority-unspecified"));
 });
 
+test("shared item rows preserve host layout while sharing preview semantics", () => {
+  const item = { id: "item-a", title: "共用子項目", priority: 1 };
+  const production = productionSurface().createItemRow(item, {
+    contentNodes: ["2 hr"],
+    trailingNodes: ["進行中"],
+  });
+  assert.equal(production.row.dataset.itemId, "item-a");
+  assert.equal(production.row.className, "time-work-item");
+  assert.equal(production.copy, null);
+  assert.deepEqual(production.row.children, [
+    production.priorityBadge,
+    production.title,
+    "2 hr",
+    "進行中",
+  ]);
+  assert.equal(production.title.textContent, "共用子項目");
+
+  const demo = demoSurface().createItemRow(item, {
+    contentNodes: ["2 hr"],
+    trailingNodes: ["進行中"],
+  });
+  assert.equal(demo.row.className, "time-work-item");
+  assert.equal(demo.copy.className, "time-work-copy");
+  assert.deepEqual(demo.copy.children, [demo.priorityBadge, demo.title, "2 hr"]);
+  assert.deepEqual(demo.row.children, [demo.copy, "進行中"]);
+});
+
+test("shared item editing owns controls, ordering, datasets, and callbacks", () => {
+  const events = [];
+  const item = { id: "item-a", title: "原始標題", priority: 2 };
+  const surface = demoSurface().createItemRow(item, {
+    editing: true,
+    contentNodes: ["待估"],
+    trailingNodes: ["待處理"],
+    inputDataset: { itemId: item.id, taskId: "task-a" },
+    titleAriaLabel: "子項目描述",
+    priorityAriaLabel: "設定子項目優先級",
+    deleteAriaLabel: "刪除子項目：原始標題",
+    onTitleInput: (value) => events.push(["input", value]),
+    onTitleCommit: (value) => value.trim(),
+    onDelete: () => events.push(["delete"]),
+    onPriorityChange: (value) => events.push(["priority", value]),
+  });
+
+  assert.deepEqual(surface.row.children, [
+    surface.input,
+    surface.deleteButton,
+    surface.prioritySelect,
+    "待估",
+    "待處理",
+  ]);
+  assert.equal(surface.input.className, "task-item-title-input");
+  assert.equal(surface.input.dataset.itemId, "item-a");
+  assert.equal(surface.input.dataset.taskId, "task-a");
+  assert.equal(surface.input.getAttribute("aria-label"), "子項目描述");
+  assert.equal(surface.deleteButton.textContent, "刪除");
+  assert.equal(surface.deleteButton.getAttribute("aria-label"), "刪除子項目：原始標題");
+
+  surface.input.value = "  新標題  ";
+  surface.input.dispatch("input");
+  surface.input.dispatch("change");
+  surface.deleteButton.dispatch("click");
+  surface.prioritySelect.value = "0";
+  surface.prioritySelect.dispatch("change");
+  assert.equal(surface.input.value, "新標題");
+  assert.deepEqual(events, [
+    ["input", "  新標題  "],
+    ["delete"],
+    ["priority", 0],
+  ]);
+});
+
+test("legacy string items remain read-only even when the host is editing", () => {
+  const item = productionSurface().createItemRow("舊格式子項目", { editing: true });
+  assert.equal(item.input, null);
+  assert.equal(item.deleteButton, null);
+  assert.equal(item.prioritySelect, null);
+  assert.equal(item.title.textContent, "舊格式子項目");
+});
+
 test("setTaskFraction keeps the fraction label and accessible text together", () => {
   const surface = productionSurface();
   const shell = surface.createTaskCardShell(sampleTask, { completed: 1, total: 3 });
@@ -301,7 +390,7 @@ test("setTaskFraction keeps the fraction label and accessible text together", ()
   assert.equal(shell.fraction.getAttribute("aria-label"), "子項目完成 3，共 3");
 });
 
-test("production Viewer and Demo build task cards through the shared surface", async () => {
+test("production Viewer and Demo build task cards and item rows through the shared surface", async () => {
   const [viewerApp, demoApp, demoHtml] = await Promise.all([
     readFile(new URL("../viewer/assets/app.js", import.meta.url), "utf8"),
     readFile(new URL("../experiments/time-reference/demo/app.js", import.meta.url), "utf8"),
@@ -310,9 +399,11 @@ test("production Viewer and Demo build task cards through the shared surface", a
 
   assert.match(viewerApp, /from "\.\/editor-surface\.js"/);
   assert.match(viewerApp, /const shell = createTaskCardShell\(task, \{/);
+  assert.match(viewerApp, /const \{ row \} = createItemRow\(item, \{/);
   assert.match(demoHtml, /editor-surface-runtime\.js/);
   assert.match(demoApp, /editorSurfaceRuntime\.createEditorSurface\(\{/);
   assert.match(demoApp, /const shell = editorSurface\.createTaskCardShell\(/);
+  assert.match(demoApp, /return editorSurface\.createItemRow\(taskItem, \{/);
 
   // Neither host may rebuild the shared card markup on its own again.
   [viewerApp, demoApp].forEach((source) => {
@@ -322,4 +413,7 @@ test("production Viewer and Demo build task cards through the shared surface", a
     assert.doesNotMatch(source, /status-badge status-/);
     assert.doesNotMatch(source, /priority-badge priority-/);
   });
+  assert.doesNotMatch(viewerApp, /el\("button", "inline-delete-button"/);
+  assert.doesNotMatch(demoApp, /function createTaskItemDeleteButton/);
+  assert.doesNotMatch(demoApp, /function createWorkRow/);
 });
