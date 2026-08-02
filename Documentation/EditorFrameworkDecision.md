@@ -28,7 +28,7 @@ Vue 暫不安裝。原生 Viewer／Demo 是行為基準與回退路徑；只有 
 - 不呼叫 edit-host、不讀寫正式報告、不包含 capability token、private history 或絕對來源路徑；
 - Vite `base: "./"`，建置結果使用相對資產 URL，可放在 GitHub Pages 子路徑。
 
-目前 production build 約為 64.46 kB JavaScript（gzip 23.89 kB）與 40.42 kB CSS（gzip 7.98 kB）；CSS 數字包含重用的完整 Viewer stylesheet，不是最終裁切結果。
+真實資料 loader 接入後，production build 約為 73.39 kB JavaScript（gzip 26.75 kB）與 41.18 kB CSS（gzip 8.08 kB）；CSS 數字包含重用的完整 Viewer stylesheet，不是最終裁切結果。
 
 ## Dependency and license policy
 
@@ -39,9 +39,9 @@ Vue 暫不安裝。原生 Viewer／Demo 是行為基準與回退路徑；只有 
 
 ## Verification and next gate
 
-- Node：141/141，包含 5 項 Svelte adapter／isolation 契約。
+- Node：145/145，包含 9 項 Svelte adapter／loader／isolation 契約。
 - Svelte production build：通過，輸出相對資產路徑。
 - 建置產物掃描：未出現 `eval`／`new Function`、edit-host capability、private-history 或 Developer overlay 字串。
 - npm install audit：0 vulnerabilities。
 
-下一關不是再做 Vue，而是讓隔離 Svelte shell 以唯讀方式載入 Viewer 的真實 report/time data，建立 fixture 與真實資料 parity；通過後才接本機 edit capability 與安全儲存 adapter。
+隔離 Svelte shell 已支援與 Viewer 相同的 `?scope=`／`?report=` 優先規則、report schema 驗證、多任務卡、可選 `time.analysis.json`、期限錯誤隔離及 item/task 工時投影，並以 tracked `reports/example` 驗證真實契約。本機 edit session 也會在 same-origin／editor-header 驗證後回傳經 Schema 與 scope 驗證的 private config／estimates，以及獨立 `inputs_revision`；公開 capability 不包含這些內容。下一關不是再做 Vue，而是定義 multi-file save payload 與 revision precondition，再接交付日及人工估算表單。

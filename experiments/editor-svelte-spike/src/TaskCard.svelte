@@ -7,6 +7,8 @@
   export let policy;
   export let onCommand;
   export let onAddItem;
+  export let timeTask = null;
+  export let timeItems = new Map();
 
   const statuses = [
     { value: "planned", label: "待處理", tone: "muted" },
@@ -62,6 +64,11 @@
       {/if}
     </div>
     <div class="task-header-meta">
+      {#if timeTask}
+        <span class="spike-task-time">
+          {Number(timeTask.total_likely_minutes / 60).toLocaleString(undefined, { maximumFractionDigits: 2 })}h
+        </span>
+      {/if}
       <span class="task-fraction">{progress.completed}/{progress.total}</span>
     </div>
   </header>
@@ -138,6 +145,7 @@
             {editing}
             {policy}
             {onCommand}
+            timeItem={timeItems.get(item.id) ?? null}
           />
         {/each}
       </ul>
@@ -153,6 +161,7 @@
             {editing}
             {policy}
             {onCommand}
+            timeItem={timeItems.get(item.id) ?? null}
           />
         {/each}
       </ul>

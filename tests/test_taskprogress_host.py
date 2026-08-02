@@ -52,6 +52,70 @@ def report_payload() -> dict[str, object]:
     }
 
 
+def time_config_payload() -> dict[str, object]:
+    return {
+        "schema_version": "0.2",
+        "scope_id": "secure-test",
+        "updated_at": "2026-08-02T12:00:00Z",
+        "timezone": "Asia/Taipei",
+        "standard_allocation": {
+            "total_minutes_per_day": 1440,
+            "sleep_minutes_per_day": 480,
+            "life_minutes_per_day": 480,
+            "other_unavailable_minutes_per_day": 0,
+            "capacity_minutes_per_executor_day": 480,
+            "working_weekdays": [1, 2, 3, 4, 5],
+            "workday_start_local": "09:00",
+            "workday_end_local": "17:00",
+        },
+        "project": {"executor_count": 1},
+        "estimate_defaults": {
+            "unplanned_item_likely_minutes": 480,
+            "unplanned_item_confidence": "low",
+            "allow_range": True,
+        },
+        "estimate_resolution": {
+            "automatic_source_order": ["historical", "ai", "default"],
+            "manual_resolution": "final_override",
+            "preserve_history": True,
+        },
+        "execution_calibration": {
+            "initial_factor": 1.0,
+            "prior_equivalent_samples": 10,
+            "automatic_adjustment": False,
+        },
+        "urgency_thresholds": {
+            "on_track_max_pressure_ratio": 1.1,
+            "at_risk_max_pressure_ratio": 1.5,
+        },
+        "display": {"project_day_rounding": "ceiling", "item_unit": "hour"},
+    }
+
+
+def time_estimates_payload() -> dict[str, object]:
+    return {
+        "schema_version": "0.2",
+        "scope_id": "secure-test",
+        "updated_at": "2026-08-02T12:00:00Z",
+        "estimates": [
+            {
+                "estimate_id": "estimate-first-child-v1",
+                "task_id": "first-task",
+                "item_id": "first-child",
+                "likely_minutes": 120,
+                "contributors": [
+                    {"kind": "human_estimate", "summary": "人工直接估算。"}
+                ],
+                "human_confirmed": True,
+                "confidence": "medium",
+                "estimated_at": "2026-08-02T12:00:00Z",
+                "active": True,
+                "human_note": "已知範圍約兩小時。",
+            }
+        ],
+    }
+
+
 class TaskProgressEditHostTests(unittest.TestCase):
     def setUp(self) -> None:
         self.temporary = tempfile.TemporaryDirectory()
@@ -123,6 +187,69 @@ class TaskProgressEditHostTests(unittest.TestCase):
             json={"scope_id": "secure-test"},
         )
         self.assertEqual(403, foreign_origin.status_code)
+
+    def test_session_returns_validated_private_time_inputs_only_after_origin_check(self) -> None:
+        config = time_config_payload()
+        estimates = time_estimates_payload()
+        (self.root / "time.config.json").write_text(
+            json.dumps(config, ensure_ascii=False),
+            encoding="utf-8",
+        )
+        (self.root / "time.estimates.json").write_text(
+            json.dumps(estimates, ensure_ascii=False),
+            encoding="utf-8",
+        )
+
+        capability = self.client.get(
+            "/__taskprogress/v1/capabilities/secure-test"
+        ).json()
+        self.assertNotIn("inputs", capability)
+
+        session = self.session()
+        self.assertEqual(config, session["inputs"]["config"])
+        self.assertEqual(estimates, session["inputs"]["estimates"])
+        self.assertEqual(64, len(session["inputs_revision"]))
+
+    def test_invalid_private_time_input_prevents_edit_session(self) -> None:
+        invalid = time_config_payload()
+        invalid["scope_id"] = "another-scope"
+        (self.root / "time.config.json").write_text(
+            json.dumps(invalid),
+            encoding="utf-8",
+        )
+        response = self.client.post(
+            "/__taskprogress/v1/edit-sessions",
+            headers={
+                "origin": ORIGIN,
+                "x-taskprogress-editor": "1",
+                "content-type": "application/json",
+            },
+            json={"scope_id": "secure-test"},
+        )
+        self.assertEqual(409, response.status_code)
+        self.assertEqual("source_time_inputs_invalid", response.json()["code"])
+
+    def test_time_input_revision_change_rejects_report_save(self) -> None:
+        config = time_config_payload()
+        config_path = self.root / "time.config.json"
+        config_path.write_text(json.dumps(config), encoding="utf-8")
+        session = self.session()
+
+        config["project"]["delivery_at"] = "2026-08-10T00:00:00+08:00"
+        config_path.write_text(json.dumps(config), encoding="utf-8")
+        response = self.client.put(
+            "/__taskprogress/v1/reports/secure-test",
+            headers={
+                "origin": ORIGIN,
+                "x-taskprogress-editor": "1",
+                "authorization": f"Bearer {session['token']}",
+                "if-match": f'"{session["revision"]}"',
+                "content-type": "application/json",
+            },
+            content=json.dumps(report_payload()),
+        )
+        self.assertEqual(409, response.status_code)
+        self.assertEqual("source_changed", response.json()["code"])
 
     def test_valid_save_rotates_token_and_rejects_reuse(self) -> None:
         session = self.session()

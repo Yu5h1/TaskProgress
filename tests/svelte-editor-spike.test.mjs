@@ -2,8 +2,35 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 
+import {
+  loadSvelteEditorData,
+  resolveSvelteDataRequest,
+} from "../experiments/editor-svelte-spike/src/data-loader.js";
 import { createSvelteEditorAdapter } from "../experiments/editor-svelte-spike/src/editor-adapter.js";
 import { fixtureReport } from "../experiments/editor-svelte-spike/src/fixture.js";
+
+const exampleReport = JSON.parse(await readFile(
+  new URL("../reports/example/report.json", import.meta.url),
+  "utf8",
+));
+const exampleTimeAnalysis = JSON.parse(await readFile(
+  new URL("../reports/example/time.analysis.json", import.meta.url),
+  "utf8",
+));
+
+function jsonResponse(value, status = 200) {
+  return {
+    status,
+    ok: status >= 200 && status < 300,
+    async json() {
+      return structuredClone(value);
+    },
+  };
+}
+
+function createFetch(routes) {
+  return async (url) => routes.get(String(url)) ?? jsonResponse(null, 404);
+}
 
 test("Svelte adapter delegates mutations and history to the shared Editor Core", () => {
   const adapter = createSvelteEditorAdapter(fixtureReport);
@@ -93,14 +120,86 @@ test("Svelte adapter applies the shared meaningful-text rule before commit", () 
   )), true);
 });
 
+test("Svelte data request keeps Viewer query precedence and resolves experiment scope paths", () => {
+  const baseUrl = "https://example.test/experiments/editor-svelte-spike/";
+  const scoped = resolveSvelteDataRequest(new URLSearchParams("scope=example"), baseUrl);
+  assert.equal(scoped.reportUrl.href, "https://example.test/reports/example/report.json");
+  assert.equal(scoped.timeUrl.href, "https://example.test/reports/example/time.analysis.json");
+
+  const explicit = resolveSvelteDataRequest(
+    new URLSearchParams("scope=ignored&report=/custom/report.json&time=none"),
+    baseUrl,
+  );
+  assert.equal(explicit.source, "report");
+  assert.equal(explicit.scope, null);
+  assert.equal(explicit.reportUrl.href, "https://example.test/custom/report.json");
+  assert.equal(explicit.timeUrl, null);
+});
+
+test("Svelte data loader reads and validates real report and time contracts", async () => {
+  const reportUrl = "https://example.test/reports/example/report.json";
+  const timeUrl = "https://example.test/reports/example/time.analysis.json";
+  const loaded = await loadSvelteEditorData({
+    params: new URLSearchParams("scope=example"),
+    baseUrl: "https://example.test/experiments/editor-svelte-spike/",
+    fetchImpl: createFetch(new Map([
+      [reportUrl, jsonResponse(exampleReport)],
+      [timeUrl, jsonResponse(exampleTimeAnalysis)],
+    ])),
+  });
+
+  assert.equal(loaded.report.scope_id, "example");
+  assert.equal(loaded.timeAnalysis.scope_id, "example");
+  assert.deepEqual(loaded.diagnostics, []);
+});
+
+test("Svelte data loader treats missing or malformed time analysis as optional", async () => {
+  const reportUrl = "https://example.test/reports/example/report.json";
+  const timeUrl = "https://example.test/reports/example/time.analysis.json";
+  const baseUrl = "https://example.test/experiments/editor-svelte-spike/";
+
+  const missing = await loadSvelteEditorData({
+    params: new URLSearchParams("scope=example"),
+    baseUrl,
+    fetchImpl: createFetch(new Map([[reportUrl, jsonResponse(exampleReport)]])),
+  });
+  assert.equal(missing.timeAnalysis, null);
+  assert.deepEqual(missing.diagnostics, []);
+
+  const malformed = await loadSvelteEditorData({
+    params: new URLSearchParams("scope=example"),
+    baseUrl,
+    fetchImpl: createFetch(new Map([
+      [reportUrl, jsonResponse(exampleReport)],
+      [timeUrl, jsonResponse({ schema_version: "broken" })],
+    ])),
+  });
+  assert.equal(malformed.timeAnalysis, null);
+  assert.match(malformed.diagnostics[0].message, /time\.analysis\.json 已忽略/u);
+});
+
+test("Svelte data loader rejects invalid reports without showing fixture data", async () => {
+  const reportUrl = "https://example.test/reports/example/report.json";
+  const invalidReport = { ...exampleReport, tasks: "invalid" };
+  await assert.rejects(
+    loadSvelteEditorData({
+      params: new URLSearchParams("scope=example"),
+      baseUrl: "https://example.test/experiments/editor-svelte-spike/",
+      fetchImpl: createFetch(new Map([[reportUrl, jsonResponse(invalidReport)]])),
+    }),
+    /report\.json 未通過驗證/u,
+  );
+});
+
 test("Svelte spike is isolated, static-path safe, and uses the shared core", async () => {
-  const [packageText, viteText, appText, cardText, rowText, adapterText] = await Promise.all([
+  const [packageText, viteText, appText, cardText, rowText, adapterText, loaderText] = await Promise.all([
     readFile(new URL("../package.json", import.meta.url), "utf8"),
     readFile(new URL("../experiments/editor-svelte-spike/vite.config.js", import.meta.url), "utf8"),
     readFile(new URL("../experiments/editor-svelte-spike/src/App.svelte", import.meta.url), "utf8"),
     readFile(new URL("../experiments/editor-svelte-spike/src/TaskCard.svelte", import.meta.url), "utf8"),
     readFile(new URL("../experiments/editor-svelte-spike/src/ItemRow.svelte", import.meta.url), "utf8"),
     readFile(new URL("../experiments/editor-svelte-spike/src/editor-adapter.js", import.meta.url), "utf8"),
+    readFile(new URL("../experiments/editor-svelte-spike/src/data-loader.js", import.meta.url), "utf8"),
   ]);
   const packageJson = JSON.parse(packageText);
 
@@ -111,9 +210,14 @@ test("Svelte spike is isolated, static-path safe, and uses the shared core", asy
   assert.match(viteText, /base:\s*"\.\/"/u);
   assert.match(appText, /createSvelteEditorAdapter/u);
   assert.match(appText, /view\.history\.canUndo/u);
+  assert.match(appText, /loadSvelteEditorData/u);
+  assert.match(appText, /#each tasks as task/u);
   assert.match(cardText, /<ItemRow/u);
+  assert.match(cardText, /timeItems/u);
   assert.match(rowText, /type:\s*"set-item-field"/u);
   assert.match(adapterText, /viewer\/assets\/editor-core\.js/u);
   assert.match(adapterText, /normalizeMeaningfulText/u);
-  assert.doesNotMatch(appText + cardText + rowText, /fetch\(|localStorage/u);
+  assert.match(loaderText, /resolveReportRequest/u);
+  assert.match(loaderText, /inspectTimeAnalysis/u);
+  assert.doesNotMatch(appText + cardText + rowText, /localStorage/u);
 });

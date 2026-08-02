@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "report_id": "task-progress-development",
-  "updated_at": "2026-08-02T23:28:23+08:00",
+  "updated_at": "2026-08-03T00:00:46+08:00",
   "tasks": [
     {
       "id": "viewer-core",
@@ -93,7 +93,7 @@
     },
     {
       "id": "local-task-editing",
-      "next_step": "隔離 Svelte TaskCard／ItemRow parity spike 已直接採用正式 Editor Core 並通過 141 項 Node 測試與 production build；下一步讓 Svelte shell 唯讀載入 Viewer 的真實 report／time data，先完成 fixture／真實資料 parity，再接本機 capability 與安全儲存。",
+      "next_step": "Svelte shell 真實 report／time loader 與受保護 private config／estimates session 已完成；下一步定義 multi-file save payload、雙 revision precondition 及 staged validators，接入既有 transaction 後才建立交付日與人工估算 Svelte 表單。Node 145/145，edit-host Python 13/13。",
       "blockers": [
         "交付日仍需定義 time.config.json staged payload、修改原因與私有歷史事件的正式 Schema／API，才能接上已完成的跨檔案 transaction adapter。",
         "正式人工工時／依據編輯需定義版本化 time.estimates.json payload 並接上 transaction adapter 後重新產生 time.analysis.json；目前子項目工時膠囊只開啟唯讀估算明細。",

@@ -5,9 +5,13 @@
   export let editing;
   export let policy;
   export let onCommand;
+  export let timeItem = null;
 
   $: metadata = policy.metadata(item.priority);
   $: label = policy.format(item.priority);
+  $: timeLabel = timeItem
+    ? `${Number(timeItem.display_hours).toLocaleString(undefined, { maximumFractionDigits: 2 })}h`
+    : "";
 </script>
 
 <li class:editable-work-item={editing}>
@@ -43,6 +47,12 @@
         <option value={level.value}>{policy.format(level.value)}</option>
       {/each}
     </select>
+    {#if timeItem}
+      <span
+        class="spike-time-capsule"
+        title={`目前分析：${timeItem.likely_minutes} 分鐘`}
+      >{timeLabel}</span>
+    {/if}
     <button
       class="inline-delete-button"
       type="button"
@@ -58,6 +68,12 @@
     <span class="spike-item-title">{item.title}</span>
     {#if metadata && (!metadata.hidden || !policy.labelsValid)}
       <span class={`priority-badge priority-${metadata.tone}`}>{label}</span>
+    {/if}
+    {#if timeItem}
+      <span
+        class="spike-time-capsule"
+        title={`目前分析：${timeItem.likely_minutes} 分鐘`}
+      >{timeLabel}</span>
     {/if}
   {/if}
 </li>

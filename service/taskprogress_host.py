@@ -36,6 +36,12 @@ API_VERSION = 1
 MAX_REPORT_BYTES = 1024 * 1024
 MAX_TRANSACTION_FILE_BYTES = 4 * 1024 * 1024
 SESSION_LIFETIME_SECONDS = 10 * 60
+TIME_SCHEMA_ROOT = (
+    Path(__file__).resolve().parents[1]
+    / "experiments"
+    / "time-reference"
+    / "schemas"
+)
 SCOPE_PATTERN = re.compile(r"^[a-z0-9]+(?:[._-][a-z0-9]+)*$")
 TRANSACTION_FILES = frozenset(
     {
@@ -57,6 +63,7 @@ class EditSession:
     token: str
     scope: str
     revision: str
+    inputs_revision: str
     report_id: str
     expires_at: float
 
@@ -150,6 +157,52 @@ def _schema_errors(
     ]
     errors.extend(_cross_validate_report(report))
     return errors
+
+
+def _json_schema_errors(
+    validator: Draft202012Validator,
+    payload: dict[str, Any],
+) -> list[str]:
+    return [
+        f"{'.'.join(str(part) for part in error.absolute_path) or '$'}: {error.message}"
+        for error in sorted(validator.iter_errors(payload), key=lambda item: list(item.path))
+    ]
+
+
+def _read_time_inputs(
+    folder: Path,
+    scope: str,
+    validators: dict[str, Draft202012Validator],
+) -> tuple[dict[str, dict[str, Any] | None], str]:
+    result: dict[str, dict[str, Any] | None] = {
+        "config": None,
+        "estimates": None,
+    }
+    digest = hashlib.sha256()
+    for key, filename in (
+        ("config", "time.config.json"),
+        ("estimates", "time.estimates.json"),
+    ):
+        path = folder / filename
+        digest.update(filename.encode("utf-8") + b"\0")
+        if not path.is_file():
+            digest.update(b"missing\0")
+            continue
+        source = path.read_bytes()
+        if len(source) > MAX_TRANSACTION_FILE_BYTES:
+            raise ValueError(f"{filename} exceeds the 4 MiB edit limit")
+        payload = json.loads(source)
+        if not isinstance(payload, dict):
+            raise ValueError(f"{filename} root must be an object")
+        errors = _json_schema_errors(validators[key], payload)
+        if errors:
+            raise ValueError(f"{filename} failed validation: {'; '.join(errors[:8])}")
+        if payload.get("scope_id") != scope:
+            raise ValueError(f"{filename} scope_id does not match {scope}")
+        result[key] = payload
+        digest.update(source)
+        digest.update(b"\0")
+    return result, digest.hexdigest()
 
 
 def _atomic_replace(path: Path, source: bytes) -> None:
@@ -493,6 +546,24 @@ def install_edit_api(
 ) -> None:
     schema = json.loads(Path(report_schema).read_text(encoding="utf-8"))
     validator = Draft202012Validator(schema, format_checker=FormatChecker())
+    time_validators = {
+        "config": Draft202012Validator(
+            json.loads(
+                (TIME_SCHEMA_ROOT / "time.config.schema.json").read_text(
+                    encoding="utf-8"
+                )
+            ),
+            format_checker=FormatChecker(),
+        ),
+        "estimates": Draft202012Validator(
+            json.loads(
+                (TIME_SCHEMA_ROOT / "time.estimates.schema.json").read_text(
+                    encoding="utf-8"
+                )
+            ),
+            format_checker=FormatChecker(),
+        ),
+    }
     registry = application.state.exact_files
     sessions: dict[str, EditSession] = {}
     sessions_lock = threading.RLock()
@@ -531,6 +602,7 @@ def install_edit_api(
     def issue_session(
         scope: str,
         revision: str,
+        inputs_revision: str,
         report_id: str,
     ) -> EditSession:
         token = secrets.token_urlsafe(32)
@@ -538,6 +610,7 @@ def install_edit_api(
             token=token,
             scope=scope,
             revision=revision,
+            inputs_revision=inputs_revision,
             report_id=report_id,
             expires_at=now() + SESSION_LIFETIME_SECONDS,
         )
@@ -620,6 +693,19 @@ def install_edit_api(
                     "report.json or its pending transaction is unavailable",
                     str(error),
                 )
+            try:
+                inputs, inputs_revision = _read_time_inputs(
+                    path.parent,
+                    scope,
+                    time_validators,
+                )
+            except (OSError, ValueError, json.JSONDecodeError) as error:
+                return _problem(
+                    409,
+                    "source_time_inputs_invalid",
+                    "Time input files are invalid or unavailable",
+                    str(error),
+                )
         errors = _schema_errors(validator, report)
         if errors:
             return _problem(
@@ -630,12 +716,19 @@ def install_edit_api(
             )
         if report.get("scope_id") != scope:
             return _problem(409, "scope_mismatch", "Registered report scope does not match")
-        session = issue_session(scope, revision, str(report["report_id"]))
+        session = issue_session(
+            scope,
+            revision,
+            inputs_revision,
+            str(report["report_id"]),
+        )
         return JSONResponse(
             {
                 "token": session.token,
                 "scope_id": session.scope,
                 "revision": session.revision,
+                "inputs_revision": session.inputs_revision,
+                "inputs": inputs,
                 "expires_at": session.expires_at,
             },
             status_code=201,
@@ -705,6 +798,11 @@ def install_edit_api(
             try:
                 recover_pending_transaction(path.parent)
                 _, current_report, current_revision = _read_report(path)
+                _, current_inputs_revision = _read_time_inputs(
+                    path.parent,
+                    scope,
+                    time_validators,
+                )
             except (
                 OSError,
                 ValueError,
@@ -719,6 +817,7 @@ def install_edit_api(
                 )
             if (
                 current_revision != session.revision
+                or current_inputs_revision != session.inputs_revision
                 or current_report.get("report_id") != session.report_id
             ):
                 return _problem(
@@ -766,11 +865,22 @@ def install_edit_api(
             new_revision = _revision(formatted)
             with sessions_lock:
                 sessions.pop(session.token, None)
-            next_session = issue_session(scope, new_revision, session.report_id)
+            _, next_inputs_revision = _read_time_inputs(
+                path.parent,
+                scope,
+                time_validators,
+            )
+            next_session = issue_session(
+                scope,
+                new_revision,
+                next_inputs_revision,
+                session.report_id,
+            )
             return JSONResponse(
                 {
                     "report": report,
                     "revision": new_revision,
+                    "inputs_revision": next_session.inputs_revision,
                     "token": next_session.token,
                     "expires_at": next_session.expires_at,
                 }

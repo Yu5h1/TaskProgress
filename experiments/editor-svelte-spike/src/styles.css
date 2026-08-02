@@ -70,6 +70,11 @@ textarea {
   border-color: var(--blue) !important;
 }
 
+.spike-mode-toggle:disabled {
+  cursor: default;
+  opacity: 0.45;
+}
+
 .spike-task-state {
   display: flex;
   align-items: center;
@@ -87,6 +92,54 @@ textarea {
 .spike-item-title {
   min-width: 0;
   flex: 1 1 auto;
+}
+
+.spike-task-time,
+.spike-time-capsule {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  padding: 2px 7px;
+  color: var(--blue);
+  background: var(--blue-soft);
+  border: 1px solid var(--color-active-border);
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 760;
+  white-space: nowrap;
+}
+
+.spike-loading,
+.spike-load-error,
+.spike-diagnostics {
+  margin: 18px 0;
+  padding: 14px 16px;
+  color: var(--ink-soft);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+
+.spike-load-error {
+  border-color: var(--color-danger-border);
+}
+
+.spike-load-error h2,
+.spike-load-error p,
+.spike-diagnostics p {
+  margin: 0;
+}
+
+.spike-load-error h2 {
+  margin-bottom: 6px;
+  color: var(--red);
+  font-size: 1rem;
+}
+
+.spike-diagnostics {
+  display: grid;
+  gap: 6px;
 }
 
 .spike-add-shell {
