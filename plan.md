@@ -856,9 +856,9 @@ AI 分析與同類歷史不各自產生一個數字再和人工工時平均。�
 
 目前不是完全未分層的「暴力寫法」。`report-model.js`、`time-model.js`、`status-order.js`、`priority-policy.js` 與本機 Host 已各自承擔純計算、policy 或安全寫入責任；scope capability、revision compare-and-swap、schema 驗證、原子取代及分析失敗回復也沒有混入畫面元件。
 
-Editor UI 尚未模組化完成，但已不再從零開始。正式 Viewer 與 Demo 現在共用 Editor Core 的 `DraftSession`／commands／validation／diff／derived state，也共用 Editor Surface 的 `TaskCard` shell、`ItemRow` 與優先級控制；`app.js`、Demo `app.js` 與 `time-view.js` 仍各自協調模式切換、新增、驗證、儲存列與時間插槽。完整 Undo／Redo command history 與多 sidecar transaction adapter 也尚未建立。
+Editor UI 尚未模組化完成，但已不再從零開始。正式 Viewer 與 Demo 現在共用 Editor Core 的 `DraftSession`／commands／validation／diff／derived state／Undo／Redo，也完成 Editor Surface 的 `TaskCard` shell、`ItemRow`、優先級、全域模式 toggle、AddControl、欄位 validation、SaveBar 與 history controls 主要桌面契約；`app.js`、Demo `app.js` 與 `time-view.js` 只保留 domain validation、persistence 與時間插槽 adapter。本機 edit host 已提供可恢復的多檔案 transaction adapter，實際交付日、估算與私有歷史 payload 尚待接入。
 
-因此目前定位是「單一 report 編輯核心與安全邊界已抽離、共用介面骨架正在抽離，並有 126 項 Node 回歸測試保護」。它適合維持現有桌面功能，但人工估算、交付日、敏感歷史等跨檔案功能不得繼續直接堆入 `app.js`／`time-view.js`。下一步先完成共用 Editor Surface，再補 Undo／Redo 與 transaction adapter；導入框架不能取代這些邊界，否則只是把相同耦合搬入 component。
+因此目前定位是「單一 report 編輯核心、安全邊界、完整命令歷史、主要桌面 Surface、可恢復交易邊界與第一個隔離 Svelte parity spike 已完成，並有 141 項 Node、10 項 edit-host Python 測試保護」。它適合維持現有桌面功能，但人工估算、交付日、敏感歷史等 payload 與表單不得繼續直接堆入 `app.js`／`time-view.js`。框架只能替換 UI 組合層，不能取代既有 Core 與 transaction 邊界；正式遷移決策見 `Documentation/EditorFrameworkDecision.md`。
 
 本機編輯能力由 TaskProgress edit host 對精確註冊且 `scope_id` 相符的報告動態回傳，不在 scope 設定或 `report.json` 保存 `editable`。Viewer、發布後 Launcher 與 edit host 必須版本一致；若舊版 Launcher 只啟動普通 LocalWebService，Viewer 會因 capability endpoint 不存在而安全地隱藏編輯入口。
 
@@ -875,7 +875,7 @@ Editor UI 尚未模組化完成，但已不再從零開始。正式 Viewer 與 D
 
 ```text
 editor-core/
-  DraftSession、EditCommand、validation、diff、derived progress、time invalidation
+  DraftSession、EditCommand、Undo／Redo、validation、diff、derived progress、time invalidation
 
 editor-ui/
   第三方框架元件、focus、表單、dialog、save bar、錯誤呈現
@@ -905,8 +905,8 @@ Editor state 至少拆成四層：
 | 候選 | 適合點 | 主要疑慮 | 初步定位 |
 |---|---|---|---|
 | 保留原生 JavaScript | 零依賴、直接 `file://`、既有 Demo 已可用 | 複雜 draft、交易與元件生命週期仍需自建 | 保留為基準與可回退 Demo，不作正式大改首選 |
-| Svelte | 元件語法接近 HTML，適合保留目前卡片版面；編譯後 runtime 輕 | 需要新建置鏈、測試與團隊維護規則 | 正式 Editor 首要 spike 候選 |
-| Vue | template 與表單模型清楚，狀態與元件生態成熟 | runtime 與應用規範較目前更重，需要避免把 domain logic 寫進 component | 與 Svelte 並列比較 |
+| Svelte | 元件語法接近 HTML，適合保留目前卡片版面；編譯後輸出靜態資產 | 需要新建置鏈、測試與團隊維護規則 | 2026-08-02 已完成第一個隔離 spike；尚未核准 production migration |
+| Vue | template 與表單模型清楚，狀態與元件生態成熟 | runtime 與應用規範較目前更重，需要避免把 domain logic 寫進 component | 暫不安裝；只有 Svelte 無法達到 parity 時才啟動比較 |
 | React | 生態、測試與複雜應用案例充足 | 對目前 HTML-first 介面可能帶來較多樣板與狀態選型成本 | 若未來需要更大型團隊或既有 React 整合再採用 |
 | Lit／Web Components | 可逐元件嵌入現有頁面，Viewer 與 Editor 可能共享 custom elements | 複雜應用 state、交易與路由仍需自行建立約束 | 適合局部漸進升級，不先假設能取代完整 Editor 架構 |
 
@@ -917,7 +917,7 @@ Editor state 至少拆成四層：
 #### 遷移階段
 
 1. **Framework Phase 0—凍結可用基準**
-   - 保留目前 Demo、正式本機 Editor 及原先 102 項 Node 基準測試；Editor Core 與 Editor Surface 契約測試擴充後目前共 126 項。
+   - 保留目前 Demo、正式本機 Editor 及原先 102 項 Node 基準測試；Editor Core、Editor Surface 與 Svelte adapter 契約測試擴充後目前共 141 項。
    - 桌面滑鼠／鍵盤的草稿放棄、固定儲存列與真實檔案儲存 E2E 已完成；行動版與觸控另列 P1。
    - 把目前畫面、文字、模式切換、儲存與放棄語意視為遷移驗收規格。
 
@@ -930,7 +930,12 @@ Editor state 至少拆成四層：
    - 2026-07-30 第三段已完成：將 Core 主體移至可由傳統 `<script>` 使用的 `viewer/assets/editor-core-runtime.js`，`viewer/assets/editor-core.js` 保留為正式 Viewer 的 ES module wrapper。file／loopback Demo 透過 adapter 將既有 task definitions、子項目與 base progress 投影為 report draft，所有描述／優先級／新增／刪除／復原 mutation、dirty、整體進度、時間失效、儲存 commit 與切回預覽 discard 均使用同一 DraftSession；localStorage 與程序式 DOM 仍留在 Demo 邊界。
    - 2026-07-30 第四段已完成：新增 classic-compatible `editor-surface-runtime.js` 與正式 Viewer ES module wrapper，讓兩個 host 共用 `TaskCard` shell、狀態／fraction／task ID 無障礙結構，以及優先級徽章與下拉；各自的狀態外觀與 class 暫由 presentation adapter 保留。
    - 2026-08-02 第五段已完成：依下列 parity matrix 抽出共用 `ItemRow`。Surface 統一 row、title、priority badge/select、編輯 input、文字刪除、無障礙文字與 callback；Viewer／Demo 只透過 presentation adapter 保留 class／排列差異，並以 extension slots 注入工時、`待估` 與 Demo 狀態文字，沒有 host identity 分支。
-   - Phase 1 尚未完成：下一片抽離全域模式切換，再依序收斂新增控制、驗證訊息與儲存列；Undo／Redo command history 與跨檔案 transaction adapter 隨後完成，才進入框架選型。
+   - 2026-08-02 第六段已完成：抽出共用 `ModeController`，統一預覽／編輯 toggle 的 current-mode 文字、`aria-pressed`、切換提示、available／busy、root `data-view-mode` 與 host transition callback。Demo 移除模式 dropdown，改用與正式 Viewer 相同的再次按下即回預覽／放棄草稿語意；capability 與 draft lifecycle 仍留在 host adapter。
+   - 2026-08-02 第七段已完成：抽出共用 `AddControl`，統一 collapsed `＋`、子項目／最外層任務表單、欄位順序、建立時優先級、取消／Escape、focus、錯誤 alert 與無障礙文字；Viewer／Demo presentation adapter 保留 class 差異，host callback 保留 Unicode 驗證、stable ID 與 Editor Core command。Viewer 新資料使用 `creationDefaultValue`，不再誤用 legacy fallback。
+   - 2026-08-02 第八段已完成：抽出共用欄位 validation 與 `SaveBar`。Surface 統一 native validity／`aria-invalid`、第一個錯誤 focus／report、重新輸入即清除舊錯誤，以及 clean／dirty／saving／error、按鈕 disabled、`aria-live`／`aria-busy` 與狀態文字；Viewer 保留 scope/revision HTTP 寫入，Demo 保留 localStorage／time preview adapter。
+   - 2026-08-02 第九段已完成：Editor Core 加入上限可控的 Undo／Redo snapshot history，同一 task／item 欄位的連續輸入合併為一筆、分支修改清除 redo，discard／commit 會清空歷史。Viewer 與 Demo 的共用 SaveBar 顯示「復原／重做」，並支援 `Ctrl/Cmd+Z`、`Ctrl/Cmd+Shift+Z` 與 `Ctrl/Cmd+Y`；Demo 原本僅能復原最後一次刪除的提示已由完整 command history 取代。
+   - 2026-08-02 第十段已完成：本機 edit host 新增同資料夾、允許清單限定的 `LocalFileTransaction`。它先執行 staged validators，為 `report.json`、`time.config.json`、`time.estimates.json`、`time.analysis.json` 與私有 `taskprogress.local.json` 建立隱藏備份及 journal，再提供 apply／commit／rollback；prepared／applying 中斷會在下一次 capability、session 或 save 前恢復，committed journal 只清理。既有 report save 已改用此 adapter，分析器失敗會同時復原 report 與原有 analysis。
+   - Phase 1 的主要桌面 Surface、report command history 與跨檔案交易邊界已完成；第一個隔離 Svelte parity spike 也已完成。四張靜態 fixture 卡不阻擋下一個真實資料 shell 階段。
 
 #### ItemRow parity matrix
 
@@ -942,20 +947,20 @@ ItemRow 是每張任務卡內的一筆子項目。這份矩陣已於 2026-08-02 
 | title／priority／delete 事件 | Surface 只發出 callback | Viewer 與 Demo 各自轉成 Editor Core command |
 | 工時膠囊、`待估` 與狀態文字 | 定義為尾端 extension slots | Demo 可放工時與狀態；Viewer 依 time sidecar 放工時，完成狀態仍由所屬面板表達 |
 | legacy string item | 支援唯讀 title | 進入編輯 session 後仍由 Editor Core 正規化為 stable item |
-| 新增列、刪除後復原提示 | 不屬於 ItemRow | 留給後續 AddControl／Undo Surface 切片 |
+| 新增列、Undo／Redo | 不屬於 ItemRow | 已由共用 AddControl、SaveBar history controls 與 Editor Core command history 處理 |
 
 3. **Framework Phase 2—候選 spike 與決策**
-   - 優先以 Svelte、Vue 與原生基準實作一張真實 task card 流程。
-   - 產出 Architecture Decision Record，記錄選用、拒絕原因、建置命令、依賴政策及升級責任。
-   - 未通過行為 parity、鍵盤、CSP、靜態資產及 core 測試時，不開始整頁搬移。
+   - 2026-08-02 已選 Svelte 作第一候選，於 `experiments/editor-svelte-spike/` 實作 `App`／`TaskCard`／`ItemRow`／adapter；直接委派正式 Editor Core，涵蓋 task／item 欄位、priority、add／delete、Undo／Redo、validation、discard 與 memory commit。
+   - Svelte、Vite 與 plugin 僅為 devDependencies；`package-lock.json` 固定版本，`base: "./"` 產生 GitHub Pages／LocalWebService 可用的相對資產。141 項 Node 與 production build 通過，npm audit 為 0 vulnerabilities；結果與後續 gate 記錄在 `Documentation/EditorFrameworkDecision.md`。
+   - Vue 暫不安裝。若 Svelte 在真實 Viewer data、鍵盤／focus、CSP、儲存錯誤或行動版 parity 失敗，才啟動 Vue 比較；未通過這些 gate 前不開始整頁搬移。
 
 4. **Framework Phase 3—Editor shell parity**
-   - 建立 `editor-ui`，先只讀載入相同 report/time data，再逐步接上 draft actions。
+   - 下一步讓隔離 Svelte shell 先只讀載入 Viewer 相同的真實 report/time data，再逐步接上 draft actions。
    - 沿用目前 CSS token 與可見版面，不同時進行視覺重新設計。
    - 以 feature flag 或獨立本機路徑保留舊 Demo，兩者可並行比較。
 
 5. **Framework Phase 4—安全寫入整合**
-   - report.json 已接上 scope 限定、短生命週期 capability、revision compare-and-swap、schema 驗證與原子交易；交付日及歷史仍需擴充為跨檔案交易。
+   - report.json 已接上 scope 限定、短生命週期 capability、revision compare-and-swap、schema 驗證與可恢復 transaction adapter；交付日、估算與私有歷史仍需定義 payload／Schema 並接入相同交易。
    - 儲存成功後才更新 persisted；衝突、分析失敗或歷史失敗時保留 draft。
    - 完成交付日、敏感修改歷史及跨檔案 diff 後，才宣稱正式 Editor 可取代 browser-local Demo。
 

@@ -34,8 +34,22 @@ from starlette.routing import Mount
 API_PREFIX = "/__taskprogress/v1"
 API_VERSION = 1
 MAX_REPORT_BYTES = 1024 * 1024
+MAX_TRANSACTION_FILE_BYTES = 4 * 1024 * 1024
 SESSION_LIFETIME_SECONDS = 10 * 60
 SCOPE_PATTERN = re.compile(r"^[a-z0-9]+(?:[._-][a-z0-9]+)*$")
+TRANSACTION_FILES = frozenset(
+    {
+        "report.json",
+        "time.config.json",
+        "time.estimates.json",
+        "time.analysis.json",
+        "taskprogress.local.json",
+    }
+)
+TRANSACTION_JOURNAL = ".taskprogress.transaction.json"
+TRANSACTION_BACKUP_PATTERN = re.compile(
+    r"^\.taskprogress\.transaction\.([a-f0-9]{24})\.([a-z0-9.]+)\.bak$"
+)
 
 
 @dataclass(frozen=True)
@@ -161,6 +175,252 @@ def _atomic_replace(path: Path, source: bytes) -> None:
         except OSError:
             pass
         raise
+
+
+@dataclass(frozen=True)
+class TransactionEntry:
+    target: Path
+    backup: Path
+    existed: bool
+
+
+class TransactionRollbackError(RuntimeError):
+    pass
+
+
+class LocalFileTransaction:
+    """Recoverable same-folder transaction for TaskProgress-owned files.
+
+    Input files are staged in memory, existing targets are copied to hidden
+    backups, and a hidden journal distinguishes prepared/applying/committed
+    states. A later request can recover an interrupted prepared transaction;
+    a committed journal is cleanup-only.
+    """
+
+    def __init__(self, folder: os.PathLike[str] | str) -> None:
+        self.folder = Path(folder).resolve(strict=True)
+        if not self.folder.is_dir():
+            raise ValueError("Transaction root must be a directory")
+        self.transaction_id = secrets.token_hex(12)
+        self.journal_path = self.folder / TRANSACTION_JOURNAL
+        self._watched: set[Path] = set()
+        self._staged: dict[Path, bytes] = {}
+        self._entries: list[TransactionEntry] = []
+        self._state = "draft"
+        self._closed = False
+
+    def _target(self, path: os.PathLike[str] | str) -> Path:
+        candidate = Path(path)
+        if not candidate.is_absolute():
+            candidate = self.folder / candidate
+        target = candidate.resolve(strict=False)
+        if target.parent != self.folder or target.name not in TRANSACTION_FILES:
+            raise ValueError(f"Transaction target is not allowed: {target.name}")
+        return target
+
+    def watch(self, path: os.PathLike[str] | str) -> Path:
+        if self._state != "draft" or self._closed:
+            raise RuntimeError("Transaction can no longer accept targets")
+        target = self._target(path)
+        self._watched.add(target)
+        return target
+
+    def stage_bytes(self, path: os.PathLike[str] | str, source: bytes) -> Path:
+        if not isinstance(source, bytes):
+            raise TypeError("Transaction source must be bytes")
+        if len(source) > MAX_TRANSACTION_FILE_BYTES:
+            raise ValueError("Transaction file exceeds the 4 MiB limit")
+        target = self.watch(path)
+        self._staged[target] = source
+        return target
+
+    def stage_json(self, path: os.PathLike[str] | str, payload: object) -> Path:
+        source = json.dumps(payload, ensure_ascii=False, indent=2).encode("utf-8") + b"\n"
+        return self.stage_bytes(path, source)
+
+    def _journal_payload(self, state: str) -> bytes:
+        payload = {
+            "version": 1,
+            "transaction_id": self.transaction_id,
+            "state": state,
+            "entries": [
+                {
+                    "target": entry.target.name,
+                    "backup": entry.backup.name,
+                    "existed": entry.existed,
+                }
+                for entry in self._entries
+            ],
+        }
+        return json.dumps(payload, ensure_ascii=False, indent=2).encode("utf-8") + b"\n"
+
+    def _write_journal(self, state: str) -> None:
+        _atomic_replace(self.journal_path, self._journal_payload(state))
+        self._state = state
+
+    def prepare(self, validators: Sequence[Callable[[], None]] = ()) -> None:
+        if self._closed or self._state != "draft":
+            raise RuntimeError("Transaction is not in draft state")
+        if not self._watched:
+            raise ValueError("Transaction has no files")
+        for validate in validators:
+            validate()
+        try:
+            for target in sorted(self._watched, key=lambda item: item.name):
+                if target.exists() and not target.is_file():
+                    raise ValueError(f"Transaction target is not a file: {target.name}")
+                existed = target.is_file()
+                backup = self.folder / (
+                    f".taskprogress.transaction.{self.transaction_id}.{target.name}.bak"
+                )
+                if existed:
+                    source = target.read_bytes()
+                    if len(source) > MAX_TRANSACTION_FILE_BYTES:
+                        raise ValueError(f"Transaction source is too large: {target.name}")
+                    _atomic_replace(backup, source)
+                self._entries.append(TransactionEntry(target, backup, existed))
+            self._write_journal("prepared")
+        except BaseException:
+            for entry in self._entries:
+                try:
+                    entry.backup.unlink()
+                except FileNotFoundError:
+                    pass
+            self._entries.clear()
+            raise
+
+    def apply(self) -> None:
+        if self._state == "draft":
+            self.prepare()
+        if self._closed or self._state != "prepared":
+            raise RuntimeError("Transaction is not prepared")
+        self._write_journal("applying")
+        for target, source in sorted(self._staged.items(), key=lambda item: item[0].name):
+            _atomic_replace(target, source)
+
+    def _cleanup(self) -> None:
+        for entry in self._entries:
+            try:
+                entry.backup.unlink()
+            except FileNotFoundError:
+                pass
+        try:
+            self.journal_path.unlink()
+        except FileNotFoundError:
+            pass
+
+    def commit(self) -> None:
+        if self._closed or self._state != "applying":
+            raise RuntimeError("Transaction has not been applied")
+        self._write_journal("committed")
+        self._closed = True
+        try:
+            self._cleanup()
+        except OSError:
+            # A committed journal is cleanup-only if the process is interrupted.
+            pass
+
+    def rollback(self) -> None:
+        if self._closed:
+            return
+        if self._state == "draft":
+            self._closed = True
+            return
+        errors: list[str] = []
+        for entry in reversed(self._entries):
+            try:
+                if entry.existed:
+                    if entry.backup.is_symlink() or not entry.backup.is_file():
+                        raise OSError(f"Missing backup for {entry.target.name}")
+                    _atomic_replace(entry.target, entry.backup.read_bytes())
+                elif entry.target.exists():
+                    if not entry.target.is_file():
+                        raise OSError(f"Rollback target is not a file: {entry.target.name}")
+                    entry.target.unlink()
+            except OSError as error:
+                errors.append(str(error))
+        if errors:
+            raise TransactionRollbackError("; ".join(errors))
+        self._closed = True
+        self._cleanup()
+
+
+def _journal_entries(folder: Path, payload: object) -> tuple[str, list[TransactionEntry]]:
+    if not isinstance(payload, dict) or payload.get("version") != 1:
+        raise ValueError("Transaction journal version is invalid")
+    transaction_id = payload.get("transaction_id")
+    state = payload.get("state")
+    raw_entries = payload.get("entries")
+    if (
+        not isinstance(transaction_id, str)
+        or not re.fullmatch(r"[a-f0-9]{24}", transaction_id)
+        or not isinstance(state, str)
+        or state not in {"prepared", "applying", "committed"}
+        or not isinstance(raw_entries, list)
+    ):
+        raise ValueError("Transaction journal is invalid")
+    entries: list[TransactionEntry] = []
+    seen_targets: set[str] = set()
+    for raw in raw_entries:
+        if not isinstance(raw, dict) or set(raw) != {"target", "backup", "existed"}:
+            raise ValueError("Transaction journal entry is invalid")
+        target_name = raw["target"]
+        backup_name = raw["backup"]
+        existed = raw["existed"]
+        match = (
+            TRANSACTION_BACKUP_PATTERN.fullmatch(backup_name)
+            if isinstance(backup_name, str)
+            else None
+        )
+        if (
+            not isinstance(target_name, str)
+            or target_name not in TRANSACTION_FILES
+            or target_name in seen_targets
+            or not isinstance(existed, bool)
+            or match is None
+            or match.group(1) != transaction_id
+            or match.group(2) != target_name
+        ):
+            raise ValueError("Transaction journal entry is unsafe")
+        seen_targets.add(target_name)
+        entries.append(
+            TransactionEntry(folder / target_name, folder / backup_name, existed)
+        )
+    return str(state), entries
+
+
+def recover_pending_transaction(folder: os.PathLike[str] | str) -> bool:
+    root = Path(folder).resolve(strict=True)
+    journal = root / TRANSACTION_JOURNAL
+    if journal.is_symlink():
+        raise ValueError("Transaction journal cannot be a symbolic link")
+    if not journal.is_file():
+        return False
+    payload = json.loads(journal.read_text(encoding="utf-8"))
+    state, entries = _journal_entries(root, payload)
+    if state != "committed":
+        errors: list[str] = []
+        for entry in reversed(entries):
+            try:
+                if entry.existed:
+                    if entry.backup.is_symlink() or not entry.backup.is_file():
+                        raise OSError(f"Missing backup for {entry.target.name}")
+                    _atomic_replace(entry.target, entry.backup.read_bytes())
+                elif entry.target.exists():
+                    if not entry.target.is_file():
+                        raise OSError(f"Recovery target is not a file: {entry.target.name}")
+                    entry.target.unlink()
+            except OSError as error:
+                errors.append(str(error))
+        if errors:
+            raise TransactionRollbackError("; ".join(errors))
+    for entry in entries:
+        try:
+            entry.backup.unlink()
+        except FileNotFoundError:
+            pass
+    journal.unlink()
+    return True
 
 
 def _report_route(scope: str) -> str:
@@ -301,10 +561,22 @@ def install_edit_api(
         path = registered_report(safe_scope)
         if path is None:
             return _problem(404, "scope_not_found", "Editable scope was not found")
-        try:
-            _, report, revision = _read_report(path)
-        except (OSError, ValueError, json.JSONDecodeError) as error:
-            return _problem(409, "report_unavailable", "report.json is unavailable", str(error))
+        async with write_lock:
+            try:
+                recover_pending_transaction(path.parent)
+                _, report, revision = _read_report(path)
+            except (
+                OSError,
+                ValueError,
+                json.JSONDecodeError,
+                TransactionRollbackError,
+            ) as error:
+                return _problem(
+                    409,
+                    "report_unavailable",
+                    "report.json or its pending transaction is unavailable",
+                    str(error),
+                )
         if report.get("scope_id") != safe_scope:
             return _problem(409, "scope_mismatch", "Registered report scope does not match")
         return JSONResponse(
@@ -332,10 +604,22 @@ def install_edit_api(
         path = registered_report(scope)
         if path is None:
             return _problem(404, "scope_not_found", "Editable scope was not found")
-        try:
-            _, report, revision = _read_report(path)
-        except (OSError, ValueError, json.JSONDecodeError) as error:
-            return _problem(409, "report_unavailable", "report.json is unavailable", str(error))
+        async with write_lock:
+            try:
+                recover_pending_transaction(path.parent)
+                _, report, revision = _read_report(path)
+            except (
+                OSError,
+                ValueError,
+                json.JSONDecodeError,
+                TransactionRollbackError,
+            ) as error:
+                return _problem(
+                    409,
+                    "report_unavailable",
+                    "report.json or its pending transaction is unavailable",
+                    str(error),
+                )
         errors = _schema_errors(validator, report)
         if errors:
             return _problem(
@@ -419,9 +703,20 @@ def install_edit_api(
 
         async with write_lock:
             try:
-                original, current_report, current_revision = _read_report(path)
-            except (OSError, ValueError, json.JSONDecodeError) as error:
-                return _problem(409, "report_unavailable", "report.json is unavailable", str(error))
+                recover_pending_transaction(path.parent)
+                _, current_report, current_revision = _read_report(path)
+            except (
+                OSError,
+                ValueError,
+                json.JSONDecodeError,
+                TransactionRollbackError,
+            ) as error:
+                return _problem(
+                    409,
+                    "report_unavailable",
+                    "report.json or its pending transaction is unavailable",
+                    str(error),
+                )
             if (
                 current_revision != session.revision
                 or current_report.get("report_id") != session.report_id
@@ -431,27 +726,42 @@ def install_edit_api(
                     "source_changed",
                     "report.json changed after the edit session started",
                 )
+            transaction = LocalFileTransaction(path.parent)
             try:
-                _atomic_replace(path, formatted)
+                transaction.stage_bytes(path, formatted)
+                transaction.watch(path.parent / "time.analysis.json")
+                transaction.prepare()
+                transaction.apply()
                 analysis_ok, analysis_error = await asyncio.to_thread(
                     _run_analysis,
                     analyzer_command,
                     path,
                 )
                 if not analysis_ok:
-                    _atomic_replace(path, original)
+                    transaction.rollback()
                     return _problem(
                         409,
                         "analysis_failed",
-                        "Time analysis failed; report.json was restored",
+                        "Time analysis failed; the file transaction was restored",
                         analysis_error,
                     )
-            except OSError as error:
+                transaction.commit()
+            except (OSError, ValueError, RuntimeError) as error:
                 try:
-                    _atomic_replace(path, original)
-                except OSError:
-                    pass
-                return _problem(500, "atomic_write_failed", "report.json was not saved", str(error))
+                    transaction.rollback()
+                except (OSError, TransactionRollbackError) as rollback_error:
+                    return _problem(
+                        500,
+                        "transaction_rollback_failed",
+                        "The file transaction could not be restored",
+                        str(rollback_error),
+                    )
+                return _problem(
+                    500,
+                    "transaction_failed",
+                    "The file transaction was not committed",
+                    str(error),
+                )
 
             new_revision = _revision(formatted)
             with sessions_lock:

@@ -6,9 +6,16 @@
   "type": "module",
   "description": "Link-first read-only task progress reports for public pages and local projects.",
   "scripts": {
-    "test": "node --test"
+    "test": "node --test",
+    "spike:svelte:dev": "vite --config experiments/editor-svelte-spike/vite.config.js",
+    "spike:svelte:build": "vite build --config experiments/editor-svelte-spike/vite.config.js"
   },
   "engines": {
     "node": ">=20"
+  },
+  "devDependencies": {
+    "@sveltejs/vite-plugin-svelte": "^7.2.0",
+    "svelte": "^5.56.8",
+    "vite": "^8.2.0"
   }
 }

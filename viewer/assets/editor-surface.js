@@ -8,9 +8,16 @@ export const editorSurface = globalThis.TaskProgressEditorSurfaceRuntime.createE
 });
 
 export const {
+  bindHistoryShortcuts,
+  clearFieldError,
+  createAddControl,
   createItemRow,
+  createModeController,
   createPriorityBadge,
   createPrioritySelect,
+  createSaveBar,
   createTaskCardShell,
+  reportFieldError,
+  setFieldError,
   setTaskFraction,
 } = editorSurface;

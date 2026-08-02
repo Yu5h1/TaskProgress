@@ -1,0 +1,184 @@
+html {
+  min-height: 100%;
+  background: var(--page);
+}
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  margin: 0;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+.spike-page {
+  width: min(920px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 36px 0 110px;
+}
+
+.spike-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
+.spike-heading h1 {
+  margin: 4px 0 8px;
+  color: var(--ink);
+  font-size: clamp(1.35rem, 3vw, 2rem);
+}
+
+.spike-heading p,
+.spike-status,
+.spike-savebar p {
+  margin: 0;
+  color: var(--ink-soft);
+}
+
+.spike-eyebrow {
+  color: var(--blue) !important;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.spike-mode-toggle,
+.spike-savebar button,
+.spike-add-form button,
+.spike-add-button {
+  padding: 7px 12px;
+  color: var(--ink);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.spike-mode-toggle[aria-pressed="true"],
+.spike-save-button {
+  color: white !important;
+  background: var(--blue) !important;
+  border-color: var(--blue) !important;
+}
+
+.spike-task-state {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 9px;
+}
+
+.spike-list-heading {
+  margin: 12px 0 4px;
+  color: var(--ink-soft);
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+}
+
+.spike-item-title {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.spike-add-shell {
+  display: flex;
+  justify-content: center;
+  padding-top: 9px;
+  border-top: 1px solid var(--line);
+}
+
+.spike-add-button {
+  min-width: 56px;
+  padding: 3px 12px;
+}
+
+.spike-add-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto auto;
+  gap: 8px;
+  width: 100%;
+}
+
+.spike-add-form input,
+.spike-add-form select {
+  min-width: 0;
+  padding: 7px 9px;
+  color: var(--ink);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+.spike-field-error {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: var(--red);
+  font-size: 0.75rem;
+}
+
+.spike-savebar {
+  position: fixed;
+  right: max(16px, calc((100vw - 920px) / 2));
+  bottom: 18px;
+  left: max(16px, calc((100vw - 920px) / 2));
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 14px;
+  background: color-mix(in srgb, var(--surface) 94%, transparent);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(10px);
+}
+
+.spike-save-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.spike-savebar button:disabled {
+  cursor: default;
+  opacity: 0.45;
+}
+
+.spike-status {
+  margin-top: 16px;
+  font-size: 0.8rem;
+}
+
+@media (max-width: 640px) {
+  .spike-page {
+    width: min(100% - 20px, 920px);
+    padding-top: 20px;
+  }
+
+  .spike-heading,
+  .spike-savebar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .spike-add-form {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .spike-add-form input {
+    grid-column: 1 / -1;
+  }
+
+  .spike-save-actions {
+    justify-content: flex-end;
+  }
+}

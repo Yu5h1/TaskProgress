@@ -14,14 +14,14 @@
     <link rel="stylesheet" href="./styles.css?v=20260729-034" />
     <script defer src="../../../viewer/assets/priority-policy.js?v=20260729-033"></script>
     <script defer src="../../../viewer/assets/editor-core-runtime.js?v=20260730-001"></script>
-    <script defer src="../../../viewer/assets/editor-surface-runtime.js?v=20260730-002"></script>
+    <script defer src="../../../viewer/assets/editor-surface-runtime.js?v=20260802-003"></script>
     <script defer src="./editing-policy.js?v=20260724-025"></script>
     <script defer src="./task-editing-model.js?v=20260729-032"></script>
     <script defer src="./time-data-policy.js?v=20260724-025"></script>
     <script defer src="./estimate-engine.js?v=20260724-025"></script>
     <script defer src="./capacity-engine.js?v=20260724-025"></script>
     <script defer src="./deadline-engine.js?v=20260724-025"></script>
-    <script defer src="./app.js?v=20260729-034"></script>
+    <script defer src="./app.js?v=20260802-035"></script>
   </head>
   <body>
     <a class="skip-link" href="#main-content">跳至主要內容</a>
@@ -40,13 +40,15 @@
               <option value="deadline">8/1 交付</option>
             </select>
           </label>
-          <label class="theme-picker mode-picker" for="view-mode-select">
+          <div class="theme-picker mode-picker">
             <span>模式</span>
-            <select class="theme-control view-mode-control" id="view-mode-select" aria-label="操作模式">
-              <option value="preview">預覽模式</option>
-              <option value="edit">編輯模式</option>
-            </select>
-          </label>
+            <button
+              class="theme-control view-mode-control view-mode-toggle"
+              id="view-mode-toggle"
+              type="button"
+              aria-pressed="false"
+            >預覽模式</button>
+          </div>
           <label class="theme-picker" for="theme-select">
             <span>主題</span>
             <select class="theme-control" id="theme-select" aria-label="顯示主題">
@@ -109,9 +111,7 @@
           </div>
         </section>
 
-        <div class="global-edit-save" id="global-edit-save" hidden>
-          <button type="button" id="global-edit-save-button">儲存</button>
-        </div>
+        <div class="global-edit-save" id="global-edit-save" hidden></div>
 
         <section id="report-content">
           <div class="overview-grid" aria-label="報告摘要">

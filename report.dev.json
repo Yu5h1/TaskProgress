@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "report_id": "task-progress-development",
-  "updated_at": "2026-08-02T21:27:41+08:00",
+  "updated_at": "2026-08-02T23:28:23+08:00",
   "tasks": [
     {
       "id": "viewer-core",
@@ -93,11 +93,10 @@
     },
     {
       "id": "local-task-editing",
-      "next_step": "延續共用 Editor Surface：TaskCard、ItemRow 與優先級控制已共用，下一片先收斂全域模式切換，再依序處理新增控制、驗證訊息與儲存列；完成 Surface 後補 Undo／Redo 與跨檔案 transaction adapter。",
+      "next_step": "隔離 Svelte TaskCard／ItemRow parity spike 已直接採用正式 Editor Core 並通過 141 項 Node 測試與 production build；下一步讓 Svelte shell 唯讀載入 Viewer 的真實 report／time data，先完成 fixture／真實資料 parity，再接本機 capability 與安全儲存。",
       "blockers": [
-        "交付日會跨越 report.json、time.config.json 與衍生 time.analysis.json，尚需定義全部成功才提交的跨檔案交易及失敗復原。",
-        "正式人工工時／依據編輯需版本化更新 time.estimates.json 並重新產生 time.analysis.json；目前子項目工時膠囊只開啟唯讀估算明細。",
-        "正式 Viewer 與 Demo 已共用 framework-neutral Editor Core，以及 TaskCard、ItemRow、優先級控制 Surface；模式切換、新增、驗證、儲存列、Undo／Redo 及 time-view 跨檔案 transaction adapter 尚未完成。",
+        "交付日仍需定義 time.config.json staged payload、修改原因與私有歷史事件的正式 Schema／API，才能接上已完成的跨檔案 transaction adapter。",
+        "正式人工工時／依據編輯需定義版本化 time.estimates.json payload 並接上 transaction adapter 後重新產生 time.analysis.json；目前子項目工時膠囊只開啟唯讀估算明細。",
         "Demo 的四張狀態測試卡仍是 index.html 靜態標記，與共用 surface 產生的動態卡片是兩份來源；後續 TaskCard host 收斂時需決定是否改由 surface 產生。",
         "390px 版面與觸控編輯尚未驗證，因此目前正式編輯範圍仍以桌面滑鼠／鍵盤為準。"
       ],
@@ -133,6 +132,10 @@
         {
           "summary": "目前 Demo 持續作為可用且可回退的 browser-local UI MVP；正式 Editor 才評估 Svelte、Vue、React、Lit／Web Components 與原生基準，先抽離純 editor core，再以 parity spike 選型，不進行一次性重寫。",
           "reference": "plan.md#editor-框架化與大改-draft-01"
+        },
+        {
+          "summary": "第一個框架候選選擇 Svelte 5 + Vite；Vue 暫不安裝。Svelte 目前只存在隔離 spike，正式 Viewer／Demo 保持原樣，production migration 必須另過真實資料、能力授權、儲存錯誤與行動版 parity gate。",
+          "reference": "Documentation/EditorFrameworkDecision.md"
         },
         {
           "summary": "目前實作不是完全未分層：report/time model、priority/status policy 與本機安全寫入已獨立；但 app.js 與 time-view.js 仍是大型程序式 UI 控制器。跨檔案 Editor 新功能不得繼續直接堆入這兩個檔案，應先建立 DraftSession、EditCommand、validation 與 transaction adapter 邊界。",

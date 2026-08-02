@@ -74,7 +74,8 @@ test("each production task card has one bottom child-item add control", () => {
     renderTaskBody,
     /stableSortByStatus\(workGroups,[\s\S]*?if \(state\.editor\.editing\) \{\s*appendItemAdder\(columns, editableTask, "pending_items"\);\s*\}\s*card\.append\(columns\)/,
   );
-  assert.match(appSource, /aria-label", "增加待處理子任務"/);
+  assert.match(appSource, /createAddControl\(shell, \{[\s\S]*?triggerAriaLabel: "增加待處理子任務"/);
+  assert.match(appSource, /defaultPriority: PRIORITY_POLICY\.creationDefaultValue/);
 });
 
 test("production item time actions remain visible in global edit mode", () => {

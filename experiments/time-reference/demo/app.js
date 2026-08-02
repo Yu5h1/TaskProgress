@@ -392,6 +392,23 @@ const editorSurface = editorSurfaceRuntime.createEditorSurface({
     itemPrioritySelectClass: "task-item-priority-select",
     itemEditOrder: ["title", "delete", "priority", "content", "trailing"],
     itemPreviewWrap: true,
+    addItemFormClass: "task-item-add-form",
+    addTaskFormClass: "task-card-add-form",
+    addItemTriggerClass: "task-item-add",
+    addTaskTriggerClass: "task-card-add",
+    addTitleInputClass: "",
+    addSummaryInputClass: "",
+    addItemPriorityClass: "task-item-priority-select",
+    addTaskPriorityClass: "task-priority-select",
+    addCancelClass: "task-inline-cancel",
+    addSubmitClass: "task-inline-save",
+    addErrorClass: "task-inline-error",
+    addActionsClass: "task-inline-actions",
+    addContractClass: "task-add-contract",
+    saveBarStatusClass: "global-edit-save-status",
+    saveBarHistoryClass: "global-edit-history-actions",
+    saveBarHistoryButtonClass: "global-edit-history-button",
+    saveBarButtonClass: "",
   },
 });
 const filterStatusLabels = {
@@ -451,7 +468,6 @@ const elements = {
   progressValue: document.querySelector("#project-progress-value"),
   progressMeter: document.querySelector("#project-progress-meter"),
   globalEditSave: document.querySelector("#global-edit-save"),
-  globalEditSaveButton: document.querySelector("#global-edit-save-button"),
   updatedAt: document.querySelector("#updated-at"),
   analysisMethodMeta: document.querySelector("#analysis-method-meta"),
   analysisMethod: document.querySelector("#analysis-method"),
@@ -469,7 +485,7 @@ const elements = {
   taskCardAddHost: document.querySelector("#task-card-add-host"),
   heroSummary: document.querySelector(".hero-summary"),
   timeScenarioSelect: document.querySelector("#time-scenario-select"),
-  viewModeSelect: document.querySelector("#view-mode-select"),
+  viewModeToggle: document.querySelector("#view-mode-toggle"),
   themeSelect: document.querySelector("#theme-select"),
   dialog: document.querySelector("#detail-dialog"),
   dialogKicker: document.querySelector("#dialog-kicker"),
@@ -503,7 +519,6 @@ let taskStructureChanged = false;
 let demoEditorSession = null;
 let addingTaskId = null;
 let addingTopLevelTask = false;
-let lastDeletedTaskItem = null;
 const baseTaskDefinitions = elements.taskCards.map((card) => ({
   id: card.dataset.taskId,
   title: card.querySelector("h3")?.textContent.trim() ?? card.dataset.taskId,
@@ -527,6 +542,9 @@ const estimateDrafts = new Map();
 let capacityDraft = null;
 let timeInputDirty = false;
 let timeDraftError = null;
+let viewModeControl = null;
+let saveBarControl = null;
+let globalSaving = false;
 
 const weekdayLabels = new Map([
   [1, "一"],
@@ -1006,6 +1024,23 @@ function applyDemoEditorCommand(command) {
   return true;
 }
 
+function applyDemoEditorHistory(direction) {
+  if (!globalEditingEnabled() || globalSaving || !demoEditorSession) return false;
+  const changed = direction === "redo"
+    ? demoEditorSession.redo()
+    : demoEditorSession.undo();
+  if (!changed) return false;
+  syncLegacyStateFromEditorSession();
+  addingTaskId = null;
+  addingTopLevelTask = false;
+  updateTaskStructureChanged();
+  updateTaskContentDirty();
+  renderTaskSummaryControls();
+  renderTaskItems();
+  renderTopLevelTaskAdd();
+  return true;
+}
+
 function allTaskItemIds() {
   return elements.taskCards.flatMap(
     (card) => taskItemsFor(card.dataset.taskId).map((item) => item.id),
@@ -1069,8 +1104,16 @@ function taskContentSignature(definitions, summaries, primaryItems, auxiliaryIte
 }
 
 function renderGlobalEditSave() {
-  elements.globalEditSave.hidden =
-    !globalEditingEnabled() || (!taskContentDirty && !timeInputDirty);
+  const dirty = taskContentDirty || timeInputDirty;
+  const history = demoEditorSession?.history;
+  saveBarControl?.setState({
+    editing: globalEditingEnabled(),
+    dirty,
+    saving: globalSaving,
+    canUndo: Boolean(history?.canUndo),
+    canRedo: Boolean(history?.canRedo),
+    message: dirty ? "有尚未儲存的修改" : "尚未修改",
+  });
 }
 
 function updateTimeInputDirty() {
@@ -1330,7 +1373,6 @@ function discardGlobalDrafts() {
   syncLegacyStateFromEditorSession();
   addingTaskId = null;
   addingTopLevelTask = false;
-  lastDeletedTaskItem = null;
 
   estimateDrafts.clear();
   capacityDraft = null;
@@ -1350,12 +1392,7 @@ function discardGlobalDrafts() {
 function setViewMode(nextMode) {
   const leavingEditMode = nextMode !== "edit" && viewMode === "edit";
   viewMode = nextMode === "edit" && localEditingAllowed ? "edit" : "preview";
-  document.documentElement.dataset.viewMode = viewMode;
-  elements.viewModeSelect.value = viewMode;
-  elements.viewModeSelect.disabled = !localEditingAllowed;
-  if (!localEditingAllowed) {
-    elements.viewModeSelect.title = "編輯模式只在本機 Demo 開放";
-  }
+  viewModeControl?.setMode(viewMode);
   if (leavingEditMode && hasUnsavedDrafts()) discardGlobalDrafts();
   addingTaskId = null;
   if (elements.dialog.open) elements.dialog.close();
@@ -1363,7 +1400,7 @@ function setViewMode(nextMode) {
   renderTaskItems();
   renderTopLevelTaskAdd();
   renderGlobalEditSave();
-  return true;
+  return viewMode;
 }
 
 function applyCapacityProfile(data, profile, updatedAt = null) {
@@ -2715,7 +2752,6 @@ function deleteTaskItem(taskId, item) {
   const items = taskItemsFor(taskId);
   const index = items.findIndex((candidate) => candidate.id === item.id);
   if (index < 0) return;
-  lastDeletedTaskItem = { taskId, item: { ...items[index] }, index };
   const field = ["done", "success"].includes(item.status)
     ? "completed_items"
     : "pending_items";
@@ -2785,16 +2821,17 @@ function createDemoItemRow(taskId, taskItem, estimate = null) {
 }
 
 function validateTaskItemDrafts() {
-  let firstInvalidInput = null;
+  let firstInvalid = null;
 
   document.querySelectorAll("#task-list .task-summary-direct-input").forEach((input) => {
     const result = taskEditingModel.normalizeTaskDescription(input.value, 1000);
     if (!result.ok) {
-      input.setCustomValidity(result.cancelled ? "任務描述不可為空白。" : result.error);
-      firstInvalidInput ??= input;
+      const message = result.cancelled ? "任務描述不可為空白。" : result.error;
+      editorSurface.setFieldError(input, message);
+      firstInvalid ??= { input, message };
       return;
     }
-    input.setCustomValidity("");
+    editorSurface.clearFieldError(input);
     applyDemoEditorCommand({
       type: "set-task-field",
       taskId: input.dataset.taskId,
@@ -2809,11 +2846,12 @@ function validateTaskItemDrafts() {
     if (!item) return;
     const result = taskEditingModel.normalizeTaskDescription(input.value, 300);
     if (!result.ok) {
-      input.setCustomValidity(result.cancelled ? "子項目名稱不可為空白。" : result.error);
-      firstInvalidInput ??= input;
+      const message = result.cancelled ? "子項目名稱不可為空白。" : result.error;
+      editorSurface.setFieldError(input, message);
+      firstInvalid ??= { input, message };
       return;
     }
-    input.setCustomValidity("");
+    editorSurface.clearFieldError(input);
     applyDemoEditorCommand({
       type: "set-item-field",
       taskId: input.dataset.taskId,
@@ -2826,9 +2864,9 @@ function validateTaskItemDrafts() {
     });
   });
 
-  if (firstInvalidInput) {
-    firstInvalidInput.focus();
-    firstInvalidInput.reportValidity();
+  if (firstInvalid) {
+    editorSurface.reportFieldError(firstInvalid.input, firstInvalid.message);
+    saveBarControl?.showError(firstInvalid.message);
     return false;
   }
 
@@ -2865,6 +2903,7 @@ function prepareEstimateDrafts() {
 
 function revealTimeDraftError(error) {
   timeDraftError = error;
+  saveBarControl?.showError(error.message);
   if (error.kind === "capacity" && analysis?.summary?.deadline) {
     timeDetailsExpanded = true;
     projectDetailTab = "capacity";
@@ -2878,9 +2917,6 @@ function revealTimeDraftError(error) {
     if (item) showItemDetail(item);
     if (item) return;
   }
-  elements.globalEditSaveButton.setCustomValidity(error.message);
-  elements.globalEditSaveButton.reportValidity();
-  elements.globalEditSaveButton.setCustomValidity("");
 }
 
 function previewTimeDrafts(target) {
@@ -2981,10 +3017,11 @@ function saveGlobalDrafts() {
       updated_at: capacityUpdatedAt,
     };
   }
+  globalSaving = true;
+  renderGlobalEditSave();
   if (!writeDemoOverrides(stagedOverrides)) {
-    elements.globalEditSaveButton.setCustomValidity("儲存失敗；草稿仍保留，沒有部分提交。");
-    elements.globalEditSaveButton.reportValidity();
-    elements.globalEditSaveButton.setCustomValidity("");
+    globalSaving = false;
+    saveBarControl?.showError("儲存失敗；草稿仍保留，沒有部分提交。");
     return;
   }
   commitPersistedTaskContent();
@@ -3008,6 +3045,7 @@ function saveGlobalDrafts() {
   estimateDrafts.clear();
   capacityDraft = null;
   timeDraftError = null;
+  globalSaving = false;
   updateTimeInputDirty();
 
   if (timeChanged) {
@@ -3024,130 +3062,59 @@ function saveGlobalDrafts() {
   renderGlobalEditSave();
 }
 
-function createDeletedTaskItemNotice(taskId) {
-  const row = document.createElement("li");
-  row.className = "task-item-undo-row";
-  const copy = document.createElement("span");
-  copy.textContent = `已刪除「${lastDeletedTaskItem.item.title}」`;
-  const undo = document.createElement("button");
-  undo.type = "button";
-  undo.textContent = "復原";
-  undo.addEventListener("click", () => {
-    const restored = lastDeletedTaskItem.item;
-    const field = ["done", "success"].includes(restored.status)
-      ? "completed_items"
-      : "pending_items";
-    applyDemoEditorCommand({
-      type: "add-item",
-      taskId,
-      field,
-      item: {
-        id: restored.id,
-        title: restored.title,
-        priority: restored.priority,
-        demoStatus: restored.status,
-        demoOrder: lastDeletedTaskItem.index - 0.5,
-      },
-    });
-    lastDeletedTaskItem = null;
-    renderTaskItems();
-  });
-  row.append(copy, undo);
-  return row;
-}
-
 function createTaskItemAddRow(taskId = primaryTaskId) {
   const row = document.createElement("li");
   row.className = "task-item-add-row";
-  if (addingTaskId !== taskId) {
-    const add = document.createElement("button");
-    add.type = "button";
-    add.className = "task-item-add";
-    add.textContent = "+";
-    const cardTitle = elements.taskCards
-      .find((card) => card.dataset.taskId === taskId)
-      ?.querySelector("h3")?.textContent.trim();
-    add.setAttribute("aria-label", `在「${cardTitle ?? taskId}」新增尚未完成的子項目`);
-    add.addEventListener("click", () => {
+  const cardTitle = elements.taskCards
+    .find((card) => card.dataset.taskId === taskId)
+    ?.querySelector("h3")?.textContent.trim();
+  editorSurface.createAddControl(row, {
+    kind: "item",
+    expanded: addingTaskId === taskId,
+    triggerAriaLabel: `在「${cardTitle ?? taskId}」新增尚未完成的子項目`,
+    titlePlaceholder: "新增尚未完成的任務描述",
+    titleAriaLabel: "新增子項目描述",
+    priorityAriaLabel: "新子項目優先級",
+    defaultPriority: CREATION_PRIORITY,
+    onOpen: () => {
       addingTaskId = taskId;
       renderTaskItems();
-    });
-    row.append(add);
-    return row;
-  }
-
-  const form = document.createElement("form");
-  form.className = "task-item-add-form";
-  const input = document.createElement("input");
-  input.type = "text";
-  input.maxLength = 300;
-  input.placeholder = "新增尚未完成的任務描述";
-  input.setAttribute("aria-label", "新增子項目描述");
-  const prioritySelect = createTaskItemPrioritySelect(
-    { title: "新子項目", priority: CREATION_PRIORITY },
-    "新子項目優先級",
-  );
-  const error = document.createElement("span");
-  error.className = "task-inline-error";
-  error.hidden = true;
-  const cancel = document.createElement("button");
-  cancel.type = "button";
-  cancel.className = "task-inline-cancel";
-  cancel.textContent = "取消";
-  const submit = document.createElement("button");
-  submit.type = "submit";
-  submit.className = "task-inline-save";
-  submit.textContent = "新增";
-  form.append(input, prioritySelect, cancel, submit, error);
-  row.append(form);
-
-  const close = () => {
-    addingTaskId = null;
-    renderTaskItems();
-  };
-  cancel.addEventListener("click", close);
-  input.addEventListener("keydown", (event) => {
-    if (event.key === "Escape") {
-      event.preventDefault();
-      close();
-    }
-  });
-  form.addEventListener("submit", (event) => {
-    event.preventDefault();
-    const result = taskEditingModel.normalizeTaskDescription(input.value, 300);
-    if (!result.ok) {
-      if (result.cancelled) {
-        close();
+    },
+    onCancel: () => {
+      addingTaskId = null;
+      renderTaskItems();
+    },
+    onSubmit: ({ title, priority }, control) => {
+      const result = taskEditingModel.normalizeTaskDescription(title, 300);
+      if (!result.ok) {
+        if (result.cancelled) {
+          addingTaskId = null;
+          renderTaskItems();
+          return;
+        }
+        control.showError(result.error);
         return;
       }
-      error.textContent = result.error;
-      error.hidden = false;
-      return;
-    }
-    const id = demoEditorSession.createItemId(
-      taskId,
-      `item-${Date.now().toString(36)}`,
-    );
-    applyDemoEditorCommand({
-      type: "add-item",
-      taskId,
-      field: "pending_items",
-      item: {
-        id,
-        title: result.value,
-        priority: taskEditingModel.normalizePriority(
-          prioritySelect.value,
-          CREATION_PRIORITY,
-        ),
-        demoStatus: "pending",
-        demoOrder: taskItemsFor(taskId).length,
-      },
-    });
-    addingTaskId = null;
-    lastDeletedTaskItem = null;
-    renderTaskItems();
+      const id = demoEditorSession.createItemId(
+        taskId,
+        `item-${Date.now().toString(36)}`,
+      );
+      applyDemoEditorCommand({
+        type: "add-item",
+        taskId,
+        field: "pending_items",
+        item: {
+          id,
+          title: result.value,
+          priority: taskEditingModel.normalizePriority(priority, CREATION_PRIORITY),
+          demoStatus: "pending",
+          demoOrder: taskItemsFor(taskId).length,
+        },
+      });
+      addingTaskId = null;
+      renderTaskItems();
+    },
   });
-  queueMicrotask(() => input.focus());
   return row;
 }
 
@@ -3160,116 +3127,66 @@ function renderTopLevelTaskAdd() {
     return;
   }
 
-  if (!addingTopLevelTask) {
-    const add = document.createElement("button");
-    add.type = "button";
-    add.className = "task-card-add";
-    add.textContent = "+";
-    add.setAttribute("aria-label", "新增最外層任務卡");
-    add.addEventListener("click", () => {
+  editorSurface.createAddControl(host, {
+    kind: "task",
+    expanded: addingTopLevelTask,
+    triggerAriaLabel: "新增最外層任務卡",
+    titleMaxLength: 160,
+    summaryPlaceholder: "任務描述",
+    priorityAriaLabel: "新任務卡優先級",
+    defaultPriority: CREATION_PRIORITY,
+    contractText: "預設狀態：待處理；預設優先級：一般；ID 會獨立產生",
+    onOpen: () => {
       addingTopLevelTask = true;
       renderTopLevelTaskAdd();
-    });
-    host.replaceChildren(add);
-    return;
-  }
-
-  const form = document.createElement("form");
-  form.className = "task-card-add-form";
-  const title = document.createElement("input");
-  title.type = "text";
-  title.maxLength = 200;
-  title.placeholder = "任務名稱";
-  title.setAttribute("aria-label", "新任務名稱");
-  const summary = document.createElement("textarea");
-  summary.rows = 2;
-  summary.maxLength = 1000;
-  summary.placeholder = "任務描述";
-  summary.setAttribute("aria-label", "新任務描述");
-  const prioritySelect = createPrioritySelect(
-    CREATION_PRIORITY,
-    "新任務卡優先級",
-    "task-priority-select",
-  );
-  const contract = document.createElement("span");
-  contract.className = "task-add-contract";
-  contract.textContent = "預設狀態：待處理；預設優先級：一般；ID 會獨立產生";
-  const error = document.createElement("span");
-  error.className = "task-inline-error";
-  error.hidden = true;
-  const actions = document.createElement("div");
-  actions.className = "task-inline-actions";
-  const cancel = document.createElement("button");
-  cancel.type = "button";
-  cancel.className = "task-inline-cancel";
-  cancel.textContent = "取消";
-  const submit = document.createElement("button");
-  submit.type = "submit";
-  submit.className = "task-inline-save";
-  submit.textContent = "新增任務";
-  actions.append(cancel, submit);
-  form.append(title, summary, prioritySelect, contract, error, actions);
-  host.replaceChildren(form);
-
-  const close = () => {
-    addingTopLevelTask = false;
-    renderTopLevelTaskAdd();
-  };
-  cancel.addEventListener("click", close);
-  form.addEventListener("keydown", (event) => {
-    if (event.key === "Escape") {
-      event.preventDefault();
-      close();
-    }
-  });
-  form.addEventListener("submit", (event) => {
-    event.preventDefault();
-    const titleResult = taskEditingModel.normalizeTaskDescription(title.value, 200);
-    const summaryResult = taskEditingModel.normalizeTaskDescription(summary.value, 1000);
-    if (!titleResult.ok || !summaryResult.ok) {
-      if (titleResult.cancelled && summaryResult.cancelled) {
-        close();
+    },
+    onCancel: () => {
+      addingTopLevelTask = false;
+      renderTopLevelTaskAdd();
+    },
+    onSubmit: ({ title, summary, priority }, control) => {
+      const titleResult = taskEditingModel.normalizeTaskDescription(title, 160);
+      const summaryResult = taskEditingModel.normalizeTaskDescription(summary, 1000);
+      if (!titleResult.ok || !summaryResult.ok) {
+        if (titleResult.cancelled && summaryResult.cancelled) {
+          addingTopLevelTask = false;
+          renderTopLevelTaskAdd();
+          return;
+        }
+        control.showError(!titleResult.ok
+          ? (titleResult.cancelled ? "請填寫任務名稱。" : titleResult.error)
+          : (summaryResult.cancelled ? "請填寫任務描述。" : summaryResult.error));
         return;
       }
-      error.textContent = !titleResult.ok
-        ? (titleResult.cancelled ? "請填寫任務名稱。" : titleResult.error)
-        : (summaryResult.cancelled ? "請填寫任務描述。" : summaryResult.error);
-      error.hidden = false;
-      return;
-    }
-    const definition = {
-      id: demoEditorSession.createTaskId(`task-${Date.now().toString(36)}`),
-      title: titleResult.value,
-      summary: summaryResult.value,
-      status: "planned",
-      priority: taskEditingModel.normalizePriority(
-        prioritySelect.value,
-        CREATION_PRIORITY,
-      ),
-      baseCompleted: 0,
-      baseTotal: 0,
-    };
-    applyDemoEditorCommand({
-      type: "add-task",
-      task: {
-        id: definition.id,
-        title: definition.title,
-        summary: definition.summary,
-        status: definition.status,
-        priority: definition.priority,
-        completed_items: [],
-        pending_items: [],
-        demoBaseCompleted: 0,
-        demoBaseTotal: 0,
-      },
-    });
-    addingTopLevelTask = false;
-    lastDeletedTaskItem = null;
-    renderTaskSummaryControls();
-    renderTaskItems();
-    renderTopLevelTaskAdd();
+      const definition = {
+        id: demoEditorSession.createTaskId(`task-${Date.now().toString(36)}`),
+        title: titleResult.value,
+        summary: summaryResult.value,
+        status: "planned",
+        priority: taskEditingModel.normalizePriority(priority, CREATION_PRIORITY),
+        baseCompleted: 0,
+        baseTotal: 0,
+      };
+      applyDemoEditorCommand({
+        type: "add-task",
+        task: {
+          id: definition.id,
+          title: definition.title,
+          summary: definition.summary,
+          status: definition.status,
+          priority: definition.priority,
+          completed_items: [],
+          pending_items: [],
+          demoBaseCompleted: 0,
+          demoBaseTotal: 0,
+        },
+      });
+      addingTopLevelTask = false;
+      renderTaskSummaryControls();
+      renderTaskItems();
+      renderTopLevelTaskAdd();
+    },
   });
-  queueMicrotask(() => title.focus());
 }
 
 function renderAuxiliaryTaskItems() {
@@ -3284,12 +3201,6 @@ function renderAuxiliaryTaskItems() {
 
       const rows = orderedTaskItems(items)
         .map((item) => createDemoItemRow(taskId, item));
-      if (
-        globalEditingEnabled()
-        && lastDeletedTaskItem?.taskId === taskId
-      ) {
-        rows.push(createDeletedTaskItemNotice(taskId));
-      }
       if (globalEditingEnabled()) rows.push(createTaskItemAddRow(taskId));
       list.replaceChildren(...rows);
       panel.hidden = !globalEditingEnabled() && items.length === 0;
@@ -3321,12 +3232,6 @@ function renderTaskItems() {
     const estimate = estimates.get(taskItem.id);
     return createDemoItemRow(primaryTaskId, taskItem, estimate);
   });
-  if (
-    globalEditingEnabled()
-    && lastDeletedTaskItem?.taskId === primaryTaskId
-  ) {
-    rows.push(createDeletedTaskItemNotice(primaryTaskId));
-  }
   if (globalEditingEnabled()) rows.push(createTaskItemAddRow(primaryTaskId));
   elements.workList.replaceChildren(...rows);
 
@@ -3543,10 +3448,22 @@ elements.filterButtons.forEach((button) => {
   });
 });
 
-elements.globalEditSaveButton.addEventListener("click", saveGlobalDrafts);
-
-elements.viewModeSelect.addEventListener("change", () => {
-  setViewMode(elements.viewModeSelect.value);
+viewModeControl = editorSurface.createModeController(elements.viewModeToggle, {
+  available: localEditingAllowed,
+  unavailableTitle: "編輯模式只在本機 Demo 開放",
+  onRequest: setViewMode,
+});
+saveBarControl = editorSurface.createSaveBar(elements.globalEditSave, {
+  statusId: "global-edit-save-status",
+  buttonId: "global-edit-save-button",
+  onUndo: () => applyDemoEditorHistory("undo"),
+  onRedo: () => applyDemoEditorHistory("redo"),
+  onSave: saveGlobalDrafts,
+});
+editorSurface.bindHistoryShortcuts(document, {
+  isActive: () => globalEditingEnabled() && !globalSaving,
+  onUndo: () => applyDemoEditorHistory("undo"),
+  onRedo: () => applyDemoEditorHistory("redo"),
 });
 
 elements.timeScenarioSelect.addEventListener("change", () => {

@@ -58,6 +58,11 @@ function createDocumentStub() {
           this.children.push(child);
         });
       },
+      replaceChildren(...nodes) {
+        this.children = [];
+        this._text = null;
+        this.append(...nodes);
+      },
       prepend(...nodes) {
         this._text = null;
         nodes.forEach((child) => {
@@ -81,8 +86,23 @@ function createDocumentStub() {
       addEventListener(type, handler) {
         (this.listeners[type] ??= []).push(handler);
       },
-      dispatch(type) {
-        (this.listeners[type] ?? []).forEach((handler) => handler());
+      dispatch(type, event = {}) {
+        const stableEvent = {
+          key: undefined,
+          preventDefault() {},
+          ...event,
+        };
+        (this.listeners[type] ?? []).forEach((handler) => handler(stableEvent));
+      },
+      focus() {
+        this.focused = true;
+      },
+      setCustomValidity(message) {
+        this.validationMessage = String(message);
+      },
+      reportValidity() {
+        this.validityReported = true;
+        return !this.validationMessage;
       },
       querySelector(className) {
         const target = className.replace(".", "");
@@ -145,6 +165,19 @@ function demoSurface() {
       itemPrioritySelectClass: "task-item-priority-select",
       itemEditOrder: ["title", "delete", "priority", "content", "trailing"],
       itemPreviewWrap: true,
+      addItemFormClass: "task-item-add-form",
+      addTaskFormClass: "task-card-add-form",
+      addItemTriggerClass: "task-item-add",
+      addTaskTriggerClass: "task-card-add",
+      addTitleInputClass: "",
+      addSummaryInputClass: "",
+      addItemPriorityClass: "task-item-priority-select",
+      addTaskPriorityClass: "task-priority-select",
+      addCancelClass: "task-inline-cancel",
+      addSubmitClass: "task-inline-save",
+      addErrorClass: "task-inline-error",
+      addActionsClass: "task-inline-actions",
+      addContractClass: "task-add-contract",
     },
   });
 }
@@ -302,6 +335,212 @@ test("shared priority select reports normalized values and keeps host option sty
   assert.ok(!demo.className.split(" ").includes("priority-unspecified"));
 });
 
+test("shared add control owns collapsed trigger and item form behavior", () => {
+  const document = createDocumentStub();
+  const surface = surfaceRuntime.createEditorSurface({
+    document,
+    priorityPolicy,
+    statusMeta: PRODUCTION_STATUS_META,
+  });
+  const host = document.createElement("div");
+  let opened = 0;
+  const collapsed = surface.createAddControl(host, {
+    kind: "item",
+    triggerAriaLabel: "增加待處理子任務",
+    onOpen: () => { opened += 1; },
+  });
+  assert.equal(collapsed.trigger.className, "inline-add-trigger");
+  assert.equal(collapsed.trigger.textContent, "+");
+  assert.equal(collapsed.trigger.getAttribute("aria-label"), "增加待處理子任務");
+  collapsed.trigger.dispatch("click");
+  assert.equal(opened, 1);
+
+  let cancelled = 0;
+  let submitted = null;
+  const expanded = surface.createAddControl(host, {
+    kind: "item",
+    expanded: true,
+    defaultPriority: 2,
+    onCancel: () => { cancelled += 1; },
+    onSubmit: (values) => { submitted = values; },
+  });
+  assert.equal(expanded.form.className, "inline-add-form");
+  assert.deepEqual(expanded.form.children, [
+    expanded.titleInput,
+    expanded.prioritySelect,
+    expanded.cancelButton,
+    expanded.submitButton,
+    expanded.error,
+  ]);
+  assert.equal(expanded.titleInput.maxLength, 300);
+  assert.equal(expanded.prioritySelect.value, "2");
+  assert.equal(expanded.error.getAttribute("role"), "alert");
+  expanded.showError("描述格式錯誤");
+  assert.equal(expanded.error.hidden, false);
+  assert.equal(expanded.error.textContent, "描述格式錯誤");
+  expanded.titleInput.value = "新增項目";
+  expanded.prioritySelect.value = "1";
+  expanded.form.dispatch("submit");
+  assert.deepEqual(submitted, { title: "新增項目", summary: "", priority: 1 });
+  assert.equal(expanded.error.hidden, true);
+  expanded.form.dispatch("keydown", { key: "Escape" });
+  expanded.cancelButton.dispatch("click");
+  assert.equal(cancelled, 2);
+});
+
+test("shared task add control preserves Demo presentation and field contract", () => {
+  const document = createDocumentStub();
+  const surface = surfaceRuntime.createEditorSurface({
+    document,
+    priorityPolicy,
+    statusMeta: PRODUCTION_STATUS_META,
+    presentation: {
+      addTaskFormClass: "task-card-add-form",
+      addTaskTriggerClass: "task-card-add",
+      addTitleInputClass: "",
+      addSummaryInputClass: "",
+      addTaskPriorityClass: "task-priority-select",
+      addCancelClass: "task-inline-cancel",
+      addSubmitClass: "task-inline-save",
+      addErrorClass: "task-inline-error",
+      addActionsClass: "task-inline-actions",
+      addContractClass: "task-add-contract",
+    },
+  });
+  const host = document.createElement("div");
+  const control = surface.createAddControl(host, {
+    kind: "task",
+    expanded: true,
+    contractText: "預設狀態：待處理；預設優先級：一般；ID 會獨立產生",
+  });
+  assert.equal(control.form.className, "task-card-add-form");
+  assert.equal(control.titleInput.maxLength, 160);
+  assert.equal(control.summaryInput.maxLength, 1000);
+  assert.equal(control.prioritySelect.className, "task-priority-select");
+  assert.equal(control.contract.className, "task-add-contract");
+  assert.equal(
+    control.contract.textContent,
+    "預設狀態：待處理；預設優先級：一般；ID 會獨立產生",
+  );
+  const actions = control.form.children.at(-1);
+  assert.equal(actions.className, "task-inline-actions");
+  assert.deepEqual(actions.children, [control.cancelButton, control.submitButton]);
+});
+
+test("shared field validation synchronizes native validity, ARIA, and focus", () => {
+  const document = createDocumentStub();
+  const surface = surfaceRuntime.createEditorSurface({
+    document,
+    priorityPolicy,
+    statusMeta: PRODUCTION_STATUS_META,
+  });
+  const input = document.createElement("input");
+  assert.equal(surface.setFieldError(input, "描述不可為空白。"), "描述不可為空白。");
+  assert.equal(input.validationMessage, "描述不可為空白。");
+  assert.equal(input.getAttribute("aria-invalid"), "true");
+  assert.equal(surface.reportFieldError(input, "描述格式錯誤。"), true);
+  assert.equal(input.validationMessage, "描述格式錯誤。");
+  assert.equal(input.focused, true);
+  assert.equal(input.validityReported, true);
+  input.dispatch("input");
+  assert.equal(input.validationMessage, "");
+  assert.equal(input.getAttribute("aria-invalid"), "false");
+});
+
+test("shared save bar projects clean, dirty, saving, and error states", () => {
+  const document = createDocumentStub();
+  const surface = surfaceRuntime.createEditorSurface({
+    document,
+    priorityPolicy,
+    statusMeta: PRODUCTION_STATUS_META,
+  });
+  const host = document.createElement("aside");
+  let saves = 0;
+  let undos = 0;
+  let redos = 0;
+  const saveBar = surface.createSaveBar(host, {
+    statusId: "save-status",
+    buttonId: "save-button",
+    onUndo: () => { undos += 1; },
+    onRedo: () => { redos += 1; },
+    onSave: () => { saves += 1; },
+  });
+  assert.deepEqual(host.children, [saveBar.status, saveBar.history, saveBar.button]);
+  assert.equal(host.hidden, true);
+  assert.equal(host.getAttribute("aria-live"), "polite");
+  assert.equal(saveBar.status.getAttribute("role"), "status");
+  assert.equal(saveBar.button.disabled, true);
+  assert.equal(saveBar.undoButton.disabled, true);
+  assert.equal(saveBar.redoButton.disabled, true);
+
+  saveBar.setState({ editing: true, dirty: false });
+  assert.equal(host.hidden, false);
+  assert.equal(host.dataset.state, "clean");
+  assert.equal(saveBar.status.textContent, "尚未修改");
+  assert.equal(saveBar.button.disabled, true);
+
+  saveBar.setState({ editing: true, dirty: true, canUndo: true });
+  assert.equal(host.dataset.state, "dirty");
+  assert.equal(saveBar.status.textContent, "有尚未儲存的修改");
+  assert.equal(saveBar.button.disabled, false);
+  assert.equal(saveBar.undoButton.disabled, false);
+  assert.equal(saveBar.redoButton.disabled, true);
+  saveBar.undoButton.dispatch("click");
+  assert.equal(undos, 1);
+  saveBar.setState({ canUndo: false, canRedo: true });
+  saveBar.redoButton.dispatch("click");
+  assert.equal(redos, 1);
+  saveBar.button.dispatch("click");
+  assert.equal(saves, 1);
+
+  saveBar.setState({ saving: true });
+  assert.equal(host.dataset.state, "saving");
+  assert.equal(host.getAttribute("aria-busy"), "true");
+  assert.equal(saveBar.button.textContent, "正在儲存…");
+  assert.equal(saveBar.button.disabled, true);
+  assert.equal(saveBar.redoButton.disabled, true);
+  saveBar.showError("儲存衝突；草稿仍保留。");
+  assert.equal(host.dataset.state, "error");
+  assert.equal(host.getAttribute("aria-busy"), "false");
+  assert.equal(saveBar.status.textContent, "儲存衝突；草稿仍保留。");
+  assert.equal(saveBar.button.disabled, false);
+});
+
+test("shared history shortcuts handle platform undo and redo only while active", () => {
+  const document = createDocumentStub();
+  const surface = surfaceRuntime.createEditorSurface({
+    document,
+    priorityPolicy,
+    statusMeta: PRODUCTION_STATUS_META,
+  });
+  const target = document.createElement("div");
+  let active = true;
+  let undos = 0;
+  let redos = 0;
+  let prevented = 0;
+  surface.bindHistoryShortcuts(target, {
+    isActive: () => active,
+    onUndo: () => { undos += 1; return true; },
+    onRedo: () => { redos += 1; return true; },
+  });
+
+  const event = (key, extra = {}) => ({
+    key,
+    ctrlKey: true,
+    preventDefault: () => { prevented += 1; },
+    ...extra,
+  });
+  target.dispatch("keydown", event("z"));
+  target.dispatch("keydown", event("z", { shiftKey: true }));
+  target.dispatch("keydown", event("y"));
+  active = false;
+  target.dispatch("keydown", event("z"));
+
+  assert.equal(undos, 1);
+  assert.equal(redos, 2);
+  assert.equal(prevented, 3);
+});
+
 test("shared item rows preserve host layout while sharing preview semantics", () => {
   const item = { id: "item-a", title: "共用子項目", priority: 1 };
   const production = productionSurface().createItemRow(item, {
@@ -382,6 +621,55 @@ test("legacy string items remain read-only even when the host is editing", () =>
   assert.equal(item.title.textContent, "舊格式子項目");
 });
 
+test("shared mode controller keeps toggle state, availability, and ARIA synchronized", async () => {
+  const document = createDocumentStub();
+  const control = document.createElement("button");
+  const root = { dataset: {} };
+  const requests = [];
+  const controller = productionSurface().createModeController(control, {
+    root,
+    available: true,
+    onRequest: (nextMode, currentMode) => {
+      requests.push([currentMode, nextMode]);
+      return nextMode;
+    },
+  });
+
+  assert.equal(controller.mode, "preview");
+  assert.equal(control.textContent, "預覽模式");
+  assert.equal(control.getAttribute("aria-pressed"), "false");
+  assert.equal(control.getAttribute("aria-label"), "目前為預覽模式；按下切換到編輯模式");
+  assert.equal(root.dataset.viewMode, "preview");
+
+  assert.equal(await controller.requestMode("edit"), true);
+  assert.equal(controller.mode, "edit");
+  assert.equal(control.textContent, "編輯模式");
+  assert.equal(control.getAttribute("aria-pressed"), "true");
+  assert.equal(root.dataset.viewMode, "edit");
+  assert.deepEqual(requests, [["preview", "edit"]]);
+
+  controller.setBusy(true);
+  assert.equal(control.disabled, true);
+  assert.equal(await controller.requestMode("preview"), false);
+  controller.setBusy(false);
+  controller.setAvailable(false);
+  assert.equal(controller.mode, "preview");
+  assert.equal(control.disabled, true);
+});
+
+test("shared mode controller preserves the current mode when a host rejects transition", async () => {
+  const document = createDocumentStub();
+  const control = document.createElement("button");
+  const controller = productionSurface().createModeController(control, {
+    available: true,
+    onRequest: () => false,
+  });
+  assert.equal(await controller.requestMode("edit"), false);
+  assert.equal(controller.mode, "preview");
+  assert.equal(control.disabled, false);
+  assert.equal(control.getAttribute("aria-pressed"), "false");
+});
+
 test("setTaskFraction keeps the fraction label and accessible text together", () => {
   const surface = productionSurface();
   const shell = surface.createTaskCardShell(sampleTask, { completed: 1, total: 3 });
@@ -390,7 +678,7 @@ test("setTaskFraction keeps the fraction label and accessible text together", ()
   assert.equal(shell.fraction.getAttribute("aria-label"), "子項目完成 3，共 3");
 });
 
-test("production Viewer and Demo build task cards and item rows through the shared surface", async () => {
+test("production Viewer and Demo share cards, rows, add/save controls, validation, and mode", async () => {
   const [viewerApp, demoApp, demoHtml] = await Promise.all([
     readFile(new URL("../viewer/assets/app.js", import.meta.url), "utf8"),
     readFile(new URL("../experiments/time-reference/demo/app.js", import.meta.url), "utf8"),
@@ -400,10 +688,24 @@ test("production Viewer and Demo build task cards and item rows through the shar
   assert.match(viewerApp, /from "\.\/editor-surface\.js"/);
   assert.match(viewerApp, /const shell = createTaskCardShell\(task, \{/);
   assert.match(viewerApp, /const \{ row \} = createItemRow\(item, \{/);
+  assert.match(viewerApp, /createAddControl\(shell, \{/);
+  assert.match(viewerApp, /createAddControl\(elements\.taskAddShell, \{/);
+  assert.match(viewerApp, /saveBarControl = createSaveBar\(elements\.editSaveBar, \{/);
+  assert.match(viewerApp, /bindHistoryShortcuts\(document, \{/);
+  assert.match(viewerApp, /viewModeControl = createModeController\(elements\.viewModeToggle, \{/);
   assert.match(demoHtml, /editor-surface-runtime\.js/);
   assert.match(demoApp, /editorSurfaceRuntime\.createEditorSurface\(\{/);
   assert.match(demoApp, /const shell = editorSurface\.createTaskCardShell\(/);
   assert.match(demoApp, /return editorSurface\.createItemRow\(taskItem, \{/);
+  assert.match(demoApp, /editorSurface\.createAddControl\(row, \{/);
+  assert.match(demoApp, /editorSurface\.createAddControl\(host, \{/);
+  assert.match(demoApp, /saveBarControl = editorSurface\.createSaveBar\(elements\.globalEditSave, \{/);
+  assert.match(demoApp, /editorSurface\.bindHistoryShortcuts\(document, \{/);
+  assert.match(demoApp, /editorSurface\.setFieldError\(input, message\)/);
+  assert.match(demoApp, /editorSurface\.reportFieldError\(firstInvalid\.input, firstInvalid\.message\)/);
+  assert.match(demoApp, /viewModeControl = editorSurface\.createModeController\(elements\.viewModeToggle, \{/);
+  assert.match(demoHtml, /id="view-mode-toggle"[\s\S]*?aria-pressed="false"/);
+  assert.doesNotMatch(demoHtml, /id="view-mode-select"/);
 
   // Neither host may rebuild the shared card markup on its own again.
   [viewerApp, demoApp].forEach((source) => {
@@ -416,4 +718,8 @@ test("production Viewer and Demo build task cards and item rows through the shar
   assert.doesNotMatch(viewerApp, /el\("button", "inline-delete-button"/);
   assert.doesNotMatch(demoApp, /function createTaskItemDeleteButton/);
   assert.doesNotMatch(demoApp, /function createWorkRow/);
+  assert.doesNotMatch(viewerApp, /el\("form", "(?:inline|task)-add-form"/);
+  assert.doesNotMatch(demoApp, /document\.createElement\("form"\)[\s\S]{0,80}(?:task-item|task-card)-add-form/);
+  assert.doesNotMatch(viewerApp, /viewModeToggle\.addEventListener\("click"/);
+  assert.doesNotMatch(demoApp, /viewModeToggle\.addEventListener\("click"/);
 });

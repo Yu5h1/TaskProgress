@@ -19,8 +19,12 @@ import {
   normalizeMeaningfulText,
 } from "./editor-core.js";
 import {
+  bindHistoryShortcuts,
+  createAddControl,
   createItemRow,
+  createModeController,
   createPrioritySelect,
+  createSaveBar,
   createTaskCardShell,
 } from "./editor-surface.js";
 import { initializeThemeControls } from "./theme.js";
@@ -75,8 +79,6 @@ const elements = {
   viewModeToggle: document.querySelector("#view-mode-toggle"),
   viewerModeLabel: document.querySelector("#viewer-mode-label"),
   editSaveBar: document.querySelector("#edit-save-bar"),
-  editSaveStatus: document.querySelector("#edit-save-status"),
-  editSaveButton: document.querySelector("#edit-save-button"),
   taskAddShell: document.querySelector("#task-add-shell"),
   timeSummaryButton: document.querySelector("#time-summary-button"),
   timeDialog: document.querySelector("#time-dialog"),
@@ -113,6 +115,8 @@ const state = {
 let draggedStatus = null;
 let suppressFilterClick = false;
 let pointerDrag = null;
+let viewModeControl = null;
+let saveBarControl = null;
 
 function el(tag, className, text) {
   const node = document.createElement(tag);
@@ -131,14 +135,21 @@ function prioritySelect(value, onChange, ariaLabel) {
 
 function syncEditorDirty(message = "有尚未儲存的修改") {
   const derived = state.editor.session?.derived;
+  const history = state.editor.session?.history;
   state.editor.dirty = Boolean(
     state.editor.externalDirty || derived?.dirty,
   );
   state.timeController?.setReportStructureStale(
     Boolean(derived?.timeInvalidation.stale),
   );
-  elements.editSaveButton.disabled = !state.editor.dirty;
-  elements.editSaveStatus.textContent = state.editor.dirty ? message : "尚未修改";
+  saveBarControl?.setState({
+    editing: state.editor.editing,
+    dirty: state.editor.dirty,
+    saving: state.editor.saving,
+    canUndo: Boolean(history?.canUndo),
+    canRedo: Boolean(history?.canRedo),
+    message: state.editor.dirty ? message : "尚未修改",
+  });
 }
 
 function markEditorDirty(message = "有尚未儲存的修改") {
@@ -163,6 +174,19 @@ function applyEditorCommand(
   return true;
 }
 
+function applyEditorHistory(direction) {
+  if (!state.editor.editing || state.editor.saving || !state.editor.session) return false;
+  const changed = direction === "redo"
+    ? state.editor.session.redo()
+    : state.editor.session.undo();
+  if (!changed) return false;
+  state.report = state.editor.session.draft;
+  syncEditorDirty(direction === "redo" ? "已重做修改" : "已復原修改");
+  rebuildMergedTasks();
+  renderReport();
+  return true;
+}
+
 function currentProjectProgress(tasks) {
   if (state.editor.editing && state.editor.session) {
     return state.editor.session.derived.progress.project;
@@ -180,25 +204,15 @@ function currentTaskProgress(task) {
 
 function appendItemAdder(section, task, field) {
   const shell = el("div", "inline-add-shell");
-  const trigger = el("button", "inline-add-trigger", "+");
-  trigger.type = "button";
-  trigger.setAttribute("aria-label", "增加待處理子任務");
-  shell.append(trigger);
-  trigger.addEventListener("click", () => {
-    const form = el("form", "inline-add-form");
-    const input = el("input", "inline-edit-input");
-    input.type = "text";
-    input.maxLength = 300;
-    input.placeholder = "輸入任務描述";
-    input.setAttribute("aria-label", "新增子任務描述");
-    const add = el("button", "secondary-button", "加入");
-    add.type = "submit";
-    form.append(input, add);
-    shell.replaceChildren(form);
-    input.focus();
-    form.addEventListener("submit", (event) => {
-      event.preventDefault();
-      const title = normalizeMeaningfulText(input.value);
+  const render = (expanded = false) => createAddControl(shell, {
+    kind: "item",
+    expanded,
+    triggerAriaLabel: "增加待處理子任務",
+    defaultPriority: PRIORITY_POLICY.creationDefaultValue,
+    onOpen: () => render(true),
+    onCancel: () => renderTasks(),
+    onSubmit: ({ title: draftTitle, priority }) => {
+      const title = normalizeMeaningfulText(draftTitle);
       if (!title) {
         renderTasks();
         return;
@@ -213,17 +227,15 @@ function appendItemAdder(section, task, field) {
           item: {
             id,
             title,
-            priority: PRIORITY_POLICY.fallbackValue,
+            priority,
           },
         },
         "已新增子任務，尚未儲存",
         { render: true },
       );
-    });
-    input.addEventListener("keydown", (event) => {
-      if (event.key === "Escape") renderTasks();
-    });
+    },
   });
+  render();
   section.append(shell);
 }
 
@@ -884,33 +896,23 @@ function renderTaskAdder() {
   elements.taskAddShell.replaceChildren();
   elements.taskAddShell.hidden = !state.editor.editing;
   if (!state.editor.editing) return;
-  const trigger = el("button", "task-add-trigger", "+");
-  trigger.type = "button";
-  trigger.setAttribute("aria-label", "增加工作項目");
-  elements.taskAddShell.append(trigger);
-  trigger.addEventListener("click", () => {
-    const form = el("form", "task-add-form");
-    const title = el("input", "inline-edit-input");
-    title.type = "text";
-    title.maxLength = 160;
-    title.placeholder = "任務名稱";
-    title.setAttribute("aria-label", "新任務名稱");
-    const summary = el("textarea", "task-summary-input");
-    summary.maxLength = 1000;
-    summary.rows = 2;
-    summary.placeholder = "任務描述（必填）";
-    summary.setAttribute("aria-label", "新任務描述");
-    const submit = el("button", "secondary-button", "加入任務");
-    submit.type = "submit";
-    form.append(title, summary, submit);
-    elements.taskAddShell.replaceChildren(form);
-    title.focus();
-    form.addEventListener("submit", (event) => {
-      event.preventDefault();
-      const taskTitle = normalizeMeaningfulText(title.value);
-      const taskSummary = normalizeMeaningfulText(summary.value);
+  const render = (expanded = false) => createAddControl(elements.taskAddShell, {
+    kind: "task",
+    expanded,
+    triggerAriaLabel: "增加工作項目",
+    defaultPriority: PRIORITY_POLICY.creationDefaultValue,
+    contractText: "預設狀態：待處理；預設優先級：一般；ID 會獨立產生",
+    onOpen: () => render(true),
+    onCancel: () => renderTaskAdder(),
+    onSubmit: ({ title, summary, priority }, control) => {
+      const taskTitle = normalizeMeaningfulText(title);
+      const taskSummary = normalizeMeaningfulText(summary);
       if (!taskTitle || !taskSummary) {
-        renderTaskAdder();
+        if (!String(title).trim() && !String(summary).trim()) {
+          renderTaskAdder();
+          return;
+        }
+        control.showError(!taskTitle ? "請填寫有效的任務名稱。" : "請填寫有效的任務描述。");
         return;
       }
       const id = state.editor.session.createTaskId(`task-${Date.now().toString(36)}`);
@@ -922,7 +924,7 @@ function renderTaskAdder() {
             title: taskTitle,
             status: "planned",
             summary: taskSummary,
-            priority: PRIORITY_POLICY.fallbackValue,
+            priority,
             completed_items: [],
             pending_items: [],
           },
@@ -930,11 +932,9 @@ function renderTaskAdder() {
         "已新增任務，尚未儲存",
         { render: true },
       );
-    });
-    form.addEventListener("keydown", (event) => {
-      if (event.key === "Escape") renderTaskAdder();
-    });
+    },
   });
+  render();
 }
 
 function renderTasks() {
@@ -965,13 +965,7 @@ function renderReport() {
   elements.viewerModeLabel.textContent = state.editor.editing
     ? "Local edit session"
     : "Viewer is read-only";
-  elements.viewModeToggle.textContent = state.editor.editing
-    ? "編輯模式"
-    : "預覽模式";
-  elements.viewModeToggle.setAttribute(
-    "aria-pressed",
-    state.editor.editing ? "true" : "false",
-  );
+  viewModeControl?.setMode(state.editor.editing ? "edit" : "preview");
   renderDiagnostics();
   renderProjectProgress();
   renderOverview();
@@ -1001,15 +995,14 @@ async function discoverLocalEditor(scope) {
     state.editor.available = true;
     state.editor.scope = scope;
     state.editor.revision = capability.revision;
-    elements.viewModeToggle.hidden = false;
+    viewModeControl?.setAvailable(true);
   } catch {
     // Public/static hosting intentionally has no editor capability.
   }
 }
 
 async function startEditing() {
-  if (!state.editor.available || state.editor.editing) return;
-  elements.viewModeToggle.disabled = true;
+  if (!state.editor.available || state.editor.editing) return false;
   try {
     const response = await fetch("/__taskprogress/v1/edit-sessions", {
       method: "POST",
@@ -1034,24 +1027,21 @@ async function startEditing() {
     state.report = state.editor.session.draft;
     rebuildMergedTasks();
     state.timeController?.setEditing(true);
-    elements.editSaveBar.hidden = false;
     syncEditorDirty("尚未修改");
     renderReport();
+    return true;
   } catch (error) {
-    elements.viewModeToggle.textContent = "預覽模式";
-    elements.viewModeToggle.setAttribute("aria-pressed", "false");
     state.diagnostics.push({
       level: "error",
       message: error instanceof Error ? error.message : "無法進入編輯模式。",
     });
     renderDiagnostics();
-  } finally {
-    elements.viewModeToggle.disabled = false;
+    return false;
   }
 }
 
 async function cancelEditing() {
-  if (!state.editor.editing) return;
+  if (!state.editor.editing) return false;
   const token = state.editor.token;
   state.editor.session?.discard();
   state.editor.session = null;
@@ -1063,9 +1053,9 @@ async function cancelEditing() {
   state.timeController?.setReportStructureStale(false);
   state.report = structuredClone(state.persistedReport);
   rebuildMergedTasks();
-  elements.editSaveBar.hidden = true;
+  saveBarControl?.setState({ editing: false, dirty: false, saving: false });
   renderReport();
-  if (!token) return;
+  if (!token) return true;
   try {
     await fetch(
       `/__taskprogress/v1/edit-sessions/${encodeURIComponent(state.editor.scope)}`,
@@ -1080,6 +1070,7 @@ async function cancelEditing() {
   } catch {
     // The short-lived server session expires automatically.
   }
+  return true;
 }
 
 async function saveEditing() {
@@ -1091,13 +1082,17 @@ async function saveEditing() {
     ? state.editor.session.validate(reportToSave)
     : validateReport(reportToSave);
   if (errors.length) {
-    elements.editSaveStatus.textContent = errors[0].message;
+    saveBarControl?.showError(errors[0].message);
     return;
   }
   state.editor.saving = true;
-  elements.editSaveButton.disabled = true;
-  elements.viewModeToggle.disabled = true;
-  elements.editSaveStatus.textContent = "正在驗證、儲存並重新分析…";
+  viewModeControl?.setBusy(true);
+  saveBarControl?.setState({
+    editing: true,
+    dirty: true,
+    saving: true,
+    message: "正在驗證、儲存並重新分析…",
+  });
   let timeSave = null;
   try {
     timeSave = state.timeController?.prepareSave() ?? null;
@@ -1119,20 +1114,24 @@ async function saveEditing() {
       throw new Error(await readProblem(response, "儲存失敗；原始檔案未變更。"));
     }
     timeSave?.commit();
-    elements.editSaveStatus.textContent = "已安全儲存，正在重新載入…";
+    saveBarControl?.setState({
+      editing: true,
+      dirty: false,
+      saving: true,
+      message: "已安全儲存，正在重新載入…",
+    });
     state.editor.session?.commit(reportToSave);
     state.editor.externalDirty = false;
     state.editor.dirty = false;
     window.location.reload();
   } catch (error) {
     timeSave?.rollback();
-    elements.editSaveStatus.textContent = error instanceof Error
+    saveBarControl?.showError(error instanceof Error
       ? error.message
-      : "儲存失敗；原始檔案未變更。";
-    elements.editSaveButton.disabled = false;
+      : "儲存失敗；原始檔案未變更。");
   } finally {
     state.editor.saving = false;
-    elements.viewModeToggle.disabled = false;
+    viewModeControl?.setBusy(false);
   }
 }
 
@@ -1357,14 +1356,23 @@ async function main() {
 }
 
 initializeThemeControls();
-elements.viewModeToggle.addEventListener("click", () => {
-  if (state.editor.editing) {
-    cancelEditing();
-  } else {
-    startEditing();
-  }
+viewModeControl = createModeController(elements.viewModeToggle, {
+  available: false,
+  hideWhenUnavailable: true,
+  onRequest: (mode) => (mode === "edit" ? startEditing() : cancelEditing()),
 });
-elements.editSaveButton.addEventListener("click", saveEditing);
+saveBarControl = createSaveBar(elements.editSaveBar, {
+  statusId: "edit-save-status",
+  buttonId: "edit-save-button",
+  onUndo: () => applyEditorHistory("undo"),
+  onRedo: () => applyEditorHistory("redo"),
+  onSave: saveEditing,
+});
+bindHistoryShortcuts(document, {
+  isActive: () => state.editor.editing && !state.editor.saving,
+  onUndo: () => applyEditorHistory("undo"),
+  onRedo: () => applyEditorHistory("redo"),
+});
 elements.timeDialogClose.addEventListener("click", () => elements.timeDialog.close());
 elements.timeDialog.addEventListener("click", (event) => {
   if (event.target === elements.timeDialog) elements.timeDialog.close();

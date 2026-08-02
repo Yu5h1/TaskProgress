@@ -4,10 +4,17 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 from fastapi.testclient import TestClient
 
-from service.taskprogress_host import install_edit_api, _load_module
+from service.taskprogress_host import (
+    LocalFileTransaction,
+    TRANSACTION_JOURNAL,
+    install_edit_api,
+    recover_pending_transaction,
+    _load_module,
+)
 
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
@@ -187,6 +194,123 @@ class TaskProgressEditHostTests(unittest.TestCase):
                 "summary"
             ],
         )
+
+    def test_transaction_rollback_restores_staged_and_derived_files(self) -> None:
+        analysis_path = self.root / "time.analysis.json"
+        original_report = self.report_path.read_bytes()
+        original_analysis = b'{"state":"original"}\n'
+        analysis_path.write_bytes(original_analysis)
+        changed = report_payload()
+        changed["tasks"][0]["summary"] = "Staged change"
+
+        transaction = LocalFileTransaction(self.root)
+        transaction.stage_json("report.json", changed)
+        transaction.watch("time.analysis.json")
+        transaction.prepare()
+        transaction.apply()
+        analysis_path.write_bytes(b'{"state":"generated"}\n')
+        transaction.rollback()
+
+        self.assertEqual(original_report, self.report_path.read_bytes())
+        self.assertEqual(original_analysis, analysis_path.read_bytes())
+        self.assertFalse((self.root / TRANSACTION_JOURNAL).exists())
+        self.assertEqual([], list(self.root.glob(".taskprogress.transaction.*.bak")))
+
+    def test_interrupted_transaction_is_recovered_before_the_next_edit(self) -> None:
+        original_report = self.report_path.read_bytes()
+        config_path = self.root / "time.config.json"
+        analysis_path = self.root / "time.analysis.json"
+        changed = report_payload()
+        changed["tasks"][0]["summary"] = "Interrupted change"
+
+        transaction = LocalFileTransaction(self.root)
+        transaction.stage_json("report.json", changed)
+        transaction.stage_json("time.config.json", {"delivery_at": "future"})
+        transaction.watch("time.analysis.json")
+        transaction.prepare()
+        transaction.apply()
+        analysis_path.write_text('{"generated":true}\n', encoding="utf-8")
+
+        self.assertTrue(recover_pending_transaction(self.root))
+        self.assertEqual(original_report, self.report_path.read_bytes())
+        self.assertFalse(config_path.exists())
+        self.assertFalse(analysis_path.exists())
+        self.assertFalse(recover_pending_transaction(self.root))
+
+    def test_committed_transaction_keeps_all_staged_files(self) -> None:
+        changed = report_payload()
+        changed["tasks"][0]["summary"] = "Committed change"
+        config = {"project": {"delivery_at": None}}
+
+        transaction = LocalFileTransaction(self.root)
+        transaction.stage_json("report.json", changed)
+        transaction.stage_json("time.config.json", config)
+        transaction.prepare()
+        transaction.apply()
+        transaction.commit()
+
+        self.assertEqual(
+            "Committed change",
+            json.loads(self.report_path.read_text(encoding="utf-8"))["tasks"][0][
+                "summary"
+            ],
+        )
+        self.assertEqual(
+            config,
+            json.loads((self.root / "time.config.json").read_text(encoding="utf-8")),
+        )
+        self.assertFalse((self.root / TRANSACTION_JOURNAL).exists())
+
+    def test_transaction_rejects_files_outside_the_owned_set(self) -> None:
+        transaction = LocalFileTransaction(self.root)
+        with self.assertRaises(ValueError):
+            transaction.stage_bytes("../outside.json", b"{}")
+        with self.assertRaises(ValueError):
+            transaction.watch("time.events.json")
+
+    def test_transaction_validation_runs_before_any_source_changes(self) -> None:
+        original = self.report_path.read_bytes()
+        transaction = LocalFileTransaction(self.root)
+        transaction.stage_json("report.json", report_payload())
+
+        def reject() -> None:
+            raise ValueError("validation failed")
+
+        with self.assertRaisesRegex(ValueError, "validation failed"):
+            transaction.prepare((reject,))
+        self.assertEqual(original, self.report_path.read_bytes())
+        self.assertFalse((self.root / TRANSACTION_JOURNAL).exists())
+
+    def test_analysis_failure_restores_report_and_previous_analysis(self) -> None:
+        session = self.session()
+        original_report = self.report_path.read_bytes()
+        analysis_path = self.root / "time.analysis.json"
+        original_analysis = b'{"analysis":"original"}\n'
+        analysis_path.write_bytes(original_analysis)
+        changed = report_payload()
+        changed["tasks"][0]["summary"] = "Must roll back"
+
+        def fail_analysis(_command: object, _path: Path) -> tuple[bool, str]:
+            analysis_path.write_bytes(b'{"analysis":"partial"}\n')
+            return False, "simulated analyzer failure"
+
+        with patch("service.taskprogress_host._run_analysis", side_effect=fail_analysis):
+            response = self.client.put(
+                "/__taskprogress/v1/reports/secure-test",
+                headers={
+                    "origin": ORIGIN,
+                    "x-taskprogress-editor": "1",
+                    "authorization": f"Bearer {session['token']}",
+                    "if-match": f"\"{session['revision']}\"",
+                    "content-type": "application/json",
+                },
+                content=json.dumps(changed),
+            )
+
+        self.assertEqual(409, response.status_code, response.text)
+        self.assertEqual(original_report, self.report_path.read_bytes())
+        self.assertEqual(original_analysis, analysis_path.read_bytes())
+        self.assertFalse((self.root / TRANSACTION_JOURNAL).exists())
 
 
 if __name__ == "__main__":

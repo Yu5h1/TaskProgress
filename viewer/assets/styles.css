@@ -1062,9 +1062,21 @@ h1 {
   gap: 8px;
 }
 
+.inline-add-form {
+  align-items: center;
+  flex-wrap: wrap;
+}
+
 .inline-add-form .inline-edit-input {
   flex: 1 1 auto;
   padding: 6px 8px;
+}
+
+.inline-add-error {
+  flex-basis: 100%;
+  color: var(--color-danger-text);
+  font-size: 0.68rem;
+  line-height: 1.4;
 }
 
 .task-add-shell {
@@ -1084,6 +1096,24 @@ h1 {
 
 .task-add-form .inline-edit-input {
   padding: 8px 10px;
+}
+
+.task-add-form .inline-add-actions {
+  display: flex;
+  align-self: center;
+  grid-column: -2 / -1;
+  justify-self: end;
+  gap: 7px;
+}
+
+.task-add-form .task-add-contract,
+.task-add-form .inline-add-error {
+  grid-column: 1 / -1;
+}
+
+.task-add-contract {
+  color: var(--color-muted-text);
+  font-size: 0.68rem;
 }
 
 .work-columns .detail-list li::before {
@@ -1367,6 +1397,30 @@ footer {
   white-space: nowrap;
 }
 
+.edit-save-bar[data-state="error"] .edit-save-status {
+  color: var(--color-danger-text);
+}
+
+.edit-save-bar[data-state="saving"] .edit-save-status {
+  color: var(--color-active-text);
+}
+
+.edit-history-actions {
+  display: inline-flex;
+  flex: 0 0 auto;
+  gap: 4px;
+}
+
+.edit-history-button {
+  padding: 5px 9px;
+  font-size: 0.7rem;
+}
+
+.edit-history-button:disabled {
+  cursor: default;
+  opacity: 0.45;
+}
+
 .edit-save-button {
   color: #fff;
   background: #245fcb;
@@ -1497,6 +1551,11 @@ footer {
 
   .task-add-form {
     grid-template-columns: 1fr;
+  }
+
+  .task-add-form .inline-add-actions {
+    justify-self: stretch;
+    justify-content: flex-end;
   }
 
   .edit-save-bar {

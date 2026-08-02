@@ -134,6 +134,89 @@ test("editor core clears dirty when commands restore the baseline", () => {
   assert.equal(session.dirty, false);
 });
 
+test("editor core undoes and redoes report commands with derived state", () => {
+  const session = createReportEditorSession(sampleReport());
+
+  session.dispatch({
+    type: "add-item",
+    taskId: "task-a",
+    field: "pending_items",
+    item: { id: "item-b", title: "Item B", priority: 1 },
+  });
+  assert.deepEqual(session.history, {
+    canUndo: true,
+    canRedo: false,
+    undoDepth: 1,
+    redoDepth: 0,
+    undoCommandType: "add-item",
+    redoCommandType: null,
+  });
+  assert.equal(session.derived.progress.project.total, 3);
+
+  assert.equal(session.undo(), true);
+  assert.equal(session.task("task-a").pending_items.length, 1);
+  assert.equal(session.derived.progress.project.total, 2);
+  assert.equal(session.dirty, false);
+  assert.equal(session.history.canRedo, true);
+
+  assert.equal(session.redo(), true);
+  assert.equal(session.task("task-a").pending_items.length, 2);
+  assert.equal(session.derived.progress.project.total, 3);
+  assert.equal(session.dirty, true);
+  assert.equal(session.history.canRedo, false);
+});
+
+test("editor core coalesces consecutive edits to the same field", () => {
+  const session = createReportEditorSession(sampleReport());
+
+  for (const value of ["C", "Ch", "Changed"]) {
+    session.dispatch({
+      type: "set-task-field",
+      taskId: "task-a",
+      field: "summary",
+      value,
+    });
+  }
+
+  assert.equal(session.history.undoDepth, 1);
+  session.undo();
+  assert.equal(session.task("task-a").summary, "Summary A");
+  session.redo();
+  assert.equal(session.task("task-a").summary, "Changed");
+
+  session.dispatch({
+    type: "set-task-field",
+    taskId: "task-a",
+    field: "summary",
+    value: "Summary A",
+  });
+  assert.equal(session.history.undoDepth, 0);
+  assert.equal(session.dirty, false);
+});
+
+test("editor core clears redo on a divergent command and clears history on lifecycle reset", () => {
+  const session = createReportEditorSession(sampleReport(), { historyLimit: 2 });
+
+  session.dispatch({ type: "set-task-field", taskId: "task-a", field: "title", value: "B" });
+  session.dispatch({ type: "set-task-field", taskId: "task-a", field: "summary", value: "C" });
+  session.undo();
+  assert.equal(session.history.canRedo, true);
+
+  session.dispatch({ type: "set-task-field", taskId: "task-a", field: "priority", value: 1 });
+  assert.equal(session.history.canRedo, false);
+  assert.equal(session.history.undoDepth, 2);
+
+  session.discard();
+  assert.equal(session.history.canUndo, false);
+  assert.equal(session.history.canRedo, false);
+
+  session.dispatch({ type: "set-task-field", taskId: "task-a", field: "title", value: "Saved" });
+  session.commit(session.prepareSave("2026-07-30T03:00:00+08:00"));
+  assert.equal(session.history.canUndo, false);
+  assert.equal(session.history.canRedo, false);
+  assert.equal(session.dirty, false);
+});
+
 test("editor core derives validation and progress from the current draft", () => {
   const session = createReportEditorSession(sampleReport());
   const initial = session.derived;

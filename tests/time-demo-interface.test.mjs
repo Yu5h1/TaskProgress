@@ -60,9 +60,11 @@ test("the demo can showcase estimate-only work without a deadline", () => {
 });
 
 test("the demo exposes one global preview and edit mode control", () => {
-  assert.match(htmlSource, /id="view-mode-select"/);
-  assert.match(htmlSource, /value="preview">預覽模式/);
-  assert.match(htmlSource, /value="edit">編輯模式/);
+  assert.match(htmlSource, /id="view-mode-toggle"/);
+  assert.match(htmlSource, /aria-pressed="false"/);
+  assert.match(htmlSource, />預覽模式<\/button>/);
+  assert.doesNotMatch(htmlSource, /id="view-mode-select"/);
+  assert.match(appSource, /editorSurface\.createModeController\(elements\.viewModeToggle/);
   assert.match(appSource, /function globalEditingEnabled\(\)/);
   assert.match(appSource, /if \(globalEditingEnabled\(\)\) \{\s*capacityEditorOpen = true;/);
   assert.match(
@@ -78,13 +80,16 @@ test("global edit mode owns summary and child-item mutations", () => {
   assert.match(appSource, /itemDeleteClass: "task-item-delete"/);
   assert.match(appSource, /itemPrioritySelectClass: "task-item-priority-select"/);
   assert.match(appSource, /createTaskItemAddRow/);
-  assert.match(appSource, /createDeletedTaskItemNotice/);
+  assert.doesNotMatch(appSource, /createDeletedTaskItemNotice|lastDeletedTaskItem/);
+  assert.match(appSource, /function applyDemoEditorHistory\(direction\)/);
+  assert.match(appSource, /demoEditorSession\.undo\(\)/);
+  assert.match(appSource, /demoEditorSession\.redo\(\)/);
   assert.match(appSource, /taskEditingModel\.normalizeTaskDescription/);
   assert.match(appSource, /items_by_task/);
   assert.match(htmlSource, /id="global-edit-save"/);
   assert.match(
     appSource,
-    /!globalEditingEnabled\(\) \|\| \(!taskContentDirty && !timeInputDirty\)/,
+    /saveBarControl\?\.setState\(\{[\s\S]*?editing: globalEditingEnabled\(\),[\s\S]*?dirty,[\s\S]*?saving: globalSaving/,
   );
   assert.doesNotMatch(appSource, /task-summary-edit-button|openTaskSummaryEditor|saveTaskSummaryOverrides/);
   assert.doesNotMatch(appSource, /editingTaskItemId/);
@@ -99,7 +104,10 @@ test("all child items become one-row inputs in global edit mode", () => {
   assert.match(workRowSource, /contentNodes: \[time\]/);
   assert.match(workRowSource, /trailingNodes: \[createTaskItemStatus\(taskItem\)\]/);
   assert.match(appSource, /itemEditOrder: \["title", "delete", "priority", "content", "trailing"\]/);
-  assert.match(appSource, /elements\.globalEditSaveButton\.addEventListener\("click", saveGlobalDrafts\)/);
+  assert.match(appSource, /saveBarControl = editorSurface\.createSaveBar\(elements\.globalEditSave, \{[\s\S]*?onSave: saveGlobalDrafts/);
+  assert.match(appSource, /editorSurface\.bindHistoryShortcuts\(document, \{/);
+  assert.match(appSource, /editorSurface\.setFieldError\(input, message\)/);
+  assert.match(appSource, /editorSurface\.reportFieldError\(firstInvalid\.input, firstInvalid\.message\)/);
   assert.match(
     cssSource,
     /\.work-columns \.detail-list li\.time-work-item::before\s*\{\s*display: none;/,
@@ -119,8 +127,9 @@ test("every task card has a bottom add control in global edit mode", () => {
   assert.match(appSource, /type: "add-item"/);
   assert.match(
     appSource,
-    /priority: taskEditingModel\.normalizePriority\(\s*prioritySelect\.value,\s*CREATION_PRIORITY,\s*\)/,
+    /priority: taskEditingModel\.normalizePriority\(priority, CREATION_PRIORITY\)/,
   );
+  assert.match(appSource, /editorSurface\.createAddControl\(row, \{/);
 });
 
 test("task descriptions are direct global-mode inputs without a local editor", () => {
@@ -136,6 +145,9 @@ test("task descriptions are direct global-mode inputs without a local editor", (
 
 test("global save stays fixed at the panel-aligned viewport bottom", () => {
   assert.match(htmlSource, /class="global-edit-save" id="global-edit-save" hidden/);
+  assert.doesNotMatch(htmlSource, /id="global-edit-save-button"/);
+  assert.match(appSource, /statusId: "global-edit-save-status"/);
+  assert.match(appSource, /buttonId: "global-edit-save-button"/);
   assert.doesNotMatch(
     htmlSource,
     /class="project-progress-label">\s*<div class="global-edit-save"/,
@@ -146,6 +158,7 @@ test("global save stays fixed at the panel-aligned viewport bottom", () => {
   );
   assert.match(cssSource, /env\(safe-area-inset-bottom, 0px\)/);
   assert.match(cssSource, /#global-edit-save-button\s*\{[\s\S]*?color: #fff;/);
+  assert.match(cssSource, /\.global-edit-save-status\s*\{/);
   assert.match(
     cssSource,
     /@media \(max-width: 600px\)[\s\S]*?\.global-edit-save\s*\{[\s\S]*?width: min\(960px, calc\(100% - 24px\)\);/,
@@ -237,11 +250,12 @@ test("P0 top-level task creation has a stable contract and a bottom add control"
   assert.match(htmlSource, /id="task-card-add-host" hidden/);
   assert.match(htmlSource, /data-filter="planned"[^>]*>待處理 0/);
   assert.match(appSource, /function renderTopLevelTaskAdd\(\)/);
-  assert.match(appSource, /add\.setAttribute\("aria-label", "新增最外層任務卡"\)/);
+  assert.match(appSource, /editorSurface\.createAddControl\(host, \{/);
+  assert.match(appSource, /triggerAriaLabel: "新增最外層任務卡"/);
   assert.match(appSource, /demoEditorSession\.createTaskId\(/);
   assert.match(appSource, /type: "add-task"/);
   assert.match(appSource, /status: "planned"/);
-  assert.match(appSource, /priority: taskEditingModel\.normalizePriority\(\s*prioritySelect\.value/);
+  assert.match(appSource, /priority: taskEditingModel\.normalizePriority\(priority, CREATION_PRIORITY\)/);
   assert.match(appSource, /title: titleResult\.value/);
   assert.match(appSource, /summary: summaryResult\.value/);
   assert.match(appSource, /tasks: taskDefinitions/);

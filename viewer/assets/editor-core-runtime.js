@@ -223,18 +223,80 @@ function deriveReportEditorState(baselineReport, draftReport) {
 
 function createReportEditorSession(
   persistedReport,
-  { fallbackPriority = 4 } = {},
+  { fallbackPriority = 4, historyLimit = 100 } = {},
 ) {
   let persisted = cloneValue(persistedReport);
   let draft = normalizeEditableReport(persisted, fallbackPriority);
   let baseline = cloneValue(draft);
   let derived = deriveReportEditorState(baseline, draft);
+  const undoStack = [];
+  const redoStack = [];
+  const stableHistoryLimit = Number.isInteger(historyLimit) && historyLimit > 0
+    ? historyLimit
+    : 100;
+
+  function commandMergeKey(command) {
+    if (command.type === "set-task-field") {
+      return [command.type, command.taskId, command.field].join(":");
+    }
+    if (command.type === "set-item-field") {
+      return [
+        command.type,
+        command.taskId,
+        command.field,
+        command.itemId,
+        command.property,
+      ].join(":");
+    }
+    return "";
+  }
+
+  function historyState() {
+    const undoEntry = undoStack.at(-1) ?? null;
+    const redoEntry = redoStack.at(-1) ?? null;
+    return Object.freeze({
+      canUndo: Boolean(undoEntry),
+      canRedo: Boolean(redoEntry),
+      undoDepth: undoStack.length,
+      redoDepth: redoStack.length,
+      undoCommandType: undoEntry?.command.type ?? null,
+      redoCommandType: redoEntry?.command.type ?? null,
+    });
+  }
+
+  function clearHistory() {
+    undoStack.length = 0;
+    redoStack.length = 0;
+  }
+
+  function recordHistory(beforeDraft, command) {
+    const afterDraft = cloneValue(draft);
+    const mergeKey = commandMergeKey(command);
+    const previous = undoStack.at(-1);
+    if (mergeKey && previous?.mergeKey === mergeKey) {
+      previous.after = afterDraft;
+      previous.command = cloneValue(command);
+      if (reportSignature(previous.before) === reportSignature(previous.after)) {
+        undoStack.pop();
+      }
+    } else {
+      undoStack.push({
+        before: beforeDraft,
+        after: afterDraft,
+        command: cloneValue(command),
+        mergeKey,
+      });
+      if (undoStack.length > stableHistoryLimit) undoStack.shift();
+    }
+    redoStack.length = 0;
+  }
 
   function dispatch(command) {
     if (!command || typeof command !== "object") {
       throw new TypeError("Editor command 必須是物件。");
     }
-    const before = reportSignature(draft);
+    const beforeDraft = cloneValue(draft);
+    const before = reportSignature(beforeDraft);
     switch (command.type) {
       case "set-task-field": {
         if (!TASK_FIELDS.has(command.field)) {
@@ -296,13 +358,35 @@ function createReportEditorSession(
         throw new Error(`不支援的 Editor command「${command.type}」。`);
     }
     const changed = before !== reportSignature(draft);
-    if (changed) derived = deriveReportEditorState(baseline, draft);
+    if (changed) {
+      recordHistory(beforeDraft, command);
+      derived = deriveReportEditorState(baseline, draft);
+    }
     return changed;
+  }
+
+  function undo() {
+    const entry = undoStack.pop();
+    if (!entry) return false;
+    redoStack.push(entry);
+    draft = cloneValue(entry.before);
+    derived = deriveReportEditorState(baseline, draft);
+    return true;
+  }
+
+  function redo() {
+    const entry = redoStack.pop();
+    if (!entry) return false;
+    undoStack.push(entry);
+    draft = cloneValue(entry.after);
+    derived = deriveReportEditorState(baseline, draft);
+    return true;
   }
 
   function discard() {
     draft = normalizeEditableReport(persisted, fallbackPriority);
     baseline = cloneValue(draft);
+    clearHistory();
     derived = deriveReportEditorState(baseline, draft);
     return draft;
   }
@@ -336,18 +420,23 @@ function createReportEditorSession(
     get dirty() {
       return derived.dirty;
     },
+    get history() {
+      return historyState();
+    },
     commit,
     createItemId,
     createTaskId,
     discard,
     dispatch,
     prepareSave,
+    redo,
     task(taskId) {
       return findTask(draft, taskId);
     },
     validate(report = draft) {
       return validateReport(report);
     },
+    undo,
   });
 }
 

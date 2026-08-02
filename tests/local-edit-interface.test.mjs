@@ -32,7 +32,9 @@ test("local editor uses a memory-only session, revision precondition, and explic
   assert.doesNotMatch(app, /state\.report\.tasks\.(?:push|splice)\(/);
   assert.doesNotMatch(app, /editableTask\.(?:title|summary|status|priority)\s*=/);
   assert.doesNotMatch(app, /localStorage\.setItem\([^)]*token/i);
-  assert.match(app, /viewModeToggle\.addEventListener\("click"/);
+  assert.match(app, /createModeController\(elements\.viewModeToggle/);
+  assert.match(app, /onRequest: \(mode\) => \(mode === "edit" \? startEditing\(\) : cancelEditing\(\)\)/);
+  assert.doesNotMatch(app, /viewModeToggle\.addEventListener\("click"/);
 });
 
 test("editing exposes global task and child controls with a panel-aligned save bar", async () => {
@@ -43,7 +45,15 @@ test("editing exposes global task and child controls with a panel-aligned save b
   ]);
   assert.match(app, /增加工作項目/);
   assert.match(app, /增加待處理子任務/);
-  assert.match(app, /任務描述（必填）/);
+  assert.match(app, /createAddControl\(elements\.taskAddShell/);
+  assert.match(app, /saveBarControl = createSaveBar\(elements\.editSaveBar/);
+  assert.match(app, /statusId: "edit-save-status"/);
+  assert.match(app, /buttonId: "edit-save-button"/);
+  assert.match(app, /onUndo: \(\) => applyEditorHistory\("undo"\)/);
+  assert.match(app, /onRedo: \(\) => applyEditorHistory\("redo"\)/);
+  assert.match(app, /bindHistoryShortcuts\(document, \{/);
+  assert.doesNotMatch(html, /id="edit-save-status"|id="edit-save-button"/);
+  assert.match(app, /contractText: "預設狀態：待處理；預設優先級：一般；ID 會獨立產生"/);
   assert.match(styles, /\.edit-save-bar\s*\{[\s\S]*position:\s*fixed/);
   assert.match(styles, /right:\s*max\(16px,\s*calc\(\(100% - 960px\) \/ 2\)\)/);
   assert.match(styles, /\.edit-save-button\s*\{[\s\S]*color:\s*#fff/);

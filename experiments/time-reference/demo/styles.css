@@ -97,7 +97,7 @@ html[data-view-mode="edit"] .view-mode-control {
 .task-card-add-form input:focus-visible,
 .task-card-add-form textarea:focus-visible,
 .task-card-add-form button:focus-visible,
-.task-item-undo-row button:focus-visible,
+.global-edit-history-button:focus-visible,
 #global-edit-save-button:focus-visible {
   outline: 3px solid color-mix(in srgb, var(--color-focus) 38%, transparent);
   outline-offset: 2px;
@@ -260,8 +260,7 @@ html[data-view-mode="edit"] .view-mode-control {
 }
 
 .task-inline-cancel,
-.task-inline-save,
-.task-item-undo-row button {
+.task-inline-save {
   padding: 4px 9px;
   border: 1px solid var(--color-border);
   border-radius: 999px;
@@ -276,8 +275,7 @@ html[data-view-mode="edit"] .view-mode-control {
   background: transparent;
 }
 
-.task-inline-save,
-.task-item-undo-row button {
+.task-inline-save {
   color: var(--color-active-text);
   background: var(--color-active-bg);
   border-color: var(--color-active-border);
@@ -418,7 +416,9 @@ html[data-view-mode="edit"] .view-mode-control {
   bottom: calc(16px + env(safe-area-inset-bottom, 0px));
   z-index: 40;
   display: flex;
+  align-items: center;
   justify-content: flex-end;
+  gap: 8px;
   margin: 0;
   pointer-events: none;
   transform: translateX(-50%);
@@ -426,6 +426,53 @@ html[data-view-mode="edit"] .view-mode-control {
 
 .global-edit-save[hidden] {
   display: none;
+}
+
+.global-edit-save-status {
+  max-width: min(560px, 58vw);
+  overflow: hidden;
+  padding: 6px 10px;
+  color: var(--color-muted-text);
+  background: color-mix(in srgb, var(--color-panel-bg) 92%, transparent);
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--color-page-bg) 65%, transparent);
+  font-size: 0.68rem;
+  pointer-events: auto;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.global-edit-save[data-state="error"] .global-edit-save-status {
+  color: var(--color-danger-text);
+}
+
+.global-edit-save[data-state="saving"] .global-edit-save-status {
+  color: var(--color-active-text);
+}
+
+.global-edit-history-actions {
+  display: inline-flex;
+  flex: 0 0 auto;
+  gap: 4px;
+  pointer-events: auto;
+}
+
+.global-edit-history-button {
+  padding: 6px 9px;
+  color: var(--color-secondary-text);
+  background: color-mix(in srgb, var(--color-panel-bg) 92%, transparent);
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+
+.global-edit-history-button:disabled {
+  cursor: default;
+  opacity: 0.45;
 }
 
 #global-edit-save-button {
@@ -444,8 +491,12 @@ html[data-view-mode="edit"] .view-mode-control {
   pointer-events: auto;
 }
 
-.work-columns .detail-list li.task-item-add-row,
-.work-columns .detail-list li.task-item-undo-row {
+#global-edit-save-button:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+
+.work-columns .detail-list li.task-item-add-row {
   display: flex;
   align-items: center;
   min-height: 34px;
@@ -454,9 +505,7 @@ html[data-view-mode="edit"] .view-mode-control {
 }
 
 .work-columns .detail-list li.task-item-add-row::before,
-.work-columns .detail-list li.task-item-add-row::after,
-.work-columns .detail-list li.task-item-undo-row::before,
-.work-columns .detail-list li.task-item-undo-row::after {
+.work-columns .detail-list li.task-item-add-row::after {
   display: none;
 }
 
@@ -480,13 +529,6 @@ html[data-view-mode="edit"] .view-mode-control {
 
 .task-item-add-form {
   width: 100%;
-}
-
-.task-item-undo-row {
-  justify-content: space-between;
-  gap: 10px;
-  color: var(--color-secondary-text);
-  font-size: 0.7rem;
 }
 
 .task-card-add-host {
