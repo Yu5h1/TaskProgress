@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-07-30T02:35:48+08:00",
+  "updated_at": "2026-07-29T19:35:01.000Z",
   "tasks": [
     {
       "id": "viewer-core",
@@ -12,14 +12,43 @@
       "priority": 2,
       "summary": "正式 Viewer 已具備可分享的唯讀進度報告、Developer overlay、主題系統與響應式介面。",
       "completed_items": [
-        "完成 scope、report 與 Developer overlay 的連結式載入及驗證",
-        "完成緊湊型進度總覽、狀態統計、篩選與任務卡",
-        "以可見子項目優先計算 task 與 project 進度",
-        "完成系統、亮色、暗色與自訂主題及瀏覽器本機保存",
-        "完成桌面、行動版、鍵盤操作與文字對比驗證",
-        "上線不依賴編輯模式的狀態標籤拖曳排序，並同步摘要與整張任務卡",
-        "將 planned 任務與 pending 子項目統一為「待處理」檢視，保留封存語意並讓子面板跟隨排序"
-      ]
+        {
+          "id": "item-viewer-core-done-1",
+          "title": "完成 scope、report 與 Developer overlay 的連結式載入及驗證",
+          "priority": 4
+        },
+        {
+          "id": "item-viewer-core-done-2",
+          "title": "完成緊湊型進度總覽、狀態統計、篩選與任務卡",
+          "priority": 4
+        },
+        {
+          "id": "item-viewer-core-done-3",
+          "title": "以可見子項目優先計算 task 與 project 進度",
+          "priority": 4
+        },
+        {
+          "id": "item-viewer-core-done-4",
+          "title": "完成系統、亮色、暗色與自訂主題及瀏覽器本機保存",
+          "priority": 4
+        },
+        {
+          "id": "item-viewer-core-done-5",
+          "title": "完成桌面、行動版、鍵盤操作與文字對比驗證",
+          "priority": 4
+        },
+        {
+          "id": "item-viewer-core-done-6",
+          "title": "上線不依賴編輯模式的狀態標籤拖曳排序，並同步摘要與整張任務卡",
+          "priority": 4
+        },
+        {
+          "id": "item-viewer-core-done-7",
+          "title": "將 planned 任務與 pending 子項目統一為「待處理」檢視，保留封存語意並讓子面板跟隨排序",
+          "priority": 4
+        }
+      ],
+      "pending_items": []
     },
     {
       "id": "windows-launcher",
@@ -28,12 +57,33 @@
       "priority": 2,
       "summary": ".NET 9 Launcher 可啟動或重用 LocalWebService，讓多個專案共用同一套 localhost Viewer。",
       "completed_items": [
-        "完成報告資料夾、scope store 與安全 scope ID 驗證",
-        "完成 LocalWebService health、status、檔案註冊與授權關閉整合",
-        "完成多 scope 共用 process、匿名化首頁 catalog 與過期路由清理",
-        "完成 Windows 捷徑、task-progress 協定與自包含單檔發布流程",
-        "完成 Release 建置及真實 LocalWebService 整合測試"
-      ]
+        {
+          "id": "item-windows-launcher-done-1",
+          "title": "完成報告資料夾、scope store 與安全 scope ID 驗證",
+          "priority": 4
+        },
+        {
+          "id": "item-windows-launcher-done-2",
+          "title": "完成 LocalWebService health、status、檔案註冊與授權關閉整合",
+          "priority": 4
+        },
+        {
+          "id": "item-windows-launcher-done-3",
+          "title": "完成多 scope 共用 process、匿名化首頁 catalog 與過期路由清理",
+          "priority": 4
+        },
+        {
+          "id": "item-windows-launcher-done-4",
+          "title": "完成 Windows 捷徑、task-progress 協定與自包含單檔發布流程",
+          "priority": 4
+        },
+        {
+          "id": "item-windows-launcher-done-5",
+          "title": "完成 Release 建置及真實 LocalWebService 整合測試",
+          "priority": 4
+        }
+      ],
+      "pending_items": []
     },
     {
       "id": "time-reference",
@@ -42,22 +92,78 @@
       "priority": 1,
       "summary": "Draft 0.2 sidecar 已採用 deterministic-capacity-feasibility v0.3：直接加總未完成估算，先判斷真實容量可行性，再以進度壓力補充期限趨勢。",
       "completed_items": [
-        "完成 time.config、time.estimates、time.events 與 time.analysis Draft 0.2 契約",
-        "完成容量時間線、例外日、進度壓力與邊界狀態的確定性算法",
-        "完成獨立實驗介面及各種任務狀態測試資料",
-        "正式 Viewer 可選載入同目錄的 time.analysis.json",
-        "完成專案交付膠囊、task 總工時與穩定 item 工時介面",
-        "完成評估流程、工程估算與工作容量三個總覽頁",
-        "完成本機容量覆寫及初始化、每分鐘與回到前景時的風險重算",
-        "更新共享 TaskProgress report 技巧與時間估算方法",
-        "完成 Demo 工時估算與截止日解耦及「交付日未定」展示版",
-        "完成正式 Viewer 的 estimate-only、部分期限錯誤隔離與「交付日未定」模式",
-        "完成 task-progress analyze、open／start 自動更新及原子產生 time.analysis.json",
-        "完成 v0.3 容量優先風險：容量缺口紅燈、容量使用超過 80% 至少黃燈，並保留舊版 v0.2 讀取相容"
+        {
+          "id": "item-time-reference-done-1",
+          "title": "完成 time.config、time.estimates、time.events 與 time.analysis Draft 0.2 契約",
+          "priority": 4
+        },
+        {
+          "id": "item-time-reference-done-2",
+          "title": "完成容量時間線、例外日、進度壓力與邊界狀態的確定性算法",
+          "priority": 4
+        },
+        {
+          "id": "item-time-reference-done-3",
+          "title": "完成獨立實驗介面及各種任務狀態測試資料",
+          "priority": 4
+        },
+        {
+          "id": "item-time-reference-done-4",
+          "title": "正式 Viewer 可選載入同目錄的 time.analysis.json",
+          "priority": 4
+        },
+        {
+          "id": "item-time-reference-done-5",
+          "title": "完成專案交付膠囊、task 總工時與穩定 item 工時介面",
+          "priority": 4
+        },
+        {
+          "id": "item-time-reference-done-6",
+          "title": "完成評估流程、工程估算與工作容量三個總覽頁",
+          "priority": 4
+        },
+        {
+          "id": "item-time-reference-done-7",
+          "title": "完成本機容量覆寫及初始化、每分鐘與回到前景時的風險重算",
+          "priority": 4
+        },
+        {
+          "id": "item-time-reference-done-8",
+          "title": "更新共享 TaskProgress report 技巧與時間估算方法",
+          "priority": 4
+        },
+        {
+          "id": "item-time-reference-done-9",
+          "title": "完成 Demo 工時估算與截止日解耦及「交付日未定」展示版",
+          "priority": 4
+        },
+        {
+          "id": "item-time-reference-done-10",
+          "title": "完成正式 Viewer 的 estimate-only、部分期限錯誤隔離與「交付日未定」模式",
+          "priority": 4
+        },
+        {
+          "id": "item-time-reference-done-11",
+          "title": "完成 task-progress analyze、open／start 自動更新及原子產生 time.analysis.json",
+          "priority": 4
+        },
+        {
+          "id": "item-time-reference-done-12",
+          "title": "完成 v0.3 容量優先風險：容量缺口紅燈、容量使用超過 80% 至少黃燈，並保留舊版 v0.2 讀取相容",
+          "priority": 4
+        }
       ],
       "pending_items": [
-        "建立執行事件擷取、相似歷史樣本與校準流程",
-        "建立可保存人工估算版本的本機寫入服務"
+        {
+          "id": "item-time-reference-todo-1",
+          "title": "建立執行事件擷取、相似歷史樣本與校準流程",
+          "priority": 3
+        },
+        {
+          "id": "item-time-reference-todo-2",
+          "title": "建立可保存人工估算版本的本機寫入服務",
+          "priority": 4
+        }
       ]
     },
     {
@@ -67,14 +173,46 @@
       "priority": 1,
       "summary": "正式 Viewer 與 file／loopback Demo 已共用 framework-neutral Editor Core，統一管理 DraftSession、stable-ID commands、validation、diff、derived progress、dirty／discard、save snapshot 與結構性時間失效；Demo 只保留舊 UI／localStorage adapter。公開部署不顯示編輯入口；Undo／Redo、跨檔案 adapter、人工估算、交付日與行動版仍待完成。",
       "completed_items": [
-        "完成第一版編輯範圍、階段、風險與正式上線條件規劃",
-        "完成只在 file 與 exact loopback 開放的 Demo 編輯政策",
-        "完成頁面層級預覽／編輯模式及任務描述直接編輯",
-        "完成所有卡片的子項目直接編輯、刪除復原與底部新增控制",
-        "完成 Unicode 描述驗證、穩定 item ID 與 items_by_task 本機保存",
-        "完成記憶體草稿、局部重新計算預覽與固定於 viewport 底部且對齊內容面板右緣的唯一全域儲存；儲存會再次計算並真正寫入分析時間",
-        "完成不依賴編輯模式的狀態拖曳排序、階層同步與鍵盤移動",
-        "完成 115 項 Node 回歸測試並保持公開部署沒有編輯入口",
+        {
+          "id": "item-local-task-editing-done-1",
+          "title": "完成第一版編輯範圍、階段、風險與正式上線條件規劃",
+          "priority": 4
+        },
+        {
+          "id": "item-local-task-editing-done-2",
+          "title": "完成只在 file 與 exact loopback 開放的 Demo 編輯政策",
+          "priority": 4
+        },
+        {
+          "id": "item-local-task-editing-done-3",
+          "title": "完成頁面層級預覽／編輯模式及任務描述直接編輯",
+          "priority": 4
+        },
+        {
+          "id": "item-local-task-editing-done-4",
+          "title": "完成所有卡片的子項目直接編輯、刪除復原與底部新增控制",
+          "priority": 4
+        },
+        {
+          "id": "item-local-task-editing-done-5",
+          "title": "完成 Unicode 描述驗證、穩定 item ID 與 items_by_task 本機保存",
+          "priority": 4
+        },
+        {
+          "id": "item-local-task-editing-done-6",
+          "title": "完成記憶體草稿、局部重新計算預覽與固定於 viewport 底部且對齊內容面板右緣的唯一全域儲存；儲存會再次計算並真正寫入分析時間",
+          "priority": 4
+        },
+        {
+          "id": "item-local-task-editing-done-7",
+          "title": "完成不依賴編輯模式的狀態拖曳排序、階層同步與鍵盤移動",
+          "priority": 4
+        },
+        {
+          "id": "item-local-task-editing-done-8",
+          "title": "完成 115 項 Node 回歸測試並保持公開部署沒有編輯入口",
+          "priority": 4
+        },
         {
           "id": "structured-item-priority",
           "title": "完成任務卡與子任務的五級結構化優先級、共享命名設定、編輯及穩定排序，不再從名稱解析",
@@ -149,12 +287,22 @@
           "id": "adopt-editor-core-in-demo",
           "title": "讓 file／loopback Demo 與正式 Viewer 共用同一 Editor Core runtime、DraftSession、commands、dirty／discard 與 derived progress，並保留 browser-local adapter",
           "priority": 1
+        },
+        {
+          "id": "share-task-card-surface",
+          "title": "抽出共用 Editor Surface 的 TaskCard shell 與優先級徽章／下拉；正式 Viewer 與 Demo 改由同一模組產生任務卡結構、排序與無障礙文字，各自的 class 與狀態呈現留在 presentation adapter",
+          "priority": 1
         }
       ],
       "pending_items": [
         {
           "id": "verify-mobile-editing",
           "title": "完成 390px 行動版版面與觸控編輯驗證，不阻擋桌面正式版",
+          "priority": 1
+        },
+        {
+          "id": "share-editor-surface-controls",
+          "title": "延續共用 Editor Surface：先凍結 ItemRow parity matrix，再依序收斂子項目列、模式切換、新增控制、驗證訊息與儲存列；Demo 專屬時間情境仍留在 Demo shell",
           "priority": 1
         },
         {
@@ -191,13 +339,33 @@
       "priority": 2,
       "summary": "Draft 0.1 已定義 sidecar manifest、可信任模組 registry、共同資料 envelope、Viewer／Launcher 接口、安全邊界及 time 遷移策略；實作尚未開始。",
       "completed_items": [
-        "完成擴充資訊模組架構計畫，確認 report.json 保持核心穩定、time 作為第一個參考模組，並隔離外部交易與合約系統"
+        {
+          "id": "item-extension-modules-done-1",
+          "title": "完成擴充資訊模組架構計畫，確認 report.json 保持核心穩定、time 作為第一個參考模組，並隔離外部交易與合約系統",
+          "priority": 4
+        }
       ],
       "pending_items": [
-        "Phase 0：確認 manifest 正式命名、module identity、visibility、未知模組與 stale projection 政策",
-        "Phase 1：建立 manifest、共同 envelope Schema，以及安全 source resolver、registry 與 subject index 純模型測試",
-        "Phase 2／3：將 time 載入、Viewer runtime、Launcher artifact 註冊及分析器遷移到共同接口",
-        "Phase 4：以 difficulty 或 value 第二模組驗證核心不需要新增領域特例"
+        {
+          "id": "item-extension-modules-todo-1",
+          "title": "Phase 0：確認 manifest 正式命名、module identity、visibility、未知模組與 stale projection 政策",
+          "priority": 4
+        },
+        {
+          "id": "item-extension-modules-todo-2",
+          "title": "Phase 1：建立 manifest、共同 envelope Schema，以及安全 source resolver、registry 與 subject index 純模型測試",
+          "priority": 4
+        },
+        {
+          "id": "item-extension-modules-todo-3",
+          "title": "Phase 2／3：將 time 載入、Viewer runtime、Launcher artifact 註冊及分析器遷移到共同接口",
+          "priority": 4
+        },
+        {
+          "id": "item-extension-modules-todo-4",
+          "title": "Phase 4：以 difficulty 或 value 第二模組驗證核心不需要新增領域特例",
+          "priority": 4
+        }
       ]
     },
     {
@@ -207,13 +375,38 @@
       "priority": 2,
       "summary": "專案已具備正式報告契約、共享產生技巧、操作文件與可驗證的本機報告流程。",
       "completed_items": [
-        "完成 report.json 與 report.dev.json Schema 及 runtime 驗證",
-        "完成 TaskProgress report 共享技巧與知識索引路由",
-        "完成 MIT License、README、Launcher 指南、計畫與 handoff",
-        "移除舊 examples 目錄並將測試改用受追蹤範例與暫存 scope",
-        "建立並驗證目前 TaskProgress 專案的基本報告與 Developer overlay",
-        "定義 canonical plan／handoff 指向 report 的去重關係與缺少 report 時的完整紀錄規則"
-      ]
+        {
+          "id": "item-project-reporting-done-1",
+          "title": "完成 report.json 與 report.dev.json Schema 及 runtime 驗證",
+          "priority": 4
+        },
+        {
+          "id": "item-project-reporting-done-2",
+          "title": "完成 TaskProgress report 共享技巧與知識索引路由",
+          "priority": 4
+        },
+        {
+          "id": "item-project-reporting-done-3",
+          "title": "完成 MIT License、README、Launcher 指南、計畫與 handoff",
+          "priority": 4
+        },
+        {
+          "id": "item-project-reporting-done-4",
+          "title": "移除舊 examples 目錄並將測試改用受追蹤範例與暫存 scope",
+          "priority": 4
+        },
+        {
+          "id": "item-project-reporting-done-5",
+          "title": "建立並驗證目前 TaskProgress 專案的基本報告與 Developer overlay",
+          "priority": 4
+        },
+        {
+          "id": "item-project-reporting-done-6",
+          "title": "定義 canonical plan／handoff 指向 report 的去重關係與缺少 report 時的完整紀錄規則",
+          "priority": 4
+        }
+      ],
+      "pending_items": []
     }
   ]
 }

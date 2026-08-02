@@ -336,6 +336,7 @@ const editingPolicy = globalThis.TimeEditingPolicy;
 const taskEditingModel = globalThis.TimeTaskEditingModel;
 const priorityPolicy = globalThis.TaskProgressPriorityPolicy;
 const editorCoreRuntime = globalThis.TaskProgressEditorCoreRuntime;
+const editorSurfaceRuntime = globalThis.TaskProgressEditorSurfaceRuntime;
 const timeDataPolicy = globalThis.TimeDataPolicy;
 const estimateEngine = globalThis.TimeEstimateEngine;
 const capacityEngine = globalThis.TimeCapacityEngine;
@@ -344,6 +345,7 @@ if (!editingPolicy) throw new Error("編輯環境政策未載入。");
 if (!taskEditingModel) throw new Error("任務編輯模型未載入。");
 if (!priorityPolicy) throw new Error("優先級設定未載入。");
 if (!editorCoreRuntime) throw new Error("Editor Core runtime 未載入。");
+if (!editorSurfaceRuntime) throw new Error("Editor Surface runtime 未載入。");
 if (!timeDataPolicy) throw new Error("時間資料政策未載入。");
 if (!estimateEngine) throw new Error("估算算法引擎未載入。");
 if (!capacityEngine) throw new Error("工作容量引擎未載入。");
@@ -353,15 +355,6 @@ const BASE_REPORT_UPDATED_AT = "2026-07-21T23:44:00+08:00";
 const DEFAULT_STATUS_ORDER = ["planned", "in_progress", "done", "blocked", "archive"];
 const DEFAULT_PRIORITY = priorityPolicy.fallbackValue;
 const CREATION_PRIORITY = priorityPolicy.creationDefaultValue;
-const priorityMeta = Object.fromEntries(
-  priorityPolicy.levels.map((level) => [
-    level.value,
-    {
-      ...level,
-      className: `priority-${level.tone}`,
-    },
-  ]),
-);
 const taskStatusMeta = {
   planned: { label: "待處理", cardClass: "", dotClass: "state-muted" },
   in_progress: { label: "進行中", cardClass: "status-active", dotClass: "state-active" },
@@ -369,6 +362,29 @@ const taskStatusMeta = {
   blocked: { label: "受阻", cardClass: "status-danger", dotClass: "state-danger" },
   archive: { label: "已封存", cardClass: "", dotClass: "state-muted" },
 };
+// Shared Editor Surface. The Demo keeps its own dot presentation and neutral
+// card borders through the presentation adapter; structure, ordering, and
+// accessibility text now come from the same module as the production Viewer.
+const editorSurface = editorSurfaceRuntime.createEditorSurface({
+  document,
+  priorityPolicy,
+  statusMeta: Object.fromEntries(
+    Object.entries(taskStatusMeta).map(([status, meta]) => [
+      status,
+      { label: meta.label, tone: meta.dotClass.replace("state-", "") },
+    ]),
+  ),
+  presentation: {
+    headerClass: "task-header time-task-header",
+    titleGroupClass: "time-task-copy",
+    statusStyle: "dot",
+    priorityOptionMarker: "● ",
+    priorityOptionTone: true,
+    cardStatusClass: (status, meta) => (
+      ["active", "success", "danger"].includes(meta?.tone) ? `status-${meta.tone}` : ""
+    ),
+  },
+});
 const filterStatusLabels = {
   planned: "待處理",
   in_progress: "進行中",
@@ -1074,56 +1090,16 @@ function updateTaskContentDirty() {
 }
 
 function createTaskCard(definition) {
-  const meta = taskStatusMeta[definition.status] ?? taskStatusMeta.planned;
-  const card = document.createElement("article");
-  card.className = `task-card ${meta.cardClass}`.trim();
-  card.dataset.taskId = definition.id;
-  card.dataset.status = definition.status;
-  card.dataset.priority = String(
-    taskEditingModel.normalizePriority(definition.priority, DEFAULT_PRIORITY),
+  const status = taskStatusMeta[definition.status] ? definition.status : "planned";
+  const shell = editorSurface.createTaskCardShell(
+    { ...definition, status },
+    { completed: 0, total: 0, showPriority: false },
   );
+  const { card, duration } = shell;
   card.dataset.baseCompleted = String(definition.baseCompleted ?? 0);
   card.dataset.baseTotal = String(definition.baseTotal ?? 0);
-
-  const header = document.createElement("header");
-  header.className = "task-header time-task-header";
-  const copy = document.createElement("div");
-  copy.className = "time-task-copy";
-  const statusLine = document.createElement("div");
-  statusLine.className = "time-task-status-line";
-  const state = document.createElement("span");
-  state.className = "time-task-state";
-  const dot = document.createElement("span");
-  dot.className = `task-state-dot ${meta.dotClass}`;
-  dot.setAttribute("aria-hidden", "true");
-  state.append(dot, meta.label);
-  statusLine.append(state);
-  const titleLine = document.createElement("div");
-  titleLine.className = "time-task-title-line";
-  const title = document.createElement("h3");
-  title.textContent = definition.title;
-  const duration = document.createElement("span");
-  duration.className = "task-duration";
-  duration.hidden = true;
   duration.textContent = "時間待重新分析";
-  titleLine.append(title, duration);
-  copy.append(statusLine, titleLine);
 
-  const headerMeta = document.createElement("div");
-  headerMeta.className = "task-header-meta";
-  const fraction = document.createElement("strong");
-  fraction.className = "task-fraction";
-  fraction.textContent = "0 / 0";
-  fraction.setAttribute("aria-label", "子項目完成 0，共 0");
-  const id = document.createElement("code");
-  id.className = "task-id";
-  id.textContent = definition.id;
-  headerMeta.append(fraction, id);
-  header.append(copy, headerMeta);
-
-  const summary = document.createElement("p");
-  summary.className = "task-summary";
-  summary.textContent = definition.summary;
   const columns = document.createElement("div");
   columns.className = "work-columns task-child-panel";
   columns.hidden = true;
@@ -1137,7 +1113,7 @@ function createTaskCard(definition) {
   list.dataset.taskChildList = definition.id;
   section.append(heading, list);
   columns.append(section);
-  card.append(header, summary, columns);
+  card.append(columns);
 
   elements.taskList.append(card);
   elements.taskCards.push(card);
@@ -2679,42 +2655,12 @@ function createTaskItemPriorityBadge(item) {
 }
 
 function createPriorityBadge(priority, className) {
-  const normalized = taskEditingModel.normalizePriority(priority, DEFAULT_PRIORITY);
-  const meta = priorityMeta[normalized];
-  if (priorityPolicy.labelsValid && meta.hidden) {
-    return document.createDocumentFragment();
-  }
-  const badge = document.createElement("span");
-  badge.className = `${className} priority-badge ${meta.className}`;
-  badge.textContent = priorityPolicy.format(normalized);
-  badge.title = `${priorityPolicy.format(normalized)}；同一狀態內依優先級排序`;
-  badge.setAttribute("aria-label", `優先級：${priorityPolicy.format(normalized)}`);
-  return badge;
-}
-
-function applyPrioritySelectTone(select) {
-  Object.values(priorityMeta).forEach((meta) => select.classList.remove(meta.className));
-  const priority = taskEditingModel.normalizePriority(select.value, DEFAULT_PRIORITY);
-  select.classList.add(priorityMeta[priority].className);
+  return editorSurface.createPriorityBadge(priority, className)
+    ?? document.createDocumentFragment();
 }
 
 function createPrioritySelect(value, ariaLabel, className) {
-  const select = document.createElement("select");
-  select.className = className;
-  select.setAttribute("aria-label", ariaLabel);
-  Object.entries(priorityMeta).forEach(([priority, meta]) => {
-    const option = document.createElement("option");
-    option.value = priority;
-    option.textContent = priorityPolicy.labelsValid && meta.hidden
-      ? priorityPolicy.format(priority)
-      : `● ${priorityPolicy.format(priority)}`;
-    option.className = meta.className;
-    select.append(option);
-  });
-  select.value = String(taskEditingModel.normalizePriority(value, DEFAULT_PRIORITY));
-  applyPrioritySelectTone(select);
-  select.addEventListener("change", () => applyPrioritySelectTone(select));
-  return select;
+  return editorSurface.createPrioritySelect(value, { className, ariaLabel });
 }
 
 function createTaskItemPrioritySelect(item, ariaLabel = `設定「${item.title}」的優先級`) {

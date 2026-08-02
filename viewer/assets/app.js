@@ -1,5 +1,4 @@
 import {
-  PRIORITY_META,
   PRIORITY_POLICY,
   STATUS_META,
   SUPPORTED_SCHEMA_VERSION,
@@ -11,7 +10,6 @@ import {
   resolveReportRequest,
   stableSortTasksByPriority,
   stableSortTaskItemsByPriority,
-  taskPriority,
   taskItemPriority,
   validateScopeCatalog,
   validateDeveloperReport,
@@ -21,6 +19,11 @@ import {
   createReportEditorSession,
   normalizeMeaningfulText,
 } from "./editor-core.js";
+import {
+  createPriorityBadge,
+  createPrioritySelect,
+  createTaskCardShell,
+} from "./editor-surface.js";
 import { initializeThemeControls } from "./theme.js";
 import {
   inspectTimeAnalysis,
@@ -119,30 +122,12 @@ function el(tag, className, text) {
   return node;
 }
 
-function createPriorityBadge(priority, className) {
-  const meta = PRIORITY_META[priority];
-  if (!meta || (PRIORITY_POLICY.labelsValid && meta.hidden)) return null;
-  const badge = el(
-    "span",
-    `${className} priority-badge priority-${meta.tone}`,
-    PRIORITY_POLICY.format(priority),
-  );
-  badge.title = `${PRIORITY_POLICY.format(priority)}；同一狀態內依優先級排序`;
-  badge.setAttribute("aria-label", `優先級：${PRIORITY_POLICY.format(priority)}`);
-  return badge;
-}
-
 function prioritySelect(value, onChange, ariaLabel) {
-  const select = el("select", "inline-priority-select");
-  select.setAttribute("aria-label", ariaLabel);
-  PRIORITY_POLICY.levels.forEach((level) => {
-    const option = el("option", "", PRIORITY_POLICY.format(level.value));
-    option.value = String(level.value);
-    option.selected = level.value === taskItemPriority({ priority: value });
-    select.append(option);
+  return createPrioritySelect(value, {
+    className: "inline-priority-select",
+    ariaLabel,
+    onChange,
   });
-  select.addEventListener("change", () => onChange(Number(select.value)));
-  return select;
 }
 
 function syncEditorDirty(message = "有尚未儲存的修改") {
@@ -736,19 +721,13 @@ function renderTask(task) {
   const editableTask = state.editor.editing
     ? state.editor.session?.task(task.id) ?? task
     : task;
-  const meta = STATUS_META[task.status];
   const progress = currentTaskProgress(task);
-  const card = el("article", `task-card status-${meta.tone}`);
-  const header = el("header", "task-header");
-  const titleGroup = el("div", "task-title-group");
-  const statusLine = el("div", "time-task-status-line");
-  const titleLine = el("div", "time-task-title-line");
-  const headerMeta = el("div", "task-header-meta");
-  const fraction = el("strong", "task-fraction", `${progress.completed} / ${progress.total}`);
-  fraction.setAttribute(
-    "aria-label",
-    `子項目完成 ${progress.completed}，共 ${progress.total}`,
-  );
+  const shell = createTaskCardShell(task, {
+    completed: progress.completed,
+    total: progress.total,
+    showPriority: !state.editor.editing,
+  });
+  const { card, statusLine, titleLine, headerMeta } = shell;
   if (state.editor.editing) {
     const remove = el("button", "inline-delete-button task-delete-button", "刪除");
     remove.type = "button";
@@ -760,9 +739,8 @@ function renderTask(task) {
         { render: true },
       );
     });
-    headerMeta.append(remove);
+    headerMeta.prepend(remove);
   }
-  statusLine.append(el("span", `status-badge status-${meta.tone}`, meta.label));
   if (state.editor.editing) {
     const statusSelect = el("select", "inline-status-select");
     statusSelect.setAttribute("aria-label", `${task.title} 狀態`);
@@ -836,18 +814,13 @@ function renderTask(task) {
       });
       titleInput.value = value;
     });
-    titleLine.append(titleInput);
-  } else {
-    const priorityBadge = createPriorityBadge(taskPriority(task), "task-priority-badge");
-    if (priorityBadge) statusLine.append(priorityBadge);
-    titleLine.append(el("h3", "", task.title));
+    shell.title.replaceWith(titleInput);
   }
   const duration = state.timeController?.taskDuration(task.id);
-  if (duration) titleLine.append(el("span", "task-duration", `約需 ${duration}`));
-  titleGroup.append(statusLine, titleLine);
-  headerMeta.append(fraction, el("code", "task-id", task.id));
-  header.append(titleGroup, headerMeta);
-  card.append(header);
+  if (duration) {
+    shell.duration.textContent = `約需 ${duration}`;
+    shell.duration.hidden = false;
+  }
   if (state.editor.editing) {
     const summary = el("textarea", "task-summary task-summary-input");
     summary.maxLength = 1000;
@@ -882,9 +855,7 @@ function renderTask(task) {
       });
       summary.value = value;
     });
-    card.append(summary);
-  } else {
-    card.append(el("p", "task-summary", task.summary));
+    shell.summary.replaceWith(summary);
   }
   renderDeveloperDetails(task, card);
 

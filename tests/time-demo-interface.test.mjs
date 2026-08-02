@@ -18,6 +18,10 @@ const priorityPolicySource = await readFile(
   new URL("../viewer/assets/priority-policy.js", import.meta.url),
   "utf8",
 );
+const editorSurfaceSource = await readFile(
+  new URL("../viewer/assets/editor-surface-runtime.js", import.meta.url),
+  "utf8",
+);
 
 test("progress report exposes one switching panel with three overview tabs", () => {
   const flowIndex = appSource.indexOf('flowTab.textContent = "評估流程"');
@@ -268,12 +272,14 @@ test("task cards and child items share the five named priority levels", () => {
   assert.match(appSource, /const priorityPolicy = globalThis\.TaskProgressPriorityPolicy/);
   assert.match(appSource, /const DEFAULT_PRIORITY = priorityPolicy\.fallbackValue/);
   assert.match(appSource, /const CREATION_PRIORITY = priorityPolicy\.creationDefaultValue/);
-  assert.match(appSource, /priorityPolicy\.labelsValid && meta\.hidden/);
+  // Badge visibility and select styling now come from the shared Editor Surface.
+  assert.match(editorSurfaceSource, /priorityPolicy\.labelsValid && meta\.hidden/);
+  assert.match(editorSurfaceSource, /el\("select", className \?\? "inline-priority-select"\)/);
+  assert.match(appSource, /editorSurface\.createPrioritySelect\(value, \{ className, ariaLabel \}\)/);
   assert.match(appSource, /function renderTaskPriorityControls\(\)/);
   assert.match(appSource, /task_priorities: Object\.fromEntries/);
   assert.match(appSource, /card\.dataset\.priority/);
   assert.match(appSource, /priorityOrderedCards/);
-  assert.match(appSource, /select\.className = className/);
   assert.match(appSource, /預設優先級：一般/);
   assert.doesNotMatch(appSource, /預設優先級：P2/);
   assert.doesNotMatch(appSource, /label: "(立即|優先|一般|次要|未指定)"/);
