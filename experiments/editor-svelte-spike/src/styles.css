@@ -112,13 +112,119 @@ textarea {
 
 .spike-loading,
 .spike-load-error,
-.spike-diagnostics {
+.spike-diagnostics,
+.spike-time-editor,
+.spike-time-config-missing {
   margin: 18px 0;
   padding: 14px 16px;
   color: var(--ink-soft);
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: 12px;
+}
+
+.spike-time-editor {
+  display: grid;
+  grid-template-columns: minmax(180px, 0.7fr) minmax(320px, 1.3fr);
+  gap: 18px;
+  margin-bottom: 18px;
+}
+
+.spike-time-editor h2,
+.spike-time-editor p {
+  margin: 0;
+}
+
+.spike-time-editor h2 {
+  margin: 3px 0 5px;
+  color: var(--ink);
+  font-size: 1rem;
+}
+
+.spike-editor-kicker {
+  color: var(--blue) !important;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.spike-delivery-controls {
+  display: grid;
+  grid-template-columns: minmax(190px, 1fr) auto auto;
+  align-items: end;
+  gap: 8px;
+}
+
+.spike-delivery-controls label,
+.spike-estimate-fields label {
+  display: grid;
+  gap: 4px;
+  color: var(--ink-soft);
+  font-size: 0.72rem;
+}
+
+.spike-delivery-controls input,
+.spike-estimate-fields input {
+  min-width: 0;
+  padding: 7px 9px;
+  color: var(--ink);
+  color-scheme: dark;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+.spike-delivery-controls button,
+.spike-estimate-fields button {
+  min-height: 34px;
+  padding: 6px 10px;
+  color: white;
+  background: var(--blue);
+  border: 1px solid var(--blue);
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.spike-delivery-controls .spike-subtle-button {
+  color: var(--ink-soft);
+  background: transparent;
+  border-color: var(--line);
+}
+
+.spike-time-config-missing {
+  margin-bottom: 18px;
+}
+
+.work-columns .detail-list li.has-estimate-editor {
+  flex-wrap: wrap;
+}
+
+.spike-estimate-editor {
+  flex: 1 0 100%;
+  margin-top: 2px;
+  padding: 7px 9px;
+  background: color-mix(in srgb, var(--surface) 74%, transparent);
+  border: 1px solid var(--line);
+  border-radius: 9px;
+}
+
+.spike-estimate-editor summary {
+  color: var(--blue);
+  cursor: pointer;
+  font-size: 0.72rem;
+  font-weight: 760;
+}
+
+.spike-estimate-fields {
+  display: grid;
+  grid-template-columns: 110px minmax(180px, 1fr) auto;
+  align-items: end;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.spike-estimate-fields .spike-field-error {
+  grid-column: 1 / -1;
 }
 
 .spike-load-error {
@@ -218,13 +324,19 @@ textarea {
   }
 
   .spike-heading,
-  .spike-savebar {
+  .spike-savebar,
+  .spike-time-editor {
     align-items: stretch;
     flex-direction: column;
   }
 
   .spike-add-form {
     grid-template-columns: 1fr 1fr;
+  }
+
+  .spike-delivery-controls,
+  .spike-estimate-fields {
+    grid-template-columns: 1fr;
   }
 
   .spike-add-form input {

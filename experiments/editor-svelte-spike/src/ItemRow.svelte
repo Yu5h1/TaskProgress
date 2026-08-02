@@ -6,15 +6,40 @@
   export let policy;
   export let onCommand;
   export let timeItem = null;
+  export let activeEstimate = null;
+  export let onManualEstimate = null;
+
+  let estimateHours = activeEstimate
+    ? String(activeEstimate.likely_minutes / 60)
+    : timeItem
+      ? String(timeItem.likely_minutes / 60)
+      : "";
+  let estimateNote = activeEstimate?.human_note ?? "";
+  let estimateError = "";
 
   $: metadata = policy.metadata(item.priority);
   $: label = policy.format(item.priority);
   $: timeLabel = timeItem
     ? `${Number(timeItem.display_hours).toLocaleString(undefined, { maximumFractionDigits: 2 })}h`
     : "";
+
+  function applyManualEstimate() {
+    const hours = Number(estimateHours);
+    if (!Number.isFinite(hours) || hours <= 0) {
+      estimateError = "工時必須大於 0。";
+      return;
+    }
+    const result = onManualEstimate?.({
+      taskId,
+      itemId: item.id,
+      likelyMinutes: Math.round(hours * 60),
+      humanNote: estimateNote,
+    });
+    estimateError = result?.error ?? "";
+  }
 </script>
 
-<li class:editable-work-item={editing}>
+<li class:editable-work-item={editing} class:has-estimate-editor={editing && onManualEstimate}>
   {#if editing}
     <input
       class="inline-edit-input"
@@ -64,6 +89,23 @@
         itemId: item.id,
       })}
     >刪除</button>
+    {#if onManualEstimate}
+      <details class="spike-estimate-editor">
+        <summary>人工工時與依據</summary>
+        <div class="spike-estimate-fields">
+          <label>
+            <span>工時（hr）</span>
+            <input type="number" min="0.02" step="0.25" bind:value={estimateHours}>
+          </label>
+          <label class="spike-estimate-note">
+            <span>人工依據</span>
+            <input maxlength="1000" bind:value={estimateNote} placeholder="例如：已拆解三個步驟">
+          </label>
+          <button type="button" onclick={applyManualEstimate}>套用草稿</button>
+          {#if estimateError}<p class="spike-field-error" role="alert">{estimateError}</p>{/if}
+        </div>
+      </details>
+    {/if}
   {:else}
     <span class="spike-item-title">{item.title}</span>
     {#if metadata && (!metadata.hidden || !policy.labelsValid)}

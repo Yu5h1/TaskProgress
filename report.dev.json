@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "report_id": "task-progress-development",
-  "updated_at": "2026-08-03T00:00:46+08:00",
+  "updated_at": "2026-08-03T00:13:56+08:00",
   "tasks": [
     {
       "id": "viewer-core",
@@ -93,10 +93,10 @@
     },
     {
       "id": "local-task-editing",
-      "next_step": "Svelte shell 真實 report／time loader 與受保護 private config／estimates session 已完成；下一步定義 multi-file save payload、雙 revision precondition 及 staged validators，接入既有 transaction 後才建立交付日與人工估算 Svelte 表單。Node 145/145，edit-host Python 13/13。",
+      "next_step": "multi-file save 與 Svelte 交付日／版本化人工估算初版已完成；下一步補 time.config 缺檔建立流程、交付日修改原因／私有歷史契約，再做本機實檔與瀏覽器 focus／鍵盤／錯誤 UX 驗證。Node 148/148，edit-host Python 18/18。",
       "blockers": [
-        "交付日仍需定義 time.config.json staged payload、修改原因與私有歷史事件的正式 Schema／API，才能接上已完成的跨檔案 transaction adapter。",
-        "正式人工工時／依據編輯需定義版本化 time.estimates.json payload 並接上 transaction adapter 後重新產生 time.analysis.json；目前子項目工時膠囊只開啟唯讀估算明細。",
+        "Svelte 初版可修改既有 time.config.json 的 delivery_at，但 config 缺檔時尚未提供安全預設模板；交付日修改原因與私有歷史事件仍需正式 Schema／API。",
+        "Svelte 人工工時／依據會建立新 estimate version 並透過 transaction 重新分析；尚未完成本機實檔、focus／鍵盤、來源衝突與分析錯誤的瀏覽器 UX 驗證，也尚未取代正式 Viewer Surface。",
         "Demo 的四張狀態測試卡仍是 index.html 靜態標記，與共用 surface 產生的動態卡片是兩份來源；後續 TaskCard host 收斂時需決定是否改由 surface 產生。",
         "390px 版面與觸控編輯尚未驗證，因此目前正式編輯範圍仍以桌面滑鼠／鍵盤為準。"
       ],

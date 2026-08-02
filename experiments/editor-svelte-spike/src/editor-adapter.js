@@ -52,6 +52,15 @@ export function createSvelteEditorAdapter(
     });
   }
 
+  function prepareSave(updatedAt) {
+    const report = session.prepareSave(updatedAt);
+    const errors = [
+      ...session.validate(report),
+      ...meaningfulTextErrors(report),
+    ];
+    return Object.freeze({ report: clone(report), errors });
+  }
+
   return Object.freeze({
     snapshot,
     dispatch(command) {
@@ -87,12 +96,13 @@ export function createSvelteEditorAdapter(
       });
       return Object.freeze({ error: "", snapshot: snapshot() });
     },
+    prepareSave,
+    commit(report) {
+      session.commit(report);
+      return snapshot();
+    },
     save(updatedAt) {
-      const prepared = session.prepareSave(updatedAt);
-      const errors = [
-        ...session.validate(prepared),
-        ...meaningfulTextErrors(prepared),
-      ];
+      const { report: prepared, errors } = prepareSave(updatedAt);
       if (errors.length) {
         return Object.freeze({ errors, snapshot: snapshot() });
       }

@@ -35,6 +35,7 @@ API_PREFIX = "/__taskprogress/v1"
 API_VERSION = 1
 MAX_REPORT_BYTES = 1024 * 1024
 MAX_TRANSACTION_FILE_BYTES = 4 * 1024 * 1024
+MAX_EDIT_PAYLOAD_BYTES = 10 * 1024 * 1024
 SESSION_LIFETIME_SECONDS = 10 * 60
 TIME_SCHEMA_ROOT = (
     Path(__file__).resolve().parents[1]
@@ -745,6 +746,266 @@ def install_edit_api(
             sessions.pop(session.token, None)
         return Response(status_code=204)
 
+    async def commit_edit(
+        *,
+        scope: str,
+        path: Path,
+        session: EditSession,
+        report: dict[str, Any],
+        formatted_report: bytes,
+        replacement_inputs: dict[str, dict[str, Any]],
+    ) -> Response:
+        """Atomically persist canonical inputs, regenerate analysis, and rotate the session."""
+
+        async with write_lock:
+            try:
+                recover_pending_transaction(path.parent)
+                _, current_report, current_revision = _read_report(path)
+                _, current_inputs_revision = _read_time_inputs(
+                    path.parent,
+                    scope,
+                    time_validators,
+                )
+            except (
+                OSError,
+                ValueError,
+                json.JSONDecodeError,
+                TransactionRollbackError,
+            ) as error:
+                return _problem(
+                    409,
+                    "report_unavailable",
+                    "Source files or their pending transaction are unavailable",
+                    str(error),
+                )
+            if (
+                current_revision != session.revision
+                or current_inputs_revision != session.inputs_revision
+                or current_report.get("report_id") != session.report_id
+            ):
+                return _problem(
+                    409,
+                    "source_changed",
+                    "Source files changed after the edit session started",
+                )
+
+            def validate_staged_payloads() -> None:
+                report_errors = _schema_errors(validator, report)
+                if report_errors:
+                    raise ValueError(
+                        f"report.json failed validation: {'; '.join(report_errors[:8])}"
+                    )
+                for key, payload in replacement_inputs.items():
+                    errors = _json_schema_errors(time_validators[key], payload)
+                    if errors:
+                        filename = (
+                            "time.config.json"
+                            if key == "config"
+                            else "time.estimates.json"
+                        )
+                        raise ValueError(
+                            f"{filename} failed validation: {'; '.join(errors[:8])}"
+                        )
+                    if payload.get("scope_id") != scope:
+                        raise ValueError(f"{key} scope_id does not match {scope}")
+
+            transaction = LocalFileTransaction(path.parent)
+            try:
+                transaction.stage_bytes(path, formatted_report)
+                for key, payload in replacement_inputs.items():
+                    filename = (
+                        "time.config.json"
+                        if key == "config"
+                        else "time.estimates.json"
+                    )
+                    transaction.stage_json(filename, payload)
+                transaction.watch(path.parent / "time.analysis.json")
+                transaction.prepare((validate_staged_payloads,))
+                transaction.apply()
+                analysis_ok, analysis_error = await asyncio.to_thread(
+                    _run_analysis,
+                    analyzer_command,
+                    path,
+                )
+                if not analysis_ok:
+                    transaction.rollback()
+                    return _problem(
+                        409,
+                        "analysis_failed",
+                        "Time analysis failed; the file transaction was restored",
+                        analysis_error,
+                    )
+                next_inputs, next_inputs_revision = _read_time_inputs(
+                    path.parent,
+                    scope,
+                    time_validators,
+                )
+                transaction.commit()
+            except (OSError, ValueError, RuntimeError) as error:
+                try:
+                    transaction.rollback()
+                except (OSError, TransactionRollbackError) as rollback_error:
+                    return _problem(
+                        500,
+                        "transaction_rollback_failed",
+                        "The file transaction could not be restored",
+                        str(rollback_error),
+                    )
+                return _problem(
+                    500,
+                    "transaction_failed",
+                    "The file transaction was not committed",
+                    str(error),
+                )
+
+            new_revision = _revision(formatted_report)
+            with sessions_lock:
+                sessions.pop(session.token, None)
+            next_session = issue_session(
+                scope,
+                new_revision,
+                next_inputs_revision,
+                session.report_id,
+            )
+            return JSONResponse(
+                {
+                    "report": report,
+                    "revision": new_revision,
+                    "inputs": next_inputs,
+                    "inputs_revision": next_session.inputs_revision,
+                    "token": next_session.token,
+                    "expires_at": next_session.expires_at,
+                }
+            )
+
+    @router.put("/edit-sessions/{scope}")
+    async def save_edit_session(scope: str, request: Request) -> Response:
+        """Save report plus selected private inputs in one recoverable transaction.
+
+        ``inputs`` is a patch-by-file: omitted config/estimates files are kept,
+        while a present object replaces that canonical JSON file. Deletion is
+        intentionally not part of the first contract.
+        """
+
+        if not _browser_write_allowed(request, control_port):
+            return _problem(403, "browser_origin_forbidden", "Trusted same-origin editor required")
+        if not _content_type_is_json(request):
+            return _problem(415, "unsupported_media_type", "Requests must use application/json")
+        session = authorize_session(request, scope)
+        if session is None:
+            return _problem(401, "invalid_edit_session", "A valid edit session is required")
+        expected_revision = request.headers.get("if-match", "").strip('"')
+        if not expected_revision or expected_revision != session.revision:
+            return _problem(409, "stale_revision", "The edit session revision is stale")
+        content_length = request.headers.get("content-length")
+        if content_length:
+            try:
+                if int(content_length) > MAX_EDIT_PAYLOAD_BYTES:
+                    return _problem(413, "edit_payload_too_large", "Edit payload exceeds the limit")
+            except ValueError:
+                return _problem(400, "invalid_content_length", "Content-Length is invalid")
+        source = await request.body()
+        if len(source) > MAX_EDIT_PAYLOAD_BYTES:
+            return _problem(413, "edit_payload_too_large", "Edit payload exceeds the limit")
+        try:
+            payload = json.loads(source)
+        except json.JSONDecodeError as error:
+            return _problem(422, "invalid_json", "Edit payload is not valid JSON", str(error))
+        if not isinstance(payload, dict) or set(payload) != {
+            "report",
+            "inputs_revision",
+            "inputs",
+        }:
+            return _problem(
+                422,
+                "invalid_edit_payload",
+                "Edit payload requires only report, inputs_revision, and inputs",
+            )
+        report = payload["report"]
+        inputs_revision = payload["inputs_revision"]
+        replacement_inputs = payload["inputs"]
+        if (
+            not isinstance(inputs_revision, str)
+            or not re.fullmatch(r"[a-f0-9]{64}", inputs_revision)
+            or inputs_revision != session.inputs_revision
+        ):
+            return _problem(
+                409,
+                "stale_inputs_revision",
+                "The edit session time-input revision is stale",
+            )
+        if not isinstance(report, dict):
+            return _problem(422, "invalid_report", "report.json root must be an object")
+        report_errors = _schema_errors(validator, report)
+        if report_errors:
+            return _problem(
+                422,
+                "invalid_report",
+                "report.json failed validation",
+                "; ".join(report_errors[:8]),
+            )
+        if report.get("scope_id") != scope or report.get("report_id") != session.report_id:
+            return _problem(
+                422,
+                "identity_change_forbidden",
+                "scope_id and report_id cannot be changed by this editor",
+            )
+        if (
+            not isinstance(replacement_inputs, dict)
+            or not set(replacement_inputs).issubset({"config", "estimates"})
+        ):
+            return _problem(
+                422,
+                "invalid_time_inputs",
+                "inputs may contain only config and estimates replacements",
+            )
+        for key, value in replacement_inputs.items():
+            if not isinstance(value, dict):
+                return _problem(
+                    422,
+                    "invalid_time_inputs",
+                    f"inputs.{key} must be an object",
+                )
+            errors = _json_schema_errors(time_validators[key], value)
+            if errors:
+                return _problem(
+                    422,
+                    "invalid_time_inputs",
+                    f"inputs.{key} failed validation",
+                    "; ".join(errors[:8]),
+                )
+            if value.get("scope_id") != scope:
+                return _problem(
+                    422,
+                    "identity_change_forbidden",
+                    f"inputs.{key}.scope_id cannot be changed by this editor",
+                )
+            formatted_input = (
+                json.dumps(value, ensure_ascii=False, indent=2).encode("utf-8") + b"\n"
+            )
+            if len(formatted_input) > MAX_TRANSACTION_FILE_BYTES:
+                return _problem(
+                    413,
+                    "time_input_too_large",
+                    f"inputs.{key} exceeds the edit limit",
+                )
+        formatted_report = (
+            json.dumps(report, ensure_ascii=False, indent=2).encode("utf-8") + b"\n"
+        )
+        if len(formatted_report) > MAX_REPORT_BYTES:
+            return _problem(413, "report_too_large", "report.json exceeds the edit limit")
+        path = registered_report(scope)
+        if path is None:
+            return _problem(404, "scope_not_found", "Editable scope was not found")
+        return await commit_edit(
+            scope=scope,
+            path=path,
+            session=session,
+            report=report,
+            formatted_report=formatted_report,
+            replacement_inputs=replacement_inputs,
+        )
+
     @router.put("/reports/{scope}")
     async def save_report(scope: str, request: Request) -> Response:
         if not _browser_write_allowed(request, control_port):
@@ -794,97 +1055,14 @@ def install_edit_api(
             json.dumps(report, ensure_ascii=False, indent=2).encode("utf-8") + b"\n"
         )
 
-        async with write_lock:
-            try:
-                recover_pending_transaction(path.parent)
-                _, current_report, current_revision = _read_report(path)
-                _, current_inputs_revision = _read_time_inputs(
-                    path.parent,
-                    scope,
-                    time_validators,
-                )
-            except (
-                OSError,
-                ValueError,
-                json.JSONDecodeError,
-                TransactionRollbackError,
-            ) as error:
-                return _problem(
-                    409,
-                    "report_unavailable",
-                    "report.json or its pending transaction is unavailable",
-                    str(error),
-                )
-            if (
-                current_revision != session.revision
-                or current_inputs_revision != session.inputs_revision
-                or current_report.get("report_id") != session.report_id
-            ):
-                return _problem(
-                    409,
-                    "source_changed",
-                    "report.json changed after the edit session started",
-                )
-            transaction = LocalFileTransaction(path.parent)
-            try:
-                transaction.stage_bytes(path, formatted)
-                transaction.watch(path.parent / "time.analysis.json")
-                transaction.prepare()
-                transaction.apply()
-                analysis_ok, analysis_error = await asyncio.to_thread(
-                    _run_analysis,
-                    analyzer_command,
-                    path,
-                )
-                if not analysis_ok:
-                    transaction.rollback()
-                    return _problem(
-                        409,
-                        "analysis_failed",
-                        "Time analysis failed; the file transaction was restored",
-                        analysis_error,
-                    )
-                transaction.commit()
-            except (OSError, ValueError, RuntimeError) as error:
-                try:
-                    transaction.rollback()
-                except (OSError, TransactionRollbackError) as rollback_error:
-                    return _problem(
-                        500,
-                        "transaction_rollback_failed",
-                        "The file transaction could not be restored",
-                        str(rollback_error),
-                    )
-                return _problem(
-                    500,
-                    "transaction_failed",
-                    "The file transaction was not committed",
-                    str(error),
-                )
-
-            new_revision = _revision(formatted)
-            with sessions_lock:
-                sessions.pop(session.token, None)
-            _, next_inputs_revision = _read_time_inputs(
-                path.parent,
-                scope,
-                time_validators,
-            )
-            next_session = issue_session(
-                scope,
-                new_revision,
-                next_inputs_revision,
-                session.report_id,
-            )
-            return JSONResponse(
-                {
-                    "report": report,
-                    "revision": new_revision,
-                    "inputs_revision": next_session.inputs_revision,
-                    "token": next_session.token,
-                    "expires_at": next_session.expires_at,
-                }
-            )
+        return await commit_edit(
+            scope=scope,
+            path=path,
+            session=session,
+            report=report,
+            formatted_report=formatted,
+            replacement_inputs={},
+        )
 
     route_count = len(application.router.routes)
     application.include_router(router)

@@ -6,8 +6,13 @@ import {
   loadSvelteEditorData,
   resolveSvelteDataRequest,
 } from "../experiments/editor-svelte-spike/src/data-loader.js";
+import { createEditHostClient } from "../experiments/editor-svelte-spike/src/edit-host-client.js";
 import { createSvelteEditorAdapter } from "../experiments/editor-svelte-spike/src/editor-adapter.js";
 import { fixtureReport } from "../experiments/editor-svelte-spike/src/fixture.js";
+import {
+  activeEstimateIndex,
+  createTimeInputDraft,
+} from "../experiments/editor-svelte-spike/src/time-input-draft.js";
 
 const exampleReport = JSON.parse(await readFile(
   new URL("../reports/example/report.json", import.meta.url),
@@ -191,8 +196,124 @@ test("Svelte data loader rejects invalid reports without showing fixture data", 
   );
 });
 
+test("time input draft edits and clears delivery without mutating its baseline", () => {
+  const config = {
+    scope_id: "example",
+    updated_at: "2026-08-01T00:00:00Z",
+    project: { executor_count: 1 },
+  };
+  const draft = createTimeInputDraft({ config, estimates: null }, "example");
+  const changed = draft.setDeliveryAt(
+    "2026-08-20T17:00:00+08:00",
+    "2026-08-03T01:00:00Z",
+  );
+
+  assert.equal(changed.error, "");
+  assert.equal(config.project.delivery_at, undefined);
+  assert.equal(changed.snapshot.inputs.config.project.delivery_at, "2026-08-20T17:00:00+08:00");
+  assert.deepEqual(changed.snapshot.dirtyFiles, ["config"]);
+  assert.deepEqual(Object.keys(draft.replacements()), ["config"]);
+
+  const cleared = draft.setDeliveryAt("", "2026-08-03T02:00:00Z");
+  assert.equal(cleared.snapshot.inputs.config.project.delivery_at, undefined);
+  assert.equal(draft.discard().inputs.config.project.delivery_at, undefined);
+  assert.equal(draft.snapshot().dirty, false);
+});
+
+test("time input draft versions direct human estimates and keeps the rationale", () => {
+  const inputs = {
+    config: null,
+    estimates: {
+      schema_version: "0.2",
+      scope_id: "example",
+      updated_at: "2026-08-01T00:00:00Z",
+      estimates: [{
+        estimate_id: "old-estimate",
+        task_id: "editor-framework-spike",
+        item_id: "svelte-parity",
+        likely_minutes: 60,
+        contributors: [{ kind: "system_default", summary: "預設。" }],
+        human_confirmed: false,
+        confidence: "low",
+        estimated_at: "2026-08-01T00:00:00Z",
+        active: true,
+      }],
+    },
+  };
+  const draft = createTimeInputDraft(inputs, "example");
+  const changed = draft.setManualEstimate({
+    taskId: "editor-framework-spike",
+    itemId: "svelte-parity",
+    likelyMinutes: 150,
+    humanNote: "  已拆解三個步驟。 ",
+    updatedAt: "2026-08-03T03:00:00Z",
+  });
+
+  assert.equal(changed.error, "");
+  assert.equal(changed.estimate.supersedes_estimate_id, "old-estimate");
+  assert.equal(changed.estimate.human_note, "已拆解三個步驟。");
+  assert.equal(changed.estimate.human_confirmed, true);
+  const replacement = draft.replacements().estimates;
+  assert.equal(replacement.estimates[0].active, false);
+  assert.equal(replacement.estimates[1].active, true);
+  assert.equal(activeEstimateIndex({ estimates: replacement }).get("svelte-parity").likely_minutes, 150);
+
+  const rejected = draft.setManualEstimate({
+    taskId: "editor-framework-spike",
+    itemId: "svelte-parity",
+    likelyMinutes: 0,
+    humanNote: "有依據",
+  });
+  assert.match(rejected.error, /至少 1 分鐘/u);
+});
+
+test("Svelte edit-host client sends the dual-revision multi-file contract", async () => {
+  const calls = [];
+  const firstSession = {
+    token: "first-token",
+    scope_id: "example",
+    revision: "a".repeat(64),
+    inputs_revision: "b".repeat(64),
+    inputs: { config: null, estimates: null },
+  };
+  const nextSession = {
+    ...firstSession,
+    token: "next-token",
+    revision: "c".repeat(64),
+    inputs_revision: "d".repeat(64),
+    report: exampleReport,
+  };
+  const fetchImpl = async (url, options = {}) => {
+    calls.push({ url, options });
+    if (String(url).includes("/capabilities/")) {
+      return jsonResponse({ editable: true, scope_id: "example" });
+    }
+    if (options.method === "POST") return jsonResponse(firstSession, 201);
+    if (options.method === "PUT") return jsonResponse(nextSession);
+    return { ok: true, status: 204, async json() { return null; } };
+  };
+  const client = createEditHostClient({ scope: "example", fetchImpl });
+
+  assert.equal((await client.discover()).editable, true);
+  await client.start();
+  const saved = await client.save({
+    report: exampleReport,
+    inputs: { estimates: { scope_id: "example" } },
+  });
+
+  assert.equal(saved.token, "next-token");
+  const request = calls.find((call) => call.options.method === "PUT");
+  const body = JSON.parse(request.options.body);
+  assert.equal(request.options.headers["If-Match"], `"${firstSession.revision}"`);
+  assert.equal(body.inputs_revision, firstSession.inputs_revision);
+  assert.deepEqual(Object.keys(body.inputs), ["estimates"]);
+  await client.close();
+  assert.equal(calls.at(-1).options.method, "DELETE");
+  assert.equal(calls.at(-1).options.headers.Authorization, "Bearer next-token");
+});
+
 test("Svelte spike is isolated, static-path safe, and uses the shared core", async () => {
-  const [packageText, viteText, appText, cardText, rowText, adapterText, loaderText] = await Promise.all([
+  const [packageText, viteText, appText, cardText, rowText, adapterText, loaderText, clientText, timeDraftText] = await Promise.all([
     readFile(new URL("../package.json", import.meta.url), "utf8"),
     readFile(new URL("../experiments/editor-svelte-spike/vite.config.js", import.meta.url), "utf8"),
     readFile(new URL("../experiments/editor-svelte-spike/src/App.svelte", import.meta.url), "utf8"),
@@ -200,6 +321,8 @@ test("Svelte spike is isolated, static-path safe, and uses the shared core", asy
     readFile(new URL("../experiments/editor-svelte-spike/src/ItemRow.svelte", import.meta.url), "utf8"),
     readFile(new URL("../experiments/editor-svelte-spike/src/editor-adapter.js", import.meta.url), "utf8"),
     readFile(new URL("../experiments/editor-svelte-spike/src/data-loader.js", import.meta.url), "utf8"),
+    readFile(new URL("../experiments/editor-svelte-spike/src/edit-host-client.js", import.meta.url), "utf8"),
+    readFile(new URL("../experiments/editor-svelte-spike/src/time-input-draft.js", import.meta.url), "utf8"),
   ]);
   const packageJson = JSON.parse(packageText);
 
@@ -219,5 +342,7 @@ test("Svelte spike is isolated, static-path safe, and uses the shared core", asy
   assert.match(adapterText, /normalizeMeaningfulText/u);
   assert.match(loaderText, /resolveReportRequest/u);
   assert.match(loaderText, /inspectTimeAnalysis/u);
+  assert.match(clientText, /inputs_revision/u);
+  assert.match(timeDraftText, /supersedes_estimate_id/u);
   assert.doesNotMatch(appText + cardText + rowText, /localStorage/u);
 });

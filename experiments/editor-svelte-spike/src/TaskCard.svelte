@@ -9,6 +9,8 @@
   export let onAddItem;
   export let timeTask = null;
   export let timeItems = new Map();
+  export let activeEstimates = new Map();
+  export let onManualEstimate = null;
 
   const statuses = [
     { value: "planned", label: "待處理", tone: "muted" },
@@ -146,6 +148,8 @@
             {policy}
             {onCommand}
             timeItem={timeItems.get(item.id) ?? null}
+            activeEstimate={activeEstimates.get(item.id) ?? null}
+            {onManualEstimate}
           />
         {/each}
       </ul>
@@ -162,6 +166,8 @@
             {policy}
             {onCommand}
             timeItem={timeItems.get(item.id) ?? null}
+            activeEstimate={activeEstimates.get(item.id) ?? null}
+            {onManualEstimate}
           />
         {/each}
       </ul>

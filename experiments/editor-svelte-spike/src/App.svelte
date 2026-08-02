@@ -2,10 +2,16 @@
   import { onMount } from "svelte";
 
   import { createTimeIndex } from "../../../viewer/assets/time-model.js";
+  import DeliveryEditor from "./DeliveryEditor.svelte";
   import TaskCard from "./TaskCard.svelte";
   import { loadSvelteEditorData } from "./data-loader.js";
+  import { createEditHostClient } from "./edit-host-client.js";
   import { createSvelteEditorAdapter } from "./editor-adapter.js";
   import { fixtureReport } from "./fixture.js";
+  import {
+    activeEstimateIndex,
+    createTimeInputDraft,
+  } from "./time-input-draft.js";
 
   const priorityPolicy = globalThis.TaskProgressPriorityPolicy;
   const emptyTimeIndex = () => ({ tasks: new Map(), items: new Map() });
@@ -22,6 +28,12 @@
   let loadError = "";
   let dataLabel = "內建 fixture";
   let statusMessage = "隔離實驗：不讀寫正式 report.json。";
+  let editClient = null;
+  let editSession = null;
+  let hostAvailable = false;
+  let timeDraft = null;
+  let timeDraftView = null;
+  let saving = false;
 
   $: tasks = view?.report.tasks ?? [];
   $: effectiveTimeIndex = view?.derived.timeInvalidation.stale
@@ -32,6 +44,8 @@
     : timeAnalysis
       ? "已載入時間分析"
       : "沒有時間分析";
+  $: activeEstimates = activeEstimateIndex(timeDraftView?.inputs ?? null);
+  $: editorDirty = Boolean(view?.dirty || timeDraftView?.dirty);
 
   onMount(() => {
     void loadRequestedData();
@@ -58,7 +72,13 @@
       dataLabel = loaded.request.scope
         ? `真實 scope：${loaded.request.scope}`
         : "明確 report URL";
-      statusMessage = "已唯讀載入真實資料；編輯仍只存在記憶體。";
+      if (loaded.request.scope) {
+        editClient = createEditHostClient({ scope: loaded.request.scope });
+        hostAvailable = Boolean(await editClient.discover());
+      }
+      statusMessage = hostAvailable
+        ? "已連接本機安全編輯服務。"
+        : "已唯讀載入真實資料；此來源沒有本機寫入 capability。";
     } catch (error) {
       loadError = error instanceof Error ? error.message : "資料載入失敗。";
     } finally {
@@ -78,12 +98,30 @@
     return result;
   }
 
-  function toggleMode() {
+  async function toggleMode() {
+    if (saving) return;
     if (editing) {
       view = adapter.discard();
+      timeDraftView = timeDraft?.discard() ?? null;
+      timeDraft = null;
+      timeDraftView = null;
+      editSession = null;
+      await editClient?.close();
       statusMessage = "已放棄草稿並回到預覽模式。";
     } else {
-      statusMessage = "編輯模式：所有變更只存在記憶體草稿。";
+      if (hostAvailable) {
+        try {
+          editSession = await editClient.start();
+          timeDraft = createTimeInputDraft(editSession.inputs, view.report.scope_id);
+          timeDraftView = timeDraft.snapshot();
+          statusMessage = "編輯模式：report 與時間輸入都在暫存草稿，儲存時才寫入。";
+        } catch (error) {
+          statusMessage = error instanceof Error ? error.message : "無法進入編輯模式。";
+          return;
+        }
+      } else {
+        statusMessage = "編輯模式：所有變更只存在記憶體草稿。";
+      }
     }
     editing = !editing;
   }
@@ -98,24 +136,64 @@
     statusMessage = "已重做下一個動作。";
   }
 
-  function save() {
-    const invalidatesTime = view.derived.timeInvalidation.stale;
-    const result = adapter.save(new Date().toISOString());
-    view = result.snapshot;
-    if (result.errors.length) {
-      statusMessage = result.errors[0].message;
+  function setDeliveryAt(value) {
+    const result = timeDraft.setDeliveryAt(value);
+    timeDraftView = result.snapshot;
+    statusMessage = result.error || "交付日已套用到草稿。";
+    return result;
+  }
+
+  function setManualEstimate(change) {
+    const result = timeDraft.setManualEstimate(change);
+    timeDraftView = result.snapshot;
+    statusMessage = result.error || "人工工時與依據已套用到草稿。";
+    return result;
+  }
+
+  async function save() {
+    const invalidatesTime = view.derived.timeInvalidation.stale || Boolean(timeDraftView?.dirty);
+    const prepared = adapter.prepareSave(new Date().toISOString());
+    if (prepared.errors.length) {
+      statusMessage = prepared.errors[0].message;
       return;
     }
-    if (invalidatesTime) {
-      timeAnalysis = null;
-      timeIndex = emptyTimeIndex();
-      diagnostics = [
-        ...diagnostics,
-        { level: "warning", message: "任務結構已變更；時間資料等待重新分析。" },
-      ];
+    saving = true;
+    statusMessage = hostAvailable
+      ? "正在驗證、儲存並重新分析…"
+      : "正在提交記憶體草稿…";
+    try {
+      if (hostAvailable) {
+        const saved = await editClient.save({
+          report: prepared.report,
+          inputs: timeDraft?.replacements() ?? {},
+        });
+        view = adapter.commit(saved.report);
+        timeDraftView = timeDraft.commit(saved.inputs);
+        editSession = null;
+        await editClient.close();
+        statusMessage = "已安全寫入 canonical files；重新開啟可載入最新分析。";
+      } else {
+        view = adapter.commit(prepared.report);
+        statusMessage = "實驗草稿已提交到記憶體基準；沒有寫入檔案。";
+      }
+      if (invalidatesTime) {
+        timeAnalysis = null;
+        timeIndex = emptyTimeIndex();
+        diagnostics = [
+          ...diagnostics,
+          { level: "warning", message: "資料已變更；畫面上的舊時間分析已隱藏。" },
+        ];
+      }
+      editing = false;
+      timeDraft = null;
+      timeDraftView = null;
+    } catch (error) {
+      statusMessage = error instanceof Error
+        ? error.message
+        : "儲存失敗；原始檔案未變更。";
+    } finally {
+      saving = false;
     }
-    editing = false;
-    statusMessage = "實驗草稿已提交到記憶體基準；沒有寫入檔案。";
   }
 
   function handleKeyboard(event) {
@@ -150,7 +228,7 @@
       class="spike-mode-toggle"
       type="button"
       aria-pressed={editing}
-      disabled={loading || Boolean(loadError)}
+      disabled={loading || saving || Boolean(loadError)}
       onclick={toggleMode}
     >{editing ? "編輯模式" : "預覽模式"}</button>
   </header>
@@ -173,6 +251,17 @@
       </section>
     {/if}
 
+    {#if editing && timeDraftView?.inputs.config}
+      <DeliveryEditor
+        config={timeDraftView.inputs.config}
+        onChange={setDeliveryAt}
+      />
+    {:else if editing && hostAvailable}
+      <p class="spike-time-config-missing" role="status">
+        此 scope 尚無 time.config.json；交付日需先建立工作容量設定。人工工時仍可建立 estimates 草稿。
+      </p>
+    {/if}
+
     <section class="task-list" aria-label="Svelte 任務卡實驗">
       {#each tasks as task (task.id)}
         <TaskCard
@@ -184,17 +273,19 @@
           onAddItem={(title, priority) => addItem(task.id, title, priority)}
           timeTask={effectiveTimeIndex.tasks.get(task.id) ?? null}
           timeItems={effectiveTimeIndex.items}
+          {activeEstimates}
+          onManualEstimate={timeDraft ? setManualEstimate : null}
         />
       {/each}
     </section>
 
     {#if editing}
-      <footer class="spike-savebar" aria-busy="false">
+      <footer class="spike-savebar" aria-busy={saving}>
         <p role="status" aria-live="polite">{statusMessage}</p>
         <div class="spike-save-actions">
           <button type="button" onclick={undo} disabled={!view.history.canUndo}>復原</button>
           <button type="button" onclick={redo} disabled={!view.history.canRedo}>重做</button>
-          <button class="spike-save-button" type="button" onclick={save} disabled={!view.dirty}>儲存</button>
+          <button class="spike-save-button" type="button" onclick={save} disabled={!editorDirty || saving}>儲存</button>
         </div>
       </footer>
     {:else}

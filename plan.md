@@ -858,7 +858,7 @@ AI 分析與同類歷史不各自產生一個數字再和人工工時平均。�
 
 Editor UI 尚未模組化完成，但已不再從零開始。正式 Viewer 與 Demo 現在共用 Editor Core 的 `DraftSession`／commands／validation／diff／derived state／Undo／Redo，也完成 Editor Surface 的 `TaskCard` shell、`ItemRow`、優先級、全域模式 toggle、AddControl、欄位 validation、SaveBar 與 history controls 主要桌面契約；`app.js`、Demo `app.js` 與 `time-view.js` 只保留 domain validation、persistence 與時間插槽 adapter。本機 edit host 已提供可恢復的多檔案 transaction adapter，實際交付日、估算與私有歷史 payload 尚待接入。
 
-因此目前定位是「單一 report 編輯核心、安全邊界、完整命令歷史、主要桌面 Surface、可恢復交易邊界、隔離 Svelte parity spike、真實 report/time loader 與受保護 private time-input session 已完成，並有 145 項 Node、13 項 edit-host Python 測試保護」。它適合維持現有桌面功能，但人工估算、交付日、敏感歷史等 save payload 與表單不得繼續直接堆入 `app.js`／`time-view.js`。框架只能替換 UI 組合層，不能取代既有 Core 與 transaction 邊界；正式遷移決策見 `Documentation/EditorFrameworkDecision.md`。
+因此目前定位是「單一 report 編輯核心、安全邊界、完整命令歷史、主要桌面 Surface、可恢復 multi-file 交易、隔離 Svelte parity shell、真實 report/time loader、受保護 private time-input session，以及交付日／版本化人工估算初版已完成，並有 148 項 Node、18 項 edit-host Python 測試保護」。它適合繼續驗證正式桌面流程，但敏感歷史、缺檔 config 初始化與最終 Viewer 切換不得直接堆入 `app.js`／`time-view.js`。框架只能替換 UI 組合層，不能取代既有 Core 與 transaction 邊界；正式遷移決策見 `Documentation/EditorFrameworkDecision.md`。
 
 本機編輯能力由 TaskProgress edit host 對精確註冊且 `scope_id` 相符的報告動態回傳，不在 scope 設定或 `report.json` 保存 `editable`。Viewer、發布後 Launcher 與 edit host 必須版本一致；若舊版 Launcher 只啟動普通 LocalWebService，Viewer 會因 capability endpoint 不存在而安全地隱藏編輯入口。
 
@@ -956,14 +956,16 @@ ItemRow 是每張任務卡內的一筆子項目。這份矩陣已於 2026-08-02 
 
 4. **Framework Phase 3—Editor shell parity**
    - 2026-08-02 已完成第一段：隔離 Svelte shell 沿用 Viewer 的 query precedence、report schema 與 time inspection，支援 `?scope=`／`?report=`、多任務、optional time 404、無效 time／deadline 隔離及 task／item 工時膠囊；以 `reports/example` 真實資料契約測試，編輯仍只 memory commit。
-   - 下一步定義 capability-protected `time.config.json`／`time.estimates.json` 輸入 payload、Schema 與 revision，才在 Svelte 接交付日、人工工時及人工依據表單。
+   - 2026-08-03 已完成第二段：Svelte shell 會探測 scope capability，只有受保護 session 才取得 private config／estimates；交付日與人工工時／依據各自進入 time-input draft，與 report draft 共用全域模式及單一儲存。人工估算以新 version supersede 舊 active estimate，沒有直接改寫衍生 analysis。
+   - 下一步補 config 缺檔的安全預設模板與修改原因，再做本機實檔、focus／鍵盤、來源衝突、分析失敗及 390px parity；通過前不取代正式 Viewer／Demo。
    - 沿用目前 CSS token 與可見版面，不同時進行視覺重新設計。
    - 以 feature flag 或獨立本機路徑保留舊 Demo，兩者可並行比較。
 
 5. **Framework Phase 4—安全寫入整合**
    - report.json 已接上 scope 限定、短生命週期 capability、revision compare-and-swap、schema 驗證與可恢復 transaction adapter。
    - 2026-08-03 第一段已完成：建立 edit session 時才讀取 `time.config.json`／`time.estimates.json`，逐檔執行 Draft 0.2 Schema、scope、大小與 JSON 驗證，回傳 private `inputs` 與獨立 SHA-256 `inputs_revision`；公開 capability 不回傳內容，session 後外部修改任一輸入會讓 report save 拒絕覆蓋。缺少檔案以 `null` 表示，讓後續 Editor Core 可安全建立初始模板。
-   - 下一步定義 multi-file save payload、report／inputs 雙 revision precondition、staged validators 與 response rotation；交付日、估算與私有歷史仍需接入相同交易。
+   - 2026-08-03 第二段已完成：`PUT /__taskprogress/v1/edit-sessions/{scope}` 接受完整 report、`inputs_revision` 與選擇性的 config／estimates replacement。缺少的 input key 表示保留原檔，不提供刪檔語意；服務同時檢查 report `If-Match` 與 private inputs revision，逐檔限制大小並再次 staged validate，將 report／config／estimates／analysis 放入同一 transaction，分析失敗整批 rollback，成功才回傳最新 inputs 與旋轉後 token／雙 revision。舊 report-only route 委派同一 commit path，保持相容。
+   - 下一步把交付日修改原因與遮蔽歷史接入相同交易；歷史寫入失敗仍必須使整批儲存失敗。
    - 儲存成功後才更新 persisted；衝突、分析失敗或歷史失敗時保留 draft。
    - 完成交付日、敏感修改歷史及跨檔案 diff 後，才宣稱正式 Editor 可取代 browser-local Demo。
 

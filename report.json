@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-08-03T00:00:46+08:00",
+  "updated_at": "2026-08-03T00:13:56+08:00",
   "tasks": [
     {
       "id": "viewer-core",
@@ -337,17 +337,17 @@
           "id": "protected-time-input-session",
           "title": "完成受保護時間輸入 session：same-origin 驗證後載入並驗證 private time.config／time.estimates，回傳獨立 inputs revision，公開 capability 不洩漏內容且外部變更會拒絕 report save",
           "priority": 1
+        },
+        {
+          "id": "framework-editor-migration",
+          "title": "完成 multi-file save 與 Svelte 初版時間表單：report／inputs 雙 revision、config／estimates 選擇性替換、staged validation、整批分析回滾、交付日草稿及版本化人工工時／依據",
+          "priority": 1
         }
       ],
       "pending_items": [
         {
           "id": "verify-mobile-editing",
           "title": "完成 390px 行動版版面與觸控編輯驗證，不阻擋桌面正式版",
-          "priority": 1
-        },
-        {
-          "id": "framework-editor-migration",
-          "title": "定義 multi-file save payload 與 report／inputs revision precondition，將 time.config／time.estimates 接入既有 transaction 後再實作 Svelte 交付日及人工估算表單",
           "priority": 1
         },
         {
