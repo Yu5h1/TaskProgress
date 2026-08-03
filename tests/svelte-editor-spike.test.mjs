@@ -220,6 +220,91 @@ test("time input draft edits and clears delivery without mutating its baseline",
   assert.equal(draft.snapshot().dirty, false);
 });
 
+test("time input draft creates the explicit 8/8/8 config only on request", () => {
+  const template = {
+    schema_version: "0.2",
+    scope_id: "example",
+    updated_at: "2026-08-03T03:59:00Z",
+    timezone: "Asia/Taipei",
+    standard_allocation: {
+      total_minutes_per_day: 1440,
+      sleep_minutes_per_day: 480,
+      life_minutes_per_day: 480,
+      other_unavailable_minutes_per_day: 0,
+      capacity_minutes_per_executor_day: 480,
+      working_weekdays: [1, 2, 3, 4, 5],
+      workday_start_local: "09:00",
+      workday_end_local: "17:00",
+    },
+    project: { executor_count: 1 },
+    estimate_defaults: {
+      unplanned_item_likely_minutes: 480,
+      unplanned_item_confidence: "low",
+      allow_range: true,
+    },
+    estimate_resolution: {
+      automatic_source_order: ["historical", "ai", "default"],
+      manual_resolution: "final_override",
+      preserve_history: true,
+    },
+    execution_calibration: {
+      initial_factor: 1,
+      prior_equivalent_samples: 10,
+      automatic_adjustment: false,
+    },
+    urgency_thresholds: {
+      on_track_max_pressure_ratio: 1.1,
+      at_risk_max_pressure_ratio: 1.5,
+    },
+    display: { project_day_rounding: "ceiling", item_unit: "hour" },
+  };
+  const draft = createTimeInputDraft(
+    { config: null, estimates: null },
+    "example",
+    { configTemplate: template },
+  );
+  assert.equal(draft.snapshot().inputs.config, null);
+  assert.equal(draft.snapshot().dirty, false);
+
+  const initialized = draft.initializeConfig({ updatedAt: "2026-08-03T04:00:00Z" });
+  const config = initialized.snapshot.inputs.config;
+
+  assert.equal(initialized.error, "");
+  assert.equal(config.scope_id, "example");
+  assert.equal(config.timezone, "Asia/Taipei");
+  assert.equal(config.standard_allocation.sleep_minutes_per_day, 480);
+  assert.equal(config.standard_allocation.life_minutes_per_day, 480);
+  assert.equal(config.standard_allocation.capacity_minutes_per_executor_day, 480);
+  assert.equal(
+    config.standard_allocation.sleep_minutes_per_day
+      + config.standard_allocation.life_minutes_per_day
+      + config.standard_allocation.other_unavailable_minutes_per_day
+      + config.standard_allocation.capacity_minutes_per_executor_day,
+    config.standard_allocation.total_minutes_per_day,
+  );
+  assert.deepEqual(config.standard_allocation.working_weekdays, [1, 2, 3, 4, 5]);
+  assert.deepEqual(Object.keys(draft.replacements()), ["config"]);
+
+  const delivery = draft.setDeliveryAt(
+    "2026-08-30T17:00:00+08:00",
+    "2026-08-03T04:01:00Z",
+  );
+  assert.equal(delivery.error, "");
+  assert.equal(
+    delivery.snapshot.inputs.config.project.delivery_at,
+    "2026-08-30T17:00:00+08:00",
+  );
+
+  assert.equal(template.updated_at, "2026-08-03T03:59:00Z");
+  assert.equal(template.project.delivery_at, undefined);
+
+  const missingTemplate = createTimeInputDraft(
+    { config: null, estimates: null },
+    "example",
+  ).initializeConfig();
+  assert.match(missingTemplate.error, /未提供/u);
+});
+
 test("time input draft versions direct human estimates and keeps the rationale", () => {
   const inputs = {
     config: null,
@@ -292,7 +377,11 @@ test("Svelte edit-host client sends the dual-revision multi-file contract", asyn
     if (options.method === "PUT") return jsonResponse(nextSession);
     return { ok: true, status: 204, async json() { return null; } };
   };
-  const client = createEditHostClient({ scope: "example", fetchImpl });
+  const client = createEditHostClient({
+    scope: "example",
+    fetchImpl,
+    timezone: "Asia/Taipei",
+  });
 
   assert.equal((await client.discover()).editable, true);
   await client.start();
@@ -302,6 +391,11 @@ test("Svelte edit-host client sends the dual-revision multi-file contract", asyn
   });
 
   assert.equal(saved.token, "next-token");
+  const startRequest = calls.find((call) => call.options.method === "POST");
+  assert.deepEqual(JSON.parse(startRequest.options.body), {
+    scope_id: "example",
+    timezone: "Asia/Taipei",
+  });
   const request = calls.find((call) => call.options.method === "PUT");
   const body = JSON.parse(request.options.body);
   assert.equal(request.options.headers["If-Match"], `"${firstSession.revision}"`);

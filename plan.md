@@ -858,7 +858,7 @@ AI 分析與同類歷史不各自產生一個數字再和人工工時平均。�
 
 Editor UI 尚未模組化完成，但已不再從零開始。正式 Viewer 與 Demo 現在共用 Editor Core 的 `DraftSession`／commands／validation／diff／derived state／Undo／Redo，也完成 Editor Surface 的 `TaskCard` shell、`ItemRow`、優先級、全域模式 toggle、AddControl、欄位 validation、SaveBar 與 history controls 主要桌面契約；`app.js`、Demo `app.js` 與 `time-view.js` 只保留 domain validation、persistence 與時間插槽 adapter。本機 edit host 已提供可恢復的多檔案 transaction adapter，實際交付日、估算與私有歷史 payload 尚待接入。
 
-因此目前定位是「單一 report 編輯核心、安全邊界、完整命令歷史、主要桌面 Surface、可恢復 multi-file 交易、隔離 Svelte parity shell、真實 report/time loader、受保護 private time-input session，以及交付日／版本化人工估算初版已完成，並有 148 項 Node、18 項 edit-host Python 測試保護」。它適合繼續驗證正式桌面流程，但敏感歷史、缺檔 config 初始化與最終 Viewer 切換不得直接堆入 `app.js`／`time-view.js`。框架只能替換 UI 組合層，不能取代既有 Core 與 transaction 邊界；正式遷移決策見 `Documentation/EditorFrameworkDecision.md`。
+因此目前定位是「單一 report 編輯核心、安全邊界、完整命令歷史、主要桌面 Surface、可恢復 multi-file 交易、隔離 Svelte parity shell、真實 report/time loader、受保護 private time-input session、交付日／版本化人工估算初版，以及缺檔 config 安全初始化已完成，並有 149 項 Node、20 項 edit-host Python 測試保護」。它適合繼續驗證正式桌面流程，但敏感歷史與最終 Viewer 切換不得直接堆入 `app.js`／`time-view.js`。框架只能替換 UI 組合層，不能取代既有 Core 與 transaction 邊界；正式遷移決策見 `Documentation/EditorFrameworkDecision.md`。
 
 本機編輯能力由 TaskProgress edit host 對精確註冊且 `scope_id` 相符的報告動態回傳，不在 scope 設定或 `report.json` 保存 `editable`。Viewer、發布後 Launcher 與 edit host 必須版本一致；若舊版 Launcher 只啟動普通 LocalWebService，Viewer 會因 capability endpoint 不存在而安全地隱藏編輯入口。
 
@@ -917,7 +917,7 @@ Editor state 至少拆成四層：
 #### 遷移階段
 
 1. **Framework Phase 0—凍結可用基準**
-   - 保留目前 Demo、正式本機 Editor 及原先 102 項 Node 基準測試；Editor Core、Editor Surface 與 Svelte adapter／loader 契約測試擴充後目前共 145 項。
+   - 保留目前 Demo、正式本機 Editor 及原先 102 項 Node 基準測試；Editor Core、Editor Surface 與 Svelte adapter／loader／time draft 契約測試擴充後目前共 149 項。
    - 桌面滑鼠／鍵盤的草稿放棄、固定儲存列與真實檔案儲存 E2E 已完成；行動版與觸控另列 P1。
    - 把目前畫面、文字、模式切換、儲存與放棄語意視為遷移驗收規格。
 
@@ -951,13 +951,14 @@ ItemRow 是每張任務卡內的一筆子項目。這份矩陣已於 2026-08-02 
 
 3. **Framework Phase 2—候選 spike 與決策**
    - 2026-08-02 已選 Svelte 作第一候選，於 `experiments/editor-svelte-spike/` 實作 `App`／`TaskCard`／`ItemRow`／adapter；直接委派正式 Editor Core，涵蓋 task／item 欄位、priority、add／delete、Undo／Redo、validation、discard 與 memory commit。
-   - Svelte、Vite 與 plugin 僅為 devDependencies；`package-lock.json` 固定版本，`base: "./"` 產生 GitHub Pages／LocalWebService 可用的相對資產。145 項 Node 與 production build 通過，npm audit 為 0 vulnerabilities；結果與後續 gate 記錄在 `Documentation/EditorFrameworkDecision.md`。
+   - Svelte、Vite 與 plugin 僅為 devDependencies；`package-lock.json` 固定版本，`base: "./"` 產生 GitHub Pages／LocalWebService 可用的相對資產。149 項 Node 與 production build 通過，npm audit 為 0 vulnerabilities；結果與後續 gate 記錄在 `Documentation/EditorFrameworkDecision.md`。
    - Vue 暫不安裝。若 Svelte 在真實 Viewer data、鍵盤／focus、CSP、儲存錯誤或行動版 parity 失敗，才啟動 Vue 比較；未通過這些 gate 前不開始整頁搬移。
 
 4. **Framework Phase 3—Editor shell parity**
    - 2026-08-02 已完成第一段：隔離 Svelte shell 沿用 Viewer 的 query precedence、report schema 與 time inspection，支援 `?scope=`／`?report=`、多任務、optional time 404、無效 time／deadline 隔離及 task／item 工時膠囊；以 `reports/example` 真實資料契約測試，編輯仍只 memory commit。
    - 2026-08-03 已完成第二段：Svelte shell 會探測 scope capability，只有受保護 session 才取得 private config／estimates；交付日與人工工時／依據各自進入 time-input draft，與 report draft 共用全域模式及單一儲存。人工估算以新 version supersede 舊 active estimate，沒有直接改寫衍生 analysis。
-   - 下一步補 config 缺檔的安全預設模板與修改原因，再做本機實檔、focus／鍵盤、來源衝突、分析失敗及 390px parity；通過前不取代正式 Viewer／Demo。
+   - 2026-08-03 已完成第三段：config 缺檔時 edit host 依 session 提供的瀏覽器 timezone 建立並自行 Schema 驗證 8/8/8 模板，只回傳於 private `input_defaults`，不寫檔。Svelte 明示單人、平日 09:00–17:00 與 8/8/8 內容；使用者按下建立才複製到 draft，仍可切回預覽放棄，最後沿用 multi-file save 寫入。
+   - 下一步補交付日修改原因與遮蔽歷史，再做本機實檔、focus／鍵盤、來源衝突、分析失敗及 390px parity；通過前不取代正式 Viewer／Demo。
    - 沿用目前 CSS token 與可見版面，不同時進行視覺重新設計。
    - 以 feature flag 或獨立本機路徑保留舊 Demo，兩者可並行比較。
 

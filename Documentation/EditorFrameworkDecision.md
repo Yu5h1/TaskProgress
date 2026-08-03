@@ -26,10 +26,10 @@ Vue 暫不安裝。原生 Viewer／Demo 是行為基準與回退路徑；只有 
 - 支援全域預覽／編輯、task title／summary／status／priority、item title／priority、新增、刪除、Undo／Redo、驗證、discard 與記憶體 commit；
 - 重用正式 priority policy 與 Viewer CSS，沒有 host identity 分支；
 - 只有 scope capability 存在時才建立短生命週期 edit session；token 只留在記憶體，report 與 private time inputs 以雙 revision 及單一 multi-file save 寫入；
-- 交付日草稿修改既有 config，人工工時／依據建立新的 active estimate version 並保留 supersedes 關係；缺少 config 時不猜測完整工作容量設定；
+- 交付日草稿修改既有 config，人工工時／依據建立新的 active estimate version 並保留 supersedes 關係；缺少 config 時由 edit host 依 session timezone 產生並自行驗證 8/8/8 模板，只有使用者明確按下建立才進入 draft；
 - Vite `base: "./"`，建置結果使用相對資產 URL，可放在 GitHub Pages 子路徑。
 
-受保護時間表單接入後，production build 約為 82.96 kB JavaScript（gzip 30.01 kB）與 43.02 kB CSS（gzip 8.40 kB）；CSS 數字包含重用的完整 Viewer stylesheet，不是最終裁切結果。
+缺檔 config 初始化接入後，production build 約為 83.92 kB JavaScript（gzip 30.36 kB）與 43.37 kB CSS（gzip 8.43 kB）；CSS 數字包含重用的完整 Viewer stylesheet，不是最終裁切結果。
 
 ## Dependency and license policy
 
@@ -40,9 +40,9 @@ Vue 暫不安裝。原生 Viewer／Demo 是行為基準與回退路徑；只有 
 
 ## Verification and next gate
 
-- Node：148/148，包含 Svelte adapter／loader／private time draft／edit-host transport 契約。
+- Node：149/149，包含 Svelte adapter／loader／private time draft／edit-host transport／explicit config initialization 契約。
 - Svelte production build：通過，輸出相對資產路徑。
 - 建置產物掃描：未出現 `eval`／`new Function`、edit-host capability、private-history 或 Developer overlay 字串。
 - npm install audit：0 vulnerabilities。
 
-隔離 Svelte shell 已支援與 Viewer 相同的 `?scope=`／`?report=` 優先規則、report schema 驗證、多任務卡、可選 `time.analysis.json`、期限錯誤隔離及 item/task 工時投影，並以 tracked `reports/example` 驗證真實契約。本機 edit session 在 same-origin／editor-header 驗證後回傳 private config／estimates；新的 multi-file route 以 report／inputs 雙 revision、選擇性檔案 replacement、staged validation、分析與 rollback 完成單次儲存。Svelte 已接上交付日及版本化人工估算初版。下一關不是再做 Vue，而是補 config 缺檔模板、敏感歷史，並完成實際瀏覽器 UX／行動版 gate。
+隔離 Svelte shell 已支援與 Viewer 相同的 `?scope=`／`?report=` 優先規則、report schema 驗證、多任務卡、可選 `time.analysis.json`、期限錯誤隔離及 item/task 工時投影，並以 tracked `reports/example` 驗證真實契約。本機 edit session 在 same-origin／editor-header 驗證後回傳 private config／estimates；新的 multi-file route 以 report／inputs 雙 revision、選擇性檔案 replacement、staged validation、分析與 rollback 完成單次儲存。Svelte 已接上交付日、版本化人工估算及明示的缺檔 config 初始化。下一關不是再做 Vue，而是補敏感歷史，並完成實際瀏覽器 UX／行動版 gate。

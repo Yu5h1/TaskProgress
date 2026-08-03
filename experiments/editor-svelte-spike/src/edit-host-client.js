@@ -17,6 +17,7 @@ export function createEditHostClient({
   scope,
   fetchImpl = globalThis.fetch,
   apiRoot = "/__taskprogress/v1",
+  timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC",
 } = {}) {
   if (typeof scope !== "string" || !scope) {
     throw new TypeError("Editor host client 需要 scope。");
@@ -60,7 +61,7 @@ export function createEditHostClient({
             "Content-Type": "application/json",
             "X-TaskProgress-Editor": "1",
           },
-          body: JSON.stringify({ scope_id: scope }),
+          body: JSON.stringify({ scope_id: scope, timezone }),
         },
         "無法建立本機編輯工作階段。",
       );

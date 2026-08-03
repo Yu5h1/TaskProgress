@@ -30,7 +30,11 @@ function estimateId(itemId, instant, existingIds) {
   return candidate;
 }
 
-export function createTimeInputDraft(inputs, scope) {
+export function createTimeInputDraft(
+  inputs,
+  scope,
+  { configTemplate = null } = {},
+) {
   if (typeof scope !== "string" || !scope) {
     throw new TypeError("Time input draft 需要 scope。");
   }
@@ -48,6 +52,25 @@ export function createTimeInputDraft(inputs, scope) {
 
   return Object.freeze({
     snapshot,
+
+    initializeConfig({ updatedAt = new Date().toISOString() } = {}) {
+      if (draft.config) {
+        return Object.freeze({
+          error: "time.config.json 已存在，不需要重新建立。",
+          snapshot: snapshot(),
+        });
+      }
+      if (!configTemplate || configTemplate.scope_id !== scope) {
+        return Object.freeze({
+          error: "本機服務未提供可驗證的預設時間設定。",
+          snapshot: snapshot(),
+        });
+      }
+      draft.config = clone(configTemplate);
+      draft.config.updated_at = updatedAt;
+      dirtyFiles.add("config");
+      return Object.freeze({ error: "", snapshot: snapshot() });
+    },
 
     setDeliveryAt(value, updatedAt = new Date().toISOString()) {
       if (!draft.config) {

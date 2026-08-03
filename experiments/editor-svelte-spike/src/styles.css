@@ -192,7 +192,29 @@ textarea {
 }
 
 .spike-time-config-missing {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
   margin-bottom: 18px;
+}
+
+.spike-time-config-missing strong {
+  color: var(--ink);
+}
+
+.spike-time-config-missing p {
+  margin: 4px 0 0;
+}
+
+.spike-time-config-missing button {
+  flex: 0 0 auto;
+  padding: 7px 12px;
+  color: white;
+  background: var(--blue);
+  border: 1px solid var(--blue);
+  border-radius: 999px;
+  cursor: pointer;
 }
 
 .work-columns .detail-list li.has-estimate-editor {
@@ -325,7 +347,8 @@ textarea {
 
   .spike-heading,
   .spike-savebar,
-  .spike-time-editor {
+  .spike-time-editor,
+  .spike-time-config-missing {
     align-items: stretch;
     flex-direction: column;
   }

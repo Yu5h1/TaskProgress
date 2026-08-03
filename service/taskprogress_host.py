@@ -21,6 +21,7 @@ import tempfile
 import threading
 import time
 from dataclasses import dataclass
+from datetime import datetime, timezone as datetime_timezone
 from pathlib import Path
 from types import ModuleType
 from typing import Any, Callable, Sequence
@@ -44,6 +45,7 @@ TIME_SCHEMA_ROOT = (
     / "schemas"
 )
 SCOPE_PATTERN = re.compile(r"^[a-z0-9]+(?:[._-][a-z0-9]+)*$")
+TIMEZONE_PATTERN = re.compile(r"^[A-Za-z0-9._+-]+(?:/[A-Za-z0-9._+-]+)*$")
 TRANSACTION_FILES = frozenset(
     {
         "report.json",
@@ -204,6 +206,57 @@ def _read_time_inputs(
         digest.update(source)
         digest.update(b"\0")
     return result, digest.hexdigest()
+
+
+def _default_time_config(
+    scope: str,
+    timezone_name: str,
+    timestamp: float,
+) -> dict[str, Any]:
+    updated_at = datetime.fromtimestamp(
+        timestamp,
+        tz=datetime_timezone.utc,
+    ).isoformat().replace("+00:00", "Z")
+    return {
+        "schema_version": "0.2",
+        "scope_id": scope,
+        "updated_at": updated_at,
+        "timezone": timezone_name,
+        "standard_allocation": {
+            "total_minutes_per_day": 1440,
+            "sleep_minutes_per_day": 480,
+            "life_minutes_per_day": 480,
+            "other_unavailable_minutes_per_day": 0,
+            "capacity_minutes_per_executor_day": 480,
+            "working_weekdays": [1, 2, 3, 4, 5],
+            "workday_start_local": "09:00",
+            "workday_end_local": "17:00",
+        },
+        "project": {"executor_count": 1},
+        "estimate_defaults": {
+            "unplanned_item_likely_minutes": 480,
+            "unplanned_item_confidence": "low",
+            "allow_range": True,
+        },
+        "estimate_resolution": {
+            "automatic_source_order": ["historical", "ai", "default"],
+            "manual_resolution": "final_override",
+            "preserve_history": True,
+        },
+        "execution_calibration": {
+            "initial_factor": 1.0,
+            "prior_equivalent_samples": 10,
+            "automatic_adjustment": False,
+        },
+        "urgency_thresholds": {
+            "on_track_max_pressure_ratio": 1.1,
+            "at_risk_max_pressure_ratio": 1.5,
+        },
+        "display": {
+            "project_day_rounding": "ceiling",
+            "item_unit": "hour",
+        },
+    }
 
 
 def _atomic_replace(path: Path, source: bytes) -> None:
@@ -670,9 +723,22 @@ def install_edit_api(
             return _problem(415, "unsupported_media_type", "Requests must use application/json")
         try:
             payload = await request.json()
-            if not isinstance(payload, dict) or set(payload) != {"scope_id"}:
-                raise ValueError("Request requires only scope_id")
+            if (
+                not isinstance(payload, dict)
+                or "scope_id" not in payload
+                or not set(payload).issubset({"scope_id", "timezone"})
+            ):
+                raise ValueError("Request requires scope_id and optional timezone")
             scope = _validate_scope(payload["scope_id"])
+            timezone_name = payload.get("timezone", "UTC")
+            if (
+                not isinstance(timezone_name, str)
+                or not timezone_name.strip()
+                or len(timezone_name) > 100
+                or not TIMEZONE_PATTERN.fullmatch(timezone_name.strip())
+            ):
+                raise ValueError("timezone is not a safe IANA-style identifier")
+            timezone_name = timezone_name.strip()
         except (TypeError, ValueError, json.JSONDecodeError) as error:
             return _problem(422, "invalid_request", "Edit session request is invalid", str(error))
         path = registered_report(scope)
@@ -707,6 +773,24 @@ def install_edit_api(
                     "Time input files are invalid or unavailable",
                     str(error),
                 )
+            default_config = None
+            if inputs["config"] is None:
+                default_config = _default_time_config(
+                    scope,
+                    timezone_name,
+                    now(),
+                )
+                default_errors = _json_schema_errors(
+                    time_validators["config"],
+                    default_config,
+                )
+                if default_errors:
+                    return _problem(
+                        500,
+                        "default_time_config_invalid",
+                        "The service default time configuration is invalid",
+                        "; ".join(default_errors[:8]),
+                    )
         errors = _schema_errors(validator, report)
         if errors:
             return _problem(
@@ -730,6 +814,7 @@ def install_edit_api(
                 "revision": session.revision,
                 "inputs_revision": session.inputs_revision,
                 "inputs": inputs,
+                "input_defaults": {"config": default_config},
                 "expires_at": session.expires_at,
             },
             status_code=201,

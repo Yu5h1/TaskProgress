@@ -112,7 +112,9 @@
       if (hostAvailable) {
         try {
           editSession = await editClient.start();
-          timeDraft = createTimeInputDraft(editSession.inputs, view.report.scope_id);
+          timeDraft = createTimeInputDraft(editSession.inputs, view.report.scope_id, {
+            configTemplate: editSession.input_defaults?.config ?? null,
+          });
           timeDraftView = timeDraft.snapshot();
           statusMessage = "編輯模式：report 與時間輸入都在暫存草稿，儲存時才寫入。";
         } catch (error) {
@@ -141,6 +143,14 @@
     timeDraftView = result.snapshot;
     statusMessage = result.error || "交付日已套用到草稿。";
     return result;
+  }
+
+  function initializeTimeConfig() {
+    const result = timeDraft.initializeConfig();
+    timeDraftView = result.snapshot;
+    const timezone = result.snapshot.inputs.config?.timezone ?? "UTC";
+    statusMessage = result.error
+      || `已建立 ${timezone} 的 8/8/8 預設草稿；儲存前仍可放棄。`;
   }
 
   function setManualEstimate(change) {
@@ -257,9 +267,13 @@
         onChange={setDeliveryAt}
       />
     {:else if editing && hostAvailable}
-      <p class="spike-time-config-missing" role="status">
-        此 scope 尚無 time.config.json；交付日需先建立工作容量設定。人工工時仍可建立 estimates 草稿。
-      </p>
+      <section class="spike-time-config-missing" aria-labelledby="missing-time-config-title">
+        <div>
+          <strong id="missing-time-config-title">尚未建立工作容量設定</strong>
+          <p>建立後採單人、平日 09:00–17:00、睡眠 8h／生活 8h／工作 8h；只是草稿，仍由全域儲存決定是否寫入。</p>
+        </div>
+        <button type="button" onclick={initializeTimeConfig}>建立 8/8/8 預設設定</button>
+      </section>
     {/if}
 
     <section class="task-list" aria-label="Svelte 任務卡實驗">

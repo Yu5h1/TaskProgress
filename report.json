@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-08-03T00:13:56+08:00",
+  "updated_at": "2026-08-03T00:45:07+08:00",
   "tasks": [
     {
       "id": "viewer-core",
@@ -342,6 +342,11 @@
           "id": "framework-editor-migration",
           "title": "完成 multi-file save 與 Svelte 初版時間表單：report／inputs 雙 revision、config／estimates 選擇性替換、staged validation、整批分析回滾、交付日草稿及版本化人工工時／依據",
           "priority": 1
+        },
+        {
+          "id": "persist-delivery-date-safely",
+          "title": "完成 scope capability 限定的交付日安全寫入：缺少 config 時由 edit host 提供經 Schema 驗證的 8/8/8 草稿模板，使用者明確建立後才與 delivery_at、重新分析及來源衝突檢查一併提交",
+          "priority": 1
         }
       ],
       "pending_items": [
@@ -358,11 +363,6 @@
         {
           "id": "edit-delivery-date",
           "title": "在全域編輯模式加入交付日期、時間、timezone、交付日未定與風險預覽",
-          "priority": 1
-        },
-        {
-          "id": "persist-delivery-date-safely",
-          "title": "以 scope 限定 capability 安全更新 time.config.json 的 delivery_at，重新分析並處理來源衝突",
           "priority": 1
         },
         {

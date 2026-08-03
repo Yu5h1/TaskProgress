@@ -149,7 +149,10 @@ class TaskProgressEditHostTests(unittest.TestCase):
         self.client.close()
         self.temporary.cleanup()
 
-    def session(self) -> dict[str, object]:
+    def session(self, timezone: str | None = None) -> dict[str, object]:
+        payload = {"scope_id": "secure-test"}
+        if timezone is not None:
+            payload["timezone"] = timezone
         response = self.client.post(
             "/__taskprogress/v1/edit-sessions",
             headers={
@@ -157,7 +160,7 @@ class TaskProgressEditHostTests(unittest.TestCase):
                 "x-taskprogress-editor": "1",
                 "content-type": "application/json",
             },
-            json={"scope_id": "secure-test"},
+            json=payload,
         )
         self.assertEqual(201, response.status_code, response.text)
         return response.json()
@@ -230,7 +233,59 @@ class TaskProgressEditHostTests(unittest.TestCase):
         session = self.session()
         self.assertEqual(config, session["inputs"]["config"])
         self.assertEqual(estimates, session["inputs"]["estimates"])
+        self.assertIsNone(session["input_defaults"]["config"])
         self.assertEqual(64, len(session["inputs_revision"]))
+
+    def test_missing_config_gets_validated_default_only_inside_the_session(self) -> None:
+        session = self.session("Asia/Taipei")
+        self.assertIsNone(session["inputs"]["config"])
+        config = session["input_defaults"]["config"]
+        self.assertEqual("secure-test", config["scope_id"])
+        self.assertEqual("Asia/Taipei", config["timezone"])
+        self.assertEqual(480, config["standard_allocation"]["sleep_minutes_per_day"])
+        self.assertEqual(480, config["standard_allocation"]["life_minutes_per_day"])
+        self.assertEqual(
+            480,
+            config["standard_allocation"]["capacity_minutes_per_executor_day"],
+        )
+        self.assertFalse((self.root / "time.config.json").exists())
+
+        config["project"]["delivery_at"] = "2026-08-20T17:00:00+08:00"
+        with patch(
+            "service.taskprogress_host._run_analysis",
+            return_value=(True, ""),
+        ):
+            response = self.client.put(
+                "/__taskprogress/v1/edit-sessions/secure-test",
+                headers=self.edit_headers(session),
+                content=json.dumps(
+                    self.edit_payload(session, inputs={"config": config})
+                ),
+            )
+
+        self.assertEqual(200, response.status_code, response.text)
+        persisted = json.loads(
+            (self.root / "time.config.json").read_text(encoding="utf-8")
+        )
+        self.assertEqual("Asia/Taipei", persisted["timezone"])
+        self.assertEqual(
+            "2026-08-20T17:00:00+08:00",
+            persisted["project"]["delivery_at"],
+        )
+
+    def test_default_config_rejects_unsafe_timezone_identifiers(self) -> None:
+        response = self.client.post(
+            "/__taskprogress/v1/edit-sessions",
+            headers={
+                "origin": ORIGIN,
+                "x-taskprogress-editor": "1",
+                "content-type": "application/json",
+            },
+            json={"scope_id": "secure-test", "timezone": "<script>"},
+        )
+        self.assertEqual(422, response.status_code)
+        self.assertEqual("invalid_request", response.json()["code"])
+        self.assertFalse((self.root / "time.config.json").exists())
 
     def test_invalid_private_time_input_prevents_edit_session(self) -> None:
         invalid = time_config_payload()
