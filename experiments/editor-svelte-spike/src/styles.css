@@ -235,10 +235,20 @@ textarea {
 }
 
 .spike-estimate-editor summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
   color: var(--blue);
   cursor: pointer;
   font-size: 0.72rem;
   font-weight: 760;
+}
+
+.spike-estimate-editor summary small {
+  color: var(--ink-soft);
+  font-size: 0.66rem;
+  font-weight: 700;
 }
 
 .spike-estimate-fields {
@@ -251,6 +261,27 @@ textarea {
 
 .spike-estimate-fields .spike-field-error {
   grid-column: 1 / -1;
+}
+
+.spike-estimate-confirmation {
+  grid-column: 1 / 2;
+  display: flex !important;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  align-self: center;
+}
+
+.spike-estimate-confirmation input {
+  width: auto;
+  margin: 0;
+}
+
+.spike-estimate-contract {
+  grid-column: 2 / -1;
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: 0.68rem;
+  line-height: 1.45;
 }
 
 .spike-load-error {
@@ -536,6 +567,11 @@ textarea {
   .spike-delivery-controls,
   .spike-estimate-fields {
     grid-template-columns: 1fr;
+  }
+
+  .spike-estimate-confirmation,
+  .spike-estimate-contract {
+    grid-column: 1 / -1;
   }
 
   .spike-time-editor {

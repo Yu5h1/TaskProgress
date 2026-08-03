@@ -182,7 +182,8 @@
     const result = timeDraft.setManualEstimate(change);
     timeDraftView = result.snapshot;
     if (!result.error) invalidateDeliveryPreview();
-    statusMessage = result.error || "人工工時與依據已套用到草稿。";
+    statusMessage = result.error
+      || `人工工時與依據已套用到草稿（${result.estimate.human_confirmed ? "已人工確認" : "尚未人工確認"}）。`;
     return result;
   }
 

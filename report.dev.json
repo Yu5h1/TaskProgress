@@ -93,9 +93,9 @@
     },
     {
       "id": "local-task-editing",
-      "next_step": "正式交付日端對端與可重現本機 Editor build／Publish gate 已通過且未發布；下一步完成每個 item 的人工工時、人工依據與確認 UX，再補 390px 實機觸控。Node 151/151，edit-host Python 26/26，Launcher integration pass。",
+      "next_step": "正式交付日、人工估算版本化 UX 與可重現本機 Editor build／Publish gate 已通過且未發布；下一步只剩正式 Viewer Surface 的實機觸控驗證。Node 151/151，edit-host Python 26/26，Launcher integration pass。",
       "blockers": [
-        "Svelte 人工工時／依據會建立新 estimate version 並透過 transaction 重新分析；尚未完成正式 Viewer Surface 的瀏覽器 UX 與實機觸控驗證。",
+        "人工工時／依據與獨立確認已在正式 Svelte Surface 建立 supersede estimate version 並透過 transaction 重新分析；尚未完成實機觸控驗證。",
         "Demo 的四張狀態測試卡仍是 index.html 靜態標記，與共用 surface 產生的動態卡片是兩份來源；後續 TaskCard host 收斂時需決定是否改由 surface 產生。",
         "隔離 Svelte 的 390px 版面已無水平溢位且固定 SaveBar 對齊內容面板，正式 Viewer 桌面端對端也已通過；實機觸控仍未驗證，因此目前正式編輯範圍仍以桌面滑鼠／鍵盤為準。"
       ],

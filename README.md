@@ -24,7 +24,7 @@ Launcher 會自動讀取資料夾內的 `report.json`，並在存在時一併載
 
 第一次執行會在 `127.0.0.1:8001` 啟動 LocalWebService；之後開啟其他 scope 會重用同一個 process，並透過受保護的控制 API 註冊精確 JSON 路徑。Launcher 結束不會停止服務。
 
-本機 Viewer 在確認目前 scope 是由 Launcher 精確註冊後，頁首才會出現「預覽模式／編輯模式」。編輯資料先留在記憶體；切回預覽會直接放棄草稿，只有固定在內容面板右下方的「儲存」會寫回 `report.json`。服務以短效 scope session、來源 revision、完整 Schema 驗證、重複 ID 檢查與同目錄原子取代保護來源；另一分頁或 Agent 已修改檔案時會拒絕覆寫。公開網站沒有編輯 API，因此不會顯示編輯選項。子項目工時膠囊在編輯模式仍可開啟估算明細，但目前是唯讀；人工工時／依據的版本化 `time.estimates.json` 寫入，以及交付日／`time.config.json` 編輯尚未納入此版。
+本機 Viewer 在確認目前 scope 是由 Launcher 精確註冊後，頁首才會出現「預覽模式／編輯模式」。編輯資料先留在記憶體；切回預覽會直接放棄草稿，只有固定在內容面板右下方的「儲存」會寫回 canonical files。服務以短效 scope session、來源 revision、完整 Schema 驗證、重複 ID 檢查與同目錄原子取代保護來源；另一分頁或 Agent 已修改檔案時會拒絕覆寫。公開網站沒有編輯 API，因此不會顯示編輯選項。本機 Svelte Editor 可修改交付日，以及每個穩定子項目的人工工時、人工依據與獨立人工確認；人工估算會在 `time.estimates.json` 建立新版本並 supersede 舊 active version，儲存後由既有分析器重新產生 `time.analysis.json`。
 
 檢查或停止服務：
 

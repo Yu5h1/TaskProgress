@@ -15,6 +15,7 @@
       ? String(timeItem.likely_minutes / 60)
       : "";
   let estimateNote = activeEstimate?.human_note ?? "";
+  let estimateConfirmed = Boolean(activeEstimate?.human_confirmed);
   let estimateError = "";
 
   $: metadata = policy.metadata(item.priority);
@@ -34,6 +35,7 @@
       itemId: item.id,
       likelyMinutes: Math.round(hours * 60),
       humanNote: estimateNote,
+      humanConfirmed: estimateConfirmed,
     });
     estimateError = result?.error ?? "";
   }
@@ -91,17 +93,46 @@
     >刪除</button>
     {#if onManualEstimate}
       <details class="spike-estimate-editor">
-        <summary>人工工時與依據</summary>
+        <summary>
+          <span>人工工時與依據</span>
+          <small>{estimateConfirmed ? "已確認" : "未確認"}</small>
+        </summary>
         <div class="spike-estimate-fields">
           <label>
             <span>工時（hr）</span>
-            <input type="number" min="0.02" step="0.25" bind:value={estimateHours}>
+            <input
+              type="number"
+              min="0.02"
+              step="0.25"
+              aria-label={`「${item.title}」人工工時（hr）`}
+              bind:value={estimateHours}
+            >
           </label>
           <label class="spike-estimate-note">
             <span>人工依據</span>
-            <input maxlength="1000" bind:value={estimateNote} placeholder="例如：已拆解三個步驟">
+            <input
+              maxlength="1000"
+              aria-label={`「${item.title}」人工依據`}
+              bind:value={estimateNote}
+              placeholder="例如：已拆解三個步驟"
+            >
           </label>
-          <button type="button" onclick={applyManualEstimate}>套用草稿</button>
+          <label class="spike-estimate-confirmation">
+            <input
+              type="checkbox"
+              aria-label={`確認「${item.title}」的人工估算`}
+              bind:checked={estimateConfirmed}
+            >
+            <span>人工確認此工時</span>
+          </label>
+          <p class="spike-estimate-contract">
+            未勾選仍可儲存人工工時與依據；確認只表示你接受目前估算結果。
+          </p>
+          <button
+            type="button"
+            aria-label={`套用「${item.title}」人工估算草稿`}
+            onclick={applyManualEstimate}
+          >套用工時草稿</button>
           {#if estimateError}<p class="spike-field-error" role="alert">{estimateError}</p>{/if}
         </div>
       </details>

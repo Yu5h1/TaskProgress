@@ -131,6 +131,7 @@ export function createTimeInputDraft(
       itemId,
       likelyMinutes,
       humanNote,
+      humanConfirmed = false,
       updatedAt = new Date().toISOString(),
     }) {
       const minutes = Number(likelyMinutes);
@@ -161,7 +162,7 @@ export function createTimeInputDraft(
         contributors: [
           { kind: "human_estimate", summary: "人工直接估算。" },
         ],
-        human_confirmed: true,
+        human_confirmed: Boolean(humanConfirmed),
         confidence: "medium",
         estimated_at: updatedAt,
         active: true,

@@ -411,17 +411,35 @@ test("time input draft versions direct human estimates and keeps the rationale",
     itemId: "svelte-parity",
     likelyMinutes: 150,
     humanNote: "  已拆解三個步驟。 ",
+    humanConfirmed: false,
     updatedAt: "2026-08-03T03:00:00Z",
   });
 
   assert.equal(changed.error, "");
   assert.equal(changed.estimate.supersedes_estimate_id, "old-estimate");
   assert.equal(changed.estimate.human_note, "已拆解三個步驟。");
-  assert.equal(changed.estimate.human_confirmed, true);
+  assert.equal(changed.estimate.human_confirmed, false);
   const replacement = draft.replacements().estimates;
   assert.equal(replacement.estimates[0].active, false);
   assert.equal(replacement.estimates[1].active, true);
   assert.equal(activeEstimateIndex({ estimates: replacement }).get("svelte-parity").likely_minutes, 150);
+
+  const confirmed = draft.setManualEstimate({
+    taskId: "editor-framework-spike",
+    itemId: "svelte-parity",
+    likelyMinutes: 180,
+    humanNote: "已由負責人確認拆解結果。",
+    humanConfirmed: true,
+    updatedAt: "2026-08-03T03:30:00Z",
+  });
+  assert.equal(confirmed.error, "");
+  assert.equal(confirmed.estimate.human_confirmed, true);
+  assert.equal(confirmed.estimate.supersedes_estimate_id, changed.estimate.estimate_id);
+  assert.equal(replacement.estimates[1].active, true);
+  const confirmedReplacement = draft.replacements().estimates;
+  assert.equal(confirmedReplacement.estimates[1].active, false);
+  assert.equal(confirmedReplacement.estimates[2].active, true);
+  assert.equal(activeEstimateIndex({ estimates: confirmedReplacement }).get("svelte-parity").likely_minutes, 180);
 
   const rejected = draft.setManualEstimate({
     taskId: "editor-framework-spike",
@@ -544,6 +562,9 @@ test("Svelte spike is isolated, static-path safe, and uses the shared core", asy
   assert.match(cardText, /<ItemRow/u);
   assert.match(cardText, /timeItems/u);
   assert.match(rowText, /type:\s*"set-item-field"/u);
+  assert.match(rowText, /humanConfirmed:\s*estimateConfirmed/u);
+  assert.match(rowText, /人工確認此工時/u);
+  assert.match(rowText, /未勾選仍可儲存人工工時與依據/u);
   assert.match(adapterText, /viewer\/assets\/editor-core\.js/u);
   assert.match(adapterText, /normalizeMeaningfulText/u);
   assert.match(loaderText, /resolveReportRequest/u);
