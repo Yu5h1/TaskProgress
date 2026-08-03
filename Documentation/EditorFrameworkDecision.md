@@ -32,7 +32,7 @@ Vue 暫不安裝。原生 Viewer／Demo 是行為基準與回退路徑；只有 
 - Vite `base: "./"`，建置結果使用相對資產 URL，可放在 GitHub Pages 子路徑。
 - 同一建置另產生要求本機 capability 的 `editor.html`；TaskProgress edit host 只在入口存在時於 capability 宣告固定同源 URL，Viewer 驗證路徑後才導向。公開 Pages 沒有該 API 路由，建置缺失時 Viewer 自動保留舊編輯器。
 
-雙入口接合後，共用 App chunk 約為 93.05 kB JavaScript（gzip 33.45 kB）與 46.56 kB CSS（gzip 8.91 kB），兩個入口 wrapper 各小於 0.2 kB；CSS 數字包含重用的完整 Viewer stylesheet，不是最終裁切結果。
+正式 Host 路徑解析接入後，共用 App chunk 約為 93.19 kB JavaScript（gzip 33.50 kB）與 46.56 kB CSS（gzip 8.91 kB），兩個入口 wrapper 各小於 0.2 kB；CSS 數字包含重用的完整 Viewer stylesheet，不是最終裁切結果。
 
 ## Dependency and license policy
 
@@ -49,5 +49,6 @@ Vue 暫不安裝。原生 Viewer／Demo 是行為基準與回退路徑；只有 
 - 建置產物掃描：未出現 `eval`／`new Function`、edit-host capability、private-history 或 Developer overlay 字串。
 - npm install audit：0 vulnerabilities。
 - 隔離瀏覽器 gate：暫存實檔的桌面與 390px 流程通過；確認視窗預設聚焦 `返回修改`、Escape 可返回且保留草稿，確認儲存產生遮蔽歷史；分析失敗與來源 revision 衝突均保留草稿，390px 無水平溢位且固定 SaveBar 對齊內容面板，console 無 warning／error。此 gate 使用確定性 QA analyzer adapter，不取代正式 Viewer Host 的正式分析器端對端驗證。
+- 正式 Host／分析器 gate：隔離真實 TaskProgress edit host 搭配發布版 analyzer executable，通過 Viewer 導向、host-only report 解析、8/8/8 config 初始化、preview、人工確認、multi-file save、遮蔽歷史、首次 analysis exact-route 註冊及 reload 工時投影；console 無 warning／error，正式資料與既有服務未變更。
 
-隔離 Svelte shell 已支援與 Viewer 相同的 `?scope=`／`?report=` 優先規則、report schema 驗證、多任務卡、可選 `time.analysis.json`、期限錯誤隔離及 item/task 工時投影，並以 tracked `reports/example` 驗證真實契約。本機 edit session 在 same-origin／editor-header 驗證後回傳 private config／estimates；multi-file route 以 report／inputs／local revisions、選擇性檔案 replacement、staged validation、分析與 rollback 完成單次儲存。Svelte 已接上交付日、版本化人工估算、明示的缺檔 config 初始化、遮蔽修改原因、隔離風險預覽及儲存前確認，且已通過隔離桌面／390px 瀏覽器 gate。正式 Viewer／edit host 接合層也已完成，但尚未宣告預設切換；下一關不是再做 Vue，而是以真正 Launcher Host 與正式分析器驗證導向、返回預覽及 multi-file save，最後補實機觸控。
+隔離 Svelte shell 已支援與 Viewer 相同的 `?scope=`／`?report=` 優先規則、report schema 驗證、多任務卡、可選 `time.analysis.json`、期限錯誤隔離及 item/task 工時投影，並以 tracked `reports/example` 驗證真實契約。本機 edit session 在 same-origin／editor-header 驗證後回傳 private config／estimates；multi-file route 以 report／inputs／local revisions、選擇性檔案 replacement、staged validation、分析與 rollback 完成單次儲存。Svelte 已接上交付日、版本化人工估算、明示的缺檔 config 初始化、遮蔽修改原因、隔離風險預覽及儲存前確認，並通過隔離桌面／390px與正式 Host／分析器端對端 gate。下一關不是再做 Vue，而是把雙入口 build 納入本機 Launcher／Publish 的可重現封裝但不立即發布，再補人工估算 UX 與實機觸控。

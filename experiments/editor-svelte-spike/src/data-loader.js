@@ -40,7 +40,7 @@ export function resolveSvelteDataRequest(params, baseUrl) {
   if (!request) return null;
 
   const reportUrl = request.source === "scope"
-    ? new URL(`../../reports/${request.scope}/report.json`, baseUrl)
+    ? resolveScopeReportUrl(request.scope, baseUrl)
     : safeHttpUrl(request.reportSource, baseUrl, "report.json");
   const explicitTimeSource = params.get("time") ?? undefined;
   const timeSource = resolveTimeAnalysisSource(
@@ -53,6 +53,14 @@ export function resolveSvelteDataRequest(params, baseUrl) {
     : null;
 
   return Object.freeze({ ...request, reportUrl, timeUrl });
+}
+
+function resolveScopeReportUrl(scope, baseUrl) {
+  const base = new URL(baseUrl);
+  if (base.pathname.startsWith("/__taskprogress/v1/editor/")) {
+    return new URL(`/reports/${scope}/report.json`, base.origin);
+  }
+  return new URL(`../../reports/${scope}/report.json`, base);
 }
 
 export async function loadSvelteEditorData({

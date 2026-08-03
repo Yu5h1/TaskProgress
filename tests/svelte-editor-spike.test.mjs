@@ -132,6 +132,13 @@ test("Svelte data request keeps Viewer query precedence and resolves experiment 
   assert.equal(scoped.reportUrl.href, "https://example.test/reports/example/report.json");
   assert.equal(scoped.timeUrl.href, "https://example.test/reports/example/time.analysis.json");
 
+  const hosted = resolveSvelteDataRequest(
+    new URLSearchParams("scope=example"),
+    "http://127.0.0.1:8148/__taskprogress/v1/editor/editor.html",
+  );
+  assert.equal(hosted.reportUrl.href, "http://127.0.0.1:8148/reports/example/report.json");
+  assert.equal(hosted.timeUrl.href, "http://127.0.0.1:8148/reports/example/time.analysis.json");
+
   const explicit = resolveSvelteDataRequest(
     new URLSearchParams("scope=ignored&report=/custom/report.json&time=none"),
     baseUrl,

@@ -593,9 +593,22 @@ class TaskProgressEditHostTests(unittest.TestCase):
         config["project"]["delivery_at"] = "2026-08-10T00:00:00+08:00"
         estimates = time_estimates_payload()
 
+        def write_analysis(_command: object, report_path: Path) -> tuple[bool, str]:
+            (report_path.parent / "time.analysis.json").write_text(
+                json.dumps(
+                    {
+                        "schema_version": "0.2",
+                        "scope_id": "secure-test",
+                        "summary": {"deadline": {"delivery_at": config["project"]["delivery_at"]}},
+                    }
+                ),
+                encoding="utf-8",
+            )
+            return True, ""
+
         with patch(
             "service.taskprogress_host._run_analysis",
-            return_value=(True, ""),
+            side_effect=write_analysis,
         ):
             response = self.client.put(
                 "/__taskprogress/v1/edit-sessions/secure-test",
@@ -632,6 +645,14 @@ class TaskProgressEditHostTests(unittest.TestCase):
             json.loads(
                 (self.root / "time.estimates.json").read_text(encoding="utf-8")
             ),
+        )
+        analysis = self.client.get(
+            "/reports/secure-test/time.analysis.json"
+        )
+        self.assertEqual(200, analysis.status_code, analysis.text)
+        self.assertEqual(
+            config["project"]["delivery_at"],
+            analysis.json()["summary"]["deadline"]["delivery_at"],
         )
 
     def test_multi_file_save_keeps_omitted_input_file(self) -> None:

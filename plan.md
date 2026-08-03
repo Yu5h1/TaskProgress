@@ -858,7 +858,7 @@ AI 分析與同類歷史不各自產生一個數字再和人工工時平均。�
 
 Editor UI 尚未模組化完成，但已不再從零開始。正式 Viewer 與 Demo 現在共用 Editor Core 的 `DraftSession`／commands／validation／diff／derived state／Undo／Redo，也完成 Editor Surface 的 `TaskCard` shell、`ItemRow`、優先級、全域模式 toggle、AddControl、欄位 validation、SaveBar 與 history controls 主要桌面契約；`app.js`、Demo `app.js` 與 `time-view.js` 只保留 domain validation、persistence 與時間插槽 adapter。本機 edit host 已提供可恢復的多檔案 transaction adapter，實際交付日、估算與私有歷史 payload 尚待接入。
 
-因此目前定位是「單一 report 編輯核心、安全邊界、完整命令歷史、主要桌面 Surface、可恢復 multi-file 交易、隔離 Svelte parity shell、真實 report/time loader、受保護 private time-input session、交付日／版本化人工估算初版、缺檔 config 安全初始化、本機遮蔽歷史、隔離風險預覽、儲存前確認及桌面／390px 隔離瀏覽器 gate 已完成，並有 150 項 Node、25 項 edit-host Python 測試保護」。下一步適合把已驗證元件接入正式 Viewer Surface，但正式分析器端對端與實機觸控 gate 仍不得跳過，也不得把新流程直接堆入 `app.js`／`time-view.js`。框架只能替換 UI 組合層，不能取代既有 Core 與 transaction 邊界；正式遷移決策見 `Documentation/EditorFrameworkDecision.md`。
+因此目前定位是「單一 report 編輯核心、安全邊界、完整命令歷史、主要桌面 Surface、可恢復 multi-file 交易、隔離 Svelte parity shell、真實 report/time loader、受保護 private time-input session、交付日／版本化人工估算初版、缺檔 config 安全初始化、本機遮蔽歷史、隔離風險預覽、儲存前確認、桌面／390px 隔離 gate，以及正式 Viewer／正式分析器端對端 gate 已完成，並有 150 項 Node、25 項 edit-host Python 測試保護」。下一步是建立可重現的 Launcher／Publish build 封裝但不立即發布，再補人工估算與實機觸控；新流程仍不得直接堆入 `app.js`／`time-view.js`。框架只能替換 UI 組合層，不能取代既有 Core 與 transaction 邊界；正式遷移決策見 `Documentation/EditorFrameworkDecision.md`。
 
 本機編輯能力由 TaskProgress edit host 對精確註冊且 `scope_id` 相符的報告動態回傳，不在 scope 設定或 `report.json` 保存 `editable`。Viewer、發布後 Launcher 與 edit host 必須版本一致；若舊版 Launcher 只啟動普通 LocalWebService，Viewer 會因 capability endpoint 不存在而安全地隱藏編輯入口。
 
@@ -962,7 +962,8 @@ ItemRow 是每張任務卡內的一筆子項目。這份矩陣已於 2026-08-02 
    - 2026-08-03 已完成第五段：`POST /__taskprogress/v1/edit-sessions/{scope}/preview` 在 revision 保護下，把同一份 report／config／estimates 草稿與只讀 events 複製到暫存目錄，再執行正式分析器；canonical files 與 edit session 都不變。Svelte 顯示原／新交付日、風險、剩餘容量、餘裕／缺口與非敏感原因；全域儲存只對實際交付日變更開啟 native dialog，`返回修改` 保留草稿，`確認儲存` 才進入原有 transaction。任何 report、time input 或欄位變更都會讓舊預覽失效。
    - 2026-08-03 已完成第六段隔離瀏覽器 gate：以暫存實檔跑完桌面與 390px 的預覽／返回／確認，確認視窗預設聚焦較安全的 `返回修改` 且 Escape 會關閉並保留草稿；分析失敗與來源 revision 衝突也保留草稿。確認儲存會寫入暫存 canonical files 並建立不含日期原文的遮蔽歷史。390px 無水平溢位、固定 SaveBar 對齊內容面板、console 無 warning／error；過程修正確認視窗 Escape handler 與行動版 time editor desktop-grid 殘留。這項 gate 使用確定性 QA analyzer adapter，不等同正式分析器端對端驗證。
    - 2026-08-03 已完成第七段本機 Viewer 接合層：Vite 同時產生隔離 spike 與 host-only `editor.html`，正式入口要求 capability 才顯示模式控制。TaskProgress edit host 只有在建置入口存在時才於 capability 回傳固定同源 `editor_surface_url`，並以 traversal-safe、`no-store` 路由提供資產；正式 Viewer 只接受 `/__taskprogress/v1/editor/` 下的同源 URL 並在使用者按全域模式 toggle 後導向。沒有建置時仍沿用舊編輯器，公開 Pages 沒有 API、路由或入口。
-   - 下一步以真正 TaskProgress Launcher Host／正式分析器驗證 Viewer 導向、Svelte 返回預覽、交付日 preview／confirm 與 multi-file save，再決定是否把 Svelte 設為本機預設；最後補實機觸控。正式切換前 Viewer／Demo 都保留。
+   - 2026-08-03 已完成第八段正式 Host／分析器端對端 gate：隔離真實 edit host 由 Viewer toggle 導向 host-only Svelte；建立缺檔 8/8/8 config、交付日草稿、正式 analyzer preview、儲存前確認與 multi-file transaction 均成功。驗證修正兩個接合缺口：host API 深層路徑下 scope report 必須解析至同源 `/reports/`；首次產生 `time.analysis.json` 後 edit host 必須同步註冊公開唯讀 exact route。reload 後載入六張 task 工時，私有 history 不含日期原文，console 無 warning／error；隔離服務與全部暫存檔已清除。
+   - 下一步將雙入口 Svelte build 納入 Launcher／Publish 的可重現建置與封裝契約，但本階段不實際發布；接著完成人工估算正式 UX 與實機觸控。正式切換前 Viewer／Demo 都保留。
    - 沿用目前 CSS token 與可見版面，不同時進行視覺重新設計。
    - 以 feature flag 或獨立本機路徑保留舊 Demo，兩者可並行比較。
 

@@ -583,6 +583,10 @@ def _report_route(scope: str) -> str:
     return f"/reports/{scope}/report.json"
 
 
+def _time_analysis_route(scope: str) -> str:
+    return f"/reports/{scope}/time.analysis.json"
+
+
 def _origin_allowed(request: Request, port: int) -> bool:
     return request.headers.get("origin", "").lower() in {
         f"http://127.0.0.1:{port}",
@@ -1280,6 +1284,7 @@ def install_edit_api(
                         )
 
             transaction = LocalFileTransaction(path.parent)
+            created_analysis_registration: str | None = None
             try:
                 transaction.stage_bytes(path, formatted_report)
                 for key, payload in replacement_inputs.items():
@@ -1307,6 +1312,21 @@ def install_edit_api(
                         "Time analysis failed; the file transaction was restored",
                         analysis_error,
                     )
+                analysis_path = path.parent / "time.analysis.json"
+                if analysis_path.is_file():
+                    analysis_route = _time_analysis_route(scope)
+                    existing_analysis = registry.get_by_url(analysis_route)
+                    if existing_analysis is None:
+                        registration, created = registry.register(
+                            analysis_route,
+                            analysis_path,
+                        )
+                        if created:
+                            created_analysis_registration = registration.id
+                    elif existing_analysis.file_path != analysis_path.resolve():
+                        raise ValueError(
+                            f"{analysis_route} is registered to another file"
+                        )
                 next_inputs, next_inputs_revision = _read_time_inputs(
                     path.parent,
                     scope,
@@ -1319,6 +1339,8 @@ def install_edit_api(
                 )
                 transaction.commit()
             except (OSError, ValueError, RuntimeError) as error:
+                if created_analysis_registration is not None:
+                    registry.unregister(created_analysis_registration)
                 try:
                     transaction.rollback()
                 except (OSError, TransactionRollbackError) as rollback_error:
