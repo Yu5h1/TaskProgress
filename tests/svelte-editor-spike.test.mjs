@@ -8,7 +8,10 @@ import {
 } from "../experiments/editor-svelte-spike/src/data-loader.js";
 import { createEditHostClient } from "../experiments/editor-svelte-spike/src/edit-host-client.js";
 import { createSvelteEditorAdapter } from "../experiments/editor-svelte-spike/src/editor-adapter.js";
-import { buildDeliveryRiskPreview } from "../experiments/editor-svelte-spike/src/delivery-risk-preview.js";
+import {
+  buildDeliveryRiskPreview,
+  buildTimeSettingsRiskPreview,
+} from "../experiments/editor-svelte-spike/src/delivery-risk-preview.js";
 import { fixtureReport } from "../experiments/editor-svelte-spike/src/fixture.js";
 import {
   activeEstimateIndex,
@@ -297,6 +300,41 @@ test("delivery risk preview compares the isolated analysis with the same draft",
   assert.equal(cleared.next.label, "期限分析將停用");
 });
 
+test("time settings risk preview supports capacity-only drafts", () => {
+  const preview = buildTimeSettingsRiskPreview(
+    {
+      summary: {
+        deadline: {
+          urgency: "critical",
+          remaining_capacity_minutes: 120,
+          capacity_balance_minutes: -60,
+        },
+      },
+    },
+    {
+      summary: {
+        deadline: {
+          urgency: "on_track",
+          remaining_capacity_minutes: 420,
+          capacity_balance_minutes: 240,
+        },
+      },
+    },
+    {
+      before: { present: true, value: "2026-08-20T17:00:00+08:00" },
+      after: { present: true, value: "2026-08-20T17:00:00+08:00" },
+      deliveryChanged: false,
+      capacityChanged: true,
+    },
+  );
+
+  assert.equal(preview.deliveryChanged, false);
+  assert.equal(preview.capacityChanged, true);
+  assert.equal(preview.capacityDelta, 300);
+  assert.equal(preview.balanceDelta, 300);
+  assert.equal(preview.reason, "");
+});
+
 test("time input draft creates the explicit 8/8/8 config only on request", () => {
   const template = {
     schema_version: "0.2",
@@ -383,6 +421,81 @@ test("time input draft creates the explicit 8/8/8 config only on request", () =>
     "example",
   ).initializeConfig();
   assert.match(missingTemplate.error, /未提供/u);
+});
+
+test("time input draft atomically edits allocation, weekdays, and private capacity exceptions", () => {
+  const config = {
+    schema_version: "0.2",
+    scope_id: "example",
+    updated_at: "2026-08-03T04:00:00Z",
+    timezone: "Asia/Taipei",
+    standard_allocation: {
+      total_minutes_per_day: 1440,
+      sleep_minutes_per_day: 480,
+      life_minutes_per_day: 480,
+      other_unavailable_minutes_per_day: 0,
+      capacity_minutes_per_executor_day: 480,
+      working_weekdays: [1, 2, 3, 4, 5],
+      workday_start_local: "09:00",
+      workday_end_local: "17:00",
+    },
+    project: {
+      executor_count: 1,
+      delivery_at: "2026-08-20T17:00:00+08:00",
+      capacity_exceptions: [],
+    },
+  };
+  const draft = createTimeInputDraft({ config, estimates: null }, "example");
+  const changed = draft.setTimeSettings({
+    deliveryAt: config.project.delivery_at,
+    capacity: {
+      sleepMinutes: 450,
+      lifeMinutes: 450,
+      otherUnavailableMinutes: 60,
+      workingWeekdays: [1, 2, 3, 4, 6],
+      capacityExceptions: [{
+        date: "2026-08-12",
+        availableMinutes: 0,
+        reason: " 私人請假原因 ",
+        publicLabel: " 不可工作 ",
+      }],
+    },
+  }, { updatedAt: "2026-08-03T05:00:00Z" });
+
+  assert.equal(changed.error, "");
+  const replacement = draft.replacements().config;
+  assert.equal(replacement.standard_allocation.capacity_minutes_per_executor_day, 480);
+  assert.deepEqual(replacement.standard_allocation.working_weekdays, [1, 2, 3, 4, 6]);
+  assert.equal(replacement.standard_allocation.workday_start_local, "09:00");
+  assert.deepEqual(replacement.project.capacity_exceptions, [{
+    date: "2026-08-12",
+    available_minutes: 0,
+    reason: "私人請假原因",
+    public_label: "不可工作",
+  }]);
+  assert.deepEqual(draft.changes(), []);
+  assert.deepEqual(draft.timeSettingsChangePreview(), {
+    before: { present: true, value: config.project.delivery_at },
+    after: { present: true, value: config.project.delivery_at },
+    deliveryChanged: false,
+    capacityChanged: true,
+    reason: "",
+    actor: "human",
+  });
+
+  const beforeInvalid = draft.snapshot();
+  const invalid = draft.setTimeSettings({
+    deliveryAt: config.project.delivery_at,
+    capacity: {
+      sleepMinutes: 720,
+      lifeMinutes: 720,
+      otherUnavailableMinutes: 0,
+      workingWeekdays: [1],
+      capacityExceptions: [],
+    },
+  });
+  assert.match(invalid.error, /小於 24 hr/u);
+  assert.deepEqual(invalid.snapshot.inputs, beforeInvalid.inputs);
 });
 
 test("time input draft versions direct human estimates and keeps the rationale", () => {
@@ -530,7 +643,7 @@ test("Svelte edit-host client sends the dual-revision multi-file contract", asyn
 });
 
 test("Svelte spike is isolated, static-path safe, and uses the shared core", async () => {
-  const [packageText, viteText, appText, cardText, rowText, adapterText, loaderText, clientText, timeDraftText, previewText, confirmationText, stylesText, presentationText, viewerMainText, editorHtmlText] = await Promise.all([
+  const [packageText, viteText, appText, cardText, rowText, adapterText, loaderText, clientText, timeDraftText, timeSettingsText, previewText, confirmationText, stylesText, presentationText, viewerMainText, editorHtmlText] = await Promise.all([
     readFile(new URL("../package.json", import.meta.url), "utf8"),
     readFile(new URL("../experiments/editor-svelte-spike/vite.config.js", import.meta.url), "utf8"),
     readFile(new URL("../experiments/editor-svelte-spike/src/App.svelte", import.meta.url), "utf8"),
@@ -540,6 +653,7 @@ test("Svelte spike is isolated, static-path safe, and uses the shared core", asy
     readFile(new URL("../experiments/editor-svelte-spike/src/data-loader.js", import.meta.url), "utf8"),
     readFile(new URL("../experiments/editor-svelte-spike/src/edit-host-client.js", import.meta.url), "utf8"),
     readFile(new URL("../experiments/editor-svelte-spike/src/time-input-draft.js", import.meta.url), "utf8"),
+    readFile(new URL("../experiments/editor-svelte-spike/src/TimeSettingsEditor.svelte", import.meta.url), "utf8"),
     readFile(new URL("../experiments/editor-svelte-spike/src/delivery-risk-preview.js", import.meta.url), "utf8"),
     readFile(new URL("../experiments/editor-svelte-spike/src/DeliverySaveConfirmation.svelte", import.meta.url), "utf8"),
     readFile(new URL("../experiments/editor-svelte-spike/src/styles.css", import.meta.url), "utf8"),
@@ -573,6 +687,11 @@ test("Svelte spike is isolated, static-path safe, and uses the shared core", asy
   assert.match(clientText, /inputs_revision/u);
   assert.match(clientText, /\/preview/u);
   assert.match(timeDraftText, /supersedes_estimate_id/u);
+  assert.match(timeDraftText, /setTimeSettings/u);
+  assert.match(timeSettingsText, /工作容量與交付日/u);
+  assert.match(timeSettingsText, /既有私人理由會保留但不在此顯示或修改/u);
+  assert.match(timeSettingsText, /capacityExceptions/u);
+  assert.match(appText, /<TimeSettingsEditor/u);
   assert.match(previewText, /capacityDelta/u);
   assert.match(confirmationText, /確認儲存/u);
   assert.match(confirmationText, /event\.key !== "Escape"/u);

@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-08-03T23:43:34+08:00",
+  "updated_at": "2026-08-03T23:58:11+08:00",
   "tasks": [
     {
       "id": "viewer-core",
@@ -171,7 +171,7 @@
       "title": "本機任務編輯",
       "status": "in_progress",
       "priority": 1,
-      "summary": "正式 Viewer、Demo 與 Svelte Editor 已共用 framework-neutral Editor Core；本機 edit host 提供可恢復 multi-file transaction、private time inputs、遮蔽歷史及隔離風險預覽。交付日與人工估算已通過端對端驗證，三個 Surface 的模式 toggle 已固定於 viewport 頂部中央；尚待時間設定面板 parity 與實機觸控驗證。",
+      "summary": "正式 Viewer、Demo 與 Svelte Editor 已共用 framework-neutral Editor Core；本機 edit host 提供可恢復 multi-file transaction、private time inputs、遮蔽歷史及隔離風險預覽。交付日、人工估算與 8／8／8、工作日、容量例外已整合至正式 Svelte Surface；尚待實機觸控驗證與更廣泛的敏感欄位歷史政策。",
       "completed_items": [
         {
           "id": "item-local-task-editing-done-1",
@@ -392,14 +392,14 @@
           "id": "share-editor-presentation-contract",
           "title": "抽離 framework-neutral Editor presentation contract，讓 Viewer、Demo 與 Svelte 共用內容寬度、模式 dock、卡片及子項目尺寸",
           "priority": 1
+        },
+        {
+          "id": "migrate-time-settings-panel",
+          "title": "完成本機 Svelte Editor 共用時間設定面板：8／8／8 每日分配、工作日、休假／容量例外與交付日共用原子草稿、重新計算預覽及正式交易",
+          "priority": 1
         }
       ],
       "pending_items": [
-        {
-          "id": "migrate-time-settings-panel",
-          "title": "將 8／8／8 每日分配、工作日及休假／容量例外搬入本機 Svelte Editor 的時間設定面板並接入正式交易",
-          "priority": 1
-        },
         {
           "id": "verify-mobile-editing",
           "title": "在正式 Viewer Surface 完成實機觸控編輯驗證；隔離 Svelte 的 390px 版面與鍵盤流程已通過",

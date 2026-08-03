@@ -147,6 +147,170 @@ textarea {
   font-size: 1rem;
 }
 
+.spike-time-editor-heading {
+  align-self: start;
+}
+
+.spike-timezone {
+  margin-top: 8px !important;
+  font-size: 0.72rem;
+}
+
+.spike-time-settings-fields,
+.spike-exception-list {
+  display: grid;
+  gap: 12px;
+}
+
+.spike-capacity-settings,
+.spike-exception-settings,
+.spike-delivery-settings {
+  padding: 12px;
+  background: color-mix(in srgb, var(--surface) 78%, transparent);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+
+.spike-setting-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.spike-setting-heading h3,
+.spike-delivery-settings h3 {
+  margin: 0;
+  color: var(--ink);
+  font-size: 0.84rem;
+}
+
+.spike-setting-heading p {
+  margin-top: 3px;
+  font-size: 0.68rem;
+}
+
+.spike-setting-heading strong {
+  flex: 0 0 auto;
+  color: var(--blue);
+  font-size: 0.75rem;
+}
+
+.spike-setting-heading strong.invalid {
+  color: var(--red);
+}
+
+.spike-allocation-fields {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.spike-allocation-fields label,
+.spike-exception-row label {
+  display: grid;
+  gap: 4px;
+  color: var(--ink-soft);
+  font-size: 0.68rem;
+}
+
+.spike-allocation-fields input,
+.spike-exception-row input {
+  min-width: 0;
+  padding: 7px 9px;
+  color: var(--ink);
+  color-scheme: dark;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+.spike-weekdays {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 11px 0 0;
+  padding: 0;
+  border: 0;
+}
+
+.spike-weekdays legend {
+  width: 100%;
+  margin-bottom: 5px;
+  color: var(--ink-soft);
+  font-size: 0.68rem;
+}
+
+.spike-weekdays label {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 7px;
+  color: var(--ink-soft);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  cursor: pointer;
+  font-size: 0.68rem;
+}
+
+.spike-weekdays input {
+  margin: 0;
+}
+
+.spike-exception-row {
+  display: grid;
+  grid-template-columns: 130px 105px minmax(180px, 1fr) auto;
+  align-items: end;
+  gap: 7px;
+}
+
+.spike-delete-exception,
+.spike-setting-heading button,
+.spike-time-settings-actions button {
+  min-height: 34px;
+  padding: 6px 10px;
+  color: var(--ink-soft);
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.spike-delete-exception {
+  color: var(--red);
+  border-color: color-mix(in srgb, var(--red) 38%, var(--line));
+}
+
+.spike-empty-setting,
+.spike-capacity-preview-note {
+  color: var(--ink-soft);
+  font-size: 0.72rem;
+}
+
+.spike-delivery-settings h3 {
+  margin-bottom: 9px;
+}
+
+.spike-time-settings-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.spike-time-settings-actions button {
+  color: white;
+  background: var(--blue);
+  border-color: var(--blue);
+}
+
+.spike-time-settings-actions .spike-field-error {
+  flex: 1 0 100%;
+}
+
 .spike-editor-kicker {
   color: var(--blue) !important;
   font-size: 0.68rem;
@@ -570,8 +734,15 @@ textarea {
   }
 
   .spike-delivery-controls,
+  .spike-allocation-fields,
+  .spike-exception-row,
   .spike-estimate-fields {
     grid-template-columns: 1fr;
+  }
+
+  .spike-setting-heading {
+    align-items: flex-start;
+    flex-direction: column;
   }
 
   .spike-estimate-confirmation,

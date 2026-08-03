@@ -31,18 +31,18 @@ function deadlineSummary(analysis, missingLabel) {
   });
 }
 
-export function buildDeliveryRiskPreview(
+export function buildTimeSettingsRiskPreview(
   currentAnalysis,
   previewAnalysis,
-  deliveryChange,
+  settingsChange,
 ) {
-  if (!deliveryChange?.before || !deliveryChange?.after) {
-    throw new TypeError("交付日風險預覽需要同一份 delivery draft。 ");
+  if (!settingsChange?.before || !settingsChange?.after) {
+    throw new TypeError("時間設定預覽需要同一份 time-input draft。 ");
   }
   const current = deadlineSummary(currentAnalysis, "尚無期限分析");
   const next = deadlineSummary(
     previewAnalysis,
-    deliveryChange.after.present ? "無法建立期限分析" : "期限分析將停用",
+    settingsChange.after.present ? "無法建立期限分析" : "期限分析將停用",
   );
   const capacityDelta = current.remainingCapacityMinutes != null
     && next.remainingCapacityMinutes != null
@@ -54,13 +54,23 @@ export function buildDeliveryRiskPreview(
     : null;
 
   return Object.freeze({
-    before: Object.freeze({ ...deliveryChange.before }),
-    after: Object.freeze({ ...deliveryChange.after }),
-    reason: deliveryChange.reason,
-    actor: deliveryChange.actor,
+    before: Object.freeze({ ...settingsChange.before }),
+    after: Object.freeze({ ...settingsChange.after }),
+    deliveryChanged: Boolean(settingsChange.deliveryChanged),
+    capacityChanged: Boolean(settingsChange.capacityChanged),
+    reason: settingsChange.reason ?? "",
+    actor: settingsChange.actor ?? "human",
     current,
     next,
     capacityDelta,
     balanceDelta,
+  });
+}
+
+export function buildDeliveryRiskPreview(currentAnalysis, previewAnalysis, deliveryChange) {
+  return buildTimeSettingsRiskPreview(currentAnalysis, previewAnalysis, {
+    ...deliveryChange,
+    deliveryChanged: true,
+    capacityChanged: false,
   });
 }

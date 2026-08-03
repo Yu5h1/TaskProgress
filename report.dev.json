@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "report_id": "task-progress-development",
-  "updated_at": "2026-08-03T23:43:34+08:00",
+  "updated_at": "2026-08-03T23:58:11+08:00",
   "tasks": [
     {
       "id": "viewer-core",
@@ -93,10 +93,10 @@
     },
     {
       "id": "local-task-editing",
-      "next_step": "先把 8／8／8、工作日與休假／容量例外搬入 Svelte 時間設定面板並接入正式交易，再做實機觸控驗證。Viewer／Demo／Svelte 已共用 framework-neutral presentation contract；Node 155/155，edit-host Python 26/26，Editor build pass。",
+      "next_step": "在正式 Viewer Surface 完成實機觸控編輯驗證，再擴充敏感欄位歷史契約，決定容量例外的私人理由是否開放修改。統一時間設定面板已接入正式草稿、預覽與交易；Node 157/157，edit-host Python 26/26，Editor build pass。",
       "blockers": [
         "人工工時／依據與獨立確認已在正式 Svelte Surface 建立 supersede estimate version 並透過 transaction 重新分析；尚未完成實機觸控驗證。",
-        "正式 Svelte Surface 目前只提供交付日與缺檔時建立 8／8／8 預設值，尚未搬入既有容量表單的每日分配、工作日及休假／容量例外編輯。",
+        "統一時間設定面板可修改公開容量資料並保留既有私人理由，但私人理由尚未開放編輯；需先擴充遮蔽歷史契約，避免敏感內容變更缺少稽核邊界。",
         "Demo 的四張狀態測試卡仍是 index.html 靜態標記，與共用 surface 產生的動態卡片是兩份來源；後續 TaskCard host 收斂時需決定是否改由 surface 產生。",
         "隔離 Svelte 的 390px 版面已無水平溢位且固定 SaveBar 對齊內容面板，正式 Viewer 桌面端對端也已通過；實機觸控仍未驗證，因此目前正式編輯範圍仍以桌面滑鼠／鍵盤為準。"
       ],

@@ -20,13 +20,15 @@ Vue 暫不安裝。原生 Viewer／Demo 是行為基準與回退路徑；只有 
 
 ## Implemented spike
 
-`experiments/editor-svelte-spike/` 提供隔離的 `App`、`TaskCard`、`ItemRow`、`DeliveryEditor` 與薄 adapter：
+`experiments/editor-svelte-spike/` 提供隔離的 `App`、`TaskCard`、`ItemRow`、`TimeSettingsEditor` 與薄 adapter：
 
 - adapter 直接委派正式 `viewer/assets/editor-core.js`，元件不修改 canonical report object；
 - 支援全域預覽／編輯、task title／summary／status／priority、item title／priority、新增、刪除、Undo／Redo、驗證、discard 與記憶體 commit；
 - 重用正式 priority policy 與 Viewer CSS，沒有 host identity 分支；
 - 只有 scope capability 存在時才建立短生命週期 edit session；token 只留在記憶體，report 與 private time inputs 以雙 revision 及單一 multi-file save 寫入；
 - 交付日草稿修改既有 config，人工工時／依據建立新的 active estimate version 並保留 supersedes 關係；缺少 config 時由 edit host 依 session timezone 產生並自行驗證 8/8/8 模板，只有使用者明確按下建立才進入 draft；
+- `TimeSettingsEditor` 將每日分配、工作日、休假／容量例外及交付日放入同一原子 config 草稿；重新計算可預覽交付日或容量單獨變更，全域儲存仍走既有 multi-file transaction；
+- 容量例外的公開說明可以編輯，既有私人理由只保留、不顯示也不修改；待遮蔽歷史契約擴充後才考慮開放敏感欄位。
 - 交付日變更要求修改原因；client 不產生歷史值或指紋，edit host 依 canonical before／after 建立遮蔽事件並將私有歷史加入同一 rollback transaction；
 - 交付日風險預覽以同一 session 的 report／config／estimates 草稿在 OS 暫存目錄執行正式分析器，不碰 canonical files；Svelte 顯示前後期限、風險與容量差異，只有敏感交付日變更會在全域儲存前開啟 native confirmation dialog；
 - Vite `base: "./"`，建置結果使用相對資產 URL，可放在 GitHub Pages 子路徑。
@@ -45,7 +47,7 @@ Vue 暫不安裝。原生 Viewer／Demo 是行為基準與回退路徑；只有 
 
 ## Verification and next gate
 
-- Node：151/151，包含 Svelte adapter／loader／private time draft／preview transport／delivery risk comparison／config initialization，以及本機 build／Publish／Pages 隔離契約。
+- Node：157/157，包含 Svelte adapter／loader、原子 time-settings draft、capacity-only preview、private time draft、preview transport、config initialization，以及本機 build／Publish／Pages 隔離契約。
 - Python edit host：26/26，包含缺少 build 時保留 legacy editor capability、暫存目錄預覽不修改 canonical files、session 保留、遮蔽歷史、首次 analysis 路由註冊與 transaction rollback。
 - Svelte production build：通過，輸出相對資產路徑。
 - `BuildEditor.cmd`：正式 `npm ci` 與跳過重裝的已鎖定依賴路徑均通過；Release .NET Launcher real integration 通過。本段沒有執行 publish。
@@ -54,4 +56,4 @@ Vue 暫不安裝。原生 Viewer／Demo 是行為基準與回退路徑；只有 
 - 隔離瀏覽器 gate：暫存實檔的桌面與 390px 流程通過；確認視窗預設聚焦 `返回修改`、Escape 可返回且保留草稿，確認儲存產生遮蔽歷史；分析失敗與來源 revision 衝突均保留草稿，390px 無水平溢位且固定 SaveBar 對齊內容面板，console 無 warning／error。此 gate 使用確定性 QA analyzer adapter，不取代正式 Viewer Host 的正式分析器端對端驗證。
 - 正式 Host／分析器 gate：隔離真實 TaskProgress edit host 搭配發布版 analyzer executable，通過 Viewer 導向、host-only report 解析、8/8/8 config 初始化、preview、人工確認、multi-file save、遮蔽歷史、首次 analysis exact-route 註冊及 reload 工時投影；console 無 warning／error，正式資料與既有服務未變更。
 
-隔離 Svelte shell 已支援與 Viewer 相同的 `?scope=`／`?report=` 優先規則、report schema 驗證、多任務卡、可選 `time.analysis.json`、期限錯誤隔離及 item/task 工時投影，並以 tracked `reports/example` 驗證真實契約。本機 edit session 在 same-origin／editor-header 驗證後回傳 private config／estimates；multi-file route 以 report／inputs／local revisions、選擇性檔案 replacement、staged validation、分析與 rollback 完成單次儲存。Svelte 已接上交付日、版本化人工估算、明示的缺檔 config 初始化、遮蔽修改原因、隔離風險預覽及儲存前確認，並通過隔離桌面／390px、正式 Host／分析器端對端與可重現 build／Publish gate。下一關不是再做 Vue，而是完成人工估算正式 UX 與實機觸控。
+隔離 Svelte shell 已支援與 Viewer 相同的 `?scope=`／`?report=` 優先規則、report schema 驗證、多任務卡、可選 `time.analysis.json`、期限錯誤隔離及 item/task 工時投影，並以 tracked `reports/example` 驗證真實契約。本機 edit session 在 same-origin／editor-header 驗證後回傳 private config／estimates；multi-file route 以 report／inputs／local revisions、選擇性檔案 replacement、staged validation、分析與 rollback 完成單次儲存。Svelte 已接上統一時間設定、版本化人工估算、明示的缺檔 config 初始化、遮蔽修改原因、容量或交付日風險預覽及儲存前確認，並通過隔離桌面／390px、正式 Host／分析器端對端與可重現 build／Publish gate。下一關不是再做 Vue，而是正式 Viewer 實機觸控驗證；之後再擴充敏感欄位歷史契約。

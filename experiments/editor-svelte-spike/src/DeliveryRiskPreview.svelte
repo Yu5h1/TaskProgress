@@ -35,16 +35,20 @@
     <span class="spike-preview-badge">預覽</span>
   </div>
 
-  <dl class="spike-delivery-diff">
-    <div>
-      <dt>原交付日</dt>
-      <dd>{deliveryLabel(preview.before)}</dd>
-    </div>
-    <div>
-      <dt>草稿交付日</dt>
-      <dd>{deliveryLabel(preview.after)}</dd>
-    </div>
-  </dl>
+  {#if preview.deliveryChanged}
+    <dl class="spike-delivery-diff">
+      <div>
+        <dt>原交付日</dt>
+        <dd>{deliveryLabel(preview.before)}</dd>
+      </div>
+      <div>
+        <dt>草稿交付日</dt>
+        <dd>{deliveryLabel(preview.after)}</dd>
+      </div>
+    </dl>
+  {:else if preview.capacityChanged}
+    <p class="spike-capacity-preview-note">交付日未變更；以下比較只反映工作容量草稿。</p>
+  {/if}
 
   <div class="spike-risk-comparison">
     <article>
@@ -64,5 +68,7 @@
     <div><dt>容量變化</dt><dd>{delta(preview.capacityDelta)}</dd></div>
     <div><dt>餘裕／缺口變化</dt><dd>{delta(preview.balanceDelta)}</dd></div>
   </dl>
-  <p class="spike-preview-reason"><strong>修改原因：</strong>{preview.reason}</p>
+  {#if preview.reason}
+    <p class="spike-preview-reason"><strong>修改原因：</strong>{preview.reason}</p>
+  {/if}
 </section>

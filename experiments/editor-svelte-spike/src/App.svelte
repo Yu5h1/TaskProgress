@@ -2,12 +2,12 @@
   import { onMount } from "svelte";
 
   import { createTimeIndex } from "../../../viewer/assets/time-model.js";
-  import DeliveryEditor from "./DeliveryEditor.svelte";
   import DeliveryRiskPreview from "./DeliveryRiskPreview.svelte";
   import DeliverySaveConfirmation from "./DeliverySaveConfirmation.svelte";
   import TaskCard from "./TaskCard.svelte";
+  import TimeSettingsEditor from "./TimeSettingsEditor.svelte";
   import { loadSvelteEditorData } from "./data-loader.js";
-  import { buildDeliveryRiskPreview } from "./delivery-risk-preview.js";
+  import { buildTimeSettingsRiskPreview } from "./delivery-risk-preview.js";
   import { createEditHostClient } from "./edit-host-client.js";
   import { createSvelteEditorAdapter } from "./editor-adapter.js";
   import { fixtureReport } from "./fixture.js";
@@ -41,7 +41,7 @@
   let timeDraftView = null;
   let saving = false;
   let previewing = false;
-  let deliveryEditorPending = false;
+  let timeSettingsPending = false;
   let deliveryPreview = null;
   let confirmingDeliverySave = false;
 
@@ -122,7 +122,7 @@
       timeDraftView = timeDraft?.discard() ?? null;
       timeDraft = null;
       timeDraftView = null;
-      deliveryEditorPending = false;
+      timeSettingsPending = false;
       invalidateDeliveryPreview();
       editSession = null;
       await editClient?.close();
@@ -135,7 +135,7 @@
             configTemplate: editSession.input_defaults?.config ?? null,
           });
           timeDraftView = timeDraft.snapshot();
-          deliveryEditorPending = false;
+          timeSettingsPending = false;
           invalidateDeliveryPreview();
           statusMessage = "編輯模式：report 與時間輸入都在暫存草稿，儲存時才寫入。";
         } catch (error) {
@@ -161,11 +161,11 @@
     statusMessage = "已重做下一個動作。";
   }
 
-  function setDeliveryAt(value, reason) {
-    const result = timeDraft.setDeliveryAt(value, { reason });
+  function setTimeSettings(settings) {
+    const result = timeDraft.setTimeSettings(settings);
     timeDraftView = result.snapshot;
     if (!result.error) invalidateDeliveryPreview();
-    statusMessage = result.error || "交付日已套用到草稿。";
+    statusMessage = result.error || "時間設定已套用到草稿。";
     return result;
   }
 
@@ -192,13 +192,13 @@
       statusMessage = "期限風險預覽需要本機安全編輯服務。";
       return null;
     }
-    if (deliveryEditorPending) {
-      statusMessage = "交付日欄位仍有未套用內容；請先按重新計算預覽。";
+    if (timeSettingsPending) {
+      statusMessage = "時間設定仍有未套用內容；請先按重新計算預覽。";
       return null;
     }
-    const deliveryChange = timeDraft.deliveryChangePreview();
-    if (!deliveryChange) {
-      statusMessage = "交付日沒有變更，不需要重新計算期限風險。";
+    const settingsChange = timeDraft.timeSettingsChangePreview();
+    if (!settingsChange) {
+      statusMessage = "時間設定沒有變更，不需要重新計算。";
       return null;
     }
     const prepared = adapter.prepareSave(new Date().toISOString());
@@ -213,14 +213,14 @@
         report: prepared.report,
         inputs: timeDraft.replacements(),
       });
-      deliveryPreview = buildDeliveryRiskPreview(
+      deliveryPreview = buildTimeSettingsRiskPreview(
         timeAnalysis,
         response.analysis,
-        deliveryChange,
+        settingsChange,
       );
-      statusMessage = deliveryChange.after.present && !deliveryPreview.next.available
+      statusMessage = settingsChange.after.present && !deliveryPreview.next.available
         ? "草稿無法建立期限分析，請調整交付日後重新計算。"
-        : "草稿風險已重新計算；預覽沒有修改任何檔案。";
+        : "時間設定草稿已重新計算；預覽沒有修改任何檔案。";
       return deliveryPreview;
     } catch (error) {
       deliveryPreview = null;
@@ -234,13 +234,13 @@
   }
 
   async function requestSave() {
+    if (timeSettingsPending) {
+      statusMessage = "時間設定仍有未套用內容；請先按重新計算預覽。";
+      return;
+    }
     const deliveryChange = timeDraft?.deliveryChangePreview() ?? null;
     if (!deliveryChange) {
       await persistSave();
-      return;
-    }
-    if (deliveryEditorPending) {
-      statusMessage = "交付日欄位仍有未套用內容；請先按重新計算預覽。";
       return;
     }
     const preview = deliveryPreview ?? await requestRiskPreview();
@@ -290,7 +290,7 @@
       editing = false;
       timeDraft = null;
       timeDraftView = null;
-      deliveryEditorPending = false;
+      timeSettingsPending = false;
       deliveryPreview = null;
       confirmingDeliverySave = false;
     } catch (error) {
@@ -360,12 +360,12 @@
     {/if}
 
     {#if editing && timeDraftView?.inputs.config}
-      <DeliveryEditor
+      <TimeSettingsEditor
         config={timeDraftView.inputs.config}
-        onChange={setDeliveryAt}
+        onApply={setTimeSettings}
         onPreview={requestRiskPreview}
         onPendingChange={(pending) => {
-          deliveryEditorPending = pending;
+          timeSettingsPending = pending;
           if (pending) invalidateDeliveryPreview();
         }}
       />
