@@ -18,6 +18,8 @@
 
   export let requireHostCapability = false;
   export let surfaceKind = "spike";
+  export let embedded = false;
+  export let autoStartEditing = false;
 
   const priorityPolicy = globalThis.TaskProgressPriorityPolicy;
   const emptyTimeIndex = () => ({ tasks: new Map(), items: new Map() });
@@ -89,6 +91,7 @@
       statusMessage = hostAvailable
         ? "已連接本機安全編輯服務。"
         : "已唯讀載入真實資料；此來源沒有本機寫入 capability。";
+      if (autoStartEditing && hostAvailable && !editing) await toggleMode();
     } catch (error) {
       loadError = error instanceof Error ? error.message : "資料載入失敗。";
     } finally {
@@ -147,6 +150,15 @@
       }
     }
     editing = !editing;
+    if (embedded && !editing) notifyViewer(false);
+  }
+
+  function notifyViewer(saved) {
+    if (!embedded || window.parent === window) return;
+    window.parent.postMessage(
+      { type: "taskprogress:editor-close", saved },
+      window.location.origin,
+    );
   }
 
   function undo() {
@@ -293,6 +305,7 @@
       timeSettingsPending = false;
       deliveryPreview = null;
       confirmingDeliverySave = false;
+      notifyViewer(hostAvailable);
     } catch (error) {
       statusMessage = error instanceof Error
         ? error.message

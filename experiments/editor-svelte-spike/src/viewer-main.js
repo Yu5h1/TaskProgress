@@ -10,5 +10,7 @@ mount(App, {
   props: {
     requireHostCapability: true,
     surfaceKind: "viewer",
+    embedded: window.self !== window.top,
+    autoStartEditing: window.self !== window.top,
   },
 });

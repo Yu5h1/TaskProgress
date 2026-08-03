@@ -79,6 +79,8 @@ const elements = {
   viewModeToggle: document.querySelector("#view-mode-toggle"),
   viewerModeLabel: document.querySelector("#viewer-mode-label"),
   editSaveBar: document.querySelector("#edit-save-bar"),
+  editorSurfaceOverlay: document.querySelector("#editor-surface-overlay"),
+  editorSurfaceFrame: document.querySelector("#editor-surface-frame"),
   taskAddShell: document.querySelector("#task-add-shell"),
   timeSummaryButton: document.querySelector("#time-summary-button"),
   timeDialog: document.querySelector("#time-dialog"),
@@ -110,6 +112,7 @@ const state = {
     token: null,
     session: null,
     surfaceUrl: null,
+    surfaceActive: false,
   },
 };
 
@@ -963,10 +966,12 @@ function renderReport() {
   elements.content.hidden = false;
   elements.start.hidden = true;
   elements.modeBadge.hidden = !state.developerAvailable;
-  elements.viewerModeLabel.textContent = state.editor.editing
+  elements.viewerModeLabel.textContent = state.editor.editing || state.editor.surfaceActive
     ? "Local edit session"
     : "Viewer is read-only";
-  viewModeControl?.setMode(state.editor.editing ? "edit" : "preview");
+  viewModeControl?.setMode(
+    state.editor.editing || state.editor.surfaceActive ? "edit" : "preview",
+  );
   renderDiagnostics();
   renderProjectProgress();
   renderOverview();
@@ -1012,13 +1017,18 @@ async function discoverLocalEditor(scope) {
 }
 
 async function startEditing() {
-  if (!state.editor.available || state.editor.editing) return false;
+  if (!state.editor.available || state.editor.editing || state.editor.surfaceActive) return false;
   if (state.editor.surfaceUrl) {
     const editorUrl = new URL(state.editor.surfaceUrl);
     editorUrl.search = window.location.search;
     editorUrl.searchParams.set("scope", state.editor.scope);
-    window.location.assign(editorUrl.href);
-    return false;
+    editorUrl.searchParams.set("embedded", "1");
+    state.editor.surfaceActive = true;
+    elements.editorSurfaceFrame.src = editorUrl.href;
+    elements.editorSurfaceOverlay.hidden = false;
+    document.documentElement.classList.add("editor-surface-open");
+    elements.editorSurfaceFrame.focus();
+    return true;
   }
   try {
     const response = await fetch("/__taskprogress/v1/edit-sessions", {
@@ -1056,6 +1066,25 @@ async function startEditing() {
     return false;
   }
 }
+
+function closeEditorSurface({ saved = false } = {}) {
+  if (!state.editor.surfaceActive) return;
+  state.editor.surfaceActive = false;
+  elements.editorSurfaceOverlay.hidden = true;
+  elements.editorSurfaceFrame.src = "about:blank";
+  document.documentElement.classList.remove("editor-surface-open");
+  viewModeControl?.setMode("preview");
+  if (saved) window.location.reload();
+}
+
+window.addEventListener("message", (event) => {
+  if (
+    event.origin !== window.location.origin
+    || event.source !== elements.editorSurfaceFrame.contentWindow
+    || event.data?.type !== "taskprogress:editor-close"
+  ) return;
+  closeEditorSurface({ saved: event.data.saved === true });
+});
 
 async function cancelEditing() {
   if (!state.editor.editing) return false;

@@ -18,7 +18,11 @@ test("production Viewer keeps local editing hidden until the host grants capabil
   assert.match(app, /if \(!response\.ok\) return;/);
   assert.match(app, /capability\.editor_surface_url/);
   assert.match(app, /surfaceUrl\.pathname\.startsWith\("\/__taskprogress\/v1\/editor\/"\)/);
-  assert.match(app, /window\.location\.assign\(editorUrl\.href\)/);
+  assert.match(html, /id="editor-surface-overlay"[\s\S]*?id="editor-surface-frame"/);
+  assert.match(app, /editorUrl\.searchParams\.set\("embedded", "1"\)/);
+  assert.match(app, /elements\.editorSurfaceFrame\.src = editorUrl\.href/);
+  assert.match(app, /event\.data\?\.type !== "taskprogress:editor-close"/);
+  assert.doesNotMatch(app, /window\.location\.assign\(editorUrl\.href\)/);
   assert.match(app, /Public\/static hosting intentionally has no editor capability/);
 });
 

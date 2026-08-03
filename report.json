@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-08-03T23:58:11+08:00",
+  "updated_at": "2026-08-04T00:26:26+08:00",
   "tasks": [
     {
       "id": "viewer-core",
@@ -171,7 +171,7 @@
       "title": "本機任務編輯",
       "status": "in_progress",
       "priority": 1,
-      "summary": "正式 Viewer、Demo 與 Svelte Editor 已共用 framework-neutral Editor Core；本機 edit host 提供可恢復 multi-file transaction、private time inputs、遮蔽歷史及隔離風險預覽。交付日、人工估算與 8／8／8、工作日、容量例外已整合至正式 Svelte Surface；尚待實機觸控驗證與更廣泛的敏感欄位歷史政策。",
+      "summary": "本機 Viewer 已成為單一入口：編輯 toggle 在原 URL 內開啟同源 Svelte Editor，取消返回 Viewer，儲存後於同一入口重載。Editor Core、安全交易、時間設定與人工估算均已接入；下一步讓 Viewer 預覽也改由同一套 Svelte 元件呈現。",
       "completed_items": [
         {
           "id": "item-local-task-editing-done-1",
@@ -397,9 +397,19 @@
           "id": "migrate-time-settings-panel",
           "title": "完成本機 Svelte Editor 共用時間設定面板：8／8／8 每日分配、工作日、休假／容量例外與交付日共用原子草稿、重新計算預覽及正式交易",
           "priority": 1
+        },
+        {
+          "id": "unify-viewer-svelte-entry",
+          "title": "統一本機 Viewer 入口：編輯 toggle 在原 URL 內載入同源 Svelte Surface、自動進入編輯，取消返回 Viewer且儲存後重載最新資料",
+          "priority": 1
         }
       ],
       "pending_items": [
+        {
+          "id": "migrate-viewer-preview-to-svelte",
+          "title": "讓正式 Viewer 預覽逐區改用同一套 Svelte 元件，消除預覽與編輯的排版切換；Demo 僅保留 fixture adapter",
+          "priority": 1
+        },
         {
           "id": "verify-mobile-editing",
           "title": "在正式 Viewer Surface 完成實機觸控編輯驗證；隔離 Svelte 的 390px 版面與鍵盤流程已通過",

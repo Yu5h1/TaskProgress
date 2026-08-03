@@ -705,6 +705,9 @@ test("Svelte spike is isolated, static-path safe, and uses the shared core", asy
   assert.match(presentationText, /--editor-content-max-width:\s*960px/u);
   assert.match(presentationText, /\.editor-mode-dock\s*\{[\s\S]*?position:\s*fixed/u);
   assert.match(viewerMainText, /requireHostCapability:\s*true/u);
+  assert.match(viewerMainText, /autoStartEditing:\s*window\.self !== window\.top/u);
+  assert.match(appText, /taskprogress:editor-close/u);
+  assert.match(appText, /autoStartEditing && hostAvailable/u);
   assert.match(editorHtmlText, /noindex, nofollow/u);
   assert.doesNotMatch(appText + cardText + rowText, /localStorage/u);
 });
