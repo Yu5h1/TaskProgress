@@ -249,7 +249,7 @@ test("presentation adapter preserves each host's status and card styling", () =>
     completed: 0,
     total: 0,
   });
-  assert.equal(production.card.className, "task-card status-active");
+  assert.equal(production.card.className, "task-card editor-task-card status-active");
   assert.equal(production.header.className, "task-header");
   assert.equal(production.titleGroup.className, "task-title-group");
   assert.equal(production.statusIndicator.className, "status-badge status-active");
@@ -260,7 +260,7 @@ test("presentation adapter preserves each host's status and card styling", () =>
     total: 0,
     showPriority: false,
   });
-  assert.equal(demo.card.className, "task-card status-active");
+  assert.equal(demo.card.className, "task-card editor-task-card status-active");
   assert.equal(demo.header.className, "task-header time-task-header");
   assert.equal(demo.titleGroup.className, "time-task-copy");
   assert.equal(demo.statusIndicator.className, "time-task-state");
@@ -272,14 +272,14 @@ test("demo keeps neutral card borders for planned and archived tasks", () => {
   const surface = demoSurface();
   ["planned", "archive"].forEach((status) => {
     const shell = surface.createTaskCardShell({ ...sampleTask, status }, {});
-    assert.equal(shell.card.className, "task-card");
+    assert.equal(shell.card.className, "task-card editor-task-card");
     assert.equal(shell.statusIndicator.children[0].className, "task-state-dot state-muted");
   });
   const production = productionSurface().createTaskCardShell(
     { ...sampleTask, status: "planned" },
     {},
   );
-  assert.equal(production.card.className, "task-card status-neutral");
+  assert.equal(production.card.className, "task-card editor-task-card status-neutral");
 });
 
 test("priority badges are shared, normalized, and hidden for the unspecified level", () => {
@@ -548,7 +548,7 @@ test("shared item rows preserve host layout while sharing preview semantics", ()
     trailingNodes: ["進行中"],
   });
   assert.equal(production.row.dataset.itemId, "item-a");
-  assert.equal(production.row.className, "time-work-item");
+  assert.equal(production.row.className, "editor-item-row time-work-item");
   assert.equal(production.copy, null);
   assert.deepEqual(production.row.children, [
     production.priorityBadge,
@@ -562,7 +562,7 @@ test("shared item rows preserve host layout while sharing preview semantics", ()
     contentNodes: ["2 hr"],
     trailingNodes: ["進行中"],
   });
-  assert.equal(demo.row.className, "time-work-item");
+  assert.equal(demo.row.className, "editor-item-row time-work-item");
   assert.equal(demo.copy.className, "time-work-copy");
   assert.deepEqual(demo.copy.children, [demo.priorityBadge, demo.title, "2 hr"]);
   assert.deepEqual(demo.row.children, [demo.copy, "進行中"]);

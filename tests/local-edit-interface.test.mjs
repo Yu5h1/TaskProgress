@@ -5,6 +5,7 @@ import test from "node:test";
 const indexUrl = new URL("../viewer/index.html", import.meta.url);
 const appUrl = new URL("../viewer/assets/app.js", import.meta.url);
 const styleUrl = new URL("../viewer/assets/styles.css", import.meta.url);
+const presentationUrl = new URL("../viewer/assets/editor-presentation.css", import.meta.url);
 
 test("production Viewer keeps local editing hidden until the host grants capability", async () => {
   const [html, app] = await Promise.all([
@@ -67,10 +68,14 @@ test("editing exposes global task and child controls with a panel-aligned save b
 });
 
 test("Viewer mode toggle stays centered at the viewport top", async () => {
-  const styles = await readFile(styleUrl, "utf8");
+  const [html, presentation] = await Promise.all([
+    readFile(indexUrl, "utf8"),
+    readFile(presentationUrl, "utf8"),
+  ]);
+  assert.match(html, /class="view-mode-toggle editor-mode-dock"/);
   assert.match(
-    styles,
-    /\.view-mode-toggle\s*\{[\s\S]*?position:\s*fixed;[\s\S]*?top:\s*calc\(12px \+ env\(safe-area-inset-top, 0px\)\);[\s\S]*?left:\s*50%;[\s\S]*?transform:\s*translateX\(-50%\);/,
+    presentation,
+    /\.editor-mode-dock\s*\{[\s\S]*?position:\s*fixed;[\s\S]*?top:\s*calc\(12px \+ env\(safe-area-inset-top, 0px\)\);[\s\S]*?left:\s*50%;[\s\S]*?transform:\s*translateX\(-50%\);/,
   );
-  assert.match(styles, /\.view-mode-toggle\s*\{[\s\S]*?z-index:\s*45;/);
+  assert.match(presentation, /\.editor-mode-dock\s*\{[\s\S]*?z-index:\s*45;/);
 });

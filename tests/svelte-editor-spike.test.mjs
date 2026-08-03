@@ -530,7 +530,7 @@ test("Svelte edit-host client sends the dual-revision multi-file contract", asyn
 });
 
 test("Svelte spike is isolated, static-path safe, and uses the shared core", async () => {
-  const [packageText, viteText, appText, cardText, rowText, adapterText, loaderText, clientText, timeDraftText, previewText, confirmationText, stylesText, viewerMainText, editorHtmlText] = await Promise.all([
+  const [packageText, viteText, appText, cardText, rowText, adapterText, loaderText, clientText, timeDraftText, previewText, confirmationText, stylesText, presentationText, viewerMainText, editorHtmlText] = await Promise.all([
     readFile(new URL("../package.json", import.meta.url), "utf8"),
     readFile(new URL("../experiments/editor-svelte-spike/vite.config.js", import.meta.url), "utf8"),
     readFile(new URL("../experiments/editor-svelte-spike/src/App.svelte", import.meta.url), "utf8"),
@@ -543,6 +543,7 @@ test("Svelte spike is isolated, static-path safe, and uses the shared core", asy
     readFile(new URL("../experiments/editor-svelte-spike/src/delivery-risk-preview.js", import.meta.url), "utf8"),
     readFile(new URL("../experiments/editor-svelte-spike/src/DeliverySaveConfirmation.svelte", import.meta.url), "utf8"),
     readFile(new URL("../experiments/editor-svelte-spike/src/styles.css", import.meta.url), "utf8"),
+    readFile(new URL("../viewer/assets/editor-presentation.css", import.meta.url), "utf8"),
     readFile(new URL("../experiments/editor-svelte-spike/src/viewer-main.js", import.meta.url), "utf8"),
     readFile(new URL("../experiments/editor-svelte-spike/editor.html", import.meta.url), "utf8"),
   ]);
@@ -577,7 +578,13 @@ test("Svelte spike is isolated, static-path safe, and uses the shared core", asy
   assert.match(confirmationText, /event\.key !== "Escape"/u);
   assert.match(confirmationText, /onkeydown=\{keydown\}/u);
   assert.match(stylesText, /@media \(max-width: 640px\)[\s\S]*?\.spike-time-editor\s*\{[\s\S]*?grid-template-columns:\s*minmax\(0, 1fr\)/u);
-  assert.match(stylesText, /\.spike-mode-toggle\s*\{[\s\S]*?position:\s*fixed;[\s\S]*?top:\s*calc\(12px \+ env\(safe-area-inset-top, 0px\)\);[\s\S]*?left:\s*50%;[\s\S]*?transform:\s*translateX\(-50%\);/u);
+  assert.match(stylesText, /@import "@editor\/editor-presentation\.css"/u);
+  assert.match(appText, /class="spike-page editor-layout-shell"/u);
+  assert.match(appText, /class="spike-mode-toggle editor-mode-dock"/u);
+  assert.match(cardText, /task-card editor-task-card/u);
+  assert.match(rowText, /class="editor-item-row"/u);
+  assert.match(presentationText, /--editor-content-max-width:\s*960px/u);
+  assert.match(presentationText, /\.editor-mode-dock\s*\{[\s\S]*?position:\s*fixed/u);
   assert.match(viewerMainText, /requireHostCapability:\s*true/u);
   assert.match(editorHtmlText, /noindex, nofollow/u);
   assert.doesNotMatch(appText + cardText + rowText, /localStorage/u);

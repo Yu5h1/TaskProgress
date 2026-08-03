@@ -15,11 +15,12 @@
     <title>TaskProgress Viewer</title>
     <script src="assets/theme-bootstrap.js"></script>
     <link rel="stylesheet" href="assets/styles.css" />
+    <link rel="stylesheet" href="assets/editor-presentation.css" />
     <script type="module" src="assets/app.js"></script>
   </head>
   <body>
     <a class="skip-link" href="#main-content">跳至主要內容</a>
-    <div class="page-shell">
+    <div class="page-shell editor-layout-shell">
       <header class="site-header">
         <a class="brand" href="./" aria-label="TaskProgress Viewer 首頁">
           <span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></span>
@@ -28,7 +29,7 @@
         <div class="header-actions">
           <div class="mode-badge" id="mode-badge" hidden>Developer overlay</div>
           <button
-            class="view-mode-toggle"
+            class="view-mode-toggle editor-mode-dock"
             id="view-mode-toggle"
             type="button"
             aria-pressed="false"
@@ -146,7 +147,7 @@
             ></div>
           </div>
 
-          <div class="task-list" id="task-list"></div>
+          <div class="task-list editor-task-list" id="task-list"></div>
           <div class="task-add-shell" id="task-add-shell" hidden></div>
           <p class="empty-state" id="empty-state" hidden>這個篩選條件下沒有任務。</p>
         </section>

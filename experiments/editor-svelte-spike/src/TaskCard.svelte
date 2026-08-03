@@ -44,7 +44,7 @@
   }
 </script>
 
-<article class={`task-card status-${statusEntry.tone}`} aria-labelledby={`task-${task.id}-title`}>
+<article class={`task-card editor-task-card status-${statusEntry.tone}`} aria-labelledby={`task-${task.id}-title`}>
   <header class="task-header">
     <div class="task-title-group">
       {#if editing}

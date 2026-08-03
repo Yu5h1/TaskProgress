@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-08-03T22:42:17+08:00",
+  "updated_at": "2026-08-03T23:43:34+08:00",
   "tasks": [
     {
       "id": "viewer-core",
@@ -386,6 +386,11 @@
         {
           "id": "dock-global-mode-toggle",
           "title": "將 Viewer、Demo 與本機 Svelte Editor 的預覽／編輯 toggle 固定於 viewport 頂部中央，不隨內容捲動",
+          "priority": 1
+        },
+        {
+          "id": "share-editor-presentation-contract",
+          "title": "抽離 framework-neutral Editor presentation contract，讓 Viewer、Demo 與 Svelte 共用內容寬度、模式 dock、卡片及子項目尺寸",
           "priority": 1
         }
       ],

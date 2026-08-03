@@ -41,7 +41,7 @@
   }
 </script>
 
-<li class:editable-work-item={editing} class:has-estimate-editor={editing && onManualEstimate}>
+<li class="editor-item-row" class:editable-work-item={editing} class:has-estimate-editor={editing && onManualEstimate}>
   {#if editing}
     <input
       class="inline-edit-input"

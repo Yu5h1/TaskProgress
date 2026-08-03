@@ -572,7 +572,7 @@ function createEditorSurface({
     const stableItem = item !== null && typeof item === "object" && !Array.isArray(item);
     const itemTitle = stableItem ? String(item.title ?? "") : String(item ?? "");
     const isEditing = editing && stableItem;
-    const classes = [rowClass ?? style.itemRowClass];
+    const classes = ["editor-item-row", rowClass ?? style.itemRowClass];
     if (isEditing && style.itemEditingClass) classes.push(style.itemEditingClass);
     const row = el("li", classes.filter(Boolean).join(" "));
     if (stableItem && item.id !== undefined) row.dataset.itemId = String(item.id);
@@ -658,7 +658,7 @@ function createEditorSurface({
   function createTaskCardShell(task, { completed = 0, total = 0, showPriority = true } = {}) {
     const meta = resolveStatusMeta(task.status);
     const cardStatusClass = style.cardStatusClass(task.status, meta);
-    const card = el("article", `task-card ${cardStatusClass}`.trim());
+    const card = el("article", `task-card editor-task-card ${cardStatusClass}`.trim());
     card.dataset.taskId = task.id;
     card.dataset.status = task.status;
     card.dataset.priority = String(

@@ -367,10 +367,6 @@ code {
 }
 
 .view-mode-toggle {
-  position: fixed;
-  z-index: 45;
-  top: calc(12px + env(safe-area-inset-top, 0px));
-  left: 50%;
   justify-content: center;
   min-width: 74px;
   padding: 4px 10px;
@@ -384,8 +380,6 @@ code {
   font: inherit;
   font-size: 0.7rem;
   font-weight: 720;
-  transform: translateX(-50%);
-  white-space: nowrap;
 }
 
 .view-mode-toggle[aria-pressed="true"] {
@@ -1468,10 +1462,6 @@ footer {
 
   .site-header {
     min-height: 44px;
-  }
-
-  .view-mode-toggle {
-    top: calc(8px + env(safe-area-inset-top, 0px));
   }
 
   .mode-badge {

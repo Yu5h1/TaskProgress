@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "report_id": "task-progress-development",
-  "updated_at": "2026-08-03T22:42:17+08:00",
+  "updated_at": "2026-08-03T23:43:34+08:00",
   "tasks": [
     {
       "id": "viewer-core",
@@ -93,7 +93,7 @@
     },
     {
       "id": "local-task-editing",
-      "next_step": "先把 8／8／8、工作日與休假／容量例外搬入 Svelte 時間設定面板並接入正式交易，再做實機觸控驗證。頂部中央固定模式列已完成；Node 153/153，edit-host Python 26/26，Launcher integration pass。",
+      "next_step": "先把 8／8／8、工作日與休假／容量例外搬入 Svelte 時間設定面板並接入正式交易，再做實機觸控驗證。Viewer／Demo／Svelte 已共用 framework-neutral presentation contract；Node 155/155，edit-host Python 26/26，Editor build pass。",
       "blockers": [
         "人工工時／依據與獨立確認已在正式 Svelte Surface 建立 supersede estimate version 並透過 transaction 重新分析；尚未完成實機觸控驗證。",
         "正式 Svelte Surface 目前只提供交付日與缺檔時建立 8／8／8 預設值，尚未搬入既有容量表單的每日分配、工作日及休假／容量例外編輯。",

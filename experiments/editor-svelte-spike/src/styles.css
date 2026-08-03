@@ -1,3 +1,5 @@
+@import "@editor/editor-presentation.css";
+
 html {
   min-height: 100%;
   background: var(--page);
@@ -17,8 +19,6 @@ textarea {
 }
 
 .spike-page {
-  width: min(920px, calc(100% - 32px));
-  margin: 0 auto;
   padding: 36px 0 110px;
 }
 
@@ -64,15 +64,9 @@ textarea {
 }
 
 .spike-mode-toggle {
-  position: fixed;
-  z-index: 45;
-  top: calc(12px + env(safe-area-inset-top, 0px));
-  left: 50%;
   background: color-mix(in srgb, var(--surface) 94%, transparent);
   box-shadow: var(--shadow);
   backdrop-filter: blur(10px);
-  transform: translateX(-50%);
-  white-space: nowrap;
 }
 
 .spike-mode-toggle[aria-pressed="true"],
@@ -355,9 +349,9 @@ textarea {
 
 .spike-savebar {
   position: fixed;
-  right: max(16px, calc((100vw - 920px) / 2));
+  right: max(16px, calc((100vw - var(--editor-content-max-width)) / 2));
   bottom: 18px;
-  left: max(16px, calc((100vw - 920px) / 2));
+  left: max(16px, calc((100vw - var(--editor-content-max-width)) / 2));
   z-index: 10;
   display: flex;
   align-items: center;
@@ -560,12 +554,7 @@ textarea {
 
 @media (max-width: 640px) {
   .spike-page {
-    width: min(100% - 20px, 920px);
     padding-top: 20px;
-  }
-
-  .spike-mode-toggle {
-    top: calc(8px + env(safe-area-inset-top, 0px));
   }
 
   .spike-heading,

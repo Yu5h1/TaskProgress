@@ -11,6 +11,7 @@
     <title>TaskProgress · 時間參考整合 Demo</title>
     <script src="../../../viewer/assets/theme-bootstrap.js"></script>
     <link rel="stylesheet" href="../../../viewer/assets/styles.css" />
+    <link rel="stylesheet" href="../../../viewer/assets/editor-presentation.css" />
     <link rel="stylesheet" href="./styles.css?v=20260729-034" />
     <script defer src="../../../viewer/assets/priority-policy.js?v=20260729-033"></script>
     <script defer src="../../../viewer/assets/editor-core-runtime.js?v=20260730-001"></script>
@@ -25,7 +26,7 @@
   </head>
   <body>
     <a class="skip-link" href="#main-content">跳至主要內容</a>
-    <div class="page-shell">
+    <div class="page-shell editor-layout-shell">
       <header class="site-header">
         <a class="brand" href="#main-content" aria-label="TaskProgress 時間參考 Demo 首頁">
           <span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></span>
@@ -41,7 +42,7 @@
             </select>
           </label>
           <button
-            class="theme-control view-mode-control view-mode-toggle"
+            class="theme-control view-mode-control view-mode-toggle editor-mode-dock"
             id="view-mode-toggle"
             type="button"
             aria-pressed="false"
@@ -146,8 +147,8 @@
             </div>
           </div>
 
-          <div class="task-list" id="task-list">
-            <article class="task-card status-active" id="task-card" data-task-id="time-reference-prototype" data-status="in_progress" data-priority="1" data-base-completed="0" data-base-total="4" aria-busy="true">
+          <div class="task-list editor-task-list" id="task-list">
+            <article class="task-card editor-task-card status-active" id="task-card" data-task-id="time-reference-prototype" data-status="in_progress" data-priority="1" data-base-completed="0" data-base-total="4" aria-busy="true">
               <header class="task-header time-task-header">
                 <div class="time-task-copy">
                   <div class="time-task-status-line">
@@ -177,7 +178,7 @@
               </div>
             </article>
 
-            <article class="task-card status-success" data-task-id="viewer-theme-system" data-status="done" data-priority="2" data-base-completed="3" data-base-total="3">
+            <article class="task-card editor-task-card status-success" data-task-id="viewer-theme-system" data-status="done" data-priority="2" data-base-completed="3" data-base-total="3">
               <header class="task-header time-task-header">
                 <div class="time-task-copy">
                   <div class="time-task-status-line">
@@ -205,7 +206,7 @@
               </div>
             </article>
 
-            <article class="task-card status-danger" data-task-id="history-calibration-model" data-status="blocked" data-priority="0" data-base-completed="0" data-base-total="2">
+            <article class="task-card editor-task-card status-danger" data-task-id="history-calibration-model" data-status="blocked" data-priority="0" data-base-completed="0" data-base-total="2">
               <header class="task-header time-task-header">
                 <div class="time-task-copy">
                   <div class="time-task-status-line">
@@ -233,7 +234,7 @@
               </div>
             </article>
 
-            <article class="task-card" data-task-id="legacy-time-label" data-status="archive" data-priority="4" data-base-completed="1" data-base-total="1">
+            <article class="task-card editor-task-card" data-task-id="legacy-time-label" data-status="archive" data-priority="4" data-base-completed="1" data-base-total="1">
               <header class="task-header time-task-header">
                 <div class="time-task-copy">
                   <div class="time-task-status-line">

@@ -323,7 +323,7 @@
 
 <svelte:window onkeydown={handleKeyboard} />
 
-<main class="spike-page" data-view-mode={editing ? "edit" : "preview"}>
+<main class="spike-page editor-layout-shell" data-view-mode={editing ? "edit" : "preview"}>
   <header class="spike-heading">
     <div>
       <p class="spike-eyebrow">{surfaceKind === "viewer" ? "Local editor" : "Framework parity spike"}</p>
@@ -332,7 +332,7 @@
     </div>
     {#if !requireHostCapability || hostAvailable}
       <button
-        class="spike-mode-toggle"
+        class="spike-mode-toggle editor-mode-dock"
         type="button"
         aria-pressed={editing}
         disabled={loading || saving || previewing || confirmingDeliverySave || Boolean(loadError)}
@@ -382,7 +382,7 @@
       </section>
     {/if}
 
-    <section class="task-list" aria-label="Svelte 任務卡實驗">
+    <section class="task-list editor-task-list" aria-label="Svelte 任務卡實驗">
       {#each tasks as task (task.id)}
         <TaskCard
           {task}

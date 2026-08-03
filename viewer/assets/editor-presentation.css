@@ -1,0 +1,58 @@
+/*
+ * Framework-neutral Editor presentation contract.
+ *
+ * Keep structural dimensions here so Viewer, the time-reference Demo, and
+ * framework hosts do not drift. Theme colours and host-only components stay
+ * in each host stylesheet.
+ */
+
+:root {
+  --editor-content-max-width: 960px;
+  --editor-content-gutter: 32px;
+  --editor-mobile-gutter: 20px;
+  --editor-card-gap: 12px;
+  --editor-card-padding-block: 15px;
+  --editor-card-padding-inline: 20px;
+  --editor-card-radius: 14px;
+  --editor-item-min-height: 36px;
+  --editor-item-padding-block: 8px;
+}
+
+.editor-layout-shell {
+  width: min(var(--editor-content-max-width), calc(100% - var(--editor-content-gutter)));
+  margin-inline: auto;
+}
+
+.editor-mode-dock {
+  position: fixed;
+  z-index: 45;
+  top: calc(12px + env(safe-area-inset-top, 0px));
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+}
+
+.editor-task-list {
+  display: grid;
+  gap: var(--editor-card-gap);
+}
+
+.editor-task-card {
+  padding: var(--editor-card-padding-block) var(--editor-card-padding-inline);
+  border-radius: var(--editor-card-radius);
+}
+
+.editor-item-row {
+  min-height: var(--editor-item-min-height);
+  padding-block: var(--editor-item-padding-block);
+}
+
+@media (max-width: 640px) {
+  .editor-layout-shell {
+    width: min(100% - var(--editor-mobile-gutter), var(--editor-content-max-width));
+  }
+
+  .editor-mode-dock {
+    top: calc(8px + env(safe-area-inset-top, 0px));
+  }
+}
