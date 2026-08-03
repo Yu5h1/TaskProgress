@@ -155,6 +155,10 @@ textarea {
   gap: 8px;
 }
 
+.spike-delivery-reason {
+  grid-column: 1 / -1;
+}
+
 .spike-delivery-controls label,
 .spike-estimate-fields label {
   display: grid;
@@ -339,6 +343,178 @@ textarea {
   font-size: 0.8rem;
 }
 
+.spike-risk-preview {
+  display: grid;
+  gap: 12px;
+  margin: 0 0 18px;
+  padding: 14px 16px;
+  color: var(--ink-soft);
+  background: color-mix(in srgb, var(--surface) 88%, var(--blue));
+  border: 1px solid color-mix(in srgb, var(--line) 58%, var(--blue));
+  border-radius: 12px;
+}
+
+.spike-risk-preview h3,
+.spike-risk-preview p,
+.spike-risk-preview dl,
+.spike-risk-preview dd {
+  margin: 0;
+}
+
+.spike-risk-preview h3 {
+  margin-top: 3px;
+  color: var(--ink);
+  font-size: 0.96rem;
+}
+
+.spike-risk-preview-heading,
+.spike-risk-comparison,
+.spike-risk-deltas,
+.spike-confirm-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.spike-preview-badge {
+  padding: 3px 8px;
+  color: var(--blue);
+  font-size: 0.68rem;
+  font-weight: 800;
+  background: color-mix(in srgb, var(--blue) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--blue) 48%, transparent);
+  border-radius: 999px;
+}
+
+.spike-delivery-diff,
+.spike-risk-deltas {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.spike-delivery-diff div,
+.spike-risk-deltas div,
+.spike-risk-comparison article {
+  min-width: 0;
+  padding: 9px 10px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 9px;
+}
+
+.spike-delivery-diff dt,
+.spike-risk-deltas dt,
+.spike-risk-comparison span,
+.spike-risk-comparison small {
+  color: var(--ink-soft);
+  font-size: 0.68rem;
+}
+
+.spike-delivery-diff dd,
+.spike-risk-deltas dd,
+.spike-risk-comparison strong {
+  display: block;
+  margin-top: 3px;
+  overflow-wrap: anywhere;
+  color: var(--ink);
+  font-size: 0.82rem;
+}
+
+.spike-risk-comparison article {
+  flex: 1 1 0;
+}
+
+.spike-risk-comparison small {
+  display: block;
+  margin-top: 4px;
+}
+
+.spike-risk-comparison .risk-on_track strong,
+.spike-risk-comparison .risk-complete strong {
+  color: var(--green);
+}
+
+.spike-risk-comparison .risk-at_risk strong {
+  color: var(--yellow);
+}
+
+.spike-risk-comparison .risk-critical strong {
+  color: var(--red);
+}
+
+.spike-risk-arrow {
+  flex: 0 0 auto;
+  color: var(--blue) !important;
+  font-size: 1rem !important;
+}
+
+.spike-preview-reason {
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+  overflow-wrap: anywhere;
+  font-size: 0.76rem;
+}
+
+.spike-confirm-dialog {
+  width: min(640px, calc(100% - 28px));
+  max-height: calc(100vh - 28px);
+  padding: 18px;
+  overflow: auto;
+  color: var(--ink-soft);
+  color-scheme: dark;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+}
+
+.spike-confirm-dialog::backdrop {
+  background: rgb(5 8 14 / 72%);
+  backdrop-filter: blur(3px);
+}
+
+.spike-confirm-copy h2,
+.spike-confirm-copy p {
+  margin: 0;
+}
+
+.spike-confirm-copy h2 {
+  margin: 4px 0 6px;
+  color: var(--ink);
+  font-size: 1.08rem;
+}
+
+.spike-confirm-copy + .spike-risk-preview {
+  margin-top: 16px;
+}
+
+.spike-confirm-actions {
+  justify-content: flex-end;
+  margin-top: 14px;
+}
+
+.spike-confirm-actions button {
+  padding: 8px 12px;
+  color: var(--ink);
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  cursor: pointer;
+}
+
+.spike-confirm-actions .spike-save-button {
+  color: white;
+  background: var(--blue);
+  border-color: var(--blue);
+}
+
+.spike-confirm-actions button:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+
 @media (max-width: 640px) {
   .spike-page {
     width: min(100% - 20px, 920px);
@@ -362,11 +538,30 @@ textarea {
     grid-template-columns: 1fr;
   }
 
+  .spike-time-editor {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
   .spike-add-form input {
     grid-column: 1 / -1;
   }
 
   .spike-save-actions {
     justify-content: flex-end;
+  }
+
+  .spike-risk-comparison {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .spike-risk-arrow {
+    align-self: center;
+    transform: rotate(90deg);
+  }
+
+  .spike-delivery-diff,
+  .spike-risk-deltas {
+    grid-template-columns: 1fr;
   }
 }

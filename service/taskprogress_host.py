@@ -27,7 +27,7 @@ from types import ModuleType
 from typing import Any, Callable, Sequence
 
 from fastapi import APIRouter, FastAPI, Request
-from fastapi.responses import JSONResponse, Response
+from fastapi.responses import FileResponse, JSONResponse, Response
 from jsonschema import Draft202012Validator, FormatChecker
 from starlette.routing import Mount
 
@@ -43,6 +43,13 @@ TIME_SCHEMA_ROOT = (
     / "experiments"
     / "time-reference"
     / "schemas"
+)
+LOCAL_STATE_SCHEMA_PATH = Path(__file__).resolve().parents[1] / "schemas" / "taskprogress.local.schema.json"
+DEFAULT_EDITOR_SURFACE_ROOT = (
+    Path(__file__).resolve().parents[1]
+    / "experiments"
+    / "editor-svelte-spike"
+    / "dist"
 )
 SCOPE_PATTERN = re.compile(r"^[a-z0-9]+(?:[._-][a-z0-9]+)*$")
 TIMEZONE_PATTERN = re.compile(r"^[A-Za-z0-9._+-]+(?:/[A-Za-z0-9._+-]+)*$")
@@ -67,6 +74,7 @@ class EditSession:
     scope: str
     revision: str
     inputs_revision: str
+    local_revision: str
     report_id: str
     expires_at: float
 
@@ -257,6 +265,47 @@ def _default_time_config(
             "item_unit": "hour",
         },
     }
+
+
+def _read_local_state(
+    folder: Path,
+    scope: str,
+    validator: Draft202012Validator,
+) -> tuple[dict[str, Any] | None, str]:
+    path = folder / "taskprogress.local.json"
+    if not path.is_file():
+        return None, _revision(b"taskprogress.local.json\0missing")
+    source = path.read_bytes()
+    if len(source) > MAX_TRANSACTION_FILE_BYTES:
+        raise ValueError("taskprogress.local.json exceeds the 4 MiB edit limit")
+    payload = json.loads(source)
+    if not isinstance(payload, dict):
+        raise ValueError("taskprogress.local.json root must be an object")
+    errors = _json_schema_errors(validator, payload)
+    if errors:
+        raise ValueError(
+            f"taskprogress.local.json failed validation: {'; '.join(errors[:8])}"
+        )
+    if payload.get("scope_id") != scope:
+        raise ValueError(f"taskprogress.local.json scope_id does not match {scope}")
+    return payload, _revision(source)
+
+
+def _fingerprint_sensitive_value(present: bool, value: object) -> str:
+    canonical = json.dumps(
+        {"present": present, "value": value if present else None},
+        ensure_ascii=False,
+        sort_keys=True,
+        separators=(",", ":"),
+    ).encode("utf-8")
+    return _revision(canonical)
+
+
+def _delivery_value(config: dict[str, Any] | None) -> tuple[bool, object]:
+    project = config.get("project") if isinstance(config, dict) else None
+    if not isinstance(project, dict) or "delivery_at" not in project:
+        return False, None
+    return True, project["delivery_at"]
 
 
 def _atomic_replace(path: Path, source: bytes) -> None:
@@ -590,12 +639,64 @@ def _run_analysis(
     return False, detail or f"Analyzer exited with code {completed.returncode}"
 
 
+def _preview_analysis(
+    analyzer_command: Sequence[str],
+    source_folder: Path,
+    report: dict[str, Any],
+    inputs: dict[str, dict[str, Any] | None],
+) -> dict[str, Any] | None:
+    """Run the canonical analyzer against an isolated copy of the current draft."""
+
+    with tempfile.TemporaryDirectory(prefix="taskprogress-preview-") as temporary:
+        preview_folder = Path(temporary)
+        (preview_folder / "report.json").write_text(
+            json.dumps(report, ensure_ascii=False, indent=2) + "\n",
+            encoding="utf-8",
+        )
+        for key, filename in (
+            ("config", "time.config.json"),
+            ("estimates", "time.estimates.json"),
+        ):
+            value = inputs.get(key)
+            if value is not None:
+                (preview_folder / filename).write_text(
+                    json.dumps(value, ensure_ascii=False, indent=2) + "\n",
+                    encoding="utf-8",
+                )
+        events_path = source_folder / "time.events.json"
+        if events_path.exists():
+            if events_path.is_symlink() or not events_path.is_file():
+                raise ValueError("time.events.json must be a regular file")
+            events_source = events_path.read_bytes()
+            if len(events_source) > MAX_TRANSACTION_FILE_BYTES:
+                raise ValueError("time.events.json exceeds the preview limit")
+            (preview_folder / "time.events.json").write_bytes(events_source)
+
+        analysis_ok, analysis_error = _run_analysis(
+            analyzer_command,
+            preview_folder / "report.json",
+        )
+        if not analysis_ok:
+            raise RuntimeError(analysis_error or "Time analysis preview failed")
+        analysis_path = preview_folder / "time.analysis.json"
+        if not analysis_path.is_file():
+            return None
+        source = analysis_path.read_bytes()
+        if len(source) > MAX_TRANSACTION_FILE_BYTES:
+            raise ValueError("time.analysis.json exceeds the preview limit")
+        analysis = json.loads(source)
+        if not isinstance(analysis, dict):
+            raise ValueError("time.analysis.json root must be an object")
+        return analysis
+
+
 def install_edit_api(
     application: FastAPI,
     *,
     report_schema: os.PathLike[str] | str,
     control_port: int,
     analyzer_command: Sequence[str] = (),
+    editor_surface_root: os.PathLike[str] | str | None = None,
     now: Callable[[], float] = time.time,
 ) -> None:
     schema = json.loads(Path(report_schema).read_text(encoding="utf-8"))
@@ -618,11 +719,21 @@ def install_edit_api(
             format_checker=FormatChecker(),
         ),
     }
+    local_state_validator = Draft202012Validator(
+        json.loads(LOCAL_STATE_SCHEMA_PATH.read_text(encoding="utf-8")),
+        format_checker=FormatChecker(),
+    )
     registry = application.state.exact_files
     sessions: dict[str, EditSession] = {}
     sessions_lock = threading.RLock()
     write_lock = asyncio.Lock()
     router = APIRouter(prefix=API_PREFIX)
+    editor_root = (
+        Path(editor_surface_root).resolve()
+        if editor_surface_root is not None
+        else None
+    )
+    editor_entry = editor_root / "editor.html" if editor_root is not None else None
 
     def registered_report(scope: str) -> Path | None:
         registration = registry.get_by_url(_report_route(scope))
@@ -657,6 +768,7 @@ def install_edit_api(
         scope: str,
         revision: str,
         inputs_revision: str,
+        local_revision: str,
         report_id: str,
     ) -> EditSession:
         token = secrets.token_urlsafe(32)
@@ -665,6 +777,7 @@ def install_edit_api(
             scope=scope,
             revision=revision,
             inputs_revision=inputs_revision,
+            local_revision=local_revision,
             report_id=report_id,
             expires_at=now() + SESSION_LIFETIME_SECONDS,
         )
@@ -678,6 +791,20 @@ def install_edit_api(
             "service": "taskprogress-edit-host",
             "api_version": API_VERSION,
         }
+
+    @router.get("/editor/{asset_path:path}")
+    async def local_editor_asset(asset_path: str) -> Response:
+        if editor_root is None or editor_entry is None or not editor_entry.is_file():
+            return _problem(404, "editor_surface_not_found", "Local editor surface is unavailable")
+        requested = asset_path or "editor.html"
+        try:
+            path = (editor_root / requested).resolve()
+            path.relative_to(editor_root)
+        except (OSError, ValueError):
+            return _problem(404, "editor_asset_not_found", "Local editor asset was not found")
+        if not path.is_file():
+            return _problem(404, "editor_asset_not_found", "Local editor asset was not found")
+        return FileResponse(path, headers={"Cache-Control": "no-store"})
 
     @router.get("/capabilities/{scope}")
     async def edit_capabilities(scope: str) -> Response:
@@ -706,14 +833,15 @@ def install_edit_api(
                 )
         if report.get("scope_id") != safe_scope:
             return _problem(409, "scope_mismatch", "Registered report scope does not match")
-        return JSONResponse(
-            {
-                "editable": True,
-                "scope_id": safe_scope,
-                "revision": revision,
-                "session_lifetime_seconds": SESSION_LIFETIME_SECONDS,
-            }
-        )
+        capability: dict[str, object] = {
+            "editable": True,
+            "scope_id": safe_scope,
+            "revision": revision,
+            "session_lifetime_seconds": SESSION_LIFETIME_SECONDS,
+        }
+        if editor_entry is not None and editor_entry.is_file():
+            capability["editor_surface_url"] = f"{API_PREFIX}/editor/editor.html"
+        return JSONResponse(capability)
 
     @router.post("/edit-sessions")
     async def create_edit_session(request: Request) -> Response:
@@ -773,6 +901,19 @@ def install_edit_api(
                     "Time input files are invalid or unavailable",
                     str(error),
                 )
+            try:
+                _, local_revision = _read_local_state(
+                    path.parent,
+                    scope,
+                    local_state_validator,
+                )
+            except (OSError, ValueError, json.JSONDecodeError) as error:
+                return _problem(
+                    409,
+                    "source_local_state_invalid",
+                    "Private local history is invalid or unavailable",
+                    str(error),
+                )
             default_config = None
             if inputs["config"] is None:
                 default_config = _default_time_config(
@@ -805,6 +946,7 @@ def install_edit_api(
             scope,
             revision,
             inputs_revision,
+            local_revision,
             str(report["report_id"]),
         )
         return JSONResponse(
@@ -813,6 +955,7 @@ def install_edit_api(
                 "scope_id": session.scope,
                 "revision": session.revision,
                 "inputs_revision": session.inputs_revision,
+                "local_revision": session.local_revision,
                 "inputs": inputs,
                 "input_defaults": {"config": default_config},
                 "expires_at": session.expires_at,
@@ -831,6 +974,165 @@ def install_edit_api(
             sessions.pop(session.token, None)
         return Response(status_code=204)
 
+    @router.post("/edit-sessions/{scope}/preview")
+    async def preview_edit_session(scope: str, request: Request) -> Response:
+        """Rebuild time analysis from the current draft without touching source files."""
+
+        if not _browser_write_allowed(request, control_port):
+            return _problem(403, "browser_origin_forbidden", "Trusted same-origin editor required")
+        if not _content_type_is_json(request):
+            return _problem(415, "unsupported_media_type", "Requests must use application/json")
+        session = authorize_session(request, scope)
+        if session is None:
+            return _problem(401, "invalid_edit_session", "A valid edit session is required")
+        expected_revision = request.headers.get("if-match", "").strip('"')
+        if not expected_revision or expected_revision != session.revision:
+            return _problem(409, "stale_revision", "The edit session revision is stale")
+        content_length = request.headers.get("content-length")
+        if content_length:
+            try:
+                if int(content_length) > MAX_EDIT_PAYLOAD_BYTES:
+                    return _problem(413, "edit_payload_too_large", "Edit payload exceeds the limit")
+            except ValueError:
+                return _problem(400, "invalid_content_length", "Content-Length is invalid")
+        source = await request.body()
+        if len(source) > MAX_EDIT_PAYLOAD_BYTES:
+            return _problem(413, "edit_payload_too_large", "Edit payload exceeds the limit")
+        try:
+            payload = json.loads(source)
+        except json.JSONDecodeError as error:
+            return _problem(422, "invalid_json", "Edit payload is not valid JSON", str(error))
+        if not isinstance(payload, dict) or set(payload) != {
+            "report",
+            "inputs_revision",
+            "local_revision",
+            "inputs",
+        }:
+            return _problem(
+                422,
+                "invalid_preview_payload",
+                "Preview requires report, private revisions, and inputs",
+            )
+        if (
+            payload["inputs_revision"] != session.inputs_revision
+            or payload["local_revision"] != session.local_revision
+        ):
+            return _problem(
+                409,
+                "stale_private_revision",
+                "The preview private-source revision is stale",
+            )
+        report = payload["report"]
+        replacement_inputs = payload["inputs"]
+        if not isinstance(report, dict):
+            return _problem(422, "invalid_report", "report.json root must be an object")
+        report_errors = _schema_errors(validator, report)
+        if report_errors:
+            return _problem(
+                422,
+                "invalid_report",
+                "report.json failed validation",
+                "; ".join(report_errors[:8]),
+            )
+        if report.get("scope_id") != scope or report.get("report_id") != session.report_id:
+            return _problem(
+                422,
+                "identity_change_forbidden",
+                "scope_id and report_id cannot be changed by this editor",
+            )
+        if (
+            not isinstance(replacement_inputs, dict)
+            or not set(replacement_inputs).issubset({"config", "estimates"})
+        ):
+            return _problem(
+                422,
+                "invalid_time_inputs",
+                "inputs may contain only config and estimates replacements",
+            )
+        for key, value in replacement_inputs.items():
+            if not isinstance(value, dict):
+                return _problem(
+                    422,
+                    "invalid_time_inputs",
+                    f"inputs.{key} must be an object",
+                )
+            errors = _json_schema_errors(time_validators[key], value)
+            if errors:
+                return _problem(
+                    422,
+                    "invalid_time_inputs",
+                    f"inputs.{key} failed validation",
+                    "; ".join(errors[:8]),
+                )
+
+        path = registered_report(scope)
+        if path is None:
+            return _problem(404, "scope_not_found", "Editable scope was not found")
+        async with write_lock:
+            try:
+                recover_pending_transaction(path.parent)
+                _, current_report, current_revision = _read_report(path)
+                current_inputs, current_inputs_revision = _read_time_inputs(
+                    path.parent,
+                    scope,
+                    time_validators,
+                )
+                _, current_local_revision = _read_local_state(
+                    path.parent,
+                    scope,
+                    local_state_validator,
+                )
+            except (
+                OSError,
+                ValueError,
+                json.JSONDecodeError,
+                TransactionRollbackError,
+            ) as error:
+                return _problem(
+                    409,
+                    "preview_source_unavailable",
+                    "Preview source files are invalid or unavailable",
+                    str(error),
+                )
+            if (
+                current_revision != session.revision
+                or current_inputs_revision != session.inputs_revision
+                or current_local_revision != session.local_revision
+                or current_report.get("report_id") != session.report_id
+            ):
+                return _problem(
+                    409,
+                    "source_changed",
+                    "Source files changed after the edit session started",
+                )
+            next_inputs = {
+                key: replacement_inputs.get(key, current_inputs[key])
+                for key in ("config", "estimates")
+            }
+            try:
+                analysis = await asyncio.to_thread(
+                    _preview_analysis,
+                    analyzer_command,
+                    path.parent,
+                    report,
+                    next_inputs,
+                )
+            except (OSError, ValueError, RuntimeError, json.JSONDecodeError) as error:
+                return _problem(
+                    422,
+                    "preview_analysis_failed",
+                    "Time analysis preview could not be generated",
+                    str(error),
+                )
+        return JSONResponse(
+            {
+                "analysis": analysis,
+                "revision": session.revision,
+                "inputs_revision": session.inputs_revision,
+                "local_revision": session.local_revision,
+            }
+        )
+
     async def commit_edit(
         *,
         scope: str,
@@ -839,6 +1141,7 @@ def install_edit_api(
         report: dict[str, Any],
         formatted_report: bytes,
         replacement_inputs: dict[str, dict[str, Any]],
+        audit_requests: list[dict[str, str]],
     ) -> Response:
         """Atomically persist canonical inputs, regenerate analysis, and rotate the session."""
 
@@ -846,10 +1149,15 @@ def install_edit_api(
             try:
                 recover_pending_transaction(path.parent)
                 _, current_report, current_revision = _read_report(path)
-                _, current_inputs_revision = _read_time_inputs(
+                current_inputs, current_inputs_revision = _read_time_inputs(
                     path.parent,
                     scope,
                     time_validators,
+                )
+                current_local_state, current_local_revision = _read_local_state(
+                    path.parent,
+                    scope,
+                    local_state_validator,
                 )
             except (
                 OSError,
@@ -866,6 +1174,7 @@ def install_edit_api(
             if (
                 current_revision != session.revision
                 or current_inputs_revision != session.inputs_revision
+                or current_local_revision != session.local_revision
                 or current_report.get("report_id") != session.report_id
             ):
                 return _problem(
@@ -873,6 +1182,72 @@ def install_edit_api(
                     "source_changed",
                     "Source files changed after the edit session started",
                 )
+
+            next_config = replacement_inputs.get("config", current_inputs["config"])
+            before_present, before_value = _delivery_value(current_inputs["config"])
+            after_present, after_value = _delivery_value(next_config)
+            delivery_changed = (
+                before_present != after_present
+                or (before_present and before_value != after_value)
+            )
+            if delivery_changed and len(audit_requests) != 1:
+                return _problem(
+                    422,
+                    "change_reason_required",
+                    "Changing delivery_at requires exactly one private history reason",
+                )
+            if not delivery_changed and audit_requests:
+                return _problem(
+                    422,
+                    "unexpected_history_event",
+                    "Private history was supplied without a delivery_at change",
+                )
+
+            next_local_state = current_local_state
+            if delivery_changed:
+                request = audit_requests[0]
+                occurred_at = datetime.fromtimestamp(
+                    now(),
+                    tz=datetime_timezone.utc,
+                ).isoformat().replace("+00:00", "Z")
+                operation = (
+                    "set"
+                    if not before_present and after_present
+                    else "clear"
+                    if before_present and not after_present
+                    else "change"
+                )
+                event = {
+                    "event_id": secrets.token_hex(12),
+                    "occurred_at": occurred_at,
+                    "actor": request["actor"],
+                    "operation": operation,
+                    "field_path": "time.config.project.delivery_at",
+                    "reason": request["reason"],
+                    "redacted": True,
+                    "fingerprint_algorithm": "sha256",
+                    "before_present": before_present,
+                    "before_fingerprint": _fingerprint_sensitive_value(
+                        before_present,
+                        before_value,
+                    ),
+                    "after_present": after_present,
+                    "after_fingerprint": _fingerprint_sensitive_value(
+                        after_present,
+                        after_value,
+                    ),
+                }
+                if current_local_state is not None:
+                    next_local_state = json.loads(json.dumps(current_local_state))
+                else:
+                    next_local_state = {
+                        "schema_version": "1.0",
+                        "scope_id": scope,
+                        "updated_at": occurred_at,
+                        "history": [],
+                    }
+                next_local_state["updated_at"] = occurred_at
+                next_local_state["history"].append(event)
 
             def validate_staged_payloads() -> None:
                 report_errors = _schema_errors(validator, report)
@@ -893,6 +1268,16 @@ def install_edit_api(
                         )
                     if payload.get("scope_id") != scope:
                         raise ValueError(f"{key} scope_id does not match {scope}")
+                if delivery_changed and next_local_state is not None:
+                    local_errors = _json_schema_errors(
+                        local_state_validator,
+                        next_local_state,
+                    )
+                    if local_errors:
+                        raise ValueError(
+                            "taskprogress.local.json failed validation: "
+                            + "; ".join(local_errors[:8])
+                        )
 
             transaction = LocalFileTransaction(path.parent)
             try:
@@ -904,6 +1289,8 @@ def install_edit_api(
                         else "time.estimates.json"
                     )
                     transaction.stage_json(filename, payload)
+                if delivery_changed and next_local_state is not None:
+                    transaction.stage_json("taskprogress.local.json", next_local_state)
                 transaction.watch(path.parent / "time.analysis.json")
                 transaction.prepare((validate_staged_payloads,))
                 transaction.apply()
@@ -924,6 +1311,11 @@ def install_edit_api(
                     path.parent,
                     scope,
                     time_validators,
+                )
+                _, next_local_revision = _read_local_state(
+                    path.parent,
+                    scope,
+                    local_state_validator,
                 )
                 transaction.commit()
             except (OSError, ValueError, RuntimeError) as error:
@@ -950,6 +1342,7 @@ def install_edit_api(
                 scope,
                 new_revision,
                 next_inputs_revision,
+                next_local_revision,
                 session.report_id,
             )
             return JSONResponse(
@@ -958,6 +1351,7 @@ def install_edit_api(
                     "revision": new_revision,
                     "inputs": next_inputs,
                     "inputs_revision": next_session.inputs_revision,
+                    "local_revision": next_session.local_revision,
                     "token": next_session.token,
                     "expires_at": next_session.expires_at,
                 }
@@ -999,16 +1393,20 @@ def install_edit_api(
         if not isinstance(payload, dict) or set(payload) != {
             "report",
             "inputs_revision",
+            "local_revision",
             "inputs",
+            "changes",
         }:
             return _problem(
                 422,
                 "invalid_edit_payload",
-                "Edit payload requires only report, inputs_revision, and inputs",
+                "Edit payload requires report, dual private revisions, inputs, and changes",
             )
         report = payload["report"]
         inputs_revision = payload["inputs_revision"]
+        local_revision = payload["local_revision"]
         replacement_inputs = payload["inputs"]
+        raw_changes = payload["changes"]
         if (
             not isinstance(inputs_revision, str)
             or not re.fullmatch(r"[a-f0-9]{64}", inputs_revision)
@@ -1018,6 +1416,55 @@ def install_edit_api(
                 409,
                 "stale_inputs_revision",
                 "The edit session time-input revision is stale",
+            )
+        if (
+            not isinstance(local_revision, str)
+            or not re.fullmatch(r"[a-f0-9]{64}", local_revision)
+            or local_revision != session.local_revision
+        ):
+            return _problem(
+                409,
+                "stale_local_revision",
+                "The edit session private-history revision is stale",
+            )
+        if not isinstance(raw_changes, list) or len(raw_changes) > 10:
+            return _problem(
+                422,
+                "invalid_change_reasons",
+                "changes must be an array with at most 10 entries",
+            )
+        audit_requests: list[dict[str, str]] = []
+        for raw_change in raw_changes:
+            if (
+                not isinstance(raw_change, dict)
+                or set(raw_change) != {"field_path", "reason", "actor"}
+                or raw_change.get("field_path") != "time.config.project.delivery_at"
+                or raw_change.get("actor") not in {"human", "agent", "system"}
+                or not isinstance(raw_change.get("reason"), str)
+            ):
+                return _problem(
+                    422,
+                    "invalid_change_reasons",
+                    "A private change reason is invalid",
+                )
+            reason = raw_change["reason"].strip()
+            if (
+                not reason
+                or len(reason) > 500
+                or not any(char.isalnum() for char in reason)
+                or re.search(r"\d{4}-\d{2}-\d{2}", reason)
+            ):
+                return _problem(
+                    422,
+                    "invalid_change_reasons",
+                    "A change reason requires meaningful text and cannot contain an ISO date",
+                )
+            audit_requests.append(
+                {
+                    "field_path": raw_change["field_path"],
+                    "reason": reason,
+                    "actor": raw_change["actor"],
+                }
             )
         if not isinstance(report, dict):
             return _problem(422, "invalid_report", "report.json root must be an object")
@@ -1089,6 +1536,7 @@ def install_edit_api(
             report=report,
             formatted_report=formatted_report,
             replacement_inputs=replacement_inputs,
+            audit_requests=audit_requests,
         )
 
     @router.put("/reports/{scope}")
@@ -1147,6 +1595,7 @@ def install_edit_api(
             report=report,
             formatted_report=formatted,
             replacement_inputs={},
+            audit_requests=[],
         )
 
     route_count = len(application.router.routes)
@@ -1169,6 +1618,7 @@ def create_taskprogress_app_factory(
     *,
     report_schema: os.PathLike[str] | str,
     analyzer_command: Sequence[str] = (),
+    editor_surface_root: os.PathLike[str] | str = DEFAULT_EDITOR_SURFACE_ROOT,
 ) -> Callable[..., FastAPI]:
     original_create_app = local_web_service.create_app
 
@@ -1182,6 +1632,7 @@ def create_taskprogress_app_factory(
             report_schema=report_schema,
             control_port=control_port,
             analyzer_command=analyzer_command,
+            editor_surface_root=editor_surface_root,
         )
         return application
 

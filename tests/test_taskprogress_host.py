@@ -11,6 +11,7 @@ from fastapi.testclient import TestClient
 from service.taskprogress_host import (
     LocalFileTransaction,
     TRANSACTION_JOURNAL,
+    _atomic_replace,
     install_edit_api,
     recover_pending_transaction,
     _load_module,
@@ -126,6 +127,14 @@ class TaskProgressEditHostTests(unittest.TestCase):
             json.dumps(report_payload(), ensure_ascii=False, indent=2) + "\n",
             encoding="utf-8",
         )
+        self.editor_surface_root = self.root / "editor-surface"
+        (self.editor_surface_root / "assets").mkdir(parents=True)
+        (self.editor_surface_root / "editor.html").write_text(
+            "<main>local editor</main>", encoding="utf-8"
+        )
+        (self.editor_surface_root / "assets" / "editor.js").write_text(
+            "export {};", encoding="utf-8"
+        )
         local_web_service = _load_module(LOCAL_WEB_SERVICE)
         application = local_web_service.create_app(
             self.root,
@@ -138,6 +147,7 @@ class TaskProgressEditHostTests(unittest.TestCase):
             application,
             report_schema=REPORT_SCHEMA,
             control_port=PORT,
+            editor_surface_root=self.editor_surface_root,
         )
         self.client = TestClient(
             application,
@@ -180,11 +190,21 @@ class TaskProgressEditHostTests(unittest.TestCase):
         *,
         report: dict[str, object] | None = None,
         inputs: dict[str, dict[str, object]] | None = None,
+        changes: list[dict[str, str]] | None = None,
     ) -> dict[str, object]:
         return {
             "report": report or report_payload(),
             "inputs_revision": session["inputs_revision"],
+            "local_revision": session["local_revision"],
             "inputs": inputs or {},
+            "changes": changes or [],
+        }
+
+    def delivery_change(self, reason: str = "配合里程碑調整") -> dict[str, str]:
+        return {
+            "field_path": "time.config.project.delivery_at",
+            "reason": reason,
+            "actor": "human",
         }
 
     def test_public_capability_is_read_only_until_exact_scope_exists(self) -> None:
@@ -195,6 +215,18 @@ class TaskProgressEditHostTests(unittest.TestCase):
         )
         self.assertEqual(200, capability.status_code)
         self.assertTrue(capability.json()["editable"])
+        self.assertEqual(
+            "/__taskprogress/v1/editor/editor.html",
+            capability.json()["editor_surface_url"],
+        )
+
+        editor = self.client.get(capability.json()["editor_surface_url"])
+        self.assertEqual(200, editor.status_code)
+        self.assertIn("no-store", editor.headers["cache-control"])
+        asset = self.client.get("/__taskprogress/v1/editor/assets/editor.js")
+        self.assertEqual(200, asset.status_code)
+        traversal = self.client.get("/__taskprogress/v1/editor/..%2Freport.json")
+        self.assertEqual(404, traversal.status_code)
 
     def test_session_requires_same_origin_and_editor_header(self) -> None:
         missing_origin = self.client.post(
@@ -259,7 +291,11 @@ class TaskProgressEditHostTests(unittest.TestCase):
                 "/__taskprogress/v1/edit-sessions/secure-test",
                 headers=self.edit_headers(session),
                 content=json.dumps(
-                    self.edit_payload(session, inputs={"config": config})
+                    self.edit_payload(
+                        session,
+                        inputs={"config": config},
+                        changes=[self.delivery_change("設定第一版交付界線")],
+                    )
                 ),
             )
 
@@ -272,6 +308,200 @@ class TaskProgressEditHostTests(unittest.TestCase):
             "2026-08-20T17:00:00+08:00",
             persisted["project"]["delivery_at"],
         )
+        local_source = (self.root / "taskprogress.local.json").read_text(
+            encoding="utf-8"
+        )
+        local_state = json.loads(local_source)
+        event = local_state["history"][0]
+        self.assertEqual("time.config.project.delivery_at", event["field_path"])
+        self.assertEqual("設定第一版交付界線", event["reason"])
+        self.assertEqual("set", event["operation"])
+        self.assertTrue(event["redacted"])
+        self.assertFalse(event["before_present"])
+        self.assertTrue(event["after_present"])
+        self.assertEqual(64, len(event["before_fingerprint"]))
+        self.assertEqual(64, len(event["after_fingerprint"]))
+        self.assertNotIn("2026-08-20", local_source)
+        self.assertNotEqual(session["local_revision"], response.json()["local_revision"])
+
+    def test_delivery_preview_runs_in_isolation_and_keeps_the_session(self) -> None:
+        original = time_config_payload()
+        (self.root / "time.config.json").write_text(
+            json.dumps(original, ensure_ascii=False),
+            encoding="utf-8",
+        )
+        session = self.session()
+        candidate = json.loads(json.dumps(original))
+        candidate["project"]["delivery_at"] = "2026-08-20T17:00:00+08:00"
+        candidate["updated_at"] = "2026-08-03T09:30:00Z"
+        preview_folders: list[Path] = []
+
+        def fake_analysis(_command: object, report_path: Path) -> tuple[bool, str]:
+            preview_folders.append(report_path.parent)
+            preview_config = json.loads(
+                (report_path.parent / "time.config.json").read_text(encoding="utf-8")
+            )
+            analysis = {
+                "schema_version": "0.2",
+                "scope_id": "secure-test",
+                "summary": {
+                    "deadline": {
+                        "delivery_at": preview_config["project"]["delivery_at"],
+                        "urgency": "on_track",
+                        "remaining_capacity_minutes": 960,
+                        "capacity_balance_minutes": 480,
+                    }
+                },
+            }
+            (report_path.parent / "time.analysis.json").write_text(
+                json.dumps(analysis),
+                encoding="utf-8",
+            )
+            return True, ""
+
+        payload = {
+            "report": report_payload(),
+            "inputs_revision": session["inputs_revision"],
+            "local_revision": session["local_revision"],
+            "inputs": {"config": candidate},
+        }
+        with patch(
+            "service.taskprogress_host._run_analysis",
+            side_effect=fake_analysis,
+        ):
+            response = self.client.post(
+                "/__taskprogress/v1/edit-sessions/secure-test/preview",
+                headers=self.edit_headers(session),
+                json=payload,
+            )
+
+        self.assertEqual(200, response.status_code, response.text)
+        self.assertEqual(
+            "2026-08-20T17:00:00+08:00",
+            response.json()["analysis"]["summary"]["deadline"]["delivery_at"],
+        )
+        self.assertEqual(
+            original,
+            json.loads((self.root / "time.config.json").read_text(encoding="utf-8")),
+        )
+        self.assertFalse((self.root / "time.analysis.json").exists())
+        self.assertEqual(1, len(preview_folders))
+        self.assertNotEqual(self.root, preview_folders[0])
+        self.assertFalse(preview_folders[0].exists())
+        close = self.client.delete(
+            "/__taskprogress/v1/edit-sessions/secure-test",
+            headers=self.edit_headers(session),
+        )
+        self.assertEqual(204, close.status_code, close.text)
+
+    def test_delivery_change_requires_reason_before_any_file_is_written(self) -> None:
+        session = self.session("Asia/Taipei")
+        config = session["input_defaults"]["config"]
+        config["project"]["delivery_at"] = "2026-08-20T17:00:00+08:00"
+
+        response = self.client.put(
+            "/__taskprogress/v1/edit-sessions/secure-test",
+            headers=self.edit_headers(session),
+            content=json.dumps(
+                self.edit_payload(session, inputs={"config": config})
+            ),
+        )
+
+        self.assertEqual(422, response.status_code, response.text)
+        self.assertEqual("change_reason_required", response.json()["code"])
+        self.assertFalse((self.root / "time.config.json").exists())
+        self.assertFalse((self.root / "taskprogress.local.json").exists())
+
+    def test_private_history_write_failure_rolls_back_delivery_and_report(self) -> None:
+        session = self.session("Asia/Taipei")
+        config = session["input_defaults"]["config"]
+        config["project"]["delivery_at"] = "2026-08-20T17:00:00+08:00"
+        changed_report = report_payload()
+        changed_report["tasks"][0]["summary"] = "Must roll back with history"
+        original_report = self.report_path.read_bytes()
+
+        def fail_local_history(path: Path, source: bytes) -> None:
+            if path.name == "taskprogress.local.json":
+                raise OSError("simulated private history write failure")
+            _atomic_replace(path, source)
+
+        with patch(
+            "service.taskprogress_host._atomic_replace",
+            side_effect=fail_local_history,
+        ), patch(
+            "service.taskprogress_host._run_analysis",
+            return_value=(True, ""),
+        ):
+            response = self.client.put(
+                "/__taskprogress/v1/edit-sessions/secure-test",
+                headers=self.edit_headers(session),
+                content=json.dumps(
+                    self.edit_payload(
+                        session,
+                        report=changed_report,
+                        inputs={"config": config},
+                        changes=[self.delivery_change()],
+                    )
+                ),
+            )
+
+        self.assertEqual(500, response.status_code, response.text)
+        self.assertEqual("transaction_failed", response.json()["code"])
+        self.assertEqual(original_report, self.report_path.read_bytes())
+        self.assertFalse((self.root / "time.config.json").exists())
+        self.assertFalse((self.root / "taskprogress.local.json").exists())
+        self.assertFalse((self.root / TRANSACTION_JOURNAL).exists())
+
+    def test_external_private_history_change_rejects_multi_file_save(self) -> None:
+        session = self.session()
+        local_path = self.root / "taskprogress.local.json"
+        local_path.write_text(
+            json.dumps(
+                {
+                    "schema_version": "1.0",
+                    "scope_id": "secure-test",
+                    "updated_at": "2026-08-03T00:00:00Z",
+                    "history": [],
+                }
+            ),
+            encoding="utf-8",
+        )
+
+        response = self.client.put(
+            "/__taskprogress/v1/edit-sessions/secure-test",
+            headers=self.edit_headers(session),
+            content=json.dumps(self.edit_payload(session)),
+        )
+
+        self.assertEqual(409, response.status_code, response.text)
+        self.assertEqual("source_changed", response.json()["code"])
+        self.assertEqual([], json.loads(local_path.read_text(encoding="utf-8"))["history"])
+
+    def test_invalid_private_history_prevents_edit_session(self) -> None:
+        (self.root / "taskprogress.local.json").write_text(
+            json.dumps(
+                {
+                    "schema_version": "1.0",
+                    "scope_id": "another-scope",
+                    "updated_at": "2026-08-03T00:00:00Z",
+                    "history": [],
+                }
+            ),
+            encoding="utf-8",
+        )
+
+        response = self.client.post(
+            "/__taskprogress/v1/edit-sessions",
+            headers={
+                "origin": ORIGIN,
+                "x-taskprogress-editor": "1",
+                "content-type": "application/json",
+            },
+            json={"scope_id": "secure-test"},
+        )
+
+        self.assertEqual(409, response.status_code)
+        self.assertEqual("source_local_state_invalid", response.json()["code"])
 
     def test_default_config_rejects_unsafe_timezone_identifiers(self) -> None:
         response = self.client.post(
@@ -375,6 +605,7 @@ class TaskProgressEditHostTests(unittest.TestCase):
                         session,
                         report=changed,
                         inputs={"config": config, "estimates": estimates},
+                        changes=[self.delivery_change()],
                     )
                 ),
             )
@@ -428,6 +659,7 @@ class TaskProgressEditHostTests(unittest.TestCase):
                     self.edit_payload(
                         session,
                         inputs={"config": changed_config},
+                        changes=[self.delivery_change()],
                     )
                 ),
             )
@@ -519,6 +751,7 @@ class TaskProgressEditHostTests(unittest.TestCase):
                             "config": changed_config,
                             "estimates": changed_estimates,
                         },
+                        changes=[self.delivery_change("驗證整批回滾")],
                     )
                 ),
             )
@@ -529,6 +762,7 @@ class TaskProgressEditHostTests(unittest.TestCase):
         self.assertEqual(originals["config"], config_path.read_bytes())
         self.assertEqual(originals["estimates"], estimates_path.read_bytes())
         self.assertEqual(originals["analysis"], analysis_path.read_bytes())
+        self.assertFalse((self.root / "taskprogress.local.json").exists())
         self.assertFalse((self.root / TRANSACTION_JOURNAL).exists())
 
     def test_schema_and_external_revision_conflicts_preserve_source(self) -> None:

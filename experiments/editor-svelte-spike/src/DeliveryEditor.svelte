@@ -1,9 +1,12 @@
 <script>
   export let config;
   export let onChange;
+  export let onPreview;
+  export let onPendingChange = () => {};
 
   const initialDelivery = config?.project?.delivery_at ?? "";
   let localValue = initialDelivery.slice(0, 16);
+  let reason = "";
   let error = "";
 
   function browserOffset() {
@@ -53,17 +56,30 @@
     }
   }
 
+  function markPending() {
+    onPendingChange(true);
+  }
+
   function applyDelivery() {
     if (!localValue) {
-      const result = onChange("");
+      const result = onChange("", reason);
       error = result.error;
-      return;
+      return result;
     }
     const existingOffset = initialDelivery.match(/(Z|[+-]\d{2}:\d{2})$/)?.[1];
     const result = onChange(
       `${localValue}:00${existingOffset ?? zoneOffset(localValue, config.timezone)}`,
+      reason,
     );
     error = result.error;
+    return result;
+  }
+
+  async function recalculate() {
+    const result = applyDelivery();
+    if (result.error) return;
+    onPendingChange(false);
+    await onPreview();
   }
 </script>
 
@@ -76,15 +92,19 @@
   <div class="spike-delivery-controls">
     <label>
       <span>排他截止時間</span>
-      <input type="datetime-local" bind:value={localValue}>
+      <input type="datetime-local" bind:value={localValue} oninput={markPending}>
     </label>
-    <button type="button" onclick={applyDelivery}>套用草稿</button>
+    <label class="spike-delivery-reason">
+      <span>修改原因（不填敏感原文）</span>
+      <input maxlength="500" bind:value={reason} oninput={markPending} placeholder="例如：配合里程碑調整">
+    </label>
+    <button type="button" onclick={recalculate}>重新計算預覽</button>
     <button
       class="spike-subtle-button"
       type="button"
       onclick={() => {
         localValue = "";
-        applyDelivery();
+        markPending();
       }}
     >設為未指定</button>
     {#if error}<p class="spike-field-error" role="alert">{error}</p>{/if}

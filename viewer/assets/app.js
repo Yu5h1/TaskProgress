@@ -109,6 +109,7 @@ const state = {
     revision: null,
     token: null,
     session: null,
+    surfaceUrl: null,
   },
 };
 
@@ -995,6 +996,15 @@ async function discoverLocalEditor(scope) {
     state.editor.available = true;
     state.editor.scope = scope;
     state.editor.revision = capability.revision;
+    if (typeof capability.editor_surface_url === "string") {
+      const surfaceUrl = new URL(capability.editor_surface_url, window.location.origin);
+      if (
+        surfaceUrl.origin === window.location.origin
+        && surfaceUrl.pathname.startsWith("/__taskprogress/v1/editor/")
+      ) {
+        state.editor.surfaceUrl = surfaceUrl.href;
+      }
+    }
     viewModeControl?.setAvailable(true);
   } catch {
     // Public/static hosting intentionally has no editor capability.
@@ -1003,6 +1013,13 @@ async function discoverLocalEditor(scope) {
 
 async function startEditing() {
   if (!state.editor.available || state.editor.editing) return false;
+  if (state.editor.surfaceUrl) {
+    const editorUrl = new URL(state.editor.surfaceUrl);
+    editorUrl.search = window.location.search;
+    editorUrl.searchParams.set("scope", state.editor.scope);
+    window.location.assign(editorUrl.href);
+    return false;
+  }
   try {
     const response = await fetch("/__taskprogress/v1/edit-sessions", {
       method: "POST",

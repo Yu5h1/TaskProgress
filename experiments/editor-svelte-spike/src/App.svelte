@@ -3,8 +3,11 @@
 
   import { createTimeIndex } from "../../../viewer/assets/time-model.js";
   import DeliveryEditor from "./DeliveryEditor.svelte";
+  import DeliveryRiskPreview from "./DeliveryRiskPreview.svelte";
+  import DeliverySaveConfirmation from "./DeliverySaveConfirmation.svelte";
   import TaskCard from "./TaskCard.svelte";
   import { loadSvelteEditorData } from "./data-loader.js";
+  import { buildDeliveryRiskPreview } from "./delivery-risk-preview.js";
   import { createEditHostClient } from "./edit-host-client.js";
   import { createSvelteEditorAdapter } from "./editor-adapter.js";
   import { fixtureReport } from "./fixture.js";
@@ -12,6 +15,9 @@
     activeEstimateIndex,
     createTimeInputDraft,
   } from "./time-input-draft.js";
+
+  export let requireHostCapability = false;
+  export let surfaceKind = "spike";
 
   const priorityPolicy = globalThis.TaskProgressPriorityPolicy;
   const emptyTimeIndex = () => ({ tasks: new Map(), items: new Map() });
@@ -34,6 +40,10 @@
   let timeDraft = null;
   let timeDraftView = null;
   let saving = false;
+  let previewing = false;
+  let deliveryEditorPending = false;
+  let deliveryPreview = null;
+  let confirmingDeliverySave = false;
 
   $: tasks = view?.report.tasks ?? [];
   $: effectiveTimeIndex = view?.derived.timeInvalidation.stale
@@ -86,14 +96,21 @@
     }
   }
 
+  function invalidateDeliveryPreview() {
+    deliveryPreview = null;
+    confirmingDeliverySave = false;
+  }
+
   function apply(command) {
     view = adapter.dispatch(command);
+    invalidateDeliveryPreview();
     statusMessage = view.dirty ? "有尚未儲存的變更。" : "尚未修改。";
   }
 
   function addItem(taskId, title, priority) {
     const result = adapter.addPendingItem(taskId, title, priority);
     view = result.snapshot;
+    if (!result.error) invalidateDeliveryPreview();
     statusMessage = result.error || "已加入草稿；尚未儲存。";
     return result;
   }
@@ -105,6 +122,8 @@
       timeDraftView = timeDraft?.discard() ?? null;
       timeDraft = null;
       timeDraftView = null;
+      deliveryEditorPending = false;
+      invalidateDeliveryPreview();
       editSession = null;
       await editClient?.close();
       statusMessage = "已放棄草稿並回到預覽模式。";
@@ -116,6 +135,8 @@
             configTemplate: editSession.input_defaults?.config ?? null,
           });
           timeDraftView = timeDraft.snapshot();
+          deliveryEditorPending = false;
+          invalidateDeliveryPreview();
           statusMessage = "編輯模式：report 與時間輸入都在暫存草稿，儲存時才寫入。";
         } catch (error) {
           statusMessage = error instanceof Error ? error.message : "無法進入編輯模式。";
@@ -130,17 +151,20 @@
 
   function undo() {
     view = adapter.undo();
+    invalidateDeliveryPreview();
     statusMessage = "已復原上一個動作。";
   }
 
   function redo() {
     view = adapter.redo();
+    invalidateDeliveryPreview();
     statusMessage = "已重做下一個動作。";
   }
 
-  function setDeliveryAt(value) {
-    const result = timeDraft.setDeliveryAt(value);
+  function setDeliveryAt(value, reason) {
+    const result = timeDraft.setDeliveryAt(value, { reason });
     timeDraftView = result.snapshot;
+    if (!result.error) invalidateDeliveryPreview();
     statusMessage = result.error || "交付日已套用到草稿。";
     return result;
   }
@@ -148,6 +172,7 @@
   function initializeTimeConfig() {
     const result = timeDraft.initializeConfig();
     timeDraftView = result.snapshot;
+    if (!result.error) invalidateDeliveryPreview();
     const timezone = result.snapshot.inputs.config?.timezone ?? "UTC";
     statusMessage = result.error
       || `已建立 ${timezone} 的 8/8/8 預設草稿；儲存前仍可放棄。`;
@@ -156,11 +181,77 @@
   function setManualEstimate(change) {
     const result = timeDraft.setManualEstimate(change);
     timeDraftView = result.snapshot;
+    if (!result.error) invalidateDeliveryPreview();
     statusMessage = result.error || "人工工時與依據已套用到草稿。";
     return result;
   }
 
-  async function save() {
+  async function requestRiskPreview() {
+    if (!hostAvailable || !editClient || !timeDraft) {
+      statusMessage = "期限風險預覽需要本機安全編輯服務。";
+      return null;
+    }
+    if (deliveryEditorPending) {
+      statusMessage = "交付日欄位仍有未套用內容；請先按重新計算預覽。";
+      return null;
+    }
+    const deliveryChange = timeDraft.deliveryChangePreview();
+    if (!deliveryChange) {
+      statusMessage = "交付日沒有變更，不需要重新計算期限風險。";
+      return null;
+    }
+    const prepared = adapter.prepareSave(new Date().toISOString());
+    if (prepared.errors.length) {
+      statusMessage = prepared.errors[0].message;
+      return null;
+    }
+    previewing = true;
+    statusMessage = "正在隔離環境重新計算草稿風險…";
+    try {
+      const response = await editClient.preview({
+        report: prepared.report,
+        inputs: timeDraft.replacements(),
+      });
+      deliveryPreview = buildDeliveryRiskPreview(
+        timeAnalysis,
+        response.analysis,
+        deliveryChange,
+      );
+      statusMessage = deliveryChange.after.present && !deliveryPreview.next.available
+        ? "草稿無法建立期限分析，請調整交付日後重新計算。"
+        : "草稿風險已重新計算；預覽沒有修改任何檔案。";
+      return deliveryPreview;
+    } catch (error) {
+      deliveryPreview = null;
+      statusMessage = error instanceof Error
+        ? error.message
+        : "草稿風險重新計算失敗；原始檔案未變更。";
+      return null;
+    } finally {
+      previewing = false;
+    }
+  }
+
+  async function requestSave() {
+    const deliveryChange = timeDraft?.deliveryChangePreview() ?? null;
+    if (!deliveryChange) {
+      await persistSave();
+      return;
+    }
+    if (deliveryEditorPending) {
+      statusMessage = "交付日欄位仍有未套用內容；請先按重新計算預覽。";
+      return;
+    }
+    const preview = deliveryPreview ?? await requestRiskPreview();
+    if (!preview) return;
+    if (preview.after.present && !preview.next.available) {
+      statusMessage = "交付日草稿尚無有效期限分析，不能進入儲存確認。";
+      return;
+    }
+    confirmingDeliverySave = true;
+  }
+
+  async function persistSave() {
     const invalidatesTime = view.derived.timeInvalidation.stale || Boolean(timeDraftView?.dirty);
     const prepared = adapter.prepareSave(new Date().toISOString());
     if (prepared.errors.length) {
@@ -176,6 +267,7 @@
         const saved = await editClient.save({
           report: prepared.report,
           inputs: timeDraft?.replacements() ?? {},
+          changes: timeDraft?.changes() ?? [],
         });
         view = adapter.commit(saved.report);
         timeDraftView = timeDraft.commit(saved.inputs);
@@ -197,6 +289,9 @@
       editing = false;
       timeDraft = null;
       timeDraftView = null;
+      deliveryEditorPending = false;
+      deliveryPreview = null;
+      confirmingDeliverySave = false;
     } catch (error) {
       statusMessage = error instanceof Error
         ? error.message
@@ -230,17 +325,19 @@
 <main class="spike-page" data-view-mode={editing ? "edit" : "preview"}>
   <header class="spike-heading">
     <div>
-      <p class="spike-eyebrow">Framework parity spike</p>
+      <p class="spike-eyebrow">{surfaceKind === "viewer" ? "Local editor" : "Framework parity spike"}</p>
       <h1>{view?.report.title ?? "Svelte × TaskProgress Editor Core"}</h1>
       <p>{dataLabel} · {timeState}</p>
     </div>
-    <button
-      class="spike-mode-toggle"
-      type="button"
-      aria-pressed={editing}
-      disabled={loading || saving || Boolean(loadError)}
-      onclick={toggleMode}
-    >{editing ? "編輯模式" : "預覽模式"}</button>
+    {#if !requireHostCapability || hostAvailable}
+      <button
+        class="spike-mode-toggle"
+        type="button"
+        aria-pressed={editing}
+        disabled={loading || saving || previewing || confirmingDeliverySave || Boolean(loadError)}
+        onclick={toggleMode}
+      >{editing ? "編輯模式" : "預覽模式"}</button>
+    {/if}
   </header>
 
   {#if loading}
@@ -265,7 +362,15 @@
       <DeliveryEditor
         config={timeDraftView.inputs.config}
         onChange={setDeliveryAt}
+        onPreview={requestRiskPreview}
+        onPendingChange={(pending) => {
+          deliveryEditorPending = pending;
+          if (pending) invalidateDeliveryPreview();
+        }}
       />
+      {#if deliveryPreview}
+        <DeliveryRiskPreview preview={deliveryPreview} />
+      {/if}
     {:else if editing && hostAvailable}
       <section class="spike-time-config-missing" aria-labelledby="missing-time-config-title">
         <div>
@@ -299,7 +404,12 @@
         <div class="spike-save-actions">
           <button type="button" onclick={undo} disabled={!view.history.canUndo}>復原</button>
           <button type="button" onclick={redo} disabled={!view.history.canRedo}>重做</button>
-          <button class="spike-save-button" type="button" onclick={save} disabled={!editorDirty || saving}>儲存</button>
+          <button
+            class="spike-save-button"
+            type="button"
+            onclick={requestSave}
+            disabled={!editorDirty || saving || previewing}
+          >{previewing ? "重新計算中…" : "儲存"}</button>
         </div>
       </footer>
     {:else}
@@ -307,3 +417,14 @@
     {/if}
   {/if}
 </main>
+
+{#if confirmingDeliverySave && deliveryPreview}
+  <DeliverySaveConfirmation
+    preview={deliveryPreview}
+    busy={saving}
+    onBack={() => {
+      if (!saving) confirmingDeliverySave = false;
+    }}
+    onConfirm={persistSave}
+  />
+{/if}

@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-08-03T00:45:07+08:00",
+  "updated_at": "2026-08-03T10:30:20+08:00",
   "tasks": [
     {
       "id": "viewer-core",
@@ -347,12 +347,32 @@
           "id": "persist-delivery-date-safely",
           "title": "完成 scope capability 限定的交付日安全寫入：缺少 config 時由 edit host 提供經 Schema 驗證的 8/8/8 草稿模板，使用者明確建立後才與 delivery_at、重新分析及來源衝突檢查一併提交",
           "priority": 1
+        },
+        {
+          "id": "record-sensitive-change-history",
+          "title": "完成本機遮蔽修改歷史：交付日變更強制提供非敏感原因，由服務產生 actor／operation／前後存在狀態與 SHA-256 指紋，原文不進入 taskprogress.local.json，並與 report／config／analysis 同 transaction 回滾",
+          "priority": 1
+        },
+        {
+          "id": "preview-sensitive-delivery-change",
+          "title": "完成交付日草稿隔離重算與儲存前確認：同一份 report／config／estimates 草稿只在暫存目錄執行正式分析器，顯示前後期限、風險與容量差異，確認後才進入 canonical transaction",
+          "priority": 1
+        },
+        {
+          "id": "verify-svelte-delivery-browser-flow",
+          "title": "完成隔離 Svelte 交付日瀏覽器 gate：桌面與 390px 無水平溢位，確認視窗預設聚焦返回修改並支援 Escape，分析失敗與來源衝突均保留草稿，暫存實檔確認儲存會建立不含日期原文的遮蔽歷史",
+          "priority": 1
+        },
+        {
+          "id": "mount-local-svelte-editor-surface",
+          "title": "完成正式 Viewer 的本機 Svelte 接合層：edit host 僅在建置存在時透過 capability 宣告同源 Editor Surface，Viewer 驗證固定路徑後才導向；缺少建置沿用舊編輯器，公開網站沒有路由或編輯入口",
+          "priority": 1
         }
       ],
       "pending_items": [
         {
           "id": "verify-mobile-editing",
-          "title": "完成 390px 行動版版面與觸控編輯驗證，不阻擋桌面正式版",
+          "title": "在正式 Viewer Surface 完成實機觸控編輯驗證；隔離 Svelte 的 390px 版面與鍵盤流程已通過",
           "priority": 1
         },
         {
@@ -362,12 +382,7 @@
         },
         {
           "id": "edit-delivery-date",
-          "title": "在全域編輯模式加入交付日期、時間、timezone、交付日未定與風險預覽",
-          "priority": 1
-        },
-        {
-          "id": "record-sensitive-change-history",
-          "title": "建立不公開的修改歷史，對敏感欄位只保存遮蔽事件與前後值指紋",
+          "title": "將已通過隔離瀏覽器 gate 的交付日期、時間、唯讀 timezone、交付日未定、風險預覽與確認流程整合至正式 Viewer Surface，並以正式分析器完成端對端驗證",
           "priority": 1
         }
       ]

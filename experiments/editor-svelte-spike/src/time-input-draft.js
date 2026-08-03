@@ -30,6 +30,13 @@ function estimateId(itemId, instant, existingIds) {
   return candidate;
 }
 
+function deliveryValue(config) {
+  const project = config?.project;
+  return project && Object.hasOwn(project, "delivery_at")
+    ? { present: true, value: project.delivery_at }
+    : { present: false, value: null };
+}
+
 export function createTimeInputDraft(
   inputs,
   scope,
@@ -40,6 +47,7 @@ export function createTimeInputDraft(
   }
   let baseline = inputState(inputs);
   let draft = inputState(inputs);
+  let deliveryChange = null;
   const dirtyFiles = new Set();
 
   function snapshot() {
@@ -47,6 +55,7 @@ export function createTimeInputDraft(
       inputs: inputState(draft),
       dirty: dirtyFiles.size > 0,
       dirtyFiles: Object.freeze([...dirtyFiles]),
+      changeCount: deliveryChange ? 1 : 0,
     });
   }
 
@@ -72,7 +81,11 @@ export function createTimeInputDraft(
       return Object.freeze({ error: "", snapshot: snapshot() });
     },
 
-    setDeliveryAt(value, updatedAt = new Date().toISOString()) {
+    setDeliveryAt(value, {
+      reason = "",
+      actor = "human",
+      updatedAt = new Date().toISOString(),
+    } = {}) {
       if (!draft.config) {
         return Object.freeze({
           error: "此 scope 尚無 time.config.json，需先建立工作容量設定。",
@@ -83,11 +96,33 @@ export function createTimeInputDraft(
       if (normalized && Number.isNaN(Date.parse(normalized))) {
         return Object.freeze({ error: "交付日不是有效時間。", snapshot: snapshot() });
       }
+      const baselineDelivery = deliveryValue(baseline.config);
+      const nextDelivery = normalized
+        ? { present: true, value: normalized }
+        : { present: false, value: null };
+      const changed = baselineDelivery.present !== nextDelivery.present
+        || (baselineDelivery.present && baselineDelivery.value !== nextDelivery.value);
+      const normalizedReason = normalizeMeaningfulText(reason);
+      if (changed && !normalizedReason) {
+        return Object.freeze({
+          error: "修改交付日需要填寫原因；原因請勿包含敏感原文。",
+          snapshot: snapshot(),
+        });
+      }
       draft.config.project ??= {};
       if (normalized) draft.config.project.delivery_at = normalized;
       else delete draft.config.project.delivery_at;
       draft.config.updated_at = updatedAt;
       dirtyFiles.add("config");
+      deliveryChange = changed
+        ? {
+            field_path: "time.config.project.delivery_at",
+            reason: normalizedReason,
+            actor,
+            before: clone(baselineDelivery),
+            after: clone(nextDelivery),
+          }
+        : null;
       return Object.freeze({ error: "", snapshot: snapshot() });
     },
 
@@ -145,9 +180,24 @@ export function createTimeInputDraft(
       return replacements;
     },
 
+    changes() {
+      return deliveryChange
+        ? [{
+            field_path: deliveryChange.field_path,
+            reason: deliveryChange.reason,
+            actor: deliveryChange.actor,
+          }]
+        : [];
+    },
+
+    deliveryChangePreview() {
+      return clone(deliveryChange);
+    },
+
     discard() {
       draft = inputState(baseline);
       dirtyFiles.clear();
+      deliveryChange = null;
       return snapshot();
     },
 
@@ -155,6 +205,7 @@ export function createTimeInputDraft(
       baseline = inputState(nextInputs);
       draft = inputState(nextInputs);
       dirtyFiles.clear();
+      deliveryChange = null;
       return snapshot();
     },
   });

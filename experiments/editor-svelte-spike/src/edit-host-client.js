@@ -69,7 +69,32 @@ export function createEditHostClient({
       return structuredClone(session);
     },
 
-    async save({ report, inputs }) {
+    async preview({ report, inputs }) {
+      if (!session) throw new Error("本機編輯工作階段尚未建立。");
+      const response = await request(
+        `${apiRoot}/edit-sessions/${encodeURIComponent(scope)}/preview`,
+        {
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+            Authorization: `Bearer ${session.token}`,
+            "Content-Type": "application/json",
+            "If-Match": `"${session.revision}"`,
+            "X-TaskProgress-Editor": "1",
+          },
+          body: JSON.stringify({
+            report,
+            inputs_revision: session.inputs_revision,
+            local_revision: session.local_revision,
+            inputs,
+          }),
+        },
+        "無法重新計算草稿風險；原始檔案未變更。",
+      );
+      return structuredClone(await response.json());
+    },
+
+    async save({ report, inputs, changes = [] }) {
       if (!session) throw new Error("本機編輯工作階段尚未建立。");
       const response = await request(
         `${apiRoot}/edit-sessions/${encodeURIComponent(scope)}`,
@@ -85,7 +110,9 @@ export function createEditHostClient({
           body: JSON.stringify({
             report,
             inputs_revision: session.inputs_revision,
+            local_revision: session.local_revision,
             inputs,
+            changes,
           }),
         },
         "儲存失敗；原始檔案未變更。",

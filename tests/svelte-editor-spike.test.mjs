@@ -8,6 +8,7 @@ import {
 } from "../experiments/editor-svelte-spike/src/data-loader.js";
 import { createEditHostClient } from "../experiments/editor-svelte-spike/src/edit-host-client.js";
 import { createSvelteEditorAdapter } from "../experiments/editor-svelte-spike/src/editor-adapter.js";
+import { buildDeliveryRiskPreview } from "../experiments/editor-svelte-spike/src/delivery-risk-preview.js";
 import { fixtureReport } from "../experiments/editor-svelte-spike/src/fixture.js";
 import {
   activeEstimateIndex,
@@ -203,9 +204,16 @@ test("time input draft edits and clears delivery without mutating its baseline",
     project: { executor_count: 1 },
   };
   const draft = createTimeInputDraft({ config, estimates: null }, "example");
+  const missingReason = draft.setDeliveryAt("2026-08-20T17:00:00+08:00");
+  assert.match(missingReason.error, /需要填寫原因/u);
+  assert.equal(missingReason.snapshot.inputs.config.project.delivery_at, undefined);
+
   const changed = draft.setDeliveryAt(
     "2026-08-20T17:00:00+08:00",
-    "2026-08-03T01:00:00Z",
+    {
+      reason: "配合里程碑調整",
+      updatedAt: "2026-08-03T01:00:00Z",
+    },
   );
 
   assert.equal(changed.error, "");
@@ -213,11 +221,73 @@ test("time input draft edits and clears delivery without mutating its baseline",
   assert.equal(changed.snapshot.inputs.config.project.delivery_at, "2026-08-20T17:00:00+08:00");
   assert.deepEqual(changed.snapshot.dirtyFiles, ["config"]);
   assert.deepEqual(Object.keys(draft.replacements()), ["config"]);
+  assert.deepEqual(draft.changes(), [{
+    field_path: "time.config.project.delivery_at",
+    reason: "配合里程碑調整",
+    actor: "human",
+  }]);
+  assert.deepEqual(draft.deliveryChangePreview(), {
+    field_path: "time.config.project.delivery_at",
+    reason: "配合里程碑調整",
+    actor: "human",
+    before: { present: false, value: null },
+    after: { present: true, value: "2026-08-20T17:00:00+08:00" },
+  });
 
-  const cleared = draft.setDeliveryAt("", "2026-08-03T02:00:00Z");
+  const cleared = draft.setDeliveryAt("", {
+    updatedAt: "2026-08-03T02:00:00Z",
+  });
   assert.equal(cleared.snapshot.inputs.config.project.delivery_at, undefined);
+  assert.deepEqual(draft.changes(), []);
   assert.equal(draft.discard().inputs.config.project.delivery_at, undefined);
   assert.equal(draft.snapshot().dirty, false);
+});
+
+test("delivery risk preview compares the isolated analysis with the same draft", () => {
+  const preview = buildDeliveryRiskPreview(
+    {
+      summary: {
+        deadline: {
+          urgency: "critical",
+          remaining_capacity_minutes: 60,
+          capacity_balance_minutes: -120,
+        },
+      },
+    },
+    {
+      summary: {
+        deadline: {
+          urgency: "on_track",
+          remaining_capacity_minutes: 300,
+          capacity_balance_minutes: 120,
+        },
+      },
+    },
+    {
+      reason: "配合里程碑調整",
+      actor: "human",
+      before: { present: true, value: "2026-08-20T17:00:00+08:00" },
+      after: { present: true, value: "2026-08-25T17:00:00+08:00" },
+    },
+  );
+
+  assert.equal(preview.current.label, "交付不可行");
+  assert.equal(preview.next.label, "交付可行");
+  assert.equal(preview.capacityDelta, 240);
+  assert.equal(preview.balanceDelta, 240);
+  assert.equal(preview.reason, "配合里程碑調整");
+
+  const cleared = buildDeliveryRiskPreview(
+    null,
+    { summary: {} },
+    {
+      reason: "取消尚未核定期限",
+      actor: "human",
+      before: { present: true, value: "2026-08-20T17:00:00+08:00" },
+      after: { present: false, value: null },
+    },
+  );
+  assert.equal(cleared.next.label, "期限分析將停用");
 });
 
 test("time input draft creates the explicit 8/8/8 config only on request", () => {
@@ -287,7 +357,10 @@ test("time input draft creates the explicit 8/8/8 config only on request", () =>
 
   const delivery = draft.setDeliveryAt(
     "2026-08-30T17:00:00+08:00",
-    "2026-08-03T04:01:00Z",
+    {
+      reason: "設定第一版交付界線",
+      updatedAt: "2026-08-03T04:01:00Z",
+    },
   );
   assert.equal(delivery.error, "");
   assert.equal(
@@ -359,6 +432,7 @@ test("Svelte edit-host client sends the dual-revision multi-file contract", asyn
     scope_id: "example",
     revision: "a".repeat(64),
     inputs_revision: "b".repeat(64),
+    local_revision: "e".repeat(64),
     inputs: { config: null, estimates: null },
   };
   const nextSession = {
@@ -366,13 +440,21 @@ test("Svelte edit-host client sends the dual-revision multi-file contract", asyn
     token: "next-token",
     revision: "c".repeat(64),
     inputs_revision: "d".repeat(64),
+    local_revision: "f".repeat(64),
     report: exampleReport,
+  };
+  const previewResponse = {
+    analysis: exampleTimeAnalysis,
+    revision: firstSession.revision,
+    inputs_revision: firstSession.inputs_revision,
+    local_revision: firstSession.local_revision,
   };
   const fetchImpl = async (url, options = {}) => {
     calls.push({ url, options });
     if (String(url).includes("/capabilities/")) {
       return jsonResponse({ editable: true, scope_id: "example" });
     }
+    if (String(url).endsWith("/preview")) return jsonResponse(previewResponse);
     if (options.method === "POST") return jsonResponse(firstSession, 201);
     if (options.method === "PUT") return jsonResponse(nextSession);
     return { ok: true, status: 204, async json() { return null; } };
@@ -385,21 +467,37 @@ test("Svelte edit-host client sends the dual-revision multi-file contract", asyn
 
   assert.equal((await client.discover()).editable, true);
   await client.start();
+  const previewed = await client.preview({
+    report: exampleReport,
+    inputs: { config: { scope_id: "example" } },
+  });
+  assert.equal(previewed.analysis.scope_id, "example");
   const saved = await client.save({
     report: exampleReport,
     inputs: { estimates: { scope_id: "example" } },
+    changes: [],
   });
 
   assert.equal(saved.token, "next-token");
-  const startRequest = calls.find((call) => call.options.method === "POST");
+  const startRequest = calls.find((call) => (
+    call.options.method === "POST" && !String(call.url).endsWith("/preview")
+  ));
   assert.deepEqual(JSON.parse(startRequest.options.body), {
     scope_id: "example",
     timezone: "Asia/Taipei",
   });
+  const previewRequest = calls.find((call) => String(call.url).endsWith("/preview"));
+  const previewBody = JSON.parse(previewRequest.options.body);
+  assert.equal(previewRequest.options.headers["If-Match"], `"${firstSession.revision}"`);
+  assert.equal(previewBody.inputs_revision, firstSession.inputs_revision);
+  assert.equal(previewBody.local_revision, firstSession.local_revision);
+  assert.deepEqual(Object.keys(previewBody.inputs), ["config"]);
   const request = calls.find((call) => call.options.method === "PUT");
   const body = JSON.parse(request.options.body);
   assert.equal(request.options.headers["If-Match"], `"${firstSession.revision}"`);
   assert.equal(body.inputs_revision, firstSession.inputs_revision);
+  assert.equal(body.local_revision, firstSession.local_revision);
+  assert.deepEqual(body.changes, []);
   assert.deepEqual(Object.keys(body.inputs), ["estimates"]);
   await client.close();
   assert.equal(calls.at(-1).options.method, "DELETE");
@@ -407,7 +505,7 @@ test("Svelte edit-host client sends the dual-revision multi-file contract", asyn
 });
 
 test("Svelte spike is isolated, static-path safe, and uses the shared core", async () => {
-  const [packageText, viteText, appText, cardText, rowText, adapterText, loaderText, clientText, timeDraftText] = await Promise.all([
+  const [packageText, viteText, appText, cardText, rowText, adapterText, loaderText, clientText, timeDraftText, previewText, confirmationText, stylesText, viewerMainText, editorHtmlText] = await Promise.all([
     readFile(new URL("../package.json", import.meta.url), "utf8"),
     readFile(new URL("../experiments/editor-svelte-spike/vite.config.js", import.meta.url), "utf8"),
     readFile(new URL("../experiments/editor-svelte-spike/src/App.svelte", import.meta.url), "utf8"),
@@ -417,6 +515,11 @@ test("Svelte spike is isolated, static-path safe, and uses the shared core", asy
     readFile(new URL("../experiments/editor-svelte-spike/src/data-loader.js", import.meta.url), "utf8"),
     readFile(new URL("../experiments/editor-svelte-spike/src/edit-host-client.js", import.meta.url), "utf8"),
     readFile(new URL("../experiments/editor-svelte-spike/src/time-input-draft.js", import.meta.url), "utf8"),
+    readFile(new URL("../experiments/editor-svelte-spike/src/delivery-risk-preview.js", import.meta.url), "utf8"),
+    readFile(new URL("../experiments/editor-svelte-spike/src/DeliverySaveConfirmation.svelte", import.meta.url), "utf8"),
+    readFile(new URL("../experiments/editor-svelte-spike/src/styles.css", import.meta.url), "utf8"),
+    readFile(new URL("../experiments/editor-svelte-spike/src/viewer-main.js", import.meta.url), "utf8"),
+    readFile(new URL("../experiments/editor-svelte-spike/editor.html", import.meta.url), "utf8"),
   ]);
   const packageJson = JSON.parse(packageText);
 
@@ -425,6 +528,7 @@ test("Svelte spike is isolated, static-path safe, and uses the shared core", asy
   assert.equal(packageJson.devDependencies.vue, undefined);
   assert.equal(packageJson.scripts["spike:svelte:build"].includes("vite build"), true);
   assert.match(viteText, /base:\s*"\.\/"/u);
+  assert.match(viteText, /editor:\s*fileURLToPath/u);
   assert.match(appText, /createSvelteEditorAdapter/u);
   assert.match(appText, /view\.history\.canUndo/u);
   assert.match(appText, /loadSvelteEditorData/u);
@@ -437,6 +541,14 @@ test("Svelte spike is isolated, static-path safe, and uses the shared core", asy
   assert.match(loaderText, /resolveReportRequest/u);
   assert.match(loaderText, /inspectTimeAnalysis/u);
   assert.match(clientText, /inputs_revision/u);
+  assert.match(clientText, /\/preview/u);
   assert.match(timeDraftText, /supersedes_estimate_id/u);
+  assert.match(previewText, /capacityDelta/u);
+  assert.match(confirmationText, /確認儲存/u);
+  assert.match(confirmationText, /event\.key !== "Escape"/u);
+  assert.match(confirmationText, /onkeydown=\{keydown\}/u);
+  assert.match(stylesText, /@media \(max-width: 640px\)[\s\S]*?\.spike-time-editor\s*\{[\s\S]*?grid-template-columns:\s*minmax\(0, 1fr\)/u);
+  assert.match(viewerMainText, /requireHostCapability:\s*true/u);
+  assert.match(editorHtmlText, /noindex, nofollow/u);
   assert.doesNotMatch(appText + cardText + rowText, /localStorage/u);
 });

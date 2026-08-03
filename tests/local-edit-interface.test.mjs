@@ -15,6 +15,9 @@ test("production Viewer keeps local editing hidden until the host grants capabil
   assert.match(html, /id="edit-save-bar"[^>]*hidden/);
   assert.match(app, /\/__taskprogress\/v1\/capabilities\//);
   assert.match(app, /if \(!response\.ok\) return;/);
+  assert.match(app, /capability\.editor_surface_url/);
+  assert.match(app, /surfaceUrl\.pathname\.startsWith\("\/__taskprogress\/v1\/editor\/"\)/);
+  assert.match(app, /window\.location\.assign\(editorUrl\.href\)/);
   assert.match(app, /Public\/static hosting intentionally has no editor capability/);
 });
 

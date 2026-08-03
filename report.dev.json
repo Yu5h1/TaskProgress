@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "report_id": "task-progress-development",
-  "updated_at": "2026-08-03T00:45:07+08:00",
+  "updated_at": "2026-08-03T10:30:20+08:00",
   "tasks": [
     {
       "id": "viewer-core",
@@ -93,12 +93,12 @@
     },
     {
       "id": "local-task-editing",
-      "next_step": "缺少 time.config 時的安全初始化已完成；下一步定義交付日修改原因與 taskprogress.local.json 遮蔽歷史事件 Schema，接入同一 transaction 後再做本機實檔與瀏覽器 focus／鍵盤／錯誤 UX 驗證。Node 149/149，edit-host Python 20/20。",
+      "next_step": "正式 Viewer 已能在本機 capability 宣告 Svelte Surface 時安全導向，建置缺失則保留舊編輯器；下一步以真正 TaskProgress Host／正式分析器驗證這條導向、返回預覽與 multi-file save，再決定預設切換。Node 150/150，edit-host Python 25/25。",
       "blockers": [
-        "交付日修改原因與私有歷史事件仍需正式 Schema／API；歷史不得投影到公開 report／analysis，且寫入失敗必須使整批 transaction 回滾。",
-        "Svelte 人工工時／依據會建立新 estimate version 並透過 transaction 重新分析；尚未完成本機實檔、focus／鍵盤、來源衝突與分析錯誤的瀏覽器 UX 驗證，也尚未取代正式 Viewer Surface。",
+        "隔離 Svelte 交付日流程已通過桌面／390px gate，正式 Viewer 與 edit host 也已加入 capability 限定的同源 Surface 導向；仍需以真正 Launcher Host 與正式分析器完成端對端 gate後，才能把它視為預設正式編輯器。",
+        "Svelte 人工工時／依據會建立新 estimate version 並透過 transaction 重新分析；尚未完成正式 Viewer Surface 的瀏覽器 UX 與實機觸控驗證。",
         "Demo 的四張狀態測試卡仍是 index.html 靜態標記，與共用 surface 產生的動態卡片是兩份來源；後續 TaskCard host 收斂時需決定是否改由 surface 產生。",
-        "390px 版面與觸控編輯尚未驗證，因此目前正式編輯範圍仍以桌面滑鼠／鍵盤為準。"
+        "隔離 Svelte 的 390px 版面已無水平溢位且固定 SaveBar 對齊內容面板；實機觸控與正式 Viewer 整合仍未驗證，因此目前正式編輯範圍仍以桌面滑鼠／鍵盤為準。"
       ],
       "decisions": [
         {

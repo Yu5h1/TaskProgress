@@ -1,0 +1,96 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://taskprogress.local/schemas/taskprogress.local.schema.json",
+  "title": "TaskProgress Private Local State",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "scope_id", "updated_at", "history"],
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "scope_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:[._-][a-z0-9]+)*$"
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "history": {
+      "type": "array",
+      "maxItems": 10000,
+      "items": {
+        "$ref": "#/$defs/history_event"
+      }
+    }
+  },
+  "$defs": {
+    "fingerprint": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "history_event": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "event_id",
+        "occurred_at",
+        "actor",
+        "operation",
+        "field_path",
+        "reason",
+        "redacted",
+        "fingerprint_algorithm",
+        "before_present",
+        "before_fingerprint",
+        "after_present",
+        "after_fingerprint"
+      ],
+      "properties": {
+        "event_id": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{24}$"
+        },
+        "occurred_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "actor": {
+          "type": "string",
+          "enum": ["human", "agent", "system"]
+        },
+        "operation": {
+          "type": "string",
+          "enum": ["set", "change", "clear"]
+        },
+        "field_path": {
+          "const": "time.config.project.delivery_at"
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 500
+        },
+        "redacted": {
+          "const": true
+        },
+        "fingerprint_algorithm": {
+          "const": "sha256"
+        },
+        "before_present": {
+          "type": "boolean"
+        },
+        "before_fingerprint": {
+          "$ref": "#/$defs/fingerprint"
+        },
+        "after_present": {
+          "type": "boolean"
+        },
+        "after_fingerprint": {
+          "$ref": "#/$defs/fingerprint"
+        }
+      }
+    }
+  }
+}
