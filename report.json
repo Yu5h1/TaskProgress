@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-08-03T10:43:36+08:00",
+  "updated_at": "2026-08-03T10:52:44+08:00",
   "tasks": [
     {
       "id": "viewer-core",
@@ -171,7 +171,7 @@
       "title": "本機任務編輯",
       "status": "in_progress",
       "priority": 1,
-      "summary": "正式 Viewer、Demo 與 Svelte Editor 已共用 framework-neutral Editor Core；本機 edit host 提供可恢復 multi-file transaction、private time inputs、遮蔽歷史及隔離風險預覽。Viewer 到 capability 限定 Svelte Surface 的交付日正式分析器端對端流程已通過；尚待建置／Launcher 封裝、人工估算 UX 與實機觸控驗證。",
+      "summary": "正式 Viewer、Demo 與 Svelte Editor 已共用 framework-neutral Editor Core；本機 edit host 提供可恢復 multi-file transaction、private time inputs、遮蔽歷史及隔離風險預覽。Viewer 到 capability 限定 Svelte Surface 的交付日正式分析器端對端與可重現 Launcher／Publish build gate 已通過；尚待人工估算 UX 與實機觸控驗證。",
       "completed_items": [
         {
           "id": "item-local-task-editing-done-1",
@@ -372,6 +372,11 @@
           "id": "edit-delivery-date",
           "title": "完成正式 Viewer 至 Svelte Surface 的交付日端對端：修正 host 路徑下 report 解析，正式分析器 preview／確認／multi-file save 成功，首次產生 analysis 後自動註冊公開唯讀路由，reload 可載入新工時且遮蔽歷史不含日期原文",
           "priority": 1
+        },
+        {
+          "id": "package-svelte-editor-surface",
+          "title": "完成本機 Svelte Editor 可重現封裝：BuildEditor 以 package-lock 執行 npm ci、建立並檢查雙入口，Publish 在 dotnet publish 前強制通過 gate；dist 保持於 experiments 且不進入 Pages artifact，本段未實際發布",
+          "priority": 1
         }
       ],
       "pending_items": [
@@ -383,11 +388,6 @@
         {
           "id": "edit-item-estimates-safely",
           "title": "在全域編輯模式加入人工工時、人工依據與人工確認，建立新 estimate version 並安全更新 time.estimates.json 後重新分析",
-          "priority": 1
-        },
-        {
-          "id": "package-svelte-editor-surface",
-          "title": "將 Svelte Editor build 納入本機 Launcher／發佈建置流程並保持 Pages artifact 不載入編輯框架；此項只建立可重現封裝與測試，不代表立即發布",
           "priority": 1
         }
       ]

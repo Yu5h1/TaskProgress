@@ -155,15 +155,20 @@ Viewer 會優先依 `completed_items` 與 `pending_items` 的實際項目數顯�
 dotnet build .\src\TaskProgress.Cli\TaskProgress.Cli.csproj -c Release
 dotnet run --project .\tests\TaskProgress.Cli.Tests\TaskProgress.Cli.Tests.csproj -c Release
 npm.cmd test
+npm.cmd run editor:svelte:build
 ```
 
-C# launcher 的原始碼位於 `src\TaskProgress.Cli`。發布 Windows x64 single-file EXE：
+C# launcher 的原始碼位於 `src\TaskProgress.Cli`。正式本機 Editor 是 Vite 的雙入口建置：`index.html` 保留隔離實驗，`editor.html` 只由 TaskProgress edit host 透過 capability 宣告。`BuildEditor.cmd` 先以 `package-lock.json` 執行 `npm ci`，再建置並檢查相對資產、禁止遠端載入及敏感字串；輸出位於被忽略的 `experiments/editor-svelte-spike/dist/`。
+
+發布 Windows x64 single-file EXE 時使用根目錄 `Publish.cmd`。它會先完成 Editor build gate，成功後才執行 `dotnet publish`：
 
 ```powershell
-dotnet publish .\src\TaskProgress.Cli\TaskProgress.Cli.csproj -c Release -o .\Build\win-x64
+.\Publish.cmd
 ```
 
-發布後 `Build\win-x64` 只包含 `task-progress.exe`。Launcher 整合測試會啟動真實 LocalWebService、註冊多個 scope 與選用的時間 sidecar、確認共用 process 與授權 shutdown；Viewer 測試涵蓋兩層報告合併、scope 路徑、版本相容、時間重算與本機容量政策。
+發布後 `Build\win-x64` 仍只包含 `task-progress.exe`；Viewer、edit host 與本機 Editor assets 都由 repository 提供。Editor `dist/` 位於 `experiments/`，不在 docs sparse checkout 的 `viewer/` 範圍，也不會進入 Pages artifact。只在依賴已由其他流程鎖定安裝時，開發者才可暫時設定 `TASK_PROGRESS_SKIP_NPM_CI=1` 跳過重裝；正式發布不得跳過。
+
+Launcher 整合測試會啟動真實 LocalWebService、註冊多個 scope 與選用的時間 sidecar、確認共用 process 與授權 shutdown；Viewer 測試涵蓋兩層報告合併、scope 路徑、版本相容、時間重算與本機容量政策。
 
 ## 授權
 

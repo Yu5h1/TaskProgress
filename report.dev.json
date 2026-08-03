@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "report_id": "task-progress-development",
-  "updated_at": "2026-08-03T10:43:36+08:00",
+  "updated_at": "2026-08-03T10:52:44+08:00",
   "tasks": [
     {
       "id": "viewer-core",
@@ -93,9 +93,8 @@
     },
     {
       "id": "local-task-editing",
-      "next_step": "正式 Viewer → Svelte → 正式分析器 → multi-file save → reload 已通過隔離真實 Host gate；下一步將雙入口 build 納入本機 Launcher／發佈建置契約但不實際發布，之後完成人工估算與實機觸控。Node 150/150，edit-host Python 25/25。",
+      "next_step": "正式交付日端對端與可重現本機 Editor build／Publish gate 已通過且未發布；下一步完成每個 item 的人工工時、人工依據與確認 UX，再補 390px 實機觸控。Node 151/151，edit-host Python 26/26，Launcher integration pass。",
       "blockers": [
-        "Svelte Editor 的雙入口 dist 目前仍是忽略的開發建置；正式 Viewer 接合與安全回退已通過，但 Launcher／Publish 尚未建立可重現的 build／封裝契約。",
         "Svelte 人工工時／依據會建立新 estimate version 並透過 transaction 重新分析；尚未完成正式 Viewer Surface 的瀏覽器 UX 與實機觸控驗證。",
         "Demo 的四張狀態測試卡仍是 index.html 靜態標記，與共用 surface 產生的動態卡片是兩份來源；後續 TaskCard host 收斂時需決定是否改由 surface 產生。",
         "隔離 Svelte 的 390px 版面已無水平溢位且固定 SaveBar 對齊內容面板，正式 Viewer 桌面端對端也已通過；實機觸控仍未驗證，因此目前正式編輯範圍仍以桌面滑鼠／鍵盤為準。"

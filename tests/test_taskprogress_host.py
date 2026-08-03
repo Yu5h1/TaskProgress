@@ -228,6 +228,18 @@ class TaskProgressEditHostTests(unittest.TestCase):
         traversal = self.client.get("/__taskprogress/v1/editor/..%2Freport.json")
         self.assertEqual(404, traversal.status_code)
 
+    def test_missing_editor_build_keeps_legacy_editor_capability(self) -> None:
+        (self.editor_surface_root / "editor.html").unlink()
+        capability = self.client.get(
+            "/__taskprogress/v1/capabilities/secure-test"
+        )
+        self.assertEqual(200, capability.status_code)
+        self.assertTrue(capability.json()["editable"])
+        self.assertNotIn("editor_surface_url", capability.json())
+        editor = self.client.get("/__taskprogress/v1/editor/editor.html")
+        self.assertEqual(404, editor.status_code)
+        self.assertEqual("editor_surface_not_found", editor.json()["code"])
+
     def test_session_requires_same_origin_and_editor_header(self) -> None:
         missing_origin = self.client.post(
             "/__taskprogress/v1/edit-sessions",

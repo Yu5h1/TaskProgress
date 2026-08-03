@@ -38,17 +38,20 @@ Vue 暫不安裝。原生 Viewer／Demo 是行為基準與回退路徑；只有 
 
 - Svelte、Vite 與 Svelte Vite plugin 只列為 repository `devDependencies`；版本由 `package-lock.json` 固定。
 - 不提交 `node_modules` 或 spike 的 `dist`。
+- `BuildEditor.cmd` 的正式路徑先執行 `npm ci`，再建立並驗證雙入口；`Publish.cmd` 必須先通過這個 gate 才能執行 Launcher publish。開發者只有在依賴已由其他鎖定流程安裝時可暫時以 `TASK_PROGRESS_SKIP_NPM_CI=1` 驗證，不得用於正式發布。
+- build verifier 拒絕遠端／絕對資產、動態程式建構、敏感本機檔名與編譯時本機絕對路徑。Editor `dist/` 位於 `experiments/` 且被忽略；docs sparse checkout 與通知 workflow 只涵蓋 `viewer/`，Pages artifact 不包含 Editor framework。
 - 升級依賴前執行完整 Node suite、production build、依賴安全檢查與授權檢查。
 - 正式 Editor 若採用 Svelte，必須保留 MIT notices；不從公開 CDN 載入 runtime。
 
 ## Verification and next gate
 
-- Node：150/150，包含 Svelte adapter／loader／private time draft／edit-host preview transport／delivery risk comparison／explicit config initialization 契約。
-- Python edit host：25/25，包含暫存目錄預覽不修改 canonical files、session 保留、遮蔽歷史與 transaction rollback。
+- Node：151/151，包含 Svelte adapter／loader／private time draft／preview transport／delivery risk comparison／config initialization，以及本機 build／Publish／Pages 隔離契約。
+- Python edit host：26/26，包含缺少 build 時保留 legacy editor capability、暫存目錄預覽不修改 canonical files、session 保留、遮蔽歷史、首次 analysis 路由註冊與 transaction rollback。
 - Svelte production build：通過，輸出相對資產路徑。
+- `BuildEditor.cmd`：正式 `npm ci` 與跳過重裝的已鎖定依賴路徑均通過；Release .NET Launcher real integration 通過。本段沒有執行 publish。
 - 建置產物掃描：未出現 `eval`／`new Function`、edit-host capability、private-history 或 Developer overlay 字串。
 - npm install audit：0 vulnerabilities。
 - 隔離瀏覽器 gate：暫存實檔的桌面與 390px 流程通過；確認視窗預設聚焦 `返回修改`、Escape 可返回且保留草稿，確認儲存產生遮蔽歷史；分析失敗與來源 revision 衝突均保留草稿，390px 無水平溢位且固定 SaveBar 對齊內容面板，console 無 warning／error。此 gate 使用確定性 QA analyzer adapter，不取代正式 Viewer Host 的正式分析器端對端驗證。
 - 正式 Host／分析器 gate：隔離真實 TaskProgress edit host 搭配發布版 analyzer executable，通過 Viewer 導向、host-only report 解析、8/8/8 config 初始化、preview、人工確認、multi-file save、遮蔽歷史、首次 analysis exact-route 註冊及 reload 工時投影；console 無 warning／error，正式資料與既有服務未變更。
 
-隔離 Svelte shell 已支援與 Viewer 相同的 `?scope=`／`?report=` 優先規則、report schema 驗證、多任務卡、可選 `time.analysis.json`、期限錯誤隔離及 item/task 工時投影，並以 tracked `reports/example` 驗證真實契約。本機 edit session 在 same-origin／editor-header 驗證後回傳 private config／estimates；multi-file route 以 report／inputs／local revisions、選擇性檔案 replacement、staged validation、分析與 rollback 完成單次儲存。Svelte 已接上交付日、版本化人工估算、明示的缺檔 config 初始化、遮蔽修改原因、隔離風險預覽及儲存前確認，並通過隔離桌面／390px與正式 Host／分析器端對端 gate。下一關不是再做 Vue，而是把雙入口 build 納入本機 Launcher／Publish 的可重現封裝但不立即發布，再補人工估算 UX 與實機觸控。
+隔離 Svelte shell 已支援與 Viewer 相同的 `?scope=`／`?report=` 優先規則、report schema 驗證、多任務卡、可選 `time.analysis.json`、期限錯誤隔離及 item/task 工時投影，並以 tracked `reports/example` 驗證真實契約。本機 edit session 在 same-origin／editor-header 驗證後回傳 private config／estimates；multi-file route 以 report／inputs／local revisions、選擇性檔案 replacement、staged validation、分析與 rollback 完成單次儲存。Svelte 已接上交付日、版本化人工估算、明示的缺檔 config 初始化、遮蔽修改原因、隔離風險預覽及儲存前確認，並通過隔離桌面／390px、正式 Host／分析器端對端與可重現 build／Publish gate。下一關不是再做 Vue，而是完成人工估算正式 UX 與實機觸控。

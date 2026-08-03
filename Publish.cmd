@@ -11,6 +11,17 @@ echo Project: %PROJECT_FILE%
 echo Output : %OUTPUT_DIR%
 echo.
 
+call "%PROJECT_ROOT%BuildEditor.cmd"
+set "EDITOR_BUILD_EXIT_CODE=%ERRORLEVEL%"
+if not "%EDITOR_BUILD_EXIT_CODE%"=="0" (
+    echo.
+    echo BUILD FAILED - local Editor assets failed with exit code %EDITOR_BUILD_EXIT_CODE%
+    pause
+    exit /b %EDITOR_BUILD_EXIT_CODE%
+)
+
+echo.
+
 dotnet publish "%PROJECT_FILE%" -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o "%OUTPUT_DIR%"
 set "BUILD_EXIT_CODE=%ERRORLEVEL%"
 

@@ -533,7 +533,8 @@ test("Svelte spike is isolated, static-path safe, and uses the shared core", asy
   assert.ok(packageJson.devDependencies.svelte);
   assert.ok(packageJson.devDependencies.vite);
   assert.equal(packageJson.devDependencies.vue, undefined);
-  assert.equal(packageJson.scripts["spike:svelte:build"].includes("vite build"), true);
+  assert.equal(packageJson.scripts["spike:svelte:build"], "npm run editor:svelte:build");
+  assert.equal(packageJson.scripts["editor:svelte:build"].includes("vite build"), true);
   assert.match(viteText, /base:\s*"\.\/"/u);
   assert.match(viteText, /editor:\s*fileURLToPath/u);
   assert.match(appText, /createSvelteEditorAdapter/u);
