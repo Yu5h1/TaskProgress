@@ -63,6 +63,18 @@ textarea {
   cursor: pointer;
 }
 
+.spike-mode-toggle {
+  position: fixed;
+  z-index: 45;
+  top: calc(12px + env(safe-area-inset-top, 0px));
+  left: 50%;
+  background: color-mix(in srgb, var(--surface) 94%, transparent);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(10px);
+  transform: translateX(-50%);
+  white-space: nowrap;
+}
+
 .spike-mode-toggle[aria-pressed="true"],
 .spike-save-button {
   color: white !important;
@@ -550,6 +562,10 @@ textarea {
   .spike-page {
     width: min(100% - 20px, 920px);
     padding-top: 20px;
+  }
+
+  .spike-mode-toggle {
+    top: calc(8px + env(safe-area-inset-top, 0px));
   }
 
   .spike-heading,

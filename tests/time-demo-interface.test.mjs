@@ -14,6 +14,10 @@ const cssSource = await readFile(
   new URL("../experiments/time-reference/demo/styles.css", import.meta.url),
   "utf8",
 );
+const viewerCssSource = await readFile(
+  new URL("../viewer/assets/styles.css", import.meta.url),
+  "utf8",
+);
 const priorityPolicySource = await readFile(
   new URL("../viewer/assets/priority-policy.js", import.meta.url),
   "utf8",
@@ -162,6 +166,18 @@ test("global save stays fixed at the panel-aligned viewport bottom", () => {
   assert.match(
     cssSource,
     /@media \(max-width: 600px\)[\s\S]*?\.global-edit-save\s*\{[\s\S]*?width: min\(960px, calc\(100% - 24px\)\);/,
+  );
+});
+
+test("Demo mode toggle uses the shared viewport-top dock", () => {
+  assert.match(
+    htmlSource,
+    /<button\s+class="theme-control view-mode-control view-mode-toggle"[\s\S]*?id="view-mode-toggle"/,
+  );
+  assert.doesNotMatch(htmlSource, /<span>模式<\/span>/);
+  assert.match(
+    viewerCssSource,
+    /\.view-mode-toggle\s*\{[\s\S]*?position:\s*fixed;[\s\S]*?top:\s*calc\(12px \+ env\(safe-area-inset-top, 0px\)\);[\s\S]*?left:\s*50%;[\s\S]*?transform:\s*translateX\(-50%\);/,
   );
 });
 

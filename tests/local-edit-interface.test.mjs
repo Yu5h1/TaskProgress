@@ -65,3 +65,12 @@ test("editing exposes global task and child controls with a panel-aligned save b
   assert.match(html, /class="theme-close"[\s\S]*?<span aria-hidden="true">×<\/span>/);
   assert.match(styles, /\.theme-close\s*\{[\s\S]*display:\s*grid[\s\S]*place-items:\s*center/);
 });
+
+test("Viewer mode toggle stays centered at the viewport top", async () => {
+  const styles = await readFile(styleUrl, "utf8");
+  assert.match(
+    styles,
+    /\.view-mode-toggle\s*\{[\s\S]*?position:\s*fixed;[\s\S]*?top:\s*calc\(12px \+ env\(safe-area-inset-top, 0px\)\);[\s\S]*?left:\s*50%;[\s\S]*?transform:\s*translateX\(-50%\);/,
+  );
+  assert.match(styles, /\.view-mode-toggle\s*\{[\s\S]*?z-index:\s*45;/);
+});

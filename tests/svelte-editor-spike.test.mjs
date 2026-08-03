@@ -577,6 +577,7 @@ test("Svelte spike is isolated, static-path safe, and uses the shared core", asy
   assert.match(confirmationText, /event\.key !== "Escape"/u);
   assert.match(confirmationText, /onkeydown=\{keydown\}/u);
   assert.match(stylesText, /@media \(max-width: 640px\)[\s\S]*?\.spike-time-editor\s*\{[\s\S]*?grid-template-columns:\s*minmax\(0, 1fr\)/u);
+  assert.match(stylesText, /\.spike-mode-toggle\s*\{[\s\S]*?position:\s*fixed;[\s\S]*?top:\s*calc\(12px \+ env\(safe-area-inset-top, 0px\)\);[\s\S]*?left:\s*50%;[\s\S]*?transform:\s*translateX\(-50%\);/u);
   assert.match(viewerMainText, /requireHostCapability:\s*true/u);
   assert.match(editorHtmlText, /noindex, nofollow/u);
   assert.doesNotMatch(appText + cardText + rowText, /localStorage/u);

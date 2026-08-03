@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-08-03T11:05:50+08:00",
+  "updated_at": "2026-08-03T22:42:17+08:00",
   "tasks": [
     {
       "id": "viewer-core",
@@ -171,7 +171,7 @@
       "title": "本機任務編輯",
       "status": "in_progress",
       "priority": 1,
-      "summary": "正式 Viewer、Demo 與 Svelte Editor 已共用 framework-neutral Editor Core；本機 edit host 提供可恢復 multi-file transaction、private time inputs、遮蔽歷史及隔離風險預覽。交付日與人工估算都已通過 capability 限定 Svelte Surface、正式分析器及版本化 multi-file save 的端對端驗證；尚待實機觸控驗證。",
+      "summary": "正式 Viewer、Demo 與 Svelte Editor 已共用 framework-neutral Editor Core；本機 edit host 提供可恢復 multi-file transaction、private time inputs、遮蔽歷史及隔離風險預覽。交付日與人工估算已通過端對端驗證，三個 Surface 的模式 toggle 已固定於 viewport 頂部中央；尚待時間設定面板 parity 與實機觸控驗證。",
       "completed_items": [
         {
           "id": "item-local-task-editing-done-1",
@@ -382,9 +382,19 @@
           "id": "edit-item-estimates-safely",
           "title": "完成全域編輯模式的人工工時、人工依據與獨立人工確認；建立 supersede estimate version、安全更新 time.estimates.json、重新分析並以正式 Host reload 驗證",
           "priority": 1
+        },
+        {
+          "id": "dock-global-mode-toggle",
+          "title": "將 Viewer、Demo 與本機 Svelte Editor 的預覽／編輯 toggle 固定於 viewport 頂部中央，不隨內容捲動",
+          "priority": 1
         }
       ],
       "pending_items": [
+        {
+          "id": "migrate-time-settings-panel",
+          "title": "將 8／8／8 每日分配、工作日及休假／容量例外搬入本機 Svelte Editor 的時間設定面板並接入正式交易",
+          "priority": 1
+        },
         {
           "id": "verify-mobile-editing",
           "title": "在正式 Viewer Surface 完成實機觸控編輯驗證；隔離 Svelte 的 390px 版面與鍵盤流程已通過",

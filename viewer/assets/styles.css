@@ -367,17 +367,25 @@ code {
 }
 
 .view-mode-toggle {
+  position: fixed;
+  z-index: 45;
+  top: calc(12px + env(safe-area-inset-top, 0px));
+  left: 50%;
   justify-content: center;
   min-width: 74px;
   padding: 4px 10px;
   color: var(--color-secondary-text);
-  background: var(--color-panel-bg);
+  background: color-mix(in srgb, var(--color-panel-bg) 92%, transparent);
   border: 1px solid var(--color-border);
   border-radius: 999px;
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--color-page-bg) 65%, transparent);
+  backdrop-filter: blur(12px);
   cursor: pointer;
   font: inherit;
   font-size: 0.7rem;
   font-weight: 720;
+  transform: translateX(-50%);
+  white-space: nowrap;
 }
 
 .view-mode-toggle[aria-pressed="true"] {
@@ -1460,6 +1468,10 @@ footer {
 
   .site-header {
     min-height: 44px;
+  }
+
+  .view-mode-toggle {
+    top: calc(8px + env(safe-area-inset-top, 0px));
   }
 
   .mode-badge {
