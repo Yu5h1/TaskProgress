@@ -860,7 +860,19 @@ AI 分析與同類歷史不各自產生一個數字再和人工工時平均。�
 
 Editor UI 尚未模組化完成，但已不再從零開始。正式 Viewer 與 Demo 現在共用 Editor Core 的 `DraftSession`／commands／validation／diff／derived state／Undo／Redo，也完成 Editor Surface 的 `TaskCard` shell、`ItemRow`、優先級、全域模式 toggle、AddControl、欄位 validation、SaveBar 與 history controls 主要桌面契約；`app.js`、Demo `app.js` 與 `time-view.js` 只保留 domain validation、persistence 與時間插槽 adapter。本機 edit host 已提供可恢復的多檔案 transaction adapter，交付日、估算與私有遮蔽歷史 payload 均已接入。
 
-因此目前定位是「單一 report 編輯核心、安全邊界、完整命令歷史、可恢復 multi-file 交易、Svelte 編輯元件、完整時間設定與人工估算，以及不改變 Viewer URL 的同頁本機編輯入口已完成，並有 157 項 Node、26 項 edit-host Python 測試保護」。入口統一不代表 UI 已統一：Viewer 預覽與 Svelte 編輯仍是兩套 DOM／主題。下一步以 Viewer 為視覺基準，將頁首、進度摘要、狀態篩選及 TaskCard 預覽搬入同一 Svelte App，讓模式切換只改 state；Demo 僅保留 fixture adapter。完成視覺收斂後再做實機觸控與敏感欄位政策。既有 Core、Schema、capability 與 transaction 邊界不得搬入 UI 元件。
+因此目前定位是「單一 report 編輯核心、安全邊界、完整命令歷史、可恢復 multi-file 交易、Svelte 編輯元件、完整時間設定與人工估算，以及不改變 Viewer URL 的同頁本機編輯入口已完成，並有 157 項 Node、26 項 edit-host Python 測試保護」。入口統一不代表 UI 已統一：Viewer 預覽與 Svelte 編輯仍是兩套 DOM／主題。Svelte 遷移先暫停擴張，下一步先完成既有 Viewer UX parity gate；通過後才逐區搬移頁首、進度摘要、狀態篩選與 TaskCard。Demo 僅保留 fixture adapter。既有 Core、Schema、capability 與 transaction 邊界不得搬入 UI 元件。
+
+#### Svelte 遷移 UX parity gate
+
+Svelte 是 UI 組合技術的替換，不是重新設計。每個區塊開始實作前，先以既有 Viewer 為基準列出並凍結：內容順序、垂直／水平結構、按鈕目的地、Dialog 流程、文字、焦點與鍵盤、主題，以及桌面與 390px 行為。新元件只有在自動測試與實際畫面比對都通過後，才能取代舊 Surface。
+
+目前時間區塊必須先恢復三項契約：
+
+- 交付日位於時間設定最上方，其後才是每日分配、工作日及休假／容量例外。
+- 時間設定的面板標題與編輯內容垂直排列，不使用左右兩欄重新詮釋既有版面。
+- 任務項目的工時維持可點擊膠囊，點擊後進入既有時間彈出面板；人工工時、人工依據與人工確認放在彈出面板內，不在項目列展開 inline details。
+
+若 parity matrix 尚未建立或畫面比對失敗，不繼續搬移下一個 Viewer 區塊，也不刪除舊實作。
 
 本機編輯能力由 TaskProgress edit host 對精確註冊且 `scope_id` 相符的報告動態回傳，不在 scope 設定或 `report.json` 保存 `editable`。Viewer、發布後 Launcher 與 edit host 必須版本一致；若舊版 Launcher 只啟動普通 LocalWebService，Viewer 會因 capability endpoint 不存在而安全地隱藏編輯入口。
 

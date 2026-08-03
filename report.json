@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-08-04T00:26:26+08:00",
+  "updated_at": "2026-08-04T00:46:18+08:00",
   "tasks": [
     {
       "id": "viewer-core",
@@ -171,7 +171,7 @@
       "title": "本機任務編輯",
       "status": "in_progress",
       "priority": 1,
-      "summary": "本機 Viewer 已成為單一入口：編輯 toggle 在原 URL 內開啟同源 Svelte Editor，取消返回 Viewer，儲存後於同一入口重載。Editor Core、安全交易、時間設定與人工估算均已接入；下一步讓 Viewer 預覽也改由同一套 Svelte 元件呈現。",
+      "summary": "本機 Viewer 已成為單一入口，Editor Core、安全交易、時間設定與人工估算均已接入 Svelte。現階段暫停擴大遷移，先恢復既有 Viewer UX parity：交付日在時間設定上方、面板垂直排列，項目工時膠囊仍開啟時間彈出面板。",
       "completed_items": [
         {
           "id": "item-local-task-editing-done-1",
@@ -406,8 +406,13 @@
       ],
       "pending_items": [
         {
+          "id": "freeze-svelte-ux-parity-contract",
+          "title": "建立 Svelte 遷移 UX parity gate：逐項比對既有 Viewer 的區塊順序、面板方向、時間彈窗、焦點鍵盤、主題與響應式行為",
+          "priority": 0
+        },
+        {
           "id": "migrate-viewer-preview-to-svelte",
-          "title": "讓正式 Viewer 預覽逐區改用同一套 Svelte 元件，消除預覽與編輯的排版切換；Demo 僅保留 fixture adapter",
+          "title": "通過 UX parity gate 後，讓正式 Viewer 預覽逐區改用同一套 Svelte 元件；不得以新排版取代既有互動，Demo 僅保留 fixture adapter",
           "priority": 1
         },
         {
