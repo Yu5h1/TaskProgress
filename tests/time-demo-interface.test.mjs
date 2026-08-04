@@ -111,7 +111,8 @@ test("all child items become one-row inputs in global edit mode", () => {
   assert.match(workRowSource, /editing: globalEditingEnabled\(\)/);
   assert.match(workRowSource, /contentNodes: \[time\]/);
   assert.match(workRowSource, /trailingNodes: \[createTaskItemStatus\(taskItem\)\]/);
-  assert.match(appSource, /itemEditOrder: \["title", "delete", "priority", "content", "trailing"\]/);
+  // Row order is a fixed shared contract, not a Demo presentation choice.
+  assert.doesNotMatch(appSource, /itemEditOrder/);
   assert.match(appSource, /saveBarControl = editorSurface\.createSaveBar\(elements\.globalEditSave, \{[\s\S]*?onSave: saveGlobalDrafts/);
   assert.match(appSource, /editorSurface\.bindHistoryShortcuts\(document, \{/);
   assert.match(appSource, /editorSurface\.setFieldError\(input, message\)/);

@@ -163,7 +163,6 @@ function demoSurface() {
       itemInputClass: "task-item-title-input",
       itemDeleteClass: "task-item-delete",
       itemPrioritySelectClass: "task-item-priority-select",
-      itemEditOrder: ["title", "delete", "priority", "content", "trailing"],
       itemPreviewWrap: true,
       addItemFormClass: "task-item-add-form",
       addTaskFormClass: "task-card-add-form",
@@ -586,11 +585,11 @@ test("shared item editing owns controls, ordering, datasets, and callbacks", () 
   });
 
   assert.deepEqual(surface.row.children, [
-    surface.input,
-    surface.deleteButton,
     surface.prioritySelect,
+    surface.input,
     "待估",
     "待處理",
+    surface.deleteButton,
   ]);
   assert.equal(surface.input.className, "task-item-title-input");
   assert.equal(surface.input.dataset.itemId, "item-a");
@@ -611,6 +610,57 @@ test("shared item editing owns controls, ordering, datasets, and callbacks", () 
     ["delete"],
     ["priority", 0],
   ]);
+});
+
+// The single-order contract: an ItemRow has one sequence. Preview and edit may
+// differ only in whether a field is editable, so a mode switch never moves a
+// control. `刪除` is edit-only and pinned last, after every shared field.
+test("item rows keep one order across both modes and both hosts", () => {
+  const item = { id: "item-a", title: "共用子項目", priority: 1 };
+  const options = { contentNodes: ["2 hr"], trailingNodes: ["進行中"] };
+
+  // Shared fields, in order, regardless of host or mode.
+  function sharedSequence(built) {
+    const container = built.copy ?? built.row;
+    const nodes = built.copy
+      ? [...built.copy.children, ...built.row.children.filter((node) => node !== built.copy)]
+      : [...container.children];
+    return nodes
+      .filter((node) => node !== built.deleteButton)
+      .map((node) => {
+        if (node === built.priorityBadge || node === built.prioritySelect) return "priority";
+        if (node === built.title || node === built.input) return "title";
+        return node;
+      });
+  }
+
+  const expected = ["priority", "title", "2 hr", "進行中"];
+  [productionSurface(), demoSurface()].forEach((surface) => {
+    const preview = surface.createItemRow(item, options);
+    const editing = surface.createItemRow(item, { ...options, editing: true });
+    assert.deepEqual(sharedSequence(preview), expected);
+    assert.deepEqual(sharedSequence(editing), expected);
+    // Delete exists only while editing, and only after the shared fields.
+    assert.equal(preview.deleteButton, null);
+    assert.equal(editing.row.children.at(-1), editing.deleteButton);
+  });
+});
+
+test("item row order is not host-configurable", async () => {
+  const [runtime, viewerApp, demoApp] = await Promise.all([
+    readFile(new URL("../viewer/assets/editor-surface-runtime.js", import.meta.url), "utf8"),
+    readFile(new URL("../viewer/assets/app.js", import.meta.url), "utf8"),
+    readFile(new URL("../experiments/time-reference/demo/app.js", import.meta.url), "utf8"),
+  ]);
+  assert.match(runtime, /const ITEM_ROW_ORDER = Object\.freeze\(\[/);
+  assert.match(
+    runtime,
+    /ITEM_ROW_ORDER = Object\.freeze\(\[\s*"priority",\s*"title",\s*"content",\s*"trailing",\s*"delete",\s*\]\)/,
+  );
+  // The knob that let the two hosts drift into three different sequences.
+  [runtime, viewerApp, demoApp].forEach((source) => {
+    assert.doesNotMatch(source, /itemEditOrder/);
+  });
 });
 
 test("legacy string items remain read-only even when the host is editing", () => {

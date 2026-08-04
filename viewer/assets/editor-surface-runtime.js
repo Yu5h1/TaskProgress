@@ -39,7 +39,6 @@ function createEditorSurface({
     itemInputClass: "inline-edit-input",
     itemDeleteClass: "inline-delete-button",
     itemPrioritySelectClass: "inline-priority-select",
-    itemEditOrder: ["delete", "priority", "title", "content", "trailing"],
     itemPreviewWrap: false,
     addItemFormClass: "inline-add-form",
     addTaskFormClass: "task-add-form",
@@ -553,6 +552,20 @@ function createEditorSurface({
   // One child-item row shared by both hosts. The Surface owns field ordering,
   // controls, and accessibility; hosts inject time/status extensions and map
   // callbacks to their own Editor Core session.
+  // One row, one order. Preview and edit differ only in whether a field is
+  // editable — never in sequence — so switching modes cannot move a control
+  // under the pointer. `刪除` exists only while editing and is pinned after the
+  // shared fields, keeping every shared position identical in both modes.
+  // This is deliberately not host-configurable: an order knob is what let the
+  // two hosts drift into three different sequences.
+  const ITEM_ROW_ORDER = Object.freeze([
+    "priority",
+    "title",
+    "content",
+    "trailing",
+    "delete",
+  ]);
+
   function createItemRow(item, {
     editing = false,
     showPriority = true,
@@ -633,13 +646,13 @@ function createEditorSurface({
       onChange: onPriorityChange,
     });
     const slots = {
-      title: [input],
-      delete: [deleteButton],
       priority: [prioritySelect],
+      title: [input],
       content: contentNodes,
       trailing: trailingNodes,
+      delete: [deleteButton],
     };
-    style.itemEditOrder.forEach((slot) => appendNodes(row, slots[slot] ?? []));
+    ITEM_ROW_ORDER.forEach((slot) => appendNodes(row, slots[slot] ?? []));
 
     return {
       row,

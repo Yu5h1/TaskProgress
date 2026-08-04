@@ -30,6 +30,14 @@ textarea {
   margin-bottom: 24px;
 }
 
+/* Theme picker sits where the Viewer puts it: top-right of the heading row. */
+.spike-header-actions {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 8px;
+}
+
 .spike-heading h1 {
   margin: 4px 0 8px;
   color: var(--ink);
@@ -51,7 +59,6 @@ textarea {
   text-transform: uppercase;
 }
 
-.spike-mode-toggle,
 .spike-savebar button,
 .spike-add-form button,
 .spike-add-button {
@@ -63,13 +70,17 @@ textarea {
   cursor: pointer;
 }
 
+/* Size and position come from `.editor-mode-dock`; only colour lives here. */
 .spike-mode-toggle {
+  color: var(--ink);
   background: color-mix(in srgb, var(--surface) 94%, transparent);
+  border: 1px solid var(--line);
   box-shadow: var(--shadow);
   backdrop-filter: blur(10px);
+  cursor: pointer;
 }
 
-.spike-mode-toggle[aria-pressed="true"],
+/* The mode toggle's pressed state is shared; see `.editor-mode-dock`. */
 .spike-save-button {
   color: white !important;
   background: var(--blue) !important;

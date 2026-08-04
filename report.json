@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-08-04T00:46:18+08:00",
+  "updated_at": "2026-08-04T14:41:07+08:00",
   "tasks": [
     {
       "id": "viewer-core",
@@ -401,6 +401,11 @@
         {
           "id": "unify-viewer-svelte-entry",
           "title": "統一本機 Viewer 入口：編輯 toggle 在原 URL 內載入同源 Svelte Surface、自動進入編輯，取消返回 Viewer且儲存後重載最新資料",
+          "priority": 1
+        },
+        {
+          "id": "freeze-item-row-order-contract",
+          "title": "凍結 ItemRow 單一排列契約：編輯與預覽共用 優先→標題→內容→尾端，刪除固定在最後，並移除讓兩個 host 長出三種順序的 itemEditOrder 旋鈕",
           "priority": 1
         }
       ],

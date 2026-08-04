@@ -390,7 +390,6 @@ const editorSurface = editorSurfaceRuntime.createEditorSurface({
     itemInputClass: "task-item-title-input",
     itemDeleteClass: "task-item-delete",
     itemPrioritySelectClass: "task-item-priority-select",
-    itemEditOrder: ["title", "delete", "priority", "content", "trailing"],
     itemPreviewWrap: true,
     addItemFormClass: "task-item-add-form",
     addTaskFormClass: "task-card-add-form",

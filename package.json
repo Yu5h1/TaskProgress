@@ -9,7 +9,8 @@
     "test": "node --test",
     "spike:svelte:dev": "vite --config experiments/editor-svelte-spike/vite.config.js",
     "spike:svelte:build": "npm run editor:svelte:build",
-    "editor:svelte:build": "vite build --config experiments/editor-svelte-spike/vite.config.js && node scripts/verify-editor-build.mjs"
+    "editor:svelte:build": "vite build --config experiments/editor-svelte-spike/vite.config.js && node scripts/verify-editor-build.mjs",
+    "viewer:ui:build": "vite build --config experiments/editor-svelte-spike/vite.viewer-ui.config.js"
   },
   "engines": {
     "node": ">=20"

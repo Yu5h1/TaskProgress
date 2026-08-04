@@ -860,7 +860,7 @@ AI 分析與同類歷史不各自產生一個數字再和人工工時平均。�
 
 Editor UI 尚未模組化完成，但已不再從零開始。正式 Viewer 與 Demo 現在共用 Editor Core 的 `DraftSession`／commands／validation／diff／derived state／Undo／Redo，也完成 Editor Surface 的 `TaskCard` shell、`ItemRow`、優先級、全域模式 toggle、AddControl、欄位 validation、SaveBar 與 history controls 主要桌面契約；`app.js`、Demo `app.js` 與 `time-view.js` 只保留 domain validation、persistence 與時間插槽 adapter。本機 edit host 已提供可恢復的多檔案 transaction adapter，交付日、估算與私有遮蔽歷史 payload 均已接入。
 
-因此目前定位是「單一 report 編輯核心、安全邊界、完整命令歷史、可恢復 multi-file 交易、Svelte 編輯元件、完整時間設定與人工估算，以及不改變 Viewer URL 的同頁本機編輯入口已完成，並有 157 項 Node、26 項 edit-host Python 測試保護」。入口統一不代表 UI 已統一：Viewer 預覽與 Svelte 編輯仍是兩套 DOM／主題。Svelte 遷移先暫停擴張，下一步先完成既有 Viewer UX parity gate；通過後才逐區搬移頁首、進度摘要、狀態篩選與 TaskCard。Demo 僅保留 fixture adapter。既有 Core、Schema、capability 與 transaction 邊界不得搬入 UI 元件。
+因此目前定位是「單一 report 編輯核心、安全邊界、完整命令歷史、可恢復 multi-file 交易、Svelte 編輯元件、完整時間設定與人工估算，以及不改變 Viewer URL 的同頁本機編輯入口已完成，並有 157 項 Node、26 項 edit-host Python 測試保護」。入口統一不代表 UI 已統一：目前預覽由 `viewer/assets/app.js` 渲染，編輯是覆蓋在其上的同源 iframe，兩者是兩份 DOM、兩份樣式與兩個 header。這是先前架構邊界把「唯讀」和「編輯」切成兩層的結果，實際成本是每個共同畫面元素都要人工對齊一次，且對齊項目只會愈來愈多。下一步依新的架構邊界收斂成單一元件集，逐區搬移頁首、進度摘要、狀態篩選與任務卡；時間參考 Demo 自 2026-08-04 起凍結，不再作為開發目標。既有 Core、Schema、capability 與 transaction 邊界不得搬入 UI 元件。
 
 #### Svelte 遷移 UX parity gate
 
@@ -887,19 +887,23 @@ Svelte 是 UI 組合技術的替換，不是重新設計。每個區塊開始實
 
 #### 架構邊界
 
+預覽與編輯是同一份介面的兩個狀態，不是兩份實作。一張任務卡、一列子項目、一個時間面板欄位，在兩種模式下是同一個元件，差別只在它現在能不能編輯 —— 就像 UI 框架裡的 InputField 切換 `editable`，控制項本身不會換掉，位置與大小也不該改變。
+
 ```text
 editor-core/
   DraftSession、EditCommand、Undo／Redo、validation、diff、derived progress、time invalidation
 
-editor-ui/
-  第三方框架元件、focus、表單、dialog、save bar、錯誤呈現
-
-viewer/
-  維持輕量唯讀，不要求載入 Editor 框架
+ui-components/
+  任務卡、子項目、優先級、時間面板、表單、dialog、save bar、錯誤呈現
+  每個元件同時負責預覽與編輯兩種狀態
 
 local-service/
   transaction adapters、edit capability、scope/revision、原子寫入、重新分析、歷史與恢復
 ```
+
+公開部署仍然只提供唯讀報告，但這是**打包範圍**的問題，不是架構分界：建置時分割，公開產物不含編輯分支，本機取得 capability 後才載入。先前把「Viewer 不載入編輯 UI」寫成架構規則，等於要求同一張卡片存在兩份實作，兩份就會各自漂移；輕量與共用應該同時成立，而不是二選一。
+
+判斷準則：**如果一個畫面元素在預覽和編輯都看得到，它只能有一份實作。** 只在編輯模式出現的東西（刪除鍵、儲存列、新增控制）是同一份元件的編輯狀態，不是另一套介面。
 
 Editor state 至少拆成四層：
 
@@ -955,9 +959,12 @@ Editor state 至少拆成四層：
 
 ItemRow 是每張任務卡內的一筆子項目。這份矩陣已於 2026-08-02 凍結並落地；它先把兩個 host 的差異分成三類，避免共用模組內出現環境名稱判斷：
 
+2026-08-04 補上單一排列契約：**ItemRow 只有一種排列。預覽與編輯的差別只在欄位是否可編輯，不在順序，也不在結構。** 排列固定為 `優先 → 標題 → 內容 → 尾端`，`刪除` 只在編輯模式存在並固定接在共用欄位之後，因此切換模式時共用欄位不會移位。這條刻意不開放給 host 設定：先前的 `itemEditOrder` 旋鈕讓同一個共用元件長出三種順序（預覽一種、Viewer 編輯一種、Demo 編輯一種），旋鈕本身就是漂移來源，值改回來只是治標。
+
 | 項目 | 共用契約 | Host 差異處理 |
 |---|---|---|
-| row、title、priority、編輯 input、刪除按鈕與無障礙文字 | 由 Editor Surface 建立 | class 與暫時排列由 presentation adapter 提供 |
+| 欄位排列 | `ITEM_ROW_ORDER` 常數，兩種模式、兩個 host 共用 | 不可設定；host 無法覆寫順序 |
+| row、title、priority、編輯 input、刪除按鈕與無障礙文字 | 由 Editor Surface 建立 | class 由 presentation adapter 提供 |
 | title／priority／delete 事件 | Surface 只發出 callback | Viewer 與 Demo 各自轉成 Editor Core command |
 | 工時膠囊、`待估` 與狀態文字 | 定義為尾端 extension slots | Demo 可放工時與狀態；Viewer 依 time sidecar 放工時，完成狀態仍由所屬面板表達 |
 | legacy string item | 支援唯讀 title | 進入編輯 session 後仍由 Editor Core 正規化為 stable item |

@@ -16,6 +16,11 @@
   --editor-card-radius: 14px;
   --editor-item-min-height: 36px;
   --editor-item-padding-block: 8px;
+  --editor-item-gap: 9px;
+  --editor-mode-toggle-min-width: 74px;
+  --editor-mode-toggle-padding: 4px 10px;
+  --editor-mode-toggle-font-size: 0.7rem;
+  --editor-mode-toggle-font-weight: 720;
 }
 
 .editor-layout-shell {
@@ -23,12 +28,26 @@
   margin-inline: auto;
 }
 
+/*
+ * The dock owns position AND size. Hosts previously sized their own toggle
+ * (`.view-mode-toggle` vs `.spike-mode-toggle`), which made the same control
+ * 27px tall in preview and 42px tall in edit.
+ */
 .editor-mode-dock {
   position: fixed;
   z-index: 45;
   top: calc(12px + env(safe-area-inset-top, 0px));
   left: 50%;
   transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: var(--editor-mode-toggle-min-width);
+  padding: var(--editor-mode-toggle-padding);
+  border-radius: 999px;
+  font: inherit;
+  font-size: var(--editor-mode-toggle-font-size);
+  font-weight: var(--editor-mode-toggle-font-weight);
   white-space: nowrap;
 }
 
@@ -42,7 +61,18 @@
   border-radius: var(--editor-card-radius);
 }
 
-.editor-item-row {
+/*
+ * One row box for both modes. Preview and edit must not differ in padding,
+ * gap or marker, otherwise every row jumps when the mode toggles. The
+ * descendant selector matches the specificity of the host rules it replaces so
+ * this stays authoritative regardless of stylesheet load order — the Viewer
+ * loads this file last, the Svelte bundle hoists it first.
+ */
+.editor-item-row,
+.work-columns .detail-list li.editor-item-row {
+  display: flex;
+  align-items: center;
+  gap: var(--editor-item-gap);
   min-height: var(--editor-item-min-height);
   padding-block: var(--editor-item-padding-block);
 }

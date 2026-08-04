@@ -2,6 +2,7 @@
   import { onMount } from "svelte";
 
   import { createTimeIndex } from "../../../viewer/assets/time-model.js";
+  import { createThemeControl } from "./theme-control.js";
   import DeliveryRiskPreview from "./DeliveryRiskPreview.svelte";
   import DeliverySaveConfirmation from "./DeliverySaveConfirmation.svelte";
   import TaskCard from "./TaskCard.svelte";
@@ -23,6 +24,17 @@
 
   const priorityPolicy = globalThis.TaskProgressPriorityPolicy;
   const emptyTimeIndex = () => ({ tasks: new Map(), items: new Map() });
+
+  // Theme state lives in an adapter so this component stays free of browser
+  // storage; the shared theme model owns every rule about what a mode means.
+  const themeControl = createThemeControl();
+  let themeMode = themeControl.mode;
+  let themeOptions = themeControl.options();
+
+  function changeTheme(event) {
+    themeMode = themeControl.setMode(event.currentTarget.value);
+    themeOptions = themeControl.options();
+  }
 
   let adapter = createSvelteEditorAdapter(fixtureReport, {
     fallbackPriority: priorityPolicy.fallbackValue,
@@ -342,6 +354,21 @@
       <p class="spike-eyebrow">{surfaceKind === "viewer" ? "Local editor" : "Framework parity spike"}</p>
       <h1>{view?.report.title ?? "Svelte × TaskProgress Editor Core"}</h1>
       <p>{dataLabel} · {timeState}</p>
+    </div>
+    <div class="spike-header-actions">
+      <label class="theme-picker" for="spike-theme-select">
+        <span>主題</span>
+        <select
+          id="spike-theme-select"
+          aria-label="顯示主題"
+          value={themeMode}
+          onchange={changeTheme}
+        >
+          {#each themeOptions as option (option.value)}
+            <option value={option.value}>{option.label}</option>
+          {/each}
+        </select>
+      </label>
     </div>
     {#if !requireHostCapability || hostAvailable}
       <button

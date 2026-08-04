@@ -366,10 +366,20 @@ code {
   transform: translateY(-1px);
 }
 
+/*
+ * Pressed state is a tint, not a solid fill: a solid accent background with
+ * white text fails contrast in the dark palette, where the accent is already a
+ * light blue. Keyed on the shared dock so every host toggle matches; geometry
+ * stays in editor-presentation.css, which is colour-free by contract.
+ */
+.editor-mode-dock[aria-pressed="true"] {
+  color: var(--blue);
+  background: var(--blue-soft);
+  border-color: var(--color-active-border);
+}
+
+/* Size and position come from `.editor-mode-dock`; only colour lives here. */
 .view-mode-toggle {
-  justify-content: center;
-  min-width: 74px;
-  padding: 4px 10px;
   color: var(--color-secondary-text);
   background: color-mix(in srgb, var(--color-panel-bg) 92%, transparent);
   border: 1px solid var(--color-border);
@@ -377,15 +387,6 @@ code {
   box-shadow: 0 8px 24px color-mix(in srgb, var(--color-page-bg) 65%, transparent);
   backdrop-filter: blur(12px);
   cursor: pointer;
-  font: inherit;
-  font-size: 0.7rem;
-  font-weight: 720;
-}
-
-.view-mode-toggle[aria-pressed="true"] {
-  color: var(--blue);
-  background: var(--blue-soft);
-  border-color: var(--color-active-border);
 }
 
 .view-mode-toggle:disabled {
@@ -1021,17 +1022,11 @@ h1 {
   color: var(--color-item-text);
 }
 
-.work-columns .detail-list li.editable-work-item {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  padding: 7px 58px 7px 0;
-}
-
-.editable-work-item::before {
-  display: none;
-}
-
+/*
+ * Editing must not resize or shift the row: the box, gap and marker come from
+ * `.editor-item-row` in editor-presentation.css and are identical in both
+ * modes. Only the controls inside the row change.
+ */
 .editable-work-item .inline-edit-input {
   flex: 1 1 auto;
   padding: 6px 8px;
@@ -1767,12 +1762,6 @@ footer {
   margin-right: 8px;
   color: var(--color-border);
   content: "·";
-}
-
-.work-columns .detail-list li.time-work-item {
-  display: flex;
-  align-items: center;
-  gap: 9px;
 }
 
 .time-work-title {

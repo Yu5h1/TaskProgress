@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "report_id": "task-progress-development",
-  "updated_at": "2026-08-04T00:46:18+08:00",
+  "updated_at": "2026-08-04T14:41:07+08:00",
   "tasks": [
     {
       "id": "viewer-core",
@@ -93,12 +93,13 @@
     },
     {
       "id": "local-task-editing",
-      "next_step": "先凍結 Viewer→Svelte UX parity matrix，不新增 UI：交付日置頂，時間設定標題與內容垂直排列，項目工時膠囊開啟既有時間 Dialog，人工工時／依據置於該 Dialog；完成桌面與 390px 比對後才繼續搬預覽元件。",
+      "next_step": "UI host adapter 邊界已完成（viewer/assets/ui-host.js + Svelte task-list adapter + viewer:ui:build），但尚未接進 viewer/index.html，因為 TaskCard.svelte 仍缺 Developer overlay、狀態／優先級位置、task-id、duration 位置、fraction 無障礙文字與狀態排序；下一步是把這些補進 Svelte 任務卡，再由 app.js 改用 createUiView 渲染 #task-list 並刪除原生 renderTask。Demo 已凍結，只發展 viewer 預覽與 Svelte 編輯兩個面。列盒模型、模式按鈕尺寸與主題套用已於 2026-08-04 收進 editor-presentation.css。接著處理仍不一致的列高：先共用時間膠囊（Viewer .time-item-button 24px vs Svelte .spike-time-capsule 21px 是兩份實作），再裁示編輯控制項與預覽文字的高度差要靠加高共用列還是壓低控制項。Svelte 主題選擇已加入（重用 theme-model，storage 放在 theme-control.js adapter，自訂調色仍只在 Viewer Dialog）。",
       "blockers": [
         "人工工時／依據與獨立確認已在正式 Svelte Surface 建立 supersede estimate version 並透過 transaction 重新分析；尚未完成實機觸控驗證。",
         "統一時間設定面板可修改公開容量資料並保留既有私人理由，但私人理由尚未開放編輯；需先擴充遮蔽歷史契約，避免敏感內容變更缺少稽核邊界。",
         "目前 Svelte 時間設定違反既有 UX：交付日不在最上方、標題與表單橫向並排、項目工時改成 inline details 而非時間彈窗。這些 parity 回歸必須先修正，否則不得擴大遷移。",
         "Demo 的四張狀態測試卡仍是 index.html 靜態標記，與共用 surface 產生的動態卡片是兩份來源；後續 TaskCard host 收斂時需決定是否改由 surface 產生。",
+        "尚未裁示的 UX 設計：ItemRow 在 390px 仍會折成三行，模組膠囊的水平捲動與描述 Text Ellipsis 尚未實作；描述點擊開啟 Dialog 與編輯模式描述為 input 相衝突，需決定入口；`待估` 在編輯模式仍不可點，因此無法替沒有估算的子項目建立估算；優先級與狀態是 report.json 核心欄位，若要放進模組排，需先確認其渲染路徑不得經過模組載入，否則模組失敗會讓任務失去狀態。",
         "隔離 Svelte 的 390px 版面已無水平溢位且固定 SaveBar 對齊內容面板，正式 Viewer 桌面端對端也已通過；實機觸控仍未驗證，因此目前正式編輯範圍仍以桌面滑鼠／鍵盤為準。"
       ],
       "decisions": [
@@ -161,6 +162,18 @@
         {
           "summary": "Demo 必須繼續直接支援 file://，因此共用 Core 採 classic-compatible runtime 加正式 Viewer ES module wrapper；兩者使用同一份 DraftSession 與 command 實作，Demo adapter 只投影既有 DOM/localStorage 資料。",
           "reference": "plan.md#editor-框架化與大改-draft-01"
+        },
+        {
+          "summary": "ItemRow 只有一種排列：優先→標題→內容→尾端，刪除只在編輯模式存在並固定在最後。預覽與編輯的差別只在欄位是否可編輯，不在順序或結構，所以切換模式時共用欄位不會移位。順序不開放 host 設定。",
+          "reference": "plan.md#itemrow-parity-matrix"
+        },
+        {
+          "summary": "共用元件的 presentation 旋鈕本身就是漂移來源：可設定的順序讓同一個 ItemRow 長出三種排列。收斂時刪除旋鈕，不只是把值改成一致；值可以再被改回來，旋鈕不存在就漂不動。",
+          "reference": "plan.md#itemrow-parity-matrix"
+        },
+        {
+          "summary": "模組膠囊在同一排的顯示順序由核心的固定 module type 排序表決定，不由 manifest 或 registry 決定；否則不同 scope 的同一畫面順序會不同，等於製造新的漂移來源。2026-08-04 確認為原則，實作隨模組接口逐步套用。",
+          "reference": "Documentation/ExtensionModuleArchitecturePlan.md"
         }
       ],
       "routes": [
