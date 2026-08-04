@@ -108,6 +108,11 @@ test("status order storage is isolated and safely falls back when unavailable", 
   assert.equal(saveStatusOrder(unavailable, STATUSES), false);
 });
 
+const taskCard = await readFile(
+  new URL("../experiments/editor-svelte-spike/src/TaskCard.svelte", import.meta.url),
+  "utf8",
+);
+
 test("production Viewer exposes mouse, touch, and keyboard status ordering", async () => {
   const [app, css, html] = await Promise.all([
     readFile(path.join(ROOT, "viewer/assets/app.js"), "utf8"),
@@ -122,7 +127,11 @@ test("production Viewer exposes mouse, touch, and keyboard status ordering", asy
     /stableSortByStatus\(\s*stableSortTasksByPriority\(state\.tasks\),\s*state\.statusOrder/,
   );
   assert.match(app, /taskMatchesViewStatus\(task, state\.filter\)/);
-  assert.match(app, /title: "待處理"/);
+  // Panel titles and their ordering moved into the card component; the host
+  // still supplies the reader's status order.
+  assert.match(app, /statusOrder: state\.statusOrder/);
+  assert.match(taskCard, /title: "待處理"/);
+  assert.match(taskCard, /statusOrder\.indexOf/);
   assert.match(css, /\.filter-button\.status-sortable/);
   assert.match(css, /touch-action: pan-y/);
   assert.match(css, /content: "待處理"/);

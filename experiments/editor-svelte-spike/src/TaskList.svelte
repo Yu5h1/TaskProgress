@@ -11,6 +11,9 @@
   export let timeItems = new Map();
   export let activeEstimates = new Map();
   export let onManualEstimate = null;
+  export let onTimeClick = null;
+  export let durations = {};
+  export let statusOrder = ["done", "planned"];
   export let emptyLabel = "沒有符合目前篩選的工作項目。";
 </script>
 
@@ -27,6 +30,9 @@
       {timeItems}
       {activeEstimates}
       {onManualEstimate}
+      {onTimeClick}
+      {statusOrder}
+      taskDuration={durations[task.id] ?? null}
     />
   {/each}
 {:else}

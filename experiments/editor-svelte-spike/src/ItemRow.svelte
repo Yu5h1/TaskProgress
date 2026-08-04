@@ -8,6 +8,9 @@
   export let timeItem = null;
   export let activeEstimate = null;
   export let onManualEstimate = null;
+  // When a host can open the time dialog it passes the action, not a node, so
+  // the capsule stays part of this component and remains replaceable.
+  export let onTimeClick = null;
 
   let estimateHours = activeEstimate
     ? String(activeEstimate.likely_minutes / 60)
@@ -20,8 +23,11 @@
 
   $: metadata = policy.metadata(item.priority);
   $: label = policy.format(item.priority);
+  // `label` is what a host-side analysis already formatted; `display_hours` is
+  // the spike fixture shape. One capsule, either source.
   $: timeLabel = timeItem
-    ? `${Number(timeItem.display_hours).toLocaleString(undefined, { maximumFractionDigits: 2 })}h`
+    ? timeItem.label
+      ?? `${Number(timeItem.display_hours).toLocaleString(undefined, { maximumFractionDigits: 2 })} hr`
     : "";
 
   function applyManualEstimate() {
@@ -74,11 +80,15 @@
         <option value={level.value}>{policy.format(level.value)}</option>
       {/each}
     </select>
-    {#if timeItem}
-      <span
-        class="spike-time-capsule"
-        title={`目前分析：${timeItem.likely_minutes} 分鐘`}
-      >{timeLabel}</span>
+    {#if timeItem && onTimeClick}
+      <button
+        class="time-item-button"
+        type="button"
+        aria-label={`${item.title}，${timeLabel}，查看估算依據`}
+        onclick={() => onTimeClick(item.id, item.title)}
+      >{timeLabel}</button>
+    {:else if timeItem}
+      <span class="time-item-button" title={`目前分析：${timeItem.likely_minutes} 分鐘`}>{timeLabel}</span>
     {/if}
     <button
       class="inline-delete-button"
@@ -142,11 +152,15 @@
     {#if metadata && (!metadata.hidden || !policy.labelsValid)}
       <span class={`priority-badge priority-${metadata.tone}`}>{label}</span>
     {/if}
-    {#if timeItem}
-      <span
-        class="spike-time-capsule"
-        title={`目前分析：${timeItem.likely_minutes} 分鐘`}
-      >{timeLabel}</span>
+    {#if timeItem && onTimeClick}
+      <button
+        class="time-item-button"
+        type="button"
+        aria-label={`${item.title}，${timeLabel}，查看估算依據`}
+        onclick={() => onTimeClick(item.id, item.title)}
+      >{timeLabel}</button>
+    {:else if timeItem}
+      <span class="time-item-button" title={`目前分析：${timeItem.likely_minutes} 分鐘`}>{timeLabel}</span>
     {/if}
   {/if}
 </li>

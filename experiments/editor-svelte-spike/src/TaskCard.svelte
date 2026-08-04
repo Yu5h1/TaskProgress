@@ -12,6 +12,7 @@
   export let timeItems = new Map();
   export let activeEstimates = new Map();
   export let onManualEstimate = null;
+  export let onTimeClick = null;
   // The Viewer lets the reader reorder status groups; the completed/pending
   // panels follow that order, so it has to reach the card.
   export let statusOrder = ["done", "planned"];
@@ -185,6 +186,7 @@
                 timeItem={timeItems.get(item.id) ?? null}
                 activeEstimate={activeEstimates.get(item.id) ?? null}
                 {onManualEstimate}
+                {onTimeClick}
               />
             {/each}
           </ul>

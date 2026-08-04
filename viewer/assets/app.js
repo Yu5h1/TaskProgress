@@ -9,7 +9,6 @@ import {
   resolveDeveloperReportSource,
   resolveReportRequest,
   stableSortTasksByPriority,
-  stableSortTaskItemsByPriority,
   validateScopeCatalog,
   validateDeveloperReport,
   validateReport,
@@ -21,12 +20,10 @@ import {
 import {
   bindHistoryShortcuts,
   createAddControl,
-  createItemRow,
   createModeController,
-  createPrioritySelect,
   createSaveBar,
-  createTaskCardShell,
 } from "./editor-surface.js";
+import { createUiView } from "./ui-host.js";
 import { initializeThemeControls } from "./theme.js";
 import {
   inspectTimeAnalysis,
@@ -100,6 +97,7 @@ const state = {
   developerAvailable: false,
   timeAnalysis: null,
   timeController: null,
+  taskListView: null,
   statusOrder: loadStatusOrder(statusOrderStorage, supportedStatuses),
   editor: {
     available: false,
@@ -129,13 +127,6 @@ function el(tag, className, text) {
   return node;
 }
 
-function prioritySelect(value, onChange, ariaLabel) {
-  return createPrioritySelect(value, {
-    className: "inline-priority-select",
-    ariaLabel,
-    onChange,
-  });
-}
 
 function syncEditorDirty(message = "有尚未儲存的修改") {
   const derived = state.editor.session?.derived;
@@ -206,135 +197,28 @@ function currentTaskProgress(task) {
   return calculateTaskProgress(task);
 }
 
-function appendItemAdder(section, task, field) {
-  const shell = el("div", "inline-add-shell");
-  const render = (expanded = false) => createAddControl(shell, {
-    kind: "item",
-    expanded,
-    triggerAriaLabel: "增加待處理子任務",
-    defaultPriority: PRIORITY_POLICY.creationDefaultValue,
-    onOpen: () => render(true),
-    onCancel: () => renderTasks(),
-    onSubmit: ({ title: draftTitle, priority }) => {
-      const title = normalizeMeaningfulText(draftTitle);
-      if (!title) {
-        renderTasks();
-        return;
-      }
-      const prefix = `item-${task.id}-${Date.now().toString(36)}`;
-      const id = state.editor.session.createItemId(task.id, prefix);
-      applyEditorCommand(
-        {
-          type: "add-item",
-          taskId: task.id,
-          field,
-          item: {
-            id,
-            title,
-            priority,
-          },
-        },
-        "已新增子任務，尚未儲存",
-        { render: true },
-      );
+// Adding a child item stays a host concern: it needs the editor session for a
+// stable ID and the Editor Core command, neither of which belongs in a UI
+// implementation. The UI only reports the title and priority the reader typed.
+function addTaskItem(taskId, draftTitle, priority) {
+  const title = normalizeMeaningfulText(draftTitle);
+  if (!title) return { error: "子任務描述不可為空白。" };
+  const prefix = `item-${taskId}-${Date.now().toString(36)}`;
+  const id = state.editor.session.createItemId(taskId, prefix);
+  applyEditorCommand(
+    {
+      type: "add-item",
+      taskId,
+      field: "pending_items",
+      item: { id, title, priority },
     },
-  });
-  render();
-  section.append(shell);
+    "已新增子任務，尚未儲存",
+    { render: true },
+  );
+  return { error: "" };
 }
 
-function appendList(
-  parent,
-  title,
-  items,
-  className = "",
-  timeItems = false,
-  editContext = null,
-) {
-  if ((!Array.isArray(items) || items.length === 0) && !editContext) return;
-  const section = el("section", `detail-section ${className}`.trim());
-  section.append(el("h4", "detail-heading", title));
-  const list = el("ul", "detail-list");
-  stableSortTaskItemsByPriority(items ?? []).forEach((item) => {
-    const stableItem = item !== null && typeof item === "object" && !Array.isArray(item);
-    const itemTitle = stableItem ? item.title : item;
-    const timeButton = timeItems && stableItem
-      ? state.timeController?.createItemTimeButton(item.id, itemTitle)
-      : null;
-    const { row } = createItemRow(item, {
-      editing: Boolean(editContext),
-      showPriority: timeItems,
-      rowClass: editContext && stableItem ? "" : (timeItems ? "time-work-item" : ""),
-      titleClass: timeItems ? "time-work-title" : "",
-      contentNodes: timeButton ? [timeButton] : [],
-      titleAriaLabel: "子任務描述",
-      priorityAriaLabel: `${itemTitle} 優先級`,
-      deleteAriaLabel: `刪除 ${itemTitle}`,
-      onDelete: () => {
-        applyEditorCommand(
-          {
-            type: "delete-item",
-            taskId: editContext.taskId,
-            field: editContext.field,
-            itemId: item.id,
-          },
-          "已刪除子任務，尚未儲存",
-          { render: true },
-        );
-      },
-      onTitleInput: (value) => {
-        applyEditorCommand({
-          type: "set-item-field",
-          taskId: editContext.taskId,
-          field: editContext.field,
-          itemId: item.id,
-          property: "title",
-          value,
-        });
-      },
-      onTitleCommit: (draftValue) => {
-        const value = normalizeMeaningfulText(draftValue);
-        if (!value) {
-          applyEditorCommand({
-            type: "set-item-field",
-            taskId: editContext.taskId,
-            field: editContext.field,
-            itemId: item.id,
-            property: "title",
-            value: itemTitle,
-          });
-          return itemTitle;
-        }
-        applyEditorCommand({
-          type: "set-item-field",
-          taskId: editContext.taskId,
-          field: editContext.field,
-          itemId: item.id,
-          property: "title",
-          value,
-        });
-        return value;
-      },
-      onPriorityChange: (priority) => {
-        applyEditorCommand(
-          {
-            type: "set-item-field",
-            taskId: editContext.taskId,
-            field: editContext.field,
-            itemId: item.id,
-            property: "priority",
-            value: priority,
-          },
-          "有尚未儲存的修改",
-          { render: true },
-        );
-      },
-    });
-    list.append(row);
-  });
-  section.append(list);
-  parent.append(section);
-}
+
 
 function safeReportUrl(value, label) {
   let url;
@@ -626,269 +510,7 @@ function renderFilters() {
   });
 }
 
-function renderDeveloperDetails(task, parent) {
-  const developer = task.developer;
-  if (!developer) return;
-  const legacySteps = developer.next_steps ?? [];
-  const nextAction = developer.next_step ?? legacySteps[0] ?? "尚未指定下一步";
-  const followupSteps = developer.next_step ? legacySteps : legacySteps.slice(1);
-  const hasDiscussion = Boolean(
-    followupSteps.length
-    || developer.blockers?.length
-    || developer.decisions?.length
-    || developer.routes?.length
-    || developer.claim,
-  );
-  const details = el(hasDiscussion ? "details" : "section", "developer-details");
-  const summary = el(hasDiscussion ? "summary" : "div", "developer-summary");
-  summary.append(el("span", "developer-next-label", "Next Step :"));
-  summary.append(el("span", "developer-next-action", nextAction));
-  if (hasDiscussion) {
-    summary.append(el("span", "developer-expand-hint", "展開作法與方向"));
-  }
-  details.append(summary);
-  if (!hasDiscussion) {
-    parent.append(details);
-    return;
-  }
 
-  const body = el("div", "developer-body");
-  body.append(el("h4", "developer-body-title", "作法與方向"));
-  appendList(body, "後續動作", followupSteps, "next-steps");
-  appendList(body, "Blockers", developer.blockers, "blockers");
-
-  if (developer.decisions?.length) {
-    const section = el("section", "detail-section");
-    section.append(el("h4", "detail-heading", "Decisions"));
-    const list = el("div", "decision-list");
-    developer.decisions.forEach((decision) => {
-      const item = el("article", "decision-item");
-      item.append(el("p", "", decision.summary));
-      if (decision.reference) item.append(el("code", "reference", decision.reference));
-      list.append(item);
-    });
-    section.append(list);
-    body.append(section);
-  }
-
-  if (developer.routes?.length) {
-    const section = el("section", "detail-section");
-    section.append(el("h4", "detail-heading", "Routes"));
-    const list = el("div", "route-list");
-    developer.routes.forEach((route) => {
-      const item = el("article", "route-item");
-      const heading = el("div", "route-heading");
-      heading.append(el("strong", "", route.title));
-      heading.append(el("span", `route-state route-${route.state}`, route.state));
-      item.append(heading);
-      if (route.reason) item.append(el("p", "", route.reason));
-      list.append(item);
-    });
-    section.append(list);
-    body.append(section);
-  }
-
-  if (developer.claim) {
-    const section = el("section", "detail-section claim-section");
-    section.append(el("h4", "detail-heading", "Claim"));
-    section.append(el("p", "", `Agent: ${developer.claim.agent}`));
-    if (developer.claim.worktree) section.append(el("p", "", `Worktree: ${developer.claim.worktree}`));
-    if (developer.claim.source_paths?.length) {
-      const paths = el("div", "path-list");
-      developer.claim.source_paths.forEach((path) => paths.append(el("code", "reference", path)));
-      section.append(paths);
-    }
-    body.append(section);
-  }
-
-  details.append(body);
-  parent.append(details);
-}
-
-function renderTask(task) {
-  const editableTask = state.editor.editing
-    ? state.editor.session?.task(task.id) ?? task
-    : task;
-  const progress = currentTaskProgress(task);
-  const shell = createTaskCardShell(task, {
-    completed: progress.completed,
-    total: progress.total,
-    showPriority: !state.editor.editing,
-  });
-  const { card, statusLine, titleLine, headerMeta } = shell;
-  if (state.editor.editing) {
-    const remove = el("button", "inline-delete-button task-delete-button", "刪除");
-    remove.type = "button";
-    remove.setAttribute("aria-label", `刪除任務 ${task.title}`);
-    remove.addEventListener("click", () => {
-      applyEditorCommand(
-        { type: "delete-task", taskId: task.id },
-        "已刪除任務，尚未儲存",
-        { render: true },
-      );
-    });
-    headerMeta.prepend(remove);
-  }
-  if (state.editor.editing) {
-    const statusSelect = el("select", "inline-status-select");
-    statusSelect.setAttribute("aria-label", `${task.title} 狀態`);
-    Object.entries(STATUS_META).forEach(([status, statusMeta]) => {
-      const option = el("option", "", statusMeta.label);
-      option.value = status;
-      option.selected = status === task.status;
-      statusSelect.append(option);
-    });
-    statusSelect.addEventListener("change", () => {
-      applyEditorCommand(
-        {
-          type: "set-task-field",
-          taskId: task.id,
-          field: "status",
-          value: statusSelect.value,
-        },
-        "有尚未儲存的修改",
-        { render: true },
-      );
-    });
-    statusLine.append(
-      statusSelect,
-      prioritySelect(
-        editableTask.priority,
-        (priority) => {
-          applyEditorCommand(
-            {
-              type: "set-task-field",
-              taskId: task.id,
-              field: "priority",
-              value: priority,
-            },
-            "有尚未儲存的修改",
-            { render: true },
-          );
-        },
-        `${task.title} 優先級`,
-      ),
-    );
-    const titleInput = el("input", "task-title-input");
-    titleInput.type = "text";
-    titleInput.maxLength = 160;
-    titleInput.value = task.title;
-    titleInput.setAttribute("aria-label", "任務名稱");
-    titleInput.addEventListener("input", () => {
-      applyEditorCommand({
-        type: "set-task-field",
-        taskId: task.id,
-        field: "title",
-        value: titleInput.value,
-      });
-    });
-    titleInput.addEventListener("change", () => {
-      const value = normalizeMeaningfulText(titleInput.value);
-      if (!value) {
-        applyEditorCommand({
-          type: "set-task-field",
-          taskId: task.id,
-          field: "title",
-          value: task.title,
-        });
-        titleInput.value = task.title;
-        return;
-      }
-      applyEditorCommand({
-        type: "set-task-field",
-        taskId: task.id,
-        field: "title",
-        value,
-      });
-      titleInput.value = value;
-    });
-    shell.title.replaceWith(titleInput);
-  }
-  const duration = state.timeController?.taskDuration(task.id);
-  if (duration) {
-    shell.duration.textContent = `約需 ${duration}`;
-    shell.duration.hidden = false;
-  }
-  if (state.editor.editing) {
-    const summary = el("textarea", "task-summary task-summary-input");
-    summary.maxLength = 1000;
-    summary.rows = 3;
-    summary.value = editableTask.summary;
-    summary.setAttribute("aria-label", `${task.title} 任務描述`);
-    summary.addEventListener("input", () => {
-      applyEditorCommand({
-        type: "set-task-field",
-        taskId: task.id,
-        field: "summary",
-        value: summary.value,
-      });
-    });
-    summary.addEventListener("change", () => {
-      const value = normalizeMeaningfulText(summary.value);
-      if (!value) {
-        applyEditorCommand({
-          type: "set-task-field",
-          taskId: task.id,
-          field: "summary",
-          value: task.summary,
-        });
-        summary.value = task.summary;
-        return;
-      }
-      applyEditorCommand({
-        type: "set-task-field",
-        taskId: task.id,
-        field: "summary",
-        value,
-      });
-      summary.value = value;
-    });
-    shell.summary.replaceWith(summary);
-  }
-  renderDeveloperDetails(task, card);
-
-  if (
-    state.editor.editing
-    || task.completed_items?.length
-    || task.pending_items?.length
-  ) {
-    const columns = el("div", "work-columns");
-    const workGroups = [
-      {
-        status: "done",
-        title: "已完成",
-        items: task.completed_items,
-        className: "completed-work",
-      },
-      {
-        status: "planned",
-        title: "待處理",
-        items: task.pending_items,
-        className: "pending-work",
-      },
-    ];
-    stableSortByStatus(workGroups, state.statusOrder).forEach((group) => {
-      appendList(
-        columns,
-        group.title,
-        group.items,
-        group.className,
-        true,
-        state.editor.editing
-          ? {
-              taskId: editableTask.id,
-              field: group.status === "done" ? "completed_items" : "pending_items",
-            }
-          : null,
-      );
-    });
-    if (state.editor.editing) {
-      appendItemAdder(columns, editableTask, "pending_items");
-    }
-    card.append(columns);
-  }
-  return card;
-}
 
 function rebuildMergedTasks() {
   const merged = mergeReports(state.report, state.developerReport);
@@ -941,6 +563,41 @@ function renderTaskAdder() {
   render();
 }
 
+// Props for the task-list region. Only plain data and callbacks cross into the
+// UI implementation — no DOM nodes — so the implementation stays replaceable.
+function taskListProps(tasks) {
+  const time = state.timeController;
+  const timeItems = new Map();
+  const durations = {};
+  const progress = {};
+  tasks.forEach((task) => {
+    progress[task.id] = currentTaskProgress(task);
+    const duration = time?.taskDuration(task.id);
+    if (duration) durations[task.id] = duration;
+    [...(task.completed_items ?? []), ...(task.pending_items ?? [])].forEach((item) => {
+      if (!item || typeof item !== "object") return;
+      const itemTime = time?.itemTime(item.id);
+      if (itemTime) timeItems.set(item.id, itemTime);
+    });
+  });
+
+  return {
+    tasks,
+    progress,
+    durations,
+    timeItems,
+    editing: state.editor.editing,
+    statusOrder: state.statusOrder,
+    policy: PRIORITY_POLICY,
+    emptyLabel: "沒有符合目前篩選的工作項目。",
+    onCommand: (command) => {
+      applyEditorCommand(command, "有尚未儲存的修改", { render: true });
+    },
+    onAddItem: (taskId, title, priority) => addTaskItem(taskId, title, priority),
+    onTimeClick: (itemId, itemTitle) => time?.showItemTime(itemId, itemTitle),
+  };
+}
+
 function renderTasks() {
   const orderedTasks = stableSortByStatus(
     stableSortTasksByPriority(state.tasks),
@@ -949,8 +606,12 @@ function renderTasks() {
   const tasks = state.filter === "all"
     ? orderedTasks
     : orderedTasks.filter((task) => taskMatchesViewStatus(task, state.filter));
-  elements.taskList.replaceChildren(...tasks.map(renderTask));
-  elements.empty.hidden = tasks.length !== 0;
+
+  const props = taskListProps(tasks);
+  if (state.taskListView) state.taskListView.update(props);
+  else state.taskListView = createUiView(elements.taskList, props);
+
+  elements.empty.hidden = true;
   renderTaskAdder();
 }
 

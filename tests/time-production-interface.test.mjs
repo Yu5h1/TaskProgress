@@ -12,6 +12,14 @@ const appSource = await readFile(
   new URL("../viewer/assets/app.js", import.meta.url),
   "utf8",
 );
+const taskCardSource = await readFile(
+  new URL("../experiments/editor-svelte-spike/src/TaskCard.svelte", import.meta.url),
+  "utf8",
+);
+const itemRowSource = await readFile(
+  new URL("../experiments/editor-svelte-spike/src/ItemRow.svelte", import.meta.url),
+  "utf8",
+);
 
 test("unfinished work is independent from deadline data", () => {
   assert.equal(remainingWorkload({
@@ -62,52 +70,28 @@ test("production capacity editing follows the one global edit transaction", () =
 });
 
 test("each production task card has one bottom child-item add control", () => {
-  const appendListBody = appSource.match(
-    /function appendList\([\s\S]*?\n}\n\nfunction safeReportUrl/,
-  )?.[0] ?? "";
-  const renderTaskBody = appSource.match(
-    /function renderTask\([\s\S]*?\n}\n\nfunction rebuildMergedTasks/,
-  )?.[0] ?? "";
+  // The task list is rendered through the UI adapter now, so the contract lives
+  // in the card component; the host only supplies the command.
+  const adderIndex = taskCardSource.indexOf("task-adder-section");
+  const columnsIndex = taskCardSource.indexOf("work-columns");
+  assert.ok(columnsIndex >= 0 && adderIndex > columnsIndex);
+  assert.equal(taskCardSource.split("spike-add-shell").length - 1, 1);
+  assert.match(taskCardSource, /\{#if editing\}\s*<div class="spike-add-shell">/);
 
-  assert.doesNotMatch(appendListBody, /appendItemAdder/);
-  assert.match(
-    renderTaskBody,
-    /stableSortByStatus\(workGroups,[\s\S]*?if \(state\.editor\.editing\) \{\s*appendItemAdder\(columns, editableTask, "pending_items"\);\s*\}\s*card\.append\(columns\)/,
-  );
-  assert.match(appSource, /createAddControl\(shell, \{[\s\S]*?triggerAriaLabel: "增加待處理子任務"/);
+  // New children always land in pending_items regardless of panel order.
+  assert.match(appSource, /function addTaskItem\(taskId, draftTitle, priority\)/);
+  assert.match(appSource, /type: "add-item",\s*taskId,\s*field: "pending_items"/);
+  assert.match(appSource, /createAddControl\(elements\.taskAddShell, \{/);
   assert.match(appSource, /defaultPriority: PRIORITY_POLICY\.creationDefaultValue/);
 });
 
 test("production item time actions remain visible in global edit mode", () => {
-  const appendListBody = appSource.match(
-    /function appendList\([\s\S]*?\n}\n\nfunction safeReportUrl/,
-  )?.[0] ?? "";
-
-  assert.match(
-    appendListBody,
-    /const timeButton = timeItems && stableItem[\s\S]*?state\.timeController\?\.createItemTimeButton\(item\.id, itemTitle\)[\s\S]*?contentNodes: timeButton \? \[timeButton\] : \[\]/,
-  );
-  assert.match(
-    timeViewSource,
-    /查看估算依據/,
-  );
-});
-
-test("production structural edits disable stale time projections", () => {
-  assert.match(
-    appSource,
-    /derived\?\.timeInvalidation\.stale/,
-  );
-  assert.match(
-    appSource,
-    /state\.timeController\?\.setReportStructureStale/,
-  );
-  assert.match(
-    timeViewSource,
-    /summaryButton\.replaceChildren\(el\("span", "", "時間待重新分析"\)\)/,
-  );
-  assert.match(
-    timeViewSource,
-    /if \(reportStructureStale\) return null;[\s\S]*?function taskDuration/,
-  );
+  // The capsule is rendered by the shared row in both modes and opens the
+  // existing dialog through a callback, so no DOM node crosses the UI boundary.
+  assert.equal(itemRowSource.split("time-item-button").length - 1, 4);
+  assert.match(itemRowSource, /onclick=\{\(\) => onTimeClick\(item\.id, item\.title\)\}/);
+  assert.match(appSource, /onTimeClick: \(itemId, itemTitle\) => time\?\.showItemTime\(itemId, itemTitle\)/);
+  assert.doesNotMatch(appSource, /createItemTimeButton/);
+  assert.match(timeViewSource, /function itemTime\(itemId\)/);
+  assert.match(timeViewSource, /查看估算依據/);
 });

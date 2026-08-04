@@ -944,6 +944,28 @@ export function createTimeReferenceController({
     openDialog("子項目工時", title, content, "item");
   }
 
+  /*
+   * Data accessors for hosts that render their own capsule. `createItemTimeButton`
+   * hands back a DOM node, which cannot cross a UI adapter boundary without
+   * making the rendered markup un-replaceable; these two return the value and
+   * the action instead, so any UI implementation can draw the capsule itself.
+   */
+  function itemTime(itemId) {
+    if (reportStructureStale) return null;
+    const item = index.items.get(itemId);
+    if (!item) return null;
+    return Object.freeze({
+      item_id: itemId,
+      label: hours(item.likely_minutes),
+      likely_minutes: item.likely_minutes,
+    });
+  }
+
+  function showItemTime(itemId, title) {
+    const item = index.items.get(itemId);
+    if (item) showItemDetail(item, title);
+  }
+
   function createItemTimeButton(itemId, title) {
     if (reportStructureStale) return null;
     const item = index.items.get(itemId);
@@ -992,10 +1014,12 @@ export function createTimeReferenceController({
     analysis,
     createItemTimeButton,
     deadlineAvailable,
+    itemTime,
     prepareSave,
     refresh,
     setEditing,
     setReportStructureStale,
+    showItemTime,
     taskDuration,
   });
 }

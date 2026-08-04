@@ -52,7 +52,8 @@ test("editing exposes global task and child controls with a panel-aligned save b
     readFile(styleUrl, "utf8"),
   ]);
   assert.match(app, /增加工作項目/);
-  assert.match(app, /增加待處理子任務/);
+  // Child-item adding now lives in the card component; the host owns the command.
+  assert.match(app, /function addTaskItem\(taskId, draftTitle, priority\)/);
   assert.match(app, /createAddControl\(elements\.taskAddShell/);
   assert.match(app, /saveBarControl = createSaveBar\(elements\.editSaveBar/);
   assert.match(app, /statusId: "edit-save-status"/);

@@ -736,9 +736,11 @@ test("production Viewer and Demo share cards, rows, add/save controls, validatio
   ]);
 
   assert.match(viewerApp, /from "\.\/editor-surface\.js"/);
-  assert.match(viewerApp, /const shell = createTaskCardShell\(task, \{/);
-  assert.match(viewerApp, /const \{ row \} = createItemRow\(item, \{/);
-  assert.match(viewerApp, /createAddControl\(shell, \{/);
+  // The Viewer's task list is rendered through the UI adapter, so cards and
+  // rows are no longer built here; the top-level task adder still is.
+  assert.match(viewerApp, /createUiView\(elements\.taskList, props\)/);
+  assert.doesNotMatch(viewerApp, /createTaskCardShell/);
+  assert.doesNotMatch(viewerApp, /createItemRow/);
   assert.match(viewerApp, /createAddControl\(elements\.taskAddShell, \{/);
   assert.match(viewerApp, /saveBarControl = createSaveBar\(elements\.editSaveBar, \{/);
   assert.match(viewerApp, /bindHistoryShortcuts\(document, \{/);

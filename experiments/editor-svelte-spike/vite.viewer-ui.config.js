@@ -29,7 +29,14 @@ export default defineConfig({
       fileName: () => "viewer-ui.js",
     },
     rollupOptions: {
-      output: { assetFileNames: "viewer-ui[extname]" },
+      // The host module must stay external. Bundling a copy of it would give
+      // the bundle its own adapter registry, so registration would never reach
+      // the `ui-host.js` instance that `app.js` imports.
+      external: (id) => id.endsWith("ui-host.js"),
+      output: {
+        assetFileNames: "viewer-ui[extname]",
+        paths: (id) => (id.endsWith("ui-host.js") ? "../ui-host.js" : id),
+      },
     },
   },
 });
