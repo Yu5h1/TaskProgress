@@ -1,0 +1,44 @@
+import { mount, unmount } from "svelte";
+
+import ProjectProgress from "./ProjectProgress.svelte";
+import StatusOverview from "./StatusOverview.svelte";
+import TaskList from "./TaskList.svelte";
+
+/*
+ * Svelte implementation of the Viewer's preview regions.
+ *
+ * Everything framework-specific stops here: the host passes plain data and
+ * callbacks, this file turns them into mounted Svelte components. Swapping to
+ * another UI technology means writing a sibling file exposing the same regions
+ * and the same three methods; nothing in the host changes.
+ *
+ * This is a `.svelte.js` module so `$state` compiles — reactive props are a
+ * Svelte detail and must not leak into the host contract.
+ */
+const components = {
+  "task-list": TaskList,
+  "status-overview": StatusOverview,
+  "project-progress": ProjectProgress,
+};
+
+export const svelteViewerAdapter = {
+  id: "svelte",
+  regions: Object.keys(components),
+
+  mount(region, target, props) {
+    const state = $state({ ...props });
+    const component = mount(components[region], { target, props: state });
+    return { component, state };
+  },
+
+  update(instance, props) {
+    // Assigning onto the reactive props object lets Svelte diff. The host does
+    // not need to know that; it just calls update().
+    Object.assign(instance.state, props);
+    return instance;
+  },
+
+  destroy(instance) {
+    unmount(instance.component);
+  },
+};

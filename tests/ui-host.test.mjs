@@ -11,15 +11,16 @@ import {
   useUiAdapter,
 } from "../viewer/assets/ui-host.js";
 
-function recordingAdapter(id = "recording") {
+function recordingAdapter(id = "recording", regions = ["task-list"]) {
   const calls = [];
   return {
     calls,
     adapter: {
       id,
-      mount(target, props) {
-        calls.push(["mount", target, props]);
-        return { target, props };
+      regions,
+      mount(region, target, props) {
+        calls.push(["mount", region, target, props]);
+        return { region, target, props };
       },
       update(instance, props) {
         calls.push(["update", props]);
@@ -39,6 +40,10 @@ test("the host rejects adapters that do not satisfy the contract", () => {
   assert.throws(
     () => registerUiAdapter({ id: "partial", mount() {}, update() {} }),
     /destroy/,
+  );
+  assert.throws(
+    () => registerUiAdapter({ id: "regionless", mount() {}, update() {}, destroy() {} }),
+    /regions/,
   );
   assert.deepEqual(registeredUiAdapters(), []);
 });
@@ -66,15 +71,16 @@ test("a view delegates mount, update and destroy to the active adapter", () => {
   registerUiAdapter(adapter);
 
   const target = { id: "task-list" };
-  const view = createUiView(target, { tasks: [1] });
+  const view = createUiView("task-list", target, { tasks: [1] });
   assert.equal(view.adapterId, "svelte");
+  assert.equal(view.region, "task-list");
 
   view.update({ tasks: [1, 2] });
   view.destroy();
   view.destroy(); // idempotent
 
   assert.deepEqual(calls, [
-    ["mount", target, { tasks: [1] }],
+    ["mount", "task-list", target, { tasks: [1] }],
     ["update", { tasks: [1, 2] }],
     ["destroy", target],
   ]);
@@ -84,9 +90,12 @@ test("a view delegates mount, update and destroy to the active adapter", () => {
 
 test("the host refuses to render without an implementation or a target", () => {
   resetUiAdapters();
-  assert.throws(() => createUiView({}, {}), /尚未註冊/);
+  assert.throws(() => createUiView("task-list", {}, {}), /尚未註冊/);
   registerUiAdapter(recordingAdapter().adapter);
-  assert.throws(() => createUiView(null, {}), /掛載目標/);
+  assert.throws(() => createUiView("task-list", null, {}), /掛載目標/);
+  // A region the implementation does not claim must fail loudly, not render
+  // nothing.
+  assert.throws(() => createUiView("unknown-region", {}, {}), /不支援 region/);
 });
 
 test("the contract stays narrow: data in, callbacks out, no DOM crossing back", async () => {
@@ -102,11 +111,12 @@ test("the contract stays narrow: data in, callbacks out, no DOM crossing back", 
 
 test("the Svelte adapter implements the contract and keeps framework detail inside", async () => {
   const source = await readFile(
-    new URL("../experiments/editor-svelte-spike/src/task-list-adapter.svelte.js", import.meta.url),
+    new URL("../experiments/editor-svelte-spike/src/viewer-adapter.svelte.js", import.meta.url),
     "utf8",
   );
   assert.match(source, /id:\s*"svelte"/);
-  assert.match(source, /mount\(target, props\)/);
+  assert.match(source, /regions: Object\.keys\(components\)/);
+  assert.match(source, /mount\(region, target, props\)/);
   assert.match(source, /update\(instance, props\)/);
   assert.match(source, /destroy\(instance\)/);
   assert.match(source, /from "svelte"/);
@@ -116,7 +126,7 @@ test("the Svelte adapter implements the contract and keeps framework detail insi
     new URL("../experiments/editor-svelte-spike/src/viewer-ui.js", import.meta.url),
     "utf8",
   );
-  assert.match(entry, /registerUiAdapter\(svelteTaskListAdapter\)/);
+  assert.match(entry, /registerUiAdapter\(svelteViewerAdapter\)/);
 
   const host = await readFile(new URL("../viewer/assets/ui-host.js", import.meta.url), "utf8");
   assert.doesNotMatch(host, /svelte/i);

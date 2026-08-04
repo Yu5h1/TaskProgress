@@ -31,6 +31,9 @@ function assertAdapter(adapter) {
       throw new TypeError(`UI adapter「${adapter.id}」缺少 ${method}()。`);
     }
   }
+  if (!Array.isArray(adapter.regions) || adapter.regions.length === 0) {
+    throw new TypeError(`UI adapter「${adapter.id}」需要宣告 regions。`);
+  }
 }
 
 export function registerUiAdapter(adapter) {
@@ -60,21 +63,26 @@ export function resetUiAdapters() {
 }
 
 /*
- * A view is one mounted region. The host keeps the handle, not the nodes, so
- * re-rendering is `view.update(props)` regardless of which implementation is
- * active — an imperative adapter rebuilds, a reactive one diffs, and the host
- * never needs to know which.
+ * A view is one mounted region, named so a single implementation can serve the
+ * whole page. The host keeps the handle, not the nodes, so re-rendering is
+ * `view.update(props)` regardless of which implementation is active — an
+ * imperative adapter rebuilds, a reactive one diffs, and the host never needs
+ * to know which.
  */
-export function createUiView(target, props = {}) {
+export function createUiView(region, target, props = {}) {
   const adapter = activeUiAdapter();
   if (!adapter) throw new Error("尚未註冊任何 UI adapter。");
   if (!target) throw new TypeError("UI view 需要掛載目標。");
+  if (!adapter.regions.includes(region)) {
+    throw new Error(`UI adapter「${adapter.id}」不支援 region「${region}」。`);
+  }
 
-  let instance = adapter.mount(target, props);
+  let instance = adapter.mount(region, target, props);
   let destroyed = false;
 
   return {
     adapterId: adapter.id,
+    region,
     update(nextProps = {}) {
       if (destroyed) throw new Error("UI view 已銷毀。");
       instance = adapter.update(instance, nextProps) ?? instance;

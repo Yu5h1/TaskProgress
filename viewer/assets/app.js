@@ -58,8 +58,6 @@ const elements = {
   updatedAt: document.querySelector("#updated-at"),
   reportId: document.querySelector("#report-id"),
   projectProgress: document.querySelector("#project-progress"),
-  projectProgressValue: document.querySelector("#project-progress-value"),
-  projectProgressMeter: document.querySelector("#project-progress-meter"),
   diagnostics: document.querySelector("#diagnostics"),
   content: document.querySelector("#report-content"),
   overview: document.querySelector("#overview-grid"),
@@ -98,6 +96,8 @@ const state = {
   timeAnalysis: null,
   timeController: null,
   taskListView: null,
+  overviewView: null,
+  projectProgressView: null,
   statusOrder: loadStatusOrder(statusOrderStorage, supportedStatuses),
   editor: {
     available: false,
@@ -281,39 +281,23 @@ function renderDiagnostics() {
 function renderOverview() {
   const counts = Object.fromEntries(supportedStatuses.map((status) => [status, 0]));
   state.tasks.forEach((task) => { counts[task.status] += 1; });
-  const cardMeta = {
-    in_progress: { label: "目前進行", tone: "active" },
-    done: { label: "已完成", tone: "success" },
-    blocked: { label: "受阻", tone: "danger" },
-    archive: { label: "已封存", tone: "muted" },
-  };
-  const cards = state.statusOrder
-    .filter((status) => cardMeta[status])
-    .map((status) => ({
-      status,
-      value: counts[status],
-      ...cardMeta[status],
-    }));
-  elements.overview.replaceChildren();
-  cards.forEach((card) => {
-    const item = el("article", `overview-card overview-${card.tone}`);
-    item.dataset.status = card.status;
-    item.append(el("span", "overview-value", String(card.value)));
-    item.append(el("span", "overview-label", card.label));
-    elements.overview.append(item);
-  });
+  const props = { counts, statusOrder: state.statusOrder };
+  if (state.overviewView) state.overviewView.update(props);
+  else state.overviewView = createUiView("status-overview", elements.overview, props);
 }
 
 function renderProjectProgress() {
   const progress = currentProjectProgress(state.tasks);
-  elements.projectProgressValue.textContent = `整體約 ${progress.percentage}%`;
-  elements.projectProgressMeter.value = progress.percentage;
-  elements.projectProgressMeter.setAttribute(
-    "aria-label",
-    state.timeController?.deadlineAvailable
-      ? `整體進度 ${progress.percentage}%，已完成 ${progress.completed}，共 ${progress.total} 個進度單位；時間已使用 ${Math.round(state.timeController.analysis.summary.deadline.time_progress_ratio * 100)}%`
-      : `整體進度 ${progress.percentage}%，已完成 ${progress.completed}，共 ${progress.total} 個進度單位`,
-  );
+  const props = {
+    percentage: progress.percentage,
+    completed: progress.completed,
+    total: progress.total,
+    timeProgressPercent: state.timeController?.deadlineAvailable
+      ? Math.round(state.timeController.analysis.summary.deadline.time_progress_ratio * 100)
+      : null,
+  };
+  if (state.projectProgressView) state.projectProgressView.update(props);
+  else state.projectProgressView = createUiView("project-progress", elements.projectProgress, props);
   elements.projectProgress.hidden = false;
 }
 
@@ -609,7 +593,7 @@ function renderTasks() {
 
   const props = taskListProps(tasks);
   if (state.taskListView) state.taskListView.update(props);
-  else state.taskListView = createUiView(elements.taskList, props);
+  else state.taskListView = createUiView("task-list", elements.taskList, props);
 
   elements.empty.hidden = true;
   renderTaskAdder();
