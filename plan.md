@@ -58,7 +58,7 @@ TaskProgress 未來需要接入專案難度、價值、成本、估價及其他�
 - 外部工具可以產生 JSON 投影，但 manifest 不得指定任意 JavaScript、HTML、CSS 或可執行公式。
 - 模組以 `scope_id`、`task_id` 與 stable `item_id` 對應主報告，並各自保存 Schema、版本、來源、信心及產生時間。
 - 任一模組缺少、未知、過期或無效時只隔離該模組，不使基本 Viewer 失敗。
-- time 先遷移為第一個正式模組，再以 difficulty 或 value 驗證接口沒有只為時間功能量身打造。
+- time 先遷移為第一個正式模組，再以 cost 作為第二個模組，驗證 project／task／item 對應、商業資料隱私及跨模組分析，而不讓核心新增成本特例。Cost 與 Time 同級；可明確讀取時間估算作為分析輸入，但投影與 Renderer 必須獨立載入、驗證及降級。第一版成本語意區分 actual、committed、estimated 與 replacement，並保存幣別、基準日、分類、分攤方法、來源及 confidence；付款與交易仍由外部系統負責。
 - 交易、付款、身份認證與電子簽署由外部系統負責；TaskProgress 只顯示經裁切的狀態投影與 reference。
 
 完整 Draft 0.1、概念接口、遷移階段、安全政策及驗證矩陣見 `Documentation/ExtensionModuleArchitecturePlan.md`。實作狀態與下一步由 `report.json`／`report.dev.json` 的 `extension-modules` task 記錄。

@@ -19,7 +19,7 @@ TaskProgress 目前以 `report.json` 表達任務、狀態、完成項目與進�
 3. 模組資料可以由外部工具產生，但 Viewer 只執行隨 TaskProgress 發布或明確安裝的可信任 Renderer。
 4. 第一版採「內建模組登錄表」，不建立可從報告下載並執行任意 JavaScript 的 plugin 系統。
 5. 每個模組獨立驗證、載入、呈現與降級；單一模組失敗不得使基本報告失效。
-6. `time` 應遷移為第一個正式模組，再以 `difficulty` 或 `value` 作為第二個實作來驗證接口的通用性。
+6. `time` 應遷移為第一個正式模組，再以 `cost` 作為第二個實作來驗證接口的通用性；difficulty 與 value 留待共同接口成立後擴充。
 7. 交易、付款、身份驗證及電子簽署仍屬外部系統；TaskProgress 模組只接收其可公開或可授權觀看的狀態投影。
 
 ## 目標
@@ -410,24 +410,22 @@ External status 模組不得讓 TaskProgress 成為交易或法律事實的 cano
 
 完成公開報告、Launcher 與 tests 的遷移後，再決定何時停止 legacy discovery。停止前必須有明確版本及升級說明。
 
-## 第二個驗證模組
+## 第二個驗證模組：Cost
 
-完成 time 遷移後，應選一個沒有動態時鐘、但同時具有 project/task/item 對應的模組驗證通用性。建議優先順序：
+完成 time 遷移後，以 `taskprogress.cost` 驗證 project／task／item 三層對應、商業資料隱私與跨模組分析，同時不得讓核心新增成本領域特例。
 
-1. `taskprogress.difficulty`
-2. `taskprogress.value`
-3. `taskprogress.metrics`
+Cost 是 Time 的同級模組，不是 Time 的附屬欄位。成本分析器可以明確讀取時間估算及費率作為輸入，但產生的成本投影與 Renderer 必須能獨立驗證、載入及降級；沒有 Time 時仍可呈現外包、訂閱或其他直接成本。
 
-Difficulty 模組可包含：
+第一版成本語意至少區分：
 
-- 複雜度；
-- 技術未知性；
-- 相依關係；
-- 外部阻礙；
-- 變更風險；
-- 評估方法、contributors、confidence 與 evidence references。
+- `actual`：已發生的成本；
+- `committed`：已承諾但尚未支付的成本；
+- `estimated`：依目前輸入預估的未來成本；
+- `replacement`：以指定地區、費率及基準日計算的重製估價，不得與實際成本混合。
 
-若新增 difficulty 時仍需在核心程式加入大量 `if difficulty` 或固定檔名處理，表示模組接口尚未真正成立。
+投影應保存幣別、最小貨幣單位整數、基準日、計算方法、納入範圍、來源、confidence、revision，以及可選的人力、AI 訂閱、硬體折舊、電力、外包與其他分類。所有金額都必須說明是直接現金、分攤成本或分析估值。public／developer／local 投影在產生時完成裁切；付款、發票及交易紀錄仍由外部系統保存。
+
+若新增 cost 時仍需在核心程式加入大量 `if cost`、固定檔名或 Time Renderer 相依，表示模組接口尚未真正成立。
 
 ## 分階段實作
 
@@ -471,12 +469,12 @@ Difficulty 模組可包含：
 
 完成條件：新增純資料模組時，不必修改 `ReportFolder` record 或 LocalWebService 固定檔名白名單。
 
-### Phase 4：第二模組
+### Phase 4：Cost 第二模組
 
-- 建立 difficulty 或 value Draft Schema。
+- 建立 cost Draft Schema，固定 actual／committed／estimated／replacement、幣別、基準日、分類、分攤與 provenance 語意。
 - 建立最小分析快照與 Renderer。
 - 驗證 project/task/item 三層掛載。
-- 驗證 time 與第二模組同時存在、其中一個失敗及顯示順序。
+- 驗證 time 與 cost 同時存在、cost 明確讀取 time 投影、任一模組失敗及顯示順序。
 
 完成條件：第二模組只透過共同接口接入，核心沒有領域名稱特例。
 
@@ -512,7 +510,7 @@ Difficulty 模組可包含：
 
 - `report.json` 不因新增模組而改版。
 - `time` 能透過共同接口載入，現有功能與測試保持相容。
-- 第二個領域模組不修改核心載入器的領域判斷。
+- cost 第二模組不修改核心載入器的領域判斷，且不依賴 Time Renderer 才能顯示。
 - 缺少、未知、過期或無效模組不使基本 Viewer 失敗。
 - Viewer 不執行 manifest 或 sidecar 指定的任意程式。
 - Launcher 不為 manifest 擴張到 report folder 之外的檔案權限。
@@ -532,4 +530,3 @@ Difficulty 模組可包含：
 8. `?time=` 等 legacy query 如何映射到共同 module override。
 9. 一般指標 Renderer 的資料元件白名單與無障礙限制。
 10. 模組 Schema 何時從 repository 內部契約升為可供外部工具使用的穩定規格。
-
