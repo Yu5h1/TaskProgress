@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-08-04T14:41:07+08:00",
+  "updated_at": "2026-08-05T20:24:43+08:00",
   "tasks": [
     {
       "id": "viewer-core",
@@ -171,7 +171,7 @@
       "title": "本機任務編輯",
       "status": "in_progress",
       "priority": 1,
-      "summary": "本機 Viewer 已成為單一入口，Editor Core、安全交易、時間設定與人工估算均已接入 Svelte。現階段暫停擴大遷移，先恢復既有 Viewer UX parity：交付日在時間設定上方、面板垂直排列，項目工時膠囊仍開啟時間彈出面板。",
+      "summary": "正式 Viewer 預覽已有四區改由可替換的 UI adapter 渲染，任務卡只剩一份實作，app.js 由 1436 行降為 931 行。最優先事項是統一 UI 來源：模式切換、儲存列與新增控制仍是兩份實作。建置產物已平鋪於 viewer/assets，但尚未推送，公開部署仍待驗證。",
       "completed_items": [
         {
           "id": "item-local-task-editing-done-1",
@@ -407,6 +407,26 @@
           "id": "freeze-item-row-order-contract",
           "title": "凍結 ItemRow 單一排列契約：編輯與預覽共用 優先→標題→內容→尾端，刪除固定在最後，並移除讓兩個 host 長出三種順序的 itemEditOrder 旋鈕",
           "priority": 1
+        },
+        {
+          "id": "unify-preview-edit-presentation",
+          "title": "統一預覽與編輯的呈現：列盒模型、模式按鈕尺寸與按下狀態對比收進共用樣式並刪除競爭宣告；Svelte 進入點套用已儲存主題並提供相同主題選單",
+          "priority": 0
+        },
+        {
+          "id": "add-swappable-ui-host",
+          "title": "建立可替換的 UI host 邊界 ui-host.js：具名 region 的 mount／update／destroy，只有資料與 callback 跨越，同一時間只有一個實作啟用",
+          "priority": 0
+        },
+        {
+          "id": "migrate-preview-regions-to-svelte",
+          "title": "正式 Viewer 預覽四區改由 UI adapter 渲染：任務卡（含 Developer overlay 與時間膠囊）、狀態統計、整體進度、狀態篩選（含拖曳與鍵盤排序）；刪除原生 renderTask／appendList／renderDeveloperDetails，app.js 由 1436 行降為 931 行",
+          "priority": 0
+        },
+        {
+          "id": "ship-preview-bundle-flat",
+          "title": "建置產物平鋪於 viewer/assets 並以測試守住路徑、emptyOutDir 與載入順序，使公開 Pages 不依賴 docs 複製步驟是否遞迴",
+          "priority": 0
         }
       ],
       "pending_items": [
@@ -416,9 +436,24 @@
           "priority": 0
         },
         {
-          "id": "migrate-viewer-preview-to-svelte",
-          "title": "通過 UX parity gate 後，讓正式 Viewer 預覽逐區改用同一套 Svelte 元件；不得以新排版取代既有互動，Demo 僅保留 fixture adapter",
+          "id": "unify-duplicated-ui-controls",
+          "title": "最優先：消除仍是兩份實作的控制項——模式切換（app.js createModeController vs App.svelte spike-mode-toggle）、儲存列（createSaveBar vs spike-savebar）、新增控制（createAddControl vs spike-add-shell）；收斂後刪除其中一份，不保留可讓兩邊分岔的設定",
+          "priority": 0
+        },
+        {
+          "id": "migrate-remaining-preview-regions",
+          "title": "將 app.js 仍在渲染的預覽區塊搬入同一套元件：診斷訊息、最外層任務新增鈕、scope 目錄首頁、主題與時間 Dialog",
           "priority": 1
+        },
+        {
+          "id": "retire-editor-surface-and-iframe",
+          "title": "預覽全部搬完後移除只剩 Demo 與測試在用的 editor-surface runtime，並拆掉編輯用 iframe 覆蓋層，使預覽與編輯成為同一頁的兩個模式",
+          "priority": 1
+        },
+        {
+          "id": "verify-public-deployment",
+          "title": "推送後確認 notify-docs 發出、docs Pages 部署完成，並實際開啟線上頁面確認報告正常顯示；再決定建置產物與原始碼同步要用 CI 比對或改由 docs 建置",
+          "priority": 0
         },
         {
           "id": "verify-mobile-editing",

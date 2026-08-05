@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "report_id": "task-progress-development",
-  "updated_at": "2026-08-04T14:41:07+08:00",
+  "updated_at": "2026-08-05T20:24:43+08:00",
   "tasks": [
     {
       "id": "viewer-core",
@@ -93,14 +93,17 @@
     },
     {
       "id": "local-task-editing",
-      "next_step": "Viewer 預覽已有四區改由 UI adapter 渲染：任務清單、狀態統計、整體進度、狀態篩選（含拖曳與鍵盤排序）；原生 renderTask／appendList／renderDeveloperDetails 已刪除，任務卡只剩 TaskCard.svelte 一份。下一步依同樣方式逐區搬移仍由 app.js 渲染的部分：診斷訊息、最外層任務新增鈕、scope 目錄首頁、主題與時間 Dialog；全部搬完後才能拆掉編輯用的 iframe 覆蓋層，讓預覽與編輯真正是同一頁的兩個模式。搬移前要先決定公開 Pages 是否維持提交建置產物。Demo 已凍結，只發展 viewer 預覽與 Svelte 編輯兩個面。列盒模型、模式按鈕尺寸與主題套用已於 2026-08-04 收進 editor-presentation.css。接著處理仍不一致的列高：先共用時間膠囊（Viewer .time-item-button 24px vs Svelte .spike-time-capsule 21px 是兩份實作），再裁示編輯控制項與預覽文字的高度差要靠加高共用列還是壓低控制項。Svelte 主題選擇已加入（重用 theme-model，storage 放在 theme-control.js adapter，自訂調色仍只在 Viewer Dialog）。",
+      "next_step": "最優先是統一 UI 來源：先消除仍是兩份實作的三組控制項——模式切換（app.js createModeController vs App.svelte spike-mode-toggle）、儲存列（createSaveBar vs spike-savebar）、新增控制（createAddControl vs spike-add-shell）；收斂時刪除其中一份，不保留可讓兩邊分岔的設定。接著把 app.js 仍在渲染的預覽區塊搬入同一套元件：診斷訊息、最外層任務新增鈕、scope 目錄首頁、主題與時間 Dialog。全部搬完才移除只剩 Demo 與測試在用的 editor-surface runtime，並拆掉編輯用 iframe 覆蓋層，讓預覽與編輯成為同一頁的兩個模式。與此並行但獨立的是公開部署驗證：目前 24 個 commit 尚未推送，推送後要實際開啟線上頁面確認報告顯示，再決定建置產物同步要用 CI 比對或改由 docs 建置。",
       "blockers": [
-        "人工工時／依據與獨立確認已在正式 Svelte Surface 建立 supersede estimate version 並透過 transaction 重新分析；尚未完成實機觸控驗證。",
-        "統一時間設定面板可修改公開容量資料並保留既有私人理由，但私人理由尚未開放編輯；需先擴充遮蔽歷史契約，避免敏感內容變更缺少稽核邊界。",
+        "尚未推送：24 個 commit 停在本機 main，包含整段 UI adapter 遷移。notify-docs 會因 viewer/** 觸發並由 docs repo 建置 Pages；建置產物已改為平鋪於 viewer/assets 以免依賴複製是否遞迴，但這個假設本身仍未經線上驗證。workflow 綠燈不等於頁面正常，必須實際開啟線上頁面。",
+        "建置產物與原始碼可能不同步：viewer/assets/viewer-ui.js 進版控但無防護，改了 .svelte 未執行 npm run viewer:ui:build 就提交會讓線上靜默跑舊 UI，測試讀原始碼因此抓不到。CI 比對或改由 docs 建置尚未選定。",
+        "仍有三組控制項是兩份實作：模式切換、儲存列、新增控制。這是最優先事項要解決的對象。",
+        "editor-surface runtime 仍匯出 TaskCard／ItemRow／優先級／欄位驗證等，但正式 Viewer 已不再呼叫，只剩凍結的 Demo 與測試在用；要等 Demo 不再建置於其上才能移除。",
+        "StatusFilters 的觸控拖曳（8px 門檻與水平軸鎖）從未在瀏覽器執行過，合成 pointer 事件無法重現 pointer capture，目前只有原始碼斷言覆蓋。",
+        "正式 Viewer 的編輯模式無法在瀏覽器驗證：執行中的服務對 capabilities 端點回 404，因為已發布 EXE 早於 edit-host 支援；編輯端行為改由共用同一套樣式與元件的 Svelte surface 驗證。",
+        "實機觸控編輯仍未驗證，因此正式編輯範圍仍以桌面滑鼠／鍵盤為準。",
         "目前 Svelte 時間設定違反既有 UX：交付日不在最上方、標題與表單橫向並排、項目工時改成 inline details 而非時間彈窗。這些 parity 回歸必須先修正，否則不得擴大遷移。",
-        "Demo 的四張狀態測試卡仍是 index.html 靜態標記，與共用 surface 產生的動態卡片是兩份來源；後續 TaskCard host 收斂時需決定是否改由 surface 產生。",
-        "尚未裁示的 UX 設計：ItemRow 在 390px 仍會折成三行，模組膠囊的水平捲動與描述 Text Ellipsis 尚未實作；描述點擊開啟 Dialog 與編輯模式描述為 input 相衝突，需決定入口；`待估` 在編輯模式仍不可點，因此無法替沒有估算的子項目建立估算；優先級與狀態是 report.json 核心欄位，若要放進模組排，需先確認其渲染路徑不得經過模組載入，否則模組失敗會讓任務失去狀態。",
-        "隔離 Svelte 的 390px 版面已無水平溢位且固定 SaveBar 對齊內容面板，正式 Viewer 桌面端對端也已通過；實機觸控仍未驗證，因此目前正式編輯範圍仍以桌面滑鼠／鍵盤為準。"
+        "尚未裁示的 UX 設計（已與使用者討論但未實作）：ItemRow 在 390px 折成三行需要折疊規則（提案為模組膠囊水平捲動加描述 ellipsis）；描述點擊開 Dialog 與編輯模式描述為 input 相衝突，入口未定；待估在編輯模式不可點，無估算的子項目無法建立估算；模組膠囊順序須由核心固定表決定而非 manifest；優先級與狀態是核心欄位，若放進模組排其渲染路徑不得經過模組載入；同一 subject 應為單一 Dialog 分區而非每個模組各開一個；Dialog 編輯應讓顯示值原地變欄位，而非在唯讀值下方追加另一份表單。"
       ],
       "decisions": [
         {
@@ -174,6 +177,10 @@
         {
           "summary": "模組膠囊在同一排的顯示順序由核心的固定 module type 排序表決定，不由 manifest 或 registry 決定；否則不同 scope 的同一畫面順序會不同，等於製造新的漂移來源。2026-08-04 確認為原則，實作隨模組接口逐步套用。",
           "reference": "Documentation/ExtensionModuleArchitecturePlan.md"
+        },
+        {
+          "summary": "最優先事項：統一 UI 來源。同一個畫面元素若在多處出現，只能有一份實作。這優先於功能開發、parity 修補與後續遷移；新增第二份實作不被接受，讓兩個 host 對同一元素做出不同呈現的設定旋鈕同樣不被接受，收斂時刪除旋鈕而非統一其值。",
+          "reference": "handoff.md"
         }
       ],
       "routes": [
