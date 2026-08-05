@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "report_id": "task-progress-development",
-  "updated_at": "2026-08-05T21:10:00+08:00",
+  "updated_at": "2026-08-05T21:45:00+08:00",
   "tasks": [
     {
       "id": "viewer-core",
@@ -93,11 +93,10 @@
     },
     {
       "id": "local-task-editing",
-      "next_step": "模式切換、儲存列與新增控制已收斂為 ModeToggle／SaveBar／AddControl 三個共用元件，vanilla 實作已從 editor-surface-runtime 刪除。剩下的重複只有一組：Svelte 編輯器的 App.svelte 仍自行渲染 header、spike-mode-toggle 與 spike-savebar，應改用同一份 ModeToggle 與 SaveBar。接著把 app.js 仍在渲染的預覽區塊搬入同一套元件：診斷訊息、scope 目錄首頁、主題與時間 Dialog；全部搬完才移除只剩測試在用的 editor-surface runtime 並拆掉編輯 iframe。另一條獨立路線是公開部署驗證：25 個 commit 尚未推送，推送後要實際開啟線上頁面確認報告顯示。",
+      "next_step": "單一 UI 來源已達成：預覽與編輯共同出現的元素全部只剩一份實作（任務卡、子項目、Developer overlay、時間膠囊、模式切換、儲存列、新增控制、狀態統計、整體進度、狀態篩選）。下一步把 app.js 仍在渲染但編輯端沒有的區塊也搬入同一套元件：診斷訊息、scope 目錄首頁、主題與時間 Dialog；全部搬完才移除只剩測試在用的 editor-surface runtime，並拆掉編輯 iframe，讓預覽與編輯成為同一頁的兩個模式。另一條獨立路線是公開部署驗證：26 個 commit 尚未推送，推送後要實際開啟線上頁面確認報告顯示。",
       "blockers": [
-        "尚未推送：25 個 commit 停在本機 main，包含整段 UI adapter 遷移。notify-docs 會因 viewer/** 觸發並由 docs repo 建置 Pages；建置產物已改為平鋪於 viewer/assets 以免依賴複製是否遞迴，但這個假設本身仍未經線上驗證。workflow 綠燈不等於頁面正常，必須實際開啟線上頁面。",
+        "尚未推送：26 個 commit 停在本機 main，包含整段 UI adapter 遷移。notify-docs 會因 viewer/** 觸發並由 docs repo 建置 Pages；建置產物已改為平鋪於 viewer/assets 以免依賴複製是否遞迴，但這個假設本身仍未經線上驗證。workflow 綠燈不等於頁面正常，必須實際開啟線上頁面。",
         "建置產物與原始碼可能不同步：viewer/assets/viewer-ui.js 進版控但無防護，改了 .svelte 未執行 npm run viewer:ui:build 就提交會讓線上靜默跑舊 UI，測試讀原始碼因此抓不到。CI 比對或改由 docs 建置尚未選定。",
-        "僅剩一組重複實作：Svelte 編輯器 App.svelte 的 header、模式切換與儲存列尚未改用共用的 ModeToggle／SaveBar。",
         "時間參考 Demo 已隨此次收斂停止運作（依使用者裁示 (a)）：它呼叫的 createModeController／createSaveBar／createAddControl 已刪除，開啟頁面會拋錯。不得為了讓 Demo 復活而還原那些函式。",
         "editor-surface runtime 仍匯出 TaskCard／ItemRow／優先級／欄位驗證等，但正式 Viewer 已不再呼叫，只剩凍結的 Demo 與測試在用；要等 Demo 不再建置於其上才能移除。",
         "StatusFilters 的觸控拖曳（8px 門檻與水平軸鎖）從未在瀏覽器執行過，合成 pointer 事件無法重現 pointer capture，目前只有原始碼斷言覆蓋。",

@@ -45,8 +45,7 @@ textarea {
 }
 
 .spike-heading p,
-.spike-status,
-.spike-savebar p {
+.spike-status {
   margin: 0;
   color: var(--ink-soft);
 }
@@ -59,7 +58,6 @@ textarea {
   text-transform: uppercase;
 }
 
-.spike-savebar button,
 .spike-add-form button,
 .spike-add-button {
   padding: 7px 12px;
@@ -70,26 +68,10 @@ textarea {
   cursor: pointer;
 }
 
-/* Size and position come from `.editor-mode-dock`; only colour lives here. */
-.spike-mode-toggle {
-  color: var(--ink);
-  background: color-mix(in srgb, var(--surface) 94%, transparent);
-  border: 1px solid var(--line);
-  box-shadow: var(--shadow);
-  backdrop-filter: blur(10px);
-  cursor: pointer;
-}
-
-/* The mode toggle's pressed state is shared; see `.editor-mode-dock`. */
 .spike-save-button {
   color: white !important;
   background: var(--blue) !important;
   border-color: var(--blue) !important;
-}
-
-.spike-mode-toggle:disabled {
-  cursor: default;
-  opacity: 0.45;
 }
 
 .spike-task-state {
@@ -522,34 +504,6 @@ textarea {
   font-size: 0.75rem;
 }
 
-.spike-savebar {
-  position: fixed;
-  right: max(16px, calc((100vw - var(--editor-content-max-width)) / 2));
-  bottom: 18px;
-  left: max(16px, calc((100vw - var(--editor-content-max-width)) / 2));
-  z-index: 10;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 12px 14px;
-  background: color-mix(in srgb, var(--surface) 94%, transparent);
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  box-shadow: var(--shadow);
-  backdrop-filter: blur(10px);
-}
-
-.spike-save-actions {
-  display: flex;
-  gap: 8px;
-}
-
-.spike-savebar button:disabled {
-  cursor: default;
-  opacity: 0.45;
-}
-
 .spike-status {
   margin-top: 16px;
   font-size: 0.8rem;
@@ -733,7 +687,6 @@ textarea {
   }
 
   .spike-heading,
-  .spike-savebar,
   .spike-time-editor,
   .spike-time-config-missing {
     align-items: stretch;
@@ -769,11 +722,7 @@ textarea {
     grid-column: 1 / -1;
   }
 
-  .spike-save-actions {
-    justify-content: flex-end;
-  }
-
-  .spike-risk-comparison {
+    .spike-risk-comparison {
     align-items: stretch;
     flex-direction: column;
   }

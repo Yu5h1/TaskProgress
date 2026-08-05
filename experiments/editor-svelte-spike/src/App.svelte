@@ -5,6 +5,8 @@
   import { createThemeControl } from "./theme-control.js";
   import DeliveryRiskPreview from "./DeliveryRiskPreview.svelte";
   import DeliverySaveConfirmation from "./DeliverySaveConfirmation.svelte";
+  import ModeToggle from "./ModeToggle.svelte";
+  import SaveBar from "./SaveBar.svelte";
   import TaskCard from "./TaskCard.svelte";
   import TimeSettingsEditor from "./TimeSettingsEditor.svelte";
   import { loadSvelteEditorData } from "./data-loader.js";
@@ -370,15 +372,13 @@
         </select>
       </label>
     </div>
-    {#if !requireHostCapability || hostAvailable}
-      <button
-        class="spike-mode-toggle editor-mode-dock"
-        type="button"
-        aria-pressed={editing}
-        disabled={loading || saving || previewing || confirmingDeliverySave || Boolean(loadError)}
-        onclick={toggleMode}
-      >{editing ? "編輯模式" : "預覽模式"}</button>
-    {/if}
+    <ModeToggle
+      mode={editing ? "edit" : "preview"}
+      available={!requireHostCapability || hostAvailable}
+      hideWhenUnavailable={true}
+      disabled={loading || saving || previewing || confirmingDeliverySave || Boolean(loadError)}
+      onToggle={toggleMode}
+    />
   </header>
 
   {#if loading}
@@ -440,18 +440,23 @@
     </section>
 
     {#if editing}
-      <footer class="spike-savebar" aria-busy={saving}>
-        <p role="status" aria-live="polite">{statusMessage}</p>
-        <div class="spike-save-actions">
-          <button type="button" onclick={undo} disabled={!view.history.canUndo}>復原</button>
-          <button type="button" onclick={redo} disabled={!view.history.canRedo}>重做</button>
-          <button
-            class="spike-save-button"
-            type="button"
-            onclick={requestSave}
-            disabled={!editorDirty || saving || previewing}
-          >{previewing ? "重新計算中…" : "儲存"}</button>
-        </div>
+      <footer
+        class="edit-save-bar"
+        data-state={saving ? "saving" : editorDirty ? "dirty" : "clean"}
+        aria-live="polite"
+        aria-busy={saving}
+      >
+        <SaveBar
+          dirty={editorDirty}
+          saving={saving || previewing}
+          canUndo={view.history.canUndo}
+          canRedo={view.history.canRedo}
+          message={statusMessage}
+          savingLabel={previewing ? "重新計算中…" : "正在儲存…"}
+          onSave={requestSave}
+          onUndo={undo}
+          onRedo={redo}
+        />
       </footer>
     {:else}
       <p class="spike-status" role="status" aria-live="polite">{statusMessage}</p>

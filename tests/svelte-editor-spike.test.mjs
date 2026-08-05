@@ -699,7 +699,10 @@ test("Svelte spike is isolated, static-path safe, and uses the shared core", asy
   assert.match(stylesText, /@media \(max-width: 640px\)[\s\S]*?\.spike-time-editor\s*\{[\s\S]*?grid-template-columns:\s*minmax\(0, 1fr\)/u);
   assert.match(stylesText, /@import "@editor\/editor-presentation\.css"/u);
   assert.match(appText, /class="spike-page editor-layout-shell"/u);
-  assert.match(appText, /class="spike-mode-toggle editor-mode-dock"/u);
+  // The editor shell uses the shared controls rather than its own markup.
+  assert.match(appText, /<ModeToggle/u);
+  assert.match(appText, /<SaveBar/u);
+  assert.doesNotMatch(appText, /spike-mode-toggle|spike-savebar|spike-save-button/u);
   assert.match(cardText, /task-card editor-task-card/u);
   assert.match(rowText, /class="editor-item-row"/u);
   assert.match(presentationText, /--editor-content-max-width:\s*960px/u);
