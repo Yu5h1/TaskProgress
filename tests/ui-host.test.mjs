@@ -145,6 +145,13 @@ test("the Svelte adapter implements the contract and keeps framework detail insi
   );
   assert.match(source, /id:\s*"svelte"/);
   assert.match(source, /regions: Object\.keys\(components\)/);
+  // Every preview region the Viewer mounts must be declared here.
+  for (const region of [
+    "task-list", "status-overview", "status-filters", "project-progress",
+    "mode-toggle", "save-bar", "add-control", "diagnostics", "scope-directory",
+  ]) {
+    assert.match(source, new RegExp(`"${region}":`, "u"));
+  }
   assert.match(source, /mount\(region, target, props\)/);
   assert.match(source, /update\(instance, props\)/);
   assert.match(source, /destroy\(instance\)/);

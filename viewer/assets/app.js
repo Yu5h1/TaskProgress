@@ -94,6 +94,8 @@ const state = {
   timeController: null,
   taskListView: null,
   taskAdderView: null,
+  diagnosticsView: null,
+  scopeDirectoryView: null,
   overviewView: null,
   projectProgressView: null,
   filtersView: null,
@@ -286,14 +288,10 @@ function formatTime(value) {
 }
 
 function renderDiagnostics() {
-  elements.diagnostics.replaceChildren();
   elements.diagnostics.hidden = state.diagnostics.length === 0;
-  state.diagnostics.forEach((diagnostic) => {
-    const item = el("div", `diagnostic diagnostic-${diagnostic.level ?? "error"}`);
-    item.append(el("strong", "", diagnostic.level === "warning" ? "注意" : "無法載入部分資料"));
-    item.append(el("p", "", diagnostic.message));
-    elements.diagnostics.append(item);
-  });
+  const props = { diagnostics: state.diagnostics };
+  if (state.diagnosticsView) state.diagnosticsView.update(props);
+  else state.diagnosticsView = createUiView("diagnostics", elements.diagnostics, props);
 }
 
 function renderOverview() {
@@ -723,20 +721,17 @@ async function loadScopeCatalog() {
   return validateScopeCatalog(catalog);
 }
 
+// The scope-to-URL rule stays here; the component only lays the entries out.
 function renderScopeDirectory(scopes) {
-  elements.scopeDirectory.replaceChildren();
-  for (const scope of scopes) {
-    const card = el("article", "scope-entry");
-    const reportLink = el("a", "scope-link", scope.id);
-    reportLink.href = buildScopeHref(scope.id);
-    card.append(reportLink);
-    if (scope.hasDeveloperReport) {
-      const baseOnlyLink = el("a", "scope-developer-link", "基本報告");
-      baseOnlyLink.href = buildScopeHref(scope.id, "none");
-      card.append(baseOnlyLink);
-    }
-    elements.scopeDirectory.append(card);
-  }
+  const props = {
+    scopes: scopes.map((scope) => ({
+      id: scope.id,
+      href: buildScopeHref(scope.id),
+      baseOnlyHref: scope.hasDeveloperReport ? buildScopeHref(scope.id, "none") : null,
+    })),
+  };
+  if (state.scopeDirectoryView) state.scopeDirectoryView.update(props);
+  else state.scopeDirectoryView = createUiView("scope-directory", elements.scopeDirectory, props);
   elements.scopeDirectory.hidden = false;
 }
 

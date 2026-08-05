@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-08-05T22:20:00+08:00",
+  "updated_at": "2026-08-05T22:55:00+08:00",
   "tasks": [
     {
       "id": "viewer-core",
@@ -424,6 +424,11 @@
           "priority": 0
         },
         {
+          "id": "migrate-diagnostics-and-scope-directory",
+          "title": "診斷訊息與 scope 目錄首頁改由 UI adapter 渲染；scope 對 URL 的規則留在 host，元件只負責排版",
+          "priority": 1
+        },
+        {
           "id": "verify-public-deployment",
           "title": "公開部署已驗證：線上資產全部 200、bundle 與本機位元組相同、以真實資料渲染正常；並加上 CI verify-bundle 擋在 dispatch 之前，避免過期產物上線",
           "priority": 0
@@ -452,8 +457,8 @@
         },
 
         {
-          "id": "migrate-remaining-preview-regions",
-          "title": "將 app.js 仍在渲染的預覽區塊搬入同一套元件：診斷訊息、最外層任務新增鈕、scope 目錄首頁、主題與時間 Dialog",
+          "id": "migrate-remaining-dialogs",
+          "title": "將 app.js 最後兩塊自行繪製的區域搬入同一套元件：主題 Dialog 與時間 Dialog",
           "priority": 1
         },
         {

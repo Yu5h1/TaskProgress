@@ -1,8 +1,10 @@
 import { mount, unmount } from "svelte";
 
 import AddControl from "./AddControl.svelte";
+import Diagnostics from "./Diagnostics.svelte";
 import ModeToggle from "./ModeToggle.svelte";
 import ProjectProgress from "./ProjectProgress.svelte";
+import ScopeDirectory from "./ScopeDirectory.svelte";
 import SaveBar from "./SaveBar.svelte";
 import StatusFilters from "./StatusFilters.svelte";
 import StatusOverview from "./StatusOverview.svelte";
@@ -27,6 +29,8 @@ const components = {
   "mode-toggle": ModeToggle,
   "save-bar": SaveBar,
   "add-control": AddControl,
+  "diagnostics": Diagnostics,
+  "scope-directory": ScopeDirectory,
 };
 
 export const svelteViewerAdapter = {

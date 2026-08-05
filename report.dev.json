@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "report_id": "task-progress-development",
-  "updated_at": "2026-08-05T22:20:00+08:00",
+  "updated_at": "2026-08-05T22:55:00+08:00",
   "tasks": [
     {
       "id": "viewer-core",
@@ -93,7 +93,7 @@
     },
     {
       "id": "local-task-editing",
-      "next_step": "公開部署已驗證（decc733 已推送，線上以真實資料渲染正常），建置產物同步也已由 CI 擋住。回到 UI 收斂：把 app.js 仍在渲染但編輯端沒有的區塊搬入同一套元件——診斷訊息、scope 目錄首頁、主題與時間 Dialog；全部搬完才移除只剩測試在用的 editor-surface runtime，並拆掉編輯 iframe，讓預覽與編輯成為同一頁的兩個模式。",
+      "next_step": "診斷訊息與 scope 目錄首頁已改由 UI adapter 渲染；app.js 只剩主題 Dialog 與時間 Dialog 兩塊仍自行繪製。這兩塊搬完即可移除只剩測試在用的 editor-surface runtime，並拆掉編輯用 iframe 覆蓋層，讓預覽與編輯成為同一頁的兩個模式。時間 Dialog 由 time-view.js 產生且與時間分析耦合，主題 Dialog 由 theme.js 產生且需要 9 個 DOM id 與自訂調色，兩者都比先前的區塊大，建議各自獨立進行。",
       "blockers": [
         "時間參考 Demo 已隨此次收斂停止運作（依使用者裁示 (a)）：它呼叫的 createModeController／createSaveBar／createAddControl 已刪除，開啟頁面會拋錯。不得為了讓 Demo 復活而還原那些函式。",
         "editor-surface runtime 仍匯出 TaskCard／ItemRow／優先級／欄位驗證等，但正式 Viewer 已不再呼叫，只剩凍結的 Demo 與測試在用；要等 Demo 不再建置於其上才能移除。",
