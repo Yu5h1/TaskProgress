@@ -98,6 +98,7 @@ const state = {
   taskListView: null,
   overviewView: null,
   projectProgressView: null,
+  filtersView: null,
   statusOrder: loadStatusOrder(statusOrderStorage, supportedStatuses),
   editor: {
     available: false,
@@ -114,9 +115,6 @@ const state = {
   },
 };
 
-let draggedStatus = null;
-let suppressFilterClick = false;
-let pointerDrag = null;
 let viewModeControl = null;
 let saveBarControl = null;
 
@@ -309,28 +307,10 @@ function statusCounts() {
   return counts;
 }
 
-function clearStatusDragIndicators() {
-  elements.filters.querySelectorAll(".filter-button").forEach((button) => {
-    button.classList.remove("status-dragging", "status-drop-before", "status-drop-after");
-  });
-}
 
-function updateDropIndicator(button, clientX) {
-  elements.filters.querySelectorAll(".filter-button").forEach((candidate) => {
-    candidate.classList.remove("status-drop-before", "status-drop-after");
-  });
-  const bounds = button.getBoundingClientRect();
-  const placeAfter = clientX >= bounds.left + bounds.width / 2;
-  button.classList.add(placeAfter ? "status-drop-after" : "status-drop-before");
-  return placeAfter;
-}
 
-function visibleStatusOrder() {
-  const counts = statusCounts();
-  return state.statusOrder.filter((status) => counts[status] > 0);
-}
 
-function applyStatusOrder(status, targetStatus, placeAfter = false, focusStatus = null) {
+function applyStatusOrder(status, targetStatus, placeAfter = false) {
   const nextOrder = moveStatusOrder(state.statusOrder, status, targetStatus, placeAfter);
   if (nextOrder.every((candidate, index) => candidate === state.statusOrder[index])) return;
   state.statusOrder = nextOrder;
@@ -338,160 +318,30 @@ function applyStatusOrder(status, targetStatus, placeAfter = false, focusStatus 
   renderOverview();
   renderFilters();
   renderTasks();
-  if (focusStatus) {
-    elements.filters.querySelector(`[data-filter="${focusStatus}"]`)?.focus();
-  }
 }
 
-function moveVisibleStatusByOffset(status, offset) {
-  const visible = visibleStatusOrder();
-  const index = visible.indexOf(status);
-  const targetIndex = index + offset;
-  if (index < 0 || targetIndex < 0 || targetIndex >= visible.length) return;
-  applyStatusOrder(status, visible[targetIndex], offset > 0, status);
-}
 
-function sortableButtonAtPoint(clientX, clientY) {
-  const target = document.elementFromPoint(clientX, clientY);
-  return target?.closest?.(".filter-button.status-sortable") ?? null;
-}
 
-function bindStatusOrdering(button) {
-  const status = button.dataset.filter;
-  button.addEventListener("dragstart", (event) => {
-    draggedStatus = status;
-    suppressFilterClick = true;
-    button.classList.add("status-dragging");
-    event.dataTransfer.effectAllowed = "move";
-    event.dataTransfer.setData("text/plain", status);
-  });
-  button.addEventListener("dragover", (event) => {
-    const targetStatus = button.dataset.filter;
-    if (!draggedStatus || targetStatus === draggedStatus) return;
-    event.preventDefault();
-    event.dataTransfer.dropEffect = "move";
-    updateDropIndicator(button, event.clientX);
-  });
-  button.addEventListener("dragleave", (event) => {
-    if (!button.contains(event.relatedTarget)) {
-      button.classList.remove("status-drop-before", "status-drop-after");
-    }
-  });
-  button.addEventListener("drop", (event) => {
-    if (!draggedStatus) return;
-    event.preventDefault();
-    const sourceStatus = draggedStatus;
-    const placeAfter = updateDropIndicator(button, event.clientX);
-    draggedStatus = null;
-    clearStatusDragIndicators();
-    applyStatusOrder(sourceStatus, status, placeAfter);
-  });
-  button.addEventListener("dragend", () => {
-    draggedStatus = null;
-    clearStatusDragIndicators();
-    window.setTimeout(() => {
-      suppressFilterClick = false;
-    }, 0);
-  });
-  button.addEventListener("keydown", (event) => {
-    if (!event.altKey || !["ArrowLeft", "ArrowRight"].includes(event.key)) return;
-    event.preventDefault();
-    moveVisibleStatusByOffset(status, event.key === "ArrowLeft" ? -1 : 1);
-  });
-  button.addEventListener("pointerdown", (event) => {
-    if (event.pointerType === "mouse" || event.button !== 0) return;
-    pointerDrag = {
-      pointerId: event.pointerId,
-      status,
-      startX: event.clientX,
-      startY: event.clientY,
-      active: false,
-      targetStatus: null,
-      placeAfter: false,
-    };
-    button.setPointerCapture?.(event.pointerId);
-  });
-  button.addEventListener("pointermove", (event) => {
-    if (!pointerDrag || pointerDrag.pointerId !== event.pointerId) return;
-    const deltaX = event.clientX - pointerDrag.startX;
-    const deltaY = event.clientY - pointerDrag.startY;
-    if (!pointerDrag.active) {
-      if (Math.hypot(deltaX, deltaY) < 8) return;
-      if (Math.abs(deltaY) > Math.abs(deltaX)) return;
-      pointerDrag.active = true;
-      suppressFilterClick = true;
-      button.classList.add("status-dragging");
-    }
-    event.preventDefault();
-    const targetButton = sortableButtonAtPoint(event.clientX, event.clientY);
-    if (!targetButton || targetButton.dataset.filter === status) {
-      pointerDrag.targetStatus = null;
-      clearStatusDragIndicators();
-      button.classList.add("status-dragging");
-      return;
-    }
-    pointerDrag.targetStatus = targetButton.dataset.filter;
-    pointerDrag.placeAfter = updateDropIndicator(targetButton, event.clientX);
-    button.classList.add("status-dragging");
-  });
-  const finishPointerDrag = (event) => {
-    if (!pointerDrag || pointerDrag.pointerId !== event.pointerId) return;
-    const completedDrag = pointerDrag;
-    pointerDrag = null;
-    button.releasePointerCapture?.(event.pointerId);
-    clearStatusDragIndicators();
-    if (completedDrag.active && completedDrag.targetStatus) {
-      applyStatusOrder(
-        completedDrag.status,
-        completedDrag.targetStatus,
-        completedDrag.placeAfter,
-      );
-    }
-    window.setTimeout(() => {
-      suppressFilterClick = false;
-    }, 0);
-  };
-  button.addEventListener("pointerup", finishPointerDrag);
-  button.addEventListener("pointercancel", finishPointerDrag);
-}
 
 function renderFilters() {
-  const counts = statusCounts();
-  const filters = ["all", ...state.statusOrder];
-  const visible = filters.filter((filter) => filter === "all" || counts[filter] > 0);
-  elements.filters.replaceChildren();
-  visible.forEach((filter) => {
-    const label = filter === "all" ? "全部" : STATUS_META[filter].label;
-    const button = el("button", "filter-button", `${label} ${counts[filter]}`);
-    button.type = "button";
-    button.dataset.filter = filter;
-    button.setAttribute("aria-pressed", String(filter === state.filter));
-    button.addEventListener("click", (event) => {
-      if (suppressFilterClick) {
-        event.preventDefault();
-        suppressFilterClick = false;
-        return;
-      }
+  const props = {
+    counts: statusCounts(),
+    statusOrder: state.statusOrder,
+    activeFilter: state.filter,
+    statusLabels: Object.fromEntries(
+      Object.entries(STATUS_META).map(([status, meta]) => [status, meta.label]),
+    ),
+    onFilterChange: (filter) => {
       state.filter = filter;
       renderFilters();
       renderTasks();
-    });
-    if (filter !== "all") {
-      const orderPosition = visible.indexOf(filter);
-      button.draggable = true;
-      button.classList.add("status-sortable");
-      button.title = filter === "planned"
-        ? "點擊顯示待規劃或仍有待處理子項目的任務；拖曳可調整排序"
-        : "拖曳調整卡片排序；Alt＋左右方向鍵也可移動";
-      button.setAttribute("aria-keyshortcuts", "Alt+ArrowLeft Alt+ArrowRight");
-      button.setAttribute(
-        "aria-label",
-        `${label} ${counts[filter]}，排序第 ${orderPosition}；可拖曳調整`,
-      );
-      bindStatusOrdering(button);
-    }
-    elements.filters.append(button);
-  });
+    },
+    onReorder: (status, targetStatus, placeAfter) => {
+      applyStatusOrder(status, targetStatus, placeAfter);
+    },
+  };
+  if (state.filtersView) state.filtersView.update(props);
+  else state.filtersView = createUiView("status-filters", elements.filters, props);
 }
 
 

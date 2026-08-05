@@ -93,7 +93,7 @@
     },
     {
       "id": "local-task-editing",
-      "next_step": "Viewer 預覽已有三區改由 UI adapter 渲染：任務清單、狀態統計、整體進度；原生 renderTask／appendList／renderDeveloperDetails 已刪除，任務卡只剩 TaskCard.svelte 一份。下一步依同樣方式逐區搬移仍由 app.js 渲染的部分：診斷訊息、狀態篩選與拖曳／鍵盤排序（互動最複雜、風險最高）、最外層任務新增鈕、scope 目錄首頁、主題與時間 Dialog；全部搬完後才能拆掉編輯用的 iframe 覆蓋層，讓預覽與編輯真正是同一頁的兩個模式。搬移前要先決定公開 Pages 是否維持提交建置產物。Demo 已凍結，只發展 viewer 預覽與 Svelte 編輯兩個面。列盒模型、模式按鈕尺寸與主題套用已於 2026-08-04 收進 editor-presentation.css。接著處理仍不一致的列高：先共用時間膠囊（Viewer .time-item-button 24px vs Svelte .spike-time-capsule 21px 是兩份實作），再裁示編輯控制項與預覽文字的高度差要靠加高共用列還是壓低控制項。Svelte 主題選擇已加入（重用 theme-model，storage 放在 theme-control.js adapter，自訂調色仍只在 Viewer Dialog）。",
+      "next_step": "Viewer 預覽已有四區改由 UI adapter 渲染：任務清單、狀態統計、整體進度、狀態篩選（含拖曳與鍵盤排序）；原生 renderTask／appendList／renderDeveloperDetails 已刪除，任務卡只剩 TaskCard.svelte 一份。下一步依同樣方式逐區搬移仍由 app.js 渲染的部分：診斷訊息、最外層任務新增鈕、scope 目錄首頁、主題與時間 Dialog；全部搬完後才能拆掉編輯用的 iframe 覆蓋層，讓預覽與編輯真正是同一頁的兩個模式。搬移前要先決定公開 Pages 是否維持提交建置產物。Demo 已凍結，只發展 viewer 預覽與 Svelte 編輯兩個面。列盒模型、模式按鈕尺寸與主題套用已於 2026-08-04 收進 editor-presentation.css。接著處理仍不一致的列高：先共用時間膠囊（Viewer .time-item-button 24px vs Svelte .spike-time-capsule 21px 是兩份實作），再裁示編輯控制項與預覽文字的高度差要靠加高共用列還是壓低控制項。Svelte 主題選擇已加入（重用 theme-model，storage 放在 theme-control.js adapter，自訂調色仍只在 Viewer Dialog）。",
       "blockers": [
         "人工工時／依據與獨立確認已在正式 Svelte Surface 建立 supersede estimate version 並透過 transaction 重新分析；尚未完成實機觸控驗證。",
         "統一時間設定面板可修改公開容量資料並保留既有私人理由，但私人理由尚未開放編輯；需先擴充遮蔽歷史契約，避免敏感內容變更缺少稽核邊界。",

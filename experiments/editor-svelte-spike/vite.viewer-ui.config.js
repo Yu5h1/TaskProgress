@@ -6,10 +6,13 @@ import { defineConfig } from "vite";
 /*
  * Preview UI bundle for `viewer/index.html`.
  *
- * It builds into `viewer/assets/ui/` with stable filenames so the existing
- * Pages artifact — which copies `viewer/index.html` and `viewer/assets/` —
- * keeps working without touching the docs workflow, and so index.html can
- * reference the file directly instead of a content hash.
+ * It builds directly into `viewer/assets/` with stable filenames, alongside
+ * app.js and styles.css. Flat on purpose: the Pages artifact in the docs repo
+ * copies `viewer/index.html` and `viewer/assets/`, and a subdirectory would
+ * only survive if that copy happens to be recursive. A missing bundle is not a
+ * degraded page — the host throws when no adapter is registered and the whole
+ * report is replaced by a fatal message — so the deployment must not depend on
+ * an assumption we cannot verify from this repository.
  */
 export default defineConfig({
   root: fileURLToPath(new URL(".", import.meta.url)),
@@ -21,8 +24,9 @@ export default defineConfig({
     },
   },
   build: {
-    outDir: fileURLToPath(new URL("../../viewer/assets/ui", import.meta.url)),
-    emptyOutDir: true,
+    outDir: fileURLToPath(new URL("../../viewer/assets", import.meta.url)),
+    // Never true here: this directory holds hand-written sources.
+    emptyOutDir: false,
     lib: {
       entry: fileURLToPath(new URL("./src/viewer-ui.js", import.meta.url)),
       formats: ["es"],
@@ -35,7 +39,7 @@ export default defineConfig({
       external: (id) => id.endsWith("ui-host.js"),
       output: {
         assetFileNames: "viewer-ui[extname]",
-        paths: (id) => (id.endsWith("ui-host.js") ? "../ui-host.js" : id),
+        paths: (id) => (id.endsWith("ui-host.js") ? "./ui-host.js" : id),
       },
     },
   },

@@ -109,6 +109,35 @@ test("the contract stays narrow: data in, callbacks out, no DOM crossing back", 
   assert.match(source, /destroy/);
 });
 
+// The docs Pages artifact copies `viewer/index.html` and `viewer/assets/`. A
+// bundle in a subdirectory only survives if that copy is recursive, which this
+// repository cannot verify, and a missing bundle takes the whole report down
+// rather than degrading it — createUiView throws, and showFatal replaces the
+// page. Keep the bundle flat.
+test("the preview bundle ships flat inside viewer/assets", async () => {
+  const [html, config, bundle] = await Promise.all([
+    readFile(new URL("../viewer/index.html", import.meta.url), "utf8"),
+    readFile(
+      new URL("../experiments/editor-svelte-spike/vite.viewer-ui.config.js", import.meta.url),
+      "utf8",
+    ),
+    readFile(new URL("../viewer/assets/viewer-ui.js", import.meta.url), "utf8"),
+  ]);
+
+  assert.match(html, /src="assets\/viewer-ui\.js"/);
+  assert.doesNotMatch(html, /assets\/[a-z-]+\/viewer-ui\.js/);
+  assert.match(config, /outDir: fileURLToPath\(new URL\("\.\.\/\.\.\/viewer\/assets"/);
+  // True would delete every hand-written source in viewer/assets.
+  assert.match(config, /emptyOutDir: false/);
+  // The host stays external and resolves as a sibling, not a parent.
+  assert.match(bundle, /from "\.\/ui-host\.js"/);
+
+  // Registration must run before app.js asks for a view.
+  const bundleIndex = html.indexOf("assets/viewer-ui.js");
+  const appIndex = html.indexOf("assets/app.js");
+  assert.ok(bundleIndex >= 0 && appIndex > bundleIndex);
+});
+
 test("the Svelte adapter implements the contract and keeps framework detail inside", async () => {
   const source = await readFile(
     new URL("../experiments/editor-svelte-spike/src/viewer-adapter.svelte.js", import.meta.url),

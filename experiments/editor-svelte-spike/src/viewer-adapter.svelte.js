@@ -1,6 +1,7 @@
 import { mount, unmount } from "svelte";
 
 import ProjectProgress from "./ProjectProgress.svelte";
+import StatusFilters from "./StatusFilters.svelte";
 import StatusOverview from "./StatusOverview.svelte";
 import TaskList from "./TaskList.svelte";
 
@@ -18,6 +19,7 @@ import TaskList from "./TaskList.svelte";
 const components = {
   "task-list": TaskList,
   "status-overview": StatusOverview,
+  "status-filters": StatusFilters,
   "project-progress": ProjectProgress,
 };
 

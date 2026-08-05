@@ -112,6 +112,10 @@ const taskCard = await readFile(
   new URL("../experiments/editor-svelte-spike/src/TaskCard.svelte", import.meta.url),
   "utf8",
 );
+const statusFilters = await readFile(
+  new URL("../experiments/editor-svelte-spike/src/StatusFilters.svelte", import.meta.url),
+  "utf8",
+);
 
 test("production Viewer exposes mouse, touch, and keyboard status ordering", async () => {
   const [app, css, html] = await Promise.all([
@@ -119,9 +123,19 @@ test("production Viewer exposes mouse, touch, and keyboard status ordering", asy
     readFile(path.join(ROOT, "viewer/assets/styles.css"), "utf8"),
     readFile(path.join(ROOT, "viewer/index.html"), "utf8"),
   ]);
-  assert.match(app, /addEventListener\("dragstart"/);
-  assert.match(app, /addEventListener\("pointerdown"/);
-  assert.match(app, /Alt\+ArrowLeft Alt\+ArrowRight/);
+  // Ordering interaction moved into the filter component; the host keeps
+  // persistence and re-render. Mouse drag, touch drag and keyboard must all
+  // survive the move.
+  assert.match(statusFilters, /ondragstart=/);
+  assert.match(statusFilters, /onpointerdown=/);
+  assert.match(statusFilters, /Alt\+ArrowLeft Alt\+ArrowRight/);
+  assert.match(statusFilters, /Math\.hypot\(deltaX, deltaY\) < 8/);
+  assert.match(statusFilters, /Math\.abs\(deltaY\) > Math\.abs\(deltaX\)/);
+  assert.match(statusFilters, /status-drop-after/);
+  assert.match(statusFilters, /status-drop-before/);
+  assert.match(statusFilters, /status-dragging/);
+  assert.match(app, /applyStatusOrder\(status, targetStatus, placeAfter\)/);
+  assert.match(app, /saveStatusOrder\(statusOrderStorage, state\.statusOrder\)/);
   assert.match(
     app,
     /stableSortByStatus\(\s*stableSortTasksByPriority\(state\.tasks\),\s*state\.statusOrder/,
