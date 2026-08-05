@@ -25,7 +25,17 @@ test("local Svelte Editor build is reproducible and excluded from Pages", async 
   );
   assert.match(ignoreText, /^experiments\/editor-svelte-spike\/dist\/$/mu);
   assert.match(workflowText, /- viewer\/\*\*/u);
-  assert.doesNotMatch(workflowText, /editor-svelte-spike|BuildEditor/u);
+  // The preview bundle is built from the spike sources, so a change there must
+  // trigger the staleness check; the isolated editor.html build must still stay
+  // out of the docs notification path.
+  assert.match(workflowText, /- experiments\/editor-svelte-spike\/\*\*/u);
+  assert.doesNotMatch(workflowText, /BuildEditor|editor:svelte:build/u);
+  // The committed bundle is a build product, so the dispatch must be gated on
+  // rebuilding it and finding no difference — reporting staleness after the
+  // deployment has gone out would not prevent shipping a stale UI.
+  assert.match(workflowText, /npm run viewer:ui:build/u);
+  assert.match(workflowText, /git diff --quiet -- viewer\/assets\/viewer-ui\.js/u);
+  assert.match(workflowText, /needs: verify-bundle/u);
   assert.match(verifierText, /must not load remote assets/u);
   assert.match(verifierText, /must use relative assets/u);
   assert.match(verifierText, /DOCS_DISPATCH_TOKEN/u);

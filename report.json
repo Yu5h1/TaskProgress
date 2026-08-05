@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-08-05T21:45:00+08:00",
+  "updated_at": "2026-08-05T22:20:00+08:00",
   "tasks": [
     {
       "id": "viewer-core",
@@ -171,7 +171,7 @@
       "title": "本機任務編輯",
       "status": "in_progress",
       "priority": 1,
-      "summary": "正式 Viewer 預覽已全面改由可替換的 UI adapter 渲染，任務卡、模式切換、儲存列與新增控制都只剩一份實作，app.js 由 1436 行降為 970 行。預覽與編輯共同出現的元素已全部只剩一份實作。時間參考 Demo 依裁示退場。建置產物已平鋪於 viewer/assets，但尚未推送，公開部署仍待驗證。",
+      "summary": "正式 Viewer 預覽已全面改由可替換的 UI adapter 渲染，任務卡、模式切換、儲存列與新增控制都只剩一份實作，app.js 由 1436 行降為 970 行。預覽與編輯共同出現的元素已全部只剩一份實作。時間參考 Demo 依裁示退場。公開部署已驗證，建置產物同步由 CI 擋在部署之前。",
       "completed_items": [
         {
           "id": "item-local-task-editing-done-1",
@@ -424,6 +424,11 @@
           "priority": 0
         },
         {
+          "id": "verify-public-deployment",
+          "title": "公開部署已驗證：線上資產全部 200、bundle 與本機位元組相同、以真實資料渲染正常；並加上 CI verify-bundle 擋在 dispatch 之前，避免過期產物上線",
+          "priority": 0
+        },
+        {
           "id": "share-editor-shell-controls",
           "title": "Svelte 編輯器改用共用的 ModeToggle 與 SaveBar 並移除 spike 專屬樣式；預覽與編輯共同出現的元素至此全部只剩一份實作",
           "priority": 0
@@ -456,11 +461,7 @@
           "title": "預覽全部搬完後移除只剩 Demo 與測試在用的 editor-surface runtime，並拆掉編輯用 iframe 覆蓋層，使預覽與編輯成為同一頁的兩個模式",
           "priority": 1
         },
-        {
-          "id": "verify-public-deployment",
-          "title": "推送後確認 notify-docs 發出、docs Pages 部署完成，並實際開啟線上頁面確認報告正常顯示；再決定建置產物與原始碼同步要用 CI 比對或改由 docs 建置",
-          "priority": 0
-        },
+
         {
           "id": "verify-mobile-editing",
           "title": "在正式 Viewer Surface 完成實機觸控編輯驗證；隔離 Svelte 的 390px 版面與鍵盤流程已通過",
