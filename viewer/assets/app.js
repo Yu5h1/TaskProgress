@@ -19,9 +19,6 @@ import {
 } from "./editor-core.js";
 import {
   bindHistoryShortcuts,
-  createAddControl,
-  createModeController,
-  createSaveBar,
 } from "./editor-surface.js";
 import { createUiView } from "./ui-host.js";
 import { initializeThemeControls } from "./theme.js";
@@ -96,6 +93,7 @@ const state = {
   timeAnalysis: null,
   timeController: null,
   taskListView: null,
+  taskAdderView: null,
   overviewView: null,
   projectProgressView: null,
   filtersView: null,
@@ -115,8 +113,8 @@ const state = {
   },
 };
 
-let viewModeControl = null;
-let saveBarControl = null;
+let viewModeToggleView = null;
+let saveBarView = null;
 
 function el(tag, className, text) {
   const node = document.createElement(tag);
@@ -125,6 +123,28 @@ function el(tag, className, text) {
   return node;
 }
 
+
+// The save bar's container belongs to the host: `hidden`, `data-state` and
+// `aria-busy` describe the fixed panel, while the component renders its
+// contents. Keeping them together here stops the two from drifting apart.
+const saveBarState = {
+  editing: false,
+  dirty: false,
+  saving: false,
+  canUndo: false,
+  canRedo: false,
+  message: "尚未修改",
+};
+
+function updateSaveBar(patch = {}) {
+  Object.assign(saveBarState, patch);
+  const tone = patch.tone
+    ?? (saveBarState.saving ? "saving" : saveBarState.dirty ? "dirty" : "clean");
+  elements.editSaveBar.hidden = !saveBarState.editing;
+  elements.editSaveBar.dataset.state = tone;
+  elements.editSaveBar.setAttribute("aria-busy", saveBarState.saving ? "true" : "false");
+  saveBarView?.update(saveBarState);
+}
 
 function syncEditorDirty(message = "有尚未儲存的修改") {
   const derived = state.editor.session?.derived;
@@ -135,7 +155,7 @@ function syncEditorDirty(message = "有尚未儲存的修改") {
   state.timeController?.setReportStructureStale(
     Boolean(derived?.timeInvalidation.stale),
   );
-  saveBarControl?.setState({
+  updateSaveBar({
     editing: state.editor.editing,
     dirty: state.editor.dirty,
     saving: state.editor.saving,
@@ -352,19 +372,26 @@ function rebuildMergedTasks() {
   state.developerAvailable = merged.developerAvailable;
 }
 
-function renderTaskAdder() {
-  elements.taskAddShell.replaceChildren();
+// Top-level task adder. The control is shared; the host keeps Unicode
+// validation and stable ID generation because both belong to Editor Core.
+function renderTaskAdder({ expanded = false, error = "" } = {}) {
   elements.taskAddShell.hidden = !state.editor.editing;
-  if (!state.editor.editing) return;
-  const render = (expanded = false) => createAddControl(elements.taskAddShell, {
+  if (!state.editor.editing) {
+    state.taskAdderView?.destroy();
+    state.taskAdderView = null;
+    elements.taskAddShell.replaceChildren();
+    return;
+  }
+  const props = {
     kind: "task",
     expanded,
+    policy: PRIORITY_POLICY,
     triggerAriaLabel: "增加工作項目",
-    defaultPriority: PRIORITY_POLICY.creationDefaultValue,
     contractText: "預設狀態：待處理；預設優先級：一般；ID 會獨立產生",
-    onOpen: () => render(true),
+    errorMessage: error,
+    onOpen: () => renderTaskAdder({ expanded: true }),
     onCancel: () => renderTaskAdder(),
-    onSubmit: ({ title, summary, priority }, control) => {
+    onSubmit: ({ title, summary, priority }) => {
       const taskTitle = normalizeMeaningfulText(title);
       const taskSummary = normalizeMeaningfulText(summary);
       if (!taskTitle || !taskSummary) {
@@ -372,7 +399,10 @@ function renderTaskAdder() {
           renderTaskAdder();
           return;
         }
-        control.showError(!taskTitle ? "請填寫有效的任務名稱。" : "請填寫有效的任務描述。");
+        renderTaskAdder({
+          expanded: true,
+          error: !taskTitle ? "請填寫有效的任務名稱。" : "請填寫有效的任務描述。",
+        });
         return;
       }
       const id = state.editor.session.createTaskId(`task-${Date.now().toString(36)}`);
@@ -393,8 +423,9 @@ function renderTaskAdder() {
         { render: true },
       );
     },
-  });
-  render();
+  };
+  if (state.taskAdderView) state.taskAdderView.update(props);
+  else state.taskAdderView = createUiView("add-control", elements.taskAddShell, props);
 }
 
 // Props for the task-list region. Only plain data and callbacks cross into the
@@ -464,9 +495,9 @@ function renderReport() {
   elements.viewerModeLabel.textContent = state.editor.editing || state.editor.surfaceActive
     ? "Local edit session"
     : "Viewer is read-only";
-  viewModeControl?.setMode(
-    state.editor.editing || state.editor.surfaceActive ? "edit" : "preview",
-  );
+  viewModeToggleView?.update({
+    mode: state.editor.editing || state.editor.surfaceActive ? "edit" : "preview",
+  });
   renderDiagnostics();
   renderProjectProgress();
   renderOverview();
@@ -505,7 +536,7 @@ async function discoverLocalEditor(scope) {
         state.editor.surfaceUrl = surfaceUrl.href;
       }
     }
-    viewModeControl?.setAvailable(true);
+    viewModeToggleView?.update({ available: true });
   } catch {
     // Public/static hosting intentionally has no editor capability.
   }
@@ -568,7 +599,7 @@ function closeEditorSurface({ saved = false } = {}) {
   elements.editorSurfaceOverlay.hidden = true;
   elements.editorSurfaceFrame.src = "about:blank";
   document.documentElement.classList.remove("editor-surface-open");
-  viewModeControl?.setMode("preview");
+  viewModeToggleView?.update({ mode: "preview" });
   if (saved) window.location.reload();
 }
 
@@ -594,7 +625,7 @@ async function cancelEditing() {
   state.timeController?.setReportStructureStale(false);
   state.report = structuredClone(state.persistedReport);
   rebuildMergedTasks();
-  saveBarControl?.setState({ editing: false, dirty: false, saving: false });
+  updateSaveBar({ editing: false, dirty: false, saving: false });
   renderReport();
   if (!token) return true;
   try {
@@ -623,12 +654,12 @@ async function saveEditing() {
     ? state.editor.session.validate(reportToSave)
     : validateReport(reportToSave);
   if (errors.length) {
-    saveBarControl?.showError(errors[0].message);
+    updateSaveBar({ editing: true, saving: false, tone: "error", message: errors[0].message });
     return;
   }
   state.editor.saving = true;
-  viewModeControl?.setBusy(true);
-  saveBarControl?.setState({
+  viewModeToggleView?.update({ disabled: true });
+  updateSaveBar({
     editing: true,
     dirty: true,
     saving: true,
@@ -655,7 +686,7 @@ async function saveEditing() {
       throw new Error(await readProblem(response, "儲存失敗；原始檔案未變更。"));
     }
     timeSave?.commit();
-    saveBarControl?.setState({
+    updateSaveBar({
       editing: true,
       dirty: false,
       saving: true,
@@ -667,12 +698,12 @@ async function saveEditing() {
     window.location.reload();
   } catch (error) {
     timeSave?.rollback();
-    saveBarControl?.showError(error instanceof Error
+    updateSaveBar({ editing: true, saving: false, tone: "error", message: error instanceof Error
       ? error.message
-      : "儲存失敗；原始檔案未變更。");
+      : "儲存失敗；原始檔案未變更。" });
   } finally {
     state.editor.saving = false;
-    viewModeControl?.setBusy(false);
+    viewModeToggleView?.update({ disabled: false });
   }
 }
 
@@ -897,14 +928,22 @@ async function main() {
 }
 
 initializeThemeControls();
-viewModeControl = createModeController(elements.viewModeToggle, {
+viewModeToggleView = createUiView("mode-toggle", elements.viewModeToggle, {
+  mode: "preview",
   available: false,
+  disabled: false,
   hideWhenUnavailable: true,
-  onRequest: (mode) => (mode === "edit" ? startEditing() : cancelEditing()),
+  onToggle: () => {
+    const nextMode = (state.editor.editing || state.editor.surfaceActive) ? "preview" : "edit";
+    void (nextMode === "edit" ? startEditing() : cancelEditing());
+  },
 });
-saveBarControl = createSaveBar(elements.editSaveBar, {
-  statusId: "edit-save-status",
-  buttonId: "edit-save-button",
+saveBarView = createUiView("save-bar", elements.editSaveBar, {
+  editing: false,
+  dirty: false,
+  saving: false,
+  canUndo: false,
+  canRedo: false,
   onUndo: () => applyEditorHistory("undo"),
   onRedo: () => applyEditorHistory("redo"),
   onSave: saveEditing,

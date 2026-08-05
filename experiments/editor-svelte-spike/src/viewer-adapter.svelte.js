@@ -1,6 +1,9 @@
 import { mount, unmount } from "svelte";
 
+import AddControl from "./AddControl.svelte";
+import ModeToggle from "./ModeToggle.svelte";
 import ProjectProgress from "./ProjectProgress.svelte";
+import SaveBar from "./SaveBar.svelte";
 import StatusFilters from "./StatusFilters.svelte";
 import StatusOverview from "./StatusOverview.svelte";
 import TaskList from "./TaskList.svelte";
@@ -21,6 +24,9 @@ const components = {
   "status-overview": StatusOverview,
   "status-filters": StatusFilters,
   "project-progress": ProjectProgress,
+  "mode-toggle": ModeToggle,
+  "save-bar": SaveBar,
+  "add-control": AddControl,
 };
 
 export const svelteViewerAdapter = {

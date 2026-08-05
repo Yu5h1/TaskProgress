@@ -30,15 +30,9 @@
         </a>
         <div class="header-actions">
           <div class="mode-badge" id="mode-badge" hidden>Developer overlay</div>
-          <button
-            class="view-mode-toggle editor-mode-dock"
-            id="view-mode-toggle"
-            type="button"
-            aria-pressed="false"
-            hidden
-          >
-            預覽模式
-          </button>
+          <!-- Mount point only. The shared ModeToggle component renders the
+               button itself; nesting one button inside another is invalid. -->
+          <div class="view-mode-dock" id="view-mode-toggle"></div>
           <label class="theme-picker" for="theme-select">
             <span>主題</span>
             <select id="theme-select" aria-label="顯示主題">

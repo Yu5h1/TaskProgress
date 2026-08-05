@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "report_id": "task-progress-development",
-  "updated_at": "2026-08-05T20:24:43+08:00",
+  "updated_at": "2026-08-05T21:10:00+08:00",
   "tasks": [
     {
       "id": "viewer-core",
@@ -93,11 +93,12 @@
     },
     {
       "id": "local-task-editing",
-      "next_step": "最優先是統一 UI 來源：先消除仍是兩份實作的三組控制項——模式切換（app.js createModeController vs App.svelte spike-mode-toggle）、儲存列（createSaveBar vs spike-savebar）、新增控制（createAddControl vs spike-add-shell）；收斂時刪除其中一份，不保留可讓兩邊分岔的設定。接著把 app.js 仍在渲染的預覽區塊搬入同一套元件：診斷訊息、最外層任務新增鈕、scope 目錄首頁、主題與時間 Dialog。全部搬完才移除只剩 Demo 與測試在用的 editor-surface runtime，並拆掉編輯用 iframe 覆蓋層，讓預覽與編輯成為同一頁的兩個模式。與此並行但獨立的是公開部署驗證：目前 24 個 commit 尚未推送，推送後要實際開啟線上頁面確認報告顯示，再決定建置產物同步要用 CI 比對或改由 docs 建置。",
+      "next_step": "模式切換、儲存列與新增控制已收斂為 ModeToggle／SaveBar／AddControl 三個共用元件，vanilla 實作已從 editor-surface-runtime 刪除。剩下的重複只有一組：Svelte 編輯器的 App.svelte 仍自行渲染 header、spike-mode-toggle 與 spike-savebar，應改用同一份 ModeToggle 與 SaveBar。接著把 app.js 仍在渲染的預覽區塊搬入同一套元件：診斷訊息、scope 目錄首頁、主題與時間 Dialog；全部搬完才移除只剩測試在用的 editor-surface runtime 並拆掉編輯 iframe。另一條獨立路線是公開部署驗證：25 個 commit 尚未推送，推送後要實際開啟線上頁面確認報告顯示。",
       "blockers": [
-        "尚未推送：24 個 commit 停在本機 main，包含整段 UI adapter 遷移。notify-docs 會因 viewer/** 觸發並由 docs repo 建置 Pages；建置產物已改為平鋪於 viewer/assets 以免依賴複製是否遞迴，但這個假設本身仍未經線上驗證。workflow 綠燈不等於頁面正常，必須實際開啟線上頁面。",
+        "尚未推送：25 個 commit 停在本機 main，包含整段 UI adapter 遷移。notify-docs 會因 viewer/** 觸發並由 docs repo 建置 Pages；建置產物已改為平鋪於 viewer/assets 以免依賴複製是否遞迴，但這個假設本身仍未經線上驗證。workflow 綠燈不等於頁面正常，必須實際開啟線上頁面。",
         "建置產物與原始碼可能不同步：viewer/assets/viewer-ui.js 進版控但無防護，改了 .svelte 未執行 npm run viewer:ui:build 就提交會讓線上靜默跑舊 UI，測試讀原始碼因此抓不到。CI 比對或改由 docs 建置尚未選定。",
-        "仍有三組控制項是兩份實作：模式切換、儲存列、新增控制。這是最優先事項要解決的對象。",
+        "僅剩一組重複實作：Svelte 編輯器 App.svelte 的 header、模式切換與儲存列尚未改用共用的 ModeToggle／SaveBar。",
+        "時間參考 Demo 已隨此次收斂停止運作（依使用者裁示 (a)）：它呼叫的 createModeController／createSaveBar／createAddControl 已刪除，開啟頁面會拋錯。不得為了讓 Demo 復活而還原那些函式。",
         "editor-surface runtime 仍匯出 TaskCard／ItemRow／優先級／欄位驗證等，但正式 Viewer 已不再呼叫，只剩凍結的 Demo 與測試在用；要等 Demo 不再建置於其上才能移除。",
         "StatusFilters 的觸控拖曳（8px 門檻與水平軸鎖）從未在瀏覽器執行過，合成 pointer 事件無法重現 pointer capture，目前只有原始碼斷言覆蓋。",
         "正式 Viewer 的編輯模式無法在瀏覽器驗證：執行中的服務對 capabilities 端點回 404，因為已發布 EXE 早於 edit-host 支援；編輯端行為改由共用同一套樣式與元件的 Svelte surface 驗證。",
@@ -180,6 +181,10 @@
         },
         {
           "summary": "最優先事項：統一 UI 來源。同一個畫面元素若在多處出現，只能有一份實作。這優先於功能開發、parity 修補與後續遷移；新增第二份實作不被接受，讓兩個 host 對同一元素做出不同呈現的設定旋鈕同樣不被接受，收斂時刪除旋鈕而非統一其值。",
+          "reference": "handoff.md"
+        },
+        {
+          "summary": "時間參考 Demo 正式退場：為了保留 Demo 而維持一整套平行 vanilla 實作，正好違反單一 UI 來源原則。Demo 原始碼與測試僅作參考保存，不再修復；若日後仍需展示用途，必須改建在共用元件之上，並接受它不再能以 file:// 直接開啟。",
           "reference": "handoff.md"
         }
       ],

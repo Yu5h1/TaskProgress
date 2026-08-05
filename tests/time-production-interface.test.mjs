@@ -16,6 +16,10 @@ const taskCardSource = await readFile(
   new URL("../experiments/editor-svelte-spike/src/TaskCard.svelte", import.meta.url),
   "utf8",
 );
+const addControlSource = await readFile(
+  new URL("../experiments/editor-svelte-spike/src/AddControl.svelte", import.meta.url),
+  "utf8",
+);
 const itemRowSource = await readFile(
   new URL("../experiments/editor-svelte-spike/src/ItemRow.svelte", import.meta.url),
   "utf8",
@@ -81,8 +85,10 @@ test("each production task card has one bottom child-item add control", () => {
   // New children always land in pending_items regardless of panel order.
   assert.match(appSource, /function addTaskItem\(taskId, draftTitle, priority\)/);
   assert.match(appSource, /type: "add-item",\s*taskId,\s*field: "pending_items"/);
-  assert.match(appSource, /createAddControl\(elements\.taskAddShell, \{/);
-  assert.match(appSource, /defaultPriority: PRIORITY_POLICY\.creationDefaultValue/);
+  assert.match(appSource, /createUiView\("add-control", elements\.taskAddShell/);
+  // Creation default now comes from the policy inside the shared control.
+  assert.match(addControlSource, /policy\?\.creationDefaultValue/);
+  assert.match(appSource, /policy: PRIORITY_POLICY/);
 });
 
 test("production item time actions remain visible in global edit mode", () => {

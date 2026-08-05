@@ -5,6 +5,14 @@ import test from "node:test";
 const indexUrl = new URL("../viewer/index.html", import.meta.url);
 const appUrl = new URL("../viewer/assets/app.js", import.meta.url);
 const styleUrl = new URL("../viewer/assets/styles.css", import.meta.url);
+const modeToggle = await readFile(
+  new URL("../experiments/editor-svelte-spike/src/ModeToggle.svelte", import.meta.url),
+  "utf8",
+);
+const saveBar = await readFile(
+  new URL("../experiments/editor-svelte-spike/src/SaveBar.svelte", import.meta.url),
+  "utf8",
+);
 const presentationUrl = new URL("../viewer/assets/editor-presentation.css", import.meta.url);
 
 test("production Viewer keeps local editing hidden until the host grants capability", async () => {
@@ -12,7 +20,10 @@ test("production Viewer keeps local editing hidden until the host grants capabil
     readFile(indexUrl, "utf8"),
     readFile(appUrl, "utf8"),
   ]);
-  assert.match(html, /id="view-mode-toggle"[\s\S]*?aria-pressed="false"[\s\S]*?hidden/);
+  // The toggle is rendered by the shared component into this mount point.
+  assert.match(html, /<div class="view-mode-dock" id="view-mode-toggle"><\/div>/);
+  assert.match(modeToggle, /aria-pressed=\{editing\}/);
+  assert.match(modeToggle, /hidden=\{hideWhenUnavailable && !available\}/);
   assert.match(html, /id="edit-save-bar"[^>]*hidden/);
   assert.match(app, /\/__taskprogress\/v1\/capabilities\//);
   assert.match(app, /if \(!response\.ok\) return;/);
@@ -40,8 +51,10 @@ test("local editor uses a memory-only session, revision precondition, and explic
   assert.doesNotMatch(app, /state\.report\.tasks\.(?:push|splice)\(/);
   assert.doesNotMatch(app, /editableTask\.(?:title|summary|status|priority)\s*=/);
   assert.doesNotMatch(app, /localStorage\.setItem\([^)]*token/i);
-  assert.match(app, /createModeController\(elements\.viewModeToggle/);
-  assert.match(app, /onRequest: \(mode\) => \(mode === "edit" \? startEditing\(\) : cancelEditing\(\)\)/);
+  assert.match(app, /createUiView\("mode-toggle", elements\.viewModeToggle/);
+  // The toggle reports the requested mode; the host decides what it means.
+  assert.match(app, /onToggle: \(\) => \{/);
+  assert.match(app, /nextMode === "edit" \? startEditing\(\) : cancelEditing\(\)/);
   assert.doesNotMatch(app, /viewModeToggle\.addEventListener\("click"/);
 });
 
@@ -54,10 +67,12 @@ test("editing exposes global task and child controls with a panel-aligned save b
   assert.match(app, /增加工作項目/);
   // Child-item adding now lives in the card component; the host owns the command.
   assert.match(app, /function addTaskItem\(taskId, draftTitle, priority\)/);
-  assert.match(app, /createAddControl\(elements\.taskAddShell/);
-  assert.match(app, /saveBarControl = createSaveBar\(elements\.editSaveBar/);
-  assert.match(app, /statusId: "edit-save-status"/);
-  assert.match(app, /buttonId: "edit-save-button"/);
+  assert.match(app, /createUiView\("add-control", elements\.taskAddShell/);
+  assert.match(app, /createUiView\("save-bar", elements\.editSaveBar/);
+  // The status element id now lives in the shared SaveBar component.
+  assert.match(saveBar, /id="edit-save-status"/);
+  assert.match(saveBar, /class="edit-save-status"/);
+  assert.match(saveBar, /class="primary-button edit-save-button"/);
   assert.match(app, /onUndo: \(\) => applyEditorHistory\("undo"\)/);
   assert.match(app, /onRedo: \(\) => applyEditorHistory\("redo"\)/);
   assert.match(app, /bindHistoryShortcuts\(document, \{/);
@@ -77,7 +92,7 @@ test("Viewer mode toggle stays centered at the viewport top", async () => {
     readFile(indexUrl, "utf8"),
     readFile(presentationUrl, "utf8"),
   ]);
-  assert.match(html, /class="view-mode-toggle editor-mode-dock"/);
+  assert.match(modeToggle, /class="view-mode-toggle editor-mode-dock"/);
   assert.match(
     presentation,
     /\.editor-mode-dock\s*\{[\s\S]*?position:\s*fixed;[\s\S]*?top:\s*calc\(12px \+ env\(safe-area-inset-top, 0px\)\);[\s\S]*?left:\s*50%;[\s\S]*?transform:\s*translateX\(-50%\);/,

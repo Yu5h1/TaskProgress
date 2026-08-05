@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-08-05T20:24:43+08:00",
+  "updated_at": "2026-08-05T21:10:00+08:00",
   "tasks": [
     {
       "id": "viewer-core",
@@ -171,7 +171,7 @@
       "title": "本機任務編輯",
       "status": "in_progress",
       "priority": 1,
-      "summary": "正式 Viewer 預覽已有四區改由可替換的 UI adapter 渲染，任務卡只剩一份實作，app.js 由 1436 行降為 931 行。最優先事項是統一 UI 來源：模式切換、儲存列與新增控制仍是兩份實作。建置產物已平鋪於 viewer/assets，但尚未推送，公開部署仍待驗證。",
+      "summary": "正式 Viewer 預覽已全面改由可替換的 UI adapter 渲染，任務卡、模式切換、儲存列與新增控制都只剩一份實作，app.js 由 1436 行降為 970 行。最後一組重複是 Svelte 編輯器自有的 header 與儲存列。時間參考 Demo 依裁示退場。建置產物已平鋪於 viewer/assets，但尚未推送，公開部署仍待驗證。",
       "completed_items": [
         {
           "id": "item-local-task-editing-done-1",
@@ -424,6 +424,11 @@
           "priority": 0
         },
         {
+          "id": "unify-mode-save-add-controls",
+          "title": "模式切換、儲存列與新增控制收斂為共用 Svelte 元件並刪除 vanilla 實作；沿用既有 class 與欄位順序，優先級選項改回由 policy 產生，驗證仍留在 host",
+          "priority": 0
+        },
+        {
           "id": "ship-preview-bundle-flat",
           "title": "建置產物平鋪於 viewer/assets 並以測試守住路徑、emptyOutDir 與載入順序，使公開 Pages 不依賴 docs 複製步驟是否遞迴",
           "priority": 0
@@ -436,8 +441,8 @@
           "priority": 0
         },
         {
-          "id": "unify-duplicated-ui-controls",
-          "title": "最優先：消除仍是兩份實作的控制項——模式切換（app.js createModeController vs App.svelte spike-mode-toggle）、儲存列（createSaveBar vs spike-savebar）、新增控制（createAddControl vs spike-add-shell）；收斂後刪除其中一份，不保留可讓兩邊分岔的設定",
+          "id": "share-editor-shell-controls",
+          "title": "最優先：Svelte 編輯器的 App.svelte 仍自行渲染 header、模式切換與儲存列，改用共用的 ModeToggle 與 SaveBar，消除最後一組重複實作",
           "priority": 0
         },
         {
