@@ -3,12 +3,14 @@
 
   import { createTimeIndex } from "../../../viewer/assets/time-model.js";
   import { createThemeControl } from "../../../viewer/assets/theme-control.js";
+  import { createTimeReferenceController } from "../../../viewer/assets/time-dialog-control.js";
   import DeliveryRiskPreview from "./DeliveryRiskPreview.svelte";
   import DeliverySaveConfirmation from "./DeliverySaveConfirmation.svelte";
   import ModeToggle from "./ModeToggle.svelte";
   import SaveBar from "./SaveBar.svelte";
   import TaskCard from "./TaskCard.svelte";
   import ThemeControl from "./ThemeControl.svelte";
+  import TimeDialog from "./TimeDialog.svelte";
   import TimeSettingsEditor from "./TimeSettingsEditor.svelte";
   import { loadSvelteEditorData } from "./data-loader.js";
   import { buildTimeSettingsRiskPreview } from "./delivery-risk-preview.js";
@@ -46,6 +48,23 @@
   let view = adapter.snapshot();
   let timeAnalysis = null;
   let timeIndex = emptyTimeIndex();
+  // The item time capsule opens the same shared dialog the Viewer uses — the
+  // capsule itself already came from the shared ItemRow; without this, this
+  // surface was the one place it rendered as an inert span with only a
+  // tooltip, which is exactly the kind of second (missing) implementation
+  // the one-UI-source rule exists to close.
+  let timeController = null;
+  let timeSnapshot = { summary: { hidden: true }, dialog: { open: false } };
+
+  function renderTimeReference() {
+    if (!timeController) return;
+    timeSnapshot = timeController.snapshot();
+  }
+
+  function openItemTime(itemId, title) {
+    timeController?.showItemTime(itemId, title);
+    renderTimeReference();
+  }
   let diagnostics = [];
   let loading = false;
   let loadError = "";
@@ -73,6 +92,10 @@
       : "沒有時間分析";
   $: activeEstimates = activeEstimateIndex(timeDraftView?.inputs ?? null);
   $: editorDirty = Boolean(view?.dirty || timeDraftView?.dirty);
+  $: if (timeController) {
+    timeController.setReportStructureStale(Boolean(view?.derived.timeInvalidation.stale));
+    renderTimeReference();
+  }
 
   onMount(() => {
     void loadRequestedData();
@@ -95,6 +118,25 @@
       view = adapter.snapshot();
       timeAnalysis = loaded.timeAnalysis;
       timeIndex = timeAnalysis ? createTimeIndex(timeAnalysis) : emptyTimeIndex();
+      if (timeAnalysis) {
+        const projectProgress = view.derived.progress.project;
+        try {
+          timeController = createTimeReferenceController({
+            sourceAnalysis: timeAnalysis,
+            report: loaded.report,
+            location: window.location,
+            workProgressRatio: projectProgress.total
+              ? projectProgress.completed / projectProgress.total
+              : 0,
+            onDraftChange: (message) => { statusMessage = message; },
+          });
+        } catch {
+          timeController = null;
+        }
+      } else {
+        timeController = null;
+      }
+      renderTimeReference();
       diagnostics = loaded.diagnostics;
       dataLabel = loaded.request.scope
         ? `真實 scope：${loaded.request.scope}`
@@ -165,6 +207,8 @@
       }
     }
     editing = !editing;
+    timeController?.setEditing(editing);
+    renderTimeReference();
     if (embedded && !editing) notifyViewer(false);
   }
 
@@ -430,6 +474,7 @@
           timeItems={effectiveTimeIndex.items}
           {activeEstimates}
           onManualEstimate={timeDraft ? setManualEstimate : null}
+          onTimeClick={timeController ? openItemTime : null}
         />
       {/each}
     </section>
@@ -458,6 +503,14 @@
     {/if}
   {/if}
 </main>
+
+<TimeDialog
+  {...timeSnapshot.dialog}
+  onClose={() => { timeController?.closeDialog(); renderTimeReference(); }}
+  onToggleDetails={() => { timeController?.toggleDetails(); renderTimeReference(); }}
+  onSetTab={(name) => { timeController?.setActiveTab(name); renderTimeReference(); }}
+  onSubmitCapacity={(values) => { timeController?.submitCapacityForm(values); renderTimeReference(); }}
+/>
 
 {#if confirmingDeliverySave && deliveryPreview}
   <DeliverySaveConfirmation

@@ -2,10 +2,14 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { readFile } from "node:fs/promises";
 
-import { remainingWorkload } from "../viewer/assets/time-view.js";
+import { remainingWorkload } from "../viewer/assets/time-dialog-control.js";
 
-const timeViewSource = await readFile(
-  new URL("../viewer/assets/time-view.js", import.meta.url),
+const timeControlSource = await readFile(
+  new URL("../viewer/assets/time-dialog-control.js", import.meta.url),
+  "utf8",
+);
+const timeDialogSource = await readFile(
+  new URL("../experiments/editor-svelte-spike/src/TimeDialog.svelte", import.meta.url),
   "utf8",
 );
 const appSource = await readFile(
@@ -22,6 +26,10 @@ const addControlSource = await readFile(
 );
 const itemRowSource = await readFile(
   new URL("../experiments/editor-svelte-spike/src/ItemRow.svelte", import.meta.url),
+  "utf8",
+);
+const timeCapacityEditorSource = await readFile(
+  new URL("../experiments/editor-svelte-spike/src/TimeCapacityEditor.svelte", import.meta.url),
   "utf8",
 );
 
@@ -43,13 +51,12 @@ test("unfinished work prefers the direct pending-estimate sum", () => {
 });
 
 test("production Viewer exposes a neutral undated estimate surface", () => {
-  assert.match(timeViewSource, /交付日未定/);
-  assert.match(timeViewSource, /time-summary-button no-deadline/);
-  assert.match(timeViewSource, /if \(deadlineAvailable\) updateDeadline/);
-  assert.doesNotMatch(
-    timeViewSource.match(/className = "time-summary-button no-deadline";[\s\S]*?return;/)?.[0] ?? "",
-    /time-risk-dot/,
-  );
+  assert.match(timeControlSource, /交付日未定/);
+  assert.match(timeControlSource, /time-summary-button no-deadline/);
+  assert.match(timeControlSource, /if \(deadlineAvailable\) updateDeadline/);
+  const noDeadlineBranch = timeControlSource
+    .match(/className: "time-summary-button no-deadline",[\s\S]*?showChevron: true,\s*\};/)?.[0] ?? "";
+  assert.doesNotMatch(noDeadlineBranch, /showDot: true/);
 });
 
 test("production loading isolates deadline diagnostics from estimate diagnostics", () => {
@@ -59,13 +66,16 @@ test("production loading isolates deadline diagnostics from estimate diagnostics
 });
 
 test("production capacity editing follows the one global edit transaction", () => {
-  assert.doesNotMatch(timeViewSource, /編輯工作容量/);
-  assert.doesNotMatch(timeViewSource, /const cancel = el\("button"[\s\S]*?createCapacityEditor/);
-  assert.match(timeViewSource, /el\("h3", "", "設定"\)/);
-  assert.match(timeViewSource, /"重新計算"/);
-  assert.match(timeViewSource, /onDraftChange\?\.\("工作容量已重新計算，尚未全域儲存"\)/);
-  assert.match(timeViewSource, /function setEditing\(enabled\)/);
-  assert.match(timeViewSource, /function prepareSave\(\)/);
+  assert.doesNotMatch(timeControlSource, /編輯工作容量/);
+  // The capacity form has exactly one action — recalculate — because there is
+  // no per-dialog editor toggle; visibility is tied to the global edit
+  // session, so cancelling it means leaving edit mode, not a form control.
+  assert.doesNotMatch(timeCapacityEditorSource, /取消/);
+  assert.match(timeCapacityEditorSource, /<h3>設定<\/h3>/);
+  assert.match(timeCapacityEditorSource, /重新計算/);
+  assert.match(timeControlSource, /onDraftChange\?\.\("工作容量已重新計算，尚未全域儲存"\)/);
+  assert.match(timeControlSource, /function setEditing\(enabled\)/);
+  assert.match(timeControlSource, /function prepareSave\(\)/);
   assert.match(appSource, /state\.timeController\?\.setEditing\(true\)/);
   assert.match(appSource, /state\.timeController\?\.setEditing\(false\)/);
   assert.match(appSource, /timeSave = state\.timeController\?\.prepareSave\(\) \?\? null/);
@@ -91,13 +101,22 @@ test("each production task card has one bottom child-item add control", () => {
   assert.match(appSource, /policy: PRIORITY_POLICY/);
 });
 
-test("production item time actions remain visible in global edit mode", () => {
+test("production item time actions remain visible in global edit mode", async () => {
   // The capsule is rendered by the shared row in both modes and opens the
-  // existing dialog through a callback, so no DOM node crosses the UI boundary.
+  // shared TimeDialog component through a callback, so no DOM node crosses
+  // the UI boundary.
   assert.equal(itemRowSource.split("time-item-button").length - 1, 4);
   assert.match(itemRowSource, /onclick=\{\(\) => onTimeClick\(item\.id, item\.title\)\}/);
-  assert.match(appSource, /onTimeClick: \(itemId, itemTitle\) => time\?\.showItemTime\(itemId, itemTitle\)/);
+  assert.match(itemRowSource, /查看估算依據/);
+  assert.match(appSource, /onTimeClick: \(itemId, itemTitle\) => \{\s*time\?\.showItemTime\(itemId, itemTitle\);/);
   assert.doesNotMatch(appSource, /createItemTimeButton/);
-  assert.match(timeViewSource, /function itemTime\(itemId\)/);
-  assert.match(timeViewSource, /查看估算依據/);
+  assert.match(timeControlSource, /function itemTime\(itemId\)/);
+  // The dialog is shared by both hosts: the standalone editor wires the same
+  // capsule click to the same controller instead of rendering an inert span.
+  const appSvelteSource = await readFile(
+    new URL("../experiments/editor-svelte-spike/src/App.svelte", import.meta.url),
+    "utf8",
+  );
+  assert.match(appSvelteSource, /createTimeReferenceController/);
+  assert.match(appSvelteSource, /onTimeClick=\{timeController \? openItemTime : null\}/);
 });

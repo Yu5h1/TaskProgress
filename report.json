@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-08-06T02:40:00+08:00",
+  "updated_at": "2026-08-06T06:30:00+08:00",
   "tasks": [
     {
       "id": "viewer-core",
@@ -171,7 +171,7 @@
       "title": "本機任務編輯",
       "status": "in_progress",
       "priority": 1,
-      "summary": "正式 Viewer 預覽已全面改由可替換的 UI adapter 渲染，任務卡、模式切換、儲存列、新增控制與主題選單／自訂色彩 Dialog 都只剩一份實作。app.js 只剩時間 Dialog 仍自行繪製。時間參考 Demo 依裁示退場。公開部署已驗證，建置產物同步由 CI 擋在部署之前。",
+      "summary": "正式 Viewer 預覽已全面改由可替換的 UI adapter 渲染：任務卡、模式切換、儲存列、新增控制、主題選單／自訂色彩 Dialog、時間參考摘要按鈕與進度報告 Dialog 都只剩一份實作，app.js 不再自行繪製任何 Dialog。時間參考 Demo 依裁示退場。公開部署已驗證，建置產物同步由 CI 擋在部署之前。下一步是移除只剩測試在用的 editor-surface runtime 並拆掉編輯用 iframe 覆蓋層。",
       "completed_items": [
         {
           "id": "item-local-task-editing-done-1",
@@ -452,6 +452,11 @@
           "id": "share-theme-control",
           "title": "主題選單與自訂色彩 Dialog 收斂為同一個共用元件並刪除兩份舊實作；編輯器因此也能建立自訂配色，儲存與套用留在框架中立的 theme adapter",
           "priority": 1
+        },
+        {
+          "id": "migrate-remaining-dialogs",
+          "title": "時間參考摘要按鈕與進度報告 Dialog 收斂為共用元件；time-view.js 的商業邏輯改寫為框架中立的 time-dialog-control.js，app.js 不再自行繪製任何 Dialog。子項目工時膠囊在獨立編輯器中也從無互動的文字改為可點擊，開啟同一個 Dialog",
+          "priority": 1
         }
       ],
       "pending_items": [
@@ -459,12 +464,6 @@
           "id": "freeze-svelte-ux-parity-contract",
           "title": "建立 Svelte 遷移 UX parity gate：逐項比對既有 Viewer 的區塊順序、面板方向、時間彈窗、焦點鍵盤、主題與響應式行為",
           "priority": 0
-        },
-
-        {
-          "id": "migrate-remaining-dialogs",
-          "title": "將 app.js 最後一塊自行繪製的區域搬入同一套元件：時間 Dialog",
-          "priority": 1
         },
         {
           "id": "retire-editor-surface-and-iframe",

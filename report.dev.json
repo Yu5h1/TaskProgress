@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "report_id": "task-progress-development",
-  "updated_at": "2026-08-06T02:40:00+08:00",
+  "updated_at": "2026-08-06T06:30:00+08:00",
   "tasks": [
     {
       "id": "viewer-core",
@@ -93,7 +93,7 @@
     },
     {
       "id": "local-task-editing",
-      "next_step": "主題選單與自訂色彩 Dialog 已收斂為共用的 ThemeControl 元件（region theme-control），viewer/assets/theme.js 與 spike 的 theme-control.js 已刪除，儲存與套用改由框架中立的 viewer/assets/theme-control.js 提供；編輯器因此也能建立自訂配色。剩下的是時間 Dialog：由 time-view.js（1025 行）產生且與時間分析、三個分頁與人工估算編輯耦合，同時要一併修掉既有 parity 回歸（交付日應排在時間設定最前、人工工時與依據應進 Dialog 而非 inline details）。搬完即可移除只剩測試在用的 editor-surface runtime，並拆掉編輯用 iframe 覆蓋層。",
+      "next_step": "時間參考摘要按鈕與進度報告 Dialog 已收斂為共用元件（region time-summary-button 與 time-dialog）：time-view.js（1025 行、含 DOM 建構）已刪除，商業邏輯逐一改寫為框架中立的 viewer/assets/time-dialog-control.js（純資料，snapshot()／commands），markup 改由 TimeSummaryButton.svelte、TimeDialog.svelte、TimeCapacityEditor.svelte 提供；app.js 不再自行繪製任何 Dialog。獨立編輯器（App.svelte／editor.html）的子項目工時膠囊過去是無 onTimeClick 的純文字 span，現在也接上同一個 Dialog。過程中修正兩個問題：(1) controller 建構時必須呼叫一次 refresh()，否則摘要按鈕會停留在 sidecar 產生當下烘焙的風險值，直到下一次 60 秒輪詢；(2) 以 mount() 搭配外部 $state props 掛載的元件中，bare $: 區塊或 action 的 update(prop) 讀取 legacy prop 只會在掛載後重新求值一次，之後的變更不會被看見——即使同一個 prop 驅動的樣板運算式持續正確更新。TimeDialog.svelte 改用 {#if open} 結構性掛載搭配 use:openOnMount 動作解決；關閉路徑（按鈕／背景點擊）改為直接呼叫 onClose()，不再單靠原生 close 事件——本次使用的瀏覽器自動化工具環境本身無法可靠觸發 dialog.close() 的 close 事件、Escape 也關不掉 modal dialog（已用一個獨立建立的 ad-hoc dialog 隔離重現，與本專案程式碼無關，但真實使用者瀏覽器是否也有此限制尚未驗證）。Node 測試新增 tests/time-dialog-control.test.mjs（9 項，涵蓋 snapshot／commands／capacity 表單／stale 語意）與 time-viewer-model.test.mjs 的單一實作來源斷言，全數通過（172／172）。下一步：預覽全部搬完，移除只剩 Demo 與測試在用的 editor-surface runtime 殘留匯出，並拆掉編輯用 iframe 覆蓋層，讓預覽與編輯成為同一頁的兩個模式（見 report.json 的 retire-editor-surface-and-iframe）。",
       "blockers": [
         "時間參考 Demo 已隨此次收斂停止運作（依使用者裁示 (a)）：它呼叫的 createModeController／createSaveBar／createAddControl 已刪除，開啟頁面會拋錯。不得為了讓 Demo 復活而還原那些函式。",
         "editor-surface runtime 仍匯出 TaskCard／ItemRow／優先級／欄位驗證等，但正式 Viewer 已不再呼叫，只剩凍結的 Demo 與測試在用；要等 Demo 不再建置於其上才能移除。",

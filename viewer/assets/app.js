@@ -26,7 +26,7 @@ import {
   inspectTimeAnalysis,
   resolveTimeAnalysisSource,
 } from "./time-model.js";
-import { createTimeReferenceController } from "./time-view.js";
+import { createTimeReferenceController } from "./time-dialog-control.js";
 import {
   loadStatusOrder,
   moveStatusOrder,
@@ -75,12 +75,8 @@ const elements = {
   editorSurfaceOverlay: document.querySelector("#editor-surface-overlay"),
   editorSurfaceFrame: document.querySelector("#editor-surface-frame"),
   taskAddShell: document.querySelector("#task-add-shell"),
-  timeSummaryButton: document.querySelector("#time-summary-button"),
-  timeDialog: document.querySelector("#time-dialog"),
-  timeDialogClose: document.querySelector("#time-dialog-close"),
-  timeDialogKicker: document.querySelector("#time-dialog-kicker"),
-  timeDialogTitle: document.querySelector("#time-dialog-title"),
-  timeDialogContent: document.querySelector("#time-dialog-content"),
+  timeSummaryButton: document.querySelector("#time-summary-dock"),
+  timeDialog: document.querySelector("#time-dialog-dock"),
 };
 
 const state = {
@@ -95,6 +91,8 @@ const state = {
   timeController: null,
   taskListView: null,
   taskAdderView: null,
+  timeSummaryView: null,
+  timeDialogView: null,
   diagnosticsView: null,
   scopeDirectoryView: null,
   overviewView: null,
@@ -141,6 +139,48 @@ function renderThemeControl() {
   };
   if (themeControlView) themeControlView.update(props);
   else themeControlView = createUiView("theme-control", elements.themeControl, props);
+}
+
+// The time controller (viewer/assets/time-dialog-control.js) is entirely
+// data: no DOM node crosses out of it. This host function is the single
+// place that turns its snapshot into the two UI regions, called after every
+// command so a periodic refresh, a capsule click and a capacity recalculation
+// all converge on the same render path.
+function renderTimeReference() {
+  if (!state.timeController) return;
+  const snap = state.timeController.snapshot();
+  elements.timeSummaryButton.hidden = false;
+  const summaryProps = {
+    ...snap.summary,
+    onClick: () => {
+      state.timeController.openProjectDetail();
+      renderTimeReference();
+    },
+  };
+  if (state.timeSummaryView) state.timeSummaryView.update(summaryProps);
+  else state.timeSummaryView = createUiView("time-summary-button", elements.timeSummaryButton, summaryProps);
+
+  const dialogProps = {
+    ...snap.dialog,
+    onClose: () => {
+      state.timeController.closeDialog();
+      renderTimeReference();
+    },
+    onToggleDetails: () => {
+      state.timeController.toggleDetails();
+      renderTimeReference();
+    },
+    onSetTab: (name) => {
+      state.timeController.setActiveTab(name);
+      renderTimeReference();
+    },
+    onSubmitCapacity: (values) => {
+      state.timeController.submitCapacityForm(values);
+      renderTimeReference();
+    },
+  };
+  if (state.timeDialogView) state.timeDialogView.update(dialogProps);
+  else state.timeDialogView = createUiView("time-dialog", elements.timeDialog, dialogProps);
 }
 
 function el(tag, className, text) {
@@ -190,6 +230,7 @@ function syncEditorDirty(message = "有尚未儲存的修改") {
     canRedo: Boolean(history?.canRedo),
     message: state.editor.dirty ? message : "尚未修改",
   });
+  renderTimeReference();
 }
 
 function markEditorDirty(message = "有尚未儲存的修改") {
@@ -482,7 +523,10 @@ function taskListProps(tasks) {
       applyEditorCommand(command, "有尚未儲存的修改", { render: true });
     },
     onAddItem: (taskId, title, priority) => addTaskItem(taskId, title, priority),
-    onTimeClick: (itemId, itemTitle) => time?.showItemTime(itemId, itemTitle),
+    onTimeClick: (itemId, itemTitle) => {
+      time?.showItemTime(itemId, itemTitle);
+      renderTimeReference();
+    },
   };
 }
 
@@ -526,6 +570,7 @@ function renderReport() {
   renderOverview();
   renderFilters();
   renderTasks();
+  renderTimeReference();
 }
 
 async function readProblem(response, fallback) {
@@ -918,11 +963,6 @@ async function main() {
           sourceAnalysis: state.timeAnalysis,
           report,
           location: window.location,
-          summaryButton: elements.timeSummaryButton,
-          dialog: elements.timeDialog,
-          dialogKicker: elements.timeDialogKicker,
-          dialogTitle: elements.timeDialogTitle,
-          dialogContent: elements.timeDialogContent,
           workProgressRatio: projectProgress.total
             ? projectProgress.completed / projectProgress.total
             : 0,
@@ -973,14 +1013,14 @@ bindHistoryShortcuts(document, {
   onUndo: () => applyEditorHistory("undo"),
   onRedo: () => applyEditorHistory("redo"),
 });
-elements.timeDialogClose.addEventListener("click", () => elements.timeDialog.close());
-elements.timeDialog.addEventListener("click", (event) => {
-  if (event.target === elements.timeDialog) elements.timeDialog.close();
-});
-window.setInterval(() => state.timeController?.refresh(), 60_000);
-window.addEventListener("pageshow", () => state.timeController?.refresh());
+function refreshTimeReference() {
+  state.timeController?.refresh();
+  renderTimeReference();
+}
+window.setInterval(refreshTimeReference, 60_000);
+window.addEventListener("pageshow", refreshTimeReference);
 document.addEventListener("visibilitychange", () => {
-  if (document.visibilityState === "visible") state.timeController?.refresh();
+  if (document.visibilityState === "visible") refreshTimeReference();
 });
 window.addEventListener("beforeunload", (event) => {
   if (!state.editor.dirty) return;

@@ -126,19 +126,49 @@ test("production Viewer isolates a malformed deadline from valid estimates", () 
   assert.ok(result.deadlineErrors.length > 0);
 });
 
-test("Viewer markup exposes one shared dialog and all three detail tabs", async () => {
+test("Viewer markup exposes one shared dialog mount and all three detail tabs", async () => {
   const html = await readFile(
     new URL("../viewer/index.html", import.meta.url),
     "utf8",
   );
   const source = await readFile(
-    new URL("../viewer/assets/time-view.js", import.meta.url),
+    new URL("../viewer/assets/time-dialog-control.js", import.meta.url),
     "utf8",
   );
 
-  assert.match(html, /id="time-dialog"/);
-  assert.match(html, /id="time-summary-button"/);
-  assert.match(source, /\["flow", "評估流程"\]/);
-  assert.match(source, /\["engineering", "工程估算"\]/);
-  assert.match(source, /\["capacity", "工作容量"\]/);
+  assert.match(html, /id="time-dialog-dock"/);
+  assert.match(html, /id="time-summary-dock"/);
+  assert.doesNotMatch(html, /id="time-dialog"/);
+  assert.doesNotMatch(html, /id="time-summary-button"/);
+  assert.match(source, /name: "flow", label: "評估流程"/);
+  assert.match(source, /name: "engineering", label: "工程估算"/);
+  assert.match(source, /name: "capacity", label: "工作容量"/);
+});
+
+test("the time summary button and its dialog are registered as one shared implementation", async () => {
+  const [adapter, app, timeDialog, timeSummaryButton] = await Promise.all([
+    readFile(new URL("../experiments/editor-svelte-spike/src/viewer-adapter.svelte.js", import.meta.url), "utf8"),
+    readFile(new URL("../viewer/assets/app.js", import.meta.url), "utf8"),
+    readFile(new URL("../experiments/editor-svelte-spike/src/TimeDialog.svelte", import.meta.url), "utf8"),
+    readFile(new URL("../experiments/editor-svelte-spike/src/TimeSummaryButton.svelte", import.meta.url), "utf8"),
+  ]);
+
+  assert.match(adapter, /"time-summary-button": TimeSummaryButton/);
+  assert.match(adapter, /"time-dialog": TimeDialog/);
+  assert.match(app, /createUiView\("time-summary-button", elements\.timeSummaryButton/);
+  assert.match(app, /createUiView\("time-dialog", elements\.timeDialog/);
+
+  // The dialog element is structurally conditional on `open`, not toggled by
+  // an imperative call reacting to a prop change — see the comment in
+  // TimeDialog.svelte for why a bare `$:`/action-update on that prop is
+  // unreliable in this project's imperative-mount setup.
+  assert.match(timeDialog, /\{#if open\}/);
+  assert.match(timeDialog, /use:openOnMount/);
+  // Closing is host-notified directly by the button/backdrop, not solely
+  // through the native `close` event.
+  assert.match(timeDialog, /function requestClose\(\)/);
+  assert.match(timeDialog, /dialogEl\?\.close\(\);\s*onClose\(\);/);
+
+  assert.doesNotMatch(timeSummaryButton, /localStorage/);
+  assert.doesNotMatch(timeDialog, /localStorage/);
 });

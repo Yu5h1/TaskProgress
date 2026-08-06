@@ -10,6 +10,8 @@ import StatusFilters from "./StatusFilters.svelte";
 import StatusOverview from "./StatusOverview.svelte";
 import TaskList from "./TaskList.svelte";
 import ThemeControl from "./ThemeControl.svelte";
+import TimeDialog from "./TimeDialog.svelte";
+import TimeSummaryButton from "./TimeSummaryButton.svelte";
 
 /*
  * Svelte implementation of the Viewer's preview regions.
@@ -33,6 +35,8 @@ const components = {
   "diagnostics": Diagnostics,
   "scope-directory": ScopeDirectory,
   "theme-control": ThemeControl,
+  "time-summary-button": TimeSummaryButton,
+  "time-dialog": TimeDialog,
 };
 
 export const svelteViewerAdapter = {

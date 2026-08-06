@@ -83,7 +83,14 @@ test("editing exposes global task and child controls with a panel-aligned save b
   assert.match(styles, /\.edit-save-button\s*\{[\s\S]*color:\s*#fff/);
   assert.match(styles, /\.edit-save-button\s*\{[\s\S]*background:\s*#245fcb/);
   assert.doesNotMatch(app, /inline-delete-button", "×"/);
-  assert.match(html, /class="theme-close"[\s\S]*?<span aria-hidden="true">×<\/span>/);
+  // Both dialogs now render through shared components; the Viewer keeps only
+  // their mount points.
+  const [themeControl, timeDialog] = await Promise.all([
+    readFile(new URL("../experiments/editor-svelte-spike/src/ThemeControl.svelte", import.meta.url), "utf8"),
+    readFile(new URL("../experiments/editor-svelte-spike/src/TimeDialog.svelte", import.meta.url), "utf8"),
+  ]);
+  assert.match(themeControl, /class="theme-close"[\s\S]*?<span aria-hidden="true">×<\/span>/);
+  assert.match(timeDialog, /class="theme-close"[\s\S]*?<span aria-hidden="true">×<\/span>/);
   assert.match(styles, /\.theme-close\s*\{[\s\S]*display:\s*grid[\s\S]*place-items:\s*center/);
 });
 

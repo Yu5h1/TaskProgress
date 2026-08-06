@@ -40,18 +40,9 @@
         </div>
       </header>
 
-      <dialog class="theme-dialog time-dialog" id="time-dialog" aria-labelledby="time-dialog-title">
-        <div class="theme-dialog-heading">
-          <div>
-            <p class="section-kicker" id="time-dialog-kicker">時間參考</p>
-            <h2 id="time-dialog-title">進度報告</h2>
-          </div>
-          <button class="theme-close" id="time-dialog-close" type="button" aria-label="關閉時間參考">
-            <span aria-hidden="true">×</span>
-          </button>
-        </div>
-        <div class="time-dialog-content" id="time-dialog-content"></div>
-      </dialog>
+      <!-- Mount point only. The shared TimeDialog component renders the
+           dialog, project/item detail and capacity editor itself. -->
+      <div class="time-dialog-dock" id="time-dialog-dock"></div>
 
       <main id="main-content">
         <section class="hero" aria-labelledby="report-title">
@@ -59,14 +50,9 @@
             <p class="eyebrow" id="scope-label">唯讀任務報告</p>
             <div class="project-title-line">
               <h1 id="report-title">正在載入報告…</h1>
-              <button
-                class="time-summary-button"
-                id="time-summary-button"
-                type="button"
-                aria-label="工期摘要"
-                disabled
-                hidden
-              ></button>
+              <!-- Mount point only. The shared TimeSummaryButton component
+                   renders the pill itself. -->
+              <div class="time-summary-dock" id="time-summary-dock" hidden></div>
             </div>
             <p class="hero-summary" id="report-summary">資料會由目前連結自動載入。</p>
           </div>
