@@ -21,7 +21,7 @@ import {
   bindHistoryShortcuts,
 } from "./editor-surface.js";
 import { createUiView } from "./ui-host.js";
-import { initializeThemeControls } from "./theme.js";
+import { createThemeControl } from "./theme-control.js";
 import {
   inspectTimeAnalysis,
   resolveTimeAnalysisSource,
@@ -68,6 +68,7 @@ const elements = {
   exampleLink: document.querySelector("#example-link"),
   scopeDirectory: document.querySelector("#scope-directory"),
   modeBadge: document.querySelector("#mode-badge"),
+  themeControl: document.querySelector("#theme-control"),
   viewModeToggle: document.querySelector("#view-mode-toggle"),
   viewerModeLabel: document.querySelector("#viewer-mode-label"),
   editSaveBar: document.querySelector("#edit-save-bar"),
@@ -117,6 +118,30 @@ const state = {
 
 let viewModeToggleView = null;
 let saveBarView = null;
+
+// The theme adapter owns storage and the document root; the shared component
+// renders the picker and the custom-palette dialog and reports the reader's
+// choice back here.
+const themeControl = createThemeControl();
+let themeControlView = null;
+
+function renderThemeControl() {
+  const props = {
+    mode: themeControl.mode,
+    custom: themeControl.custom,
+    systemScheme: themeControl.systemScheme,
+    onModeChange: (mode) => {
+      themeControl.setMode(mode);
+      renderThemeControl();
+    },
+    onApplyCustom: (palette) => {
+      themeControl.applyCustom(palette);
+      renderThemeControl();
+    },
+  };
+  if (themeControlView) themeControlView.update(props);
+  else themeControlView = createUiView("theme-control", elements.themeControl, props);
+}
 
 function el(tag, className, text) {
   const node = document.createElement(tag);
@@ -922,7 +947,7 @@ async function main() {
   }
 }
 
-initializeThemeControls();
+renderThemeControl();
 viewModeToggleView = createUiView("mode-toggle", elements.viewModeToggle, {
   mode: "preview",
   available: false,

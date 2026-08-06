@@ -33,47 +33,12 @@
           <!-- Mount point only. The shared ModeToggle component renders the
                button itself; nesting one button inside another is invalid. -->
           <div class="view-mode-dock" id="view-mode-toggle"></div>
-          <label class="theme-picker" for="theme-select">
-            <span>主題</span>
-            <select id="theme-select" aria-label="顯示主題">
-              <option value="system">系統選擇</option>
-              <option value="light">亮色</option>
-              <option value="dark">暗色</option>
-              <option value="custom">自訂…</option>
-            </select>
-          </label>
+          <!-- Mount point only. The shared ThemeControl component renders the
+               picker and its custom-palette dialog, so the editor offers the
+               same 自訂 entry point instead of a second dialog. -->
+          <div class="theme-dock" id="theme-control"></div>
         </div>
       </header>
-
-      <dialog class="theme-dialog" id="theme-dialog" aria-labelledby="theme-dialog-title">
-        <div class="theme-dialog-heading">
-          <div>
-            <p class="section-kicker">Custom theme</p>
-            <h2 id="theme-dialog-title">自訂 Viewer 顏色</h2>
-          </div>
-          <button class="theme-close" id="theme-close" type="button" aria-label="關閉自訂主題">
-            <span aria-hidden="true">×</span>
-          </button>
-        </div>
-        <p class="theme-dialog-description">
-          選擇基底後調整主要介面顏色；任務狀態色會沿用基底，保持完成、進行中與受阻容易辨識。
-        </p>
-        <label class="theme-base-field" for="theme-custom-base">
-          <span>狀態色基底</span>
-          <select id="theme-custom-base">
-            <option value="light">亮色基底</option>
-            <option value="dark">暗色基底</option>
-          </select>
-        </label>
-        <div class="theme-color-fields" id="theme-color-fields"></div>
-        <p class="theme-dialog-status" id="theme-dialog-status" aria-live="polite"></p>
-        <div class="theme-dialog-actions">
-          <button class="secondary-button" id="theme-reset" type="button">恢復基底預設</button>
-          <span class="theme-dialog-action-spacer"></span>
-          <button class="secondary-button" id="theme-cancel" type="button">取消</button>
-          <button class="primary-button" id="theme-apply" type="button">套用自訂主題</button>
-        </div>
-      </dialog>
 
       <dialog class="theme-dialog time-dialog" id="time-dialog" aria-labelledby="time-dialog-title">
         <div class="theme-dialog-heading">

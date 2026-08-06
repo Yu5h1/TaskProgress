@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "report_id": "task-progress-development",
-  "updated_at": "2026-08-05T22:55:00+08:00",
+  "updated_at": "2026-08-06T02:40:00+08:00",
   "tasks": [
     {
       "id": "viewer-core",
@@ -93,7 +93,7 @@
     },
     {
       "id": "local-task-editing",
-      "next_step": "診斷訊息與 scope 目錄首頁已改由 UI adapter 渲染；app.js 只剩主題 Dialog 與時間 Dialog 兩塊仍自行繪製。這兩塊搬完即可移除只剩測試在用的 editor-surface runtime，並拆掉編輯用 iframe 覆蓋層，讓預覽與編輯成為同一頁的兩個模式。時間 Dialog 由 time-view.js 產生且與時間分析耦合，主題 Dialog 由 theme.js 產生且需要 9 個 DOM id 與自訂調色，兩者都比先前的區塊大，建議各自獨立進行。",
+      "next_step": "主題選單與自訂色彩 Dialog 已收斂為共用的 ThemeControl 元件（region theme-control），viewer/assets/theme.js 與 spike 的 theme-control.js 已刪除，儲存與套用改由框架中立的 viewer/assets/theme-control.js 提供；編輯器因此也能建立自訂配色。剩下的是時間 Dialog：由 time-view.js（1025 行）產生且與時間分析、三個分頁與人工估算編輯耦合，同時要一併修掉既有 parity 回歸（交付日應排在時間設定最前、人工工時與依據應進 Dialog 而非 inline details）。搬完即可移除只剩測試在用的 editor-surface runtime，並拆掉編輯用 iframe 覆蓋層。",
       "blockers": [
         "時間參考 Demo 已隨此次收斂停止運作（依使用者裁示 (a)）：它呼叫的 createModeController／createSaveBar／createAddControl 已刪除，開啟頁面會拋錯。不得為了讓 Demo 復活而還原那些函式。",
         "editor-surface runtime 仍匯出 TaskCard／ItemRow／優先級／欄位驗證等，但正式 Viewer 已不再呼叫，只剩凍結的 Demo 與測試在用；要等 Demo 不再建置於其上才能移除。",

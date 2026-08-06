@@ -9,6 +9,7 @@ import SaveBar from "./SaveBar.svelte";
 import StatusFilters from "./StatusFilters.svelte";
 import StatusOverview from "./StatusOverview.svelte";
 import TaskList from "./TaskList.svelte";
+import ThemeControl from "./ThemeControl.svelte";
 
 /*
  * Svelte implementation of the Viewer's preview regions.
@@ -31,6 +32,7 @@ const components = {
   "add-control": AddControl,
   "diagnostics": Diagnostics,
   "scope-directory": ScopeDirectory,
+  "theme-control": ThemeControl,
 };
 
 export const svelteViewerAdapter = {

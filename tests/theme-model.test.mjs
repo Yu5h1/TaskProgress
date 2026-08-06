@@ -1,5 +1,7 @@
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
 import test from "node:test";
+import { createThemeControl } from "../viewer/assets/theme-control.js";
 import {
   CUSTOM_COLOR_FIELDS,
   DEFAULT_CUSTOM_PALETTES,
@@ -112,4 +114,59 @@ test("default palettes meet normal-text contrast while low contrast is reported"
     itemText: "#eeeeee",
     secondaryText: "#eeeeee",
   })).length >= 4);
+});
+
+test("the theme adapter keeps storage and the document root out of the component", () => {
+  const storage = createStorage();
+  const root = createRoot();
+  const control = createThemeControl({ root, storage, matchMedia: () => ({ matches: true }) });
+
+  assert.equal(control.mode, "system");
+  assert.equal(control.custom, null);
+  assert.equal(control.systemScheme, "dark");
+  assert.equal(root.dataset.theme, "system");
+
+  control.setMode("light");
+  assert.equal(control.mode, "light");
+  assert.equal(root.dataset.theme, "light");
+  assert.equal(JSON.parse(storage.getItem(THEME_STORAGE_KEY)).mode, "light");
+
+  const applied = control.applyCustom(createCustomPalette("dark", { accent: "#123456" }));
+  assert.equal(applied.mode, "custom");
+  assert.equal(control.custom.accent, "#123456");
+  assert.equal(root.dataset.themeBase, "dark");
+  assert.equal(root.properties.get("--color-accent"), "#123456");
+
+  // Switching away keeps the palette, so reopening the dialog shows it again.
+  control.setMode("system");
+  assert.equal(control.custom.accent, "#123456");
+  assert.equal(root.properties.size, 0);
+});
+
+test("one theme control serves every host: picker and dialog have a single implementation", async () => {
+  const [html, app, adapter, control, editorApp] = await Promise.all([
+    readFile(new URL("../viewer/index.html", import.meta.url), "utf8"),
+    readFile(new URL("../viewer/assets/app.js", import.meta.url), "utf8"),
+    readFile(new URL("../experiments/editor-svelte-spike/src/viewer-adapter.svelte.js", import.meta.url), "utf8"),
+    readFile(new URL("../experiments/editor-svelte-spike/src/ThemeControl.svelte", import.meta.url), "utf8"),
+    readFile(new URL("../experiments/editor-svelte-spike/src/App.svelte", import.meta.url), "utf8"),
+  ]);
+
+  // The Viewer keeps a mount point; the markup belongs to the component.
+  assert.match(html, /<div class="theme-dock" id="theme-control"><\/div>/u);
+  assert.doesNotMatch(html, /id="theme-select"|id="theme-dialog"|id="theme-apply"/u);
+  assert.match(app, /createUiView\("theme-control", elements\.themeControl/u);
+  assert.match(adapter, /"theme-control": ThemeControl/u);
+
+  // Both hosts mount the same component, so `自訂` needs no second dialog and
+  // no host-specific option list.
+  assert.match(editorApp, /<ThemeControl/u);
+  assert.doesNotMatch(editorApp, /spike-theme-select|theme-picker/u);
+  assert.match(control, /id="theme-select"/u);
+  assert.match(control, /id="theme-dialog"/u);
+  assert.match(control, /自訂…/u);
+
+  // Storage stays in the adapter; palette rules stay in the shared model.
+  assert.doesNotMatch(control, /localStorage/u);
+  assert.match(control, /viewer\/assets\/theme-model\.js/u);
 });

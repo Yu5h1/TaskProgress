@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-08-05T22:55:00+08:00",
+  "updated_at": "2026-08-06T02:40:00+08:00",
   "tasks": [
     {
       "id": "viewer-core",
@@ -171,7 +171,7 @@
       "title": "本機任務編輯",
       "status": "in_progress",
       "priority": 1,
-      "summary": "正式 Viewer 預覽已全面改由可替換的 UI adapter 渲染，任務卡、模式切換、儲存列與新增控制都只剩一份實作，app.js 由 1436 行降為 970 行。預覽與編輯共同出現的元素已全部只剩一份實作。時間參考 Demo 依裁示退場。公開部署已驗證，建置產物同步由 CI 擋在部署之前。",
+      "summary": "正式 Viewer 預覽已全面改由可替換的 UI adapter 渲染，任務卡、模式切換、儲存列、新增控制與主題選單／自訂色彩 Dialog 都只剩一份實作。app.js 只剩時間 Dialog 仍自行繪製。時間參考 Demo 依裁示退場。公開部署已驗證，建置產物同步由 CI 擋在部署之前。",
       "completed_items": [
         {
           "id": "item-local-task-editing-done-1",
@@ -447,6 +447,11 @@
           "id": "ship-preview-bundle-flat",
           "title": "建置產物平鋪於 viewer/assets 並以測試守住路徑、emptyOutDir 與載入順序，使公開 Pages 不依賴 docs 複製步驟是否遞迴",
           "priority": 0
+        },
+        {
+          "id": "share-theme-control",
+          "title": "主題選單與自訂色彩 Dialog 收斂為同一個共用元件並刪除兩份舊實作；編輯器因此也能建立自訂配色，儲存與套用留在框架中立的 theme adapter",
+          "priority": 1
         }
       ],
       "pending_items": [
@@ -458,7 +463,7 @@
 
         {
           "id": "migrate-remaining-dialogs",
-          "title": "將 app.js 最後兩塊自行繪製的區域搬入同一套元件：主題 Dialog 與時間 Dialog",
+          "title": "將 app.js 最後一塊自行繪製的區域搬入同一套元件：時間 Dialog",
           "priority": 1
         },
         {

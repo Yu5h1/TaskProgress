@@ -2,12 +2,13 @@
   import { onMount } from "svelte";
 
   import { createTimeIndex } from "../../../viewer/assets/time-model.js";
-  import { createThemeControl } from "./theme-control.js";
+  import { createThemeControl } from "../../../viewer/assets/theme-control.js";
   import DeliveryRiskPreview from "./DeliveryRiskPreview.svelte";
   import DeliverySaveConfirmation from "./DeliverySaveConfirmation.svelte";
   import ModeToggle from "./ModeToggle.svelte";
   import SaveBar from "./SaveBar.svelte";
   import TaskCard from "./TaskCard.svelte";
+  import ThemeControl from "./ThemeControl.svelte";
   import TimeSettingsEditor from "./TimeSettingsEditor.svelte";
   import { loadSvelteEditorData } from "./data-loader.js";
   import { buildTimeSettingsRiskPreview } from "./delivery-risk-preview.js";
@@ -31,11 +32,11 @@
   // storage; the shared theme model owns every rule about what a mode means.
   const themeControl = createThemeControl();
   let themeMode = themeControl.mode;
-  let themeOptions = themeControl.options();
+  let themeCustom = themeControl.custom;
 
-  function changeTheme(event) {
-    themeMode = themeControl.setMode(event.currentTarget.value);
-    themeOptions = themeControl.options();
+  function readThemeControl() {
+    themeMode = themeControl.mode;
+    themeCustom = themeControl.custom;
   }
 
   let adapter = createSvelteEditorAdapter(fixtureReport, {
@@ -358,19 +359,13 @@
       <p>{dataLabel} · {timeState}</p>
     </div>
     <div class="spike-header-actions">
-      <label class="theme-picker" for="spike-theme-select">
-        <span>主題</span>
-        <select
-          id="spike-theme-select"
-          aria-label="顯示主題"
-          value={themeMode}
-          onchange={changeTheme}
-        >
-          {#each themeOptions as option (option.value)}
-            <option value={option.value}>{option.label}</option>
-          {/each}
-        </select>
-      </label>
+      <ThemeControl
+        mode={themeMode}
+        custom={themeCustom}
+        systemScheme={themeControl.systemScheme}
+        onModeChange={(mode) => { themeControl.setMode(mode); readThemeControl(); }}
+        onApplyCustom={(palette) => { themeControl.applyCustom(palette); readThemeControl(); }}
+      />
     </div>
     <ModeToggle
       mode={editing ? "edit" : "preview"}
