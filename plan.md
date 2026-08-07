@@ -1164,3 +1164,58 @@ ItemRow 是每張任務卡內的一筆子項目。這份矩陣已於 2026-08-02 
 4. 描述至少包含一個 Unicode 字母或數字；emoji-only／純標點不接受。
 5. 結構變更立即重算狀態數、task fraction 與 project progress，並停止顯示受影響的 item／task／project 時間投影直到重新分析。
 6. Demo 儲存以單一 payload 寫入，失敗時保留全部草稿且不更新 persisted snapshot；正式保存仍必須改用 scope 限定 capability、來源 revision、原子檔案取代與衝突拒絕。
+
+## 編輯 iframe 收斂 Draft 0.1
+
+目標是讓預覽與編輯成為同一頁的兩個模式，移除 `#editor-surface-overlay` 的 iframe。前置條件（預覽元素全部單一實作）已於 2026-08-06 達成。
+
+### 現況實測（2026-08-06，真實 port-8001 服務）
+
+重啟已發布 EXE 後 capability 恢復（`editable: true`、`editor_surface_url: /__taskprogress/v1/editor/editor.html`），本 session 首次能真正進入編輯模式。實際觀察到：
+
+- iframe 同源，`contentDocument` 可存取，內部渲染 6 張任務卡。
+- `editor-surface-open` class 套在 root 上鎖背景捲動；退出時正確移除。
+- postMessage 交握正常：編輯器內按模式切換 → Viewer 收到 `taskprogress:editor-close` → 關閉 overlay、還原 toggle。
+- 編輯器內另有 97 個逐項人工估算編輯器（`.spike-estimate-editor`）與時間設定面板（此 scope 尚無 time config，顯示「建立 8/8/8 預設設定」引導）。
+
+### 核心問題：`App.svelte` 是第二個應用，不是元件
+
+`app.js` 的 `startEditing()` 有兩條路徑，但只要 capability 提供 `surfaceUrl`，第一條就提早 return——**頁內編輯路徑在正式環境實際上從未執行**。兩條路徑的能力差距是這次收斂的真正工作量：
+
+| 能力 | `app.js` 頁內路徑 | iframe 內 `App.svelte` |
+|---|---|---|
+| 任務／子項目 CRUD、優先級、狀態 | 有（`createReportEditorSession`） | 有（共用同一個 Editor Core） |
+| 報告載入與 scope 解析 | 有 | **自己再做一次**（`loadRequestedData`） |
+| capability discovery | 有 | **自己再做一次**（`editClient.discover()`） |
+| 主題控制 | 有 | **自己再建一個**（`createThemeControl()`） |
+| 時間設定／交付日編輯 | 無 | 有（`TimeSettingsEditor` 223 行） |
+| 時間輸入草稿、版本化人工估算 | 無 | 有（`time-input-draft.js` 406 行） |
+| 雙 revision 多檔存檔 | 無（只存 report） | 有（`edit-host-client.js` 144 行） |
+| 交付日風險預覽／儲存確認 | 無 | 有（125 行） |
+
+iframe 之所以存在，正是因為 `App.svelte` 重複了 Viewer 已有的載入、探索、主題等職責。移除 iframe 不是搬 DOM，是要決定這個重複如何消解。
+
+### 候選設計
+
+- **A：把編輯器能力併進 Viewer host。** `time-input-draft.js`、`edit-host-client.js` 移入 host 層，`TimeSettingsEditor`／`DeliveryRiskPreview`／`DeliverySaveConfirmation` 註冊為 region，`onManualEstimate` 接進既有共用 `ItemRow`。結果是單一應用、單一載入路徑，`editor.html` 與其獨立建置隨之退場。代價：`app.js` 由 1,030 行成長至約 1,600 行，且存檔路徑要從「只存 report」合併為「report＋config＋estimates 三檔雙 revision」。
+- **B：以編輯器取代 Viewer。** 違反「本機 Viewer 是唯一使用者入口」的既有決定，不採用。
+- **C：不用 iframe，但仍把 `App.svelte` 當整個 app 掛進同一份 document。** 保留現有程式碼切分，但兩個 app 共存於一頁會有兩次報告載入、兩個 theme control、兩套 capability 狀態，等於把 iframe 的隔離拿掉卻留下它要隔離的東西。
+
+### 建議
+
+採 A。它是唯一真正消除重複的選項，也和專案既有方向一致——所有共用元素都已經走 region 邊界，時間設定與交付日流程是最後三個還沒走的。B 已被既有決定排除，C 只移除隔離而不移除重複。
+
+### 驗收條件
+
+1. 編輯 toggle 不再建立 iframe；`#editor-surface-overlay`、`#editor-surface-frame`、`taskprogress:editor-close` 監聽與 `editor-surface-open` class 全數移除。
+2. 編輯模式在同一份 document 內進入，外層 URL 不變，報告只載入一次。
+3. 時間設定、交付日草稿與風險預覽、儲存確認、逐項人工估算在頁內可用，行為與 iframe 版一致。
+4. 存檔走既有雙 revision 多檔契約（report `If-Match` ＋ `inputs_revision` ＋ `local_revision`），失敗時整批回滾。
+5. 背景捲動鎖定若仍需要，改由模式狀態驅動，不依賴 overlay 元素。
+6. 桌面與 390px 皆通過；真實 port-8001 服務驗證，不只靠獨立 Svelte surface。
+
+### 明確排除
+
+- 不在此階段改動存檔的伺服器端契約或 `taskprogress.local.json` 的敏感歷史格式。
+- 不處理行動裝置觸控編輯（仍為既有未驗證項目）。
+- 不重建已退役的 `experiments/time-reference/demo/`。

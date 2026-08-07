@@ -26,10 +26,6 @@ const priorityPolicySource = await readFile(
   new URL("../viewer/assets/priority-policy.js", import.meta.url),
   "utf8",
 );
-const editorSurfaceSource = await readFile(
-  new URL("../viewer/assets/editor-surface-runtime.js", import.meta.url),
-  "utf8",
-);
 
 test("progress report exposes one switching panel with three overview tabs", () => {
   const flowIndex = appSource.indexOf('flowTab.textContent = "評估流程"');
@@ -307,9 +303,10 @@ test("task cards and child items share the five named priority levels", () => {
   assert.match(appSource, /const priorityPolicy = globalThis\.TaskProgressPriorityPolicy/);
   assert.match(appSource, /const DEFAULT_PRIORITY = priorityPolicy\.fallbackValue/);
   assert.match(appSource, /const CREATION_PRIORITY = priorityPolicy\.creationDefaultValue/);
-  // Badge visibility and select styling now come from the shared Editor Surface.
-  assert.match(editorSurfaceSource, /priorityPolicy\.labelsValid && meta\.hidden/);
-  assert.match(editorSurfaceSource, /el\("select", className \?\? "inline-priority-select"\)/);
+  // The Demo's own source (frozen, retired) still calls the shared Editor
+  // Surface's createPrioritySelect; that function no longer exists in
+  // editor-surface-runtime.js (dead code, deleted), which is exactly why the
+  // Demo throws on load and is not repaired — see handoff.md.
   assert.match(appSource, /editorSurface\.createPrioritySelect\(value, \{ className, ariaLabel \}\)/);
   assert.match(appSource, /function renderTaskPriorityControls\(\)/);
   assert.match(appSource, /task_priorities: Object\.fromEntries/);
