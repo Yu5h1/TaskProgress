@@ -6,17 +6,17 @@ import {
   loadSvelteEditorData,
   resolveSvelteDataRequest,
 } from "../experiments/editor-svelte-spike/src/data-loader.js";
-import { createEditHostClient } from "../experiments/editor-svelte-spike/src/edit-host-client.js";
+import { createEditHostClient } from "../viewer/assets/edit-host-client.js";
 import { createSvelteEditorAdapter } from "../experiments/editor-svelte-spike/src/editor-adapter.js";
 import {
   buildDeliveryRiskPreview,
   buildTimeSettingsRiskPreview,
-} from "../experiments/editor-svelte-spike/src/delivery-risk-preview.js";
+} from "../viewer/assets/delivery-risk-preview.js";
 import { fixtureReport } from "../experiments/editor-svelte-spike/src/fixture.js";
 import {
   activeEstimateIndex,
   createTimeInputDraft,
-} from "../experiments/editor-svelte-spike/src/time-input-draft.js";
+} from "../viewer/assets/time-input-draft.js";
 
 const exampleReport = JSON.parse(await readFile(
   new URL("../reports/example/report.json", import.meta.url),
@@ -643,7 +643,7 @@ test("Svelte edit-host client sends the dual-revision multi-file contract", asyn
 });
 
 test("Svelte spike is isolated, static-path safe, and uses the shared core", async () => {
-  const [packageText, viteText, appText, cardText, rowText, adapterText, loaderText, clientText, timeDraftText, timeSettingsText, previewText, confirmationText, stylesText, presentationText, viewerMainText, editorHtmlText] = await Promise.all([
+  const [packageText, viteText, appText, cardText, rowText, adapterText, loaderText, clientText, timeDraftText, timeSettingsText, previewText, confirmationText, stylesText, timeEditingText, presentationText, viewerMainText, editorHtmlText] = await Promise.all([
     readFile(new URL("../package.json", import.meta.url), "utf8"),
     readFile(new URL("../experiments/editor-svelte-spike/vite.config.js", import.meta.url), "utf8"),
     readFile(new URL("../experiments/editor-svelte-spike/src/App.svelte", import.meta.url), "utf8"),
@@ -651,12 +651,13 @@ test("Svelte spike is isolated, static-path safe, and uses the shared core", asy
     readFile(new URL("../experiments/editor-svelte-spike/src/ItemRow.svelte", import.meta.url), "utf8"),
     readFile(new URL("../experiments/editor-svelte-spike/src/editor-adapter.js", import.meta.url), "utf8"),
     readFile(new URL("../experiments/editor-svelte-spike/src/data-loader.js", import.meta.url), "utf8"),
-    readFile(new URL("../experiments/editor-svelte-spike/src/edit-host-client.js", import.meta.url), "utf8"),
-    readFile(new URL("../experiments/editor-svelte-spike/src/time-input-draft.js", import.meta.url), "utf8"),
+    readFile(new URL("../viewer/assets/edit-host-client.js", import.meta.url), "utf8"),
+    readFile(new URL("../viewer/assets/time-input-draft.js", import.meta.url), "utf8"),
     readFile(new URL("../experiments/editor-svelte-spike/src/TimeSettingsEditor.svelte", import.meta.url), "utf8"),
-    readFile(new URL("../experiments/editor-svelte-spike/src/delivery-risk-preview.js", import.meta.url), "utf8"),
+    readFile(new URL("../viewer/assets/delivery-risk-preview.js", import.meta.url), "utf8"),
     readFile(new URL("../experiments/editor-svelte-spike/src/DeliverySaveConfirmation.svelte", import.meta.url), "utf8"),
     readFile(new URL("../experiments/editor-svelte-spike/src/styles.css", import.meta.url), "utf8"),
+    readFile(new URL("../viewer/assets/editor-time-editing.css", import.meta.url), "utf8"),
     readFile(new URL("../viewer/assets/editor-presentation.css", import.meta.url), "utf8"),
     readFile(new URL("../experiments/editor-svelte-spike/src/viewer-main.js", import.meta.url), "utf8"),
     readFile(new URL("../experiments/editor-svelte-spike/editor.html", import.meta.url), "utf8"),
@@ -696,8 +697,13 @@ test("Svelte spike is isolated, static-path safe, and uses the shared core", asy
   assert.match(confirmationText, /確認儲存/u);
   assert.match(confirmationText, /event\.key !== "Escape"/u);
   assert.match(confirmationText, /onkeydown=\{keydown\}/u);
-  assert.match(stylesText, /@media \(max-width: 640px\)[\s\S]*?\.spike-time-editor\s*\{[\s\S]*?grid-template-columns:\s*minmax\(0, 1fr\)/u);
+  // The time-settings/risk-preview/save-confirmation styling moved into the
+  // shared, themed editor-time-editing.css so every host mounting those
+  // regions gets it, not just the isolated spike. It stays separate from
+  // editor-presentation.css, which is geometry-only and carries no colours.
+  assert.match(timeEditingText, /@media \(max-width: 640px\)[\s\S]*?\.spike-time-editor\s*\{[\s\S]*?grid-template-columns:\s*minmax\(0, 1fr\)/u);
   assert.match(stylesText, /@import "@editor\/editor-presentation\.css"/u);
+  assert.match(stylesText, /@import "@editor\/editor-time-editing\.css"/u);
   assert.match(appText, /class="spike-page editor-layout-shell"/u);
   // The editor shell uses the shared controls rather than its own markup.
   assert.match(appText, /<ModeToggle/u);

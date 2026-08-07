@@ -1,6 +1,8 @@
 import { mount, unmount } from "svelte";
 
 import AddControl from "./AddControl.svelte";
+import DeliveryRiskPreview from "./DeliveryRiskPreview.svelte";
+import DeliverySaveConfirmation from "./DeliverySaveConfirmation.svelte";
 import Diagnostics from "./Diagnostics.svelte";
 import ModeToggle from "./ModeToggle.svelte";
 import ProjectProgress from "./ProjectProgress.svelte";
@@ -11,6 +13,7 @@ import StatusOverview from "./StatusOverview.svelte";
 import TaskList from "./TaskList.svelte";
 import ThemeControl from "./ThemeControl.svelte";
 import TimeDialog from "./TimeDialog.svelte";
+import TimeSettingsEditor from "./TimeSettingsEditor.svelte";
 import TimeSummaryButton from "./TimeSummaryButton.svelte";
 
 /*
@@ -37,6 +40,9 @@ const components = {
   "theme-control": ThemeControl,
   "time-summary-button": TimeSummaryButton,
   "time-dialog": TimeDialog,
+  "time-settings": TimeSettingsEditor,
+  "delivery-risk-preview": DeliveryRiskPreview,
+  "delivery-save-confirmation": DeliverySaveConfirmation,
 };
 
 export const svelteViewerAdapter = {

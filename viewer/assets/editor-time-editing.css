@@ -1,0 +1,578 @@
+/*
+ * Time settings, delivery-risk preview, save confirmation and the per-item
+ * manual-estimate editor. These render from `TimeSettingsEditor.svelte`,
+ * `DeliveryRiskPreview.svelte`, `DeliverySaveConfirmation.svelte` and the
+ * estimate block inside the shared `ItemRow.svelte` — the same markup for
+ * every host that mounts those regions, so the styling lives here rather
+ * than duplicated per host.
+ *
+ * Unlike editor-presentation.css this file is themed, not geometry-only: it
+ * reads the shared theme variables (--ink, --surface, --line, --blue, ...)
+ * that theme-control.js keeps in sync across hosts, so a host only needs to
+ * load this file — it does not need its own copy of these rules. Class names
+ * keep their original `spike-` prefix from the components that still define
+ * them; renaming is a separate cleanup, not part of moving the rules.
+ */
+.spike-save-button {
+  color: white !important;
+  background: var(--blue) !important;
+  border-color: var(--blue) !important;
+}
+
+.spike-time-editor,
+.spike-time-config-missing {
+  margin: 18px 0;
+  padding: 14px 16px;
+  color: var(--ink-soft);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+
+.spike-time-editor {
+  display: grid;
+  grid-template-columns: minmax(180px, 0.7fr) minmax(320px, 1.3fr);
+  gap: 18px;
+  margin-bottom: 18px;
+}
+
+.spike-time-editor h2,
+.spike-time-editor p {
+  margin: 0;
+}
+
+.spike-time-editor h2 {
+  margin: 3px 0 5px;
+  color: var(--ink);
+  font-size: 1rem;
+}
+
+.spike-time-editor-heading {
+  align-self: start;
+}
+
+.spike-timezone {
+  margin-top: 8px !important;
+  font-size: 0.72rem;
+}
+
+.spike-time-settings-fields,
+.spike-exception-list {
+  display: grid;
+  gap: 12px;
+}
+
+.spike-capacity-settings,
+.spike-exception-settings,
+.spike-delivery-settings {
+  padding: 12px;
+  background: color-mix(in srgb, var(--surface) 78%, transparent);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+
+.spike-setting-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.spike-setting-heading h3,
+.spike-delivery-settings h3 {
+  margin: 0;
+  color: var(--ink);
+  font-size: 0.84rem;
+}
+
+.spike-setting-heading p {
+  margin-top: 3px;
+  font-size: 0.68rem;
+}
+
+.spike-setting-heading strong {
+  flex: 0 0 auto;
+  color: var(--blue);
+  font-size: 0.75rem;
+}
+
+.spike-setting-heading strong.invalid {
+  color: var(--red);
+}
+
+.spike-allocation-fields {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.spike-allocation-fields label,
+.spike-exception-row label {
+  display: grid;
+  gap: 4px;
+  color: var(--ink-soft);
+  font-size: 0.68rem;
+}
+
+.spike-allocation-fields input,
+.spike-exception-row input {
+  min-width: 0;
+  padding: 7px 9px;
+  color: var(--ink);
+  color-scheme: dark;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+.spike-weekdays {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 11px 0 0;
+  padding: 0;
+  border: 0;
+}
+
+.spike-weekdays legend {
+  width: 100%;
+  margin-bottom: 5px;
+  color: var(--ink-soft);
+  font-size: 0.68rem;
+}
+
+.spike-weekdays label {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 7px;
+  color: var(--ink-soft);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  cursor: pointer;
+  font-size: 0.68rem;
+}
+
+.spike-weekdays input {
+  margin: 0;
+}
+
+.spike-exception-row {
+  display: grid;
+  grid-template-columns: 130px 105px minmax(180px, 1fr) auto;
+  align-items: end;
+  gap: 7px;
+}
+
+.spike-delete-exception,
+.spike-setting-heading button,
+.spike-time-settings-actions button {
+  min-height: 34px;
+  padding: 6px 10px;
+  color: var(--ink-soft);
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.spike-delete-exception {
+  color: var(--red);
+  border-color: color-mix(in srgb, var(--red) 38%, var(--line));
+}
+
+.spike-empty-setting,
+.spike-capacity-preview-note {
+  color: var(--ink-soft);
+  font-size: 0.72rem;
+}
+
+.spike-delivery-settings h3 {
+  margin-bottom: 9px;
+}
+
+.spike-time-settings-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.spike-time-settings-actions button {
+  color: white;
+  background: var(--blue);
+  border-color: var(--blue);
+}
+
+.spike-time-settings-actions .spike-field-error {
+  flex: 1 0 100%;
+}
+
+.spike-editor-kicker {
+  color: var(--blue) !important;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.spike-delivery-controls {
+  display: grid;
+  grid-template-columns: minmax(190px, 1fr) auto auto;
+  align-items: end;
+  gap: 8px;
+}
+
+.spike-delivery-reason {
+  grid-column: 1 / -1;
+}
+
+.spike-delivery-controls label,
+.spike-estimate-fields label {
+  display: grid;
+  gap: 4px;
+  color: var(--ink-soft);
+  font-size: 0.72rem;
+}
+
+.spike-delivery-controls input,
+.spike-estimate-fields input {
+  min-width: 0;
+  padding: 7px 9px;
+  color: var(--ink);
+  color-scheme: dark;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+.spike-delivery-controls button,
+.spike-estimate-fields button {
+  min-height: 34px;
+  padding: 6px 10px;
+  color: white;
+  background: var(--blue);
+  border: 1px solid var(--blue);
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.spike-delivery-controls .spike-subtle-button {
+  color: var(--ink-soft);
+  background: transparent;
+  border-color: var(--line);
+}
+
+.spike-time-config-missing {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.spike-time-config-missing strong {
+  color: var(--ink);
+}
+
+.spike-time-config-missing p {
+  margin: 4px 0 0;
+}
+
+.spike-time-config-missing button {
+  flex: 0 0 auto;
+  padding: 7px 12px;
+  color: white;
+  background: var(--blue);
+  border: 1px solid var(--blue);
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.work-columns .detail-list li.has-estimate-editor {
+  flex-wrap: wrap;
+}
+
+.spike-estimate-editor {
+  flex: 1 0 100%;
+  margin-top: 2px;
+  padding: 7px 9px;
+  background: color-mix(in srgb, var(--surface) 74%, transparent);
+  border: 1px solid var(--line);
+  border-radius: 9px;
+}
+
+.spike-estimate-editor summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  color: var(--blue);
+  cursor: pointer;
+  font-size: 0.72rem;
+  font-weight: 760;
+}
+
+.spike-estimate-editor summary small {
+  color: var(--ink-soft);
+  font-size: 0.66rem;
+  font-weight: 700;
+}
+
+.spike-estimate-fields {
+  display: grid;
+  grid-template-columns: 110px minmax(180px, 1fr) auto;
+  align-items: end;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.spike-estimate-fields .spike-field-error {
+  grid-column: 1 / -1;
+}
+
+.spike-estimate-confirmation {
+  grid-column: 1 / 2;
+  display: flex !important;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  align-self: center;
+}
+
+.spike-estimate-confirmation input {
+  width: auto;
+  margin: 0;
+}
+
+.spike-estimate-contract {
+  grid-column: 2 / -1;
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: 0.68rem;
+  line-height: 1.45;
+}
+
+.spike-field-error {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: var(--red);
+  font-size: 0.75rem;
+}
+
+.spike-risk-preview {
+  display: grid;
+  gap: 12px;
+  margin: 0 0 18px;
+  padding: 14px 16px;
+  color: var(--ink-soft);
+  background: color-mix(in srgb, var(--surface) 88%, var(--blue));
+  border: 1px solid color-mix(in srgb, var(--line) 58%, var(--blue));
+  border-radius: 12px;
+}
+
+.spike-risk-preview h3,
+.spike-risk-preview p,
+.spike-risk-preview dl,
+.spike-risk-preview dd {
+  margin: 0;
+}
+
+.spike-risk-preview h3 {
+  margin-top: 3px;
+  color: var(--ink);
+  font-size: 0.96rem;
+}
+
+.spike-risk-preview-heading,
+.spike-risk-comparison,
+.spike-risk-deltas,
+.spike-confirm-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.spike-preview-badge {
+  padding: 3px 8px;
+  color: var(--blue);
+  font-size: 0.68rem;
+  font-weight: 800;
+  background: color-mix(in srgb, var(--blue) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--blue) 48%, transparent);
+  border-radius: 999px;
+}
+
+.spike-delivery-diff,
+.spike-risk-deltas {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.spike-delivery-diff div,
+.spike-risk-deltas div,
+.spike-risk-comparison article {
+  min-width: 0;
+  padding: 9px 10px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 9px;
+}
+
+.spike-delivery-diff dt,
+.spike-risk-deltas dt,
+.spike-risk-comparison span,
+.spike-risk-comparison small {
+  color: var(--ink-soft);
+  font-size: 0.68rem;
+}
+
+.spike-delivery-diff dd,
+.spike-risk-deltas dd,
+.spike-risk-comparison strong {
+  display: block;
+  margin-top: 3px;
+  overflow-wrap: anywhere;
+  color: var(--ink);
+  font-size: 0.82rem;
+}
+
+.spike-risk-comparison article {
+  flex: 1 1 0;
+}
+
+.spike-risk-comparison small {
+  display: block;
+  margin-top: 4px;
+}
+
+.spike-risk-comparison .risk-on_track strong,
+.spike-risk-comparison .risk-complete strong {
+  color: var(--green);
+}
+
+.spike-risk-comparison .risk-at_risk strong {
+  color: var(--yellow);
+}
+
+.spike-risk-comparison .risk-critical strong {
+  color: var(--red);
+}
+
+.spike-risk-arrow {
+  flex: 0 0 auto;
+  color: var(--blue) !important;
+  font-size: 1rem !important;
+}
+
+.spike-preview-reason {
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+  overflow-wrap: anywhere;
+  font-size: 0.76rem;
+}
+
+.spike-confirm-dialog {
+  width: min(640px, calc(100% - 28px));
+  max-height: calc(100vh - 28px);
+  padding: 18px;
+  overflow: auto;
+  color: var(--ink-soft);
+  color-scheme: dark;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+}
+
+.spike-confirm-dialog::backdrop {
+  background: rgb(5 8 14 / 72%);
+  backdrop-filter: blur(3px);
+}
+
+.spike-confirm-copy h2,
+.spike-confirm-copy p {
+  margin: 0;
+}
+
+.spike-confirm-copy h2 {
+  margin: 4px 0 6px;
+  color: var(--ink);
+  font-size: 1.08rem;
+}
+
+.spike-confirm-copy + .spike-risk-preview {
+  margin-top: 16px;
+}
+
+.spike-confirm-actions {
+  justify-content: flex-end;
+  margin-top: 14px;
+}
+
+.spike-confirm-actions button {
+  padding: 8px 12px;
+  color: var(--ink);
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  cursor: pointer;
+}
+
+.spike-confirm-actions .spike-save-button {
+  color: white;
+  background: var(--blue);
+  border-color: var(--blue);
+}
+
+.spike-confirm-actions button:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+
+@media (max-width: 640px) {
+  .spike-time-editor,
+  .spike-time-config-missing {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .spike-delivery-controls,
+  .spike-allocation-fields,
+  .spike-exception-row,
+  .spike-estimate-fields {
+    grid-template-columns: 1fr;
+  }
+
+  .spike-setting-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .spike-estimate-confirmation,
+  .spike-estimate-contract {
+    grid-column: 1 / -1;
+  }
+
+  .spike-time-editor {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .spike-risk-comparison {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .spike-risk-arrow {
+    align-self: center;
+    transform: rotate(90deg);
+  }
+
+  .spike-delivery-diff,
+  .spike-risk-deltas {
+    grid-template-columns: 1fr;
+  }
+}

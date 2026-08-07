@@ -16,6 +16,7 @@
     <script src="assets/theme-bootstrap.js"></script>
     <link rel="stylesheet" href="assets/styles.css" />
     <link rel="stylesheet" href="assets/editor-presentation.css" />
+    <link rel="stylesheet" href="assets/editor-time-editing.css" />
     <!-- Registers the task-list UI implementation before app.js renders. -->
     <script type="module" src="assets/viewer-ui.js"></script>
     <script type="module" src="assets/app.js"></script>
@@ -74,6 +75,14 @@
         <section id="report-content" hidden>
           <div class="overview-grid" id="overview-grid" aria-label="報告摘要"></div>
 
+          <!-- Mount point only. The shared TimeSettingsEditor component renders
+               the capacity/delivery-date editor itself; only visible while
+               editing with a local edit session. -->
+          <div class="time-settings-dock" id="time-settings-dock" hidden></div>
+          <!-- Mount point only. The shared DeliveryRiskPreview component
+               renders the draft-risk comparison after a preview recalculation. -->
+          <div class="delivery-risk-preview-dock" id="delivery-risk-preview-dock" hidden></div>
+
           <div class="task-toolbar">
             <p class="section-kicker">工作項目</p>
             <div
@@ -112,12 +121,9 @@
       </footer>
     </div>
     <aside class="edit-save-bar" id="edit-save-bar" hidden></aside>
-    <section class="editor-surface-overlay" id="editor-surface-overlay" aria-label="TaskProgress 編輯器" hidden>
-      <iframe
-        id="editor-surface-frame"
-        title="TaskProgress 編輯器"
-        src="about:blank"
-      ></iframe>
-    </section>
+    <!-- Mount point only. The shared DeliverySaveConfirmation component is a
+         self-managing <dialog> (calls showModal() itself); the host only
+         creates and destroys it, never opens it directly. -->
+    <div id="delivery-save-confirmation-dock"></div>
   </body>
 </html>

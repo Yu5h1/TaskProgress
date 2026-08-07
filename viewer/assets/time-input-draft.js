@@ -1,4 +1,4 @@
-import { normalizeMeaningfulText } from "../../../viewer/assets/editor-core.js";
+import { normalizeMeaningfulText } from "./editor-core.js";
 
 function clone(value) {
   return value == null ? value : structuredClone(value);

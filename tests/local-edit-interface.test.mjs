@@ -15,7 +15,7 @@ const saveBar = await readFile(
 );
 const presentationUrl = new URL("../viewer/assets/editor-presentation.css", import.meta.url);
 
-test("production Viewer keeps local editing hidden until the host grants capability", async () => {
+test("production Viewer discovers local editing through the shared edit-host client, with no iframe", async () => {
   const [html, app] = await Promise.all([
     readFile(indexUrl, "utf8"),
     readFile(appUrl, "utf8"),
@@ -25,32 +25,44 @@ test("production Viewer keeps local editing hidden until the host grants capabil
   assert.match(modeToggle, /aria-pressed=\{editing\}/);
   assert.match(modeToggle, /hidden=\{hideWhenUnavailable && !available\}/);
   assert.match(html, /id="edit-save-bar"[^>]*hidden/);
-  assert.match(app, /\/__taskprogress\/v1\/capabilities\//);
-  assert.match(app, /if \(!response\.ok\) return;/);
-  assert.match(app, /capability\.editor_surface_url/);
-  assert.match(app, /surfaceUrl\.pathname\.startsWith\("\/__taskprogress\/v1\/editor\/"\)/);
-  assert.match(html, /id="editor-surface-overlay"[\s\S]*?id="editor-surface-frame"/);
-  assert.match(app, /editorUrl\.searchParams\.set\("embedded", "1"\)/);
-  assert.match(app, /elements\.editorSurfaceFrame\.src = editorUrl\.href/);
-  assert.match(app, /event\.data\?\.type !== "taskprogress:editor-close"/);
-  assert.doesNotMatch(app, /window\.location\.assign\(editorUrl\.href\)/);
-  assert.match(app, /Public\/static hosting intentionally has no editor capability/);
+  // Discovery and capability parsing live in edit-host-client.js now; the
+  // host only asks it to discover and reads back a plain boolean.
+  assert.match(app, /import \{ createEditHostClient \} from "\.\/edit-host-client\.js"/);
+  assert.match(app, /state\.editor\.client = createEditHostClient\(\{ scope \}\)/);
+  assert.match(app, /const capability = await state\.editor\.client\.discover\(\)/);
+  // Editing happens in this document; the iframe surface and its postMessage
+  // handshake are gone along with the second application it used to load.
+  assert.doesNotMatch(html, /editor-surface-overlay|editor-surface-frame/);
+  assert.doesNotMatch(app, /editorSurfaceOverlay|editorSurfaceFrame|editor-surface-open/);
+  assert.doesNotMatch(app, /taskprogress:editor-close/);
+  assert.doesNotMatch(app, /editor_surface_url/);
 });
 
-test("local editor uses a memory-only session, revision precondition, and explicit save", async () => {
-  const app = await readFile(appUrl, "utf8");
+test("local editor opens a dual-revision session and saves through the shared edit-host client", async () => {
+  const [app, client] = await Promise.all([
+    readFile(appUrl, "utf8"),
+    readFile(new URL("../viewer/assets/edit-host-client.js", import.meta.url), "utf8"),
+  ]);
   assert.match(app, /createReportEditorSession\(state\.persistedReport/);
   assert.match(app, /state\.editor\.session\.dispatch\(command\)/);
   assert.match(app, /state\.editor\.session\.prepareSave\(/);
-  assert.match(app, /state\.editor\.session\.derived\.progress\.project/);
-  assert.match(app, /state\.editor\.session\.validate\(reportToSave\)/);
-  assert.match(app, /X-TaskProgress-Editor/);
-  assert.match(app, /Authorization: `Bearer \$\{state\.editor\.token\}`/);
-  assert.match(app, /"If-Match": `"\$\{state\.editor\.revision\}"`/);
+  assert.match(app, /state\.editor\.session\.validate\(/);
+  // A second draft opens alongside the report session: config/estimates,
+  // seeded from whatever the session already carries as defaults.
+  assert.match(app, /createTimeInputDraft\(session\.inputs, state\.editor\.scope/);
+  assert.match(app, /await state\.editor\.client\.start\(\)/);
+  assert.match(app, /await state\.editor\.client\.save\(\{/);
+  assert.match(app, /await state\.editor\.client\?\.close\(\)/);
+  // The token/revision precondition lives inside the shared client now, not
+  // duplicated as raw fetch headers in the host.
+  assert.match(client, /X-TaskProgress-Editor/);
+  assert.match(client, /Authorization: `Bearer \$\{session\.token\}`/);
+  assert.match(client, /"If-Match": `"\$\{session\.revision\}"`/);
   assert.match(app, /window\.location\.reload\(\)/);
   assert.doesNotMatch(app, /state\.report\.tasks\.(?:push|splice)\(/);
   assert.doesNotMatch(app, /editableTask\.(?:title|summary|status|priority)\s*=/);
   assert.doesNotMatch(app, /localStorage\.setItem\([^)]*token/i);
+  assert.doesNotMatch(app, /state\.editor\.token\b/);
   assert.match(app, /createUiView\("mode-toggle", elements\.viewModeToggle/);
   // The toggle reports the requested mode; the host decides what it means.
   assert.match(app, /onToggle: \(\) => \{/);

@@ -1167,6 +1167,8 @@ ItemRow 是每張任務卡內的一筆子項目。這份矩陣已於 2026-08-02 
 
 ## 編輯 iframe 收斂 Draft 0.1
 
+**已完成（2026-08-07）。** 六項驗收條件全數通過，已對真實 port-8001 服務手動驗證（見 `handoff.md` Current state）。以下設計紀錄保留供參考；`editor.html` 與其獨立建置（`spike:svelte:build`／`editor:svelte:build`）本身未退場——那是這次選中的 Design A 的自然後續，不在本輪驗收範圍內，留給下一輪判斷。
+
 目標是讓預覽與編輯成為同一頁的兩個模式，移除 `#editor-surface-overlay` 的 iframe。前置條件（預覽元素全部單一實作）已於 2026-08-06 達成。
 
 ### 現況實測（2026-08-06，真實 port-8001 服務）

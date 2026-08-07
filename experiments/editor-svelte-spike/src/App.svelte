@@ -13,14 +13,14 @@
   import TimeDialog from "./TimeDialog.svelte";
   import TimeSettingsEditor from "./TimeSettingsEditor.svelte";
   import { loadSvelteEditorData } from "./data-loader.js";
-  import { buildTimeSettingsRiskPreview } from "./delivery-risk-preview.js";
-  import { createEditHostClient } from "./edit-host-client.js";
+  import { buildTimeSettingsRiskPreview } from "../../../viewer/assets/delivery-risk-preview.js";
+  import { createEditHostClient } from "../../../viewer/assets/edit-host-client.js";
   import { createSvelteEditorAdapter } from "./editor-adapter.js";
   import { fixtureReport } from "./fixture.js";
   import {
     activeEstimateIndex,
     createTimeInputDraft,
-  } from "./time-input-draft.js";
+  } from "../../../viewer/assets/time-input-draft.js";
 
   export let requireHostCapability = false;
   export let surfaceKind = "spike";
