@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "report_id": "task-progress-development",
-  "updated_at": "2026-08-06T06:30:00+08:00",
+  "updated_at": "2026-08-07T08:00:00+08:00",
   "tasks": [
     {
       "id": "viewer-core",
@@ -93,14 +93,12 @@
     },
     {
       "id": "local-task-editing",
-      "next_step": "時間參考摘要按鈕與進度報告 Dialog 已收斂為共用元件（region time-summary-button 與 time-dialog）：time-view.js（1025 行、含 DOM 建構）已刪除，商業邏輯逐一改寫為框架中立的 viewer/assets/time-dialog-control.js（純資料，snapshot()／commands），markup 改由 TimeSummaryButton.svelte、TimeDialog.svelte、TimeCapacityEditor.svelte 提供；app.js 不再自行繪製任何 Dialog。獨立編輯器（App.svelte／editor.html）的子項目工時膠囊過去是無 onTimeClick 的純文字 span，現在也接上同一個 Dialog。過程中修正兩個問題：(1) controller 建構時必須呼叫一次 refresh()，否則摘要按鈕會停留在 sidecar 產生當下烘焙的風險值，直到下一次 60 秒輪詢；(2) 以 mount() 搭配外部 $state props 掛載的元件中，bare $: 區塊或 action 的 update(prop) 讀取 legacy prop 只會在掛載後重新求值一次，之後的變更不會被看見——即使同一個 prop 驅動的樣板運算式持續正確更新。TimeDialog.svelte 改用 {#if open} 結構性掛載搭配 use:openOnMount 動作解決；關閉路徑（按鈕／背景點擊）改為直接呼叫 onClose()，不再單靠原生 close 事件——本次使用的瀏覽器自動化工具環境本身無法可靠觸發 dialog.close() 的 close 事件、Escape 也關不掉 modal dialog（已用一個獨立建立的 ad-hoc dialog 隔離重現，與本專案程式碼無關，但真實使用者瀏覽器是否也有此限制尚未驗證）。Node 測試新增 tests/time-dialog-control.test.mjs（9 項，涵蓋 snapshot／commands／capacity 表單／stale 語意）與 time-viewer-model.test.mjs 的單一實作來源斷言，全數通過（172／172）。下一步：預覽全部搬完，移除只剩 Demo 與測試在用的 editor-surface runtime 殘留匯出，並拆掉編輯用 iframe 覆蓋層，讓預覽與編輯成為同一頁的兩個模式（見 report.json 的 retire-editor-surface-and-iframe）。",
+      "next_step": "iframe 收斂已完成（2026-08-07，見 handoff.md／plan.md#編輯-iframe-收斂-draft-01）：editor-surface-overlay／editor-surface-frame／taskprogress:editor-close postMessage／editor-surface-open 捲動鎖全數刪除，startEditing／cancelEditing／saveEditing 改走 edit-host-client.js 的雙 revision 多檔契約，時間設定、交付日風險預覽／儲存確認、逐項人工估算三個 region 併入正式 Viewer host，已對真實 port-8001 服務驗證（桌面與 375px 皆通過，存檔全流程含確認對話框一次跑通後復原）。下一步是兩件獨立的事，尚未裁示先後：(1) 移除獨立編輯器本體（report.json 的 retire-editor-surface-standalone-build）——editor.html／viewer-main.js／建置腳本／Python 端 serve 與 editor_surface_url 欄位現在沒有任何呼叫端，只剩建置與測試在維護；(2) 補建 freeze-svelte-ux-parity-contract 這個從未實作的正式 gate，因為下方 blocker 記載的時間設定 UX 回歸（交付日不在最上方、標題與表單橫向並排、項目工時為 inline details 而非時間彈窗）在這次 iframe 收斂中已從隔離 spike 擴大進正式 Viewer——這正是該 blocker 明文要求先修正才能做的事，這次沒有先修正就做了；已據實記錄，不回溯拆解正式功能，留給使用者決定是否要現在補上 gate、修 UX，或接受現狀。",
       "blockers": [
         "時間參考 Demo 已隨此次收斂停止運作（依使用者裁示 (a)）：它呼叫的 createModeController／createSaveBar／createAddControl 已刪除，開啟頁面會拋錯。不得為了讓 Demo 復活而還原那些函式。",
-        "editor-surface runtime 仍匯出 TaskCard／ItemRow／優先級／欄位驗證等，但正式 Viewer 已不再呼叫，只剩凍結的 Demo 與測試在用；要等 Demo 不再建置於其上才能移除。",
         "StatusFilters 的觸控拖曳（8px 門檻與水平軸鎖）從未在瀏覽器執行過，合成 pointer 事件無法重現 pointer capture，目前只有原始碼斷言覆蓋。",
-        "正式 Viewer 的編輯模式無法在瀏覽器驗證：執行中的服務對 capabilities 端點回 404，因為已發布 EXE 早於 edit-host 支援；編輯端行為改由共用同一套樣式與元件的 Svelte surface 驗證。",
         "實機觸控編輯仍未驗證，因此正式編輯範圍仍以桌面滑鼠／鍵盤為準。",
-        "目前 Svelte 時間設定違反既有 UX：交付日不在最上方、標題與表單橫向並排、項目工時改成 inline details 而非時間彈窗。這些 parity 回歸必須先修正，否則不得擴大遷移。",
+        "時間設定違反既有 UX 的 parity 回歸（交付日不在最上方、標題與表單橫向並排、項目工時為 inline details 而非時間彈窗）原本只存在於隔離 spike；2026-08-07 的 iframe 收斂把同一份 TimeSettingsEditor.svelte／ItemRow 估算面板原封不動併入正式 Viewer，等於在未修正 parity、也未依此 blocker 建立 freeze-svelte-ux-parity-contract gate 的情況下擴大了遷移。回歸本身沒有變得更嚴重，只是曝光面從內部 spike 變成正式產品。",
         "尚未裁示的 UX 設計（已與使用者討論但未實作）：ItemRow 在 390px 折成三行需要折疊規則（提案為模組膠囊水平捲動加描述 ellipsis）；描述點擊開 Dialog 與編輯模式描述為 input 相衝突，入口未定；待估在編輯模式不可點，無估算的子項目無法建立估算；模組膠囊順序須由核心固定表決定而非 manifest；優先級與狀態是核心欄位，若放進模組排其渲染路徑不得經過模組載入；同一 subject 應為單一 Dialog 分區而非每個模組各開一個；Dialog 編輯應讓顯示值原地變欄位，而非在唯讀值下方追加另一份表單。"
       ],
       "decisions": [

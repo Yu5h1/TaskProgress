@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-08-06T06:30:00+08:00",
+  "updated_at": "2026-08-07T08:00:00+08:00",
   "tasks": [
     {
       "id": "viewer-core",
@@ -171,7 +171,7 @@
       "title": "本機任務編輯",
       "status": "in_progress",
       "priority": 1,
-      "summary": "正式 Viewer 預覽已全面改由可替換的 UI adapter 渲染：任務卡、模式切換、儲存列、新增控制、主題選單／自訂色彩 Dialog、時間參考摘要按鈕與進度報告 Dialog 都只剩一份實作，app.js 不再自行繪製任何 Dialog。時間參考 Demo 依裁示退場。公開部署已驗證，建置產物同步由 CI 擋在部署之前。下一步是移除只剩測試在用的 editor-surface runtime 並拆掉編輯用 iframe 覆蓋層。",
+      "summary": "正式 Viewer 預覽已全面改由可替換的 UI adapter 渲染：任務卡、模式切換、儲存列、新增控制、主題選單／自訂色彩 Dialog、時間參考摘要按鈕與進度報告 Dialog、時間設定／交付日風險預覽／儲存確認都只剩一份實作，app.js 不再自行繪製任何 Dialog。編輯用 iframe 覆蓋層已拆除，編輯是同一頁的模式切換而非第二個應用。時間參考 Demo 依裁示退場。公開部署已驗證，建置產物同步由 CI 擋在部署之前。下一步是移除只剩建置與測試在維護的獨立編輯器本體，以及補建從未實作的 Svelte UX parity gate。",
       "completed_items": [
         {
           "id": "item-local-task-editing-done-1",
@@ -457,20 +457,24 @@
           "id": "migrate-remaining-dialogs",
           "title": "時間參考摘要按鈕與進度報告 Dialog 收斂為共用元件；time-view.js 的商業邏輯改寫為框架中立的 time-dialog-control.js，app.js 不再自行繪製任何 Dialog。子項目工時膠囊在獨立編輯器中也從無互動的文字改為可點擊，開啟同一個 Dialog",
           "priority": 1
+        },
+        {
+          "id": "collapse-editor-iframe",
+          "title": "拆掉編輯用 iframe 覆蓋層，使預覽與編輯成為同一頁的兩個模式：時間設定、交付日風險預覽／儲存確認、逐項人工估算併入正式 Viewer host，存檔改走既有雙 revision 多檔契約",
+          "priority": 1
         }
       ],
       "pending_items": [
         {
           "id": "freeze-svelte-ux-parity-contract",
-          "title": "建立 Svelte 遷移 UX parity gate：逐項比對既有 Viewer 的區塊順序、面板方向、時間彈窗、焦點鍵盤、主題與響應式行為",
+          "title": "建立 Svelte 遷移 UX parity gate：逐項比對既有 Viewer 的區塊順序、面板方向、時間彈窗、焦點鍵盤、主題與響應式行為——iframe 收斂已把違反此 parity 的時間設定面板（交付日不在最上方、標題與表單橫向並排、項目工時為 inline details 而非時間彈窗）從隔離 spike 擴大進正式 Viewer，尚未依既有裁示（見 report.dev.json local-task-editing blockers）補建此 gate",
           "priority": 0
         },
         {
-          "id": "retire-editor-surface-and-iframe",
-          "title": "預覽全部搬完後移除只剩 Demo 與測試在用的 editor-surface runtime，並拆掉編輯用 iframe 覆蓋層，使預覽與編輯成為同一頁的兩個模式",
+          "id": "retire-editor-surface-standalone-build",
+          "title": "移除獨立編輯器本體：experiments/editor-svelte-spike/editor.html、viewer-main.js、editor:svelte:build／spike:svelte:build 建置腳本，以及 service/taskprogress_host.py 對 editor.html 的 serve 與 capability 的 editor_surface_url 欄位——iframe 拆除後正式 Viewer 已不再讀取 editor_surface_url，這條路徑只剩建置與測試在維護，沒有任何呼叫端",
           "priority": 1
         },
-
         {
           "id": "verify-mobile-editing",
           "title": "在正式 Viewer Surface 完成實機觸控編輯驗證；隔離 Svelte 的 390px 版面與鍵盤流程已通過",
