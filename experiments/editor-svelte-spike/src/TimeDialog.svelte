@@ -1,5 +1,6 @@
 <script>
   import { tick } from "svelte";
+  import ManualEstimateEditor from "./ManualEstimateEditor.svelte";
   import TimeCapacityEditor from "./TimeCapacityEditor.svelte";
 
   /*
@@ -20,9 +21,14 @@
   export let onToggleDetails = () => {};
   export let onSetTab = (name) => {};
   export let onSubmitCapacity = (values) => {};
+  export let editing = false;
+  export let activeEstimate = null;
+  export let onManualEstimate = null;
 
   let dialogEl;
   let tabRefs = [];
+  let returnFocusEl = null;
+  let closeNotified = false;
 
   // The dialog element itself is structurally conditional on `open` (see the
   // `{#if open}` below) rather than a permanently-mounted element toggled via
@@ -39,7 +45,20 @@
   // toggling does not have that gap: Svelte's own block (dis)connection is
   // what fires the action's `mount`, so this always gets a fresh call.
   function openOnMount(node) {
+    returnFocusEl = node.ownerDocument.activeElement;
+    closeNotified = false;
     node.showModal();
+  }
+
+  function notifyClose() {
+    if (closeNotified) return;
+    closeNotified = true;
+    const focusTarget = returnFocusEl;
+    returnFocusEl = null;
+    onClose();
+    queueMicrotask(() => {
+      if (focusTarget?.isConnected) focusTarget.focus();
+    });
   }
 
   // The close button and the backdrop click call `onClose` directly rather
@@ -53,7 +72,7 @@
   // method="dialog">` submit).
   function requestClose() {
     dialogEl?.close();
-    onClose();
+    notifyClose();
   }
 
   function handleBackdropClick(event) {
@@ -223,7 +242,7 @@
   aria-labelledby="time-dialog-title"
   bind:this={dialogEl}
   use:openOnMount
-  onclose={onClose}
+  onclose={notifyClose}
   onclick={handleBackdropClick}
 >
   <div class="theme-dialog-heading">
@@ -242,19 +261,25 @@
           <span class={item.confidenceClass}>{item.confidenceLabel}</span>
           <button class="time-small-button" type="button" onclick={onToggleDetails}>{item.toggleLabel}</button>
         </div>
-        <section class="time-estimate-readout">
-          <div class="time-estimate-meta">
-            <span>預估工時</span>
-            {#each item.sourceBadges as badge (badge.kind)}
-              <span class="time-source-badge source-{badge.kind}">{badge.label}</span>
-            {/each}
-          </div>
-          <strong>{item.likelyHoursLabel}</strong>
-        </section>
-        <section class="time-explanation-card time-item-rationale">
-          <h3>估算依據</h3>
-          <p>{item.rationale}</p>
-        </section>
+        {#if editing && onManualEstimate}
+          {#key `${item.itemId}:${activeEstimate?.estimate_id ?? "analysis"}`}
+            <ManualEstimateEditor item={{ ...item, title }} {activeEstimate} onApply={onManualEstimate} />
+          {/key}
+        {:else}
+          <section class="time-estimate-readout">
+            <div class="time-estimate-meta">
+              <span>預估工時</span>
+              {#each item.sourceBadges as badge (badge.kind)}
+                <span class="time-source-badge source-{badge.kind}">{badge.label}</span>
+              {/each}
+            </div>
+            <strong>{item.likelyHoursLabel}</strong>
+          </section>
+          <section class="time-explanation-card time-item-rationale">
+            <h3>估算依據</h3>
+            <p>{item.rationale}</p>
+          </section>
+        {/if}
         <section class="time-item-technical" hidden={!item.detailsExpanded}>
           {@render metricGrid(item.technical.metrics)}
           {#if item.technical.analysisMethod}

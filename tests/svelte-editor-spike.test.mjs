@@ -643,12 +643,14 @@ test("Svelte edit-host client sends the dual-revision multi-file contract", asyn
 });
 
 test("Svelte spike is isolated, static-path safe, and uses the shared core", async () => {
-  const [packageText, viteText, appText, cardText, rowText, adapterText, loaderText, clientText, timeDraftText, timeSettingsText, previewText, confirmationText, stylesText, timeEditingText, presentationText, viewerMainText, editorHtmlText] = await Promise.all([
+  const [packageText, viteText, appText, cardText, rowText, dialogText, manualEstimateText, adapterText, loaderText, clientText, timeDraftText, timeSettingsText, previewText, confirmationText, stylesText, timeEditingText, presentationText, viewerMainText, editorHtmlText] = await Promise.all([
     readFile(new URL("../package.json", import.meta.url), "utf8"),
     readFile(new URL("../experiments/editor-svelte-spike/vite.config.js", import.meta.url), "utf8"),
     readFile(new URL("../experiments/editor-svelte-spike/src/App.svelte", import.meta.url), "utf8"),
     readFile(new URL("../experiments/editor-svelte-spike/src/TaskCard.svelte", import.meta.url), "utf8"),
     readFile(new URL("../experiments/editor-svelte-spike/src/ItemRow.svelte", import.meta.url), "utf8"),
+    readFile(new URL("../experiments/editor-svelte-spike/src/TimeDialog.svelte", import.meta.url), "utf8"),
+    readFile(new URL("../experiments/editor-svelte-spike/src/ManualEstimateEditor.svelte", import.meta.url), "utf8"),
     readFile(new URL("../experiments/editor-svelte-spike/src/editor-adapter.js", import.meta.url), "utf8"),
     readFile(new URL("../experiments/editor-svelte-spike/src/data-loader.js", import.meta.url), "utf8"),
     readFile(new URL("../viewer/assets/edit-host-client.js", import.meta.url), "utf8"),
@@ -678,9 +680,12 @@ test("Svelte spike is isolated, static-path safe, and uses the shared core", asy
   assert.match(cardText, /<ItemRow/u);
   assert.match(cardText, /timeItems/u);
   assert.match(rowText, /type:\s*"set-item-field"/u);
-  assert.match(rowText, /humanConfirmed:\s*estimateConfirmed/u);
-  assert.match(rowText, /人工確認此工時/u);
-  assert.match(rowText, /未勾選仍可儲存人工工時與依據/u);
+  assert.doesNotMatch(rowText, /<details|spike-estimate-editor|onManualEstimate/u);
+  assert.match(rowText, /onTimeClick\(item\.id, item\.title, taskId\)/u);
+  assert.match(dialogText, /<ManualEstimateEditor/u);
+  assert.match(manualEstimateText, /humanConfirmed:\s*estimateConfirmed/u);
+  assert.match(manualEstimateText, /人工確認此工時/u);
+  assert.match(manualEstimateText, /未勾選仍可儲存人工工時與依據/u);
   assert.match(adapterText, /viewer\/assets\/editor-core\.js/u);
   assert.match(adapterText, /normalizeMeaningfulText/u);
   assert.match(loaderText, /resolveReportRequest/u);
@@ -690,6 +695,7 @@ test("Svelte spike is isolated, static-path safe, and uses the shared core", asy
   assert.match(timeDraftText, /supersedes_estimate_id/u);
   assert.match(timeDraftText, /setTimeSettings/u);
   assert.match(timeSettingsText, /工作容量與交付日/u);
+  assert.ok(timeSettingsText.indexOf("spike-delivery-settings") < timeSettingsText.indexOf("spike-capacity-settings"));
   assert.match(timeSettingsText, /既有私人理由會保留但不在此顯示或修改/u);
   assert.match(timeSettingsText, /capacityExceptions/u);
   assert.match(appText, /<TimeSettingsEditor/u);
@@ -701,7 +707,7 @@ test("Svelte spike is isolated, static-path safe, and uses the shared core", asy
   // shared, themed editor-time-editing.css so every host mounting those
   // regions gets it, not just the isolated spike. It stays separate from
   // editor-presentation.css, which is geometry-only and carries no colours.
-  assert.match(timeEditingText, /@media \(max-width: 640px\)[\s\S]*?\.spike-time-editor\s*\{[\s\S]*?grid-template-columns:\s*minmax\(0, 1fr\)/u);
+  assert.match(timeEditingText, /\.spike-time-editor\s*\{[\s\S]*?grid-template-columns:\s*minmax\(0, 1fr\)/u);
   assert.match(stylesText, /@import "@editor\/editor-presentation\.css"/u);
   assert.match(stylesText, /@import "@editor\/editor-time-editing\.css"/u);
   assert.match(appText, /class="spike-page editor-layout-shell"/u);

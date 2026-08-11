@@ -2,7 +2,7 @@
  * Time settings, delivery-risk preview, save confirmation and the per-item
  * manual-estimate editor. These render from `TimeSettingsEditor.svelte`,
  * `DeliveryRiskPreview.svelte`, `DeliverySaveConfirmation.svelte` and the
- * estimate block inside the shared `ItemRow.svelte` — the same markup for
+ * estimate editor inside the shared `TimeDialog.svelte` — the same markup for
  * every host that mounts those regions, so the styling lives here rather
  * than duplicated per host.
  *
@@ -31,8 +31,8 @@
 
 .spike-time-editor {
   display: grid;
-  grid-template-columns: minmax(180px, 0.7fr) minmax(320px, 1.3fr);
-  gap: 18px;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
   margin-bottom: 18px;
 }
 
@@ -291,54 +291,55 @@
   cursor: pointer;
 }
 
-.work-columns .detail-list li.has-estimate-editor {
-  flex-wrap: wrap;
-}
-
-.spike-estimate-editor {
-  flex: 1 0 100%;
-  margin-top: 2px;
-  padding: 7px 9px;
-  background: color-mix(in srgb, var(--surface) 74%, transparent);
-  border: 1px solid var(--line);
-  border-radius: 9px;
-}
-
-.spike-estimate-editor summary {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  color: var(--blue);
-  cursor: pointer;
-  font-size: 0.72rem;
-  font-weight: 760;
-}
-
-.spike-estimate-editor summary small {
-  color: var(--ink-soft);
-  font-size: 0.66rem;
-  font-weight: 700;
-}
-
-.spike-estimate-fields {
+.spike-estimate-form {
   display: grid;
-  grid-template-columns: 110px minmax(180px, 1fr) auto;
-  align-items: end;
-  gap: 8px;
+  gap: 12px;
+}
+
+.spike-estimate-hours,
+.spike-estimate-note {
+  display: grid;
+  gap: 4px;
+  color: var(--ink-soft);
+  font-size: 0.72rem;
+}
+
+.spike-estimate-hours input,
+.spike-estimate-note input {
+  min-width: 0;
+  padding: 7px 9px;
+  color: var(--ink);
+  color-scheme: dark;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+.spike-estimate-hours {
   margin-top: 8px;
 }
 
-.spike-estimate-fields .spike-field-error {
-  grid-column: 1 / -1;
+.spike-estimate-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.spike-estimate-actions button {
+  min-height: 34px;
+  padding: 6px 10px;
+  color: white;
+  background: var(--blue);
+  border: 1px solid var(--blue);
+  border-radius: 8px;
+  cursor: pointer;
 }
 
 .spike-estimate-confirmation {
-  grid-column: 1 / 2;
   display: flex !important;
-  grid-template-columns: auto 1fr;
   align-items: center;
-  align-self: center;
+  gap: 6px;
+  color: var(--ink-soft);
+  font-size: 0.72rem;
 }
 
 .spike-estimate-confirmation input {
@@ -347,7 +348,6 @@
 }
 
 .spike-estimate-contract {
-  grid-column: 2 / -1;
   margin: 0;
   color: var(--ink-soft);
   font-size: 0.68rem;
@@ -542,23 +542,13 @@
 
   .spike-delivery-controls,
   .spike-allocation-fields,
-  .spike-exception-row,
-  .spike-estimate-fields {
+  .spike-exception-row {
     grid-template-columns: 1fr;
   }
 
   .spike-setting-heading {
     align-items: flex-start;
     flex-direction: column;
-  }
-
-  .spike-estimate-confirmation,
-  .spike-estimate-contract {
-    grid-column: 1 / -1;
-  }
-
-  .spike-time-editor {
-    grid-template-columns: minmax(0, 1fr);
   }
 
   .spike-risk-comparison {

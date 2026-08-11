@@ -479,8 +479,12 @@ export function createTimeReferenceController({
     };
   }
 
-  function itemViewModel(item) {
+  function itemViewModel(item, taskId) {
     return {
+      taskId,
+      itemId: item.item_id,
+      likelyMinutes: item.likely_minutes,
+      humanConfirmed: Boolean(item.human_confirmed),
       detailsExpanded,
       toggleLabel: detailsExpanded ? "收合詳細資訊" : "詳細資訊",
       confidenceLabel: CONFIDENCE_LABELS[item.confidence] ?? "信心未標示",
@@ -522,7 +526,7 @@ export function createTimeReferenceController({
         kind: "item",
         kicker: "子項目工時",
         title: activeItem.title,
-        item: itemViewModel(activeItem.item),
+        item: itemViewModel(activeItem.item, activeItem.taskId),
         project: null,
       };
     }
@@ -572,11 +576,11 @@ export function createTimeReferenceController({
     });
   }
 
-  function showItemTime(itemId, title) {
+  function showItemTime(itemId, title, taskId = "") {
     const item = index.items.get(itemId);
     if (!item) return;
     dialogKind = "item";
-    activeItem = { item, title };
+    activeItem = { item, title, taskId };
   }
 
   function taskDuration(taskId) {

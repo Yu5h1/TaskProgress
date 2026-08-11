@@ -155,6 +155,15 @@
   </div>
 
   <div class="spike-time-settings-fields">
+    <section class="spike-delivery-settings" aria-labelledby="delivery-settings-title">
+      <h3 id="delivery-settings-title">交付日</h3>
+      <div class="spike-delivery-controls">
+        <label><span>排他截止時間</span><input type="datetime-local" bind:value={deliveryValue} oninput={markPending}></label>
+        <label class="spike-delivery-reason"><span>修改原因（不填敏感原文）</span><input maxlength="500" bind:value={deliveryReason} oninput={markPending} placeholder="例如：配合里程碑調整"></label>
+        <button class="spike-subtle-button" type="button" onclick={() => { deliveryValue = ""; markPending(); }}>設為未指定</button>
+      </div>
+    </section>
+
     <section class="spike-capacity-settings" aria-labelledby="capacity-settings-title">
       <div class="spike-setting-heading">
         <h3 id="capacity-settings-title">每日分配</h3>
@@ -204,15 +213,6 @@
       {:else}
         <p class="spike-empty-setting">目前沒有休假或容量例外。</p>
       {/if}
-    </section>
-
-    <section class="spike-delivery-settings" aria-labelledby="delivery-settings-title">
-      <h3 id="delivery-settings-title">交付日</h3>
-      <div class="spike-delivery-controls">
-        <label><span>排他截止時間</span><input type="datetime-local" bind:value={deliveryValue} oninput={markPending}></label>
-        <label class="spike-delivery-reason"><span>修改原因（不填敏感原文）</span><input maxlength="500" bind:value={deliveryReason} oninput={markPending} placeholder="例如：配合里程碑調整"></label>
-        <button class="spike-subtle-button" type="button" onclick={() => { deliveryValue = ""; markPending(); }}>設為未指定</button>
-      </div>
     </section>
 
     <div class="spike-time-settings-actions">

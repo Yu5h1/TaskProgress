@@ -874,6 +874,44 @@ Svelte 是 UI 組合技術的替換，不是重新設計。每個區塊開始實
 
 若 parity matrix 尚未建立或畫面比對失敗，不繼續搬移下一個 Viewer 區塊，也不刪除舊實作。
 
+##### 時間編輯 UX parity 修復 Draft 0.1（2026-08-10）
+
+這一輪是既有 Viewer 操作的 settled port，不是新介面設計。實作入口為 `implementation-checklist.md`；以下規格是驗收依據，清單只追蹤本輪執行狀態。
+
+**決策與理由**
+
+- `TimeSettingsEditor` 使用單一垂直資訊流：標題、交付日、每日分配／工作日、休假與容量例外、重新計算。交付日影響後續所有估算，因此先於容量細節；標題與內容不可形成左右欄。
+- `ItemRow` 的時間膠囊在預覽與編輯模式保持同一位置與同一入口。點擊後開啟既有的共享 `TimeDialog`，不在列內展開第二套人工估算表單。
+- 人工工時、人工依據與人工確認在 `TimeDialog` 的項目內容中編輯。現有顯示值轉為可編輯狀態，不在唯讀內容後方追加重複表單。
+- 套用人工估算只更新記憶體中的共用 draft 並標記全域編輯工作階段為 dirty；不直接寫檔。全域儲存才執行驗證、重新分析與交易寫入，切回預覽則放棄草稿。
+- Host 只提供資料與 callbacks；共享 Svelte 元件持有 markup。不得為 Viewer、實驗入口或模式新增分支版 UI。
+
+**驗收清單**
+
+- [ ] 桌面與 390px 寬度下，時間設定標題與內容皆垂直排列，交付日是第一個可編輯區塊，沒有水平溢位。
+- [ ] 有時間資料的項目在預覽／編輯模式都顯示同一顆可由滑鼠與鍵盤啟動的時間膠囊，位置不因模式改變。
+- [ ] 編輯模式點擊膠囊後，人工工時、人工依據與人工確認出現在既有項目 `TimeDialog`；項目列不再出現 inline `<details>`。
+- [ ] Dialog 以目前 draft 初始化欄位；合法套用後更新畫面與全域 dirty 狀態，錯誤留在 Dialog 內且不修改 draft。
+- [ ] 關閉 Dialog 不等於儲存；離開全域編輯模式仍依既有 discard 契約還原，正式儲存仍走既有 preview／confirmation／transaction 流程。
+- [ ] 關閉 Dialog 後焦點回到啟動它的時間膠囊；既有 Escape、關閉按鈕與背景關閉行為不退化。
+- [ ] 原始 Svelte 元件、Viewer committed bundle 與針對性契約測試一致；沒有新增第二個時間 Dialog 或 host-specific markup。
+
+**明確排除**
+
+- 不修復或復活 `experiments/time-reference/demo/`；它仍是 retired reference。
+- 不在本輪移除 standalone editor build，也不搬移其他 Viewer 區塊。
+- 不決定無估算項目的「待估」建立入口、描述點擊入口、module 排序或 priority/status module 化。
+- 不加入休假理由編輯、敏感歷史新欄位或新的 server transaction contract。
+- 390px 只驗證 responsive layout 與鍵盤／滑鼠流程；真實觸控拖曳與行動裝置編輯仍屬獨立 P1 驗證。
+
+**工作規模**
+
+```text
+Volume: deletes ~40–70 lines / touches 8–10 files / adds ~120–200 lines（含測試；另有 generated bundle）
+Precedent: settled port；既有 ItemRow 時間膠囊與共享 TimeDialog 是 reference implementation
+Proof: targeted Node tests | viewer:ui:build bundle parity | desktop browser | 390px browser
+```
+
 本機編輯能力由 TaskProgress edit host 對精確註冊且 `scope_id` 相符的報告動態回傳，不在 scope 設定或 `report.json` 保存 `editable`。Viewer、發布後 Launcher 與 edit host 必須版本一致；若舊版 Launcher 只啟動普通 LocalWebService，Viewer 會因 capability endpoint 不存在而安全地隱藏編輯入口。
 
 #### 不變的產品與介面契約

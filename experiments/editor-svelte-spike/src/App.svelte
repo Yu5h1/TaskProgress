@@ -61,8 +61,8 @@
     timeSnapshot = timeController.snapshot();
   }
 
-  function openItemTime(itemId, title) {
-    timeController?.showItemTime(itemId, title);
+  function openItemTime(itemId, title, taskId) {
+    timeController?.showItemTime(itemId, title, taskId);
     renderTimeReference();
   }
   let diagnostics = [];
@@ -472,8 +472,6 @@
           onAddItem={(title, priority) => addItem(task.id, title, priority)}
           timeTask={effectiveTimeIndex.tasks.get(task.id) ?? null}
           timeItems={effectiveTimeIndex.items}
-          {activeEstimates}
-          onManualEstimate={timeDraft ? setManualEstimate : null}
           onTimeClick={timeController ? openItemTime : null}
         />
       {/each}
@@ -506,6 +504,11 @@
 
 <TimeDialog
   {...timeSnapshot.dialog}
+  {editing}
+  activeEstimate={timeSnapshot.dialog.kind === "item"
+    ? activeEstimates.get(timeSnapshot.dialog.item?.itemId) ?? null
+    : null}
+  onManualEstimate={editing && timeDraft ? setManualEstimate : null}
   onClose={() => { timeController?.closeDialog(); renderTimeReference(); }}
   onToggleDetails={() => { timeController?.toggleDetails(); renderTimeReference(); }}
   onSetTab={(name) => { timeController?.setActiveTab(name); renderTimeReference(); }}

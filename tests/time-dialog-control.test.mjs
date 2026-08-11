@@ -85,11 +85,14 @@ test("openProjectDetail and showItemTime drive one shared dialog snapshot", () =
     ["flow", "engineering", "capacity"],
   );
 
-  controller.showItemTime("build-deployment-artifact", "建立部署產物");
+  controller.showItemTime("build-deployment-artifact", "建立部署產物", "pages-deployment");
   const itemDialog = controller.snapshot().dialog;
   assert.equal(itemDialog.kind, "item");
   assert.equal(itemDialog.kicker, "子項目工時");
   assert.equal(itemDialog.title, "建立部署產物");
+  assert.equal(itemDialog.item.taskId, "pages-deployment");
+  assert.equal(itemDialog.item.itemId, "build-deployment-artifact");
+  assert.equal(itemDialog.item.likelyMinutes, 720);
   assert.equal(itemDialog.item.likelyHoursLabel, "12 hr");
   assert.deepEqual(
     itemDialog.item.sourceBadges.map((badge) => badge.kind),

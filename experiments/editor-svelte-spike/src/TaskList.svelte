@@ -9,8 +9,6 @@
   export let onAddItem = () => {};
   export let timeTasks = new Map();
   export let timeItems = new Map();
-  export let activeEstimates = new Map();
-  export let onManualEstimate = null;
   export let onTimeClick = null;
   export let durations = {};
   export let statusOrder = ["done", "planned"];
@@ -28,8 +26,6 @@
       onAddItem={(title, priority) => onAddItem(task.id, title, priority)}
       timeTask={timeTasks.get(task.id) ?? null}
       {timeItems}
-      {activeEstimates}
-      {onManualEstimate}
       {onTimeClick}
       {statusOrder}
       taskDuration={durations[task.id] ?? null}

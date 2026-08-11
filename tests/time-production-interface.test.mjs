@@ -32,6 +32,10 @@ const timeCapacityEditorSource = await readFile(
   new URL("../experiments/editor-svelte-spike/src/TimeCapacityEditor.svelte", import.meta.url),
   "utf8",
 );
+const manualEstimateEditorSource = await readFile(
+  new URL("../experiments/editor-svelte-spike/src/ManualEstimateEditor.svelte", import.meta.url),
+  "utf8",
+);
 
 test("unfinished work is independent from deadline data", () => {
   assert.equal(remainingWorkload({
@@ -106,10 +110,16 @@ test("production item time actions remain visible in global edit mode", async ()
   // shared TimeDialog component through a callback, so no DOM node crosses
   // the UI boundary.
   assert.equal(itemRowSource.split("time-item-button").length - 1, 4);
-  assert.match(itemRowSource, /onclick=\{\(\) => onTimeClick\(item\.id, item\.title\)\}/);
+  assert.match(itemRowSource, /onclick=\{\(\) => onTimeClick\(item\.id, item\.title, taskId\)\}/);
   assert.match(itemRowSource, /查看估算依據/);
-  assert.match(appSource, /onTimeClick: \(itemId, itemTitle\) => \{\s*time\?\.showItemTime\(itemId, itemTitle\);/);
+  assert.match(appSource, /onTimeClick: \(itemId, itemTitle, taskId\) => \{\s*time\?\.showItemTime\(itemId, itemTitle, taskId\);/);
   assert.doesNotMatch(appSource, /createItemTimeButton/);
+  assert.doesNotMatch(itemRowSource, /<details|spike-estimate-editor|onManualEstimate/);
+  assert.match(timeDialogSource, /<ManualEstimateEditor/);
+  assert.match(manualEstimateEditorSource, /人工工時（hr）/);
+  assert.match(manualEstimateEditorSource, /人工依據/);
+  assert.match(manualEstimateEditorSource, /人工確認此工時/);
+  assert.match(appSource, /onManualEstimate: state\.editor\.editing && state\.editor\.timeDraft/);
   assert.match(timeControlSource, /function itemTime\(itemId\)/);
   // The dialog is shared by both hosts: the standalone editor wires the same
   // capsule click to the same controller instead of rendering an inert span.

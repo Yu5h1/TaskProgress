@@ -179,6 +179,14 @@ function renderTimeReference() {
 
   const dialogProps = {
     ...snap.dialog,
+    editing: state.editor.editing,
+    activeEstimate: snap.dialog.kind === "item"
+      ? activeEstimateIndex(state.editor.timeDraftView?.inputs ?? null)
+        .get(snap.dialog.item?.itemId) ?? null
+      : null,
+    onManualEstimate: state.editor.editing && state.editor.timeDraft
+      ? applyManualEstimateDraft
+      : null,
     onClose: () => {
       state.timeController.closeDialog();
       renderTimeReference();
@@ -198,6 +206,17 @@ function renderTimeReference() {
   };
   if (state.timeDialogView) state.timeDialogView.update(dialogProps);
   else state.timeDialogView = createUiView("time-dialog", elements.timeDialog, dialogProps);
+}
+
+function applyManualEstimateDraft(change) {
+  if (!state.editor.timeDraft) return { error: "目前沒有可編輯的時間草稿。" };
+  const result = state.editor.timeDraft.setManualEstimate(change);
+  state.editor.timeDraftView = result.snapshot;
+  if (!result.error) invalidateDeliveryPreview();
+  syncEditorDirty(result.error || "人工工時已套用到草稿");
+  renderEditorTimeExtras();
+  renderTimeReference();
+  return result;
 }
 
 function invalidateDeliveryPreview() {
@@ -658,7 +677,6 @@ function taskListProps(tasks) {
     progress,
     durations,
     timeItems,
-    activeEstimates: activeEstimateIndex(state.editor.timeDraftView?.inputs ?? null),
     editing: state.editor.editing,
     statusOrder: state.statusOrder,
     policy: PRIORITY_POLICY,
@@ -667,21 +685,8 @@ function taskListProps(tasks) {
       applyEditorCommand(command, "有尚未儲存的修改", { render: true });
     },
     onAddItem: (taskId, title, priority) => addTaskItem(taskId, title, priority),
-    // Only offered once a local edit session has staged a time-input draft;
-    // without a session there is nowhere for a versioned estimate to save.
-    onManualEstimate: state.editor.timeDraft
-      ? (change) => {
-          const result = state.editor.timeDraft.setManualEstimate(change);
-          state.editor.timeDraftView = result.snapshot;
-          if (!result.error) invalidateDeliveryPreview();
-          syncEditorDirty(result.error || "人工工時已套用到草稿");
-          renderEditorTimeExtras();
-          renderTasks();
-          return result;
-        }
-      : null,
-    onTimeClick: (itemId, itemTitle) => {
-      time?.showItemTime(itemId, itemTitle);
+    onTimeClick: (itemId, itemTitle, taskId) => {
+      time?.showItemTime(itemId, itemTitle, taskId);
       renderTimeReference();
     },
   };
