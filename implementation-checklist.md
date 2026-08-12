@@ -1,22 +1,21 @@
 # Implementation Checklist
 
-Current round only: `plan.md#時間編輯-ux-parity-修復-draft-01`.
+Current round only: `plan.md#standalone-editor-退場-draft-01`.
 
-This file opts TaskProgress into the Agent Work Route shared verification workflow. Outer items track implementation. Nested verification checks are added only after an item is built, then handed to the user for hands-on UI verification where applicable.
+Run each item once. If any implementation or verification attempt fails, mark that item `[!]`, stop the round, and let the user choose the next approach. Do not retry with an alternate command.
 
-- [x] Reorder `TimeSettingsEditor` into the specified vertical flow with delivery date first.
-- [x] Remove the desktop two-column time-settings layout while preserving desktop and 390px responsive rules.
-- [x] Remove the inline manual-estimate `<details>` from `ItemRow` without moving or duplicating its time capsule.
-- [x] Add the manual hours, rationale, and confirmation editing state to the existing item `TimeDialog`.
-- [x] Wire the active item draft and existing `setManualEstimate` callback through the framework-neutral host/controller boundary.
-- [x] Preserve Dialog close, keyboard, focus-return, dirty-state, discard, preview, and save transaction semantics in source.
-- [x] Update targeted component, production-interface, controller/model, and host contract tests.
-  - [x] Targeted Node tests: 39/39 passed on 2026-08-11.
-- [x] Rebuild the committed Viewer UI bundle and confirm source/bundle parity.
-  - User ran `npm.cmd run viewer:ui:build` successfully on 2026-08-12: Vite transformed 130 modules and generated `viewer/assets/viewer-ui.js` (146.80 kB).
-  - The four emitted Svelte diagnostics are non-blocking warnings: one form interaction warning, three tabpanel-role warnings, and one unused `timeTask` export warning.
-- [x] Verify the production Viewer at desktop and 390px.
-  - Entry: `http://127.0.0.1:8001/?scope=task-progress` → hard reload → enter edit mode.
-  - Expect: delivery first; heading/content vertical; item row has no inline estimate editor; clicking the time capsule opens the shared Dialog with manual hours, rationale and confirmation; applying marks the global draft dirty; 390px has no horizontal overflow.
-  - Why user: visual layout, focus behavior, and responsive manipulation are faster and more reliable to confirm hands-on.
-  - User reported the full check passed on 2026-08-12.
+- [x] Delete the host-only Editor entry, wrapper, build command, and verifier.
+- [x] Remove standalone Editor scripts/configuration from `package.json`, Vite, and `Publish.cmd`.
+- [x] Remove `editor_surface_url`, the editor asset route, and editor-root injection from the edit host.
+- [x] Remove obsolete host-only URL resolution and update focused Node/Python contract tests.
+- [x] Update README and the framework decision record to the same-page Viewer contract.
+- [x] Confirm no live source or current documentation still references the retired surface.
+  - Remaining exact names occur only in negative retirement assertions or explicitly labeled historical records.
+- [x] Run the focused Node tests once.
+  - 2026-08-12: 28/28 passed across standalone-build, Svelte spike, local-edit interface, and production time-interface contracts.
+- [x] Run the focused Python edit-host tests once.
+  - 2026-08-12: 25/25 edit-host tests passed, including capability and route retirement.
+- [x] Update handoff for the completed retirement implementation.
+  - This is record maintenance, not product exploration; no product test was rerun.
+- [x] Update `report.json`／`report.dev.json` projection and run final schema validation.
+  - 2026-08-12: Draft 2020-12 validation passed for `report.json` (6 unique tasks) and `report.dev.json` (6 overlays); schema/report IDs match and every overlay task resolves to the base report.
