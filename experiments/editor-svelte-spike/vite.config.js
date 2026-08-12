@@ -12,14 +12,4 @@ export default defineConfig({
       "@editor": fileURLToPath(new URL("../../viewer/assets", import.meta.url)),
     },
   },
-  build: {
-    outDir: "dist",
-    emptyOutDir: true,
-    rollupOptions: {
-      input: {
-        spike: fileURLToPath(new URL("./index.html", import.meta.url)),
-        editor: fileURLToPath(new URL("./editor.html", import.meta.url)),
-      },
-    },
-  },
 });

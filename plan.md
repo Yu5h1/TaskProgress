@@ -912,6 +912,31 @@ Precedent: settled port；既有 ItemRow 時間膠囊與共享 TimeDialog 是 re
 Proof: targeted Node tests | viewer:ui:build bundle parity | desktop browser | 390px browser
 ```
 
+##### Standalone Editor 退場 Draft 0.1（2026-08-12）
+
+同頁 Viewer 已是唯一正式編輯入口，host-only `editor.html` 不再有呼叫端。本輪刪除第二套入口及其發布負擔，但保留共用 Svelte 元件、Viewer bundle，以及隔離 spike 的 `index.html`／`main.js` 開發入口。
+
+**驗收清單**
+
+- [ ] 刪除 `editor.html`、`viewer-main.js`、`BuildEditor.cmd` 與專用 build verifier；package scripts 不再提供 standalone editor build。
+- [ ] `Publish.cmd` 直接發布 Launcher，不再安裝 npm 依賴或要求 editor dist。
+- [ ] edit host capability 只回傳同頁編輯所需資料，不再提供 `editor_surface_url`；`/__taskprogress/v1/editor/**` 路由完全退場。
+- [ ] 移除 host-only URL 解析及綁定舊入口的測試，保留隔離 spike 與 production Viewer 的共享元件契約。
+- [ ] README 與框架決策文件描述同頁 Viewer 為正式入口，並將獨立 Editor 建置標為已退場。
+- [ ] 針對性 Node 與 Python 契約測試通過；不執行完整 test suite、Publish 或實機觸控驗證。
+
+**明確排除**
+
+- 不刪除 `experiments/editor-svelte-spike/index.html`、`src/main.js`、`App.svelte` 或共享 Svelte 元件。
+- 不改變 edit session、revision、transaction、analysis 或公開唯讀 Viewer 契約。
+- 不處理 Svelte accessibility warnings、行動裝置 pointer capture 或 retired time-reference Demo。
+
+```text
+Volume: deletes ~250 lines / touches 12–16 files / adds ~40–80 lines（主要為測試與文件）
+Precedent: settled retirement；same-page Viewer 已是 reference implementation
+Proof: targeted Node tests | targeted Python tests | source reference scan
+```
+
 本機編輯能力由 TaskProgress edit host 對精確註冊且 `scope_id` 相符的報告動態回傳，不在 scope 設定或 `report.json` 保存 `editable`。Viewer、發布後 Launcher 與 edit host 必須版本一致；若舊版 Launcher 只啟動普通 LocalWebService，Viewer 會因 capability endpoint 不存在而安全地隱藏編輯入口。
 
 #### 不變的產品與介面契約

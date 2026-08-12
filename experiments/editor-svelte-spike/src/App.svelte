@@ -22,11 +22,6 @@
     createTimeInputDraft,
   } from "../../../viewer/assets/time-input-draft.js";
 
-  export let requireHostCapability = false;
-  export let surfaceKind = "spike";
-  export let embedded = false;
-  export let autoStartEditing = false;
-
   const priorityPolicy = globalThis.TaskProgressPriorityPolicy;
   const emptyTimeIndex = () => ({ tasks: new Map(), items: new Map() });
 
@@ -148,7 +143,6 @@
       statusMessage = hostAvailable
         ? "已連接本機安全編輯服務。"
         : "已唯讀載入真實資料；此來源沒有本機寫入 capability。";
-      if (autoStartEditing && hostAvailable && !editing) await toggleMode();
     } catch (error) {
       loadError = error instanceof Error ? error.message : "資料載入失敗。";
     } finally {
@@ -209,15 +203,6 @@
     editing = !editing;
     timeController?.setEditing(editing);
     renderTimeReference();
-    if (embedded && !editing) notifyViewer(false);
-  }
-
-  function notifyViewer(saved) {
-    if (!embedded || window.parent === window) return;
-    window.parent.postMessage(
-      { type: "taskprogress:editor-close", saved },
-      window.location.origin,
-    );
   }
 
   function undo() {
@@ -364,7 +349,6 @@
       timeSettingsPending = false;
       deliveryPreview = null;
       confirmingDeliverySave = false;
-      notifyViewer(hostAvailable);
     } catch (error) {
       statusMessage = error instanceof Error
         ? error.message
@@ -398,7 +382,7 @@
 <main class="spike-page editor-layout-shell" data-view-mode={editing ? "edit" : "preview"}>
   <header class="spike-heading">
     <div>
-      <p class="spike-eyebrow">{surfaceKind === "viewer" ? "Local editor" : "Framework parity spike"}</p>
+      <p class="spike-eyebrow">Framework parity spike</p>
       <h1>{view?.report.title ?? "Svelte × TaskProgress Editor Core"}</h1>
       <p>{dataLabel} · {timeState}</p>
     </div>
@@ -413,7 +397,7 @@
     </div>
     <ModeToggle
       mode={editing ? "edit" : "preview"}
-      available={!requireHostCapability || hostAvailable}
+      available={true}
       hideWhenUnavailable={true}
       disabled={loading || saving || previewing || confirmingDeliverySave || Boolean(loadError)}
       onToggle={toggleMode}

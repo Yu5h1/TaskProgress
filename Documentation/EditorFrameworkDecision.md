@@ -2,9 +2,11 @@
 
 ## Status
 
-2026-08-02：**Svelte accepted for an isolated parity spike; production migration is not yet accepted.**
+2026-08-12：**Svelte production migration complete; standalone Editor entry retired.**
 
-這項決策只選定第一個實驗候選，不會讓公開 Viewer 載入框架，也不會移除既有 Demo／Editor Surface。
+正式 Viewer 的預覽與編輯已共用同一頁、同一組 Svelte 元件及 framework-neutral Editor Core。`editor.html`、host-only wrapper、專用 build gate 與 edit-host asset route 已退場；公開 Viewer 仍因缺少本機 capability 而保持唯讀。
+
+以下內容保留 2026-08-02 至 2026-08-07 的選型與遷移紀錄；其中雙入口與 iframe 描述是歷史階段，不代表目前架構。
 
 ## Context
 
@@ -32,7 +34,7 @@ Vue 暫不安裝。原生 Viewer／Demo 是行為基準與回退路徑；只有 
 - 交付日變更要求修改原因；client 不產生歷史值或指紋，edit host 依 canonical before／after 建立遮蔽事件並將私有歷史加入同一 rollback transaction；
 - 交付日風險預覽以同一 session 的 report／config／estimates 草稿在 OS 暫存目錄執行正式分析器，不碰 canonical files；Svelte 顯示前後期限、風險與容量差異，只有敏感交付日變更會在全域儲存前開啟 native confirmation dialog；
 - Vite `base: "./"`，建置結果使用相對資產 URL，可放在 GitHub Pages 子路徑。
-- 同一建置另產生要求本機 capability 的 `editor.html`；TaskProgress edit host 只在入口存在時於 capability 宣告固定同源 URL，Viewer 驗證路徑後才導向。公開 Pages 沒有該 API 路由，建置缺失時 Viewer 自動保留舊編輯器。
+- 歷史階段曾由同一建置產生 host-only `editor.html`；同頁 Viewer 完成後，此入口及 capability URL 已退場。
 
 正式 Host 路徑解析接入後，共用 App chunk 約為 93.19 kB JavaScript（gzip 33.50 kB）與 46.56 kB CSS（gzip 8.91 kB），兩個入口 wrapper 各小於 0.2 kB；CSS 數字包含重用的完整 Viewer stylesheet，不是最終裁切結果。
 

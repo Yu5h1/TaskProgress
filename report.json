@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-08-12T10:38:31+08:00",
+  "updated_at": "2026-08-12T23:02:58+08:00",
   "tasks": [
     {
       "id": "viewer-core",
@@ -171,7 +171,7 @@
       "title": "本機任務編輯",
       "status": "in_progress",
       "priority": 1,
-      "summary": "正式 Viewer 預覽已全面改由可替換的 UI adapter 渲染：任務卡、模式切換、儲存列、新增控制、主題選單／自訂色彩 Dialog、時間參考摘要按鈕與進度報告 Dialog、時間設定／交付日風險預覽／儲存確認都只剩一份實作，app.js 不再自行繪製任何 Dialog。編輯用 iframe 覆蓋層已拆除，編輯是同一頁的模式切換而非第二個應用。Svelte UX parity gate 與三項時間編輯回歸已完成並通過桌面／390px 人工驗證。下一步是移除只剩建置與測試在維護的獨立編輯器本體；實機觸控編輯另列 P1。",
+      "summary": "正式 Viewer 預覽已全面改由可替換的 UI adapter 渲染：任務卡、模式切換、儲存列、新增控制、主題選單／自訂色彩 Dialog、時間參考摘要按鈕與進度報告 Dialog、時間設定／交付日風險預覽／儲存確認都只剩一份實作，app.js 不再自行繪製任何 Dialog。編輯用 iframe 覆蓋層已拆除，編輯是同一頁的模式切換而非第二個應用。Svelte UX parity gate 與三項時間編輯回歸已完成並通過桌面／390px 人工驗證；無呼叫端的獨立 Editor 頁面、建置入口與 Host 路由也已移除。平板透過受限 LAN 存取的編輯驗證保留為低優先級後續項目。",
       "completed_items": [
         {
           "id": "item-local-task-editing-done-1",
@@ -467,18 +467,18 @@
           "id": "freeze-svelte-ux-parity-contract",
           "title": "完成 Svelte 遷移 UX parity gate 與三項回歸修正：交付日置頂、時間設定垂直排列、人工工時與依據移入共用時間 Dialog；bundle、自動測試及桌面／390px 人工驗證皆通過",
           "priority": 0
+        },
+        {
+          "id": "retire-editor-surface-standalone-build",
+          "title": "移除無呼叫端的獨立 Editor 頁面、wrapper、建置命令與 verifier，並刪除 Host 的 editor asset route、editor_surface_url capability 及專用資料路徑；保留隔離 Svelte spike 與共用元件",
+          "priority": 1
         }
       ],
       "pending_items": [
         {
-          "id": "retire-editor-surface-standalone-build",
-          "title": "移除獨立編輯器本體：experiments/editor-svelte-spike/editor.html、viewer-main.js、editor:svelte:build／spike:svelte:build 建置腳本，以及 service/taskprogress_host.py 對 editor.html 的 serve 與 capability 的 editor_surface_url 欄位——iframe 拆除後正式 Viewer 已不再讀取 editor_surface_url，這條路徑只剩建置與測試在維護，沒有任何呼叫端",
-          "priority": 1
-        },
-        {
           "id": "verify-mobile-editing",
-          "title": "在正式 Viewer Surface 完成實機觸控編輯驗證；隔離 Svelte 的 390px 版面與鍵盤流程已通過",
-          "priority": 1
+          "title": "未來另行設計並明確啟用受限 LAN 編輯 capability 後，以平板驗證正式 Viewer 的觸控編輯與 StatusFilters pointer capture；目前 exact-loopback 模式維持 PC 本機限定",
+          "priority": 3
         }
       ]
     },

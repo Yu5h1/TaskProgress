@@ -27,7 +27,7 @@ from types import ModuleType
 from typing import Any, Callable, Sequence
 
 from fastapi import APIRouter, FastAPI, Request
-from fastapi.responses import FileResponse, JSONResponse, Response
+from fastapi.responses import JSONResponse, Response
 from jsonschema import Draft202012Validator, FormatChecker
 from starlette.routing import Mount
 
@@ -45,12 +45,6 @@ TIME_SCHEMA_ROOT = (
     / "schemas"
 )
 LOCAL_STATE_SCHEMA_PATH = Path(__file__).resolve().parents[1] / "schemas" / "taskprogress.local.schema.json"
-DEFAULT_EDITOR_SURFACE_ROOT = (
-    Path(__file__).resolve().parents[1]
-    / "experiments"
-    / "editor-svelte-spike"
-    / "dist"
-)
 SCOPE_PATTERN = re.compile(r"^[a-z0-9]+(?:[._-][a-z0-9]+)*$")
 TIMEZONE_PATTERN = re.compile(r"^[A-Za-z0-9._+-]+(?:/[A-Za-z0-9._+-]+)*$")
 TRANSACTION_FILES = frozenset(
@@ -700,7 +694,6 @@ def install_edit_api(
     report_schema: os.PathLike[str] | str,
     control_port: int,
     analyzer_command: Sequence[str] = (),
-    editor_surface_root: os.PathLike[str] | str | None = None,
     now: Callable[[], float] = time.time,
 ) -> None:
     schema = json.loads(Path(report_schema).read_text(encoding="utf-8"))
@@ -732,13 +725,6 @@ def install_edit_api(
     sessions_lock = threading.RLock()
     write_lock = asyncio.Lock()
     router = APIRouter(prefix=API_PREFIX)
-    editor_root = (
-        Path(editor_surface_root).resolve()
-        if editor_surface_root is not None
-        else None
-    )
-    editor_entry = editor_root / "editor.html" if editor_root is not None else None
-
     def registered_report(scope: str) -> Path | None:
         registration = registry.get_by_url(_report_route(scope))
         if registration is None or not registration.file_path.is_file():
@@ -796,20 +782,6 @@ def install_edit_api(
             "api_version": API_VERSION,
         }
 
-    @router.get("/editor/{asset_path:path}")
-    async def local_editor_asset(asset_path: str) -> Response:
-        if editor_root is None or editor_entry is None or not editor_entry.is_file():
-            return _problem(404, "editor_surface_not_found", "Local editor surface is unavailable")
-        requested = asset_path or "editor.html"
-        try:
-            path = (editor_root / requested).resolve()
-            path.relative_to(editor_root)
-        except (OSError, ValueError):
-            return _problem(404, "editor_asset_not_found", "Local editor asset was not found")
-        if not path.is_file():
-            return _problem(404, "editor_asset_not_found", "Local editor asset was not found")
-        return FileResponse(path, headers={"Cache-Control": "no-store"})
-
     @router.get("/capabilities/{scope}")
     async def edit_capabilities(scope: str) -> Response:
         try:
@@ -843,8 +815,6 @@ def install_edit_api(
             "revision": revision,
             "session_lifetime_seconds": SESSION_LIFETIME_SECONDS,
         }
-        if editor_entry is not None and editor_entry.is_file():
-            capability["editor_surface_url"] = f"{API_PREFIX}/editor/editor.html"
         return JSONResponse(capability)
 
     @router.post("/edit-sessions")
@@ -1640,7 +1610,6 @@ def create_taskprogress_app_factory(
     *,
     report_schema: os.PathLike[str] | str,
     analyzer_command: Sequence[str] = (),
-    editor_surface_root: os.PathLike[str] | str = DEFAULT_EDITOR_SURFACE_ROOT,
 ) -> Callable[..., FastAPI]:
     original_create_app = local_web_service.create_app
 
@@ -1654,7 +1623,6 @@ def create_taskprogress_app_factory(
             report_schema=report_schema,
             control_port=control_port,
             analyzer_command=analyzer_command,
-            editor_surface_root=editor_surface_root,
         )
         return application
 

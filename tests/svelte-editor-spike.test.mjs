@@ -135,13 +135,6 @@ test("Svelte data request keeps Viewer query precedence and resolves experiment 
   assert.equal(scoped.reportUrl.href, "https://example.test/reports/example/report.json");
   assert.equal(scoped.timeUrl.href, "https://example.test/reports/example/time.analysis.json");
 
-  const hosted = resolveSvelteDataRequest(
-    new URLSearchParams("scope=example"),
-    "http://127.0.0.1:8148/__taskprogress/v1/editor/editor.html",
-  );
-  assert.equal(hosted.reportUrl.href, "http://127.0.0.1:8148/reports/example/report.json");
-  assert.equal(hosted.timeUrl.href, "http://127.0.0.1:8148/reports/example/time.analysis.json");
-
   const explicit = resolveSvelteDataRequest(
     new URLSearchParams("scope=ignored&report=/custom/report.json&time=none"),
     baseUrl,
@@ -643,7 +636,7 @@ test("Svelte edit-host client sends the dual-revision multi-file contract", asyn
 });
 
 test("Svelte spike is isolated, static-path safe, and uses the shared core", async () => {
-  const [packageText, viteText, appText, cardText, rowText, dialogText, manualEstimateText, adapterText, loaderText, clientText, timeDraftText, timeSettingsText, previewText, confirmationText, stylesText, timeEditingText, presentationText, viewerMainText, editorHtmlText] = await Promise.all([
+  const [packageText, viteText, appText, cardText, rowText, dialogText, manualEstimateText, adapterText, loaderText, clientText, timeDraftText, timeSettingsText, previewText, confirmationText, stylesText, timeEditingText, presentationText] = await Promise.all([
     readFile(new URL("../package.json", import.meta.url), "utf8"),
     readFile(new URL("../experiments/editor-svelte-spike/vite.config.js", import.meta.url), "utf8"),
     readFile(new URL("../experiments/editor-svelte-spike/src/App.svelte", import.meta.url), "utf8"),
@@ -661,18 +654,16 @@ test("Svelte spike is isolated, static-path safe, and uses the shared core", asy
     readFile(new URL("../experiments/editor-svelte-spike/src/styles.css", import.meta.url), "utf8"),
     readFile(new URL("../viewer/assets/editor-time-editing.css", import.meta.url), "utf8"),
     readFile(new URL("../viewer/assets/editor-presentation.css", import.meta.url), "utf8"),
-    readFile(new URL("../experiments/editor-svelte-spike/src/viewer-main.js", import.meta.url), "utf8"),
-    readFile(new URL("../experiments/editor-svelte-spike/editor.html", import.meta.url), "utf8"),
   ]);
   const packageJson = JSON.parse(packageText);
 
   assert.ok(packageJson.devDependencies.svelte);
   assert.ok(packageJson.devDependencies.vite);
   assert.equal(packageJson.devDependencies.vue, undefined);
-  assert.equal(packageJson.scripts["spike:svelte:build"], "npm run editor:svelte:build");
-  assert.equal(packageJson.scripts["editor:svelte:build"].includes("vite build"), true);
+  assert.equal(packageJson.scripts["spike:svelte:build"], undefined);
+  assert.equal(packageJson.scripts["editor:svelte:build"], undefined);
   assert.match(viteText, /base:\s*"\.\/"/u);
-  assert.match(viteText, /editor:\s*fileURLToPath/u);
+  assert.doesNotMatch(viteText, /editor\.html|rollupOptions/u);
   assert.match(appText, /createSvelteEditorAdapter/u);
   assert.match(appText, /view\.history\.canUndo/u);
   assert.match(appText, /loadSvelteEditorData/u);
@@ -719,10 +710,6 @@ test("Svelte spike is isolated, static-path safe, and uses the shared core", asy
   assert.match(rowText, /class="editor-item-row"/u);
   assert.match(presentationText, /--editor-content-max-width:\s*960px/u);
   assert.match(presentationText, /\.editor-mode-dock\s*\{[\s\S]*?position:\s*fixed/u);
-  assert.match(viewerMainText, /requireHostCapability:\s*true/u);
-  assert.match(viewerMainText, /autoStartEditing:\s*window\.self !== window\.top/u);
-  assert.match(appText, /taskprogress:editor-close/u);
-  assert.match(appText, /autoStartEditing && hostAvailable/u);
-  assert.match(editorHtmlText, /noindex, nofollow/u);
+  assert.doesNotMatch(appText, /taskprogress:editor-close|autoStartEditing|embedded/u);
   assert.doesNotMatch(appText + cardText + rowText, /localStorage/u);
 });

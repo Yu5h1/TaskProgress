@@ -127,14 +127,6 @@ class TaskProgressEditHostTests(unittest.TestCase):
             json.dumps(report_payload(), ensure_ascii=False, indent=2) + "\n",
             encoding="utf-8",
         )
-        self.editor_surface_root = self.root / "editor-surface"
-        (self.editor_surface_root / "assets").mkdir(parents=True)
-        (self.editor_surface_root / "editor.html").write_text(
-            "<main>local editor</main>", encoding="utf-8"
-        )
-        (self.editor_surface_root / "assets" / "editor.js").write_text(
-            "export {};", encoding="utf-8"
-        )
         local_web_service = _load_module(LOCAL_WEB_SERVICE)
         application = local_web_service.create_app(
             self.root,
@@ -147,7 +139,6 @@ class TaskProgressEditHostTests(unittest.TestCase):
             application,
             report_schema=REPORT_SCHEMA,
             control_port=PORT,
-            editor_surface_root=self.editor_surface_root,
         )
         self.client = TestClient(
             application,
@@ -215,30 +206,9 @@ class TaskProgressEditHostTests(unittest.TestCase):
         )
         self.assertEqual(200, capability.status_code)
         self.assertTrue(capability.json()["editable"])
-        self.assertEqual(
-            "/__taskprogress/v1/editor/editor.html",
-            capability.json()["editor_surface_url"],
-        )
-
-        editor = self.client.get(capability.json()["editor_surface_url"])
-        self.assertEqual(200, editor.status_code)
-        self.assertIn("no-store", editor.headers["cache-control"])
-        asset = self.client.get("/__taskprogress/v1/editor/assets/editor.js")
-        self.assertEqual(200, asset.status_code)
-        traversal = self.client.get("/__taskprogress/v1/editor/..%2Freport.json")
-        self.assertEqual(404, traversal.status_code)
-
-    def test_missing_editor_build_keeps_legacy_editor_capability(self) -> None:
-        (self.editor_surface_root / "editor.html").unlink()
-        capability = self.client.get(
-            "/__taskprogress/v1/capabilities/secure-test"
-        )
-        self.assertEqual(200, capability.status_code)
-        self.assertTrue(capability.json()["editable"])
         self.assertNotIn("editor_surface_url", capability.json())
         editor = self.client.get("/__taskprogress/v1/editor/editor.html")
         self.assertEqual(404, editor.status_code)
-        self.assertEqual("editor_surface_not_found", editor.json()["code"])
 
     def test_session_requires_same_origin_and_editor_header(self) -> None:
         missing_origin = self.client.post(
