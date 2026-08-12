@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "report_id": "task-progress-development",
-  "updated_at": "2026-08-07T08:00:00+08:00",
+  "updated_at": "2026-08-12T10:38:31+08:00",
   "tasks": [
     {
       "id": "viewer-core",
@@ -93,12 +93,11 @@
     },
     {
       "id": "local-task-editing",
-      "next_step": "iframe 收斂已完成（2026-08-07，見 handoff.md／plan.md#編輯-iframe-收斂-draft-01）：editor-surface-overlay／editor-surface-frame／taskprogress:editor-close postMessage／editor-surface-open 捲動鎖全數刪除，startEditing／cancelEditing／saveEditing 改走 edit-host-client.js 的雙 revision 多檔契約，時間設定、交付日風險預覽／儲存確認、逐項人工估算三個 region 併入正式 Viewer host，已對真實 port-8001 服務驗證（桌面與 375px 皆通過，存檔全流程含確認對話框一次跑通後復原）。下一步是兩件獨立的事，尚未裁示先後：(1) 移除獨立編輯器本體（report.json 的 retire-editor-surface-standalone-build）——editor.html／viewer-main.js／建置腳本／Python 端 serve 與 editor_surface_url 欄位現在沒有任何呼叫端，只剩建置與測試在維護；(2) 補建 freeze-svelte-ux-parity-contract 這個從未實作的正式 gate，因為下方 blocker 記載的時間設定 UX 回歸（交付日不在最上方、標題與表單橫向並排、項目工時為 inline details 而非時間彈窗）在這次 iframe 收斂中已從隔離 spike 擴大進正式 Viewer——這正是該 blocker 明文要求先修正才能做的事，這次沒有先修正就做了；已據實記錄，不回溯拆解正式功能，留給使用者決定是否要現在補上 gate、修 UX，或接受現狀。",
+      "next_step": "Svelte UX parity gate 與三項時間編輯回歸已於 2026-08-12 完成：交付日置頂、面板垂直排列、人工工時／依據／確認移入共用 TimeDialog；targeted Node tests 39/39、Viewer bundle 與使用者桌面／390px 人工檢查均通過。下一個獨立產品回合是移除已無呼叫端的 standalone editor build（report.json 的 retire-editor-surface-standalone-build）：editor.html、viewer-main.js、editor:svelte:build／spike:svelte:build，以及 service/taskprogress_host.py 的 editor serve 與 editor_surface_url capability 欄位。實機觸控編輯驗證維持獨立 P1，不與退場清理混做。",
       "blockers": [
         "時間參考 Demo 已隨此次收斂停止運作（依使用者裁示 (a)）：它呼叫的 createModeController／createSaveBar／createAddControl 已刪除，開啟頁面會拋錯。不得為了讓 Demo 復活而還原那些函式。",
         "StatusFilters 的觸控拖曳（8px 門檻與水平軸鎖）從未在瀏覽器執行過，合成 pointer 事件無法重現 pointer capture，目前只有原始碼斷言覆蓋。",
         "實機觸控編輯仍未驗證，因此正式編輯範圍仍以桌面滑鼠／鍵盤為準。",
-        "時間設定違反既有 UX 的 parity 回歸（交付日不在最上方、標題與表單橫向並排、項目工時為 inline details 而非時間彈窗）原本只存在於隔離 spike；2026-08-07 的 iframe 收斂把同一份 TimeSettingsEditor.svelte／ItemRow 估算面板原封不動併入正式 Viewer，等於在未修正 parity、也未依此 blocker 建立 freeze-svelte-ux-parity-contract gate 的情況下擴大了遷移。回歸本身沒有變得更嚴重，只是曝光面從內部 spike 變成正式產品。",
         "尚未裁示的 UX 設計（已與使用者討論但未實作）：ItemRow 在 390px 折成三行需要折疊規則（提案為模組膠囊水平捲動加描述 ellipsis）；描述點擊開 Dialog 與編輯模式描述為 input 相衝突，入口未定；待估在編輯模式不可點，無估算的子項目無法建立估算；模組膠囊順序須由核心固定表決定而非 manifest；優先級與狀態是核心欄位，若放進模組排其渲染路徑不得經過模組載入；同一 subject 應為單一 Dialog 分區而非每個模組各開一個；Dialog 編輯應讓顯示值原地變欄位，而非在唯讀值下方追加另一份表單。"
       ],
       "decisions": [
