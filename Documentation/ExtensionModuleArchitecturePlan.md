@@ -272,6 +272,26 @@ ViewerModule
 
 核心控制插入順序、無障礙要求、行動版限制與模組可用空間。Renderer 不直接覆蓋其他模組或核心內容。
 
+### Item inline 膠囊列
+
+`item-inline` 不讓每個 Renderer 各自插入 DOM。Viewer Core 收集通過驗證的膠囊描述，再交給共享 `ItemRow` 的單一 module strip 呈現：
+
+```text
+ItemRow
+├─ 左側內容流：項目標記、optional priority、flexible 描述
+└─ 右側 utility panel
+   ├─ Module capsule strip：time、未來模組……
+   ├─ 核心：status
+   └─ Edit-only action：刪除
+```
+
+- Strip 靠右、保持單列，空間不足時只在自身範圍水平捲動；不得推走 status 或讓卡片產生水平 overflow。
+- `time` 是第一顆 reference capsule。新增模組只提供 capsule label、accessibility text、tone 與 action，不取得 `ItemRow` DOM。
+- Core 定義可信任 module type 的預設順序與允許清單。使用者可用 browser-local view preference 調整已知模組的左右順序；manifest、sidecar 與 Renderer 不得宣告較高權限的版面順序。
+- 排序互動直接沿用 `StatusFilters` 契約：滑鼠拖曳、超過 8px 且鎖定水平軸後才成立的 Pointer Events 觸控拖曳，以及 `Alt + ←／→` 鍵盤移動；三種入口共用同一套純資料 reorder model。短點擊仍啟動 capsule action，排序後立即保存並恢復 focus，不加入 Editor transaction。
+- Priority 與 status 是報告核心欄位，不屬於 module strip。單一 module 載入、驗證或 render 失敗時，描述、priority 與 status 必須照常顯示。
+- 沒有任何 module capsule 時不保留空 strip。Preview／Edit 共用同一個靠右 utility panel 與 `module → status → delete` 順序，只有核心欄位是否可編輯與 module action 是否取得本機 capability 的差異。刪除只在 Edit 插入 status 右側，不在 Preview 預留空欄；左側未指定 priority 也不保留空容器，描述取得釋放的空間。
+
 ### 一般資訊模組
 
 真正未知的資訊不一定值得建立專用 Renderer。未來可提供一個受限的 `taskprogress.metrics` 內建模組，只接受白名單資料元件：

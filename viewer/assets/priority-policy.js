@@ -2,7 +2,7 @@
   const minimum = 0;
   const maximum = 4;
   const fallbackValue = 4;
-  const creationDefaultValue = 2;
+  const creationDefaultValue = 4;
   const defaultLevels = [
     { value: 0, label: "立即", tone: "urgent" },
     { value: 1, label: "優先", tone: "important" },

@@ -12,6 +12,12 @@ import {
   stableSortByStatus,
   taskMatchesViewStatus,
 } from "../viewer/assets/status-order.js";
+import {
+  MODULE_ORDER_STORAGE_KEY,
+  loadModuleOrder,
+  moveModuleOrder,
+  saveModuleOrder,
+} from "../viewer/assets/module-order.js";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const STATUSES = ["planned", "in_progress", "blocked", "done", "archive"];
@@ -116,6 +122,19 @@ const statusFilters = await readFile(
   new URL("../experiments/editor-svelte-spike/src/StatusFilters.svelte", import.meta.url),
   "utf8",
 );
+const horizontalCapsules = await readFile(
+  new URL("../experiments/editor-svelte-spike/src/HorizontalCapsuleStrip.svelte", import.meta.url),
+  "utf8",
+);
+
+test("status and module order use the same capsule-order behavior", () => {
+  const storage = createStorage();
+  const modules = ["time", "cost", "quality"];
+  assert.deepEqual(moveModuleOrder(modules, "quality", "time"), ["quality", "time", "cost"]);
+  assert.equal(saveModuleOrder(storage, ["cost", "time", "quality"]), true);
+  assert.equal(storage.values.get(MODULE_ORDER_STORAGE_KEY), '["cost","time","quality"]');
+  assert.deepEqual(loadModuleOrder(storage, modules), ["cost", "time", "quality"]);
+});
 
 test("production Viewer exposes mouse, touch, and keyboard status ordering", async () => {
   const [app, css, html] = await Promise.all([
@@ -126,14 +145,15 @@ test("production Viewer exposes mouse, touch, and keyboard status ordering", asy
   // Ordering interaction moved into the filter component; the host keeps
   // persistence and re-render. Mouse drag, touch drag and keyboard must all
   // survive the move.
-  assert.match(statusFilters, /ondragstart=/);
-  assert.match(statusFilters, /onpointerdown=/);
-  assert.match(statusFilters, /Alt\+ArrowLeft Alt\+ArrowRight/);
-  assert.match(statusFilters, /Math\.hypot\(deltaX, deltaY\) < 8/);
-  assert.match(statusFilters, /Math\.abs\(deltaY\) > Math\.abs\(deltaX\)/);
-  assert.match(statusFilters, /status-drop-after/);
-  assert.match(statusFilters, /status-drop-before/);
-  assert.match(statusFilters, /status-dragging/);
+  assert.match(statusFilters, /HorizontalCapsuleStrip/);
+  assert.match(horizontalCapsules, /ondragstart=/);
+  assert.match(horizontalCapsules, /onpointerdown=/);
+  assert.match(horizontalCapsules, /Alt\+ArrowLeft Alt\+ArrowRight/);
+  assert.match(horizontalCapsules, /Math\.hypot\(deltaX, deltaY\) < 8/);
+  assert.match(horizontalCapsules, /Math\.abs\(deltaY\) > Math\.abs\(deltaX\)/);
+  assert.match(horizontalCapsules, /capsule-drop-after/);
+  assert.match(horizontalCapsules, /capsule-drop-before/);
+  assert.match(horizontalCapsules, /capsule-dragging/);
   assert.match(app, /applyStatusOrder\(status, targetStatus, placeAfter\)/);
   assert.match(app, /saveStatusOrder\(statusOrderStorage, state\.statusOrder\)/);
   assert.match(

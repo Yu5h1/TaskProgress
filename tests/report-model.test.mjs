@@ -113,7 +113,7 @@ test("task and item priority use five named levels with unspecified as the legac
   assert.equal(PRIORITY_META[4].hidden, true);
   assert.equal(PRIORITY_POLICY.labelsValid, true);
   assert.equal(PRIORITY_POLICY.fallbackValue, 4);
-  assert.equal(PRIORITY_POLICY.creationDefaultValue, 2);
+  assert.equal(PRIORITY_POLICY.creationDefaultValue, 4);
   assert.equal(PRIORITY_POLICY.format(0), "立即");
   assert.equal(PRIORITY_POLICY.format(4), "未指定");
   const brokenLabels = PRIORITY_POLICY.create(

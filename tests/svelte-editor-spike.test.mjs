@@ -636,12 +636,13 @@ test("Svelte edit-host client sends the dual-revision multi-file contract", asyn
 });
 
 test("Svelte spike is isolated, static-path safe, and uses the shared core", async () => {
-  const [packageText, viteText, appText, cardText, rowText, dialogText, manualEstimateText, adapterText, loaderText, clientText, timeDraftText, timeSettingsText, previewText, confirmationText, stylesText, timeEditingText, presentationText] = await Promise.all([
+  const [packageText, viteText, appText, cardText, rowText, addControlText, dialogText, manualEstimateText, adapterText, loaderText, clientText, timeDraftText, timeSettingsText, previewText, confirmationText, stylesText, viewerStylesText, timeEditingText, presentationText] = await Promise.all([
     readFile(new URL("../package.json", import.meta.url), "utf8"),
     readFile(new URL("../experiments/editor-svelte-spike/vite.config.js", import.meta.url), "utf8"),
     readFile(new URL("../experiments/editor-svelte-spike/src/App.svelte", import.meta.url), "utf8"),
     readFile(new URL("../experiments/editor-svelte-spike/src/TaskCard.svelte", import.meta.url), "utf8"),
     readFile(new URL("../experiments/editor-svelte-spike/src/ItemRow.svelte", import.meta.url), "utf8"),
+    readFile(new URL("../experiments/editor-svelte-spike/src/AddControl.svelte", import.meta.url), "utf8"),
     readFile(new URL("../experiments/editor-svelte-spike/src/TimeDialog.svelte", import.meta.url), "utf8"),
     readFile(new URL("../experiments/editor-svelte-spike/src/ManualEstimateEditor.svelte", import.meta.url), "utf8"),
     readFile(new URL("../experiments/editor-svelte-spike/src/editor-adapter.js", import.meta.url), "utf8"),
@@ -652,6 +653,7 @@ test("Svelte spike is isolated, static-path safe, and uses the shared core", asy
     readFile(new URL("../viewer/assets/delivery-risk-preview.js", import.meta.url), "utf8"),
     readFile(new URL("../experiments/editor-svelte-spike/src/DeliverySaveConfirmation.svelte", import.meta.url), "utf8"),
     readFile(new URL("../experiments/editor-svelte-spike/src/styles.css", import.meta.url), "utf8"),
+    readFile(new URL("../viewer/assets/styles.css", import.meta.url), "utf8"),
     readFile(new URL("../viewer/assets/editor-time-editing.css", import.meta.url), "utf8"),
     readFile(new URL("../viewer/assets/editor-presentation.css", import.meta.url), "utf8"),
   ]);
@@ -672,7 +674,26 @@ test("Svelte spike is isolated, static-path safe, and uses the shared core", asy
   assert.match(cardText, /timeItems/u);
   assert.match(rowText, /type:\s*"set-item-field"/u);
   assert.doesNotMatch(rowText, /<details|spike-estimate-editor|onManualEstimate/u);
-  assert.match(rowText, /onTimeClick\(item\.id, item\.title, taskId\)/u);
+  assert.match(rowText, /if \(id === "time" && onTimeClick\) onTimeClick\(item\.id, item\.title, taskId\)/u);
+  assert.match(rowText, /type:\s*"move-item"/u);
+  assert.match(rowText, /<ModuleCapsuleStrip/u);
+  assert.match(rowText, /editing \|\| \(metadata && \(!metadata\.hidden \|\| !policy\.labelsValid\)\)/u);
+  assert.match(rowText, /class="item-row-utility-panel"/u);
+  assert.ok(
+    rowText.indexOf("item-row-modules") < rowText.indexOf("item-row-status")
+      && rowText.indexOf("item-row-status") < rowText.indexOf("item-row-action"),
+  );
+  assert.match(viewerStylesText, /\.item-row-status \.inline-status-select\s*\{[\s\S]*min-width:\s*var\(--editor-item-status-edit-width\)/u);
+  assert.match(viewerStylesText, /\.item-status-capsule\s*\{[\s\S]*width:\s*max-content/u);
+  assert.match(viewerStylesText, /\.editable-work-item \.item-row-priority\s*\{[\s\S]*width:\s*var\(--editor-item-priority-edit-width\)/u);
+  assert.match(rowText, /itemStatus === "completed" \? "✓" : "○"/u);
+  assert.match(rowText, /bind:value=\{priorityValue\}/u);
+  assert.match(rowText, /policy\.normalize\(item\.priority, policy\.fallbackValue\)/u);
+  assert.match(rowText, /bind:value=\{statusValue\}/u);
+  assert.match(cardText, /bind:value=\{taskPriorityValue\}/u);
+  assert.match(cardText, /policy\.normalize\(task\.priority, policy\.fallbackValue\)/u);
+  assert.match(cardText, /bind:value=\{taskStatusValue\}/u);
+  assert.match(addControlText, /priority = policy\?\.creationDefaultValue \?\? 4/u);
   assert.match(dialogText, /<ManualEstimateEditor/u);
   assert.match(manualEstimateText, /humanConfirmed:\s*estimateConfirmed/u);
   assert.match(manualEstimateText, /人工確認此工時/u);

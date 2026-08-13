@@ -33,6 +33,7 @@ import {
   resolveTimeAnalysisSource,
 } from "./time-model.js";
 import { createTimeReferenceController } from "./time-dialog-control.js";
+import { createModuleOrderControl } from "./module-order-control.js";
 import {
   loadStatusOrder,
   moveStatusOrder,
@@ -52,6 +53,7 @@ function getBrowserStorage() {
 }
 
 const statusOrderStorage = getBrowserStorage();
+const moduleOrderControl = createModuleOrderControl({ storage: statusOrderStorage });
 
 const elements = {
   title: document.querySelector("#report-title"),
@@ -109,6 +111,7 @@ const state = {
   deliveryRiskPreviewView: null,
   deliverySaveConfirmationView: null,
   statusOrder: loadStatusOrder(statusOrderStorage, supportedStatuses),
+  moduleOrder: moduleOrderControl.order,
   editor: {
     available: false,
     editing: false,
@@ -566,6 +569,13 @@ function applyStatusOrder(status, targetStatus, placeAfter = false) {
   renderTasks();
 }
 
+function applyModuleOrder(id, targetId, placeAfter = false) {
+  const result = moduleOrderControl.move(id, targetId, placeAfter);
+  if (!result.changed) return;
+  state.moduleOrder = result.order;
+  renderTasks();
+}
+
 
 
 
@@ -613,7 +623,7 @@ function renderTaskAdder({ expanded = false, error = "" } = {}) {
     expanded,
     policy: PRIORITY_POLICY,
     triggerAriaLabel: "增加工作項目",
-    contractText: "預設狀態：待處理；預設優先級：一般；ID 會獨立產生",
+    contractText: "預設狀態：待處理；預設優先級：未指定；ID 會獨立產生",
     errorMessage: error,
     onOpen: () => renderTaskAdder({ expanded: true }),
     onCancel: () => renderTaskAdder(),
@@ -679,12 +689,16 @@ function taskListProps(tasks) {
     timeItems,
     editing: state.editor.editing,
     statusOrder: state.statusOrder,
+    moduleOrder: state.moduleOrder,
     policy: PRIORITY_POLICY,
     emptyLabel: "沒有符合目前篩選的工作項目。",
     onCommand: (command) => {
       applyEditorCommand(command, "有尚未儲存的修改", { render: true });
     },
     onAddItem: (taskId, title, priority) => addTaskItem(taskId, title, priority),
+    onModuleReorder: (id, targetId, placeAfter) => {
+      applyModuleOrder(id, targetId, placeAfter);
+    },
     onTimeClick: (itemId, itemTitle, taskId) => {
       time?.showItemTime(itemId, itemTitle, taskId);
       renderTimeReference();

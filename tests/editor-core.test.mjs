@@ -166,6 +166,37 @@ test("editor core undoes and redoes report commands with derived state", () => {
   assert.equal(session.history.canRedo, false);
 });
 
+test("editor core moves a stable item between pending and completed with undo and invalidation", () => {
+  const session = createReportEditorSession(sampleReport());
+
+  session.dispatch({
+    type: "move-item",
+    taskId: "task-a",
+    itemId: "item-a",
+    fromField: "pending_items",
+    toField: "completed_items",
+  });
+
+  assert.equal(session.task("task-a").pending_items.length, 0);
+  assert.equal(session.task("task-a").completed_items.at(-1).id, "item-a");
+  assert.equal(session.derived.progress.tasks["task-a"].completed, 2);
+  assert.deepEqual(session.derived.timeInvalidation, {
+    stale: true,
+    taskIds: ["task-a"],
+    itemIds: ["item-a"],
+  });
+  assert.equal(session.history.undoCommandType, "move-item");
+
+  assert.equal(session.undo(), true);
+  assert.equal(session.task("task-a").pending_items[0].id, "item-a");
+  assert.equal(session.task("task-a").completed_items.length, 1);
+  assert.equal(session.dirty, false);
+
+  assert.equal(session.redo(), true);
+  assert.equal(session.task("task-a").completed_items.at(-1).id, "item-a");
+  assert.equal(session.derived.timeInvalidation.stale, true);
+});
+
 test("editor core coalesces consecutive edits to the same field", () => {
   const session = createReportEditorSession(sampleReport());
 

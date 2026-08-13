@@ -937,6 +937,45 @@ Precedent: settled retirement；same-page Viewer 已是 reference implementation
 Proof: targeted Node tests | targeted Python tests | source reference scan
 ```
 
+##### 子項目狀態與模組膠囊列 Draft 0.1（2026-08-13）
+
+子項目在預覽與編輯模式使用同一個 `ItemRow` 幾何結構；編輯只把相同位置的 priority、描述與狀態顯示切換成控制項，不重新排列欄位。第一版排列如下：
+
+```text
+Preview  ○  (優先級可省略) [描述：靠左且填滿]  {右側面板 [(模組膠囊…水平捲動)] (狀態)}
+Edit     ○  [優先級]       [描述：靠左且填滿]  {右側面板 [(模組膠囊…水平捲動)] [狀態] [刪除]}
+```
+
+- 左側是自然內容流：項目標記、可選 priority、可伸縮描述。預覽時「未指定」priority 不建立空容器，描述立即靠左補位；編輯時 priority 下拉正常佔位。priority 與狀態不經過 module loader，模組失敗不得使它們消失。
+- 有顯示的 priority badge 與編輯下拉使用相同寬度，避免不同標籤讓描述起點逐列晃動。左側項目標記同時表達狀態：待處理為 `○`、已完成為 `✓`，必須與右側狀態一致。
+- 右側是一個共同 utility panel，固定依 `module strip → status → edit-only delete` 排列並整體靠右。狀態膠囊與狀態下拉在列高內垂直置中；Delete 插入狀態右側時，狀態可向左讓位，不預留空白 action 欄。
+- 子項目第一版只有 `待處理` 與 `已完成` 兩個狀態。狀態命令移動同一個 stable item 至 `pending_items` 或 `completed_items`，保留 ID、title、priority、時間估算對應與 Undo／Redo；儲存後重算 task/project progress 並使受影響的時間投影失效。
+- `item-inline` 模組膠囊集中在描述與狀態之間的右側 strip。內容保持單列、不壓縮核心狀態；寬度不足時 strip 自己水平捲動，不讓整張卡片產生水平 overflow。
+- `time` 是第一個 module capsule reference。之後新增模組只向 strip 提供膠囊資料與 action，不修改 `ItemRow` markup。
+- Core 擁有模組型別的預設順序與允許清單；使用者調整的左右順序是 browser-local view preference，不寫入 `report.json`、不觸發全域儲存。manifest 與 Renderer 都不能指定自己覆蓋其他模組的位置。
+- 膠囊排序沿用既有 `StatusFilters` UX 與同一套純資料排序模型：滑鼠拖曳、觸控 Pointer Events（移動超過 8px 且鎖定水平軸後才視為拖曳）及鍵盤 `Alt + ←／→`。未超過拖曳門檻的點擊仍執行膠囊原本 action；調整後立即寫入 browser-local preference，並恢復目前膠囊的 focus。
+- 文字「刪除」固定在狀態之後，只在編輯模式顯示且不屬於 module strip。預覽與編輯共用相同的水平順序與右側 panel；兩種模式的 control 外觀可以不同，不要求狀態在 Delete 出現前後維持完全相同的 X 座標。
+
+**驗收方向**
+
+- 編輯子項目狀態後，同一 stable item 可在待處理／已完成間往返，保存、放棄、Undo／Redo、derived progress 與 time invalidation 都一致。
+- 預覽與編輯共用 marker → optional priority → flexible description → right utility panel 的水平順序；priority 隱藏時不留空白，描述靠左，狀態控制垂直置中且只顯示一次。
+- 沒有 time 或任何 module 時，strip 不留下空白膠囊；核心描述與狀態仍正常呈現。
+- 多顆模組膠囊在桌面與 390px 維持右側單列 strip，可水平捲動，並可用與 `StatusFilters` 相同的拖曳、觸控及鍵盤操作改變 browser-local 順序；整頁沒有水平 overflow。
+- 預覽模式不顯示刪除；切至編輯模式後刪除插入狀態右側最末端，右側 panel 仍靠右，狀態自然向左讓位。
+
+**本輪不包含**
+
+- 不把 task 的 `planned`／`in_progress`／`blocked`／`done`／`archive` 五態直接加入 item schema。
+- 不在 manifest 保存 UI 排序，也不讓 module Renderer 直接操作 `ItemRow` DOM。
+- 不實作第二個領域模組；Time 只作為第一個 capsule adapter 與排列驗證案例。
+
+```text
+Volume: touches ~8–12 files / adds ~180–300 lines（含 Core command、共享元件、樣式與測試）
+Precedent: bounded extension of Editor Core + new shared module-strip pattern
+Proof: targeted Editor Core tests | ItemRow source/DOM contract tests | viewer:ui:build | desktop and 390px browser
+```
+
 本機編輯能力由 TaskProgress edit host 對精確註冊且 `scope_id` 相符的報告動態回傳，不在 scope 設定或 `report.json` 保存 `editable`。Viewer、發布後 Launcher 與 edit host 必須版本一致；若舊版 Launcher 只啟動普通 LocalWebService，Viewer 會因 capability endpoint 不存在而安全地隱藏編輯入口。
 
 #### 不變的產品與介面契約
@@ -1139,10 +1178,10 @@ ItemRow 是每張任務卡內的一筆子項目。這份矩陣已於 2026-08-02 
 #### 優先級資料與排序
 
 - 優先級是 task 與 item 各自的資料屬性，不是狀態過濾器，也不得從 `title`／itemName 前綴解析。兩層只保存 `priority: 0 | 1 | 2 | 3 | 4`；共享 `viewer/assets/priority-policy.js` 統一提供 minimum、maximum、預設值、名稱、格式與色彩語意。
-- 目前投影為「立即、優先、一般、次要、未指定」；只有標籤設定失效時才顯示 `P0` 到 `Pmax`。task、`completed_items` 與 `pending_items` 繼續相容缺少 priority 的舊資料；缺少欄位時投影為 `4`「未指定」，新建任務及子項目則明確預設 `2`「一般」。
+- 目前投影為「立即、優先、一般、次要、未指定」；只有標籤設定失效時才顯示 `P0` 到 `Pmax`。task、`completed_items` 與 `pending_items` 繼續相容缺少 priority 的舊資料；缺少欄位與新建任務／子項目都使用 `4`「未指定」，只有使用者明確選擇才保存較高優先級。
 - 正常預覽不為「未指定」建立標籤，但編輯下拉保留「未指定」。共享 policy 必須確認 minimum 到 maximum 每個整數都有唯一且非空白的標籤；任一標籤設定不完整時，暫停隱藏規則，任務卡、子項目與編輯下拉統一只顯示 `P0` 到 `Pmax`，不得影響原始數值、排序或儲存。
 - 正式 Viewer 先依可拖曳的狀態順序排列任務卡，再於同狀態內依 priority 穩定排序；每個已完成／待處理面板也使用相同五級排序。同級維持 report 原始順序，不新增優先級過濾器。
-- Demo 編輯模式用原生選單同時修改任務卡與子項目的五級 priority，新任務及新子項目預設「一般」。下拉與可見預覽標籤都由共享 policy 格式化；有效標籤只顯示名稱，不加 `P0` 等數值前綴，改標籤文字不修改 report、排序或既有任務資料。
+- Demo 編輯模式用原生選單同時修改任務卡與子項目的五級 priority，新任務及新子項目預設「未指定」。task／item priority 與 item status 下拉先用 policy／清單歸屬正規化並以受控值初始化，缺少 priority 不得讓原生 select 自動落到第一項「立即」。下拉與可見預覽標籤都由共享 policy 格式化；有效標籤只顯示名稱，不加 `P0` 等數值前綴，改標籤文字不修改 report、排序或既有任務資料。
 - priority 變更與 title、子項目及時間草稿由同一個全域儲存提交。優先級是可見資料提示與排序依據，不是完成狀態；P0 等開發工作優先簡稱仍可存在於計畫文字，但不得作為 Viewer 的顯示名稱。
 
 任務描述編輯：

@@ -17,6 +17,10 @@
   --editor-item-min-height: 36px;
   --editor-item-padding-block: 8px;
   --editor-item-gap: 9px;
+  /* ItemRow control widths: safe manual tuning point for native select UI. */
+  --editor-item-priority-preview-width: 42px;
+  --editor-item-priority-edit-width: 92px;
+  --editor-item-status-edit-width: 92px;
   --editor-mode-toggle-min-width: 74px;
   --editor-mode-toggle-padding: 4px 10px;
   --editor-mode-toggle-font-size: 0.7rem;
@@ -71,10 +75,58 @@
 .editor-item-row,
 .work-columns .detail-list li.editor-item-row {
   display: flex;
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
   align-items: center;
   gap: var(--editor-item-gap);
   min-height: var(--editor-item-min-height);
+  padding-inline: 8px;
   padding-block: var(--editor-item-padding-block);
+}
+
+.work-columns .detail-list li.editor-item-row::before {
+  content: none;
+}
+
+.item-row-priority,
+.item-row-description,
+.item-row-utility-panel,
+.item-row-modules,
+.item-row-status,
+.item-row-action {
+  min-width: 0;
+}
+
+.item-row-description {
+  flex: 1 1 auto;
+}
+
+.item-row-utility-panel {
+  display: flex;
+  flex: 0 1 min(50%, 320px);
+  width: min(50%, 320px);
+  max-width: 50%;
+  overflow: hidden;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--editor-item-gap);
+  margin-left: auto;
+}
+
+@media (max-width: 640px) {
+  .editor-item-row,
+  .work-columns .detail-list li.editor-item-row {
+    gap: 4px;
+    padding-inline: 4px;
+  }
+
+  .item-row-utility-panel {
+    flex-basis: 55%;
+    width: 55%;
+    max-width: 55%;
+    gap: 4px;
+  }
 }
 
 @media (max-width: 640px) {

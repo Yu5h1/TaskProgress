@@ -10,6 +10,8 @@
   export let timeTasks = new Map();
   export let timeItems = new Map();
   export let onTimeClick = null;
+  export let moduleOrder = ["time"];
+  export let onModuleReorder = () => {};
   export let durations = {};
   export let statusOrder = ["done", "planned"];
   export let emptyLabel = "沒有符合目前篩選的工作項目。";
@@ -27,6 +29,8 @@
       timeTask={timeTasks.get(task.id) ?? null}
       {timeItems}
       {onTimeClick}
+      {moduleOrder}
+      {onModuleReorder}
       {statusOrder}
       taskDuration={durations[task.id] ?? null}
     />

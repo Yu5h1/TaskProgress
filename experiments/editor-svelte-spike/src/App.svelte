@@ -4,6 +4,7 @@
   import { createTimeIndex } from "../../../viewer/assets/time-model.js";
   import { createThemeControl } from "../../../viewer/assets/theme-control.js";
   import { createTimeReferenceController } from "../../../viewer/assets/time-dialog-control.js";
+  import { createModuleOrderControl } from "../../../viewer/assets/module-order-control.js";
   import DeliveryRiskPreview from "./DeliveryRiskPreview.svelte";
   import DeliverySaveConfirmation from "./DeliverySaveConfirmation.svelte";
   import ModeToggle from "./ModeToggle.svelte";
@@ -24,6 +25,13 @@
 
   const priorityPolicy = globalThis.TaskProgressPriorityPolicy;
   const emptyTimeIndex = () => ({ tasks: new Map(), items: new Map() });
+  const moduleOrderControl = createModuleOrderControl();
+  let moduleOrder = moduleOrderControl.order;
+
+  function reorderModule(id, targetId, placeAfter) {
+    const result = moduleOrderControl.move(id, targetId, placeAfter);
+    if (result.changed) moduleOrder = result.order;
+  }
 
   // Theme state lives in an adapter so this component stays free of browser
   // storage; the shared theme model owns every rule about what a mode means.
@@ -457,6 +465,8 @@
           timeTask={effectiveTimeIndex.tasks.get(task.id) ?? null}
           timeItems={effectiveTimeIndex.items}
           onTimeClick={timeController ? openItemTime : null}
+          {moduleOrder}
+          onModuleReorder={reorderModule}
         />
       {/each}
     </section>

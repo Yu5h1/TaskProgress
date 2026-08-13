@@ -329,6 +329,28 @@ function createReportEditorSession(
         findItem(task, command.field, command.itemId)[command.property] = command.value;
         break;
       }
+      case "move-item": {
+        if (!ITEM_FIELDS.includes(command.fromField) || !ITEM_FIELDS.includes(command.toField)) {
+          throw new Error("子項目只能在待處理與已完成清單間移動。");
+        }
+        if (command.fromField === command.toField) break;
+        const task = findTask(draft, command.taskId);
+        const source = task[command.fromField] ?? [];
+        const sourceIndex = source.findIndex((item) => (
+          item
+          && typeof item === "object"
+          && !Array.isArray(item)
+          && item.id === command.itemId
+        ));
+        if (sourceIndex < 0) throw new Error(`找不到子項目「${command.itemId}」。`);
+        task[command.toField] ??= [];
+        if (task[command.toField].some((item) => item?.id === command.itemId)) {
+          throw new Error(`子項目 ID「${command.itemId}」已存在於目標清單。`);
+        }
+        const [item] = source.splice(sourceIndex, 1);
+        task[command.toField].push(item);
+        break;
+      }
       case "delete-item": {
         const task = findTask(draft, command.taskId);
         const items = task[command.field] ?? [];

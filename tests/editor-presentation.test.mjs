@@ -16,9 +16,16 @@ test("Viewer, Demo, and Svelte consume one framework-neutral presentation contra
   ]);
 
   assert.match(presentation, /--editor-content-max-width:\s*960px/u);
+  assert.match(presentation, /--editor-item-priority-preview-width:\s*68px/u);
+  assert.match(presentation, /--editor-item-priority-edit-width:\s*92px/u);
+  assert.match(presentation, /--editor-item-status-edit-width:\s*92px/u);
   assert.match(presentation, /\.editor-layout-shell/u);
   assert.match(presentation, /\.editor-task-card/u);
   assert.match(presentation, /\.editor-item-row/u);
+  assert.match(presentation, /\.item-row-description\s*\{\s*flex:\s*1 1 auto/u);
+  assert.match(presentation, /\.item-row-utility-panel\s*\{[\s\S]*margin-left:\s*auto/u);
+  assert.match(presentation, /\.editor-item-row,[\s\S]*max-width:\s*100%[\s\S]*overflow:\s*hidden/u);
+  assert.match(presentation, /\.item-row-utility-panel\s*\{[\s\S]*max-width:\s*50%[\s\S]*overflow:\s*hidden/u);
   assert.match(viewer, /href="assets\/editor-presentation\.css"/u);
   assert.match(demo, /href="\.\.\/\.\.\/\.\.\/viewer\/assets\/editor-presentation\.css"/u);
   assert.match(svelteStyles, /@import "@editor\/editor-presentation\.css"/u);

@@ -147,7 +147,7 @@ https://<user>.github.io/<repository>/task-progress/?scope=yu5h1lib
 
 Viewer 會優先依 `completed_items` 與 `pending_items` 的實際項目數顯示進度；沒有列出工作項目時，才使用來源提供的 `progress.completed` 與 `progress.total`。兩者都沒有時，則依任務狀態顯示單一進度單位。
 
-任務卡與工作項目的 `priority` 都可省略，資料只保存 `0` 到 `4`；缺少欄位的舊資料以 `4`「未指定」投影，新建任務與子項目則預設 `2`「一般」。顯示名稱由共享 `viewer/assets/priority-policy.js` 統一提供，目前為「立即、優先、一般、次要、未指定」；正常預覽不顯示「未指定」標籤，但編輯下拉仍可選擇。policy 會完整驗證 minimum 到 maximum 的標籤；任何標籤缺漏、空白或重複造成設定不完整時，暫停隱藏規則並將所有層級統一降級為 `P0` 到 `Pmax`，排序與數值不受影響。Viewer 先依狀態群組，再於同組內依 priority 穩定排序。工作項目仍接受舊版純字串；要把 item 工時與分析結果可靠對齊時，改用 `{ "id": "stable-item-id", "title": "顯示文字", "priority": 0 }`。優先級不是過濾器，也不從 title 前綴解析。同一 task 內的 item id 必須唯一。時間資料缺少或只使用舊字串項目時，基本進度顯示不受影響。
+任務卡與工作項目的 `priority` 都可省略，資料只保存 `0` 到 `4`；缺少欄位的舊資料與新建任務／子項目都以 `4`「未指定」投影，只有使用者明確選擇才提高優先級。顯示名稱由共享 `viewer/assets/priority-policy.js` 統一提供，目前為「立即、優先、一般、次要、未指定」；正常預覽不顯示「未指定」標籤，但編輯下拉會以正規化後的 `4` 初始化並仍可選擇，不會因缺少資料而自動顯示第一項「立即」。policy 會完整驗證 minimum 到 maximum 的標籤；任何標籤缺漏、空白或重複造成設定不完整時，暫停隱藏規則並將所有層級統一降級為 `P0` 到 `Pmax`，排序與數值不受影響。Viewer 先依狀態群組，再於同組內依 priority 穩定排序。工作項目仍接受舊版純字串；要把 item 工時與分析結果可靠對齊時，改用 `{ "id": "stable-item-id", "title": "顯示文字", "priority": 0 }`。優先級不是過濾器，也不從 title 前綴解析。同一 task 內的 item id 必須唯一。時間資料缺少或只使用舊字串項目時，基本進度顯示不受影響。
 
 ## 驗證
 

@@ -11,6 +11,8 @@
   export let timeTask = null;
   export let timeItems = new Map();
   export let onTimeClick = null;
+  export let moduleOrder = ["time"];
+  export let onModuleReorder = () => {};
   // The Viewer lets the reader reorder status groups; the completed/pending
   // panels follow that order, so it has to reach the card.
   export let statusOrder = ["done", "planned"];
@@ -51,8 +53,12 @@
   let newTitle = "";
   let newPriority = policy.creationDefaultValue;
   let addError = "";
+  let taskStatusValue = task.status;
+  let taskPriorityValue = policy.normalize(task.priority, policy.fallbackValue);
 
   $: taskPriority = policy.metadata(task.priority);
+  $: taskStatusValue = task.status;
+  $: taskPriorityValue = policy.normalize(task.priority, policy.fallbackValue);
   $: statusEntry = statuses.find((entry) => entry.value === task.status)
     ?? { label: task.status, tone: "muted" };
   $: if (!editing && adding) closeAdd();
@@ -80,12 +86,12 @@
           <select
             class="inline-status-select"
             aria-label={`${task.title} 狀態`}
-            value={task.status}
-            onchange={(event) => onCommand({
+            bind:value={taskStatusValue}
+            onchange={() => onCommand({
               type: "set-task-field",
               taskId: task.id,
               field: "status",
-              value: event.currentTarget.value,
+              value: taskStatusValue,
             })}
           >
             {#each statuses as status (status.value)}
@@ -95,12 +101,12 @@
           <select
             class="inline-priority-select"
             aria-label={`${task.title} 優先級`}
-            value={task.priority}
-            onchange={(event) => onCommand({
+            bind:value={taskPriorityValue}
+            onchange={() => onCommand({
               type: "set-task-field",
               taskId: task.id,
               field: "priority",
-              value: Number(event.currentTarget.value),
+              value: Number(taskPriorityValue),
             })}
           >
             {#each policy.levels as level (level.value)}
@@ -183,6 +189,8 @@
                 {onCommand}
                 timeItem={timeItems.get(item.id) ?? null}
                 {onTimeClick}
+                {moduleOrder}
+                {onModuleReorder}
               />
             {/each}
           </ul>

@@ -32,7 +32,7 @@
 
   let title = "";
   let summary = "";
-  let priority = policy?.creationDefaultValue ?? 2;
+  let priority = policy?.creationDefaultValue ?? 4;
   let titleInput;
 
   $: taskControl = kind === "task";

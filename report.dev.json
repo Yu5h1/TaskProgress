@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "report_id": "task-progress-development",
-  "updated_at": "2026-08-12T23:02:58+08:00",
+  "updated_at": "2026-08-13T22:37:30+08:00",
   "tasks": [
     {
       "id": "viewer-core",
@@ -93,7 +93,7 @@
     },
     {
       "id": "local-task-editing",
-      "next_step": "獨立 Editor 退場回合已完成。平板編輯驗證降為 priority 3：未來若啟動，須先設計明確啟用的受限 LAN bind、身分／capability 邊界與防火牆操作，再驗證正式 Viewer 的觸控編輯及 StatusFilters pointer capture；目前編輯仍以 PC exact-loopback 為正式範圍。",
+      "next_step": "依 implementation-checklist.md 驗證剩餘互動：子項目待處理／已完成往返與 Undo／Redo／放棄，以及 Time capsule 在 Preview／Edit 開啟同一 Dialog 且 390px 不造成整頁 overflow。首次失敗標 [!] 並停止。",
       "blockers": [
         "時間參考 Demo 已隨此次收斂停止運作（依使用者裁示 (a)）：它呼叫的 createModeController／createSaveBar／createAddControl 已刪除，開啟頁面會拋錯。不得為了讓 Demo 復活而還原那些函式。",
         "尚未裁示的 UX 設計（已與使用者討論但未實作）：ItemRow 在 390px 折成三行需要折疊規則（提案為模組膠囊水平捲動加描述 ellipsis）；描述點擊開 Dialog 與編輯模式描述為 input 相衝突，入口未定；待估在編輯模式不可點，無估算的子項目無法建立估算；模組膠囊順序須由核心固定表決定而非 manifest；優先級與狀態是核心欄位，若放進模組排其渲染路徑不得經過模組載入；同一 subject 應為單一 Dialog 分區而非每個模組各開一個；Dialog 編輯應讓顯示值原地變欄位，而非在唯讀值下方追加另一份表單。"
@@ -112,7 +112,7 @@
           "reference": "plan.md#編輯互動與資料操作"
         },
         {
-          "summary": "任務卡與子項目只保存 0–4；共享 policy 正常只顯示立即、優先、一般、次要、未指定，編輯下拉亦不加 P 前綴。缺少欄位視為隱藏標籤的值 4，新建資料預設值 2；標籤設定不完整時暫停隱藏並統一降級為 P0–Pmax。",
+          "summary": "任務卡與子項目只保存 0–4；共享 policy 正常只顯示立即、優先、一般、次要、未指定，編輯下拉亦不加 P 前綴。缺少欄位與新建資料都使用隱藏標籤的值 4，編輯 select 也先正規化為 4，不得自動落到第一項立即；標籤設定不完整時暫停隱藏並統一降級為 P0–Pmax。",
           "reference": "plan.md#優先級資料與排序"
         },
         {
@@ -176,6 +176,22 @@
           "reference": "handoff.md"
         },
         {
+          "summary": "子項目狀態第一版由 pending_items／completed_items 的歸屬表達；編輯狀態是移動同一 stable item，不新增 item.status，也必須保留估算 identity、Undo／Redo、derived progress 與 time invalidation 契約。",
+          "reference": "plan.md#子項目狀態與模組膠囊列-draft-01-2026-08-13"
+        },
+        {
+          "summary": "ItemRow 預覽與編輯共用 marker→priority→description→module strip→status 排列；priority/status 是核心欄位，module strip 靠右且可水平捲動，單一模組失敗不得移除核心欄位。",
+          "reference": "plan.md#子項目狀態與模組膠囊列-draft-01-2026-08-13"
+        },
+        {
+          "summary": "刪除是 edit-only 的最右側 trailing action；Preview 保留空 grid 欄位，因此狀態及其左側共同欄位在模式切換時不位移。",
+          "reference": "plan.md#子項目狀態與模組膠囊列-draft-01-2026-08-13"
+        },
+        {
+          "summary": "模組膠囊排序沿用 StatusFilters：滑鼠拖曳、8px 水平軸鎖定的觸控門檻與 Alt＋左右鍵共用同一 reorder model；短點擊仍執行膠囊 action，排序立即保存為 browser-local preference，不進入 Editor transaction。",
+          "reference": "Documentation/ExtensionModuleArchitecturePlan.md#item-inline-膠囊列"
+        },
+        {
           "summary": "進版控的建置產物必須由 CI 保證與原始碼同步，且檢查要擋在部署之前：notify-docs 的 notify job 依賴 verify-bundle，重建後比對 viewer/assets/viewer-ui.js，有差異即失敗。事後才回報等於已經放行了過期的 UI。",
           "reference": ".github/workflows/notify-docs.yml"
         }
@@ -205,7 +221,7 @@
     },
     {
       "id": "extension-modules",
-      "next_step": "執行 Phase 0，先核定 report.modules.json 命名、module type／instance identity、visibility 發布語意、unknown module 診斷及 stale projection 的共同最低行為。",
+      "next_step": "先完成 implementation-checklist.md 的 Time capsule／390px 人工驗證；通過後進入 Phase 0，核定 manifest identity、visibility、unknown module 與 stale projection 政策。",
       "decisions": [
         {
           "summary": "report.json 保持任務與進度核心；時間、難度、價值、估價及其他領域使用可選 sidecar，不持續增加核心欄位。",
@@ -222,6 +238,10 @@
         {
           "summary": "交易、付款、身份驗證與電子簽署維持外部系統責任，TaskProgress 只接收經裁切且可追溯的狀態投影。",
           "reference": "Documentation/ExtensionModuleArchitecturePlan.md#模組類別"
+        },
+        {
+          "summary": "item-inline 模組由 Core 收集後交給共享 capsule strip；Time 是第一顆 reference capsule。Core 擁有預設順序，使用者以 StatusFilters 同款 drag／touch／Alt＋左右鍵調整，排序只保存為 browser-local view preference；manifest 與 Renderer 無權控制 ItemRow 版面。",
+          "reference": "Documentation/ExtensionModuleArchitecturePlan.md#item-inline-膠囊列"
         }
       ],
       "routes": [

@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-08-12T23:02:58+08:00",
+  "updated_at": "2026-08-13T22:37:30+08:00",
   "tasks": [
     {
       "id": "viewer-core",
@@ -157,7 +157,7 @@
         {
           "id": "item-time-reference-todo-1",
           "title": "建立執行事件擷取、相似歷史樣本與校準流程",
-          "priority": 3
+          "priority": 0
         },
         {
           "id": "item-time-reference-todo-2",
@@ -171,7 +171,7 @@
       "title": "本機任務編輯",
       "status": "in_progress",
       "priority": 1,
-      "summary": "正式 Viewer 預覽已全面改由可替換的 UI adapter 渲染：任務卡、模式切換、儲存列、新增控制、主題選單／自訂色彩 Dialog、時間參考摘要按鈕與進度報告 Dialog、時間設定／交付日風險預覽／儲存確認都只剩一份實作，app.js 不再自行繪製任何 Dialog。編輯用 iframe 覆蓋層已拆除，編輯是同一頁的模式切換而非第二個應用。Svelte UX parity gate 與三項時間編輯回歸已完成並通過桌面／390px 人工驗證；無呼叫端的獨立 Editor 頁面、建置入口與 Host 路由也已移除。平板透過受限 LAN 存取的編輯驗證保留為低優先級後續項目。",
+      "summary": "正式 Viewer 已實作子項目狀態編輯與共用 module strip。ItemRow 已依人工回饋完成 flexible layout、狀態尺寸、priority 寬度與 ○／✓ 一致性；缺少或新建 priority 均正確使用未指定，不再在編輯下拉誤顯示立即。聚焦測試與 bundle 建置通過，尚待狀態往返及 Time Dialog 互動驗證。",
       "completed_items": [
         {
           "id": "item-local-task-editing-done-1",
@@ -476,6 +476,16 @@
       ],
       "pending_items": [
         {
+          "id": "edit-item-status-membership",
+          "title": "驗證已實作的 stable 子項目待處理／已完成往返：同一項目跨面板、Undo／Redo、進度重算、時間失效與放棄草稿須一致",
+          "priority": 1
+        },
+        {
+          "id": "align-item-row-preview-edit-layout",
+          "title": "驗證已實作的 ItemRow 六欄排列：桌面與 390px 切換預覽／編輯時共同欄位不位移，狀態垂直置中且刪除只在最右側顯示",
+          "priority": 1
+        },
+        {
           "id": "verify-mobile-editing",
           "title": "未來另行設計並明確啟用受限 LAN 編輯 capability 後，以平板驗證正式 Viewer 的觸控編輯與 StatusFilters pointer capture；目前 exact-loopback 模式維持 PC 本機限定",
           "priority": 3
@@ -487,7 +497,7 @@
       "title": "擴充資訊模組接口",
       "status": "in_progress",
       "priority": 2,
-      "summary": "Draft 0.1 已定義 sidecar manifest、可信任模組 registry、共同資料 envelope、Viewer／Launcher 接口、安全邊界及 time 遷移策略；實作尚未開始。",
+      "summary": "Draft 0.1 已定義模組資料與安全邊界；item-inline module capsule strip 已完成第一段實作，以 Time 為 reference capsule，並與 StatusFilters 共用排序模型及拖曳／觸控／鍵盤容器。自動測試與 bundle 建置通過，尚待實畫面驗證後再進入 Phase 0 合約決策。",
       "completed_items": [
         {
           "id": "item-extension-modules-done-1",
@@ -496,6 +506,11 @@
         }
       ],
       "pending_items": [
+        {
+          "id": "item-extension-modules-inline-strip",
+          "title": "驗證已實作的共用 module capsule strip：Time 在預覽／編輯開啟同一 Dialog，390px 僅 strip 水平捲動且不造成整頁 overflow",
+          "priority": 1
+        },
         {
           "id": "item-extension-modules-todo-1",
           "title": "Phase 0：確認 manifest 正式命名、module identity、visibility、未知模組與 stale projection 政策",
@@ -513,7 +528,7 @@
         },
         {
           "id": "item-extension-modules-todo-4",
-          "title": "Phase 4：以 difficulty 或 value 第二模組驗證核心不需要新增領域特例",
+          "title": "Phase 4：以 Cost 第二模組驗證 project／task／item 三層掛載、跨模組輸入與失敗隔離，並確認核心不需要新增領域特例",
           "priority": 4
         }
       ]

@@ -109,8 +109,9 @@ test("production item time actions remain visible in global edit mode", async ()
   // The capsule is rendered by the shared row in both modes and opens the
   // shared TimeDialog component through a callback, so no DOM node crosses
   // the UI boundary.
-  assert.equal(itemRowSource.split("time-item-button").length - 1, 4);
-  assert.match(itemRowSource, /onclick=\{\(\) => onTimeClick\(item\.id, item\.title, taskId\)\}/);
+  assert.equal(itemRowSource.split("time-item-button").length - 1, 1);
+  assert.match(itemRowSource, /if \(id === "time" && onTimeClick\) onTimeClick\(item\.id, item\.title, taskId\)/);
+  assert.match(itemRowSource, /<ModuleCapsuleStrip/);
   assert.match(itemRowSource, /查看估算依據/);
   assert.match(appSource, /onTimeClick: \(itemId, itemTitle, taskId\) => \{\s*time\?\.showItemTime\(itemId, itemTitle, taskId\);/);
   assert.doesNotMatch(appSource, /createItemTimeButton/);
