@@ -3,16 +3,13 @@
   <PropertyGroup>
     <TargetFramework>net9.0-windows</TargetFramework>
     <OutputType>Exe</OutputType>
-    <AssemblyName>task-progress</AssemblyName>
-    <RootNamespace>TaskProgress</RootNamespace>
+    <AssemblyName>TaskProgress.Checklist.Tests</AssemblyName>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <DebugType>embedded</DebugType>
   </PropertyGroup>
 
   <ItemGroup>
-    <InternalsVisibleTo Include="TaskProgress.Cli.Tests" />
-    <InternalsVisibleTo Include="TaskProgress.Checklist.Tests" />
+    <ProjectReference Include="..\..\src\TaskProgress.Cli\TaskProgress.Cli.csproj" />
   </ItemGroup>
 
 </Project>

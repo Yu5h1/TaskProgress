@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-08-14T13:31:18+08:00",
+  "updated_at": "2026-08-14T23:18:24+08:00",
   "tasks": [
     {
       "id": "viewer-core",
@@ -171,7 +171,7 @@
       "title": "本機任務編輯",
       "status": "in_progress",
       "priority": 1,
-      "summary": "正式 Viewer 的子項目狀態、ItemRow、Time Dialog、描述 fill／tooltip 與共用 SaveBar 放棄動作均已通過自動及人工驗證。WPF／WebView2 Checklist Editor 與既有專案工作列為優先；完整 Report Editor 雙入口列為一般優先級，LocalWebService 保留為正式 Web 路線。",
+      "summary": "WPF／WebView2 Checklist Editor 為目前優先工作。Checklist document core、CRLF／BOM round-trip、Resolved 結果契約與 publish-setting isolation 已通過 16 項 document-core checks 及 2 項 publish-contract tests；下一步為 WPF／WebView2 Host，尚未開始 bridge 或 Svelte UI。",
       "completed_items": [
         {
           "id": "item-local-task-editing-done-1",

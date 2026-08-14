@@ -1,26 +1,66 @@
 # Implementation Checklist
 
-Current round: `plan.md#子項目狀態與模組膠囊列-draft-01-2026-08-13`.
+Current round: `plan.md#結構化-checklist-編輯-draft-01-2026-08-13`.
 
-Run each item once. If an implementation or verification attempt fails, mark the item `[!]` and stop the round. Do not retry with a different command.
+Run every Agent check once. If a check fails, mark it `[!]`, add `Observed`, and pause automatic retries plus dependent work. After an intervention, the user may request one new verification attempt; success changes the same check to `[x]` while preserving `Observed` and adding `Resolved`. Continue independent work when safe. Create a new item only when the outcome or acceptance contract changes. The parent marker is derived from its checks. This file contains only the active round; git history owns prior rounds.
 
-- [x] **4. Align the presentation test with the approved priority width**
-  Acceptance: The presentation contract test expects the user-approved `42px` preview priority width. The focused `ItemRow`, SaveBar, and Viewer adapter source tests pass.
-  Verification: Run `tests/editor-presentation.test.mjs`, `tests/local-edit-interface.test.mjs`, and `tests/svelte-editor-spike.test.mjs` once.
-  Passed 2026-08-14: 22 of 22 focused tests passed.
-- [x] **2. Make the child-item description fill the available width**
-  Acceptance: The description extends to the right utility panel. A tooltip shows the full description when the text is truncated. The edit input uses the same available width.
-  Verification: After the source contract tests pass, use a long description to check Preview and Edit at desktop width and 390px in the Viewer.
-  Passed 2026-08-14: 18 of 18 focused presentation and Svelte source tests passed.
-  - [X] Check a long child-item description in Preview and Edit at desktop width and 390px.
-    Entry: `http://127.0.0.1:8001/?scope=task-progress`
-    Expect: the description fills the space before the utility panel; truncated text shows the full description in a tooltip.
-    Why not agent: text truncation, pointer hover, and responsive geometry require direct rendered-screen inspection.
-- [x] **3. Add a Discard button**
-  Acceptance: The shared SaveBar shows `放棄`. The button uses the existing discard flow to discard the draft, close the edit session, and return to Preview.
-  Verification: After the source contract tests pass, change one field in the Viewer and select `放棄`. Confirm that the UI restores the saved value and does not write a file.
-  Passed 2026-08-14: 20 of 20 focused local-edit and Svelte source tests passed. The Viewer bundle rebuilt successfully with 132 modules (`viewer-ui.js` 151.22 kB).
-  - [X] Verify the Discard action without saving test data.
-    Entry: same Viewer → Edit → change one field → select `放棄`.
-    Expect: Preview returns with the saved value restored and no file write.
-    Why not agent: this is a short end-to-end interaction against the user's running local edit host.
+- [x] **1. Add the strict Checklist document core**
+  Outcome: TaskProgress can parse and serialize the approved Markdown shape, derive parent status, preserve the document envelope, reject malformed or frozen-result changes, and detect source revision conflicts.
+  Checks:
+    - [x] **Focused document-core tests**
+      Action: Run the Checklist parser, writer, derived-status, immutable-result, malformed-input, and revision-conflict tests once.
+      Expect: Every focused test passes and an unchanged document round-trips byte-for-byte.
+      Observed: `dotnet run` stopped during restore with NU1301 because the sandbox could not connect to `https://api.nuget.org/v3/index.json`; compilation and the focused tests did not start.
+      Resolved: Publish-only restore inputs were isolated, CRLF round parsing and resolved-result serialization were corrected, and all 16 focused document-core checks passed with byte-for-byte CRLF／BOM round trips.
+
+- [ ] **2. Add the WPF and WebView2 desktop host boundary**
+  Depends on: 1.
+  Outcome: `task-progress.exe checklist <file>` validates one exact Markdown file and opens a WPF WebView2 window without starting LocalWebService; the pinned official WebView2 dependency and runtime failure path are explicit.
+  Checks:
+    - [ ] **CLI and host contract tests**
+      Action: Restore the pinned package with a lock file, then run the focused CLI and desktop-host source tests once.
+      Expect: The command accepts one existing file, rejects missing or extra targets, does not enter the LocalWebService path, and the project builds from the locked dependency graph.
+
+- [ ] **3. Add the restricted bridge and shared Svelte Checklist UI**
+  Depends on: 2.
+  Outcome: The WPF host exposes only load and save messages for the selected document; the Svelte UI renders derived work-item state, keeps Agent checks read-only, lets users draft nullable pass／fail only for manual checks, requires Observed on failure, and shares existing Editor transaction and SaveBar behavior.
+  Checks:
+    - [ ] **Bridge and Svelte source tests**
+      Action: Run the focused bridge allowlist, payload validation, Checklist UI, and shared-component source tests once.
+      Expect: Unknown messages and stale revisions are rejected, no arbitrary path crosses the bridge, and all Checklist interaction rules are represented by one Svelte implementation.
+    - [ ] **Checklist asset build**
+      Action: Build the dedicated Checklist UI asset once from the existing locked npm dependency graph.
+      Expect: The WPF-loadable HTML／JavaScript／CSS assets are produced without adding another UI framework or copying shared controls.
+
+- [ ] **4. Verify the packaged desktop flow**
+  Depends on: 2, 3.
+  Outcome: A built TaskProgress executable opens the real checklist in a WPF window, edits only manual results, saves valid Markdown atomically, and can discard an unsaved draft without using localhost.
+  Checks:
+    - [ ] **Focused .NET build and tests**
+      Action: Run the focused TaskProgress CLI tests and Release build once with locked restore.
+      Expect: Tests and build pass; output contains the Checklist assets and WebView2 host files required at runtime.
+    - [ ] **Real WPF Checklist interaction** `[manual]`
+      Action: Open a disposable Checklist copy with `task-progress.exe checklist <file>`, change one manual check, test Discard, then save once.
+      Expect: No LocalWebService process or port is used; Discard restores the persisted value; Save changes only the selected Markdown file and reopening shows the saved result.
+      Reason: Requires the user's Windows desktop, installed Evergreen WebView2 Runtime, and direct UX confirmation.
+
+- [x] **5. Isolate publish-only properties from normal builds**
+  Outcome: Normal CLI and test restore no longer requests publish runtime packs, while `Publish.cmd` remains the single owner of the existing self-contained single-file contract.
+  Checks:
+    - [x] **Offline document-core restore and tests**
+      Action: Restore the focused Checklist test project once with unavailable sources ignored and NuGet audit disabled, then run it with `--no-restore`.
+      Expect: Restore completes without NU1301, compilation succeeds, and every focused document-core test passes.
+      Observed: Offline restore completed for both projects without NU1301, but compilation stopped at `ChecklistDocument.cs:277` with CS1501 because the selected `CopyTo` overload does not accept two arguments; the focused tests did not run.
+      Resolved: The BOM copy overload and subsequent parser defects were corrected; the already-restored project compiled and all 16 focused document-core checks passed.
+    - [x] **Publish command contract**
+      Action: Run the focused source contract test for `TaskProgress.Cli.csproj` and `Publish.cmd`.
+      Expect: The csproj contains no RID, self-contained, or single-file publish settings; `Publish.cmd` explicitly supplies `win-x64`, self-contained, single-file, no trimming, compression, and native self-extraction.
+
+- [x] **6. Correct UTF-8 BOM serialization and finish the focused proof**
+  Outcome: The Checklist document core compiles, preserves UTF-8 BOM bytes, passes its focused behavioral tests, and the publish-only settings remain isolated from normal builds.
+  Checks:
+    - [x] **Document-core and publish-contract tests**
+      Action: Run the already-restored focused Checklist document-core project with `--no-restore`, then run the publish-contract Node test once.
+      Expect: Compilation succeeds, all document-core checks pass, and both publish-contract tests pass.
+      Observed: The CRLF and resolved-result contract changes were applied, but compilation stopped at `ChecklistDocument.cs:106` with CS0121 because `Select(RoundPattern.Match)` was ambiguous between the indexed and non-indexed LINQ overloads. The document-core tests and publish-contract test did not run.
+      Resolved: The method group was replaced with an explicit one-argument lambda; compilation succeeded, all 16 document-core checks passed, and both publish-contract tests passed.

@@ -11,7 +11,7 @@ echo Project: %PROJECT_FILE%
 echo Output : %OUTPUT_DIR%
 echo.
 
-dotnet publish "%PROJECT_FILE%" -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o "%OUTPUT_DIR%"
+dotnet publish "%PROJECT_FILE%" -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:PublishTrimmed=false -p:EnableCompressionInSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -o "%OUTPUT_DIR%"
 set "BUILD_EXIT_CODE=%ERRORLEVEL%"
 
 echo.

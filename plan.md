@@ -298,17 +298,17 @@ LocalWebService 是正式 Web 路線的一部分，不因 Desktop Host 出現而
 完整雙入口不得延後 Checklist 介面，也不得為 Desktop 複製現有 Viewer、Editor Core、transaction 或重新分析邏輯。
 
 - 文件開頭的 `Current round: <plan anchor>` 是 round identity，指向這一輪的核定規格。`implementation-checklist.md` 只保存一個 active round；舊 round 由 git history 保存。
-- 每個 work item 使用簡單的數字 ID，例如 `1`、`2`、`3`。ID 只需在當前 round 內唯一，代表項目身分而非畫面順序；修改標題或排序時不得重新編號，修正項目使用新的 ID。新 round 可以重新從 `1` 開始。
+- 每個 work item 使用簡單的數字 ID，例如 `1`、`2`、`3`。ID 只需在當前 round 內唯一，代表項目身分而非畫面順序；修改標題或排序時不得重新編號。修復若仍以原本的 `Outcome` 與 `Expect` 為目標，就留在同一項；只有工作範圍或驗收合約實質改變才使用新 ID。新 round 可以重新從 `1` 開始。
 - Markdown 內容維持英文，介面控制與提示可以本地化。句子採受控寫法：一個標題只表達一項工作，`Outcome` 只描述可觀察結果，不使用「正確處理」或「適當顯示」等無法驗收的詞。
 - work item 不再同時保存 `Acceptance` 與 `Verification`。它只有 `Title`、`Outcome` 與一個以上的 `Checks`；每個 check 只有 `Action` 與 `Expect`。URL、命令與人工步驟都寫入 `Action`，不再建立重複的 `Entry` 欄位。
 - 未標記的 check 預設由 Agent 執行。只有真實裝置、使用者環境、受保護資料或直接 UX 判斷才加 `[manual]`，並附簡短 `Reason`；「人工比較快」不是有效理由。移除 `By` 與 `Why not agent`。
 - check 狀態固定為 `[ ]` 尚未執行、`[x]` 已執行且符合 `Expect`、`[!]` 已執行但不符合 `Expect`。父 work item 的狀態不可點擊：所有 checks 都是 `[x]` 才自動為 `[x]`；任一 check 是 `[!]` 則自動為 `[!]`；其餘為 `[ ]`。
 - Checklist 面板中，使用者只操作 `[manual]` check。控制由 `✓` 與 `!` 兩個可空選項構成；預設兩者皆未選。在尚未儲存的草稿中，再按目前選項可清回未執行。Agent checks 在人類介面中唯讀。
-- manual check 選擇 `!` 時必須填寫 `Observed`，只記錄實際看到的結果，不要求使用者診斷原因。儲存後停止本輪，由 Agent 在收到要求後區分實作、規格或環境問題並提出方向，不得自動重跑相同 check。
-- 任一 `[x]` 或 `[!]` 結果儲存後，該 work item 的 Title、Outcome、Action、Expect 與結果全部凍結；修正使用新 ID 建立新項目。仍全部為 `[ ]` 的規格可以在首次執行前澄清；已完成後才增加的需求也建立新項目。
+- manual check 選擇 `!` 時必須填寫 `Observed`，只記錄實際看到的結果，不要求使用者診斷原因。儲存後暫停該 check 的自動重試與相依工作；不相依的項目可繼續。Agent 在收到要求後區分實作、規格或環境問題並提出方向，人工排解過程不需要為每次嘗試建立清單項目。
+- 任一 `[x]` 或 `[!]` 結果儲存後，該 work item 的 Title、Outcome、Action 與 Expect 凍結。`[!]` 不得由 Agent 自動重跑；人工、環境或實作介入完成後，使用者可明確要求再驗證一次。若原 `Expect` 已符合，同一 check 改為 `[x]`，保留 `Observed` 並新增簡短 `Resolved`；不得清回 `[ ]`。仍全部為 `[ ]` 的規格可以在首次執行前澄清；已完成後才增加的需求或改變驗收合約的修正才建立新項目。
 - UI 只提供上述結構化欄位與狀態控制。修改先進入既有 Editor transaction；「儲存」經由受限 WebView bridge 交給 EXE，通過格式、衍生父狀態、ID 與來源 revision 驗證後才寫回 Markdown；「放棄」則還原 persisted snapshot。
 - Source revision 是載入時原始 UTF-8 檔案 bytes 的 SHA-256。Writer 保留 preamble、換行樣式與 BOM 狀態；managed checklist 結構以固定格式輸出，遇到未知或不完整結構時拒絕寫入而不靜默刪除內容。儲存先寫同目錄暫存檔，再以原子取代提交；目前檔案 bytes 與來源 revision 不符時回傳 conflict 並保留草稿。
-- 第一階段先穩定使用 Markdown 格式，不建立重複的 JSON checklist。確認格式經過數輪使用仍足夠後，再實作 parser、writer 與本機面板。
+- 第一階段維持 Markdown 為唯一資料來源，不建立重複的 JSON checklist。文件格式與 parser／writer 契約穩定後，再以同一模型承接本機面板。
 
 ```markdown
 - [ ] **1. Make the child-item description fill the available width**

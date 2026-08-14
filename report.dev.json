@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "report_id": "task-progress-development",
-  "updated_at": "2026-08-14T13:31:18+08:00",
+  "updated_at": "2026-08-14T23:18:24+08:00",
   "tasks": [
     {
       "id": "viewer-core",
@@ -93,8 +93,9 @@
     },
     {
       "id": "local-task-editing",
-      "next_step": "優先完成 Checklist Editor：先決定 round identity、數字 ID 範圍及 revision／atomic write 契約，再建立 parser／writer、最小 WPF／WebView2 Desktop Host、受限 WebView bridge 與 shared Svelte panel 的 implementation checklist；完整 Report Editor 雙入口延後為一般優先級。",
+      "next_step": "進入 WPF／WebView2 Host item；先依 AgentsRule.md 完成 Microsoft.Web.WebView2 的精確套件授權與安全路由，再加入鎖定版本並實作 CLI／Host boundary。",
       "blockers": [
+        "Microsoft.Web.WebView2 尚未加入或還原；該官方套件不在本機 NuGet cache，item 2 的首次 restore 需要依 AgentsRule.md 完成精確版本、來源與用途授權。",
         "時間參考 Demo 已隨此次收斂停止運作（依使用者裁示 (a)）：它呼叫的 createModeController／createSaveBar／createAddControl 已刪除，開啟頁面會拋錯。不得為了讓 Demo 復活而還原那些函式。",
         "尚未裁示的 UX 設計（已與使用者討論但未實作）：ItemRow 在 390px 折成三行需要折疊規則（提案為模組膠囊水平捲動加描述 ellipsis）；描述點擊開 Dialog 與編輯模式描述為 input 相衝突，入口未定；待估在編輯模式不可點，無估算的子項目無法建立估算；模組膠囊順序須由核心固定表決定而非 manifest；優先級與狀態是核心欄位，若放進模組排其渲染路徑不得經過模組載入；同一 subject 應為單一 Dialog 分區而非每個模組各開一個；Dialog 編輯應讓顯示值原地變欄位，而非在唯讀值下方追加另一份表單。"
       ],
@@ -104,7 +105,7 @@
           "reference": "plan.md#本機任務編輯-draft-01"
         },
         {
-          "summary": "Checklist work item 的狀態由 checks 唯讀彙總；未標記 check 預設由 Agent 執行，只有具能力／裝置／資料邊界者標記 manual。失敗需保存 Observed，已儲存結果不可改寫，修正使用新 ID。",
+          "summary": "Checklist work item 的狀態由 checks 唯讀彙總；未標記 check 預設由 Agent 執行，只有具能力／裝置／資料邊界者標記 manual。失敗需保存 Observed 並暫停自動重試；介入後可明確重新驗證同一 check，成功時保留 Observed、加入 Resolved 並改為 [x]。只有驗收合約改變才使用新 ID。",
           "reference": "plan.md#結構化-checklist-編輯-draft-01-2026-08-13"
         },
         {
