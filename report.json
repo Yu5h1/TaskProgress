@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-08-14T13:08:56+08:00",
+  "updated_at": "2026-08-14T13:31:18+08:00",
   "tasks": [
     {
       "id": "viewer-core",
@@ -171,7 +171,7 @@
       "title": "本機任務編輯",
       "status": "in_progress",
       "priority": 1,
-      "summary": "正式 Viewer 的子項目狀態、ItemRow、Time Dialog、描述 fill／tooltip 與共用 SaveBar 放棄動作均已通過自動及人工驗證。下一步收斂並實作以 Markdown 為唯一資料來源的結構化 Checklist Editor。",
+      "summary": "正式 Viewer 的子項目狀態、ItemRow、Time Dialog、描述 fill／tooltip 與共用 SaveBar 放棄動作均已通過自動及人工驗證。WPF／WebView2 Checklist Editor 與既有專案工作列為優先；完整 Report Editor 雙入口列為一般優先級，LocalWebService 保留為正式 Web 路線。",
       "completed_items": [
         {
           "id": "item-local-task-editing-done-1",
@@ -492,7 +492,12 @@
       "pending_items": [
         {
           "id": "structured-checklist-editor",
-          "title": "建立以 implementation-checklist.md 為唯一資料來源的本機結構化面板：衍生父狀態、Agent／manual checks、失敗 Observed、凍結結果與安全 round-trip parser／writer",
+          "title": "建立由 task-progress.exe 啟動的 WPF／WebView2 Checklist Editor：以 implementation-checklist.md 為唯一資料來源，使用受限 bridge、revision 驗證與原子寫回，不啟動 LocalWebService",
+          "priority": 1
+        },
+        {
+          "id": "dual-host-report-editor",
+          "title": "在 Checklist Desktop 路徑穩定後，讓完整 Report Editor 以同一 Edit Application Contract 支援 LocalWebService／Browser 與 WebView2／Desktop 雙入口",
           "priority": 2
         },
         {

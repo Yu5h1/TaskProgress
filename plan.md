@@ -248,21 +248,57 @@ Backlog.md 已提供 Agent-friendly Markdown tasks、CLI、JSON 與本機 Web bo
 
 ### 結構化 Checklist 編輯 Draft 0.1（2026-08-13）
 
-`implementation-checklist.md` 後續可納入本機 Editor，但它不是任意 Markdown 編輯器。Markdown 保持唯一資料來源；Editor 只解析及寫回固定的 checklist 結構，公開 Viewer 維持唯讀。
+`implementation-checklist.md` 後續由獨立的本機桌面入口編輯，但它不是任意 Markdown 編輯器。Markdown 保持唯一資料來源；Editor 只解析及寫回固定的 checklist 結構，公開 Viewer 維持唯讀，也不承擔 Checklist 文件編輯責任。
 
 ```text
-implementation-checklist.md
-└─ Checklist parser／writer
-   └─ 本機 Checklist 面板
-      └─ Work item（狀態唯讀、自動彙總）
-         ├─ Title：要完成的工作
-         ├─ Outcome：可觀察的完成結果
-         └─ Checks
-            ├─ Agent check（預設）
-            └─ Manual check `[manual]`（例外）
+TaskProgress desktop tool
+└─ task-progress.exe checklist <implementation-checklist.md>
+   ├─ WPF Window + WebView2（不啟動 LocalWebService）
+   │  └─ shared Svelte Checklist UI
+   ├─ restricted EXE ↔ WebView bridge
+   └─ Checklist parser／writer
+      └─ implementation-checklist.md（唯一資料來源）
+         └─ Work item（狀態唯讀、自動彙總）
+            ├─ Title：要完成的工作
+            ├─ Outcome：可觀察的完成結果
+            └─ Checks
+               ├─ Agent check（預設）
+               └─ Manual check `[manual]`（例外）
 ```
 
-- 每個 work item 使用簡單的數字 ID，例如 `1`、`2`、`3`。數字代表項目身分，不代表畫面順序；修改標題或排序時不得重新編號，修正項目使用新的 ID。
+#### 桌面入口與責任邊界（2026-08-14 決策）
+
+- 第一版命令為 `task-progress.exe checklist <file>`。每次啟動只授權 CLI 明確指定的一個 `implementation-checklist.md`，不提供任意檔案瀏覽器。
+- EXE 建立 WPF 視窗，使用 WebView2 載入隨程式發布的 Svelte 資產。WPF 只負責桌面視窗、生命週期與 WebView 容器；Checklist 內容仍由共用 Svelte UI 呈現。介面不透過 HTTP 載入，因此不啟動 LocalWebService、不占用 port，也不需要防火牆規則。
+- Checklist 是獨立桌面入口，不加入 Report Viewer 的頁面或資料模型；兩者仍共用適用的 Svelte UI 元件、Editor transaction、Undo／Redo、主題與 SaveBar，不能複製另一套控制實作。
+- WebView 只取得解析後的 checklist snapshot、顯示名稱與 revision，不取得任意檔案系統能力。所有讀寫由 EXE 處理；UI 只能透過受限 bridge 提交目前文件的結構化草稿。
+- 儲存時 EXE 先驗證格式、ID、衍生父狀態、凍結結果與來源 revision，再於同一目錄執行原子替換。來源已被外部修改時拒絕覆寫，保留使用者草稿並顯示衝突。
+- 關閉沒有修改的視窗可直接結束；存在未儲存草稿時必須提供繼續編輯或放棄的明確選擇。視窗關閉不牽涉伺服器生命週期。
+- WebView2 是新的 Windows runtime／套件邊界；實作前須依共享 dependency safety 規則確認官方套件、固定版本、來源與發布方式，再取得安裝授權。
+
+##### 與 Yu5h1Lib.WPF 的邊界
+
+`C:\Users\Yu5h1\Dev\VSProjects\Yu5h1Lib\WPF\Yu5h1Lib.WPF.csproj` 同時提供 `net48` 與 `net9.0-windows`，TaskProgress 技術上可透過 `ProjectReference` 使用其 `net9.0-windows` DLL。目前該庫沒有 WebView2 Host，也沒有 Checklist Desktop 所需的現成共用抽象，因此第一版不為了單一視窗強制引用整個庫。
+
+- TaskProgress 擁有 WPF application shell、Checklist window composition、bridge allowlist 與 TaskProgress 專用生命週期。
+- Checklist、Markdown、Editor Core 與 TaskProgress commands 不得進入 `Yu5h1Lib.WPF`。
+- 只有與產品無關、具有至少第二個實際使用者的 WPF 擴充才下沉到 `Yu5h1Lib.WPF`，例如通用的 WebView runtime detection、受限 bridge transport 或視窗生命週期 helper。
+- 若後續抽出共用擴充，先在 `Yu5h1Lib.WPF` 定義及驗證，再由 TaskProgress 以 `ProjectReference` 引用；不得在兩邊各保留一份實作。
+
+#### Web-first 雙入口與優先順序（2026-08-14 決策）
+
+LocalWebService 是正式 Web 路線的一部分，不因 Desktop Host 出現而退場。本機 Browser Viewer 及未來線上 Backend 以 HTTP adapter 使用同一份 Edit Application Contract；Desktop Host 透過受限 WebView bridge 使用相同 commands、responses 與 application service。Svelte UI 與 Editor Core 不得知道目前使用 HTTP 或 WebView transport。
+
+優先順序如下：
+
+1. **優先：TaskProgress 專案既有工作與 Checklist 介面。** 先完成 checklist 文件契約、parser／writer、最小 Desktop Host、受限 bridge 與人工 checks 介面。建立最小 Desktop Host 是 Checklist 入口的必要基礎，不代表同時搬移完整 Report Editor。
+2. **一般：完整 Report Editor 雙入口。** Checklist 路徑穩定後，再抽出 HTTP endpoint 與 Desktop bridge 共用的 Edit Application Service，讓 Browser Viewer 與 TaskProgress Desktop 使用同一套 Report 編輯能力。
+3. **保留：LocalWebService 與 Web 發布路線。** Browser 本機編輯仍由 LocalWebService／HTTP contract 支援；未來線上版以具身分驗證與持久化能力的 Backend 實作相同 contract。靜態 GitHub Pages 維持唯讀。
+
+完整雙入口不得延後 Checklist 介面，也不得為 Desktop 複製現有 Viewer、Editor Core、transaction 或重新分析邏輯。
+
+- 文件開頭的 `Current round: <plan anchor>` 是 round identity，指向這一輪的核定規格。`implementation-checklist.md` 只保存一個 active round；舊 round 由 git history 保存。
+- 每個 work item 使用簡單的數字 ID，例如 `1`、`2`、`3`。ID 只需在當前 round 內唯一，代表項目身分而非畫面順序；修改標題或排序時不得重新編號，修正項目使用新的 ID。新 round 可以重新從 `1` 開始。
 - Markdown 內容維持英文，介面控制與提示可以本地化。句子採受控寫法：一個標題只表達一項工作，`Outcome` 只描述可觀察結果，不使用「正確處理」或「適當顯示」等無法驗收的詞。
 - work item 不再同時保存 `Acceptance` 與 `Verification`。它只有 `Title`、`Outcome` 與一個以上的 `Checks`；每個 check 只有 `Action` 與 `Expect`。URL、命令與人工步驟都寫入 `Action`，不再建立重複的 `Entry` 欄位。
 - 未標記的 check 預設由 Agent 執行。只有真實裝置、使用者環境、受保護資料或直接 UX 判斷才加 `[manual]`，並附簡短 `Reason`；「人工比較快」不是有效理由。移除 `By` 與 `Why not agent`。
@@ -270,7 +306,8 @@ implementation-checklist.md
 - Checklist 面板中，使用者只操作 `[manual]` check。控制由 `✓` 與 `!` 兩個可空選項構成；預設兩者皆未選。在尚未儲存的草稿中，再按目前選項可清回未執行。Agent checks 在人類介面中唯讀。
 - manual check 選擇 `!` 時必須填寫 `Observed`，只記錄實際看到的結果，不要求使用者診斷原因。儲存後停止本輪，由 Agent 在收到要求後區分實作、規格或環境問題並提出方向，不得自動重跑相同 check。
 - 任一 `[x]` 或 `[!]` 結果儲存後，該 work item 的 Title、Outcome、Action、Expect 與結果全部凍結；修正使用新 ID 建立新項目。仍全部為 `[ ]` 的規格可以在首次執行前澄清；已完成後才增加的需求也建立新項目。
-- UI 只提供上述結構化欄位與狀態控制。修改先進入既有 Editor transaction；「儲存」通過格式、衍生父狀態、ID 與來源 revision 驗證後才寫回 Markdown，「放棄」則還原 persisted snapshot。
+- UI 只提供上述結構化欄位與狀態控制。修改先進入既有 Editor transaction；「儲存」經由受限 WebView bridge 交給 EXE，通過格式、衍生父狀態、ID 與來源 revision 驗證後才寫回 Markdown；「放棄」則還原 persisted snapshot。
+- Source revision 是載入時原始 UTF-8 檔案 bytes 的 SHA-256。Writer 保留 preamble、換行樣式與 BOM 狀態；managed checklist 結構以固定格式輸出，遇到未知或不完整結構時拒絕寫入而不靜默刪除內容。儲存先寫同目錄暫存檔，再以原子取代提交；目前檔案 bytes 與來源 revision 不符時回傳 conflict 並保留草稿。
 - 第一階段先穩定使用 Markdown 格式，不建立重複的 JSON checklist。確認格式經過數輪使用仍足夠後，再實作 parser、writer 與本機面板。
 
 ```markdown
@@ -287,9 +324,11 @@ implementation-checklist.md
 ```
 
 ```text
-Volume: touches parser／writer、local edit host、Svelte panel、tests and documentation
-Precedent: existing local capability + draft transaction；new Markdown round-trip contract
-Proof: parser round-trip tests | derived-status tests | frozen-result rejection | malformed-input rejection | revision conflict test | local Viewer interaction
+Execution size: medium
+Architectural impact: system-level — adds a WPF desktop host boundary and a restricted EXE／WebView contract
+Volume: touches parser／writer、CLI／WPF／WebView2 host、shared Svelte panel、tests and documentation
+Precedent: existing Editor transaction and shared Svelte components；new Markdown round-trip and WebView bridge contracts
+Proof: parser round-trip tests | derived-status tests | frozen-result rejection | malformed-input rejection | revision conflict test | bridge allowlist test | desktop-window interaction
 ```
 
 ### 介面決策
