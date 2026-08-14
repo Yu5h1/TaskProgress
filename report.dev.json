@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "report_id": "task-progress-development",
-  "updated_at": "2026-08-13T22:37:30+08:00",
+  "updated_at": "2026-08-14T13:08:56+08:00",
   "tasks": [
     {
       "id": "viewer-core",
@@ -93,7 +93,7 @@
     },
     {
       "id": "local-task-editing",
-      "next_step": "依 implementation-checklist.md 驗證剩餘互動：子項目待處理／已完成往返與 Undo／Redo／放棄，以及 Time capsule 在 Preview／Edit 開啟同一 Dialog 且 390px 不造成整頁 overflow。首次失敗標 [!] 並停止。",
+      "next_step": "先完成結構化 Checklist Editor 的剩餘 Judgment：面板入口／位置、round identity 與數字 ID 範圍、implementation-checklist.md 的本機 capability／revision 寫入契約；再建立下一輪 implementation checklist。",
       "blockers": [
         "時間參考 Demo 已隨此次收斂停止運作（依使用者裁示 (a)）：它呼叫的 createModeController／createSaveBar／createAddControl 已刪除，開啟頁面會拋錯。不得為了讓 Demo 復活而還原那些函式。",
         "尚未裁示的 UX 設計（已與使用者討論但未實作）：ItemRow 在 390px 折成三行需要折疊規則（提案為模組膠囊水平捲動加描述 ellipsis）；描述點擊開 Dialog 與編輯模式描述為 input 相衝突，入口未定；待估在編輯模式不可點，無估算的子項目無法建立估算；模組膠囊順序須由核心固定表決定而非 manifest；優先級與狀態是核心欄位，若放進模組排其渲染路徑不得經過模組載入；同一 subject 應為單一 Dialog 分區而非每個模組各開一個；Dialog 編輯應讓顯示值原地變欄位，而非在唯讀值下方追加另一份表單。"
@@ -102,6 +102,10 @@
         {
           "summary": "公開 Viewer 維持唯讀；Demo 編輯只在 file 或 exact loopback 開放，正式寫入仍須取得 scope 限定 capability。",
           "reference": "plan.md#本機任務編輯-draft-01"
+        },
+        {
+          "summary": "Checklist work item 的狀態由 checks 唯讀彙總；未標記 check 預設由 Agent 執行，只有具能力／裝置／資料邊界者標記 manual。失敗需保存 Observed，已儲存結果不可改寫，修正使用新 ID。",
+          "reference": "plan.md#結構化-checklist-編輯-draft-01-2026-08-13"
         },
         {
           "summary": "結構變更使時間分析過期時，必須隱藏受影響工時並等待重新分析，不能沿用錯誤加總。",
@@ -221,7 +225,7 @@
     },
     {
       "id": "extension-modules",
-      "next_step": "先完成 implementation-checklist.md 的 Time capsule／390px 人工驗證；通過後進入 Phase 0，核定 manifest identity、visibility、unknown module 與 stale projection 政策。",
+      "next_step": "進入 Phase 0，核定 manifest identity、visibility、unknown module 與 stale projection 政策。",
       "decisions": [
         {
           "summary": "report.json 保持任務與進度核心；時間、難度、價值、估價及其他領域使用可選 sidecar，不持續增加核心欄位。",

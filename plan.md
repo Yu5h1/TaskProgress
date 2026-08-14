@@ -246,6 +246,52 @@ Backlog.md 已提供 Agent-friendly Markdown tasks、CLI、JSON 與本機 Web bo
 
 `handoff.md`、plan 與 canonical entry 仍由既有 Agent／人工文件流程維護。編輯器可顯示它們的連結與衝突提示，但第一版不直接改寫任意 Markdown 內容，也不把 `report.dev.json` 的 claim 當成即時鎖定來源。
 
+### 結構化 Checklist 編輯 Draft 0.1（2026-08-13）
+
+`implementation-checklist.md` 後續可納入本機 Editor，但它不是任意 Markdown 編輯器。Markdown 保持唯一資料來源；Editor 只解析及寫回固定的 checklist 結構，公開 Viewer 維持唯讀。
+
+```text
+implementation-checklist.md
+└─ Checklist parser／writer
+   └─ 本機 Checklist 面板
+      └─ Work item（狀態唯讀、自動彙總）
+         ├─ Title：要完成的工作
+         ├─ Outcome：可觀察的完成結果
+         └─ Checks
+            ├─ Agent check（預設）
+            └─ Manual check `[manual]`（例外）
+```
+
+- 每個 work item 使用簡單的數字 ID，例如 `1`、`2`、`3`。數字代表項目身分，不代表畫面順序；修改標題或排序時不得重新編號，修正項目使用新的 ID。
+- Markdown 內容維持英文，介面控制與提示可以本地化。句子採受控寫法：一個標題只表達一項工作，`Outcome` 只描述可觀察結果，不使用「正確處理」或「適當顯示」等無法驗收的詞。
+- work item 不再同時保存 `Acceptance` 與 `Verification`。它只有 `Title`、`Outcome` 與一個以上的 `Checks`；每個 check 只有 `Action` 與 `Expect`。URL、命令與人工步驟都寫入 `Action`，不再建立重複的 `Entry` 欄位。
+- 未標記的 check 預設由 Agent 執行。只有真實裝置、使用者環境、受保護資料或直接 UX 判斷才加 `[manual]`，並附簡短 `Reason`；「人工比較快」不是有效理由。移除 `By` 與 `Why not agent`。
+- check 狀態固定為 `[ ]` 尚未執行、`[x]` 已執行且符合 `Expect`、`[!]` 已執行但不符合 `Expect`。父 work item 的狀態不可點擊：所有 checks 都是 `[x]` 才自動為 `[x]`；任一 check 是 `[!]` 則自動為 `[!]`；其餘為 `[ ]`。
+- Checklist 面板中，使用者只操作 `[manual]` check。控制由 `✓` 與 `!` 兩個可空選項構成；預設兩者皆未選。在尚未儲存的草稿中，再按目前選項可清回未執行。Agent checks 在人類介面中唯讀。
+- manual check 選擇 `!` 時必須填寫 `Observed`，只記錄實際看到的結果，不要求使用者診斷原因。儲存後停止本輪，由 Agent 在收到要求後區分實作、規格或環境問題並提出方向，不得自動重跑相同 check。
+- 任一 `[x]` 或 `[!]` 結果儲存後，該 work item 的 Title、Outcome、Action、Expect 與結果全部凍結；修正使用新 ID 建立新項目。仍全部為 `[ ]` 的規格可以在首次執行前澄清；已完成後才增加的需求也建立新項目。
+- UI 只提供上述結構化欄位與狀態控制。修改先進入既有 Editor transaction；「儲存」通過格式、衍生父狀態、ID 與來源 revision 驗證後才寫回 Markdown，「放棄」則還原 persisted snapshot。
+- 第一階段先穩定使用 Markdown 格式，不建立重複的 JSON checklist。確認格式經過數輪使用仍足夠後，再實作 parser、writer 與本機面板。
+
+```markdown
+- [ ] **1. Make the child-item description fill the available width**
+  Outcome: The description fills the available space and truncated text has a tooltip.
+  Checks:
+    - [ ] **Source contract**
+      Action: Run the focused presentation tests.
+      Expect: All focused tests pass.
+    - [ ] **Rendered Viewer** `[manual]`
+      Action: Check Preview and Edit at desktop width and 390px.
+      Expect: The description fills correctly and the tooltip shows the full text.
+      Reason: Requires direct visual and pointer-hover inspection.
+```
+
+```text
+Volume: touches parser／writer、local edit host、Svelte panel、tests and documentation
+Precedent: existing local capability + draft transaction；new Markdown round-trip contract
+Proof: parser round-trip tests | derived-status tests | frozen-result rejection | malformed-input rejection | revision conflict test | local Viewer interaction
+```
+
 ### 介面決策
 
 頁首在主題控制旁提供一個頁面層級模式選單：`預覽模式` 與 `編輯模式`。第一版先在隔離 Demo 驗證全域模式；切到編輯模式後，任務描述、子項目新增／編輯／刪除、人工估算參數與工作容量使用同一個 capability 解鎖，不再由每個時間面板各放一個「編輯」入口。切回預覽模式時直接放棄本次記憶體草稿，所有寫入控制與尚未提交的 inline form 一起關閉，並還原最後一次成功儲存的閱讀版面。
@@ -947,6 +993,7 @@ Edit     ○  [優先級]       [描述：靠左且填滿]  {右側面板 [(模�
 ```
 
 - 左側是自然內容流：項目標記、可選 priority、可伸縮描述。預覽時「未指定」priority 不建立空容器，描述立即靠左補位；編輯時 priority 下拉正常佔位。priority 與狀態不經過 module loader，模組失敗不得使它們消失。
+- 描述取得右側 utility panel 以外的全部剩餘寬度。文字因空間不足而省略時，原生 tooltip 顯示完整描述；編輯 input 也使用同一個可用寬度。
 - 有顯示的 priority badge 與編輯下拉使用相同寬度，避免不同標籤讓描述起點逐列晃動。左側項目標記同時表達狀態：待處理為 `○`、已完成為 `✓`，必須與右側狀態一致。
 - 右側是一個共同 utility panel，固定依 `module strip → status → edit-only delete` 排列並整體靠右。狀態膠囊與狀態下拉在列高內垂直置中；Delete 插入狀態右側時，狀態可向左讓位，不預留空白 action 欄。
 - 子項目第一版只有 `待處理` 與 `已完成` 兩個狀態。狀態命令移動同一個 stable item 至 `pending_items` 或 `completed_items`，保留 ID、title、priority、時間估算對應與 Undo／Redo；儲存後重算 task/project progress 並使受影響的時間投影失效。
@@ -955,6 +1002,7 @@ Edit     ○  [優先級]       [描述：靠左且填滿]  {右側面板 [(模�
 - Core 擁有模組型別的預設順序與允許清單；使用者調整的左右順序是 browser-local view preference，不寫入 `report.json`、不觸發全域儲存。manifest 與 Renderer 都不能指定自己覆蓋其他模組的位置。
 - 膠囊排序沿用既有 `StatusFilters` UX 與同一套純資料排序模型：滑鼠拖曳、觸控 Pointer Events（移動超過 8px 且鎖定水平軸後才視為拖曳）及鍵盤 `Alt + ←／→`。未超過拖曳門檻的點擊仍執行膠囊原本 action；調整後立即寫入 browser-local preference，並恢復目前膠囊的 focus。
 - 文字「刪除」固定在狀態之後，只在編輯模式顯示且不屬於 module strip。預覽與編輯共用相同的水平順序與右側 panel；兩種模式的 control 外觀可以不同，不要求狀態在 Delete 出現前後維持完全相同的 X 座標。
+- 共用 SaveBar 提供明確的「放棄」動作，沿用全域模式 toggle 已有的 discard 流程：關閉 edit session、還原 persisted snapshot 並返回預覽模式，不建立第二套草稿處理邏輯。
 
 **驗收方向**
 

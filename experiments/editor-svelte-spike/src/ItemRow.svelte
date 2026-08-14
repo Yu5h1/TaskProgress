@@ -90,6 +90,7 @@
       <input
         class="inline-edit-input"
         aria-label={`編輯子項目：${item.title}`}
+        title={item.title}
         maxlength="500"
         value={item.title}
         oninput={(event) => onCommand({
@@ -102,7 +103,7 @@
         })}
       >
     {:else}
-      <span class="spike-item-title">{item.title}</span>
+      <span class="spike-item-title" title={item.title}>{item.title}</span>
     {/if}
   </span>
 

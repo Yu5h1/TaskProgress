@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-08-13T22:37:30+08:00",
+  "updated_at": "2026-08-14T13:08:56+08:00",
   "tasks": [
     {
       "id": "viewer-core",
@@ -171,7 +171,7 @@
       "title": "本機任務編輯",
       "status": "in_progress",
       "priority": 1,
-      "summary": "正式 Viewer 已實作子項目狀態編輯與共用 module strip。ItemRow 已依人工回饋完成 flexible layout、狀態尺寸、priority 寬度與 ○／✓ 一致性；缺少或新建 priority 均正確使用未指定，不再在編輯下拉誤顯示立即。聚焦測試與 bundle 建置通過，尚待狀態往返及 Time Dialog 互動驗證。",
+      "summary": "正式 Viewer 的子項目狀態、ItemRow、Time Dialog、描述 fill／tooltip 與共用 SaveBar 放棄動作均已通過自動及人工驗證。下一步收斂並實作以 Markdown 為唯一資料來源的結構化 Checklist Editor。",
       "completed_items": [
         {
           "id": "item-local-task-editing-done-1",
@@ -472,18 +472,28 @@
           "id": "retire-editor-surface-standalone-build",
           "title": "移除無呼叫端的獨立 Editor 頁面、wrapper、建置命令與 verifier，並刪除 Host 的 editor asset route、editor_surface_url capability 及專用資料路徑；保留隔離 Svelte spike 與共用元件",
           "priority": 1
+        },
+        {
+          "id": "verify-current-svelte-source",
+          "title": "完成 ItemRow、SaveBar 與 Viewer adapter 聚焦原始碼測試，並將 priority 寬度測試同步為已核定的 42px",
+          "priority": 1
+        },
+        {
+          "id": "verify-item-description-fill-tooltip",
+          "title": "驗證子項目描述在桌面與 390px 填滿 utility panel 前空間，且截斷時 tooltip 顯示完整內容",
+          "priority": 1
+        },
+        {
+          "id": "verify-shared-discard-action",
+          "title": "驗證共用 SaveBar 放棄按鈕會還原 persisted snapshot、關閉 edit session 並返回預覽模式，且不寫入檔案",
+          "priority": 1
         }
       ],
       "pending_items": [
         {
-          "id": "edit-item-status-membership",
-          "title": "驗證已實作的 stable 子項目待處理／已完成往返：同一項目跨面板、Undo／Redo、進度重算、時間失效與放棄草稿須一致",
-          "priority": 1
-        },
-        {
-          "id": "align-item-row-preview-edit-layout",
-          "title": "驗證已實作的 ItemRow 六欄排列：桌面與 390px 切換預覽／編輯時共同欄位不位移，狀態垂直置中且刪除只在最右側顯示",
-          "priority": 1
+          "id": "structured-checklist-editor",
+          "title": "建立以 implementation-checklist.md 為唯一資料來源的本機結構化面板：衍生父狀態、Agent／manual checks、失敗 Observed、凍結結果與安全 round-trip parser／writer",
+          "priority": 2
         },
         {
           "id": "verify-mobile-editing",
@@ -497,20 +507,20 @@
       "title": "擴充資訊模組接口",
       "status": "in_progress",
       "priority": 2,
-      "summary": "Draft 0.1 已定義模組資料與安全邊界；item-inline module capsule strip 已完成第一段實作，以 Time 為 reference capsule，並與 StatusFilters 共用排序模型及拖曳／觸控／鍵盤容器。自動測試與 bundle 建置通過，尚待實畫面驗證後再進入 Phase 0 合約決策。",
+      "summary": "Draft 0.1 已定義模組資料與安全邊界；item-inline module capsule strip 以 Time 為 reference capsule，與 StatusFilters 共用排序模型及拖曳／觸控／鍵盤容器，並已通過自動及實畫面驗證。下一步進入 Phase 0 合約決策。",
       "completed_items": [
         {
           "id": "item-extension-modules-done-1",
           "title": "完成擴充資訊模組架構計畫，確認 report.json 保持核心穩定、time 作為第一個參考模組，並隔離外部交易與合約系統",
           "priority": 4
+        },
+        {
+          "id": "item-extension-modules-inline-strip",
+          "title": "驗證共用 module capsule strip 在預覽／編輯開啟同一 Time Dialog，且 390px 不造成整頁 overflow",
+          "priority": 1
         }
       ],
       "pending_items": [
-        {
-          "id": "item-extension-modules-inline-strip",
-          "title": "驗證已實作的共用 module capsule strip：Time 在預覽／編輯開啟同一 Dialog，390px 僅 strip 水平捲動且不造成整頁 overflow",
-          "priority": 1
-        },
         {
           "id": "item-extension-modules-todo-1",
           "title": "Phase 0：確認 manifest 正式命名、module identity、visibility、未知模組與 stale projection 政策",

@@ -485,6 +485,7 @@
           canRedo={view.history.canRedo}
           message={statusMessage}
           savingLabel={previewing ? "重新計算中…" : "正在儲存…"}
+          onDiscard={toggleMode}
           onSave={requestSave}
           onUndo={undo}
           onRedo={redo}

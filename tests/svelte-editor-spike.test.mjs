@@ -726,6 +726,7 @@ test("Svelte spike is isolated, static-path safe, and uses the shared core", asy
   // The editor shell uses the shared controls rather than its own markup.
   assert.match(appText, /<ModeToggle/u);
   assert.match(appText, /<SaveBar/u);
+  assert.match(appText, /onDiscard=\{toggleMode\}/u);
   assert.doesNotMatch(appText, /spike-mode-toggle|spike-savebar|spike-save-button/u);
   assert.match(cardText, /task-card editor-task-card/u);
   assert.match(rowText, /class="editor-item-row"/u);

@@ -84,9 +84,12 @@ test("editing exposes global task and child controls with a panel-aligned save b
   // The status element id now lives in the shared SaveBar component.
   assert.match(saveBar, /id="edit-save-status"/);
   assert.match(saveBar, /class="edit-save-status"/);
+  assert.match(saveBar, /export let onDiscard = \(\) => \{\};/);
+  assert.match(saveBar, /class="secondary-button edit-discard-button"[\s\S]*onclick=\{onDiscard\}[\s\S]*\{discardLabel\}/);
   assert.match(saveBar, /class="primary-button edit-save-button"/);
   assert.match(app, /onUndo: \(\) => applyEditorHistory\("undo"\)/);
   assert.match(app, /onRedo: \(\) => applyEditorHistory\("redo"\)/);
+  assert.match(app, /onDiscard: \(\) => \{\s*void cancelEditing\(\);\s*\}/);
   assert.match(app, /bindHistoryShortcuts\(document, \{/);
   assert.doesNotMatch(html, /id="edit-save-status"|id="edit-save-button"/);
   assert.match(app, /contractText: "預設狀態：待處理；預設優先級：未指定；ID 會獨立產生"/);

@@ -1185,6 +1185,9 @@ saveBarView = createUiView("save-bar", elements.editSaveBar, {
   canRedo: false,
   onUndo: () => applyEditorHistory("undo"),
   onRedo: () => applyEditorHistory("redo"),
+  onDiscard: () => {
+    void cancelEditing();
+  },
   onSave: requestSave,
 });
 bindHistoryShortcuts(document, {

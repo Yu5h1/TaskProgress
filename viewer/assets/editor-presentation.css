@@ -99,13 +99,14 @@
 }
 
 .item-row-description {
-  flex: 1 1 auto;
+  flex: 1 1 0;
+  overflow: hidden;
 }
 
 .item-row-utility-panel {
   display: flex;
-  flex: 0 1 min(50%, 320px);
-  width: min(50%, 320px);
+  flex: 0 1 auto;
+  width: auto;
   max-width: 50%;
   overflow: hidden;
   align-items: center;
@@ -122,8 +123,6 @@
   }
 
   .item-row-utility-panel {
-    flex-basis: 55%;
-    width: 55%;
     max-width: 55%;
     gap: 4px;
   }

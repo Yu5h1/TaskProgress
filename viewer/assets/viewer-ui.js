@@ -2598,25 +2598,29 @@ function $i(e, t) {
 }
 //#endregion
 //#region experiments/editor-svelte-spike/src/SaveBar.svelte
-var ea = /* @__PURE__ */ K("<span class=\"edit-save-status\" id=\"edit-save-status\" role=\"status\"> </span> <span class=\"edit-history-actions\"><button class=\"secondary-button edit-history-button\" type=\"button\"> </button> <button class=\"secondary-button edit-history-button\" type=\"button\"> </button></span> <button class=\"primary-button edit-save-button\" type=\"button\"> </button>", 1);
+var ea = /* @__PURE__ */ K("<span class=\"edit-save-status\" id=\"edit-save-status\" role=\"status\"> </span> <span class=\"edit-history-actions\"><button class=\"secondary-button edit-history-button\" type=\"button\"> </button> <button class=\"secondary-button edit-history-button\" type=\"button\"> </button></span> <button class=\"secondary-button edit-discard-button\" type=\"button\" aria-label=\"放棄全部修改並回到預覽模式\"> </button> <button class=\"primary-button edit-save-button\" type=\"button\"> </button>", 1);
 function ta(e, t) {
-	let n = $(t, "dirty", 8, !1), r = $(t, "saving", 8, !1), i = $(t, "canUndo", 8, !1), a = $(t, "canRedo", 8, !1), o = $(t, "message", 8, ""), s = $(t, "buttonLabel", 8, "儲存"), c = $(t, "savingLabel", 8, "正在儲存…"), l = $(t, "undoLabel", 8, "復原"), u = $(t, "redoLabel", 8, "重做"), d = $(t, "onSave", 8, () => {}), f = $(t, "onUndo", 8, () => {}), p = $(t, "onRedo", 8, () => {});
-	var m = ea(), h = I(m), g = F(h, !0);
-	A(h);
-	var _ = L(h, 2), v = F(_), y = F(v, !0);
-	A(v);
-	var b = L(v, 2), x = F(b, !0);
-	A(b), A(_);
-	var S = L(_, 2), C = F(S, !0);
-	A(S), z(() => {
-		J(g, o()), Q(v, "aria-label", `${l()}上一個修改`), v.disabled = !i() || r(), J(y, l()), Q(b, "aria-label", `${u()}下一個修改`), b.disabled = !a() || r(), J(x, u()), S.disabled = !n() || r(), J(C, r() ? c() : s());
-	}), G("click", v, function(...e) {
-		f()?.apply(this, e);
+	let n = $(t, "dirty", 8, !1), r = $(t, "saving", 8, !1), i = $(t, "canUndo", 8, !1), a = $(t, "canRedo", 8, !1), o = $(t, "message", 8, ""), s = $(t, "buttonLabel", 8, "儲存"), c = $(t, "savingLabel", 8, "正在儲存…"), l = $(t, "undoLabel", 8, "復原"), u = $(t, "redoLabel", 8, "重做"), d = $(t, "discardLabel", 8, "放棄"), f = $(t, "onSave", 8, () => {}), p = $(t, "onUndo", 8, () => {}), m = $(t, "onRedo", 8, () => {}), h = $(t, "onDiscard", 8, () => {});
+	var g = ea(), _ = I(g), v = F(_, !0);
+	A(_);
+	var y = L(_, 2), b = F(y), x = F(b, !0);
+	A(b);
+	var S = L(b, 2), C = F(S, !0);
+	A(S), A(y);
+	var w = L(y, 2), ee = F(w, !0);
+	A(w);
+	var T = L(w, 2), E = F(T, !0);
+	A(T), z(() => {
+		J(v, o()), Q(b, "aria-label", `${l()}上一個修改`), b.disabled = !i() || r(), J(x, l()), Q(S, "aria-label", `${u()}下一個修改`), S.disabled = !a() || r(), J(C, u()), w.disabled = r(), J(ee, d()), T.disabled = !n() || r(), J(E, r() ? c() : s());
 	}), G("click", b, function(...e) {
 		p()?.apply(this, e);
 	}), G("click", S, function(...e) {
-		d()?.apply(this, e);
-	}), q(e, m);
+		m()?.apply(this, e);
+	}), G("click", w, function(...e) {
+		h()?.apply(this, e);
+	}), G("click", T, function(...e) {
+		f()?.apply(this, e);
+	}), q(e, g);
 }
 wr(["click"]);
 //#endregion
@@ -3067,7 +3071,7 @@ function Pa(e, t) {
 	var te = L(T, 2), ne = F(te), D = (e) => {
 		var t = ka();
 		gi(t), z(() => {
-			Q(t, "aria-label", (W(u()), U(() => `編輯子項目：${u().title}`))), _i(t, (W(u()), U(() => u().title)));
+			Q(t, "aria-label", (W(u()), U(() => `編輯子項目：${u().title}`))), Q(t, "title", (W(u()), U(() => u().title))), _i(t, (W(u()), U(() => u().title)));
 		}), G("input", t, (e) => p()({
 			type: "set-item-field",
 			taskId: c(),
@@ -3078,7 +3082,9 @@ function Pa(e, t) {
 		})), q(e, t);
 	}, re = (e) => {
 		var t = Aa(), n = F(t, !0);
-		A(t), z(() => J(n, (W(u()), U(() => u().title)))), q(e, t);
+		A(t), z(() => {
+			Q(t, "title", (W(u()), U(() => u().title))), J(n, (W(u()), U(() => u().title)));
+		}), q(e, t);
 	};
 	Y(ne, (e) => {
 		d() ? e(D) : e(re, -1);

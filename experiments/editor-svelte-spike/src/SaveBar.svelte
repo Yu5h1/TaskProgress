@@ -13,9 +13,11 @@
   export let savingLabel = "正在儲存…";
   export let undoLabel = "復原";
   export let redoLabel = "重做";
+  export let discardLabel = "放棄";
   export let onSave = () => {};
   export let onUndo = () => {};
   export let onRedo = () => {};
+  export let onDiscard = () => {};
 </script>
 
 <span class="edit-save-status" id="edit-save-status" role="status">{message}</span>
@@ -35,6 +37,13 @@
     onclick={onRedo}
   >{redoLabel}</button>
 </span>
+<button
+  class="secondary-button edit-discard-button"
+  type="button"
+  aria-label="放棄全部修改並回到預覽模式"
+  disabled={saving}
+  onclick={onDiscard}
+>{discardLabel}</button>
 <button
   class="primary-button edit-save-button"
   type="button"
