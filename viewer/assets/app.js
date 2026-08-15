@@ -43,6 +43,7 @@ import {
 import { createTimeReferenceController } from "./time-dialog-control.js";
 import { createModuleOrderControl } from "./module-order-control.js";
 import {
+  STATUS_ORDER_STORAGE_KEY,
   filterTaskItems,
   loadStatusOrder,
   moveStatusOrder,
@@ -66,6 +67,27 @@ function getBrowserStorage() {
 }
 
 const statusOrderStorage = getBrowserStorage();
+
+/*
+ * 預設 leads unless the reader has already placed it.
+ *
+ * A saved order from before this capsule existed has no opinion about where it
+ * belongs, and the normalizer appends unknown-but-supported ids at the end —
+ * which would silently open every existing reader in grouped mode with 預設
+ * stranded at the far right.
+ */
+function loadCapsuleOrder() {
+  const order = loadStatusOrder(statusOrderStorage, supportedCapsules);
+  if (order[0] === DEFAULT_CAPSULE_ID) return order;
+  let saved = null;
+  try {
+    saved = statusOrderStorage?.getItem(STATUS_ORDER_STORAGE_KEY) ?? null;
+  } catch {
+    saved = null;
+  }
+  if (typeof saved === "string" && saved.includes(DEFAULT_CAPSULE_ID)) return order;
+  return [DEFAULT_CAPSULE_ID, ...order.filter((id) => id !== DEFAULT_CAPSULE_ID)];
+}
 const moduleOrderControl = createModuleOrderControl({ storage: statusOrderStorage });
 
 const elements = {
@@ -107,7 +129,9 @@ const state = {
   developerReport: null,
   tasks: [],
   // One selected set of task statuses; items match the two they can carry.
-  selection: createFilterSelection([]),
+  // Seeded with every status: an empty set is a deliberate "show nothing", and
+  // starting there would open the screen with no cards at all.
+  selection: createFilterSelection(supportedStatuses),
   diagnostics: [],
   developerAvailable: false,
   timeAnalysis: null,
@@ -124,7 +148,7 @@ const state = {
   timeSettingsView: null,
   deliveryRiskPreviewView: null,
   deliverySaveConfirmationView: null,
-  statusOrder: loadStatusOrder(statusOrderStorage, supportedCapsules),
+  statusOrder: loadCapsuleOrder(),
   moduleOrder: moduleOrderControl.order,
   editor: {
     available: false,

@@ -93,3 +93,16 @@ test("the host filters both levels and lets 預設 choose the order", async () =
   assert.match(app, /const supportedCapsules = \[DEFAULT_CAPSULE_ID, \.\.\.supportedStatuses\]/u);
   assert.match(app, /loadStatusOrder\(statusOrderStorage, supportedCapsules\)/u);
 });
+
+test("the screen opens with everything selected and 預設 leading", async () => {
+  const app = await readFile(new URL("../viewer/assets/app.js", import.meta.url), "utf8");
+  // An empty set is a deliberate "show nothing"; seeding the selection empty
+  // would open the Viewer with no cards at all.
+  assert.match(app, /selection: createFilterSelection\(supportedStatuses\)/u);
+  assert.doesNotMatch(app, /createFilterSelection\(\[\]\)/u);
+  // A saved order from before 預設 existed gets it placed first rather than
+  // appended last, which would strand it and start everyone in grouped mode.
+  assert.match(app, /function loadCapsuleOrder\(\)/u);
+  assert.match(app, /\[DEFAULT_CAPSULE_ID, \.\.\.order\.filter\(\(id\) => id !== DEFAULT_CAPSULE_ID\)\]/u);
+  assert.match(app, /statusOrder: loadCapsuleOrder\(\)/u);
+});
