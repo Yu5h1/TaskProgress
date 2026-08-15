@@ -49,7 +49,6 @@ test("the task-progress screen keeps its existing behaviour", () => {
   // Its own vocabulary moved with it, not into the shared strip.
   assert.match(statusFilters, /全部/u);
   assert.match(statusFilters, /拖曳調整卡片排序；Alt＋左右方向鍵也可移動/u);
-  assert.match(statusFilters, /點擊顯示待規劃或仍有待處理子項目的任務/u);
   assert.match(statusFilters, /排序第 \$\{index\}/u);
   // The "all" capsule and the count-driven visibility rule are unchanged.
   assert.match(statusFilters, /\["all", \.\.\.statusOrder\]/u);

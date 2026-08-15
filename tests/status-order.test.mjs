@@ -10,7 +10,9 @@ import {
   normalizeStatusOrder,
   saveStatusOrder,
   stableSortByStatus,
+  taskMatchesItemStatus,
   taskMatchesViewStatus,
+  filterTaskItems,
 } from "../viewer/assets/status-order.js";
 import {
   MODULE_ORDER_STORAGE_KEY,
@@ -67,16 +69,25 @@ test("task sorting follows status order and stays stable inside each status", ()
   assert.deepEqual(tasks.map((task) => task.id), ["a", "b", "c", "d"]);
 });
 
-test("pending child items join the planned view status without becoming archived", () => {
+test("a task with unfinished work is found by the item axis, not by planned", () => {
+  // This used to be one axis: `planned` matched any task holding a pending
+  // item. That made the task status ambiguous and, because only cards were
+  // filtered, left completed items on screen. The guarantee it protected —
+  // unfinished work stays findable and is never mistaken for archived — now
+  // belongs to the item axis, which also hides the finished items.
   const pendingTask = {
     status: "in_progress",
     pending_items: ["still needs work"],
+    completed_items: ["already done"],
   };
-  assert.equal(taskMatchesViewStatus(pendingTask, "planned"), true);
+  assert.equal(taskMatchesViewStatus(pendingTask, "planned"), false, "no longer overloaded");
   assert.equal(taskMatchesViewStatus(pendingTask, "in_progress"), true);
   assert.equal(taskMatchesViewStatus(pendingTask, "archive"), false);
   assert.equal(taskMatchesViewStatus({ status: "planned" }, "planned"), true);
   assert.equal(taskMatchesViewStatus({ status: "archive" }, "planned"), false);
+
+  assert.equal(taskMatchesItemStatus(pendingTask, "pending"), true, "still findable");
+  assert.deepEqual(filterTaskItems(pendingTask, "pending").completed_items, []);
 });
 
 test("pending and completed child panels follow the shared status order", () => {

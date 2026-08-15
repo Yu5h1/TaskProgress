@@ -108,3 +108,14 @@ Run every Agent check once. If a check fails, mark it `[!]`, add `Observed`, and
       - Action: Open the Checklist App and the Viewer in both themes, and check a completed item, a pending item, and a failed item on each.
       - Expect: The same state is the same colour everywhere it appears, completed cards have no coloured border, pending cards read as waiting without shouting, and every label is a capsule.
       - Reason: Requires direct visual comparison across two running surfaces.
+
+- [ ] **12. Separate the Viewer's task and item filters**
+  Outcome: The task-progress strip carries a task-status group and an item-status group, and selecting an item status also hides the non-matching items inside a card.
+  Checks:
+    - [x] **Two-axis filter contract**
+      - Action: Run focused tests for the two groups, independent selection, task-status matching without the planned overload, and item-level filtering hiding non-matching items inside a surviving card.
+      - Expect: A task status matches only that status, an item status keeps cards holding a matching item and shows only those items, and the two groups combine.
+    - [ ] **Rendered Viewer filtering** `[manual]`
+      - Action: Open the local Viewer, select a task status, then an item status, then both, and watch the cards and their items.
+      - Expect: Selecting 未完成 leaves no completed sub-item on screen, the card ordering still follows the capsule order, and clearing a group restores everything.
+      - Reason: Requires the user's running browser and direct UX confirmation.

@@ -35,6 +35,7 @@ import {
 import { createTimeReferenceController } from "./time-dialog-control.js";
 import { createModuleOrderControl } from "./module-order-control.js";
 import {
+  filterTaskItems,
   loadStatusOrder,
   moveStatusOrder,
   saveStatusOrder,
@@ -94,6 +95,8 @@ const state = {
   developerReport: null,
   tasks: [],
   filter: "all",
+  // The second filter axis: task status and item status move independently.
+  itemFilter: null,
   diagnostics: [],
   developerAvailable: false,
   timeAnalysis: null,
@@ -579,16 +582,33 @@ function applyModuleOrder(id, targetId, placeAfter = false) {
 
 
 
+function itemStatusCounts() {
+  return state.tasks.reduce(
+    (counts, task) => ({
+      pending: counts.pending + (task.pending_items?.length ?? 0),
+      completed: counts.completed + (task.completed_items?.length ?? 0),
+    }),
+    { pending: 0, completed: 0 },
+  );
+}
+
 function renderFilters() {
   const props = {
     counts: statusCounts(),
     statusOrder: state.statusOrder,
     activeFilter: state.filter,
+    itemCounts: itemStatusCounts(),
+    activeItemFilter: state.itemFilter,
     statusLabels: Object.fromEntries(
       Object.entries(STATUS_META).map(([status, meta]) => [status, meta.label]),
     ),
     onFilterChange: (filter) => {
       state.filter = filter;
+      renderFilters();
+      renderTasks();
+    },
+    onItemFilterChange: (itemFilter) => {
+      state.itemFilter = state.itemFilter === itemFilter ? null : itemFilter;
       renderFilters();
       renderTasks();
     },
@@ -711,9 +731,15 @@ function renderTasks() {
     stableSortTasksByPriority(state.tasks),
     state.statusOrder,
   );
-  const tasks = state.filter === "all"
+  // Two independent axes, and both only hide: ordering above is untouched.
+  const byStatus = state.filter === "all"
     ? orderedTasks
     : orderedTasks.filter((task) => taskMatchesViewStatus(task, state.filter));
+  const tasks = state.itemFilter
+    ? byStatus
+      .filter((task) => taskMatchesItemStatus(task, state.itemFilter))
+      .map((task) => filterTaskItems(task, state.itemFilter))
+    : byStatus;
 
   const props = taskListProps(tasks);
   if (state.taskListView) state.taskListView.update(props);

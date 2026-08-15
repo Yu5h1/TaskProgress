@@ -35,10 +35,39 @@ export function stableSortByStatus(items, order, getStatus = (item) => item.stat
     .map(({ item }) => item);
 }
 
+/*
+ * Task status and item status are two axes, not one.
+ *
+ * A task carries its own status; its items carry theirs, and the two do not
+ * follow each other — an in-progress task holds both finished and unfinished
+ * items. `planned` used to also mean "has any pending item", which is why
+ * selecting it left completed items on screen: the overload matched the card,
+ * and nothing then filtered what was inside it.
+ */
+export const ITEM_VIEW_STATUSES = Object.freeze(["pending", "completed"]);
+
 export function taskMatchesViewStatus(task, status) {
-  if (status === "planned") {
-    return task?.status === "planned"
-      || (Array.isArray(task?.pending_items) && task.pending_items.length > 0);
-  }
   return task?.status === status;
+}
+
+export function taskMatchesItemStatus(task, itemStatus) {
+  return countMatchingItems(task, itemStatus) > 0;
+}
+
+function countMatchingItems(task, itemStatus) {
+  const field = itemStatus === "completed" ? "completed_items" : "pending_items";
+  return Array.isArray(task?.[field]) ? task[field].length : 0;
+}
+
+/*
+ * Keep only the items that match, so a filtered card cannot still show the work
+ * it was filtered away from. Filtering hides; it never reorders.
+ */
+export function filterTaskItems(task, itemStatus) {
+  if (!ITEM_VIEW_STATUSES.includes(itemStatus)) return task;
+  return {
+    ...task,
+    completed_items: itemStatus === "completed" ? (task.completed_items ?? []) : [],
+    pending_items: itemStatus === "pending" ? (task.pending_items ?? []) : [],
+  };
 }

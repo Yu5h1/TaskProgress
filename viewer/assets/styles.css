@@ -1837,6 +1837,12 @@ footer {
   outline-offset: 2px;
 }
 
+/* The second filter axis sits under the first, so the two read as separate
+   questions rather than one long row of unrelated capsules. */
+.item-filter-strip {
+  margin-top: 6px;
+}
+
 .edit-mode-button {
   padding: 5px 9px;
   font-size: 0.7rem;
