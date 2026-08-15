@@ -66,25 +66,25 @@ Run every Agent check once. If a check fails, mark it `[!]`, add `Observed`, and
       - Action: Run focused tests for the injected transport, the desktop entry supplying the WebView transport, and the screen holding no direct WebView reference.
       - Expect: The screen resolves no global WebView object, the existing bridge path is unchanged, and a substitute transport can drive the same screen in tests.
 
-- [ ] **8. Verify the packaged flow after the shared component move**
+- [x] **8. Verify the packaged flow after the shared component move**
   Depends on: 3, 4, 6, 7.
   Outcome: The Release WPF Checklist App shows the shared summary, next-step card, and filters, and still saves safely against a disposable Markdown file without LocalWebService.
   Checks:
     - [x] **Focused package build and tests**
       - Action: Run the focused Checklist, CLI, and Node tests and the Release build once with the locked dependency graph, then inspect the packaged Checklist UI and WebView2 files.
       - Expect: All focused tests and the build pass, and the output contains the executable, current Checklist assets, WebView2 managed assemblies, and native loader.
-    - [ ] **Packaged Checklist interaction** `[manual]`
+    - [x] **Packaged Checklist interaction** `[manual]`
       - Action: Open a disposable Checklist copy, read the summary and next-step card, apply a status filter and an owner filter, cycle one manual marker through all three states, then reopen the App.
       - Expect: The summary counts match the file, the next-step card names the outstanding check, filtering changes only what is visible, saving still works in both persistence modes, and only the disposable file changes.
       - Reason: Requires the user's Windows desktop, installed Evergreen WebView2 Runtime, and direct UX confirmation.
 
-- [ ] **9. Give component colours one categorised source**
+- [x] **9. Give component colours one categorised source**
   Outcome: Every shared component takes its colour from a named role that resolves to the Viewer's existing theme tokens, so anything in the same category changes in one place.
   Checks:
     - [x] **Colour role contract**
       - Action: Run focused tests for the role definitions, the shared components referencing only roles, and a progress fill resolving to the same source as the task-progress meter.
       - Expect: Roles are defined once from existing theme tokens with no new literal colour, a filled indicator never takes a text or surface token, and the segmented and continuous forms share one fill source.
-    - [ ] **Rendered colour comparison** `[manual]`
+    - [x] **Rendered colour comparison** `[manual]`
       - Action: Open the Checklist App and the local Viewer side by side in both themes and compare the progress fill, the count tiles, and the state markers.
       - Expect: The same state reads as the same colour on both screens, filled areas hold their contrast in dark mode, and no element looks washed out against its background.
       - Reason: Requires direct visual comparison across two running surfaces.
@@ -97,25 +97,52 @@ Run every Agent check once. If a check fails, mark it `[!]`, add `Observed`, and
       - Action: Run focused tests for one strip carrying both groups, independent selection across groups, capsule reordering through the shared order model, and the persisted preference.
       - Expect: One strip renders both groups, selecting in one group leaves the other alone, the order persists in the user profile only, and work item order still follows the document.
 
-- [ ] **11. Bind state presentation to one status source**
+- [x] **11. Bind state presentation to one status source**
   Depends on: 9.
   Outcome: A per-item progress cell, a card border, a manual check row, and a marker all show the same state in the same colour, and every card label is a capsule.
   Checks:
     - [x] **Status presentation contract**
       - Action: Run focused tests for the status roles, per-item cells using status rather than the proportion fill, card borders following status with completed excluded, manual rows carrying their state, and the capsule labels.
       - Expect: One status source serves cells, borders, rows, markers and tiles; a completed card shows no status border; a manual row shows its own state while Agent rows stay plain.
-    - [ ] **Rendered state comparison** `[manual]`
+    - [x] **Rendered state comparison** `[manual]`
       - Action: Open the Checklist App and the Viewer in both themes, and check a completed item, a pending item, and a failed item on each.
       - Expect: The same state is the same colour everywhere it appears, completed cards have no coloured border, pending cards read as waiting without shouting, and every label is a capsule.
       - Reason: Requires direct visual comparison across two running surfaces.
 
-- [ ] **12. Separate the Viewer's task and item filters**
+- [x] **12. Separate the Viewer's task and item filters**
   Outcome: The task-progress strip carries a task-status group and an item-status group, and selecting an item status also hides the non-matching items inside a card.
   Checks:
     - [x] **Two-axis filter contract**
       - Action: Run focused tests for the two groups, independent selection, task-status matching without the planned overload, and item-level filtering hiding non-matching items inside a surviving card.
       - Expect: A task status matches only that status, an item status keeps cards holding a matching item and shows only those items, and the two groups combine.
-    - [ ] **Rendered Viewer filtering** `[manual]`
+    - [x] **Rendered Viewer filtering** `[manual]`
       - Action: Open the local Viewer, select a task status, then an item status, then both, and watch the cards and their items.
       - Expect: Selecting 未完成 leaves no completed sub-item on screen, the card ordering still follows the capsule order, and clearing a group restores everything.
       - Reason: Requires the user's running browser and direct UX confirmation.
+
+- [ ] **13. Make the filter strip a multi-select with a default capsule**
+  Outcome: Every strip carries a leading 預設 capsule that selects or clears every tag, lights when all tags are selected, and dims when any is cleared, with an empty selection showing nothing.
+  Checks:
+    - [ ] **Default capsule contract**
+      - Action: Run focused tests for the select-all and clear-all clicks, the derived lit state, the empty selection, and the strip holding no tag vocabulary of its own.
+      - Expect: Clicking a dim 預設 selects every tag and clicking a lit one clears them, the lit state follows the other capsules without being clicked, an empty selection matches nothing, and 預設 matches no status itself.
+
+- [ ] **14. Let the default capsule's position choose the order**
+  Depends on: 13.
+  Outcome: A strip whose 預設 sits first renders its cards in the data's own order, and moving 預設 away groups the cards by capsule order with priority sorting inside each group.
+  Checks:
+    - [ ] **Ordering mode contract**
+      - Action: Run focused tests for the data order when 預設 leads, grouping by capsule order when it does not, priority sorting inside a group only, and dragging never changing the selection.
+      - Expect: Leading 預設 applies neither status grouping nor priority sorting, a moved 預設 groups by capsule order with priority inside each group, and a drag leaves the selected set untouched.
+
+- [ ] **15. Apply the filter to both screens and their children**
+  Depends on: 13.
+  Outcome: The task-progress and Checklist screens filter containers and children against the selected set, and show every tag including empty ones.
+  Checks:
+    - [ ] **Two-screen filter contract**
+      - Action: Run focused tests for container and child matching against the selected set on both screens, zero-count tags staying visible, and the Checklist keeping check-level matching without owner capsules.
+      - Expect: A container survives when any child matches and shows only matching children, a Checklist card is matched by every one of its checks rather than by its derived marker, owner capsules are gone, and a tag with no matches still renders with 0.
+    - [ ] **Rendered filtering** `[manual]`
+      - Action: In both screens, clear and restore the selection with 預設, select single tags, and move 預設 out of and back into first place.
+      - Expect: Clearing shows nothing, 預設 lights only when every tag is selected, leading 預設 restores the written order, and moving it regroups the cards.
+      - Reason: Requires the user's running Viewer and packaged Checklist App.
