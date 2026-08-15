@@ -6,15 +6,15 @@
    * the same component serves every screen that has to answer "how far along is
    * this" — each caller derives its own numbers and supplies its own words.
    *
-   * The bar has two forms because callers need different things from it:
-   * `segmented` gives one cell per unit, which stays readable while there are a
-   * dozen or so and lets a reader count what is left; `continuous` is a single
-   * filled track for when only the proportion matters. Two shapes of one
-   * component, not two components.
+   * The bar itself is `ProgressBar.svelte`, which the task-progress screen also
+   * uses directly: a screen that wants only a meter should not have to take a
+   * count row and a caption with it.
    *
    * Tones use the same three-state vocabulary as `MarkerBox.svelte`, so a
    * screen does not translate between two sets of names.
    */
+  import ProgressBar from "./ProgressBar.svelte";
+
   export let stats = [];
   export let bar = null;
   export let caption = "";
@@ -24,15 +24,6 @@
   const TONES = new Set(["passed", "failed", "pending"]);
 
   const toneClass = (tone) => (TONES.has(tone) ? ` progress-tone-${tone}` : "");
-
-  function percent(value) {
-    const ratio = Number(value);
-    if (!Number.isFinite(ratio)) return 0;
-    return Math.min(100, Math.max(0, Math.round(ratio * 1000) / 10));
-  }
-
-  $: cells = bar?.form === "segmented" && Array.isArray(bar.cells) ? bar.cells : [];
-  $: filled = bar?.form === "continuous" ? percent(bar.ratio) : 0;
 </script>
 
 <section class="progress-summary" aria-label={label}>
@@ -47,16 +38,13 @@
     </div>
   {/if}
 
-  {#if bar?.form === "segmented"}
-    <div class="progress-bar progress-bar-segmented" role="img" aria-label={caption || label}>
-      {#each cells as cell, index (index)}
-        <i class={`progress-cell${toneClass(cell)}`}></i>
-      {/each}
-    </div>
-  {:else if bar?.form === "continuous"}
-    <div class="progress-bar progress-bar-continuous" role="img" aria-label={caption || label}>
-      <i class="progress-fill" style={`width: ${filled}%`}></i>
-    </div>
+  {#if bar}
+    <ProgressBar
+      form={bar.form}
+      cells={bar.cells ?? []}
+      ratio={bar.ratio ?? 0}
+      label={caption || label}
+    />
   {/if}
 
   {#if caption || note}

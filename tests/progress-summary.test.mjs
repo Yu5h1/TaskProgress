@@ -11,6 +11,10 @@ const summary = await readFile(
   "utf8",
 );
 const styles = await readFile(new URL("../viewer/assets/styles.css", import.meta.url), "utf8");
+const bar = await readFile(
+  new URL("../experiments/editor-svelte-spike/src/ProgressBar.svelte", import.meta.url),
+  "utf8",
+);
 
 const script = summary.slice(0, summary.indexOf("</script>"));
 const template = summary.slice(summary.indexOf("</script>"));
@@ -34,7 +38,11 @@ test("every value the summary shows comes from its caller", () => {
 });
 
 test("the summary reads no screen's data structure", () => {
-  assert.doesNotMatch(script, /^\s*import /mu, "a presentation component needs no module");
+  // Sibling presentation components are fine; a model or data module is not.
+  assert.doesNotMatch(script, /import .* from "\.\.\//u, "no model or data module");
+  for (const line of script.match(/^\s*import .*$/gmu) ?? []) {
+    assert.match(line, /from "\.\/[A-Z][A-Za-z]*\.svelte"/u, `unexpected import: ${line.trim()}`);
+  }
   assert.doesNotMatch(summary, /\.items\b|\.checks\b|\.tasks\b|report|workItem/u);
 });
 
@@ -45,13 +53,10 @@ test("the count row renders one tile per supplied stat", () => {
   assert.match(styles, /\.progress-stat b \{[^}]*font-variant-numeric: tabular-nums;/u);
 });
 
-test("both bar forms live in the one component", () => {
-  assert.match(template, /\{#if bar\?\.form === "segmented"\}/u);
-  assert.match(template, /\{:else if bar\?\.form === "continuous"\}/u);
-  assert.match(template, /\{#each cells as cell, index \(index\)\}/u);
-  assert.match(template, /style=\{`width: \$\{filled\}%`\}/u);
-  assert.match(styles, /\.progress-bar-segmented \{/u);
-  assert.match(styles, /\.progress-bar-continuous \{/u);
+test("the summary delegates to the shared bar rather than drawing one", () => {
+  assert.match(script, /import ProgressBar from "\.\/ProgressBar\.svelte"/u);
+  assert.match(template, /<ProgressBar[\s\S]*form=\{bar\.form\}/u);
+  assert.doesNotMatch(template, /<progress|progress-cell/u, "the bar is not redrawn here");
 });
 
 test("the continuous ratio is clamped to a real percentage", () => {
@@ -63,8 +68,8 @@ test("the continuous ratio is clamped to a real percentage", () => {
     }
     return percent;
   `)();
-  // Mirrors the component's own helper; keep both in step.
-  assert.match(script, /Math\.min\(100, Math\.max\(0, Math\.round\(ratio \* 1000\) \/ 10\)\)/u);
+  // Mirrors the bar's own helper; keep both in step.
+  assert.match(bar, /Math\.min\(100, Math\.max\(0, Math\.round\(parsed \* 1000\) \/ 10\)\)/u);
   assert.equal(percent(0.9286), 92.9);
   assert.equal(percent(0), 0);
   assert.equal(percent(1), 100);

@@ -29,16 +29,16 @@ Run every Agent check once. If a check fails, mark it `[!]`, add `Observed`, and
       - Action: Build the Checklist UI asset once from the locked npm dependency graph.
       - Expect: The build succeeds and the WPF-loadable assets contain the shared summary and card rather than a Checklist-only copy.
 
-- [ ] **4. Use the shared summary and next-step card on the task-progress screen**
-  Depends on: 1, 2.
-  Outcome: The task-progress screen renders its existing summary through the shared implementation with no behaviour change.
+- [ ] **4. Make the progress bar one implementation across both screens**
+  Depends on: 1, 3.
+  Outcome: The task-progress meter and the Checklist bar are the same component, and the status overview keeps its own status-card presentation.
   Checks:
-    - [ ] **Task-progress summary wiring**
-      - Action: Run focused tests for the region registration and the projected counts, then rebuild the preview bundle.
-      - Expect: The existing counts and ordering behaviour are unchanged, the bundle rebuilds, and the screen holds no summary markup of its own.
-    - [ ] **Rendered task-progress summary** `[manual]`
-      - Action: Open the local Viewer at desktop width and 390px and compare the summary and next-step area against the previous layout.
-      - Expect: The summary reads the same as before, nothing overflows horizontally, and both themes stay legible.
+    - [x] **Shared progress bar contract**
+      - Action: Run focused tests for the continuous form keeping native progress semantics and the accent gradient, the segmented form staying unchanged, and the task-progress screen holding no meter markup of its own; then rebuild the preview bundle.
+      - Expect: The continuous form renders one native progress element with the existing classes, both callers reach it without a host-specific option, the status overview is untouched, and the bundle rebuilds.
+    - [ ] **Rendered task-progress meter** `[manual]`
+      - Action: Open the local Viewer at desktop width and 390px and compare the overall-progress meter against the previous layout in both themes.
+      - Expect: The meter reads the same as before, including its gradient and any deadline overlay, nothing overflows horizontally, and the status cards above it are unchanged.
       - Reason: Requires direct visual comparison in the user's running browser.
 
 - [ ] **5. Lift the filter categories out of the shared strip**

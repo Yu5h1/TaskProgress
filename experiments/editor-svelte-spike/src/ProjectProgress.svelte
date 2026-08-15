@@ -1,6 +1,10 @@
 <script>
   // Overall progress. The host supplies the numbers; the wording, including the
-  // accessible description, is presentation and stays here.
+  // accessible description, is presentation and stays here. The meter itself is
+  // the shared progress bar — `project-progress-meter` now carries only this
+  // screen's grid placement, not a second meter appearance.
+  import ProgressBar from "./ProgressBar.svelte";
+
   export let percentage = 0;
   export let completed = 0;
   export let total = 0;
@@ -15,10 +19,9 @@
 <div class="project-progress-label">
   <strong id="project-progress-value">整體約 {percentage}%</strong>
 </div>
-<progress
-  class="project-progress-meter"
-  id="project-progress-meter"
-  max="100"
-  value={percentage}
-  aria-label={ariaLabel}
-></progress>
+<ProgressBar
+  form="continuous"
+  ratio={percentage / 100}
+  label={ariaLabel}
+  extraClass="project-progress-meter"
+/>
