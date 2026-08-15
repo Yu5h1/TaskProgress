@@ -107,6 +107,8 @@ test("the screen labels the shared summary instead of drawing its own", async ()
   assert.match(app, /import ProgressSummary from "\.\/ProgressSummary\.svelte"/u);
   assert.match(app, /bar=\{\{ form: "segmented", cells: view\.summary\.cells \}\}/u);
   assert.match(app, /\{#if view\.summary\.nextStep\}/u);
-  // No second count anywhere: the screen reads the derived summary only.
-  assert.doesNotMatch(app, /\.filter\(|\.reduce\(|\.length \+/u, "counting belongs to the session");
+  // No second count anywhere: the screen reads the derived summary only. It
+  // may filter its own capsule list, but never recount the document.
+  assert.doesNotMatch(app, /summary\.[a-z]+\.filter\(|\.reduce\(/u, "counting belongs to the session");
+  assert.doesNotMatch(app, /document\.items\.filter\(|checks\.length/u);
 });

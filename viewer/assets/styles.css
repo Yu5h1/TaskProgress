@@ -671,23 +671,31 @@ h1 {
   height: 6px;
   overflow: hidden;
   appearance: none;
-  background: var(--color-progress-track);
+  background: var(--role-fill-track);
   border: 0;
   border-radius: 999px;
 }
 
 .progress-meter::-webkit-progress-bar {
-  background: var(--color-progress-track);
+  background: var(--role-fill-track);
   border-radius: 999px;
 }
 
 .progress-meter::-webkit-progress-value {
-  background: linear-gradient(90deg, var(--color-accent), var(--color-progress-end));
+  background: linear-gradient(
+    90deg,
+    var(--role-fill-progress-start),
+    var(--role-fill-progress-end)
+  );
   border-radius: 999px;
 }
 
 .progress-meter::-moz-progress-bar {
-  background: linear-gradient(90deg, var(--color-accent), var(--color-progress-end));
+  background: linear-gradient(
+    90deg,
+    var(--role-fill-progress-start),
+    var(--role-fill-progress-end)
+  );
   border-radius: 999px;
 }
 
@@ -1568,6 +1576,40 @@ footer {
   opacity: 0.45;
 }
 
+/*
+ * Component colour roles.
+ *
+ * A theme token says what a colour *is* (`--color-success-text` is text). A role
+ * says what a component *uses it for*. Shared components reference roles only,
+ * so everything in one category has one source and changes in one place.
+ *
+ * The categories exist because the strengths are not interchangeable: a text
+ * token is tuned to be read against the page, and a surface token to sit behind
+ * text. Using either as a large fill is what makes dark mode look washed out.
+ *
+ * Every role resolves to a token the Viewer already defines — no new literals,
+ * and custom themes keep working.
+ */
+:root {
+  /* Filled indicators. The task-progress meter is the source for progress
+     fill, so a segmented cell and a continuous meter cannot drift apart. */
+  --role-fill-progress-start: var(--color-accent);
+  --role-fill-progress-end: var(--color-progress-end);
+  --role-fill-track: var(--color-progress-track);
+  --role-fill-danger: var(--color-danger-text);
+
+  /* State tiles and marks, following the Viewer's own status-card pattern:
+     a semantic text colour over its matching soft surface. */
+  --role-state-passed-text: var(--moss);
+  --role-state-passed-surface: var(--moss-soft);
+  --role-state-failed-text: var(--red);
+  --role-state-failed-surface: var(--red-soft);
+  --role-state-pending-text: var(--amber);
+  --role-state-pending-surface: var(--amber-soft);
+  --role-state-neutral-text: var(--color-muted-status-text);
+  --role-state-neutral-surface: var(--color-elevated-bg);
+}
+
 /* Shared progress summary (`ProgressSummary.svelte`): count row, one of the two
    bar forms, and a text line. Every value comes from the calling screen; the
    tones are the same three states the marker box uses. */
@@ -1590,7 +1632,8 @@ footer {
   display: grid;
   gap: 2px;
   padding: 11px 13px;
-  background: var(--color-elevated-bg);
+  color: var(--role-state-neutral-text);
+  background: var(--role-state-neutral-surface);
 }
 
 .progress-stat b {
@@ -1601,20 +1644,34 @@ footer {
 }
 
 .progress-stat span {
-  color: var(--color-muted-status-text);
+  color: var(--role-state-neutral-text);
   font-size: 0.78rem;
 }
 
-.progress-stat.progress-tone-passed b {
-  color: var(--color-success-text);
+/* The Viewer's status-card pattern: semantic text over its own soft surface, so
+   a state tile reads the same here as it does there. */
+.progress-stat.progress-tone-passed {
+  color: var(--role-state-passed-text);
+  background: var(--role-state-passed-surface);
 }
 
-.progress-stat.progress-tone-failed b {
-  color: var(--color-danger-text);
+.progress-stat.progress-tone-failed {
+  color: var(--role-state-failed-text);
+  background: var(--role-state-failed-surface);
 }
 
-.progress-stat.progress-tone-pending b {
-  color: var(--color-warning-text);
+.progress-stat.progress-tone-pending {
+  color: var(--role-state-pending-text);
+  background: var(--role-state-pending-surface);
+}
+
+.progress-stat.progress-tone-passed b,
+.progress-stat.progress-tone-failed b,
+.progress-stat.progress-tone-pending b,
+.progress-stat.progress-tone-passed span,
+.progress-stat.progress-tone-failed span,
+.progress-stat.progress-tone-pending span {
+  color: inherit;
 }
 
 .progress-bar {
@@ -1629,23 +1686,28 @@ footer {
   background: transparent;
 }
 
+/* Cells are filled indicators, so they take fill roles — the same source the
+   continuous meter uses — not the text or surface tones of a tile. */
 .progress-cell {
   flex: 1;
   border-radius: 2px;
-  background: var(--color-progress-track);
+  background: var(--role-fill-track);
 }
 
 .progress-cell.progress-tone-passed {
-  background: var(--color-success-text);
+  background: linear-gradient(
+    90deg,
+    var(--role-fill-progress-start),
+    var(--role-fill-progress-end)
+  );
 }
 
 .progress-cell.progress-tone-failed {
-  background: var(--color-danger-text);
+  background: var(--role-fill-danger);
 }
 
 .progress-cell.progress-tone-pending {
-  background: var(--color-warning-bg);
-  box-shadow: inset 0 0 0 1px var(--color-warning-border);
+  background: var(--role-fill-track);
 }
 
 .progress-caption {
@@ -1667,13 +1729,13 @@ footer {
   padding: 15px 16px;
   background: var(--color-elevated-bg);
   border: 1px solid var(--color-border);
-  border-left: 3px solid var(--color-warning-border);
+  border-left: 3px solid var(--role-state-pending-text);
   border-radius: 12px;
 }
 
 .next-step-heading {
   margin: 0;
-  color: var(--color-warning-text);
+  color: var(--role-state-pending-text);
   font-size: 0.74rem;
   font-weight: 700;
   letter-spacing: 0.04em;
@@ -1737,7 +1799,7 @@ footer {
   width: 20px;
   height: 20px;
   padding: 0;
-  color: var(--color-muted-status-text);
+  color: var(--role-state-neutral-text);
   background: transparent;
   border: 1.5px solid var(--color-border);
   border-radius: 5px;
@@ -1748,15 +1810,15 @@ footer {
 }
 
 .marker-box.marker-passed {
-  color: var(--color-success-text);
-  border-color: var(--color-success-border);
-  background: var(--color-success-bg);
+  color: var(--role-state-passed-text);
+  border-color: var(--role-state-passed-text);
+  background: var(--role-state-passed-surface);
 }
 
 .marker-box.marker-failed {
-  color: var(--color-danger-text);
-  border-color: var(--color-danger-border);
-  background: var(--color-danger-bg);
+  color: var(--role-state-failed-text);
+  border-color: var(--role-state-failed-text);
+  background: var(--role-state-failed-surface);
 }
 
 .marker-box-button {

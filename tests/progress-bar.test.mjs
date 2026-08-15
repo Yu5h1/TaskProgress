@@ -25,14 +25,15 @@ test("both components compile cleanly", () => {
 test("the continuous form is a native progress element", () => {
   assert.match(bar, /<progress class=\{`progress-meter \$\{extraClass\}`\} max="100" value=\{filled\}/u);
   assert.match(styles, /\.progress-meter \{[^}]*appearance: none;/u);
-  // The gradient the Viewer already had, now on the shared class.
+  // The gradient the Viewer already had, now reached through the fill roles so
+  // the segmented cells cannot drift from it.
   assert.match(
     styles,
-    /\.progress-meter::-webkit-progress-value \{[^}]*linear-gradient\(90deg, var\(--color-accent\), var\(--color-progress-end\)\)/u,
+    /\.progress-meter::-webkit-progress-value \{[^}]*var\(--role-fill-progress-start\),\s*var\(--role-fill-progress-end\)/u,
   );
   assert.match(
     styles,
-    /\.progress-meter::-moz-progress-bar \{[^}]*linear-gradient\(90deg, var\(--color-accent\), var\(--color-progress-end\)\)/u,
+    /\.progress-meter::-moz-progress-bar \{[^}]*var\(--role-fill-progress-start\),\s*var\(--role-fill-progress-end\)/u,
   );
 });
 

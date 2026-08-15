@@ -2833,35 +2833,37 @@ wr([
 //#region experiments/editor-svelte-spike/src/FilterStrip.svelte
 function da(e, t) {
 	Ge(t, !1);
-	let n = /* @__PURE__ */ N(), r = $(t, "categories", 24, () => []), i = $(t, "activeId", 8, null), a = $(t, "ariaLabel", 8, "篩選"), o = $(t, "className", 8, ""), s = $(t, "reorderable", 8, !1), c = $(t, "onSelect", 8, () => {}), l = $(t, "onReorder", 8, () => {}), u = (e) => e.count === void 0 || e.count === null ? e.label : `${e.label} ${e.count}`;
-	R(() => (W(r()), W(s()), W(i())), () => {
-		P(n, r().map((e) => {
-			let t = s() && e.sortable === !0;
+	let n = /* @__PURE__ */ N(), r = /* @__PURE__ */ N(), i = $(t, "categories", 24, () => []), a = $(t, "activeId", 8, null), o = $(t, "activeIds", 8, null), s = $(t, "ariaLabel", 8, "篩選"), c = $(t, "className", 8, ""), l = $(t, "reorderable", 8, !1), u = $(t, "onSelect", 8, () => {}), d = $(t, "onReorder", 8, () => {}), f = (e) => e.count === void 0 || e.count === null ? e.label : `${e.label} ${e.count}`;
+	R(() => (W(o()), W(a())), () => {
+		P(n, new Set(o() ?? (a() === null ? [] : [a()])));
+	}), R(() => (W(i()), W(l()), H(n)), () => {
+		P(r, i().map((e) => {
+			let t = l() && e.sortable !== !1;
 			return {
 				id: e.id,
-				label: u(e),
+				label: f(e),
 				className: `filter-button${t ? " status-sortable" : ""}`,
 				sortable: t,
-				pressed: e.id === i(),
+				pressed: H(n).has(e.id),
 				title: e.title ?? null,
-				ariaLabel: e.ariaLabel ?? u(e)
+				ariaLabel: e.ariaLabel ?? f(e)
 			};
 		}));
 	}), kn(), Oi(), ua(e, {
 		get items() {
-			return H(n);
+			return H(r);
 		},
 		get className() {
-			return o();
-		},
-		get ariaLabel() {
-			return a();
-		},
-		get onActivate() {
 			return c();
 		},
+		get ariaLabel() {
+			return s();
+		},
+		get onActivate() {
+			return u();
+		},
 		get onReorder() {
-			return l();
+			return d();
 		}
 	}), Ke();
 }

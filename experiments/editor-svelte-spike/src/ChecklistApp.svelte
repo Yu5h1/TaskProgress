@@ -7,6 +7,7 @@
     filterChecklist,
   } from "../../../viewer/assets/checklist-editor.js";
   import { createPersistenceController } from "../../../viewer/assets/persistence-mode.js";
+  import { createChecklistFilterOrder } from "../../../viewer/assets/checklist-filter-order.js";
   import { createThemeControl } from "../../../viewer/assets/theme-control.js";
   import FilterStrip from "./FilterStrip.svelte";
   import MarkerBox from "./MarkerBox.svelte";
@@ -34,22 +35,53 @@
   // the whole document, and never touches a save.
   let filter = { status: null, owner: null };
 
-  const STATUS_FILTER_LABELS = { pending: "未執行", passed: "通過", failed: "失敗" };
-  const OWNER_FILTER_LABELS = { manual: "需人工驗證", agent: "Agent" };
+  // One strip carries both groups. Each capsule knows which group it belongs
+  // to, so the two stay independent while sharing a single row the reader can
+  // rearrange.
+  const FILTER_CAPSULES = [
+    { id: "status:pending", group: "status", value: "pending", label: "未執行" },
+    { id: "status:passed", group: "status", value: "passed", label: "通過" },
+    { id: "status:failed", group: "status", value: "failed", label: "失敗" },
+    { id: "owner:manual", group: "owner", value: "manual", label: "需人工驗證" },
+    { id: "owner:agent", group: "owner", value: "agent", label: "Agent" },
+  ];
+  const filterOrder = createChecklistFilterOrder({
+    supportedIds: FILTER_CAPSULES.map((capsule) => capsule.id),
+  });
+  let capsuleOrder = filterOrder.order;
 
   // Clicking the selected capsule clears that group, so a reader never has to
   // hunt for an "all" control.
-  function toggleFilter(group, id) {
-    filter = { ...filter, [group]: filter[group] === id ? null : id };
+  function toggleFilter(id) {
+    const capsule = FILTER_CAPSULES.find((candidate) => candidate.id === id);
+    if (!capsule) return;
+    const current = filter[capsule.group];
+    filter = { ...filter, [capsule.group]: current === capsule.value ? null : capsule.value };
   }
 
-  function categories(group, labels, source) {
-    return source[group].map((entry) => ({
-      id: entry.id,
-      label: labels[entry.id] ?? entry.id,
-      count: entry.count,
-    }));
+  function reorderFilter(id, targetId, placeAfter) {
+    capsuleOrder = [...filterOrder.move(id, targetId, placeAfter)];
   }
+
+  function filterCategories(groups, order) {
+    const counts = new Map();
+    for (const group of ["status", "owner"]) {
+      for (const entry of groups[group]) counts.set(`${group}:${entry.id}`, entry.count);
+    }
+    return order
+      .map((id) => FILTER_CAPSULES.find((capsule) => capsule.id === id))
+      .filter(Boolean)
+      .map((capsule) => ({
+        id: capsule.id,
+        label: capsule.label,
+        count: counts.get(capsule.id) ?? 0,
+        title: "拖曳可調整篩選順序；Alt＋左右方向鍵也可移動",
+      }));
+  }
+
+  $: activeFilterIds = ["status", "owner"]
+    .filter((group) => filter[group] !== null)
+    .map((group) => `${group}:${filter[group]}`);
 
   // This screen names its own counts; the shared summary only draws them. A
   // dozen-ish checks is exactly the case the segmented bar exists for.
@@ -187,25 +219,15 @@
       />
     {/if}
 
-    {#if view}
-      {@const groups = checklistFilterCategories(view.document, filter)}
-      <div class="checklist-filters">
-        <FilterStrip
-          categories={categories("status", STATUS_FILTER_LABELS, groups)}
-          activeId={filter.status}
-          className="status-filter-strip"
-          ariaLabel="依 check 狀態篩選"
-          onSelect={(id) => toggleFilter("status", id)}
-        />
-        <FilterStrip
-          categories={categories("owner", OWNER_FILTER_LABELS, groups)}
-          activeId={filter.owner}
-          className="status-filter-strip"
-          ariaLabel="依負責對象篩選"
-          onSelect={(id) => toggleFilter("owner", id)}
-        />
-      </div>
-    {/if}
+    <FilterStrip
+      categories={filterCategories(checklistFilterCategories(view.document, filter), capsuleOrder)}
+      activeIds={activeFilterIds}
+      className="status-filter-strip"
+      ariaLabel="依 check 狀態與負責對象篩選；可拖曳調整順序"
+      reorderable={true}
+      onSelect={toggleFilter}
+      onReorder={reorderFilter}
+    />
 
     <section class="checklist-items" aria-label="Implementation checklist items">
       {#each filterChecklist(view.document, filter).items as item (item.id)}

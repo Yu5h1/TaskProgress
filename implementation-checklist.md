@@ -29,14 +29,14 @@ Run every Agent check once. If a check fails, mark it `[!]`, add `Observed`, and
       - Action: Build the Checklist UI asset once from the locked npm dependency graph.
       - Expect: The build succeeds and the WPF-loadable assets contain the shared summary and card rather than a Checklist-only copy.
 
-- [ ] **4. Make the progress bar one implementation across both screens**
+- [x] **4. Make the progress bar one implementation across both screens**
   Depends on: 1, 3.
   Outcome: The task-progress meter and the Checklist bar are the same component, and the status overview keeps its own status-card presentation.
   Checks:
     - [x] **Shared progress bar contract**
       - Action: Run focused tests for the continuous form keeping native progress semantics and the accent gradient, the segmented form staying unchanged, and the task-progress screen holding no meter markup of its own; then rebuild the preview bundle.
       - Expect: The continuous form renders one native progress element with the existing classes, both callers reach it without a host-specific option, the status overview is untouched, and the bundle rebuilds.
-    - [ ] **Rendered task-progress meter** `[manual]`
+    - [x] **Rendered task-progress meter** `[manual]`
       - Action: Open the local Viewer at desktop width and 390px and compare the overall-progress meter against the previous layout in both themes.
       - Expect: The meter reads the same as before, including its gradient and any deadline overlay, nothing overflows horizontally, and the status cards above it are unchanged.
       - Reason: Requires direct visual comparison in the user's running browser.
@@ -77,3 +77,22 @@ Run every Agent check once. If a check fails, mark it `[!]`, add `Observed`, and
       - Action: Open a disposable Checklist copy, read the summary and next-step card, apply a status filter and an owner filter, cycle one manual marker through all three states, then reopen the App.
       - Expect: The summary counts match the file, the next-step card names the outstanding check, filtering changes only what is visible, saving still works in both persistence modes, and only the disposable file changes.
       - Reason: Requires the user's Windows desktop, installed Evergreen WebView2 Runtime, and direct UX confirmation.
+
+- [ ] **9. Give component colours one categorised source**
+  Outcome: Every shared component takes its colour from a named role that resolves to the Viewer's existing theme tokens, so anything in the same category changes in one place.
+  Checks:
+    - [x] **Colour role contract**
+      - Action: Run focused tests for the role definitions, the shared components referencing only roles, and a progress fill resolving to the same source as the task-progress meter.
+      - Expect: Roles are defined once from existing theme tokens with no new literal colour, a filled indicator never takes a text or surface token, and the segmented and continuous forms share one fill source.
+    - [ ] **Rendered colour comparison** `[manual]`
+      - Action: Open the Checklist App and the local Viewer side by side in both themes and compare the progress fill, the count tiles, and the state markers.
+      - Expect: The same state reads as the same colour on both screens, filled areas hold their contrast in dark mode, and no element looks washed out against its background.
+      - Reason: Requires direct visual comparison across two running surfaces.
+
+- [x] **10. Make the Checklist filter bar one reorderable row**
+  Depends on: 6, 9.
+  Outcome: The Checklist filters sit in a single horizontal strip whose capsules the reader can reorder, with the order persisted per user.
+  Checks:
+    - [x] **Single-strip filter contract**
+      - Action: Run focused tests for one strip carrying both groups, independent selection across groups, capsule reordering through the shared order model, and the persisted preference.
+      - Expect: One strip renders both groups, selecting in one group leaves the other alone, the order persists in the user profile only, and work item order still follows the document.

@@ -36,9 +36,10 @@ test("one pointer and keyboard implementation stays underneath", () => {
 
 test("reordering is opt-in and off by default", () => {
   assert.match(strip, /export let reorderable = false;/u);
-  assert.match(strip, /const sortable = reorderable && category\.sortable === true;/u);
-  // A screen that does not opt in gets no sortable capsule even if a category
-  // claims to be sortable.
+  assert.match(strip, /const sortable = reorderable && category\.sortable !== false;/u);
+  // A screen that does not opt in gets no sortable capsule at all; a screen
+  // that does can still hold one capsule out, which is how the task-progress
+  // "all" capsule stays fixed while the status capsules drag.
   assert.match(strip, /sortable,\n\s*pressed:/u);
 });
 

@@ -81,7 +81,7 @@ test("the continuous ratio is clamped to a real percentage", () => {
 test("tones reuse the marker vocabulary and the theme's semantic colours", () => {
   assert.match(script, /new Set\(\["passed", "failed", "pending"\]\)/u);
   for (const tone of ["passed", "failed", "pending"]) {
-    assert.match(styles, new RegExp(`\\.progress-stat\\.progress-tone-${tone} b \\{`, "u"));
+    assert.match(styles, new RegExp(`\\.progress-stat\\.progress-tone-${tone} \\{`, "u"));
     assert.match(styles, new RegExp(`\\.progress-cell\\.progress-tone-${tone} \\{`, "u"));
   }
   // Semantic colours come from the theme, never as literals.

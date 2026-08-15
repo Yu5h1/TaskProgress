@@ -128,15 +128,17 @@ test("filtering never reaches a save", () => {
   assert.equal(typeof session.setFilter, "undefined");
 });
 
-test("the Checklist screen wires both groups without reordering", async () => {
+test("the Checklist screen wires both groups into one strip", async () => {
   const app = await readFile(
     new URL("../experiments/editor-svelte-spike/src/ChecklistApp.svelte", import.meta.url),
     "utf8",
   );
   assert.match(app, /import FilterStrip from "\.\/FilterStrip\.svelte"/u);
-  assert.equal((app.match(/<FilterStrip/gu) ?? []).length, 2, "status and owner");
-  assert.doesNotMatch(app, /reorderable/u, "the document owns the order");
+  assert.equal((app.match(/<FilterStrip/gu) ?? []).length, 1, "one row carries both groups");
+  // Capsules reorder; work items never do — the document owns their order.
+  assert.match(app, /reorderable=\{true\}/u);
   assert.match(app, /filterChecklist\(view\.document, filter\)\.items/u);
+  assert.doesNotMatch(app, /\.items\.sort\(/u);
   // The summary reads the document, never the filtered list.
   assert.match(app, /stats=\{summaryStats\(view\.summary\)\}/u);
   assert.doesNotMatch(app, /summarizeChecklist\(/u);

@@ -16,6 +16,7 @@
 
   export let categories = [];
   export let activeId = null;
+  export let activeIds = null;
   export let ariaLabel = "篩選";
   export let className = "";
   export let reorderable = false;
@@ -27,14 +28,18 @@
       ? category.label
       : `${category.label} ${category.count}`;
 
+  // One strip can carry independent groups, so selection is a set rather than a
+  // single id. `activeId` stays for the common one-group case.
+  $: selected = new Set(activeIds ?? (activeId === null ? [] : [activeId]));
+
   $: capsules = categories.map((category) => {
-    const sortable = reorderable && category.sortable === true;
+    const sortable = reorderable && category.sortable !== false;
     return {
       id: category.id,
       label: withCount(category),
       className: `filter-button${sortable ? " status-sortable" : ""}`,
       sortable,
-      pressed: category.id === activeId,
+      pressed: selected.has(category.id),
       title: category.title ?? null,
       ariaLabel: category.ariaLabel ?? withCount(category),
     };
