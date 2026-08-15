@@ -43,6 +43,11 @@ body {
   color: var(--muted);
 }
 
+.checklist-filters {
+  display: grid;
+  gap: 8px;
+}
+
 .checklist-items,
 .checklist-checks {
   display: grid;

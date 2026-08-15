@@ -48,14 +48,14 @@ Run every Agent check once. If a check fails, mark it `[!]`, add `Observed`, and
       - Action: Run focused tests for caller-supplied categories, selection callbacks, the optional reordering, and the unchanged pointer and keyboard behaviour.
       - Expect: The strip defines no categories of its own, reordering is opt-in per screen, and the task-progress screen keeps its existing order persistence.
 
-- [ ] **6. Give the Checklist its filter categories**
+- [x] **6. Give the Checklist its filter categories**
   Depends on: 3, 5.
   Outcome: The Checklist filters by check status and by owner without reordering, and filtering never changes what is saved or counted.
   Checks:
-    - [ ] **Checklist filter model**
+    - [x] **Checklist filter model**
       - Action: Run focused tests for the check-status and owner categories, reordering staying off, summary counts under an active filter, and dependency blocking under an active filter.
       - Expect: Counts stay whole-document, a filtered-out failed check still blocks dependent work, and work item order follows the document.
-    - [ ] **Checklist asset build**
+    - [x] **Checklist asset build**
       - Action: Build the Checklist UI asset once from the locked npm dependency graph.
       - Expect: The build succeeds and the filter strip comes from the shared implementation.
 

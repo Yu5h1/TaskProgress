@@ -118,6 +118,62 @@ function normalize(document) {
   return normalized;
 }
 
+/*
+ * Checklist filtering: two independent groups, status and owner.
+ *
+ * A filter decides what is on screen and nothing else. It never reaches the
+ * summary (which counts the whole document), never reaches a save, and never
+ * reorders anything — work item order is the document's, not the reader's.
+ *
+ * A work item survives a filter when any of its checks does, and it keeps only
+ * its matching checks, so a filtered item never implies its hidden checks are
+ * gone.
+ */
+export const CHECKLIST_FILTERS = Object.freeze({
+  status: Object.freeze(["pending", "passed", "failed"]),
+  owner: Object.freeze(["manual", "agent"]),
+});
+
+function matchesFilter(check, filter) {
+  if (filter.status && check.status !== filter.status) return false;
+  if (filter.owner === "manual" && !check.isManual) return false;
+  if (filter.owner === "agent" && check.isManual) return false;
+  return true;
+}
+
+export function filterChecklist(document, filter = {}) {
+  const status = CHECKLIST_FILTERS.status.includes(filter.status) ? filter.status : null;
+  const owner = CHECKLIST_FILTERS.owner.includes(filter.owner) ? filter.owner : null;
+  if (!status && !owner) return document;
+  const active = { status, owner };
+  return {
+    ...document,
+    items: document.items
+      .map((item) => ({
+        ...item,
+        checks: item.checks.filter((check) => matchesFilter(check, active)),
+      }))
+      .filter((item) => item.checks.length > 0),
+  };
+}
+
+export function checklistFilterCategories(document, filter = {}) {
+  const checks = document.items.flatMap((item) => item.checks);
+  const count = (predicate) => checks.filter(predicate).length;
+  return {
+    status: CHECKLIST_FILTERS.status.map((id) => ({
+      id,
+      count: count((check) => check.status === id),
+      selected: filter.status === id,
+    })),
+    owner: CHECKLIST_FILTERS.owner.map((id) => ({
+      id,
+      count: count((check) => (id === "manual" ? check.isManual : !check.isManual)),
+      selected: filter.owner === id,
+    })),
+  };
+}
+
 export function createChecklistEditorSession(document, options = {}) {
   // The source revision follows the last saved document, not the draft: Undo can
   // restore an older draft, and that older draft must still be written against

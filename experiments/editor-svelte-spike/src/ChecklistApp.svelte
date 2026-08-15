@@ -1,9 +1,14 @@
 <script>
   import { onMount } from "svelte";
 
-  import { createChecklistEditorSession } from "../../../viewer/assets/checklist-editor.js";
+  import {
+    checklistFilterCategories,
+    createChecklistEditorSession,
+    filterChecklist,
+  } from "../../../viewer/assets/checklist-editor.js";
   import { createPersistenceController } from "../../../viewer/assets/persistence-mode.js";
   import { createThemeControl } from "../../../viewer/assets/theme-control.js";
+  import FilterStrip from "./FilterStrip.svelte";
   import MarkerBox from "./MarkerBox.svelte";
   import NextStepCard from "./NextStepCard.svelte";
   import ProgressSummary from "./ProgressSummary.svelte";
@@ -18,6 +23,27 @@
   let message = "正在載入 Checklist…";
 
   const statusLabel = (status) => ({ pending: "未執行", passed: "通過", failed: "失敗" })[status] ?? status;
+
+  // Filtering is view state only: it never touches the summary, which counts
+  // the whole document, and never touches a save.
+  let filter = { status: null, owner: null };
+
+  const STATUS_FILTER_LABELS = { pending: "未執行", passed: "通過", failed: "失敗" };
+  const OWNER_FILTER_LABELS = { manual: "需人工驗證", agent: "Agent" };
+
+  // Clicking the selected capsule clears that group, so a reader never has to
+  // hunt for an "all" control.
+  function toggleFilter(group, id) {
+    filter = { ...filter, [group]: filter[group] === id ? null : id };
+  }
+
+  function categories(group, labels, source) {
+    return source[group].map((entry) => ({
+      id: entry.id,
+      label: labels[entry.id] ?? entry.id,
+      count: entry.count,
+    }));
+  }
 
   // This screen names its own counts; the shared summary only draws them. A
   // dozen-ish checks is exactly the case the segmented bar exists for.
@@ -155,8 +181,28 @@
       />
     {/if}
 
+    {#if view}
+      {@const groups = checklistFilterCategories(view.document, filter)}
+      <div class="checklist-filters">
+        <FilterStrip
+          categories={categories("status", STATUS_FILTER_LABELS, groups)}
+          activeId={filter.status}
+          className="status-filter-strip"
+          ariaLabel="依 check 狀態篩選"
+          onSelect={(id) => toggleFilter("status", id)}
+        />
+        <FilterStrip
+          categories={categories("owner", OWNER_FILTER_LABELS, groups)}
+          activeId={filter.owner}
+          className="status-filter-strip"
+          ariaLabel="依負責對象篩選"
+          onSelect={(id) => toggleFilter("owner", id)}
+        />
+      </div>
+    {/if}
+
     <section class="checklist-items" aria-label="Implementation checklist items">
-      {#each view.document.items as item (item.id)}
+      {#each filterChecklist(view.document, filter).items as item (item.id)}
         <article class={`checklist-item checklist-${item.status}`}>
           <header class="checklist-item-header">
             <MarkerBox status={item.status} label={`工作項目 ${item.id}`} />
