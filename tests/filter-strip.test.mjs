@@ -10,13 +10,11 @@ const read = (path) =>
   readFile(new URL(`../experiments/editor-svelte-spike/src/${path}`, import.meta.url), "utf8");
 
 const strip = await read("FilterStrip.svelte");
-const statusFilters = await read("StatusFilters.svelte");
+const app = await readFile(new URL("../viewer/assets/app.js", import.meta.url), "utf8");
 
-test("both components compile cleanly", () => {
-  for (const [name, source] of [["FilterStrip", strip], ["StatusFilters", statusFilters]]) {
-    const compiled = compile(source, { name });
-    assert.deepEqual(compiled.warnings.map((warning) => warning.code), [], `${name} warns`);
-  }
+test("the strip compiles cleanly", () => {
+  const compiled = compile(strip, { name: "FilterStrip" });
+  assert.deepEqual(compiled.warnings.map((warning) => warning.code), []);
 });
 
 test("the strip defines no categories of its own", () => {
@@ -25,13 +23,15 @@ test("the strip defines no categories of its own", () => {
   // Code only: the comment explaining the boundary is allowed to name the
   // screens, the code is not allowed to know them.
   const code = strip.replace(/\/\*[\s\S]*?\*\//gu, "").replace(/\/\/.*$/gmu, "");
-  assert.doesNotMatch(code, /"all"|全部|planned|待規劃|拖曳調整卡片|task-progress/u);
+  // 預設 is the strip's own control, so describing it is fair; knowing what a
+  // status means is not.
+  assert.doesNotMatch(code, /planned|in_progress|待規劃|待處理|未執行|通過|失敗|已封存/u);
 });
 
 test("one pointer and keyboard implementation stays underneath", () => {
   assert.match(strip, /import HorizontalCapsuleStrip from "\.\/HorizontalCapsuleStrip\.svelte"/u);
   assert.doesNotMatch(strip, /pointerdown|keydown|draggable/u, "interaction is not reimplemented");
-  assert.doesNotMatch(statusFilters, /HorizontalCapsuleStrip/u, "callers go through the strip");
+  assert.doesNotMatch(app, /HorizontalCapsuleStrip/u, "callers go through the strip");
 });
 
 test("reordering is opt-in and off by default", () => {
@@ -43,17 +43,15 @@ test("reordering is opt-in and off by default", () => {
   assert.match(strip, /sortable,\n\s*pressed:/u);
 });
 
-test("the task-progress screen keeps its existing behaviour", () => {
-  assert.match(statusFilters, /import FilterStrip from "\.\/FilterStrip\.svelte"/u);
-  assert.match(statusFilters, /reorderable=\{true\}/u);
-  // Its own vocabulary moved with it, not into the shared strip.
-  assert.match(statusFilters, /全部/u);
-  assert.match(statusFilters, /拖曳調整卡片排序；Alt＋左右方向鍵也可移動/u);
-  assert.match(statusFilters, /排序第 \$\{index\}/u);
-  // The "all" capsule and the count-driven visibility rule are unchanged.
-  assert.match(statusFilters, /\["all", \.\.\.statusOrder\]/u);
-  assert.match(statusFilters, /\(counts\[filter\] \?\? 0\) > 0/u);
-  assert.match(statusFilters, /className="status-filter-strip"/u);
+test("the task-progress host supplies its own vocabulary", () => {
+  // StatusFilters used to sit between the host and the strip; the host now
+  // builds its categories directly, so there is one less place to drift.
+  assert.match(app, /"status-filters"/u);
+  assert.match(app, /categories: tagOrder\.map\(/u);
+  assert.match(app, /STATUS_META\[status\]\?\.label/u);
+  assert.match(app, /拖曳調整卡片排序/u);
+  assert.match(app, /排序第 \$\{index\}/u);
+  assert.match(app, /reorderable: true,/u);
 });
 
 test("counts render the same way for every caller", () => {

@@ -8,7 +8,7 @@ import ModeToggle from "./ModeToggle.svelte";
 import ProjectProgress from "./ProjectProgress.svelte";
 import ScopeDirectory from "./ScopeDirectory.svelte";
 import SaveBar from "./SaveBar.svelte";
-import StatusFilters from "./StatusFilters.svelte";
+import FilterStrip from "./FilterStrip.svelte";
 import StatusOverview from "./StatusOverview.svelte";
 import TaskList from "./TaskList.svelte";
 import ThemeControl from "./ThemeControl.svelte";
@@ -30,7 +30,7 @@ import TimeSummaryButton from "./TimeSummaryButton.svelte";
 const components = {
   "task-list": TaskList,
   "status-overview": StatusOverview,
-  "status-filters": StatusFilters,
+  "status-filters": FilterStrip,
   "project-progress": ProjectProgress,
   "mode-toggle": ModeToggle,
   "save-bar": SaveBar,

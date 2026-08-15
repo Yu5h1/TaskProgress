@@ -8,9 +8,11 @@ import {
   CHECKLIST_FILTERS,
   checklistFilterCategories,
   createChecklistEditorSession,
-  filterChecklist,
+  filterChecklistBySelection,
+  orderChecklistItems,
   summarizeChecklist,
 } from "../viewer/assets/checklist-editor.js";
+import { DEFAULT_CAPSULE_ID } from "../viewer/assets/filter-selection.js";
 
 function check(index, status, isManual = false) {
   return {
@@ -45,101 +47,97 @@ function fixture() {
   };
 }
 
-test("the two filter groups are status and owner", () => {
+test("the filter vocabulary is the check statuses", () => {
   assert.deepEqual([...CHECKLIST_FILTERS.status], ["pending", "passed", "failed"]);
-  assert.deepEqual([...CHECKLIST_FILTERS.owner], ["manual", "agent"]);
+  assert.equal("owner" in CHECKLIST_FILTERS, false, "owner is not a filter");
 });
 
-test("a filter keeps only matching checks and drops emptied work items", () => {
-  const byStatus = filterChecklist(fixture(), { status: "pending" });
+test("every check is matched, not the work item's derived marker", () => {
+  // Item 2's derived status is failed, but it also holds an unexecuted check.
+  const document = {
+    ...fixture(),
+    items: [
+      { id: 1, title: "One", dependsOn: [], outcome: "", checks: [check(0, "passed")] },
+      {
+        id: 2,
+        title: "Mixed",
+        dependsOn: [],
+        outcome: "",
+        checks: [check(0, "failed"), check(1, "pending")],
+      },
+    ],
+  };
+  const pending = filterChecklistBySelection(document, new Set(["pending"]));
+  assert.deepEqual(pending.items.map((item) => item.id), [2], "the unexecuted check is findable");
+  assert.deepEqual(pending.items[0].checks.map((c) => c.index), [1], "only the matching check");
+});
+
+test("a card survives when any check matches and keeps only those checks", () => {
+  const byStatus = filterChecklistBySelection(fixture(), new Set(["pending"]));
   assert.deepEqual(byStatus.items.map((item) => item.id), [1, 3]);
-  assert.deepEqual(byStatus.items[0].checks.map((c) => c.index), [1], "only the pending check");
+  assert.deepEqual(byStatus.items[0].checks.map((c) => c.index), [1]);
 
-  const byOwner = filterChecklist(fixture(), { owner: "manual" });
-  assert.deepEqual(byOwner.items.map((item) => item.id), [1]);
+  const all = filterChecklistBySelection(fixture(), new Set(["pending", "passed", "failed"]));
+  assert.deepEqual(all.items.map((item) => item.id), [1, 2, 3], "everything selected shows all");
 
-  // The groups are independent and combine.
-  assert.deepEqual(
-    filterChecklist(fixture(), { status: "pending", owner: "agent" }).items.map((item) => item.id),
-    [3],
-  );
+  const none = filterChecklistBySelection(fixture(), new Set());
+  assert.deepEqual(none.items, [], "an empty selection shows nothing");
 });
 
-test("work item order always follows the document", () => {
-  const filtered = filterChecklist(fixture(), { status: "pending" });
-  assert.deepEqual(filtered.items.map((item) => item.id), [1, 3], "never resorted");
-  const unfiltered = filterChecklist(fixture(), {});
-  assert.deepEqual(unfiltered.items.map((item) => item.id), [1, 2, 3]);
-});
+test("ordering follows the capsule order, and 預設 first means as written", () => {
+  const document = {
+    ...fixture(),
+    items: [
+      { id: 1, title: "Pending", dependsOn: [], outcome: "", checks: [check(0, "pending")] },
+      { id: 2, title: "Failed", dependsOn: [], outcome: "", checks: [check(0, "failed")] },
+      { id: 3, title: "Passed", dependsOn: [], outcome: "", checks: [check(0, "passed")] },
+    ],
+  };
+  const asWritten = orderChecklistItems(document, [DEFAULT_CAPSULE_ID, "failed", "passed", "pending"]);
+  assert.deepEqual(asWritten.items.map((i) => i.id), [1, 2, 3], "the document's own order");
 
-test("an unknown or empty filter changes nothing", () => {
-  const document = fixture();
-  assert.equal(filterChecklist(document, {}), document, "no filter is the document itself");
-  assert.equal(filterChecklist(document, { status: "bogus" }), document);
+  const grouped = orderChecklistItems(document, ["failed", DEFAULT_CAPSULE_ID, "passed", "pending"]);
+  assert.deepEqual(grouped.items.map((i) => i.id), [2, 3, 1], "capsule order groups the cards");
 });
 
 test("counts stay whole-document under an active filter", () => {
   const document = fixture();
   const whole = summarizeChecklist(document);
-  const filtered = summarizeChecklist(filterChecklist(document, { status: "pending" }));
-
   assert.deepEqual(whole.checks, { total: 4, passed: 1, failed: 1, pending: 2 });
-  // Summarising a filtered view would misreport, which is why the screen
-  // summarises the document and filters only what it lists.
-  assert.notDeepEqual(filtered.checks, whole.checks);
+  const filtered = summarizeChecklist(filterChecklistBySelection(document, new Set(["pending"])));
+  assert.notDeepEqual(filtered.checks, whole.checks, "which is why the screen summarises the document");
 });
 
-test("a filtered-out failure still blocks and is still the next step", () => {
-  const document = fixture();
-  // Item 2 holds the only failure; hide it behind a "pending" filter.
-  const summary = summarizeChecklist(document);
-  assert.equal(summary.nextStep.workItemId, 2, "the failure leads");
-
-  const hidden = filterChecklist(document, { status: "pending" });
-  assert.equal(hidden.items.some((item) => item.id === 2), false, "hidden from the list");
-  assert.equal(
-    summarizeChecklist(document).nextStep.workItemId,
-    2,
-    "still the next step: the summary reads the document",
-  );
-});
-
-test("category counts describe the whole document, not the filtered view", () => {
-  const groups = checklistFilterCategories(fixture(), { status: "pending" });
+test("category counts describe the whole document and include empty tags", () => {
+  const categories = checklistFilterCategories({
+    ...fixture(),
+    items: [{ id: 1, title: "One", dependsOn: [], outcome: "", checks: [check(0, "pending")] }],
+  });
   assert.deepEqual(
-    groups.status.map((entry) => [entry.id, entry.count]),
-    [["pending", 2], ["passed", 1], ["failed", 1]],
+    categories.map((entry) => [entry.id, entry.count]),
+    [["pending", 1], ["passed", 0], ["failed", 0]],
+    "a tag with no matches still renders",
   );
-  assert.deepEqual(
-    groups.owner.map((entry) => [entry.id, entry.count]),
-    [["manual", 1], ["agent", 3]],
-  );
-  assert.equal(groups.status.find((entry) => entry.id === "pending").selected, true);
 });
 
 test("filtering never reaches a save", () => {
   const session = createChecklistEditorSession(fixture());
   session.dispatch({ type: "cycle-result", workItemId: 1, checkIndex: 1 });
-  const prepared = session.prepareSave();
-  assert.deepEqual(prepared.results, [
+  assert.deepEqual(session.prepareSave().results, [
     { workItemId: 1, checkIndex: 1, status: "passed", observed: null },
   ]);
-  // The session has no filter to apply: filtering is the screen's view state.
   assert.equal(typeof session.setFilter, "undefined");
 });
 
-test("the Checklist screen wires both groups into one strip", async () => {
+test("the Checklist screen wires one strip with no owner capsules", async () => {
   const app = await readFile(
     new URL("../experiments/editor-svelte-spike/src/ChecklistApp.svelte", import.meta.url),
     "utf8",
   );
-  assert.match(app, /import FilterStrip from "\.\/FilterStrip\.svelte"/u);
-  assert.equal((app.match(/<FilterStrip/gu) ?? []).length, 1, "one row carries both groups");
-  // Capsules reorder; work items never do — the document owns their order.
-  assert.match(app, /reorderable=\{true\}/u);
-  assert.match(app, /filterChecklist\(view\.document, filter\)\.items/u);
-  assert.doesNotMatch(app, /\.items\.sort\(/u);
-  // The summary reads the document, never the filtered list.
-  assert.match(app, /stats=\{summaryStats\(view\.summary\)\}/u);
-  assert.doesNotMatch(app, /summarizeChecklist\(/u);
+  assert.equal((app.match(/<FilterStrip/gu) ?? []).length, 1);
+  // Owner is still shown on each check; it is simply not a filter capsule.
+  assert.match(app, /const FILTER_TAGS = \["pending", "passed", "failed"\];/u);
+  assert.doesNotMatch(app, /owner:|OWNER_FILTER/u, "owner is not a filter");
+  assert.match(app, /filterChecklistBySelection\(orderChecklistItems\(/u);
+  assert.match(app, /defaultLit=\{isDefaultLit\(selection\)\}/u);
 });

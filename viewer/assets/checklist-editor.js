@@ -1,4 +1,6 @@
 import { createEditorTransaction } from "./editor-transaction.js";
+import { DEFAULT_CAPSULE_ID } from "./filter-selection.js";
+import { stableSortByStatus } from "./status-order.js";
 
 function findCheck(document, workItemId, checkIndex) {
   const item = document.items.find((candidate) => candidate.id === workItemId);
@@ -119,59 +121,62 @@ function normalize(document) {
 }
 
 /*
- * Checklist filtering: two independent groups, status and owner.
+ * Checklist filtering and ordering.
  *
- * A filter decides what is on screen and nothing else. It never reaches the
- * summary (which counts the whole document), never reaches a save, and never
- * reorders anything — work item order is the document's, not the reader's.
- *
- * A work item survives a filter when any of its checks does, and it keeps only
- * its matching checks, so a filtered item never implies its hidden checks are
- * gone.
+ * A filter decides what is on screen and nothing else: it never reaches the
+ * summary, which counts the whole document, and never reaches a save. Ordering
+ * is the other gesture — where the reader dragged the capsules — and the two do
+ * not touch each other.
  */
 export const CHECKLIST_FILTERS = Object.freeze({
   status: Object.freeze(["pending", "passed", "failed"]),
-  owner: Object.freeze(["manual", "agent"]),
 });
 
-function matchesFilter(check, filter) {
-  if (filter.status && check.status !== filter.status) return false;
-  if (filter.owner === "manual" && !check.isManual) return false;
-  if (filter.owner === "agent" && check.isManual) return false;
-  return true;
-}
-
-export function filterChecklist(document, filter = {}) {
-  const status = CHECKLIST_FILTERS.status.includes(filter.status) ? filter.status : null;
-  const owner = CHECKLIST_FILTERS.owner.includes(filter.owner) ? filter.owner : null;
-  if (!status && !owner) return document;
-  const active = { status, owner };
+/*
+ * Filtering looks at every check, never at the work item's derived marker: that
+ * marker takes the worst state, so a card holding one failure would hide the
+ * unexecuted work still inside it.
+ *
+ * A card survives when any of its checks matches, and keeps only those checks.
+ */
+export function filterChecklistBySelection(document, selected) {
+  const keep = new Set(selected ?? []);
   return {
     ...document,
     items: document.items
       .map((item) => ({
         ...item,
-        checks: item.checks.filter((check) => matchesFilter(check, active)),
+        checks: item.checks.filter((check) => keep.has(check.status)),
       }))
       .filter((item) => item.checks.length > 0),
   };
 }
 
-export function checklistFilterCategories(document, filter = {}) {
-  const checks = document.items.flatMap((item) => item.checks);
-  const count = (predicate) => checks.filter(predicate).length;
+/*
+ * Order work items by where the reader put the capsules.
+ *
+ * The leading 預設 capsule means "as written", so the document's own order
+ * stands. Moved out of first place, the status capsules become the grouping
+ * order. Either way nothing is renumbered — an id is identity, not position.
+ */
+export function orderChecklistItems(document, capsuleOrder = []) {
+  if (capsuleOrder[0] === DEFAULT_CAPSULE_ID) return document;
+  const statusOrder = capsuleOrder.filter((id) => CHECKLIST_FILTERS.status.includes(id));
+  if (statusOrder.length === 0) return document;
   return {
-    status: CHECKLIST_FILTERS.status.map((id) => ({
-      id,
-      count: count((check) => check.status === id),
-      selected: filter.status === id,
-    })),
-    owner: CHECKLIST_FILTERS.owner.map((id) => ({
-      id,
-      count: count((check) => (id === "manual" ? check.isManual : !check.isManual)),
-      selected: filter.owner === id,
-    })),
+    ...document,
+    items: stableSortByStatus(document.items, statusOrder, itemStatus),
   };
+}
+
+export function checklistFilterCategories(document) {
+  const checks = document.items.flatMap((item) => item.checks);
+  // Every status shows, including the ones at zero: a capsule set that changes
+  // with the data moves the filter under the reader's hands.
+  return CHECKLIST_FILTERS.status.map((id) => ({
+    id,
+    count: checks.filter((check) => check.status === id).length,
+  }));
 }
 
 export function createChecklistEditorSession(document, options = {}) {

@@ -29,6 +29,14 @@ import { buildTimeSettingsRiskPreview } from "./delivery-risk-preview.js";
 import { createUiView } from "./ui-host.js";
 import { createThemeControl } from "./theme-control.js";
 import {
+  DEFAULT_CAPSULE_ID,
+  createFilterSelection,
+  isDefaultLit,
+  toggleDefault,
+  toggleTag,
+  withTags,
+} from "./filter-selection.js";
+import {
   inspectTimeAnalysis,
   resolveTimeAnalysisSource,
 } from "./time-model.js";
@@ -40,10 +48,14 @@ import {
   moveStatusOrder,
   saveStatusOrder,
   stableSortByStatus,
-  taskMatchesViewStatus,
+  taskHasSelectedItem,
+  taskMatchesSelection,
 } from "./status-order.js";
 
 const supportedStatuses = Object.keys(STATUS_META);
+// 預設 rides in the same order array so dragging it is ordinary capsule
+// reordering, and its position is persisted with everything else.
+const supportedCapsules = [DEFAULT_CAPSULE_ID, ...supportedStatuses];
 
 function getBrowserStorage() {
   try {
@@ -94,9 +106,8 @@ const state = {
   persistedReport: null,
   developerReport: null,
   tasks: [],
-  filter: "all",
-  // The second filter axis: task status and item status move independently.
-  itemFilter: null,
+  // One selected set of task statuses; items match the two they can carry.
+  selection: createFilterSelection([]),
   diagnostics: [],
   developerAvailable: false,
   timeAnalysis: null,
@@ -113,7 +124,7 @@ const state = {
   timeSettingsView: null,
   deliveryRiskPreviewView: null,
   deliverySaveConfirmationView: null,
-  statusOrder: loadStatusOrder(statusOrderStorage, supportedStatuses),
+  statusOrder: loadStatusOrder(statusOrderStorage, supportedCapsules),
   moduleOrder: moduleOrderControl.order,
   editor: {
     available: false,
@@ -554,7 +565,7 @@ function renderProjectProgress() {
 function statusCounts() {
   const counts = { all: state.tasks.length };
   supportedStatuses.forEach((status) => {
-    counts[status] = state.tasks.filter((task) => taskMatchesViewStatus(task, status)).length;
+    counts[status] = state.tasks.filter((task) => task.status === status).length;
   });
   return counts;
 }
@@ -582,38 +593,41 @@ function applyModuleOrder(id, targetId, placeAfter = false) {
 
 
 
-function itemStatusCounts() {
-  return state.tasks.reduce(
-    (counts, task) => ({
-      pending: counts.pending + (task.pending_items?.length ?? 0),
-      completed: counts.completed + (task.completed_items?.length ?? 0),
-    }),
-    { pending: 0, completed: 0 },
-  );
-}
-
 function renderFilters() {
+  // Every status shows, including the ones at zero: hiding them would let the
+  // capsule set change under a reader who never touched the filter.
+  const tagOrder = state.statusOrder.filter((id) => id !== DEFAULT_CAPSULE_ID);
+  state.selection = withTags(state.selection, tagOrder);
+  const counts = statusCounts();
   const props = {
-    counts: statusCounts(),
-    statusOrder: state.statusOrder,
-    activeFilter: state.filter,
-    itemCounts: itemStatusCounts(),
-    activeItemFilter: state.itemFilter,
-    statusLabels: Object.fromEntries(
-      Object.entries(STATUS_META).map(([status, meta]) => [status, meta.label]),
-    ),
-    onFilterChange: (filter) => {
-      state.filter = filter;
+    categories: tagOrder.map((status, index) => {
+      const label = STATUS_META[status]?.label ?? status;
+      const count = counts[status] ?? 0;
+      return {
+        id: status,
+        label,
+        count,
+        title: "拖曳調整卡片排序；「預設」在第一顆時依報告原本的順序",
+        ariaLabel: `${label} ${count}，排序第 ${index}；可拖曳調整`,
+      };
+    }),
+    selected: state.selection.selected,
+    defaultLit: isDefaultLit(state.selection),
+    className: "status-filter-strip",
+    ariaLabel: "工作狀態篩選與排序",
+    reorderable: true,
+    onSelect: (status) => {
+      state.selection = toggleTag(state.selection, status);
       renderFilters();
       renderTasks();
     },
-    onItemFilterChange: (itemFilter) => {
-      state.itemFilter = state.itemFilter === itemFilter ? null : itemFilter;
+    onSelectDefault: () => {
+      state.selection = toggleDefault(state.selection);
       renderFilters();
       renderTasks();
     },
-    onReorder: (status, targetStatus, placeAfter) => {
-      applyStatusOrder(status, targetStatus, placeAfter);
+    onReorder: (id, targetId, placeAfter) => {
+      applyStatusOrder(id, targetId, placeAfter);
     },
   };
   if (state.filtersView) state.filtersView.update(props);
@@ -727,19 +741,19 @@ function taskListProps(tasks) {
 }
 
 function renderTasks() {
-  const orderedTasks = stableSortByStatus(
-    stableSortTasksByPriority(state.tasks),
-    state.statusOrder,
-  );
-  // Two independent axes, and both only hide: ordering above is untouched.
-  const byStatus = state.filter === "all"
-    ? orderedTasks
-    : orderedTasks.filter((task) => taskMatchesViewStatus(task, state.filter));
-  const tasks = state.itemFilter
-    ? byStatus
-      .filter((task) => taskMatchesItemStatus(task, state.itemFilter))
-      .map((task) => filterTaskItems(task, state.itemFilter))
-    : byStatus;
+  // Where 預設 sits chooses the order. Leading it means "as written", so
+  // neither status grouping nor priority sorting runs; moved out of first place
+  // the capsules group the cards, with priority sorting inside each group.
+  const orderedTasks = state.statusOrder[0] === DEFAULT_CAPSULE_ID
+    ? state.tasks
+    : stableSortByStatus(stableSortTasksByPriority(state.tasks), state.statusOrder);
+  // Filtering only hides, and it applies at both levels: a card survives when
+  // it matches or when it still holds a matching item, and it then shows only
+  // those items. Ordering above is untouched by any of it.
+  const selected = state.selection.selected;
+  const tasks = orderedTasks
+    .filter((task) => taskMatchesSelection(task, selected) || taskHasSelectedItem(task, selected))
+    .map((task) => filterTaskItems(task, selected));
 
   const props = taskListProps(tasks);
   if (state.taskListView) state.taskListView.update(props);

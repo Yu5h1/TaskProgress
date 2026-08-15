@@ -10,7 +10,7 @@ import {
   createChecklistFilterOrder,
 } from "../viewer/assets/checklist-filter-order.js";
 
-const IDS = ["status:pending", "status:passed", "status:failed", "owner:manual", "owner:agent"];
+const IDS = ["__default__", "pending", "passed", "failed"];
 
 function fakeStorage(initial = {}) {
   const values = new Map(Object.entries(initial));
@@ -30,23 +30,20 @@ const strip = await readFile(
   "utf8",
 );
 
-test("one strip carries both groups in a single row", () => {
-  assert.equal((app.match(/<FilterStrip/gu) ?? []).length, 1, "one strip, not one per group");
+test("one strip, and 預設 rides in the same order array", () => {
+  assert.equal((app.match(/<FilterStrip/gu) ?? []).length, 1, "one row");
   assert.match(app, /reorderable=\{true\}/u);
-  assert.match(app, /activeIds=\{activeFilterIds\}/u);
-  // The stacked wrapper is gone.
-  assert.doesNotMatch(app, /checklist-filters/u);
+  assert.match(app, /supportedIds: \[DEFAULT_CAPSULE_ID, \.\.\.FILTER_TAGS\]/u);
+  assert.doesNotMatch(app, /checklist-filters/u, "no stacked wrapper");
 });
 
-test("the groups stay independent inside the one strip", () => {
-  // Each capsule declares its group, and toggling touches only that group.
-  assert.match(app, /\{ id: "status:pending", group: "status", value: "pending"/u);
-  assert.match(app, /\{ id: "owner:manual", group: "owner", value: "manual"/u);
-  assert.match(app, /filter = \{ \.\.\.filter, \[capsule\.group\]: current === capsule\.value \? null : capsule\.value \}/u);
-  // Both groups can be active at once.
-  assert.match(app, /\["status", "owner"\]\s*\.filter\(\(group\) => filter\[group\] !== null\)/u);
-  assert.match(strip, /export let activeIds = null;/u);
-  assert.match(strip, /new Set\(activeIds \?\? \(activeId === null \? \[\] : \[activeId\]\)\)/u);
+test("selecting and ordering are separate gestures", () => {
+  // Clicking changes the selected set; dragging changes the capsule order.
+  assert.match(app, /onSelect=\{selectTag\}/u);
+  assert.match(app, /onSelectDefault=\{selectDefault\}/u);
+  assert.match(app, /onReorder=\{reorderFilter\}/u);
+  assert.match(strip, /export let selected = new Set\(\);/u);
+  assert.match(strip, /export let defaultLit = false;/u);
 });
 
 test("capsule order persists in the user profile under its own key", () => {
@@ -56,48 +53,45 @@ test("capsule order persists in the user profile under its own key", () => {
   const order = createChecklistFilterOrder({ supportedIds: IDS, storage });
   assert.deepEqual(order.order, IDS, "defaults to the declared order");
 
-  order.move("status:failed", "status:pending");
-  assert.deepEqual(order.order, [
-    "status:failed",
-    "status:pending",
-    "status:passed",
-    "owner:manual",
-    "owner:agent",
-  ]);
+  order.move("failed", "pending");
+  assert.deepEqual(order.order, ["__default__", "failed", "pending", "passed"]);
   assert.equal(
     storage.getItem(CHECKLIST_FILTER_ORDER_STORAGE_KEY),
     JSON.stringify(order.order),
   );
 
-  // A reopened screen restores it.
+  // A reopened screen restores it, including where 預設 ended up.
   const restored = createChecklistFilterOrder({ supportedIds: IDS, storage });
   assert.deepEqual(restored.order, order.order);
 });
 
-test("groups may interleave, and an unknown saved id is dropped", () => {
-  const storage = fakeStorage({
-    [CHECKLIST_FILTER_ORDER_STORAGE_KEY]: JSON.stringify([
-      "owner:manual",
-      "status:failed",
-      "gone:removed",
-    ]),
-  });
+test("預設 can be dragged out of first place and that is remembered", () => {
+  const storage = fakeStorage();
   const order = createChecklistFilterOrder({ supportedIds: IDS, storage });
-  assert.deepEqual(order.order, [
-    "owner:manual",
-    "status:failed",
-    "status:pending",
-    "status:passed",
-    "owner:agent",
-  ]);
+  assert.equal(order.order[0], "__default__", "it starts leading");
+
+  order.move("__default__", "pending", true);
+  assert.notEqual(order.order[0], "__default__", "which switches the screen to grouped order");
+  assert.deepEqual(
+    createChecklistFilterOrder({ supportedIds: IDS, storage }).order,
+    order.order,
+  );
 });
 
-test("reordering capsules never reorders work items", () => {
+test("an unknown saved id is dropped and a new one is appended", () => {
+  const storage = fakeStorage({
+    [CHECKLIST_FILTER_ORDER_STORAGE_KEY]: JSON.stringify(["failed", "__default__", "gone"]),
+  });
+  const order = createChecklistFilterOrder({ supportedIds: IDS, storage });
+  assert.deepEqual(order.order, ["failed", "__default__", "pending", "passed"]);
+});
+
+test("capsule order is what reorders the cards", () => {
+  // The order model itself knows nothing about the document.
   const source = "" + createChecklistFilterOrder.toString();
   assert.doesNotMatch(source, /items|checks/u);
-  // The screen still lists the document's own order.
-  assert.match(app, /filterChecklist\(view\.document, filter\)\.items/u);
-  assert.doesNotMatch(app, /\.items\.sort\(|reverse\(\)/u);
+  // The screen applies it explicitly, and 預設 in first place means as written.
+  assert.match(app, /orderChecklistItems\(view\.document, capsuleOrder\)/u);
 });
 
 test("storage stays out of the screen", () => {

@@ -10,8 +10,8 @@ import {
   normalizeStatusOrder,
   saveStatusOrder,
   stableSortByStatus,
-  taskMatchesItemStatus,
-  taskMatchesViewStatus,
+  taskHasSelectedItem,
+  taskMatchesSelection,
   filterTaskItems,
 } from "../viewer/assets/status-order.js";
 import {
@@ -69,25 +69,24 @@ test("task sorting follows status order and stays stable inside each status", ()
   assert.deepEqual(tasks.map((task) => task.id), ["a", "b", "c", "d"]);
 });
 
-test("a task with unfinished work is found by the item axis, not by planned", () => {
-  // This used to be one axis: `planned` matched any task holding a pending
-  // item. That made the task status ambiguous and, because only cards were
-  // filtered, left completed items on screen. The guarantee it protected —
-  // unfinished work stays findable and is never mistaken for archived — now
-  // belongs to the item axis, which also hides the finished items.
+test("a task with unfinished work is found by its items, not by an overload", () => {
+  // `planned` used to match any task holding a pending item. That made the task
+  // status ambiguous and, because only cards were filtered, left completed
+  // items on screen. The guarantee it protected — unfinished work stays
+  // findable and is never mistaken for archived — now comes from matching the
+  // items themselves, which also hides the finished ones.
   const pendingTask = {
     status: "in_progress",
     pending_items: ["still needs work"],
     completed_items: ["already done"],
   };
-  assert.equal(taskMatchesViewStatus(pendingTask, "planned"), false, "no longer overloaded");
-  assert.equal(taskMatchesViewStatus(pendingTask, "in_progress"), true);
-  assert.equal(taskMatchesViewStatus(pendingTask, "archive"), false);
-  assert.equal(taskMatchesViewStatus({ status: "planned" }, "planned"), true);
-  assert.equal(taskMatchesViewStatus({ status: "archive" }, "planned"), false);
+  const planned = new Set(["planned"]);
+  assert.equal(taskMatchesSelection(pendingTask, planned), false, "no longer overloaded");
+  assert.equal(taskMatchesSelection(pendingTask, new Set(["in_progress"])), true);
+  assert.equal(taskMatchesSelection({ status: "archive" }, planned), false);
 
-  assert.equal(taskMatchesItemStatus(pendingTask, "pending"), true, "still findable");
-  assert.deepEqual(filterTaskItems(pendingTask, "pending").completed_items, []);
+  assert.equal(taskHasSelectedItem(pendingTask, planned), true, "still findable");
+  assert.deepEqual(filterTaskItems(pendingTask, planned).completed_items, []);
 });
 
 test("pending and completed child panels follow the shared status order", () => {
@@ -129,10 +128,6 @@ const taskCard = await readFile(
   new URL("../experiments/editor-svelte-spike/src/TaskCard.svelte", import.meta.url),
   "utf8",
 );
-const statusFilters = await readFile(
-  new URL("../experiments/editor-svelte-spike/src/StatusFilters.svelte", import.meta.url),
-  "utf8",
-);
 const filterStrip = await readFile(
   new URL("../experiments/editor-svelte-spike/src/FilterStrip.svelte", import.meta.url),
   "utf8",
@@ -162,9 +157,8 @@ test("production Viewer exposes mouse, touch, and keyboard status ordering", asy
   // survive the move. The path is now StatusFilters → FilterStrip →
   // HorizontalCapsuleStrip, and ordering only happens because this screen opts
   // in — the shared strip is selection-only by default.
-  assert.match(statusFilters, /FilterStrip/);
-  assert.match(statusFilters, /reorderable=\{true\}/);
   assert.match(filterStrip, /HorizontalCapsuleStrip/);
+  assert.match(app, /reorderable: true,/);
   assert.match(horizontalCapsules, /ondragstart=/);
   assert.match(horizontalCapsules, /onpointerdown=/);
   assert.match(horizontalCapsules, /Alt\+ArrowLeft Alt\+ArrowRight/);
@@ -173,13 +167,13 @@ test("production Viewer exposes mouse, touch, and keyboard status ordering", asy
   assert.match(horizontalCapsules, /capsule-drop-after/);
   assert.match(horizontalCapsules, /capsule-drop-before/);
   assert.match(horizontalCapsules, /capsule-dragging/);
-  assert.match(app, /applyStatusOrder\(status, targetStatus, placeAfter\)/);
+  assert.match(app, /applyStatusOrder\(id, targetId, placeAfter\)/);
   assert.match(app, /saveStatusOrder\(statusOrderStorage, state\.statusOrder\)/);
   assert.match(
     app,
-    /stableSortByStatus\(\s*stableSortTasksByPriority\(state\.tasks\),\s*state\.statusOrder/,
+    /stableSortByStatus\(stableSortTasksByPriority\(state\.tasks\), state\.statusOrder\)/,
   );
-  assert.match(app, /taskMatchesViewStatus\(task, state\.filter\)/);
+  assert.match(app, /taskMatchesSelection\(task, selected\)/);
   // Panel titles and their ordering moved into the card component; the host
   // still supplies the reader's status order.
   assert.match(app, /statusOrder: state\.statusOrder/);

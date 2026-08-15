@@ -1,15 +1,16 @@
-// Task status and item status are two independent filter axes. Both only hide;
-// neither reorders.
+// One tag vocabulary, applied at both levels. An earlier version of this file
+// split task and item filtering into two capsule groups; the tags are now one
+// set, and an item matches the two statuses it can actually carry.
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 import {
-  ITEM_VIEW_STATUSES,
+  ITEM_STATUS_FIELDS,
   filterTaskItems,
   stableSortByStatus,
-  taskMatchesItemStatus,
-  taskMatchesViewStatus,
+  taskHasSelectedItem,
+  taskMatchesSelection,
 } from "../viewer/assets/status-order.js";
 
 const task = (id, status, pending = [], completed = []) => ({
@@ -19,42 +20,50 @@ const task = (id, status, pending = [], completed = []) => ({
   completed_items: completed,
 });
 
-test("a task status matches only that status", () => {
-  const planned = task("a", "planned", [{ id: "p1" }]);
-  const active = task("b", "in_progress", [{ id: "p2" }], [{ id: "c1" }]);
-
-  assert.equal(taskMatchesViewStatus(planned, "planned"), true);
-  assert.equal(taskMatchesViewStatus(active, "in_progress"), true);
-  // The overload is gone: having pending items no longer makes a task planned,
-  // which is what left completed items on screen.
-  assert.equal(taskMatchesViewStatus(active, "planned"), false);
+test("an item carries the two statuses its arrays stand for", () => {
+  assert.deepEqual(ITEM_STATUS_FIELDS, {
+    planned: "pending_items",
+    done: "completed_items",
+  });
 });
 
-test("an item status keeps the cards that hold one", () => {
-  assert.deepEqual([...ITEM_VIEW_STATUSES], ["pending", "completed"]);
+test("a card survives by its own status or by holding a matching item", () => {
+  const mixed = task("b", "in_progress", [{ id: "p1" }], [{ id: "c1" }]);
+  const active = new Set(["in_progress"]);
+  const planned = new Set(["planned"]);
 
-  const done = task("a", "done", [], [{ id: "c1" }]);
-  const mixed = task("b", "in_progress", [{ id: "p1" }], [{ id: "c2" }]);
-
-  assert.equal(taskMatchesItemStatus(done, "pending"), false);
-  assert.equal(taskMatchesItemStatus(done, "completed"), true);
-  assert.equal(taskMatchesItemStatus(mixed, "pending"), true);
-  assert.equal(taskMatchesItemStatus(mixed, "completed"), true);
+  assert.equal(taskMatchesSelection(mixed, active), true);
+  assert.equal(taskMatchesSelection(mixed, planned), false);
+  assert.equal(taskHasSelectedItem(mixed, planned), true, "its pending item matches");
+  assert.equal(taskHasSelectedItem(task("c", "done"), planned), false);
 });
 
-test("a surviving card shows only the items that matched", () => {
+test("a surviving card shows only the items whose status is selected", () => {
   const mixed = task("b", "in_progress", [{ id: "p1" }], [{ id: "c1" }, { id: "c2" }]);
 
-  const pendingOnly = filterTaskItems(mixed, "pending");
-  assert.deepEqual(pendingOnly.pending_items.map((item) => item.id), ["p1"]);
-  assert.deepEqual(pendingOnly.completed_items, [], "no completed item survives 未完成");
+  const planned = filterTaskItems(mixed, new Set(["planned"]));
+  assert.deepEqual(planned.pending_items.map((item) => item.id), ["p1"]);
+  assert.deepEqual(planned.completed_items, [], "no completed item survives 待處理");
 
-  const completedOnly = filterTaskItems(mixed, "completed");
-  assert.deepEqual(completedOnly.completed_items.map((item) => item.id), ["c1", "c2"]);
-  assert.deepEqual(completedOnly.pending_items, []);
+  const both = filterTaskItems(mixed, new Set(["planned", "done"]));
+  assert.equal(both.pending_items.length, 1);
+  assert.equal(both.completed_items.length, 2);
+});
 
-  // An unknown axis leaves the task exactly as it was.
-  assert.equal(filterTaskItems(mixed, "bogus"), mixed);
+test("selecting a status an item cannot hold leaves the card with no items", () => {
+  // Items are only ever waiting or finished, so 進行中 matches none of them.
+  // That is the honest result until items gain a status of their own.
+  const mixed = task("b", "in_progress", [{ id: "p1" }], [{ id: "c1" }]);
+  const filtered = filterTaskItems(mixed, new Set(["in_progress"]));
+  assert.deepEqual(filtered.pending_items, []);
+  assert.deepEqual(filtered.completed_items, []);
+});
+
+test("an empty selection matches nothing at either level", () => {
+  const mixed = task("b", "in_progress", [{ id: "p1" }], [{ id: "c1" }]);
+  const none = new Set();
+  assert.equal(taskMatchesSelection(mixed, none), false);
+  assert.equal(taskHasSelectedItem(mixed, none), false);
 });
 
 test("filtering never reorders", () => {
@@ -66,39 +75,21 @@ test("filtering never reorders", () => {
   const ordered = stableSortByStatus(tasks, ["in_progress", "planned", "done"]);
   assert.deepEqual(ordered.map((entry) => entry.id), ["b", "c", "a"]);
 
-  // Applying either axis preserves that order; order comes from the capsule
-  // drag order alone.
+  const selected = new Set(["planned"]);
   const filtered = ordered
-    .filter((entry) => taskMatchesItemStatus(entry, "pending"))
-    .map((entry) => filterTaskItems(entry, "pending"));
-  assert.deepEqual(filtered.map((entry) => entry.id), ["b", "c"]);
+    .filter((entry) => taskMatchesSelection(entry, selected) || taskHasSelectedItem(entry, selected))
+    .map((entry) => filterTaskItems(entry, selected));
+  assert.deepEqual(filtered.map((entry) => entry.id), ["b", "c"], "order survives the filter");
 });
 
-test("the strip carries both groups and only the task group drags", async () => {
-  const source = await readFile(
-    new URL("../experiments/editor-svelte-spike/src/StatusFilters.svelte", import.meta.url),
-    "utf8",
-  );
-  assert.equal((source.match(/<FilterStrip/gu) ?? []).length, 2);
-  assert.match(source, /categories=\{taskCategories\}[\s\S]*?reorderable=\{true\}/u);
-  // Item capsules filter only; they never join the drag order.
-  assert.match(source, /sortable: false,/u);
-  const itemStrip = source.slice(source.indexOf("{#if itemCategories.length}"));
-  assert.doesNotMatch(itemStrip, /reorderable/u);
-  assert.doesNotMatch(itemStrip, /onReorder/u);
-});
-
-test("the host applies both axes and keeps ordering above them", async () => {
+test("the host filters both levels and lets 預設 choose the order", async () => {
   const app = await readFile(new URL("../viewer/assets/app.js", import.meta.url), "utf8");
-  assert.match(app, /itemFilter: null,/u);
-  assert.match(app, /taskMatchesItemStatus\(task, state\.itemFilter\)/u);
-  assert.match(app, /filterTaskItems\(task, state\.itemFilter\)/u);
-  // Selecting the active item capsule again clears that axis.
-  assert.match(app, /state\.itemFilter = state\.itemFilter === itemFilter \? null : itemFilter;/u);
-  // Ordering happens before filtering and is not re-sorted afterwards.
-  const render = app.slice(app.indexOf("function renderTasks()"));
-  assert.ok(
-    render.indexOf("stableSortByStatus") < render.indexOf("state.itemFilter"),
-    "ordering must not depend on the filter",
-  );
+  assert.match(app, /taskMatchesSelection\(task, selected\) \|\| taskHasSelectedItem\(task, selected\)/u);
+  assert.match(app, /\.map\(\(task\) => filterTaskItems\(task, selected\)\)/u);
+  // Leading 預設 means the report's own order: no grouping and no priority sort.
+  assert.match(app, /state\.statusOrder\[0\] === DEFAULT_CAPSULE_ID\s*\?\s*state\.tasks/u);
+  assert.match(app, /:\s*stableSortByStatus\(stableSortTasksByPriority\(state\.tasks\), state\.statusOrder\)/u);
+  // 預設 is part of the persisted capsule order, so its position survives.
+  assert.match(app, /const supportedCapsules = \[DEFAULT_CAPSULE_ID, \.\.\.supportedStatuses\]/u);
+  assert.match(app, /loadStatusOrder\(statusOrderStorage, supportedCapsules\)/u);
 });

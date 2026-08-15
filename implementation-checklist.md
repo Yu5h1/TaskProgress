@@ -123,7 +123,7 @@ Run every Agent check once. If a check fails, mark it `[!]`, add `Observed`, and
 - [ ] **13. Make the filter strip a multi-select with a default capsule**
   Outcome: Every strip carries a leading 預設 capsule that selects or clears every tag, lights when all tags are selected, and dims when any is cleared, with an empty selection showing nothing.
   Checks:
-    - [ ] **Default capsule contract**
+    - [x] **Default capsule contract**
       - Action: Run focused tests for the select-all and clear-all clicks, the derived lit state, the empty selection, and the strip holding no tag vocabulary of its own.
       - Expect: Clicking a dim 預設 selects every tag and clicking a lit one clears them, the lit state follows the other capsules without being clicked, an empty selection matches nothing, and 預設 matches no status itself.
 
@@ -131,7 +131,7 @@ Run every Agent check once. If a check fails, mark it `[!]`, add `Observed`, and
   Depends on: 13.
   Outcome: A strip whose 預設 sits first renders its cards in the data's own order, and moving 預設 away groups the cards by capsule order with priority sorting inside each group.
   Checks:
-    - [ ] **Ordering mode contract**
+    - [x] **Ordering mode contract**
       - Action: Run focused tests for the data order when 預設 leads, grouping by capsule order when it does not, priority sorting inside a group only, and dragging never changing the selection.
       - Expect: Leading 預設 applies neither status grouping nor priority sorting, a moved 預設 groups by capsule order with priority inside each group, and a drag leaves the selected set untouched.
 
@@ -139,7 +139,7 @@ Run every Agent check once. If a check fails, mark it `[!]`, add `Observed`, and
   Depends on: 13.
   Outcome: The task-progress and Checklist screens filter containers and children against the selected set, and show every tag including empty ones.
   Checks:
-    - [ ] **Two-screen filter contract**
+    - [x] **Two-screen filter contract**
       - Action: Run focused tests for container and child matching against the selected set on both screens, zero-count tags staying visible, and the Checklist keeping check-level matching without owner capsules.
       - Expect: A container survives when any child matches and shows only matching children, a Checklist card is matched by every one of its checks rather than by its derived marker, owner capsules are gone, and a tag with no matches still renders with 0.
     - [ ] **Rendered filtering** `[manual]`

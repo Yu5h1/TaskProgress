@@ -36,38 +36,40 @@ export function stableSortByStatus(items, order, getStatus = (item) => item.stat
 }
 
 /*
- * Task status and item status are two axes, not one.
+ * Task status and item status are the same vocabulary, seen at two levels.
  *
- * A task carries its own status; its items carry theirs, and the two do not
- * follow each other — an in-progress task holds both finished and unfinished
- * items. `planned` used to also mean "has any pending item", which is why
- * selecting it left completed items on screen: the overload matched the card,
- * and nothing then filtered what was inside it.
+ * A card carries its own status. Its items carry only two of those statuses,
+ * because an item is either waiting or finished — `pending_items` means
+ * planned, `completed_items` means done. Selecting a status an item cannot
+ * hold, such as in progress, leaves that card with no matching item, which is
+ * the honest answer until items gain a status of their own.
+ *
+ * `planned` used to also mean "has any pending item", which is why selecting it
+ * left completed items on screen: the overload matched the card, and nothing
+ * then filtered what was inside it.
  */
-export const ITEM_VIEW_STATUSES = Object.freeze(["pending", "completed"]);
+export const ITEM_STATUS_FIELDS = Object.freeze({
+  planned: "pending_items",
+  done: "completed_items",
+});
 
-export function taskMatchesViewStatus(task, status) {
-  return task?.status === status;
+export function taskMatchesSelection(task, selected) {
+  return selected.has(task?.status);
 }
 
-export function taskMatchesItemStatus(task, itemStatus) {
-  return countMatchingItems(task, itemStatus) > 0;
-}
-
-function countMatchingItems(task, itemStatus) {
-  const field = itemStatus === "completed" ? "completed_items" : "pending_items";
-  return Array.isArray(task?.[field]) ? task[field].length : 0;
+export function taskHasSelectedItem(task, selected) {
+  return Object.entries(ITEM_STATUS_FIELDS)
+    .some(([status, field]) => selected.has(status) && (task?.[field]?.length ?? 0) > 0);
 }
 
 /*
- * Keep only the items that match, so a filtered card cannot still show the work
- * it was filtered away from. Filtering hides; it never reorders.
+ * Keep only the items whose status is selected, so a card cannot still show the
+ * work it was filtered away from. Filtering hides; it never reorders.
  */
-export function filterTaskItems(task, itemStatus) {
-  if (!ITEM_VIEW_STATUSES.includes(itemStatus)) return task;
-  return {
-    ...task,
-    completed_items: itemStatus === "completed" ? (task.completed_items ?? []) : [],
-    pending_items: itemStatus === "pending" ? (task.pending_items ?? []) : [],
-  };
+export function filterTaskItems(task, selected) {
+  const next = { ...task };
+  for (const [status, field] of Object.entries(ITEM_STATUS_FIELDS)) {
+    next[field] = selected.has(status) ? (task[field] ?? []) : [];
+  }
+  return next;
 }
