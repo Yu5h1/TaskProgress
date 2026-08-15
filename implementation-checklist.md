@@ -4,17 +4,17 @@ Current round: `plan.md#共用元件與傳輸接縫-round2026-08-15-核定`.
 
 Run every Agent check once. If a check fails, mark it `[!]`, add `Observed`, and pause automatic retries plus dependent work. After an intervention, the user may request one new verification attempt; success changes the same check to `[x]` while preserving `Observed` and adding `Resolved`. Manual checks remain user-editable through the shared marker cycle; Agent results do not. Continue independent work when safe. Create a new item only when the outcome or acceptance contract changes. The parent marker is derived from its checks. This file contains only the active round; git history owns prior rounds.
 
-- [ ] **1. Add the shared progress summary**
+- [x] **1. Add the shared progress summary**
   Outcome: One implementation renders the total, completed, and outstanding counts, a progress bar, and a one-line text progress, from numbers and labels the calling screen supplies.
   Checks:
-    - [ ] **Summary source contract**
+    - [x] **Summary source contract**
       - Action: Run focused tests for the count row, both progress-bar forms, the text line, and the absence of domain knowledge in the component.
       - Expect: The component reads no report or checklist structure, every label comes from its caller, and the segmented and continuous bar forms are selectable without a second component.
 
-- [ ] **2. Add the shared next-step card**
+- [x] **2. Add the shared next-step card**
   Outcome: One implementation shows a single outstanding item with what to do, how it passes, and an optional command block.
   Checks:
-    - [ ] **Next-step source contract**
+    - [x] **Next-step source contract**
       - Action: Run focused tests for single-item rendering, the optional command block, and the outstanding-state presentation.
       - Expect: The card renders exactly one item, takes its text from the caller, and uses the existing semantic warning colour rather than a new literal.
 

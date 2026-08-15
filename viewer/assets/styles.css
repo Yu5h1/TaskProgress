@@ -1562,6 +1562,176 @@ footer {
   opacity: 0.45;
 }
 
+/* Shared progress summary (`ProgressSummary.svelte`): count row, one of the two
+   bar forms, and a text line. Every value comes from the calling screen; the
+   tones are the same three states the marker box uses. */
+.progress-summary {
+  display: grid;
+  gap: 10px;
+}
+
+.progress-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(96px, 1fr));
+  gap: 1px;
+  overflow: hidden;
+  background: var(--color-border);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+}
+
+.progress-stat {
+  display: grid;
+  gap: 2px;
+  padding: 11px 13px;
+  background: var(--color-elevated-bg);
+}
+
+.progress-stat b {
+  font-size: 1.4rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.progress-stat span {
+  color: var(--color-muted-status-text);
+  font-size: 0.78rem;
+}
+
+.progress-stat.progress-tone-passed b {
+  color: var(--color-success-text);
+}
+
+.progress-stat.progress-tone-failed b {
+  color: var(--color-danger-text);
+}
+
+.progress-stat.progress-tone-pending b {
+  color: var(--color-warning-text);
+}
+
+.progress-bar {
+  overflow: hidden;
+  height: 9px;
+  border-radius: 3px;
+}
+
+.progress-bar-segmented {
+  display: flex;
+  gap: 3px;
+  background: transparent;
+}
+
+.progress-cell {
+  flex: 1;
+  border-radius: 2px;
+  background: var(--color-progress-track);
+}
+
+.progress-cell.progress-tone-passed {
+  background: var(--color-success-text);
+}
+
+.progress-cell.progress-tone-failed {
+  background: var(--color-danger-text);
+}
+
+.progress-cell.progress-tone-pending {
+  background: var(--color-warning-bg);
+  box-shadow: inset 0 0 0 1px var(--color-warning-border);
+}
+
+.progress-bar-continuous {
+  background: var(--color-progress-track);
+}
+
+.progress-fill {
+  display: block;
+  height: 100%;
+  background: var(--color-success-text);
+}
+
+.progress-caption {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0;
+  color: var(--color-muted-status-text);
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Shared next-step card (`NextStepCard.svelte`): one outstanding item, marked
+   with the theme's warning colour on the leading edge so it reads as the thing
+   still waiting without shouting over the content below it. */
+.next-step-card {
+  display: grid;
+  gap: 9px;
+  padding: 15px 16px;
+  background: var(--color-elevated-bg);
+  border: 1px solid var(--color-border);
+  border-left: 3px solid var(--color-warning-border);
+  border-radius: 12px;
+}
+
+.next-step-heading {
+  margin: 0;
+  color: var(--color-warning-text);
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.next-step-title {
+  margin: 0;
+  font-size: 0.98rem;
+  font-weight: 700;
+  text-wrap: balance;
+}
+
+.next-step-fields {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+}
+
+.next-step-fields > div {
+  display: grid;
+  gap: 2px;
+}
+
+.next-step-fields dt {
+  color: var(--color-muted-status-text);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.next-step-fields dd {
+  margin: 0;
+  color: var(--color-secondary-text);
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+
+.next-step-command {
+  margin: 0;
+  padding: 10px 12px;
+  overflow-x: auto;
+  background: var(--color-reference-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  font-size: 0.78rem;
+  line-height: 1.5;
+}
+
+@media (min-width: 620px) {
+  .next-step-fields > div {
+    grid-template-columns: 92px minmax(0, 1fr);
+    gap: 10px;
+  }
+}
+
 /* Three-state marker box (`MarkerBox.svelte`): a square whose border is the
    bracket, so `[ ]`, `[x]` and `[!]` read as one control in any host. */
 .marker-box {
