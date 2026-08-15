@@ -26,6 +26,7 @@ internal sealed record ChecklistWorkItem(
     int Id,
     ChecklistStatus Status,
     string Title,
+    IReadOnlyList<int> DependsOn,
     string Outcome,
     IReadOnlyList<ChecklistCheck> Checks);
 
@@ -129,6 +130,7 @@ internal sealed class ChecklistDocument
             var title = RequireText(itemMatch.Groups["title"].Value, index, "work item title");
             index++;
 
+            var dependsOn = ReadDependencies(lines, ref index, lastLine, id);
             var outcome = ReadField(lines, ref index, lastLine, "  Outcome: ", "Outcome");
             RequireLine(lines, ref index, lastLine, "  Checks:", "Checks");
             var checks = new List<ChecklistCheck>();
@@ -139,22 +141,22 @@ internal sealed class ChecklistDocument
                 var checkTitle = RequireText(checkMatch.Groups["title"].Value, index, "check title");
                 var manual = checkMatch.Groups["manual"].Success;
                 index++;
-                var action = ReadField(lines, ref index, lastLine, "      Action: ", "Action");
-                var expect = ReadField(lines, ref index, lastLine, "      Expect: ", "Expect");
+                var action = ReadField(lines, ref index, lastLine, "      - Action: ", "Action");
+                var expect = ReadField(lines, ref index, lastLine, "      - Expect: ", "Expect");
                 string? reason = null;
                 string? observed = null;
                 string? resolved = null;
-                if (index < lastLine && lines[index].StartsWith("      Reason: ", StringComparison.Ordinal))
+                if (index < lastLine && lines[index].StartsWith("      - Reason: ", StringComparison.Ordinal))
                 {
-                    reason = ReadField(lines, ref index, lastLine, "      Reason: ", "Reason");
+                    reason = ReadField(lines, ref index, lastLine, "      - Reason: ", "Reason");
                 }
-                if (index < lastLine && lines[index].StartsWith("      Observed: ", StringComparison.Ordinal))
+                if (index < lastLine && lines[index].StartsWith("      - Observed: ", StringComparison.Ordinal))
                 {
-                    observed = ReadField(lines, ref index, lastLine, "      Observed: ", "Observed");
+                    observed = ReadField(lines, ref index, lastLine, "      - Observed: ", "Observed");
                 }
-                if (index < lastLine && lines[index].StartsWith("      Resolved: ", StringComparison.Ordinal))
+                if (index < lastLine && lines[index].StartsWith("      - Resolved: ", StringComparison.Ordinal))
                 {
-                    resolved = ReadField(lines, ref index, lastLine, "      Resolved: ", "Resolved");
+                    resolved = ReadField(lines, ref index, lastLine, "      - Resolved: ", "Resolved");
                 }
                 if (manual && reason is null) throw FormatError(index, "manual check 缺少 Reason");
                 if (!manual && reason is not null) throw FormatError(index, "Agent check 不可包含 Reason");
@@ -183,7 +185,7 @@ internal sealed class ChecklistDocument
             {
                 throw FormatError(index, $"work item {id} 狀態必須由 checks 衍生為 {Marker(derived)}");
             }
-            items.Add(new ChecklistWorkItem(id, derived, title, outcome, checks));
+            items.Add(new ChecklistWorkItem(id, derived, title, dependsOn, outcome, checks));
 
             if (index < lastLine)
             {
@@ -192,6 +194,15 @@ internal sealed class ChecklistDocument
             }
         }
         if (items.Count == 0) throw new CliException("Checklist 至少需要一個 work item。");
+        var knownIds = items.Select(item => item.Id).ToHashSet();
+        foreach (var item in items)
+        {
+            var missing = item.DependsOn.FirstOrDefault(dependency => !knownIds.Contains(dependency));
+            if (missing != 0)
+            {
+                throw new CliException($"Checklist work item {item.Id} 指向不存在的 dependency {missing}。");
+            }
+        }
 
         return new ChecklistDocument(
             prefix,
@@ -306,6 +317,12 @@ internal sealed class ChecklistDocument
             var item = Items[itemIndex];
             builder.Append("- [").Append(Marker(item.Status)).Append("] **")
                 .Append(item.Id).Append(". ").Append(item.Title).Append("**").Append(NewLine);
+            if (item.DependsOn.Count > 0)
+            {
+                builder.Append("  Depends on: ")
+                    .AppendJoin(", ", item.DependsOn)
+                    .Append('.').Append(NewLine);
+            }
             builder.Append("  Outcome: ").Append(item.Outcome).Append(NewLine);
             builder.Append("  Checks:").Append(NewLine);
             foreach (var check in item.Checks)
@@ -314,19 +331,19 @@ internal sealed class ChecklistDocument
                     .Append(check.Title).Append("**");
                 if (check.IsManual) builder.Append(" `[manual]`");
                 builder.Append(NewLine);
-                builder.Append("      Action: ").Append(check.Action).Append(NewLine);
-                builder.Append("      Expect: ").Append(check.Expect).Append(NewLine);
+                builder.Append("      - Action: ").Append(check.Action).Append(NewLine);
+                builder.Append("      - Expect: ").Append(check.Expect).Append(NewLine);
                 if (check.Reason is not null)
                 {
-                    builder.Append("      Reason: ").Append(check.Reason).Append(NewLine);
+                    builder.Append("      - Reason: ").Append(check.Reason).Append(NewLine);
                 }
                 if (check.Observed is not null)
                 {
-                    builder.Append("      Observed: ").Append(check.Observed).Append(NewLine);
+                    builder.Append("      - Observed: ").Append(check.Observed).Append(NewLine);
                 }
                 if (check.Resolved is not null)
                 {
-                    builder.Append("      Resolved: ").Append(check.Resolved).Append(NewLine);
+                    builder.Append("      - Resolved: ").Append(check.Resolved).Append(NewLine);
                 }
             }
             if (itemIndex + 1 < Items.Count) builder.Append(NewLine);
@@ -385,6 +402,53 @@ internal sealed class ChecklistDocument
         var value = RequireText(lines[index][prefix.Length..], index, name);
         index++;
         return value;
+    }
+
+    private static IReadOnlyList<int> ReadDependencies(
+        string[] lines,
+        ref int index,
+        int lastLine,
+        int workItemId)
+    {
+        const string prefix = "  Depends on: ";
+        if (index >= lastLine || !lines[index].StartsWith(prefix, StringComparison.Ordinal))
+        {
+            return [];
+        }
+        var lineIndex = index;
+        var source = lines[index][prefix.Length..].Trim();
+        index++;
+        if (!source.EndsWith(".", StringComparison.Ordinal))
+        {
+            throw FormatError(lineIndex, "Depends on 必須以句點結尾");
+        }
+        var dependencies = new List<int>();
+        foreach (var token in source[..^1].Split(',', StringSplitOptions.TrimEntries))
+        {
+            if (!int.TryParse(
+                    token,
+                    System.Globalization.NumberStyles.None,
+                    System.Globalization.CultureInfo.InvariantCulture,
+                    out var dependency)
+                || dependency <= 0)
+            {
+                throw FormatError(lineIndex, "Depends on 必須包含正整數 ID");
+            }
+            if (dependency == workItemId)
+            {
+                throw FormatError(lineIndex, "work item 不可依賴自己");
+            }
+            if (dependencies.Contains(dependency))
+            {
+                throw FormatError(lineIndex, $"dependency {dependency} 重複");
+            }
+            dependencies.Add(dependency);
+        }
+        if (dependencies.Count == 0)
+        {
+            throw FormatError(lineIndex, "Depends on 不可空白");
+        }
+        return dependencies;
     }
 
     private static void RequireLine(

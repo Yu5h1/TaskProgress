@@ -7,6 +7,7 @@
   "description": "Link-first read-only task progress reports for public pages and local projects.",
   "scripts": {
     "test": "node --test",
+    "checklist:ui:build": "vite build --config experiments/editor-svelte-spike/vite.checklist-ui.config.js",
     "spike:svelte:dev": "vite --config experiments/editor-svelte-spike/vite.config.js",
     "viewer:ui:build": "vite build --config experiments/editor-svelte-spike/vite.viewer-ui.config.js"
   },

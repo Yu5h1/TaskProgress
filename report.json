@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-08-14T23:18:24+08:00",
+  "updated_at": "2026-08-15T20:05:56+08:00",
   "tasks": [
     {
       "id": "viewer-core",
@@ -171,7 +171,7 @@
       "title": "本機任務編輯",
       "status": "in_progress",
       "priority": 1,
-      "summary": "WPF／WebView2 Checklist Editor 為目前優先工作。Checklist document core、CRLF／BOM round-trip、Resolved 結果契約與 publish-setting isolation 已通過 16 項 document-core checks 及 2 項 publish-contract tests；下一步為 WPF／WebView2 Host，尚未開始 bridge 或 Svelte UI。",
+      "summary": "Checklist document core、WPF／WebView2 Host、restricted bridge、共用 Svelte UI 與首版 Release package contract 已驗證。實機 WPF review 已改版 UX：預設自動儲存、cache 持久化的謹慎模式，以及左側單一循環 manual marker；新規格尚未實作。",
       "completed_items": [
         {
           "id": "item-local-task-editing-done-1",
@@ -492,7 +492,7 @@
       "pending_items": [
         {
           "id": "structured-checklist-editor",
-          "title": "建立由 task-progress.exe 啟動的 WPF／WebView2 Checklist Editor：以 implementation-checklist.md 為唯一資料來源，使用受限 bridge、revision 驗證與原子寫回，不啟動 LocalWebService",
+          "title": "完成 WPF／WebView2 Checklist Editor 的新互動：預設 revision-safe 自動儲存、使用者 cache 的謹慎模式，以及可持續編輯的左側單一循環 manual marker；維持受限 bridge 與 no-LocalWebService 邊界",
           "priority": 1
         },
         {

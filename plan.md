@@ -301,26 +301,45 @@ LocalWebService 是正式 Web 路線的一部分，不因 Desktop Host 出現而
 - 每個 work item 使用簡單的數字 ID，例如 `1`、`2`、`3`。ID 只需在當前 round 內唯一，代表項目身分而非畫面順序；修改標題或排序時不得重新編號。修復若仍以原本的 `Outcome` 與 `Expect` 為目標，就留在同一項；只有工作範圍或驗收合約實質改變才使用新 ID。新 round 可以重新從 `1` 開始。
 - Markdown 內容維持英文，介面控制與提示可以本地化。句子採受控寫法：一個標題只表達一項工作，`Outcome` 只描述可觀察結果，不使用「正確處理」或「適當顯示」等無法驗收的詞。
 - work item 不再同時保存 `Acceptance` 與 `Verification`。它只有 `Title`、`Outcome` 與一個以上的 `Checks`；每個 check 只有 `Action` 與 `Expect`。URL、命令與人工步驟都寫入 `Action`，不再建立重複的 `Entry` 欄位。
+- 每個 check 欄位使用一個巢狀 Markdown list entry，固定格式為 `      - Field: value`；適用於必要的 `Action`、`Expect` 與可選的 `Reason`、`Observed`、`Resolved`。work item 若有相依關係，使用可選的 `  Depends on: 1, 2.`，ID 必須指向同一 round 內的其他項目。
 - 未標記的 check 預設由 Agent 執行。只有真實裝置、使用者環境、受保護資料或直接 UX 判斷才加 `[manual]`，並附簡短 `Reason`；「人工比較快」不是有效理由。移除 `By` 與 `Why not agent`。
 - check 狀態固定為 `[ ]` 尚未執行、`[x]` 已執行且符合 `Expect`、`[!]` 已執行但不符合 `Expect`。父 work item 的狀態不可點擊：所有 checks 都是 `[x]` 才自動為 `[x]`；任一 check 是 `[!]` 則自動為 `[!]`；其餘為 `[ ]`。
-- Checklist 面板中，使用者只操作 `[manual]` check。控制由 `✓` 與 `!` 兩個可空選項構成；預設兩者皆未選。在尚未儲存的草稿中，再按目前選項可清回未執行。Agent checks 在人類介面中唯讀。
-- manual check 選擇 `!` 時必須填寫 `Observed`，只記錄實際看到的結果，不要求使用者診斷原因。儲存後暫停該 check 的自動重試與相依工作；不相依的項目可繼續。Agent 在收到要求後區分實作、規格或環境問題並提出方向，人工排解過程不需要為每次嘗試建立清單項目。
-- 任一 `[x]` 或 `[!]` 結果儲存後，該 work item 的 Title、Outcome、Action 與 Expect 凍結。`[!]` 不得由 Agent 自動重跑；人工、環境或實作介入完成後，使用者可明確要求再驗證一次。若原 `Expect` 已符合，同一 check 改為 `[x]`，保留 `Observed` 並新增簡短 `Resolved`；不得清回 `[ ]`。仍全部為 `[ ]` 的規格可以在首次執行前澄清；已完成後才增加的需求或改變驗收合約的修正才建立新項目。
-- UI 只提供上述結構化欄位與狀態控制。修改先進入既有 Editor transaction；「儲存」經由受限 WebView bridge 交給 EXE，通過格式、衍生父狀態、ID 與來源 revision 驗證後才寫回 Markdown；「放棄」則還原 persisted snapshot。
+- Checklist 面板中，使用者只操作 `[manual]` check。每個人工 check 只在原本左側 marker 位置提供一個控制，依 `[ ]` → `[x]` → `[!]` → `[ ]` 循環；右側不再放第二組通過／失敗按鈕。Agent checks 與 work item 的衍生 marker 維持唯讀。
+- manual check 選擇 `!` 時必須填寫 `Observed`，只記錄實際看到的結果，不要求使用者診斷原因。人工 `[!]` 存在時暫停相依工作；不相依的項目可繼續。Agent 在收到要求後區分實作、規格或環境問題並提出方向，人工排解過程不需要為每次嘗試建立清單項目。
+- 任一結果儲存後，該 work item 的 Title、Outcome、Action 與 Expect 凍結。Agent-owned `[!]` 不得自動重跑；介入後明確重驗通過時保留 `Observed` 並新增 `Resolved`，也不得清回 `[ ]`。人工 check 的結果例外保持可編輯：可循環回 `[ ]`，此時清除 `Observed`／`Resolved`；再次選擇 `[!]` 時必須填入新的 `Observed`。Git／文件版本歷史負責保留先前人工結果。
+- UI 只提供上述結構化欄位與狀態控制。所有修改都先通過既有 Editor transaction 與受限 WebView bridge，由 EXE 驗證格式、衍生父狀態、ID 與來源 revision，再原子寫回 Markdown；實際提交時機由下方 persistence mode 決定。
 - Source revision 是載入時原始 UTF-8 檔案 bytes 的 SHA-256。Writer 保留 preamble、換行樣式與 BOM 狀態；managed checklist 結構以固定格式輸出，遇到未知或不完整結構時拒絕寫入而不靜默刪除內容。儲存先寫同目錄暫存檔，再以原子取代提交；目前檔案 bytes 與來源 revision 不符時回傳 conflict 並保留草稿。
 - 第一階段維持 Markdown 為唯一資料來源，不建立重複的 JSON checklist。文件格式與 parser／writer 契約穩定後，再以同一模型承接本機面板。
+
+#### 編輯持久化模式與 Checklist 標記（2026-08-15 決策）
+
+具寫入 capability 的介面共用 `auto`／`cautious` 兩種 persistence mode；這是儲存策略，不取代公開 Viewer 的唯讀能力邊界，也不建立第二套 Editor Core。
+
+- 預設為 `auto`。離散操作立即提交；文字輸入在最後一次有效輸入後短暫 debounce 再提交。Undo／Redo 也是新的修改，沿用同一自動提交流程。
+- 自動模式不顯示「儲存」或「放棄」。固定狀態列保留 Undo／Redo、`謹慎模式` toggle，以及「儲存中／已儲存／衝突／錯誤」狀態。
+- `cautious` 模式維持記憶體草稿，狀態列才顯示「儲存」與「放棄」。開啟謹慎模式前先等待現有自動儲存完成；存在未提交草稿時，不得直接關閉謹慎模式，必須先儲存或放棄。
+- 使用者偏好以 boolean `task-progress.cautious-mode.v1` 保存在目前 Browser／WebView profile 的 cache，預設 `false`；不得寫入 report、Checklist Markdown 或專案設定。Desktop Host 必須使用穩定的 per-user WebView profile，使重開 App 後偏好仍存在。
+- 衝突或寫入錯誤不得丟失畫面草稿。自動模式暫停後續提交並顯示錯誤；使用者解決來源衝突後再重試。高影響操作如交付日與永久刪除仍可在自動模式中保留預覽或確認 gate。
+- Checklist 人工 check 在兩種模式都一直可編輯。左側單一 marker 循環 `[ ]` → `[x]` → `[!]` → `[ ]`；切到 `[!]` 時先展開 inline `Observed`，內容有效後才可提交。Agent marker 與 work-item marker 不可點擊。
+
+```text
+Execution size: medium
+Architectural impact: system-level — changes shared persistence ownership, serialized manual-result mutation, and the common SaveBar contract
+Precedent: existing Editor transaction, restricted bridge, SaveBar, revision conflict handling, and WebView-local profile storage
+Proof: persistence-mode state tests | manual-result mutation tests | bridge conflict tests | asset build | disposable WPF interaction
+```
 
 ```markdown
 - [ ] **1. Make the child-item description fill the available width**
   Outcome: The description fills the available space and truncated text has a tooltip.
   Checks:
     - [ ] **Source contract**
-      Action: Run the focused presentation tests.
-      Expect: All focused tests pass.
+      - Action: Run the focused presentation tests.
+      - Expect: All focused tests pass.
     - [ ] **Rendered Viewer** `[manual]`
-      Action: Check Preview and Edit at desktop width and 390px.
-      Expect: The description fills correctly and the tooltip shows the full text.
-      Reason: Requires direct visual and pointer-hover inspection.
+      - Action: Check Preview and Edit at desktop width and 390px.
+      - Expect: The description fills correctly and the tooltip shows the full text.
+      - Reason: Requires direct visual and pointer-hover inspection.
 ```
 
 ```text
@@ -333,16 +352,16 @@ Proof: parser round-trip tests | derived-status tests | frozen-result rejection 
 
 ### 介面決策
 
-頁首在主題控制旁提供一個頁面層級模式選單：`預覽模式` 與 `編輯模式`。第一版先在隔離 Demo 驗證全域模式；切到編輯模式後，任務描述、子項目新增／編輯／刪除、人工估算參數與工作容量使用同一個 capability 解鎖，不再由每個時間面板各放一個「編輯」入口。切回預覽模式時直接放棄本次記憶體草稿，所有寫入控制與尚未提交的 inline form 一起關閉，並還原最後一次成功儲存的閱讀版面。
+頁首在主題控制旁提供一個頁面層級模式選單：`預覽模式` 與 `編輯模式`。第一版先在隔離 Demo 驗證全域模式；切到編輯模式後，任務描述、子項目新增／編輯／刪除、人工估算參數與工作容量使用同一個 capability 解鎖，不再由每個時間面板各放一個「編輯」入口。切回預覽模式時，自動模式先等待有效修改提交完成；謹慎模式若仍有草稿，必須先儲存或放棄，不能以切換模式暗中丟棄。
 
 公開模式與沒有有效 edit capability 的本機服務固定在預覽模式，不能只靠 CSS 隱藏寫入控制。若未來任務欄位增加到不適合卡片原地編輯，仍可在全域編輯模式內使用主從式工作區：
 
 - 左側：任務搜尋、狀態篩選、排序、新增任務，以及未儲存／衝突標記。
 - 右側：目前任務表單、任務項目清單、Developer 資訊與 Routing 進階區。
-- 頂端固定列：目前 scope、Git 保護狀態、其他來源已變更提示、復原、放棄與儲存。
+- 頂端固定列：目前 scope、Git 保護狀態、其他來源已變更提示、復原／重做、持久化狀態與謹慎模式；儲存／放棄只在謹慎模式出現。
 - 行動裝置：先顯示任務清單，選取後進入單一任務編輯頁，避免雙欄壓縮。
 
-表單採明確儲存，不因每次輸入立即改寫檔案；尚未儲存的內容可暫存在目前瀏覽器，僅用於頁面重載或瀏覽器意外關閉後恢復草稿，不作為正式歷史紀錄。
+表單預設自動儲存；謹慎模式才採明確儲存。尚未提交或因衝突保留的內容可暫存在目前 Browser／WebView profile，只用於畫面恢復，不作為正式歷史紀錄。
 
 ### 資料角色與寫入規則
 
@@ -1069,8 +1088,8 @@ Proof: targeted Editor Core tests | ItemRow source/DOM contract tests | viewer:u
 
 - 保留目前以卡片為中心的直觀介面，不因換框架改成後台表格或多頁精靈。
 - 頁首仍只有全域「預覽模式／編輯模式」，不恢復每個欄位的獨立編輯模式。
-- 任務卡、子項目、優先級、時間表單、重新計算與固定儲存列維持目前操作語意。
-- 切回預覽模式代表放棄本次未儲存草稿；「儲存」才進入正式驗證與寫入交易。
+- 任務卡、子項目、優先級、時間表單、重新計算與固定持久化狀態列維持共用元件來源。
+- 切回預覽模式遵循 persistence mode：自動模式等待提交完成；謹慎模式要求先儲存或放棄未提交草稿。
 - 狀態標籤排序仍是立即保存的 view preference，不混入任務資料交易。
 - 第一版正式 Editor 以本機桌面滑鼠與鍵盤為 P0；390px 版面與觸控編輯驗證列為 P1，不阻擋桌面版。
 

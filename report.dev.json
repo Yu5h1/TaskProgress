@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "report_id": "task-progress-development",
-  "updated_at": "2026-08-14T23:18:24+08:00",
+  "updated_at": "2026-08-15T20:05:56+08:00",
   "tasks": [
     {
       "id": "viewer-core",
@@ -93,9 +93,9 @@
     },
     {
       "id": "local-task-editing",
-      "next_step": "進入 WPF／WebView2 Host item；先依 AgentsRule.md 完成 Microsoft.Web.WebView2 的精確套件授權與安全路由，再加入鎖定版本並實作 CLI／Host boundary。",
+      "next_step": "依 implementation-checklist items 8／9 實作新 persistence 與 marker contract：先擴充共用 editor transaction／SaveBar 為預設 auto、cache-persisted cautious，再讓 document core／bridge 支援 saved manual result cycle；完成 Agent checks 後才執行 item 10 WPF 驗證。",
       "blockers": [
-        "Microsoft.Web.WebView2 尚未加入或還原；該官方套件不在本機 NuGet cache，item 2 的首次 restore 需要依 AgentsRule.md 完成精確版本、來源與用途授權。",
+        "首版 WPF App 已可開啟且 package contract 通過，但人工 review 否決既有互動：目前仍預設顯示 Save／Discard、manual check 使用右側兩按鈕且已儲存結果不可再編輯。新規格已核定但尚未實作。",
         "時間參考 Demo 已隨此次收斂停止運作（依使用者裁示 (a)）：它呼叫的 createModeController／createSaveBar／createAddControl 已刪除，開啟頁面會拋錯。不得為了讓 Demo 復活而還原那些函式。",
         "尚未裁示的 UX 設計（已與使用者討論但未實作）：ItemRow 在 390px 折成三行需要折疊規則（提案為模組膠囊水平捲動加描述 ellipsis）；描述點擊開 Dialog 與編輯模式描述為 input 相衝突，入口未定；待估在編輯模式不可點，無估算的子項目無法建立估算；模組膠囊順序須由核心固定表決定而非 manifest；優先級與狀態是核心欄位，若放進模組排其渲染路徑不得經過模組載入；同一 subject 應為單一 Dialog 分區而非每個模組各開一個；Dialog 編輯應讓顯示值原地變欄位，而非在唯讀值下方追加另一份表單。"
       ],
@@ -105,8 +105,12 @@
           "reference": "plan.md#本機任務編輯-draft-01"
         },
         {
-          "summary": "Checklist work item 的狀態由 checks 唯讀彙總；未標記 check 預設由 Agent 執行，只有具能力／裝置／資料邊界者標記 manual。失敗需保存 Observed 並暫停自動重試；介入後可明確重新驗證同一 check，成功時保留 Observed、加入 Resolved 並改為 [x]。只有驗收合約改變才使用新 ID。",
-          "reference": "plan.md#結構化-checklist-編輯-draft-01-2026-08-13"
+          "summary": "Checklist work item 狀態由 checks 唯讀彙總；Agent 結果維持不可任意改寫與失敗暫停規則。Manual check 改為使用者可持續編輯的左側單一 marker，依空白／通過／失敗循環；失敗必填 Observed，回到空白會清除先前結果欄位。",
+          "reference": "plan.md#編輯持久化模式與-checklist-標記2026-08-15-決策"
+        },
+        {
+          "summary": "具寫入 capability 的介面預設自動儲存；謹慎模式以 task-progress.cautious-mode.v1 保存在 Browser／WebView user profile，只有該模式顯示 Save／Discard。衝突保留草稿，高影響操作仍可要求預覽或確認。",
+          "reference": "plan.md#編輯持久化模式與-checklist-標記2026-08-15-決策"
         },
         {
           "summary": "Checklist Editor 使用 task-progress.exe 啟動的 WPF／WebView2 視窗與受限 EXE／WebView bridge；只授權 CLI 指定的單一 Markdown 文件，不啟動 LocalWebService，也不加入 Report Viewer。第一版 app shell 留在 TaskProgress，只有證明可重用的產品中立 WPF 擴充才進入 Yu5h1Lib.WPF。",
@@ -137,8 +141,8 @@
           "reference": "plan.md#編輯互動與資料操作"
         },
         {
-          "summary": "切回預覽模式代表放棄全部未儲存草稿並還原 persisted snapshot；固定儲存按鈕使用白字，右緣對齊內容面板而非螢幕。",
-          "reference": "plan.md#編輯互動與資料操作"
+          "summary": "切回預覽模式遵循 persistence mode：自動模式等待 revision-safe 提交完成；謹慎模式必須先儲存或放棄。固定狀態列右緣對齊內容面板，Save／Discard 只在謹慎模式顯示。",
+          "reference": "plan.md#編輯持久化模式與-checklist-標記2026-08-15-決策"
         },
         {
           "summary": "目前實作不是完全未分層：report/time model、priority/status policy 與本機安全寫入已獨立；但 app.js 與 time-view.js 仍是大型程序式 UI 控制器。跨檔案 Editor 新功能不得繼續直接堆入這兩個檔案，應先建立 DraftSession、EditCommand、validation 與 transaction adapter 邊界。",

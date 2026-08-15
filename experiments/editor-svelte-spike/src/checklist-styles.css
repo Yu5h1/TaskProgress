@@ -1,0 +1,230 @@
+:root {
+  color-scheme: dark;
+}
+
+body {
+  min-width: 0;
+  margin: 0;
+  background: var(--page);
+}
+
+.checklist-page {
+  width: min(960px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 40px 0 104px;
+}
+
+.checklist-header h1,
+.checklist-item h2,
+.checklist-item p {
+  margin: 0;
+}
+
+.checklist-header {
+  margin-bottom: 22px;
+}
+
+.checklist-header h1 {
+  margin-top: 4px;
+  color: var(--ink);
+  font-size: clamp(1.45rem, 3vw, 2rem);
+}
+
+.checklist-round,
+.checklist-notice {
+  color: var(--muted);
+}
+
+.checklist-items,
+.checklist-checks {
+  display: grid;
+  gap: 12px;
+}
+
+.checklist-item {
+  overflow: hidden;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+}
+
+.checklist-item-header {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: start;
+  padding: 17px 18px;
+  background: color-mix(in srgb, var(--surface-strong) 78%, transparent);
+}
+
+.checklist-item-header h2 {
+  color: var(--ink);
+  font-size: 1rem;
+}
+
+.checklist-item-header p {
+  margin-top: 6px;
+  color: var(--ink-soft);
+  line-height: 1.5;
+}
+
+.checklist-item-header small {
+  display: block;
+  margin-top: 6px;
+  color: var(--muted);
+}
+
+.checklist-marker {
+  display: inline-grid;
+  width: 22px;
+  height: 22px;
+  place-items: center;
+  color: var(--muted);
+  border: 1px solid var(--line-strong);
+  border-radius: 50%;
+  font-weight: 800;
+}
+
+.checklist-passed > .checklist-item-header .checklist-marker,
+.checklist-check.checklist-passed .checklist-marker {
+  color: var(--green);
+  border-color: var(--color-success-border);
+}
+
+.checklist-failed > .checklist-item-header .checklist-marker,
+.checklist-check.checklist-failed .checklist-marker {
+  color: var(--red);
+  border-color: var(--color-danger-border);
+}
+
+.checklist-status,
+.checklist-owner {
+  padding: 4px 9px;
+  color: var(--muted);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font-size: 0.72rem;
+  white-space: nowrap;
+}
+
+.checklist-checks {
+  padding: 12px;
+}
+
+.checklist-check {
+  padding: 13px 14px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+
+.checklist-check-heading {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr) auto auto;
+  gap: 9px;
+  align-items: center;
+  color: var(--ink);
+}
+
+.checklist-result-controls {
+  display: inline-flex;
+  gap: 5px;
+}
+
+.checklist-result-controls button {
+  width: 32px;
+  height: 28px;
+  color: var(--muted);
+  background: transparent;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.checklist-result-controls button.active {
+  color: var(--color-control-text);
+  background: var(--green);
+  border-color: var(--green);
+}
+
+.checklist-result-controls button.fail.active {
+  background: var(--red);
+  border-color: var(--red);
+}
+
+.checklist-check dl {
+  display: grid;
+  gap: 7px;
+  margin: 11px 0 0 31px;
+}
+
+.checklist-check dl div {
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr);
+  gap: 8px;
+}
+
+.checklist-check dt {
+  color: var(--muted);
+  font-size: 0.74rem;
+  font-weight: 760;
+}
+
+.checklist-check dd {
+  margin: 0;
+  color: var(--ink-soft);
+  line-height: 1.45;
+}
+
+.checklist-observed {
+  display: grid;
+  gap: 6px;
+  margin: 12px 0 0 31px;
+  color: var(--red);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.checklist-observed textarea {
+  resize: vertical;
+  padding: 9px 10px;
+  color: var(--ink);
+  background: var(--page);
+  border: 1px solid var(--color-danger-border);
+  border-radius: 8px;
+  font: inherit;
+  font-weight: 500;
+}
+
+.checklist-error {
+  color: var(--red);
+}
+
+@media (max-width: 640px) {
+  .checklist-page {
+    width: min(100% - 20px, 960px);
+    padding-top: 24px;
+  }
+
+  .checklist-item-header {
+    grid-template-columns: 22px minmax(0, 1fr);
+  }
+
+  .checklist-status {
+    grid-column: 2;
+    justify-self: start;
+  }
+
+  .checklist-check-heading {
+    grid-template-columns: 22px minmax(0, 1fr) auto;
+  }
+
+  .checklist-result-controls {
+    grid-column: 2 / -1;
+  }
+
+  .checklist-check dl,
+  .checklist-observed {
+    margin-left: 0;
+  }
+}
