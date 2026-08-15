@@ -13,8 +13,15 @@ export function createChecklistBridgeTransport(webview = globalThis.chrome?.webv
     const request = pending.get(response.id);
     if (!request) return;
     pending.delete(response.id);
-    if (response.type === "result") request.resolve(response.payload);
-    else request.reject(new Error(response.error?.message ?? "Checklist bridge request failed."));
+    if (response.type === "result") {
+      request.resolve(response.payload);
+      return;
+    }
+    // The code travels with the message so the persistence controller can tell a
+    // source conflict from an ordinary write error.
+    const failure = new Error(response.error?.message ?? "Checklist bridge request failed.");
+    failure.code = response.error?.code ?? "bridge_error";
+    request.reject(failure);
   });
 
   function request(type, payload) {

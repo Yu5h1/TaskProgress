@@ -67,36 +67,36 @@ Run every Agent check once. If a check fails, mark it `[!]`, add `Observed`, and
       - Observed: The 26-check C# run passed active-file parsing, byte round-trip, dependency handling, and rejection of unbulleted fields. The shared-format source check then failed because `agent-work-route/SKILL.md` describes optional `Observed`／`Resolved` fields through the generic `- Field:` rule but does not contain explicit `      - Observed:` and `      - Resolved:` example lines.
       - Resolved: The shared example now includes explicit nested `- Observed:` and `- Resolved:` lines. All 26 focused C# checks and all 6 shared-format syntax assertions passed.
 
-- [ ] **8. Add automatic and cautious persistence modes**
+- [x] **8. Add automatic and cautious persistence modes**
   Depends on: 3.
   Outcome: Editable surfaces default to revision-safe automatic persistence, while a user-persisted cautious mode exposes explicit Save and Discard without creating a second transaction or SaveBar implementation.
   Checks:
-    - [ ] **Persistence-mode source contract**
+    - [x] **Persistence-mode source contract**
       - Action: Run focused tests for automatic discrete saves, debounced text saves, Undo／Redo persistence, cautious drafts, mode-switch guards, preference storage, conflict retention, and shared SaveBar rendering.
       - Expect: The preference defaults to automatic mode, persists only in the Browser／WebView user profile, and every save path uses the existing transaction, bridge, validation, and revision contract.
-    - [ ] **Checklist asset build**
+    - [x] **Checklist asset build**
       - Action: Build the dedicated Checklist UI asset once from the locked npm dependency graph.
       - Expect: The WPF-loadable assets build successfully and auto／cautious controls come from the shared editor shell rather than a Checklist-only SaveBar copy.
 
-- [ ] **9. Replace manual result buttons with one cyclic marker**
+- [x] **9. Replace manual result buttons with one cyclic marker**
   Depends on: 3.
   Outcome: Every manual check remains editable through one left-side `[ ]` → `[x]` → `[!]` → `[ ]` marker, while Agent and derived work-item markers remain read-only and failed saves require Observed.
   Checks:
-    - [ ] **Manual-result mutation contract**
+    - [x] **Manual-result mutation contract**
       - Action: Run focused C# and Node tests for editing saved manual results, clearing Observed／Resolved on pending, requiring new Observed on failure, deriving parent status, rejecting Agent mutations, Undo／Redo, and serializing the revised Markdown atomically.
       - Expect: Manual results can traverse the full cycle after save without allowing Agent-result mutation or bypassing source-revision validation.
-    - [ ] **Single-marker presentation contract**
+    - [x] **Single-marker presentation contract**
       - Action: Run focused Svelte source and presentation tests for manual, Agent, and work-item markers.
       - Expect: Manual checks have exactly one interactive marker in the left marker column; no pass／fail controls render on the right, and incomplete failure drafts expose one inline Observed field.
 
-- [ ] **10. Verify the revised packaged Checklist flow**
+- [x] **10. Verify the revised packaged Checklist flow**
   Depends on: 8, 9.
   Outcome: The Release WPF Checklist App persists the selected mode and manual-result cycle safely against a disposable Markdown file without LocalWebService.
   Checks:
-    - [ ] **Focused package build and tests**
+    - [x] **Focused package build and tests**
       - Action: Run the focused Checklist／CLI／Node tests and Release build once with the locked dependency graph, then inspect the packaged Checklist UI and WebView2 files.
       - Expect: All focused tests and the build pass, and the output contains the executable, current Checklist assets, WebView2 managed assemblies, and native loader.
-    - [ ] **Revised WPF Checklist interaction** `[manual]`
+    - [x] **Revised WPF Checklist interaction** `[manual]`
       - Action: Open a disposable Checklist copy, verify automatic save and reopen persistence, cycle one manual marker through all three states, enter Observed for failure, enable cautious mode, test Save and Discard, then reopen the App.
       - Expect: Automatic mode has no Save／Discard buttons; cautious mode persists for the user and owns those buttons; only the left manual marker is interactive; invalid failure drafts are not written; no LocalWebService process or port is used; only the disposable file changes.
       - Reason: Requires the user's Windows desktop, installed Evergreen WebView2 Runtime, and direct UX confirmation.

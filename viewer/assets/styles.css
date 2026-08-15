@@ -1562,6 +1562,61 @@ footer {
   opacity: 0.45;
 }
 
+/* Three-state marker box (`MarkerBox.svelte`): a square whose border is the
+   bracket, so `[ ]`, `[x]` and `[!]` read as one control in any host. */
+.marker-box {
+  display: inline-grid;
+  place-items: center;
+  box-sizing: border-box;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  color: var(--color-muted-status-text);
+  background: transparent;
+  border: 1.5px solid var(--color-border);
+  border-radius: 5px;
+  font-family: inherit;
+  font-size: 0.74rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.marker-box.marker-passed {
+  color: var(--color-success-text);
+  border-color: var(--color-success-border);
+  background: var(--color-success-bg);
+}
+
+.marker-box.marker-failed {
+  color: var(--color-danger-text);
+  border-color: var(--color-danger-border);
+  background: var(--color-danger-bg);
+}
+
+.marker-box-button {
+  cursor: pointer;
+}
+
+.marker-box-button:hover {
+  border-color: var(--color-active-border);
+}
+
+.marker-box-button:focus-visible {
+  outline: 2px solid var(--color-active-text);
+  outline-offset: 2px;
+}
+
+.edit-mode-button {
+  padding: 5px 9px;
+  font-size: 0.7rem;
+}
+
+.edit-mode-button[aria-pressed="true"] {
+  color: var(--color-active-text);
+  border-color: var(--color-active-border);
+  background: var(--color-active-bg);
+}
+
 .edit-save-button {
   color: #fff;
   background: #245fcb;

@@ -93,11 +93,12 @@ internal sealed class ChecklistBridge
             RejectUnknown(result, "manual result", "workItemId", "checkIndex", "status", "observed");
             var status = RequireString(result, "status", 16) switch
             {
+                "pending" => ChecklistStatus.Pending,
                 "passed" => ChecklistStatus.Passed,
                 "failed" => ChecklistStatus.Failed,
                 _ => throw new ChecklistBridgeException(
                     "invalid_request",
-                    "manual result status 只能是 passed 或 failed。"),
+                    "manual result status 只能是 pending、passed 或 failed。"),
             };
             manualResults.Add(new ChecklistManualResult(
                 RequireInteger(result, "workItemId", minimum: 1),

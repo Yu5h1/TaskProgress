@@ -233,20 +233,18 @@ internal sealed class ChecklistDocument
                 throw new CliException($"work item {result.WorkItemId} 的 check index 無效。");
             }
             var check = checks[result.CheckIndex];
+            // A manual result records the user's current verification judgment, so
+            // it stays revisable through the full cycle after it is saved. Agent
+            // results remain immutable execution evidence.
             if (!check.IsManual) throw new CliException("Agent check 在人類介面中是唯讀的。");
-            if (check.Status != ChecklistStatus.Pending) throw new CliException("已儲存的 check 結果不可修改。");
-            if (result.Status is not (ChecklistStatus.Passed or ChecklistStatus.Failed))
-            {
-                throw new CliException("manual check 只能儲存通過或失敗。");
-            }
             var observed = string.IsNullOrWhiteSpace(result.Observed) ? null : result.Observed.Trim();
             if (result.Status == ChecklistStatus.Failed && observed is null)
             {
                 throw new CliException("失敗 manual check 必須填寫 Observed。");
             }
-            if (result.Status == ChecklistStatus.Passed && observed is not null)
+            if (result.Status != ChecklistStatus.Failed && observed is not null)
             {
-                throw new CliException("通過 manual check 不可包含 Observed。");
+                throw new CliException("只有失敗 manual check 可以填寫 Observed。");
             }
             checks[result.CheckIndex] = check with
             {

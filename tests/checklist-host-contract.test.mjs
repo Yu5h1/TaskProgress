@@ -47,6 +47,15 @@ test("Checklist command stays outside LocalWebService", () => {
   assert.match(host, /SetApartmentState\(ApartmentState\.STA\)/u);
 });
 
+test("Checklist host keeps a stable per-user WebView profile", () => {
+  // The persistence-mode preference lives in this profile's storage, so it must
+  // not follow the working directory or the published location.
+  assert.match(host, /ResolveUserProfileDirectory\(\)/u);
+  assert.match(host, /Environment\.SpecialFolder\.LocalApplicationData/u);
+  assert.match(host, /userDataFolder: profileDirectory/u);
+  assert.match(host, /EnsureCoreWebView2Async\(webViewEnvironment\)/u);
+});
+
 test("Checklist bridge is exact-file and allowlists load and save", () => {
   assert.match(bridge, /"load" => Load\(root\)/u);
   assert.match(bridge, /"save" => Save\(root\)/u);

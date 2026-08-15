@@ -1,7 +1,6 @@
-:root {
-  color-scheme: dark;
-}
-
+/* No `color-scheme` here: the shared theme adapter sets it on the document root
+   from the reader's saved preference, and a value declared here would claim one
+   scheme before that preference is even read. */
 body {
   min-width: 0;
   margin: 0;
@@ -21,6 +20,11 @@ body {
 }
 
 .checklist-header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: start;
+  justify-content: space-between;
   margin-bottom: 22px;
 }
 
@@ -74,29 +78,6 @@ body {
   color: var(--muted);
 }
 
-.checklist-marker {
-  display: inline-grid;
-  width: 22px;
-  height: 22px;
-  place-items: center;
-  color: var(--muted);
-  border: 1px solid var(--line-strong);
-  border-radius: 50%;
-  font-weight: 800;
-}
-
-.checklist-passed > .checklist-item-header .checklist-marker,
-.checklist-check.checklist-passed .checklist-marker {
-  color: var(--green);
-  border-color: var(--color-success-border);
-}
-
-.checklist-failed > .checklist-item-header .checklist-marker,
-.checklist-check.checklist-failed .checklist-marker {
-  color: var(--red);
-  border-color: var(--color-danger-border);
-}
-
 .checklist-status,
 .checklist-owner {
   padding: 4px 9px;
@@ -119,37 +100,10 @@ body {
 
 .checklist-check-heading {
   display: grid;
-  grid-template-columns: 22px minmax(0, 1fr) auto auto;
+  grid-template-columns: 22px minmax(0, 1fr) auto;
   gap: 9px;
   align-items: center;
   color: var(--ink);
-}
-
-.checklist-result-controls {
-  display: inline-flex;
-  gap: 5px;
-}
-
-.checklist-result-controls button {
-  width: 32px;
-  height: 28px;
-  color: var(--muted);
-  background: transparent;
-  border: 1px solid var(--line-strong);
-  border-radius: 999px;
-  cursor: pointer;
-  font-weight: 800;
-}
-
-.checklist-result-controls button.active {
-  color: var(--color-control-text);
-  background: var(--green);
-  border-color: var(--green);
-}
-
-.checklist-result-controls button.fail.active {
-  background: var(--red);
-  border-color: var(--red);
 }
 
 .checklist-check dl {
@@ -213,14 +167,6 @@ body {
   .checklist-status {
     grid-column: 2;
     justify-self: start;
-  }
-
-  .checklist-check-heading {
-    grid-template-columns: 22px minmax(0, 1fr) auto;
-  }
-
-  .checklist-result-controls {
-    grid-column: 2 / -1;
   }
 
   .checklist-check dl,

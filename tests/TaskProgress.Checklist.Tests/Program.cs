@@ -38,6 +38,35 @@ internal static class Program
             var reparsed = ChecklistDocument.Parse(resolvedBytes);
             SequenceEqual(resolvedBytes, reparsed.Serialize(), "resolved byte round-trip");
 
+            // A saved manual result records the user's current judgment, so it stays
+            // revisable through the whole cycle; Agent evidence does not.
+            var revised = updated.ApplyManualResults([
+                new ChecklistManualResult(1, 1, ChecklistStatus.Passed, null),
+            ]);
+            Equal(ChecklistStatus.Passed, revised.Items[0].Checks[1].Status, "revised manual result");
+            True(revised.Items[0].Checks[1].Observed is null, "revised manual result clears Observed");
+            // The work item is still pending: its Agent check has not run.
+            Equal(ChecklistStatus.Pending, revised.Items[0].Status, "derived status after revision");
+
+            var cleared = resolved.ApplyManualResults([
+                new ChecklistManualResult(1, 1, ChecklistStatus.Pending, null),
+            ]);
+            Equal(ChecklistStatus.Pending, cleared.Items[0].Checks[1].Status, "manual result cycled to pending");
+            True(cleared.Items[0].Checks[1].Observed is null, "pending manual result clears Observed");
+            True(cleared.Items[0].Checks[1].Resolved is null, "pending manual result clears Resolved");
+            Equal(ChecklistStatus.Pending, cleared.Items[0].Status, "derived status after clearing");
+            var clearedBytes = cleared.Serialize();
+            SequenceEqual(
+                clearedBytes,
+                ChecklistDocument.Parse(clearedBytes).Serialize(),
+                "revised manual byte round-trip");
+            Throws(() => revised.ApplyManualResults([
+                new ChecklistManualResult(1, 1, ChecklistStatus.Failed, " "),
+            ]), "revised failure without Observed");
+            Throws(() => resolved.ApplyManualResults([
+                new ChecklistManualResult(1, 0, ChecklistStatus.Pending, null),
+            ]), "Agent check mutation after save");
+
             Throws(() => document.ApplyManualResults([
                 new ChecklistManualResult(1, 0, ChecklistStatus.Passed, null),
             ]), "Agent check mutation");
@@ -135,6 +164,27 @@ internal static class Program
                 ChecklistStatus.Passed,
                 new ChecklistDocumentStore().Load(bridgePath).Items[0].Checks[1].Status,
                 "bridge persisted manual result");
+            var savedRevision = saveResponse.RootElement.GetProperty("payload").GetProperty("revision").GetString();
+            using var revertResponse = JsonDocument.Parse(bridge.Handle(
+                JsonSerializer.Serialize(new
+                {
+                    version = 1,
+                    id = "save-2",
+                    type = "save",
+                    payload = new
+                    {
+                        revision = savedRevision,
+                        results = new[]
+                        {
+                            new { workItemId = 1, checkIndex = 1, status = "pending", observed = (string?)null },
+                        },
+                    },
+                })));
+            Equal("result", revertResponse.RootElement.GetProperty("type").GetString(), "bridge revert result");
+            Equal(
+                ChecklistStatus.Pending,
+                new ChecklistDocumentStore().Load(bridgePath).Items[0].Checks[1].Status,
+                "bridge persisted manual revert");
 
             var conflictPath = Path.Combine(root, "bridge-conflict.md");
             File.WriteAllBytes(conflictPath, source);
@@ -176,7 +226,7 @@ internal static class Program
                 File.ReadAllText(path, Encoding.UTF8).EndsWith("<!-- external -->", StringComparison.Ordinal),
                 "conflict overwrote external content");
 
-            Console.WriteLine("Checklist document, host, and bridge tests passed: 33 checks.");
+            Console.WriteLine("Checklist document, host, and bridge tests passed: 45 checks.");
             return 0;
         }
         catch (Exception error)

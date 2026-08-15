@@ -37,6 +37,21 @@ internal static class ChecklistDesktopHost
         ExceptionDispatchInfo.Capture(failure).Throw();
     }
 
+    /// <summary>
+    /// Stable per-user WebView profile directory. The Checklist UI keeps its
+    /// persistence-mode preference in this profile's own storage, so the folder
+    /// must not depend on the current directory or on where the executable was
+    /// published, or reopening the App would reset the preference.
+    /// </summary>
+    internal static string ResolveUserProfileDirectory()
+    {
+        var localAppData = Environment.GetFolderPath(
+            Environment.SpecialFolder.LocalApplicationData,
+            Environment.SpecialFolderOption.DoNotVerify);
+        var root = string.IsNullOrWhiteSpace(localAppData) ? Path.GetTempPath() : localAppData;
+        return Path.Combine(root, "TaskProgress", "checklist-webview");
+    }
+
     internal static CliException CreateRuntimeMissingError(string detail) =>
         new(
             "找不到 Microsoft Edge WebView2 Runtime。"
@@ -72,7 +87,12 @@ internal static class ChecklistDesktopHost
         {
             try
             {
-                await webView.EnsureCoreWebView2Async();
+                var profileDirectory = ResolveUserProfileDirectory();
+                Directory.CreateDirectory(profileDirectory);
+                var webViewEnvironment = await CoreWebView2Environment.CreateAsync(
+                    browserExecutableFolder: null,
+                    userDataFolder: profileDirectory);
+                await webView.EnsureCoreWebView2Async(webViewEnvironment);
                 webView.CoreWebView2.Settings.AreDefaultContextMenusEnabled = false;
                 webView.CoreWebView2.Settings.AreHostObjectsAllowed = false;
                 webView.CoreWebView2.SetVirtualHostNameToFolderMapping(

@@ -167,7 +167,9 @@ test("the time summary button and its dialog are registered as one shared implem
   // Closing is host-notified directly by the button/backdrop, not solely
   // through the native `close` event.
   assert.match(timeDialog, /function requestClose\(\)/);
-  assert.match(timeDialog, /dialogEl\?\.close\(\);\s*onClose\(\);/);
+  assert.match(timeDialog, /dialogEl\?\.close\(\);\s*notifyClose\(\);/);
+  // `notifyClose` is that direct notification plus focus restoration.
+  assert.match(timeDialog, /function notifyClose\(\)[\s\S]*?onClose\(\);/);
 
   assert.doesNotMatch(timeSummaryButton, /localStorage/);
   assert.doesNotMatch(timeDialog, /localStorage/);

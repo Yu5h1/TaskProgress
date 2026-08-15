@@ -4,6 +4,15 @@
   // owns and styles (`.edit-save-bar` is position: fixed and aligned to the
   // content panel). Class names are the Viewer's existing ones so the bar keeps
   // its styling instead of being restyled from scratch.
+  //
+  // `cautious` is the persistence mode, not a host knob: Save and Discard exist
+  // only in cautious mode, while status and Undo/Redo exist in both. It defaults
+  // to `true` because the Report Editor still owns an explicit-save flow (its
+  // dual-host migration is the separate priority-2 item); a host on the shared
+  // persistence controller passes the real mode and the toggle callback.
+  export let cautious = true;
+  export let onToggleCautious = null;
+  export let cautiousLabel = "謹慎模式";
   export let dirty = false;
   export let saving = false;
   export let canUndo = false;
@@ -37,16 +46,28 @@
     onclick={onRedo}
   >{redoLabel}</button>
 </span>
-<button
-  class="secondary-button edit-discard-button"
-  type="button"
-  aria-label="放棄全部修改並回到預覽模式"
-  disabled={saving}
-  onclick={onDiscard}
->{discardLabel}</button>
-<button
-  class="primary-button edit-save-button"
-  type="button"
-  disabled={!dirty || saving}
-  onclick={onSave}
->{saving ? savingLabel : buttonLabel}</button>
+{#if onToggleCautious}
+  <button
+    class="secondary-button edit-mode-button"
+    type="button"
+    aria-pressed={cautious}
+    aria-label={`${cautiousLabel}：改為手動儲存與放棄`}
+    disabled={saving}
+    onclick={() => onToggleCautious(!cautious)}
+  >{cautiousLabel}</button>
+{/if}
+{#if cautious}
+  <button
+    class="secondary-button edit-discard-button"
+    type="button"
+    aria-label="放棄全部修改並回到預覽模式"
+    disabled={saving}
+    onclick={onDiscard}
+  >{discardLabel}</button>
+  <button
+    class="primary-button edit-save-button"
+    type="button"
+    disabled={!dirty || saving}
+    onclick={onSave}
+  >{saving ? savingLabel : buttonLabel}</button>
+{/if}

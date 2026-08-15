@@ -75,12 +75,14 @@ export function createEditorTransaction(
     return true;
   }
 
-  function reset(value) {
+  function reset(value, keepHistory = false) {
     persisted = clone(value);
     baseline = clone(persisted);
     draft = clone(baseline);
-    undoStack.length = 0;
-    redoStack.length = 0;
+    if (!keepHistory) {
+      undoStack.length = 0;
+      redoStack.length = 0;
+    }
     refresh();
   }
 
@@ -93,6 +95,9 @@ export function createEditorTransaction(
     undo,
     redo,
     discard() { reset(persisted); },
-    commit(value) { reset(value); },
+    // `keepHistory` belongs to automatic persistence: every change commits on
+    // its own, so clearing the stacks on each commit would leave the reader with
+    // no Undo at all. Undo/Redo after a commit are ordinary new changes.
+    commit(value, { keepHistory = false } = {}) { reset(value, keepHistory); },
   });
 }

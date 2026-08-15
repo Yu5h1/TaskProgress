@@ -63,14 +63,14 @@ test("shared editor transaction owns draft history, discard, and commit", () => 
   assert.equal(transaction.draft.value, 3);
 });
 
-test("Checklist session edits only pending manual checks", () => {
+test("Checklist session edits manual checks only", () => {
   const session = createChecklistEditorSession(documentFixture());
   assert.throws(() => session.dispatch({
     type: "set-result",
     workItemId: 1,
     checkIndex: 0,
     status: "failed",
-  }), /manual check/u);
+  }), /Agent check/u);
 
   let view = session.dispatch({
     type: "set-result",
@@ -102,6 +102,47 @@ test("Checklist session edits only pending manual checks", () => {
   assert.equal(session.prepareSave().errors[0].code, "observed_required");
   session.discard();
   assert.equal(session.snapshot().dirty, false);
+});
+
+test("a saved manual result stays revisable through the whole marker cycle", () => {
+  const session = createChecklistEditorSession(documentFixture());
+  const cycle = () => session.dispatch({ type: "cycle-result", workItemId: 1, checkIndex: 1 });
+
+  assert.equal(cycle().document.items[0].checks[1].status, "passed");
+  assert.equal(cycle().document.items[0].checks[1].status, "failed");
+  session.dispatch({
+    type: "set-observed",
+    workItemId: 1,
+    checkIndex: 1,
+    value: "The window did not open.",
+  });
+
+  const saved = documentFixture();
+  saved.revision = "def";
+  saved.items[0].status = "failed";
+  saved.items[0].checks[1].status = "failed";
+  saved.items[0].checks[1].observed = "The window did not open.";
+  session.commit(saved);
+  assert.equal(session.snapshot().dirty, false);
+  assert.deepEqual(session.prepareSave().results, [], "an unchanged saved result is not resubmitted");
+
+  // The saved failure cycles back to pending and drops the result it described.
+  const view = cycle();
+  const check = view.document.items[0].checks[1];
+  assert.equal(check.status, "pending");
+  assert.equal(check.observed, null);
+  assert.equal(check.resolved, null);
+  assert.equal(view.document.items[0].status, "pending", "the parent marker follows its checks");
+  assert.deepEqual(session.prepareSave(), {
+    revision: "def",
+    results: [{ workItemId: 1, checkIndex: 1, status: "pending", observed: null }],
+    errors: [],
+  });
+
+  // A new failure needs its own Observed before it can be written.
+  cycle();
+  cycle();
+  assert.equal(session.prepareSave().errors[0].code, "observed_required");
 });
 
 test("Checklist transport exposes only load and save", async () => {

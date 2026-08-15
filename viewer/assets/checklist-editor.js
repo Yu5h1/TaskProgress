@@ -18,17 +18,26 @@ function derive(document) {
   return result;
 }
 
+const CYCLE = { pending: "passed", passed: "failed", failed: "pending" };
+
 function reduce(document, command) {
   const { item, check } = findCheck(document, command.workItemId, command.checkIndex);
-  if (!check.isManual || check.persistedStatus !== "pending") {
-    throw new Error("只有尚未儲存的 manual check 可以修改。");
-  }
-  if (command.type === "set-result") {
-    if (!["pending", "passed", "failed"].includes(command.status)) {
+  // Manual results stay editable after they are saved; Agent results are frozen
+  // execution evidence.
+  if (!check.isManual) throw new Error("Agent check 是唯讀的。");
+  if (command.type === "set-result" || command.type === "cycle-result") {
+    const next = command.type === "cycle-result"
+      ? CYCLE[check.status] ?? "pending"
+      : command.status;
+    if (!["pending", "passed", "failed"].includes(next)) {
       throw new Error("不支援的 manual check 狀態。");
     }
-    check.status = command.status;
-    if (command.status !== "failed") check.observed = null;
+    check.status = next;
+    if (next !== "failed") {
+      // Leaving a failure drops the result it described.
+      check.observed = null;
+      check.resolved = null;
+    }
   } else if (command.type === "set-observed") {
     if (check.status !== "failed") throw new Error("只有失敗草稿可以填寫 Observed。");
     check.observed = String(command.value ?? "");
@@ -41,15 +50,22 @@ function reduce(document, command) {
   return document;
 }
 
+// The saved state travels with the draft so a save can submit exactly the manual
+// checks the reader actually changed, in either direction.
 function normalize(document) {
   const normalized = structuredClone(document);
   normalized.items.forEach((item) => item.checks.forEach((check) => {
     check.persistedStatus = check.status;
+    check.persistedObserved = check.observed ?? null;
   }));
   return normalized;
 }
 
 export function createChecklistEditorSession(document, options = {}) {
+  // The source revision follows the last saved document, not the draft: Undo can
+  // restore an older draft, and that older draft must still be written against
+  // the revision the file actually has now.
+  let revision = document.revision;
   const transaction = createEditorTransaction(normalize(document), {
     derive,
     historyLimit: options.historyLimit,
@@ -75,8 +91,10 @@ export function createChecklistEditorSession(document, options = {}) {
     const results = [];
     const errors = [];
     transaction.derived.items.forEach((item) => item.checks.forEach((check) => {
-      if (!check.isManual || check.persistedStatus !== "pending" || check.status === "pending") return;
+      if (!check.isManual) return;
       const observed = String(check.observed ?? "").trim();
+      const persistedObserved = String(check.persistedObserved ?? "").trim();
+      if (check.status === check.persistedStatus && observed === persistedObserved) return;
       if (check.status === "failed" && !observed) {
         errors.push({
           code: "observed_required",
@@ -97,7 +115,7 @@ export function createChecklistEditorSession(document, options = {}) {
       errors.push({ code: "empty_change", message: "沒有可儲存的 manual check 結果。" });
     }
     return Object.freeze({
-      revision: transaction.draft.revision,
+      revision,
       results,
       errors,
     });
@@ -110,6 +128,10 @@ export function createChecklistEditorSession(document, options = {}) {
     undo() { transaction.undo(); return snapshot(); },
     redo() { transaction.redo(); return snapshot(); },
     discard() { transaction.discard(); return snapshot(); },
-    commit(savedDocument) { transaction.commit(normalize(savedDocument)); return snapshot(); },
+    commit(savedDocument) {
+      revision = savedDocument.revision;
+      transaction.commit(normalize(savedDocument), { keepHistory: true });
+      return snapshot();
+    },
   });
 }
