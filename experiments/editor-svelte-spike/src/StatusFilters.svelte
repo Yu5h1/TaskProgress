@@ -1,5 +1,9 @@
 <script>
-  import HorizontalCapsuleStrip from "./HorizontalCapsuleStrip.svelte";
+  // Task-status filtering for the task-progress screen: it builds its own
+  // categories — including the "all" capsule, the reader's saved status order
+  // and the drag wording — and hands them to the shared strip, which reorders
+  // because here the reader's order is itself the meaning.
+  import FilterStrip from "./FilterStrip.svelte";
 
   export let counts = {};
   export let statusOrder = [];
@@ -10,16 +14,15 @@
 
   $: visible = ["all", ...statusOrder]
     .filter((filter) => filter === "all" || (counts[filter] ?? 0) > 0);
-  $: capsules = visible.map((filter, index) => {
+  $: categories = visible.map((filter, index) => {
     const label = filter === "all" ? "全部" : statusLabels[filter] ?? filter;
     const count = counts[filter] ?? 0;
     const sortable = filter !== "all";
     return {
       id: filter,
-      label: `${label} ${count}`,
-      className: `filter-button ${sortable ? "status-sortable" : ""}`,
+      label,
+      count,
       sortable,
-      pressed: filter === activeFilter,
       title: !sortable
         ? null
         : filter === "planned"
@@ -32,10 +35,12 @@
   });
 </script>
 
-<HorizontalCapsuleStrip
-  items={capsules}
+<FilterStrip
+  {categories}
+  activeId={activeFilter}
   className="status-filter-strip"
   ariaLabel="工作狀態篩選與排序"
-  onActivate={onFilterChange}
+  reorderable={true}
+  onSelect={onFilterChange}
   {onReorder}
 />

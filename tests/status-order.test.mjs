@@ -122,6 +122,10 @@ const statusFilters = await readFile(
   new URL("../experiments/editor-svelte-spike/src/StatusFilters.svelte", import.meta.url),
   "utf8",
 );
+const filterStrip = await readFile(
+  new URL("../experiments/editor-svelte-spike/src/FilterStrip.svelte", import.meta.url),
+  "utf8",
+);
 const horizontalCapsules = await readFile(
   new URL("../experiments/editor-svelte-spike/src/HorizontalCapsuleStrip.svelte", import.meta.url),
   "utf8",
@@ -144,8 +148,12 @@ test("production Viewer exposes mouse, touch, and keyboard status ordering", asy
   ]);
   // Ordering interaction moved into the filter component; the host keeps
   // persistence and re-render. Mouse drag, touch drag and keyboard must all
-  // survive the move.
-  assert.match(statusFilters, /HorizontalCapsuleStrip/);
+  // survive the move. The path is now StatusFilters → FilterStrip →
+  // HorizontalCapsuleStrip, and ordering only happens because this screen opts
+  // in — the shared strip is selection-only by default.
+  assert.match(statusFilters, /FilterStrip/);
+  assert.match(statusFilters, /reorderable=\{true\}/);
+  assert.match(filterStrip, /HorizontalCapsuleStrip/);
   assert.match(horizontalCapsules, /ondragstart=/);
   assert.match(horizontalCapsules, /onpointerdown=/);
   assert.match(horizontalCapsules, /Alt\+ArrowLeft Alt\+ArrowRight/);

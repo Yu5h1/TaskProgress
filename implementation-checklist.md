@@ -41,10 +41,10 @@ Run every Agent check once. If a check fails, mark it `[!]`, add `Observed`, and
       - Expect: The meter reads the same as before, including its gradient and any deadline overlay, nothing overflows horizontally, and the status cards above it are unchanged.
       - Reason: Requires direct visual comparison in the user's running browser.
 
-- [ ] **5. Lift the filter categories out of the shared strip**
+- [x] **5. Lift the filter categories out of the shared strip**
   Outcome: The filter strip receives its categories and selection from the calling screen while keeping one pointer and keyboard implementation.
   Checks:
-    - [ ] **Filter strip source contract**
+    - [x] **Filter strip source contract**
       - Action: Run focused tests for caller-supplied categories, selection callbacks, the optional reordering, and the unchanged pointer and keyboard behaviour.
       - Expect: The strip defines no categories of its own, reordering is opt-in per screen, and the task-progress screen keeps its existing order persistence.
 
