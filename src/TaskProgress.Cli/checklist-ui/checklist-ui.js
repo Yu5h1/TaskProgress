@@ -3343,78 +3343,39 @@ Sr([
 	"input"
 ]);
 //#endregion
-//#region experiments/editor-svelte-spike/src/checklist-bridge.js
-var za = 1, Ba = /* @__PURE__ */ new Set(["load", "save"]);
-function Va(e = globalThis.chrome?.webview) {
-	if (!e || typeof e.postMessage != "function") throw Error("此頁面必須由 TaskProgress Checklist Desktop Host 開啟。");
-	let t = 0, n = /* @__PURE__ */ new Map();
-	e.addEventListener("message", (e) => {
-		let t = e.data;
-		if (!t || t.version !== za || typeof t.id != "string") return;
-		let r = n.get(t.id);
-		if (!r) return;
-		if (n.delete(t.id), t.type === "result") {
-			r.resolve(t.payload);
-			return;
-		}
-		let i = Error(t.error?.message ?? "Checklist bridge request failed.");
-		i.code = t.error?.code ?? "bridge_error", r.reject(i);
-	});
-	function r(r, i) {
-		if (!Ba.has(r)) return Promise.reject(/* @__PURE__ */ Error(`不支援的 Checklist bridge request：${r}`));
-		let a = `checklist-${Date.now()}-${++t}`;
-		return new Promise((t, o) => {
-			n.set(a, {
-				resolve: t,
-				reject: o
-			});
-			let s = {
-				version: za,
-				id: a,
-				type: r
-			};
-			i !== void 0 && (s.payload = i), e.postMessage(s);
-		});
-	}
-	return Object.freeze({
-		load: () => r("load"),
-		save: (e) => r("save", e)
-	});
-}
-//#endregion
 //#region experiments/editor-svelte-spike/src/ChecklistApp.svelte
-var Ha = /* @__PURE__ */ J("<p class=\"checklist-round\"> </p>"), Ua = /* @__PURE__ */ J("<p class=\"checklist-notice\" role=\"status\"> </p>"), Wa = /* @__PURE__ */ J("<p class=\"checklist-notice checklist-error\" role=\"alert\"> </p>"), Ga = /* @__PURE__ */ J("<div class=\"checklist-filters\"><!> <!></div>"), Ka = /* @__PURE__ */ J("<small> </small>"), qa = /* @__PURE__ */ J("<div><dt>Reason</dt><dd> </dd></div>"), Ja = /* @__PURE__ */ J("<div><dt>Observed</dt><dd> </dd></div>"), Ya = /* @__PURE__ */ J("<div><dt>Resolved</dt><dd> </dd></div>"), Xa = /* @__PURE__ */ J("<label class=\"checklist-observed\"><span>Observed</span> <textarea rows=\"3\" placeholder=\"記錄實際看到的結果\"></textarea></label>"), Za = /* @__PURE__ */ J("<section><div class=\"checklist-check-heading\"><!> <strong> </strong> <span class=\"checklist-owner\"> </span></div> <dl><div><dt>Action</dt><dd> </dd></div> <div><dt>Expect</dt><dd> </dd></div> <!> <!> <!></dl> <!></section>"), Qa = /* @__PURE__ */ J("<article><header class=\"checklist-item-header\"><!> <div><h2> </h2> <p> </p> <!></div> <span class=\"checklist-status\"> </span></header> <div class=\"checklist-checks\"></div></article>"), $a = /* @__PURE__ */ J("<!> <!> <!> <section class=\"checklist-items\" aria-label=\"Implementation checklist items\"></section> <footer class=\"edit-save-bar\" aria-live=\"polite\"><!></footer>", 1), eo = /* @__PURE__ */ J("<main class=\"checklist-page\"><header class=\"checklist-header\"><div><p class=\"section-kicker\">Implementation Checklist</p> <h1> </h1> <!></div> <!></header> <!></main>");
-function to(e, t) {
+var za = /* @__PURE__ */ J("<p class=\"checklist-round\"> </p>"), Ba = /* @__PURE__ */ J("<p class=\"checklist-notice\" role=\"status\"> </p>"), Va = /* @__PURE__ */ J("<p class=\"checklist-notice checklist-error\" role=\"alert\"> </p>"), Ha = /* @__PURE__ */ J("<div class=\"checklist-filters\"><!> <!></div>"), Ua = /* @__PURE__ */ J("<small> </small>"), Wa = /* @__PURE__ */ J("<div><dt>Reason</dt><dd> </dd></div>"), Ga = /* @__PURE__ */ J("<div><dt>Observed</dt><dd> </dd></div>"), Ka = /* @__PURE__ */ J("<div><dt>Resolved</dt><dd> </dd></div>"), qa = /* @__PURE__ */ J("<label class=\"checklist-observed\"><span>Observed</span> <textarea rows=\"3\" placeholder=\"記錄實際看到的結果\"></textarea></label>"), Ja = /* @__PURE__ */ J("<section><div class=\"checklist-check-heading\"><!> <strong> </strong> <span class=\"checklist-owner\"> </span></div> <dl><div><dt>Action</dt><dd> </dd></div> <div><dt>Expect</dt><dd> </dd></div> <!> <!> <!></dl> <!></section>"), Ya = /* @__PURE__ */ J("<article><header class=\"checklist-item-header\"><!> <div><h2> </h2> <p> </p> <!></div> <span class=\"checklist-status\"> </span></header> <div class=\"checklist-checks\"></div></article>"), Xa = /* @__PURE__ */ J("<!> <!> <!> <section class=\"checklist-items\" aria-label=\"Implementation checklist items\"></section> <footer class=\"edit-save-bar\" aria-live=\"polite\"><!></footer>", 1), Za = /* @__PURE__ */ J("<main class=\"checklist-page\"><header class=\"checklist-header\"><div><p class=\"section-kicker\">Implementation Checklist</p> <h1> </h1> <!></div> <!></header> <!></main>");
+function Qa(e, t) {
 	He(t, !1);
-	let n = null, r = /* @__PURE__ */ I(null), i = /* @__PURE__ */ I(!0), a = /* @__PURE__ */ I(""), o = /* @__PURE__ */ I("正在載入 Checklist…"), s = (e) => ({
+	let n = $(t, "transport", 8, null), r = null, i = /* @__PURE__ */ I(null), a = /* @__PURE__ */ I(!0), o = /* @__PURE__ */ I(""), s = /* @__PURE__ */ I("正在載入 Checklist…"), c = (e) => ({
 		pending: "未執行",
 		passed: "通過",
 		failed: "失敗"
-	})[e] ?? e, c = /* @__PURE__ */ I({
+	})[e] ?? e, l = /* @__PURE__ */ I({
 		status: null,
 		owner: null
-	}), l = {
+	}), u = {
 		pending: "未執行",
 		passed: "通過",
 		failed: "失敗"
-	}, u = {
+	}, d = {
 		manual: "需人工驗證",
 		agent: "Agent"
 	};
-	function d(e, t) {
-		L(c, {
-			...W(c),
-			[e]: W(c)[e] === t ? null : t
+	function f(e, t) {
+		L(l, {
+			...W(l),
+			[e]: W(l)[e] === t ? null : t
 		});
 	}
-	function f(e, t, n) {
+	function p(e, t, n) {
 		return n[e].map((e) => ({
 			id: e.id,
 			label: t[e.id] ?? e.id,
 			count: e.count
 		}));
 	}
-	function p(e) {
+	function m(e) {
 		let t = [
 			{
 				key: "total",
@@ -3441,115 +3402,115 @@ function to(e, t) {
 			tone: "failed"
 		}), t;
 	}
-	let m = /* @__PURE__ */ new Set([
+	let h = /* @__PURE__ */ new Set([
 		"incomplete",
 		"conflict",
 		"error",
 		"mode_blocked"
-	]), h = (e) => e === "saving" ? "saving" : m.has(e) ? "error" : "clean", g = /* @__PURE__ */ I(null), _ = /* @__PURE__ */ I({
+	]), g = (e) => e === "saving" ? "saving" : h.has(e) ? "error" : "clean", _ = /* @__PURE__ */ I(null), v = /* @__PURE__ */ I({
 		mode: "system",
 		custom: null,
 		systemScheme: "light"
 	});
-	function v() {
-		L(_, {
-			mode: W(g).mode,
-			custom: W(g).custom,
-			systemScheme: W(g).systemScheme
+	function y() {
+		L(v, {
+			mode: W(_).mode,
+			custom: W(_).custom,
+			systemScheme: W(_).systemScheme
 		});
 	}
 	di(async () => {
-		L(g, oa()), v();
+		L(_, oa()), y();
 		try {
-			let e = Va();
-			n = Vi({
-				session: Di(await e.load()),
-				save: e.save,
+			if (!n()) throw Error("Checklist 介面需要由 host 提供 transport。");
+			r = Vi({
+				session: Di(await n().load()),
+				save: n().save,
 				debounceCommand: (e) => e.type === "set-observed",
 				onChange: (e) => {
-					L(r, e), L(o, e.message);
+					L(i, e), L(s, e.message);
 				}
-			}), L(r, n.snapshot()), L(o, W(r).message);
+			}), L(i, r.snapshot()), L(s, W(i).message);
 		} catch (e) {
-			L(a, e instanceof Error ? e.message : "Checklist 載入失敗。"), L(o, W(a));
+			L(o, e instanceof Error ? e.message : "Checklist 載入失敗。"), L(s, W(o));
 		} finally {
-			L(i, !1);
+			L(a, !1);
 		}
 	});
-	function y(e) {
+	function b(e) {
 		try {
-			n.dispatch(e), L(r, n.snapshot()), L(o, W(r).message);
+			r.dispatch(e), L(i, r.snapshot()), L(s, W(i).message);
 		} catch (e) {
-			L(o, e.message);
+			L(s, e.message);
 		}
 	}
-	function b(e, t) {
-		y({
+	function x(e, t) {
+		b({
 			type: "cycle-result",
 			workItemId: e,
 			checkIndex: t.index
 		});
 	}
-	function x() {
-		n.undo(), L(r, n.snapshot());
-	}
 	function S() {
-		n.redo(), L(r, n.snapshot());
+		r.undo(), L(i, r.snapshot());
 	}
 	function C() {
-		L(r, n.discard());
+		r.redo(), L(i, r.snapshot());
 	}
-	async function w() {
-		await n.save(), L(r, n.snapshot());
+	function w() {
+		L(i, r.discard());
 	}
-	async function T(e) {
-		L(r, await n.setCautious(e));
+	async function T() {
+		await r.save(), L(i, r.snapshot());
+	}
+	async function E(e) {
+		L(i, await r.setCautious(e));
 	}
 	li();
-	var E = eo(), ee = R(E), te = R(ee), ne = z(R(te), 2), D = R(ne, !0);
-	j(ne);
-	var re = z(ne, 2), ie = (e) => {
-		var t = Ha(), n = R(t, !0);
-		j(t), B(() => X(n, W(r).document.roundIdentity)), Y(e, t);
+	var ee = Za(), te = R(ee), ne = R(te), D = z(R(ne), 2), re = R(D, !0);
+	j(D);
+	var ie = z(D, 2), ae = (e) => {
+		var t = za(), n = R(t, !0);
+		j(t), B(() => X(n, (W(i), G(() => W(i).document.roundIdentity)))), Y(e, t);
 	};
-	Z(re, (e) => {
-		W(r) && e(ie);
-	}), j(te);
-	var ae = z(te, 2), oe = (e) => {
+	Z(ie, (e) => {
+		W(i) && e(ae);
+	}), j(ne);
+	var oe = z(ne, 2), se = (e) => {
 		Ra(e, {
 			get mode() {
-				return W(_).mode;
+				return W(v), G(() => W(v).mode);
 			},
 			get custom() {
-				return W(_).custom;
+				return W(v), G(() => W(v).custom);
 			},
 			get systemScheme() {
-				return W(_).systemScheme;
+				return W(v), G(() => W(v).systemScheme);
 			},
 			onModeChange: (e) => {
-				W(g).setMode(e), v();
+				W(_).setMode(e), y();
 			},
 			onApplyCustom: (e) => {
-				W(g).applyCustom(e), v();
+				W(_).applyCustom(e), y();
 			}
 		});
 	};
-	Z(ae, (e) => {
-		W(g) && e(oe);
-	}), j(ee);
-	var se = z(ee, 2), ce = (e) => {
-		var t = Ua(), n = R(t, !0);
-		j(t), B(() => X(n, W(o))), Y(e, t);
-	}, le = (e) => {
-		var t = Wa(), n = R(t, !0);
-		j(t), B(() => X(n, W(a))), Y(e, t);
+	Z(oe, (e) => {
+		W(_) && e(se);
+	}), j(te);
+	var ce = z(te, 2), le = (e) => {
+		var t = Ba(), n = R(t, !0);
+		j(t), B(() => X(n, W(s))), Y(e, t);
 	}, ue = (e) => {
-		var t = $a(), n = un(t);
+		var t = Va(), n = R(t, !0);
+		j(t), B(() => X(n, W(o))), Y(e, t);
+	}, de = (e) => {
+		var t = Xa(), n = un(t);
 		{
-			let e = /* @__PURE__ */ P(() => p(W(r).summary)), t = /* @__PURE__ */ P(() => ({
+			let e = /* @__PURE__ */ P(() => (W(i), G(() => m(W(i).summary)))), t = /* @__PURE__ */ P(() => (W(i), G(() => ({
 				form: "segmented",
-				cells: W(r).summary.cells
-			})), i = /* @__PURE__ */ P(() => `${W(r).summary.checks.passed} / ${W(r).summary.checks.total} checks 通過`), a = /* @__PURE__ */ P(() => W(r).summary.checks.failed > 0 ? `${W(r).summary.checks.failed} 個失敗` : "");
+				cells: W(i).summary.cells
+			})))), r = /* @__PURE__ */ P(() => (W(i), G(() => `${W(i).summary.checks.passed} / ${W(i).summary.checks.total} checks 通過`))), a = /* @__PURE__ */ P(() => (W(i), G(() => W(i).summary.checks.failed > 0 ? `${W(i).summary.checks.failed} 個失敗` : "")));
 			Aa(n, {
 				get stats() {
 					return W(e);
@@ -3558,16 +3519,16 @@ function to(e, t) {
 					return W(t);
 				},
 				get caption() {
-					return W(i);
+					return W(r);
 				},
 				get note() {
 					return W(a);
 				}
 			});
 		}
-		var i = z(n, 2), a = (e) => {
+		var r = z(n, 2), a = (e) => {
 			{
-				let t = /* @__PURE__ */ P(() => W(r).summary.nextStep.isManual ? "下一步 · 需人工驗證" : "下一步 · Agent"), n = /* @__PURE__ */ P(() => `${W(r).summary.nextStep.workItemId}. ${W(r).summary.nextStep.itemTitle} — ${W(r).summary.nextStep.title}`);
+				let t = /* @__PURE__ */ P(() => (W(i), G(() => W(i).summary.nextStep.isManual ? "下一步 · 需人工驗證" : "下一步 · Agent"))), n = /* @__PURE__ */ P(() => (W(i), G(() => `${W(i).summary.nextStep.workItemId}. ${W(i).summary.nextStep.itemTitle} — ${W(i).summary.nextStep.title}`)));
 				ba(e, {
 					get heading() {
 						return W(t);
@@ -3576,95 +3537,95 @@ function to(e, t) {
 						return W(n);
 					},
 					get action() {
-						return W(r).summary.nextStep.action;
+						return W(i), G(() => W(i).summary.nextStep.action);
 					},
 					get expect() {
-						return W(r).summary.nextStep.expect;
+						return W(i), G(() => W(i).summary.nextStep.expect);
 					}
 				});
 			}
 		};
-		Z(i, (e) => {
-			W(r).summary.nextStep && e(a);
+		Z(r, (e) => {
+			W(i), G(() => W(i).summary.nextStep) && e(a);
 		});
-		var m = z(i, 2), g = (e) => {
-			let t = /* @__PURE__ */ P(() => Ei(W(r).document, W(c)));
-			var n = Ga(), i = R(n);
+		var o = z(r, 2), h = (e) => {
+			let t = /* @__PURE__ */ P(() => (K(Ei), W(i), W(l), G(() => Ei(W(i).document, W(l)))));
+			var n = Ha(), r = R(n);
 			{
-				let e = /* @__PURE__ */ P(() => f("status", l, W(t)));
-				ua(i, {
+				let e = /* @__PURE__ */ P(() => (K(W(t)), G(() => p("status", u, W(t)))));
+				ua(r, {
 					get categories() {
 						return W(e);
 					},
 					get activeId() {
-						return W(c).status;
+						return W(l), G(() => W(l).status);
 					},
 					className: "status-filter-strip",
 					ariaLabel: "依 check 狀態篩選",
-					onSelect: (e) => d("status", e)
+					onSelect: (e) => f("status", e)
 				});
 			}
-			var a = z(i, 2);
+			var a = z(r, 2);
 			{
-				let e = /* @__PURE__ */ P(() => f("owner", u, W(t)));
+				let e = /* @__PURE__ */ P(() => (K(W(t)), G(() => p("owner", d, W(t)))));
 				ua(a, {
 					get categories() {
 						return W(e);
 					},
 					get activeId() {
-						return W(c).owner;
+						return W(l), G(() => W(l).owner);
 					},
 					className: "status-filter-strip",
 					ariaLabel: "依負責對象篩選",
-					onSelect: (e) => d("owner", e)
+					onSelect: (e) => f("owner", e)
 				});
 			}
 			j(n), Y(e, n);
 		};
-		Z(m, (e) => {
-			W(r) && e(g);
+		Z(o, (e) => {
+			W(i) && e(h);
 		});
-		var _ = z(m, 2);
-		zr(_, 5, () => Ti(W(r).document, W(c)).items, (e) => e.id, (e, t) => {
-			var n = Qa(), r = R(n), i = R(r);
+		var _ = z(o, 2);
+		zr(_, 5, () => (K(Ti), W(i), W(l), G(() => Ti(W(i).document, W(l)).items)), (e) => e.id, (e, t) => {
+			var n = Ya(), r = R(n), i = R(r);
 			{
-				let e = /* @__PURE__ */ P(() => `工作項目 ${W(t).id}`);
+				let e = /* @__PURE__ */ P(() => (W(t), G(() => `工作項目 ${W(t).id}`)));
 				pa(i, {
 					get status() {
-						return W(t).status;
+						return W(t), G(() => W(t).status);
 					},
 					get label() {
 						return W(e);
 					}
 				});
 			}
-			var a = z(i, 2), o = R(a), c = R(o);
+			var a = z(i, 2), o = R(a), s = R(o);
 			j(o);
 			var l = z(o, 2), u = R(l, !0);
 			j(l);
 			var d = z(l, 2), f = (e) => {
-				var n = Ka(), r = R(n);
-				j(n), B((e) => X(r, `Depends on: ${e ?? ""}`), [() => W(t).dependsOn.join(", ")]), Y(e, n);
+				var n = Ua(), r = R(n);
+				j(n), B((e) => X(r, `Depends on: ${e ?? ""}`), [() => (W(t), G(() => W(t).dependsOn.join(", ")))]), Y(e, n);
 			};
 			Z(d, (e) => {
-				W(t).dependsOn.length && e(f);
+				W(t), G(() => W(t).dependsOn.length) && e(f);
 			}), j(a);
 			var p = z(a, 2), m = R(p, !0);
 			j(p), j(r);
 			var h = z(r, 2);
-			zr(h, 5, () => W(t).checks, (e) => e.index, (e, n) => {
-				var r = Za(), i = R(r), a = R(i);
+			zr(h, 5, () => (W(t), G(() => W(t).checks)), (e) => e.index, (e, n) => {
+				var r = Ja(), i = R(r), a = R(i);
 				pa(a, {
 					get status() {
-						return W(n).status;
+						return W(n), G(() => W(n).status);
 					},
 					get interactive() {
-						return W(n).isManual;
+						return W(n), G(() => W(n).isManual);
 					},
 					get label() {
-						return W(n).title;
+						return W(n), G(() => W(n).title);
 					},
-					onCycle: () => b(W(t).id, W(n))
+					onCycle: () => x(W(t).id, W(n))
 				});
 				var o = z(a, 2), s = R(o, !0);
 				j(o);
@@ -3675,29 +3636,29 @@ function to(e, t) {
 				var m = z(d, 2), h = z(R(m)), g = R(h, !0);
 				j(h), j(m);
 				var _ = z(m, 2), v = (e) => {
-					var t = qa(), r = z(R(t)), i = R(r, !0);
-					j(r), j(t), B(() => X(i, W(n).reason)), Y(e, t);
+					var t = Wa(), r = z(R(t)), i = R(r, !0);
+					j(r), j(t), B(() => X(i, (W(n), G(() => W(n).reason)))), Y(e, t);
 				};
 				Z(_, (e) => {
-					W(n).reason && e(v);
+					W(n), G(() => W(n).reason) && e(v);
 				});
-				var x = z(_, 2), S = (e) => {
-					var t = Ja(), r = z(R(t)), i = R(r, !0);
-					j(r), j(t), B(() => X(i, W(n).observed)), Y(e, t);
+				var y = z(_, 2), S = (e) => {
+					var t = Ga(), r = z(R(t)), i = R(r, !0);
+					j(r), j(t), B(() => X(i, (W(n), G(() => W(n).observed)))), Y(e, t);
 				};
-				Z(x, (e) => {
-					W(n).observed && !(W(n).isManual && W(n).status === "failed") && e(S);
+				Z(y, (e) => {
+					W(n), G(() => W(n).observed && !(W(n).isManual && W(n).status === "failed")) && e(S);
 				});
-				var C = z(x, 2), w = (e) => {
-					var t = Ya(), r = z(R(t)), i = R(r, !0);
-					j(r), j(t), B(() => X(i, W(n).resolved)), Y(e, t);
+				var C = z(y, 2), w = (e) => {
+					var t = Ka(), r = z(R(t)), i = R(r, !0);
+					j(r), j(t), B(() => X(i, (W(n), G(() => W(n).resolved)))), Y(e, t);
 				};
 				Z(C, (e) => {
-					W(n).resolved && e(w);
+					W(n), G(() => W(n).resolved) && e(w);
 				}), j(u);
 				var T = z(u, 2), E = (e) => {
-					var r = Xa(), i = z(R(r), 2);
-					rt(i), j(r), B(() => ri(i, W(n).observed ?? "")), q("input", i, (e) => y({
+					var r = qa(), i = z(R(r), 2);
+					rt(i), j(r), B(() => ri(i, (W(n), G(() => W(n).observed ?? "")))), q("input", i, (e) => b({
 						type: "set-observed",
 						workItemId: W(t).id,
 						checkIndex: W(n).index,
@@ -3705,48 +3666,102 @@ function to(e, t) {
 					})), Y(e, r);
 				};
 				Z(T, (e) => {
-					W(n).isManual && W(n).status === "failed" && e(E);
+					W(n), G(() => W(n).isManual && W(n).status === "failed") && e(E);
 				}), j(r), B(() => {
-					qr(r, 1, `checklist-check checklist-${W(n).status}`), X(s, W(n).title), X(l, W(n).isManual ? "需人工驗證" : "Agent"), X(p, W(n).action), X(g, W(n).expect);
+					qr(r, 1, (W(n), G(() => `checklist-check checklist-${W(n).status}`))), X(s, (W(n), G(() => W(n).title))), X(l, (W(n), G(() => W(n).isManual ? "需人工驗證" : "Agent"))), X(p, (W(n), G(() => W(n).action))), X(g, (W(n), G(() => W(n).expect)));
 				}), Y(e, r);
 			}), j(h), j(n), B((e) => {
-				qr(n, 1, `checklist-item checklist-${W(t).status}`), X(c, `${W(t).id ?? ""}. ${W(t).title ?? ""}`), X(u, W(t).outcome), X(m, e);
-			}, [() => s(W(t).status)]), Y(e, n);
+				qr(n, 1, (W(t), G(() => `checklist-item checklist-${W(t).status}`))), X(s, `${W(t), G(() => W(t).id) ?? ""}. ${W(t), G(() => W(t).title) ?? ""}`), X(u, (W(t), G(() => W(t).outcome))), X(m, e);
+			}, [() => (W(t), G(() => c(W(t).status)))]), Y(e, n);
 		}), j(_);
 		var v = z(_, 2);
 		Pa(R(v), {
 			get cautious() {
-				return W(r).cautious;
+				return W(i), G(() => W(i).cautious);
 			},
-			onToggleCautious: T,
+			onToggleCautious: E,
 			get dirty() {
-				return W(r).dirty;
+				return W(i), G(() => W(i).dirty);
 			},
 			get saving() {
-				return W(r).saving;
+				return W(i), G(() => W(i).saving);
 			},
 			get canUndo() {
-				return W(r).history.canUndo;
+				return W(i), G(() => W(i).history.canUndo);
 			},
 			get canRedo() {
-				return W(r).history.canRedo;
+				return W(i), G(() => W(i).history.canRedo);
 			},
 			get message() {
-				return W(o);
+				return W(s);
 			},
-			onSave: w,
-			onUndo: x,
-			onRedo: S,
-			onDiscard: C
+			onSave: T,
+			onUndo: S,
+			onRedo: C,
+			onDiscard: w
 		}), j(v), B((e) => {
-			Q(v, "data-state", e), Q(v, "aria-busy", W(r).saving);
-		}, [() => h(W(r).status)]), Y(e, t);
+			Q(v, "data-state", e), Q(v, "aria-busy", (W(i), G(() => W(i).saving)));
+		}, [() => (W(i), G(() => g(W(i).status)))]), Y(e, t);
 	};
-	Z(se, (e) => {
-		W(i) ? e(ce) : W(r) ? e(ue, -1) : e(le, 1);
-	}), j(E), B(() => X(D, W(r)?.document.fileName ?? "TaskProgress Checklist")), Y(e, E), Ue();
+	Z(ce, (e) => {
+		W(a) ? e(le) : W(i) ? e(de, -1) : e(ue, 1);
+	}), j(ee), B(() => X(re, (W(i), G(() => W(i)?.document.fileName ?? "TaskProgress Checklist")))), Y(e, ee), Ue();
+}
+Sr(["input"]);
+//#endregion
+//#region experiments/editor-svelte-spike/src/checklist-bridge.js
+var $a = 1, eo = /* @__PURE__ */ new Set(["load", "save"]);
+function to(e = globalThis.chrome?.webview) {
+	if (!e || typeof e.postMessage != "function") throw Error("此頁面必須由 TaskProgress Checklist Desktop Host 開啟。");
+	let t = 0, n = /* @__PURE__ */ new Map();
+	e.addEventListener("message", (e) => {
+		let t = e.data;
+		if (!t || t.version !== $a || typeof t.id != "string") return;
+		let r = n.get(t.id);
+		if (!r) return;
+		if (n.delete(t.id), t.type === "result") {
+			r.resolve(t.payload);
+			return;
+		}
+		let i = Error(t.error?.message ?? "Checklist bridge request failed.");
+		i.code = t.error?.code ?? "bridge_error", r.reject(i);
+	});
+	function r(r, i) {
+		if (!eo.has(r)) return Promise.reject(/* @__PURE__ */ Error(`不支援的 Checklist bridge request：${r}`));
+		let a = `checklist-${Date.now()}-${++t}`;
+		return new Promise((t, o) => {
+			n.set(a, {
+				resolve: t,
+				reject: o
+			});
+			let s = {
+				version: $a,
+				id: a,
+				type: r
+			};
+			i !== void 0 && (s.payload = i), e.postMessage(s);
+		});
+	}
+	return Object.freeze({
+		load: () => r("load"),
+		save: (e) => r("save", e)
+	});
 }
 //#endregion
 //#region experiments/editor-svelte-spike/src/checklist-main.js
-Sr(["input"]), Ar(to, { target: document.querySelector("#app") });
+function no() {
+	try {
+		return to();
+	} catch (e) {
+		let t = () => Promise.reject(e);
+		return {
+			load: t,
+			save: t
+		};
+	}
+}
+Ar(Qa, {
+	target: document.querySelector("#app"),
+	props: { transport: no() }
+});
 //#endregion

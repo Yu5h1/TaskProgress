@@ -14,7 +14,13 @@
   import ProgressSummary from "./ProgressSummary.svelte";
   import SaveBar from "./SaveBar.svelte";
   import ThemeControl from "./ThemeControl.svelte";
-  import { createChecklistBridgeTransport } from "./checklist-bridge.js";
+  /*
+   * The host supplies the transport. This screen never reaches for a global
+   * WebView object, so the same screen can run over the desktop bridge, over a
+   * local HTTP endpoint, or over a substitute in a test, and cannot tell which
+   * it is on.
+   */
+  export let transport = null;
 
   let persistence = null;
   let view = null;
@@ -81,11 +87,11 @@
     themeControl = createThemeControl();
     readTheme();
     try {
-      const bridge = createChecklistBridgeTransport();
-      const document = await bridge.load();
+      if (!transport) throw new Error("Checklist 介面需要由 host 提供 transport。");
+      const document = await transport.load();
       persistence = createPersistenceController({
         session: createChecklistEditorSession(document),
-        save: bridge.save,
+        save: transport.save,
         // Only free text waits; a marker change commits at once.
         debounceCommand: (command) => command.type === "set-observed",
         onChange: (next) => {

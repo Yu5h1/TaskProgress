@@ -59,10 +59,10 @@ Run every Agent check once. If a check fails, mark it `[!]`, add `Observed`, and
       - Action: Build the Checklist UI asset once from the locked npm dependency graph.
       - Expect: The build succeeds and the filter strip comes from the shared implementation.
 
-- [ ] **7. Make the Checklist UI receive its transport**
+- [x] **7. Make the Checklist UI receive its transport**
   Outcome: The Checklist screen takes its transport from its host instead of reaching for the WebView object, without changing the desktop behaviour.
   Checks:
-    - [ ] **Transport seam contract**
+    - [x] **Transport seam contract**
       - Action: Run focused tests for the injected transport, the desktop entry supplying the WebView transport, and the screen holding no direct WebView reference.
       - Expect: The screen resolves no global WebView object, the existing bridge path is unchanged, and a substitute transport can drive the same screen in tests.
 
