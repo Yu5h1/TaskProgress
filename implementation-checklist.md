@@ -70,7 +70,7 @@ Run every Agent check once. If a check fails, mark it `[!]`, add `Observed`, and
   Depends on: 3, 4, 6, 7.
   Outcome: The Release WPF Checklist App shows the shared summary, next-step card, and filters, and still saves safely against a disposable Markdown file without LocalWebService.
   Checks:
-    - [ ] **Focused package build and tests**
+    - [x] **Focused package build and tests**
       - Action: Run the focused Checklist, CLI, and Node tests and the Release build once with the locked dependency graph, then inspect the packaged Checklist UI and WebView2 files.
       - Expect: All focused tests and the build pass, and the output contains the executable, current Checklist assets, WebView2 managed assemblies, and native loader.
     - [ ] **Packaged Checklist interaction** `[manual]`
