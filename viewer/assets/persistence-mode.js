@@ -73,11 +73,11 @@ export function createPersistenceController({
   const view = () => session.snapshot();
 
   function snapshot() {
+    // The session's own view passes through whole: enumerating its fields here
+    // would make this controller know what kind of document it is persisting.
     const current = view();
     return Object.freeze({
-      document: current.document,
-      dirty: current.dirty,
-      history: current.history,
+      ...current,
       mode: cautious ? "cautious" : "auto",
       cautious,
       status,

@@ -8,14 +8,73 @@ function findCheck(document, workItemId, checkIndex) {
   return { item, check };
 }
 
+// The one place the derived work-item rule lives: any failure fails the item,
+// otherwise every check must pass.
+function itemStatus(item) {
+  if (item.checks.some((check) => check.status === "failed")) return "failed";
+  if (item.checks.length > 0 && item.checks.every((check) => check.status === "passed")) return "passed";
+  return "pending";
+}
+
 function derive(document) {
   const result = structuredClone(document);
   result.items.forEach((item) => {
-    if (item.checks.some((check) => check.status === "failed")) item.status = "failed";
-    else if (item.checks.every((check) => check.status === "passed")) item.status = "passed";
-    else item.status = "pending";
+    item.status = itemStatus(item);
   });
   return result;
+}
+
+function isBlocked(item, byId) {
+  return (item.dependsOn ?? []).some((id) => itemStatus(byId.get(id) ?? { checks: [] }) !== "passed");
+}
+
+/*
+ * Counts, bar cells and the single outstanding check, derived from the whole
+ * document.
+ *
+ * Always the whole document: a filtered view changes what is on screen, never
+ * what is true, so a summary computed from a filter would misreport progress.
+ *
+ * The next step prefers a failure over a pending check — a failure is a stop
+ * condition someone has to answer — and skips any item still waiting on an
+ * unfinished dependency, because starting there is not actually possible yet.
+ */
+export function summarizeChecklist(document) {
+  const items = document?.items ?? [];
+  const byId = new Map(items.map((item) => [item.id, item]));
+  const cells = [];
+  const checks = { total: 0, passed: 0, failed: 0, pending: 0 };
+  const itemCounts = { total: items.length, passed: 0, failed: 0, pending: 0 };
+  let failedStep = null;
+  let pendingStep = null;
+
+  items.forEach((item) => {
+    itemCounts[itemStatus(item)] += 1;
+    const blocked = isBlocked(item, byId);
+    item.checks.forEach((check) => {
+      checks.total += 1;
+      checks[check.status] = (checks[check.status] ?? 0) + 1;
+      cells.push(check.status);
+      const step = {
+        workItemId: item.id,
+        checkIndex: check.index,
+        itemTitle: item.title,
+        title: check.title,
+        action: check.action,
+        expect: check.expect,
+        isManual: check.isManual,
+      };
+      if (check.status === "failed" && !failedStep) failedStep = step;
+      if (check.status === "pending" && !blocked && !pendingStep) pendingStep = step;
+    });
+  });
+
+  return Object.freeze({
+    items: Object.freeze(itemCounts),
+    checks: Object.freeze(checks),
+    cells: Object.freeze(cells),
+    nextStep: failedStep ?? pendingStep ?? null,
+  });
 }
 
 const CYCLE = { pending: "passed", passed: "failed", failed: "pending" };
@@ -44,9 +103,7 @@ function reduce(document, command) {
   } else {
     throw new Error(`不支援的 Checklist command：${command.type}`);
   }
-  if (item.checks.some((candidate) => candidate.status === "failed")) item.status = "failed";
-  else if (item.checks.every((candidate) => candidate.status === "passed")) item.status = "passed";
-  else item.status = "pending";
+  item.status = itemStatus(item);
   return document;
 }
 
@@ -72,8 +129,10 @@ export function createChecklistEditorSession(document, options = {}) {
   });
 
   function snapshot() {
+    const document = structuredClone(transaction.derived);
     return Object.freeze({
-      document: structuredClone(transaction.derived),
+      document,
+      summary: summarizeChecklist(document),
       dirty: transaction.dirty,
       history: transaction.history,
     });

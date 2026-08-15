@@ -18,14 +18,14 @@ Run every Agent check once. If a check fails, mark it `[!]`, add `Observed`, and
       - Action: Run focused tests for single-item rendering, the optional command block, and the outstanding-state presentation.
       - Expect: The card renders exactly one item, takes its text from the caller, and uses the existing semantic warning colour rather than a new literal.
 
-- [ ] **3. Use the shared summary and next-step card on the Checklist screen**
+- [x] **3. Use the shared summary and next-step card on the Checklist screen**
   Depends on: 1, 2.
   Outcome: The Checklist screen opens with its own counts and the single check that is outstanding and not blocked by a dependency.
   Checks:
-    - [ ] **Checklist summary wiring**
+    - [x] **Checklist summary wiring**
       - Action: Run focused tests for the derived counts, outstanding-check selection under dependencies, and the segmented bar choice.
       - Expect: Counts cover the whole document, the selected next step skips checks blocked by an unfinished dependency, and no summary logic is duplicated in the screen.
-    - [ ] **Checklist asset build**
+    - [x] **Checklist asset build**
       - Action: Build the Checklist UI asset once from the locked npm dependency graph.
       - Expect: The build succeeds and the WPF-loadable assets contain the shared summary and card rather than a Checklist-only copy.
 

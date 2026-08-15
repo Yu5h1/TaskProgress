@@ -5,6 +5,8 @@
   import { createPersistenceController } from "../../../viewer/assets/persistence-mode.js";
   import { createThemeControl } from "../../../viewer/assets/theme-control.js";
   import MarkerBox from "./MarkerBox.svelte";
+  import NextStepCard from "./NextStepCard.svelte";
+  import ProgressSummary from "./ProgressSummary.svelte";
   import SaveBar from "./SaveBar.svelte";
   import ThemeControl from "./ThemeControl.svelte";
   import { createChecklistBridgeTransport } from "./checklist-bridge.js";
@@ -16,6 +18,20 @@
   let message = "正在載入 Checklist…";
 
   const statusLabel = (status) => ({ pending: "未執行", passed: "通過", failed: "失敗" })[status] ?? status;
+
+  // This screen names its own counts; the shared summary only draws them. A
+  // dozen-ish checks is exactly the case the segmented bar exists for.
+  function summaryStats(summary) {
+    const stats = [
+      { key: "total", label: "工作項目", value: summary.items.total },
+      { key: "passed", label: "已完成", value: summary.items.passed, tone: "passed" },
+      { key: "pending", label: "待處理", value: summary.items.pending, tone: "pending" },
+    ];
+    if (summary.items.failed > 0) {
+      stats.push({ key: "failed", label: "失敗", value: summary.items.failed, tone: "failed" });
+    }
+    return stats;
+  }
   const errorStates = new Set(["incomplete", "conflict", "error", "mode_blocked"]);
   const toneOf = (state) => {
     if (state === "saving") return "saving";
@@ -123,6 +139,22 @@
   {:else if !view}
     <p class="checklist-notice checklist-error" role="alert">{failure}</p>
   {:else}
+    <ProgressSummary
+      stats={summaryStats(view.summary)}
+      bar={{ form: "segmented", cells: view.summary.cells }}
+      caption={`${view.summary.checks.passed} / ${view.summary.checks.total} checks 通過`}
+      note={view.summary.checks.failed > 0 ? `${view.summary.checks.failed} 個失敗` : ""}
+    />
+
+    {#if view.summary.nextStep}
+      <NextStepCard
+        heading={view.summary.nextStep.isManual ? "下一步 · 需人工驗證" : "下一步 · Agent"}
+        title={`${view.summary.nextStep.workItemId}. ${view.summary.nextStep.itemTitle} — ${view.summary.nextStep.title}`}
+        action={view.summary.nextStep.action}
+        expect={view.summary.nextStep.expect}
+      />
+    {/if}
+
     <section class="checklist-items" aria-label="Implementation checklist items">
       {#each view.document.items as item (item.id)}
         <article class={`checklist-item checklist-${item.status}`}>

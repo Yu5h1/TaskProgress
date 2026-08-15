@@ -7,7 +7,12 @@ body {
   background: var(--page);
 }
 
+/* The page stacks header, summary, next step and items; gap owns the spacing so
+   adding a block between them needs no margin of its own. */
 .checklist-page {
+  display: grid;
+  align-content: start;
+  gap: 16px;
   width: min(960px, calc(100% - 32px));
   margin: 0 auto;
   padding: 40px 0 104px;
@@ -25,7 +30,6 @@ body {
   gap: 12px;
   align-items: start;
   justify-content: space-between;
-  margin-bottom: 22px;
 }
 
 .checklist-header h1 {
