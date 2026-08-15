@@ -44,7 +44,7 @@ test("the outstanding state uses the theme's warning colour", () => {
     styles.indexOf(".next-step-card {"),
     styles.indexOf(".next-step-command {"),
   );
-  assert.match(block, /border-left: 3px solid var\(--role-state-pending-text\)/u);
-  assert.match(block, /color: var\(--role-state-pending-text\)/u);
+  assert.match(block, /border-left: 3px solid var\(--role-status-pending\)/u);
+  assert.match(block, /color: var\(--role-status-pending\)/u);
   assert.doesNotMatch(block, /#[0-9a-f]{3,8}\b/iu, "semantic colour must not be a literal");
 });

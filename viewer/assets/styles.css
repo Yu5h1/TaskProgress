@@ -914,8 +914,11 @@ h1 {
   box-shadow: var(--shadow);
 }
 
+/* A card's border carries its status — except done. The card is large, and a
+   green edge on every finished card draws the eye to the work that needs none.
+   Neutral and archived resolve to the muted status colour, which is the plain
+   border, so "border matches status" still holds for them. */
 .task-card.status-active { border-color: var(--color-active-border); }
-.task-card.status-success { border-color: var(--color-success-border); }
 .task-card.status-danger { border-color: var(--color-danger-border); }
 
 .task-header,
@@ -1591,23 +1594,25 @@ footer {
  * and custom themes keep working.
  */
 :root {
-  /* Filled indicators. The task-progress meter is the source for progress
-     fill, so a segmented cell and a continuous meter cannot drift apart. */
+  /* Proportion bars: how much of a whole is done. The task-progress meter is
+     the source, so anything showing a proportion matches it. */
   --role-fill-progress-start: var(--color-accent);
   --role-fill-progress-end: var(--color-progress-end);
   --role-fill-track: var(--color-progress-track);
-  --role-fill-danger: var(--color-danger-text);
 
-  /* State tiles and marks, following the Viewer's own status-card pattern:
-     a semantic text colour over its matching soft surface. */
-  --role-state-passed-text: var(--moss);
-  --role-state-passed-surface: var(--moss-soft);
-  --role-state-failed-text: var(--red);
-  --role-state-failed-surface: var(--red-soft);
-  --role-state-pending-text: var(--amber);
-  --role-state-pending-surface: var(--amber-soft);
-  --role-state-neutral-text: var(--color-muted-status-text);
-  --role-state-neutral-surface: var(--color-elevated-bg);
+  /* Status: one source per state, used wherever a state is shown at all —
+     a card border, a marker, a per-item progress cell, a count tile. A cell
+     stands for one item's state, so it belongs here and not with the
+     proportion bars above. Each state pairs a solid colour with the theme's
+     matching soft surface. */
+  --role-status-passed: var(--moss);
+  --role-status-passed-surface: var(--moss-soft);
+  --role-status-failed: var(--red);
+  --role-status-failed-surface: var(--red-soft);
+  --role-status-pending: var(--amber);
+  --role-status-pending-surface: var(--amber-soft);
+  --role-status-neutral: var(--color-muted-status-text);
+  --role-status-neutral-surface: var(--color-elevated-bg);
 }
 
 /* Shared progress summary (`ProgressSummary.svelte`): count row, one of the two
@@ -1632,8 +1637,8 @@ footer {
   display: grid;
   gap: 2px;
   padding: 11px 13px;
-  color: var(--role-state-neutral-text);
-  background: var(--role-state-neutral-surface);
+  color: var(--role-status-neutral);
+  background: var(--role-status-neutral-surface);
 }
 
 .progress-stat b {
@@ -1644,25 +1649,25 @@ footer {
 }
 
 .progress-stat span {
-  color: var(--role-state-neutral-text);
+  color: var(--role-status-neutral);
   font-size: 0.78rem;
 }
 
 /* The Viewer's status-card pattern: semantic text over its own soft surface, so
    a state tile reads the same here as it does there. */
 .progress-stat.progress-tone-passed {
-  color: var(--role-state-passed-text);
-  background: var(--role-state-passed-surface);
+  color: var(--role-status-passed);
+  background: var(--role-status-passed-surface);
 }
 
 .progress-stat.progress-tone-failed {
-  color: var(--role-state-failed-text);
-  background: var(--role-state-failed-surface);
+  color: var(--role-status-failed);
+  background: var(--role-status-failed-surface);
 }
 
 .progress-stat.progress-tone-pending {
-  color: var(--role-state-pending-text);
-  background: var(--role-state-pending-surface);
+  color: var(--role-status-pending);
+  background: var(--role-status-pending-surface);
 }
 
 .progress-stat.progress-tone-passed b,
@@ -1686,8 +1691,9 @@ footer {
   background: transparent;
 }
 
-/* Cells are filled indicators, so they take fill roles — the same source the
-   continuous meter uses — not the text or surface tones of a tile. */
+/* One cell is one item's state, so cells take status colours — the same ones
+   the cards and markers use. Pending stays a tint with its own outline so a
+   mostly-unfinished list reads as waiting rather than as a wall of colour. */
 .progress-cell {
   flex: 1;
   border-radius: 2px;
@@ -1695,19 +1701,16 @@ footer {
 }
 
 .progress-cell.progress-tone-passed {
-  background: linear-gradient(
-    90deg,
-    var(--role-fill-progress-start),
-    var(--role-fill-progress-end)
-  );
+  background: var(--role-status-passed);
 }
 
 .progress-cell.progress-tone-failed {
-  background: var(--role-fill-danger);
+  background: var(--role-status-failed);
 }
 
 .progress-cell.progress-tone-pending {
-  background: var(--role-fill-track);
+  background: var(--role-status-pending-surface);
+  box-shadow: inset 0 0 0 1px var(--role-status-pending);
 }
 
 .progress-caption {
@@ -1729,13 +1732,13 @@ footer {
   padding: 15px 16px;
   background: var(--color-elevated-bg);
   border: 1px solid var(--color-border);
-  border-left: 3px solid var(--role-state-pending-text);
+  border-left: 3px solid var(--role-status-pending);
   border-radius: 12px;
 }
 
 .next-step-heading {
   margin: 0;
-  color: var(--role-state-pending-text);
+  color: var(--role-status-pending);
   font-size: 0.74rem;
   font-weight: 700;
   letter-spacing: 0.04em;
@@ -1799,7 +1802,7 @@ footer {
   width: 20px;
   height: 20px;
   padding: 0;
-  color: var(--role-state-neutral-text);
+  color: var(--role-status-neutral);
   background: transparent;
   border: 1.5px solid var(--color-border);
   border-radius: 5px;
@@ -1810,15 +1813,15 @@ footer {
 }
 
 .marker-box.marker-passed {
-  color: var(--role-state-passed-text);
-  border-color: var(--role-state-passed-text);
-  background: var(--role-state-passed-surface);
+  color: var(--role-status-passed);
+  border-color: var(--role-status-passed);
+  background: var(--role-status-passed-surface);
 }
 
 .marker-box.marker-failed {
-  color: var(--role-state-failed-text);
-  border-color: var(--role-state-failed-text);
-  background: var(--role-state-failed-surface);
+  color: var(--role-status-failed);
+  border-color: var(--role-status-failed);
+  background: var(--role-status-failed-surface);
 }
 
 .marker-box-button {

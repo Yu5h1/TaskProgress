@@ -3394,11 +3394,11 @@ Sr([
 ]);
 //#endregion
 //#region experiments/editor-svelte-spike/src/ChecklistApp.svelte
-var Ga = /* @__PURE__ */ J("<p class=\"checklist-round\"> </p>"), Ka = /* @__PURE__ */ J("<p class=\"checklist-notice\" role=\"status\"> </p>"), qa = /* @__PURE__ */ J("<p class=\"checklist-notice checklist-error\" role=\"alert\"> </p>"), Ja = /* @__PURE__ */ J("<small> </small>"), Ya = /* @__PURE__ */ J("<div><dt>Reason</dt><dd> </dd></div>"), Xa = /* @__PURE__ */ J("<div><dt>Observed</dt><dd> </dd></div>"), Za = /* @__PURE__ */ J("<div><dt>Resolved</dt><dd> </dd></div>"), Qa = /* @__PURE__ */ J("<label class=\"checklist-observed\"><span>Observed</span> <textarea rows=\"3\" placeholder=\"記錄實際看到的結果\"></textarea></label>"), $a = /* @__PURE__ */ J("<section><div class=\"checklist-check-heading\"><!> <strong> </strong> <span class=\"checklist-owner\"> </span></div> <dl><div><dt>Action</dt><dd> </dd></div> <div><dt>Expect</dt><dd> </dd></div> <!> <!> <!></dl> <!></section>"), eo = /* @__PURE__ */ J("<article><header class=\"checklist-item-header\"><!> <div><h2> </h2> <p> </p> <!></div> <span class=\"checklist-status\"> </span></header> <div class=\"checklist-checks\"></div></article>"), to = /* @__PURE__ */ J("<!> <!> <!> <section class=\"checklist-items\" aria-label=\"Implementation checklist items\"></section> <footer class=\"edit-save-bar\" aria-live=\"polite\"><!></footer>", 1), no = /* @__PURE__ */ J("<main class=\"checklist-page\"><header class=\"checklist-header\"><div><p class=\"section-kicker\">Implementation Checklist</p> <h1> </h1> <!></div> <!></header> <!></main>");
+var Ga = /* @__PURE__ */ J("<p class=\"checklist-round\"> </p>"), Ka = /* @__PURE__ */ J("<p class=\"checklist-notice\" role=\"status\"> </p>"), qa = /* @__PURE__ */ J("<p class=\"checklist-notice checklist-error\" role=\"alert\"> </p>"), Ja = /* @__PURE__ */ J("<p class=\"checklist-chips\"><span class=\"checklist-chip\"> </span></p>"), Ya = /* @__PURE__ */ J("<div><dt>Reason</dt><dd> </dd></div>"), Xa = /* @__PURE__ */ J("<div><dt>Observed</dt><dd> </dd></div>"), Za = /* @__PURE__ */ J("<div><dt>Resolved</dt><dd> </dd></div>"), Qa = /* @__PURE__ */ J("<label class=\"checklist-observed\"><span>Observed</span> <textarea rows=\"3\" placeholder=\"記錄實際看到的結果\"></textarea></label>"), $a = /* @__PURE__ */ J("<section><div class=\"checklist-check-heading\"><!> <strong> </strong> <span> </span></div> <dl><div><dt>Action</dt><dd> </dd></div> <div><dt>Expect</dt><dd> </dd></div> <!> <!> <!></dl> <!></section>"), eo = /* @__PURE__ */ J("<article><header class=\"checklist-item-header\"><!> <div><h2> </h2> <p> </p> <!></div> <span class=\"checklist-status\"> </span></header> <div class=\"checklist-checks\"></div></article>"), to = /* @__PURE__ */ J("<!> <!> <!> <section class=\"checklist-items\" aria-label=\"Implementation checklist items\"></section> <footer class=\"edit-save-bar\" aria-live=\"polite\"><!></footer>", 1), no = /* @__PURE__ */ J("<main class=\"checklist-page\"><header class=\"checklist-header\"><div><p class=\"section-kicker\">Implementation Checklist</p> <h1> </h1> <!></div> <!></header> <!></main>");
 function ro(e, t) {
 	Ue(t, !1);
 	let n = /* @__PURE__ */ F(), r = $(t, "transport", 8, null), i = null, a = /* @__PURE__ */ F(null), o = /* @__PURE__ */ F(!0), s = /* @__PURE__ */ F(""), c = /* @__PURE__ */ F("正在載入 Checklist…"), l = (e) => ({
-		pending: "未執行",
+		pending: "待驗證",
 		passed: "通過",
 		failed: "失敗"
 	})[e] ?? e, u = /* @__PURE__ */ F({
@@ -3669,8 +3669,8 @@ function ro(e, t) {
 			var c = R(o, 2), u = L(c, !0);
 			A(c);
 			var d = R(c, 2), f = (e) => {
-				var n = Ja(), r = L(n);
-				A(n), z((e) => X(r, `Depends on: ${e ?? ""}`), [() => (W(t), G(() => W(t).dependsOn.join(", ")))]), Y(e, n);
+				var n = Ja(), r = L(n), i = L(r);
+				A(r), A(n), z((e) => X(i, `Depends on ${e ?? ""}`), [() => (W(t), G(() => W(t).dependsOn.join(", ")))]), Y(e, n);
 			};
 			Z(d, (e) => {
 				W(t), G(() => W(t).dependsOn.length) && e(f);
@@ -3733,7 +3733,7 @@ function ro(e, t) {
 				Z(w, (e) => {
 					W(n), G(() => W(n).isManual && W(n).status === "failed") && e(T);
 				}), A(r), z(() => {
-					qr(r, 1, (W(n), G(() => `checklist-check checklist-${W(n).status}`))), X(s, (W(n), G(() => W(n).title))), X(l, (W(n), G(() => W(n).isManual ? "需人工驗證" : "Agent"))), X(p, (W(n), G(() => W(n).action))), X(g, (W(n), G(() => W(n).expect)));
+					qr(r, 1, (W(n), G(() => `checklist-check checklist-${W(n).status}${W(n).isManual ? " checklist-manual" : ""}`))), X(s, (W(n), G(() => W(n).title))), qr(c, 1, (W(n), G(() => `checklist-owner${W(n).isManual ? " checklist-owner-manual" : ""}`))), X(l, (W(n), G(() => W(n).isManual ? "manual" : "Agent"))), X(p, (W(n), G(() => W(n).action))), X(g, (W(n), G(() => W(n).expect)));
 				}), Y(e, r);
 			}), A(h), A(n), z((e) => {
 				qr(n, 1, (W(t), G(() => `checklist-item checklist-${W(t).status}`))), X(s, `${W(t), G(() => W(t).id) ?? ""}. ${W(t), G(() => W(t).title) ?? ""}`), X(u, (W(t), G(() => W(t).outcome))), X(m, e);

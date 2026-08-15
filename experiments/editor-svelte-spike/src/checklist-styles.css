@@ -56,6 +56,16 @@ body {
   border-radius: 14px;
 }
 
+/* Same rule as the task card: the border carries the state, except when the
+   work is done and there is nothing to draw the eye to. */
+.checklist-item.checklist-pending {
+  border-color: var(--role-status-pending);
+}
+
+.checklist-item.checklist-failed {
+  border-color: var(--role-status-failed);
+}
+
 .checklist-item-header {
   display: grid;
   grid-template-columns: 24px minmax(0, 1fr) auto;
@@ -76,10 +86,24 @@ body {
   line-height: 1.5;
 }
 
-.checklist-item-header small {
-  display: block;
-  margin-top: 6px;
+/* Every label on a card is a capsule, so a dependency reads as a tag rather
+   than as a sentence fragment under the outcome. */
+.checklist-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 8px 0 0;
+}
+
+.checklist-chip {
+  padding: 2px 9px;
   color: var(--muted);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font-family: var(--mono, ui-monospace, monospace);
+  font-size: 0.72rem;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 
 .checklist-status,
@@ -100,6 +124,23 @@ body {
   padding: 13px 14px;
   border: 1px solid var(--line);
   border-radius: 10px;
+}
+
+/* A manual check is the reader's to act on, so its state is carried by the row
+   itself. Agent checks stay plain: they are evidence, not work. */
+.checklist-check.checklist-manual.checklist-pending {
+  background: var(--role-status-pending-surface);
+  border-color: var(--role-status-pending);
+}
+
+.checklist-check.checklist-manual.checklist-passed {
+  background: var(--role-status-passed-surface);
+  border-color: var(--role-status-passed);
+}
+
+.checklist-check.checklist-manual.checklist-failed {
+  background: var(--role-status-failed-surface);
+  border-color: var(--role-status-failed);
 }
 
 .checklist-check-heading {

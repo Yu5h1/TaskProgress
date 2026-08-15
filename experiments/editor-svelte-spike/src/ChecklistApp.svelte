@@ -29,7 +29,7 @@
   let failure = "";
   let message = "正在載入 Checklist…";
 
-  const statusLabel = (status) => ({ pending: "未執行", passed: "通過", failed: "失敗" })[status] ?? status;
+  const statusLabel = (status) => ({ pending: "待驗證", passed: "通過", failed: "失敗" })[status] ?? status;
 
   // Filtering is view state only: it never touches the summary, which counts
   // the whole document, and never touches a save.
@@ -237,13 +237,19 @@
             <div>
               <h2>{item.id}. {item.title}</h2>
               <p>{item.outcome}</p>
-              {#if item.dependsOn.length}<small>Depends on: {item.dependsOn.join(", ")}</small>{/if}
+              {#if item.dependsOn.length}
+                <p class="checklist-chips">
+                  <span class="checklist-chip">Depends on {item.dependsOn.join(", ")}</span>
+                </p>
+              {/if}
             </div>
             <span class="checklist-status">{statusLabel(item.status)}</span>
           </header>
           <div class="checklist-checks">
             {#each item.checks as check (check.index)}
-              <section class={`checklist-check checklist-${check.status}`}>
+              <section
+                class={`checklist-check checklist-${check.status}${check.isManual ? " checklist-manual" : ""}`}
+              >
                 <div class="checklist-check-heading">
                   <MarkerBox
                     status={check.status}
@@ -252,7 +258,8 @@
                     onCycle={() => cycleResult(item.id, check)}
                   />
                   <strong>{check.title}</strong>
-                  <span class="checklist-owner">{check.isManual ? "需人工驗證" : "Agent"}</span>
+                  <span class={`checklist-owner${check.isManual ? " checklist-owner-manual" : ""}`}
+                  >{check.isManual ? "manual" : "Agent"}</span>
                 </div>
                 <dl>
                   <div><dt>Action</dt><dd>{check.action}</dd></div>

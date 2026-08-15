@@ -96,3 +96,15 @@ Run every Agent check once. If a check fails, mark it `[!]`, add `Observed`, and
     - [x] **Single-strip filter contract**
       - Action: Run focused tests for one strip carrying both groups, independent selection across groups, capsule reordering through the shared order model, and the persisted preference.
       - Expect: One strip renders both groups, selecting in one group leaves the other alone, the order persists in the user profile only, and work item order still follows the document.
+
+- [ ] **11. Bind state presentation to one status source**
+  Depends on: 9.
+  Outcome: A per-item progress cell, a card border, a manual check row, and a marker all show the same state in the same colour, and every card label is a capsule.
+  Checks:
+    - [x] **Status presentation contract**
+      - Action: Run focused tests for the status roles, per-item cells using status rather than the proportion fill, card borders following status with completed excluded, manual rows carrying their state, and the capsule labels.
+      - Expect: One status source serves cells, borders, rows, markers and tiles; a completed card shows no status border; a manual row shows its own state while Agent rows stay plain.
+    - [ ] **Rendered state comparison** `[manual]`
+      - Action: Open the Checklist App and the Viewer in both themes, and check a completed item, a pending item, and a failed item on each.
+      - Expect: The same state is the same colour everywhere it appears, completed cards have no coloured border, pending cards read as waiting without shouting, and every label is a capsule.
+      - Reason: Requires direct visual comparison across two running surfaces.
