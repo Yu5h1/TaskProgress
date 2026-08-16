@@ -135,14 +135,14 @@ Run every Agent check once. If a check fails, mark it `[!]`, add `Observed`, and
       - Action: Run focused tests for the data order when 預設 leads, grouping by capsule order when it does not, priority sorting inside a group only, and dragging never changing the selection.
       - Expect: Leading 預設 applies neither status grouping nor priority sorting, a moved 預設 groups by capsule order with priority inside each group, and a drag leaves the selected set untouched.
 
-- [ ] **15. Apply the filter to both screens and their children**
+- [x] **15. Apply the filter to both screens and their children**
   Depends on: 13.
   Outcome: The task-progress and Checklist screens filter containers and children against the selected set, and show every tag including empty ones.
   Checks:
     - [x] **Two-screen filter contract**
       - Action: Run focused tests for container and child matching against the selected set on both screens, zero-count tags staying visible, and the Checklist keeping check-level matching without owner capsules.
       - Expect: A container survives when any child matches and shows only matching children, a Checklist card is matched by every one of its checks rather than by its derived marker, owner capsules are gone, and a tag with no matches still renders with 0.
-    - [ ] **Rendered filtering** `[manual]`
+    - [x] **Rendered filtering** `[manual]`
       - Action: In both screens, clear and restore the selection with 預設, select single tags, and move 預設 out of and back into first place.
       - Expect: Clearing shows nothing, 預設 lights only when every tag is selected, leading 預設 restores the written order, and moving it regroups the cards.
       - Reason: Requires the user's running Viewer and packaged Checklist App.
