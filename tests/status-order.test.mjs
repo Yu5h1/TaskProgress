@@ -169,10 +169,8 @@ test("production Viewer exposes mouse, touch, and keyboard status ordering", asy
   assert.match(horizontalCapsules, /capsule-dragging/);
   assert.match(app, /applyStatusOrder\(id, targetId, placeAfter\)/);
   assert.match(app, /saveStatusOrder\(statusOrderStorage, state\.statusOrder\)/);
-  assert.match(
-    app,
-    /stableSortByStatus\(stableSortTasksByPriority\(state\.tasks\), state\.statusOrder\)/,
-  );
+  assert.match(app, /orderByCapsuleBoundary\(/);
+  assert.match(app, /stableSortTasksByPriority,/);
   assert.match(app, /taskMatchesSelection\(task, selected\)/);
   // Panel titles and their ordering moved into the card component; the host
   // still supplies the reader's status order.

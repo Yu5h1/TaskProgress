@@ -71,7 +71,7 @@
         id,
         label: STATUS_LABELS[id] ?? id,
         count: counts.get(id) ?? 0,
-        title: "拖曳可調整順序；「預設」在第一顆時依文件原本的順序",
+        title: "拖曳可調整順序；排在「預設」左邊的標籤會分組到最前面",
       }));
   }
 
@@ -213,6 +213,7 @@
 
     <FilterStrip
       categories={filterCategories(view.document, capsuleOrder)}
+      order={capsuleOrder}
       selected={selection.selected}
       defaultLit={isDefaultLit(selection)}
       className="status-filter-strip"

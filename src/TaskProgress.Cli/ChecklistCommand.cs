@@ -3,7 +3,24 @@ namespace TaskProgress;
 
 internal static class ChecklistCommand
 {
-    public static int Run(string[] args) => Run(args, ChecklistDesktopHost.Run);
+    public static int Run(string[] args) => Run(args, ChecklistDesktopHost.Run, ChecklistErrorDialog.Show);
+
+    internal static int Run(string[] args, Action<string> openWindow, Action<string> reportError)
+    {
+        ArgumentNullException.ThrowIfNull(reportError);
+        try
+        {
+            return Run(args, openWindow);
+        }
+        catch (CliException error)
+        {
+            // Both channels on purpose: a console run still prints, and a
+            // shortcut run still gets a window instead of a silent exit.
+            Console.Error.WriteLine($"錯誤：{error.Message}");
+            reportError(error.Message);
+            return 1;
+        }
+    }
 
     internal static int Run(string[] args, Action<string> openWindow)
     {

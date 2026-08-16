@@ -61,3 +61,17 @@ export function withTags(selection, tagIds) {
 export function matchesSelection(selection, status) {
   return selection.selected.has(status);
 }
+
+/*
+ * 預設 marks the boundary of explicit ordering.
+ *
+ * Capsules to its left are the grouping order; everything to its right keeps
+ * the order the data was written in. So 預設 leading means nothing is grouped,
+ * 預設 last means everything is, and the positions between are partial
+ * grouping — "put failures first and leave the rest alone" — which is why the
+ * capsule is worth dragging at all.
+ */
+export function groupingOrder(capsuleOrder = []) {
+  const boundary = capsuleOrder.indexOf(DEFAULT_CAPSULE_ID);
+  return boundary === -1 ? [...capsuleOrder] : capsuleOrder.slice(0, boundary);
+}

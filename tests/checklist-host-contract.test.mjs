@@ -21,6 +21,10 @@ const host = readFileSync(
   new URL("../src/TaskProgress.Cli/ChecklistDesktopHost.cs", import.meta.url),
   "utf8",
 );
+const errorDialog = readFileSync(
+  new URL("../src/TaskProgress.Cli/ChecklistErrorDialog.cs", import.meta.url),
+  "utf8",
+);
 const bridge = readFileSync(
   new URL("../src/TaskProgress.Cli/ChecklistBridge.cs", import.meta.url),
   "utf8",
@@ -61,4 +65,16 @@ test("Checklist bridge is exact-file and allowlists load and save", () => {
   assert.match(bridge, /"save" => Save\(root\)/u);
   assert.match(bridge, /RejectUnknown\(payload, "save payload", "revision", "results"\)/u);
   assert.doesNotMatch(bridge, /LocalWebService|LauncherSettings|localhost/u);
+});
+
+test("a Checklist failure reaches the reader instead of an empty exit", () => {
+  // The document is parsed before the window opens, and the command is normally
+  // launched from a shortcut with no console, so stderr alone is invisible.
+  assert.match(command, /reportError\(error\.Message\)/u);
+  assert.match(command, /Console\.Error\.WriteLine/u, "a console run still prints");
+  assert.match(command, /ChecklistErrorDialog\.Show/u);
+  assert.match(errorDialog, /MessageBox\.Show/u);
+  assert.match(errorDialog, /SetApartmentState\(ApartmentState\.STA\)/u);
+  // The dialog is its own file so it carries no WebView2 dependency.
+  assert.doesNotMatch(errorDialog, /WebView2/u);
 });

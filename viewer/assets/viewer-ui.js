@@ -2836,44 +2836,50 @@ var da = "__default__";
 //#region experiments/editor-svelte-spike/src/FilterStrip.svelte
 function fa(e, t) {
 	Ge(t, !1);
-	let n = /* @__PURE__ */ N(), r = $(t, "categories", 24, () => []), i = $(t, "selected", 24, () => /* @__PURE__ */ new Set()), a = $(t, "defaultLit", 8, !1), o = $(t, "defaultLabel", 8, "預設"), s = $(t, "ariaLabel", 8, "篩選"), c = $(t, "className", 8, ""), l = $(t, "reorderable", 8, !1), u = $(t, "onSelect", 8, () => {}), d = $(t, "onSelectDefault", 8, () => {}), f = $(t, "onReorder", 8, () => {}), p = (e) => e.count === void 0 || e.count === null ? e.label : `${e.label} ${e.count}`;
-	function m(e) {
-		e === "__default__" ? d()() : u()(e);
+	let n = /* @__PURE__ */ N(), r = /* @__PURE__ */ N(), i = /* @__PURE__ */ N(), a = /* @__PURE__ */ N(), o = $(t, "categories", 24, () => []), s = $(t, "order", 24, () => []), c = $(t, "selected", 24, () => /* @__PURE__ */ new Set()), l = $(t, "defaultLit", 8, !1), u = $(t, "defaultLabel", 8, "預設"), d = $(t, "ariaLabel", 8, "篩選"), f = $(t, "className", 8, ""), p = $(t, "reorderable", 8, !1), m = $(t, "onSelect", 8, () => {}), h = $(t, "onSelectDefault", 8, () => {}), g = $(t, "onReorder", 8, () => {}), _ = (e) => e.count === void 0 || e.count === null ? e.label : `${e.label} ${e.count}`, v = (e) => {
+		let t = p() && e.sortable !== !1;
+		return {
+			id: e.id,
+			label: _(e),
+			className: `filter-button${t ? " status-sortable" : ""}`,
+			sortable: t,
+			pressed: c().has(e.id),
+			title: e.title ?? null,
+			ariaLabel: e.ariaLabel ?? _(e)
+		};
+	};
+	function y(e) {
+		e === "__default__" ? h()() : m()(e);
 	}
-	R(() => (W(o()), W(l()), W(a()), W(r()), W(i())), () => {
-		P(n, [{
+	R(() => (W(u()), W(p()), W(l())), () => {
+		P(n, {
 			id: da,
-			label: o(),
-			className: `filter-button filter-default${l() ? " status-sortable" : ""}`,
-			sortable: l(),
-			pressed: a(),
-			title: l() ? "顯示全部；放在第一顆時依資料原本的順序排列，拖曳到後面則依膠囊順序分組" : "顯示全部",
-			ariaLabel: a() ? `${o()}，已全選` : `${o()}，選取全部`
-		}, ...r().map((e) => {
-			let t = l() && e.sortable !== !1;
-			return {
-				id: e.id,
-				label: p(e),
-				className: `filter-button${t ? " status-sortable" : ""}`,
-				sortable: t,
-				pressed: i().has(e.id),
-				title: e.title ?? null,
-				ariaLabel: e.ariaLabel ?? p(e)
-			};
-		})]);
+			label: u(),
+			className: `filter-button filter-default${p() ? " status-sortable" : ""}`,
+			sortable: p(),
+			pressed: l(),
+			title: p() ? "顯示全部；它左邊的標籤決定分組順序，右邊的維持原本的順序" : "顯示全部",
+			ariaLabel: l() ? `${u()}，已全選` : `${u()}，選取全部`
+		});
+	}), R(() => W(o()), () => {
+		P(r, new Map(o().map((e) => [e.id, e])));
+	}), R(() => (W(s()), W(o())), () => {
+		P(i, s().length > 0 ? s() : [da, ...o().map((e) => e.id)]);
+	}), R(() => (H(i), H(n), H(r)), () => {
+		P(a, H(i).map((e) => e === "__default__" ? H(n) : H(r).get(e)).filter(Boolean).map((e) => e === H(n) ? e : v(e)));
 	}), kn(), Oi(), ua(e, {
 		get items() {
-			return H(n);
+			return H(a);
 		},
 		get className() {
-			return c();
+			return f();
 		},
 		get ariaLabel() {
-			return s();
+			return d();
 		},
-		onActivate: m,
+		onActivate: y,
 		get onReorder() {
-			return f();
+			return g();
 		}
 	}), Ke();
 }

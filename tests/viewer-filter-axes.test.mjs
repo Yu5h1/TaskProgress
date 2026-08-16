@@ -8,6 +8,7 @@ import test from "node:test";
 import {
   ITEM_STATUS_FIELDS,
   filterTaskItems,
+  orderByCapsuleBoundary,
   stableSortByStatus,
   taskHasSelectedItem,
   taskMatchesSelection,
@@ -86,9 +87,12 @@ test("the host filters both levels and lets 預設 choose the order", async () =
   const app = await readFile(new URL("../viewer/assets/app.js", import.meta.url), "utf8");
   assert.match(app, /taskMatchesSelection\(task, selected\) \|\| taskHasSelectedItem\(task, selected\)/u);
   assert.match(app, /\.map\(\(task\) => filterTaskItems\(task, selected\)\)/u);
-  // Leading 預設 means the report's own order: no grouping and no priority sort.
-  assert.match(app, /state\.statusOrder\[0\] === DEFAULT_CAPSULE_ID\s*\?\s*state\.tasks/u);
-  assert.match(app, /:\s*stableSortByStatus\(stableSortTasksByPriority\(state\.tasks\), state\.statusOrder\)/u);
+  // 預設 marks where explicit ordering stops, so the host groups only what is
+  // to its left and sorts by priority inside those groups.
+  assert.match(app, /orderByCapsuleBoundary\(\s*state\.tasks,\s*groupingOrder\(state\.statusOrder\)/u);
+  assert.match(app, /stableSortTasksByPriority,\s*\)/u);
+  // The strip renders the stored order, so 預設 can be seen where it sits.
+  assert.match(app, /order: state\.statusOrder,/u);
   // 預設 is part of the persisted capsule order, so its position survives.
   assert.match(app, /const supportedCapsules = \[DEFAULT_CAPSULE_ID, \.\.\.supportedStatuses\]/u);
   assert.match(app, /loadStatusOrder\(statusOrderStorage, supportedCapsules\)/u);
@@ -105,4 +109,41 @@ test("the screen opens with everything selected and 預設 leading", async () =>
   assert.match(app, /function loadCapsuleOrder\(\)/u);
   assert.match(app, /\[DEFAULT_CAPSULE_ID, \.\.\.order\.filter\(\(id\) => id !== DEFAULT_CAPSULE_ID\)\]/u);
   assert.match(app, /statusOrder: loadCapsuleOrder\(\)/u);
+});
+
+test("only what the reader grouped moves; the rest stays as written", () => {
+  const tasks = [
+    task("a", "done"),
+    task("b", "planned"),
+    task("c", "failed"),
+    task("d", "planned"),
+    task("e", "in_progress"),
+  ];
+  const ids = (list) => list.map((entry) => entry.id);
+
+  // 預設 leading: nothing is grouped.
+  assert.deepEqual(ids(orderByCapsuleBoundary(tasks, [])), ["a", "b", "c", "d", "e"]);
+
+  // One tag to its left: that group leads, everything else keeps its sequence.
+  assert.deepEqual(
+    ids(orderByCapsuleBoundary(tasks, ["failed"])),
+    ["c", "a", "b", "d", "e"],
+  );
+
+  // Two tags: both group, in capsule order, and the remainder is untouched.
+  assert.deepEqual(
+    ids(orderByCapsuleBoundary(tasks, ["failed", "planned"])),
+    ["c", "b", "d", "a", "e"],
+  );
+});
+
+test("a group can be sorted inside without disturbing the ungrouped tail", () => {
+  const tasks = [
+    { id: "a", status: "planned", rank: 2 },
+    { id: "b", status: "done", rank: 9 },
+    { id: "c", status: "planned", rank: 1 },
+  ];
+  const byRank = (list) => [...list].sort((left, right) => left.rank - right.rank);
+  const ordered = orderByCapsuleBoundary(tasks, ["planned"], (t) => t.status, byRank);
+  assert.deepEqual(ordered.map((t) => t.id), ["c", "a", "b"]);
 });

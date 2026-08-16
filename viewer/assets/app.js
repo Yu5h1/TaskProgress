@@ -31,6 +31,7 @@ import { createThemeControl } from "./theme-control.js";
 import {
   DEFAULT_CAPSULE_ID,
   createFilterSelection,
+  groupingOrder,
   isDefaultLit,
   toggleDefault,
   toggleTag,
@@ -48,6 +49,7 @@ import {
   loadStatusOrder,
   moveStatusOrder,
   saveStatusOrder,
+  orderByCapsuleBoundary,
   stableSortByStatus,
   taskHasSelectedItem,
   taskMatchesSelection,
@@ -635,6 +637,7 @@ function renderFilters() {
         ariaLabel: `${label} ${count}，排序第 ${index}；可拖曳調整`,
       };
     }),
+    order: state.statusOrder,
     selected: state.selection.selected,
     defaultLit: isDefaultLit(state.selection),
     className: "status-filter-strip",
@@ -765,12 +768,15 @@ function taskListProps(tasks) {
 }
 
 function renderTasks() {
-  // Where 預設 sits chooses the order. Leading it means "as written", so
-  // neither status grouping nor priority sorting runs; moved out of first place
-  // the capsules group the cards, with priority sorting inside each group.
-  const orderedTasks = state.statusOrder[0] === DEFAULT_CAPSULE_ID
-    ? state.tasks
-    : stableSortByStatus(stableSortTasksByPriority(state.tasks), state.statusOrder);
+  // 預設 marks where explicit ordering stops: the capsules to its left group
+  // the cards, with priority sorting inside each group, and everything else
+  // keeps the report's own order.
+  const orderedTasks = orderByCapsuleBoundary(
+    state.tasks,
+    groupingOrder(state.statusOrder),
+    (task) => task.status,
+    stableSortTasksByPriority,
+  );
   // Filtering only hides, and it applies at both levels: a card survives when
   // it matches or when it still holds a matching item, and it then shows only
   // those items. Ordering above is untouched by any of it.

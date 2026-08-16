@@ -5,6 +5,7 @@ import test from "node:test";
 import {
   DEFAULT_CAPSULE_ID,
   createFilterSelection,
+  groupingOrder,
   isDefaultLit,
   isEmptySelection,
   matchesSelection,
@@ -79,4 +80,18 @@ test("selections are immutable", () => {
   const next = toggleTag(selection, "done");
   assert.notEqual(next, selection);
   assert.equal(selection.selected.has("done"), true, "the original is untouched");
+});
+
+test("預設 marks where explicit ordering stops", () => {
+  // Leading it groups nothing; trailing it groups everything; in between is
+  // partial grouping, which is what makes the capsule worth dragging.
+  assert.deepEqual(groupingOrder([DEFAULT_CAPSULE_ID, "planned", "done"]), []);
+  assert.deepEqual(groupingOrder(["failed", DEFAULT_CAPSULE_ID, "planned"]), ["failed"]);
+  assert.deepEqual(
+    groupingOrder(["failed", "planned", "done", DEFAULT_CAPSULE_ID]),
+    ["failed", "planned", "done"],
+  );
+  // A capsule set without 預設 at all orders by everything it has.
+  assert.deepEqual(groupingOrder(["failed", "planned"]), ["failed", "planned"]);
+  assert.deepEqual(groupingOrder([]), []);
 });

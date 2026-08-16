@@ -53,6 +53,32 @@ export const ITEM_STATUS_FIELDS = Object.freeze({
   done: "completed_items",
 });
 
+/*
+ * Group only what the reader asked for, and leave the rest as written.
+ *
+ * Anything whose status is in `groupOrder` is grouped and sorted within its
+ * group; anything else keeps the data's own order and follows behind. An empty
+ * `groupOrder` therefore means "change nothing", which is what 預設 leading
+ * asks for.
+ */
+export function orderByCapsuleBoundary(
+  items,
+  groupOrder,
+  getStatus = (item) => item.status,
+  sortWithinGroup = (list) => list,
+) {
+  if (groupOrder.length === 0) return [...items];
+  const grouped = [];
+  const rest = [];
+  for (const item of items) {
+    (groupOrder.includes(getStatus(item)) ? grouped : rest).push(item);
+  }
+  return [
+    ...stableSortByStatus(sortWithinGroup(grouped), groupOrder, getStatus),
+    ...rest,
+  ];
+}
+
 export function taskMatchesSelection(task, selected) {
   return selected.has(task?.status);
 }

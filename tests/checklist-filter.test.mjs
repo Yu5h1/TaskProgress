@@ -96,8 +96,12 @@ test("ordering follows the capsule order, and 預設 first means as written", ()
   const asWritten = orderChecklistItems(document, [DEFAULT_CAPSULE_ID, "failed", "passed", "pending"]);
   assert.deepEqual(asWritten.items.map((i) => i.id), [1, 2, 3], "the document's own order");
 
-  const grouped = orderChecklistItems(document, ["failed", DEFAULT_CAPSULE_ID, "passed", "pending"]);
-  assert.deepEqual(grouped.items.map((i) => i.id), [2, 3, 1], "capsule order groups the cards");
+  // Only what sits left of 預設 is grouped; the rest keeps the document order.
+  const partial = orderChecklistItems(document, ["failed", DEFAULT_CAPSULE_ID, "passed", "pending"]);
+  assert.deepEqual(partial.items.map((i) => i.id), [2, 1, 3], "failures lead, the rest as written");
+
+  const grouped = orderChecklistItems(document, ["failed", "passed", "pending", DEFAULT_CAPSULE_ID]);
+  assert.deepEqual(grouped.items.map((i) => i.id), [2, 3, 1], "everything left of 預設 groups");
 });
 
 test("counts stay whole-document under an active filter", () => {

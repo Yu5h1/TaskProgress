@@ -1,6 +1,6 @@
 import { createEditorTransaction } from "./editor-transaction.js";
-import { DEFAULT_CAPSULE_ID } from "./filter-selection.js";
-import { stableSortByStatus } from "./status-order.js";
+import { groupingOrder } from "./filter-selection.js";
+import { orderByCapsuleBoundary } from "./status-order.js";
 
 function findCheck(document, workItemId, checkIndex) {
   const item = document.items.find((candidate) => candidate.id === workItemId);
@@ -155,17 +155,18 @@ export function filterChecklistBySelection(document, selected) {
 /*
  * Order work items by where the reader put the capsules.
  *
- * The leading 預設 capsule means "as written", so the document's own order
- * stands. Moved out of first place, the status capsules become the grouping
- * order. Either way nothing is renumbered — an id is identity, not position.
+ * 預設 marks where explicit ordering stops: the statuses to its left are
+ * grouped in that order, and everything else keeps the document's own
+ * sequence. 預設 leading therefore means "as written". Nothing is renumbered
+ * either way — an id is identity, not position.
  */
 export function orderChecklistItems(document, capsuleOrder = []) {
-  if (capsuleOrder[0] === DEFAULT_CAPSULE_ID) return document;
-  const statusOrder = capsuleOrder.filter((id) => CHECKLIST_FILTERS.status.includes(id));
-  if (statusOrder.length === 0) return document;
+  const groupOrder = groupingOrder(capsuleOrder)
+    .filter((id) => CHECKLIST_FILTERS.status.includes(id));
+  if (groupOrder.length === 0) return document;
   return {
     ...document,
-    items: stableSortByStatus(document.items, statusOrder, itemStatus),
+    items: orderByCapsuleBoundary(document.items, groupOrder, itemStatus),
   };
 }
 
