@@ -120,14 +120,14 @@ Run every Agent check once. If a check fails, mark it `[!]`, add `Observed`, and
       - Expect: Selecting 未完成 leaves no completed sub-item on screen, the card ordering still follows the capsule order, and clearing a group restores everything.
       - Reason: Requires the user's running browser and direct UX confirmation.
 
-- [ ] **13. Make the filter strip a multi-select with a default capsule**
+- [x] **13. Make the filter strip a multi-select with a default capsule**
   Outcome: Every strip carries a leading 預設 capsule that selects or clears every tag, lights when all tags are selected, and dims when any is cleared, with an empty selection showing nothing.
   Checks:
     - [x] **Default capsule contract**
       - Action: Run focused tests for the select-all and clear-all clicks, the derived lit state, the empty selection, and the strip holding no tag vocabulary of its own.
       - Expect: Clicking a dim 預設 selects every tag and clicking a lit one clears them, the lit state follows the other capsules without being clicked, an empty selection matches nothing, and 預設 matches no status itself.
 
-- [ ] **14. Let the default capsule's position choose the order**
+- [x] **14. Let the default capsule's position choose the order**
   Depends on: 13.
   Outcome: A strip whose 預設 sits first renders its cards in the data's own order, and moving 預設 away groups the cards by capsule order with priority sorting inside each group.
   Checks:
