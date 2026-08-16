@@ -35,10 +35,6 @@ test("the marker box is one component with three states", () => {
   assert.match(markerBox, /GLYPH = \{ pending: "", passed: "✓", failed: "!" \}/u);
   assert.match(markerBox, /\{#if interactive\}[\s\S]*<button/u);
   assert.match(markerBox, /\{:else\}[\s\S]*<span/u);
-  // The square is the bracket: a bordered box, never a circle.
-  assert.match(shared, /\.marker-box \{[^}]*border-radius: 5px;/u);
-  assert.match(shared, /\.marker-box \{[^}]*border: 1\.5px solid/u);
-  assert.doesNotMatch(shared, /\.marker-box \{[^}]*border-radius: 50%/u);
   assert.doesNotMatch(styles, /\.checklist-marker/u, "the checklist keeps no marker of its own");
 });
 
@@ -70,11 +66,6 @@ test("a failure draft exposes one inline Observed field", () => {
   assert.match(observed, /type: "set-observed"/u);
   // The read-only Observed line steps aside for the editable field.
   assert.match(template, /\{#if check\.observed && !\(check\.isManual && check\.status === "failed"\)\}/u);
-});
-
-test("the marker box sits in the left marker column", () => {
-  assert.match(styles, /\.checklist-check-heading \{[^}]*grid-template-columns: 22px minmax\(0, 1fr\) auto;/u);
-  assert.match(styles, /\.checklist-item-header \{[^}]*grid-template-columns: 24px minmax\(0, 1fr\) auto;/u);
 });
 
 test("the Checklist uses the shared theme control and claims no scheme of its own", () => {

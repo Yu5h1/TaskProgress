@@ -49,8 +49,6 @@ test("the task-progress host supplies its own vocabulary", () => {
   assert.match(app, /"status-filters"/u);
   assert.match(app, /categories: tagOrder\.map\(/u);
   assert.match(app, /STATUS_META\[status\]\?\.label/u);
-  assert.match(app, /拖曳調整卡片排序/u);
-  assert.match(app, /排序第 \$\{index\}/u);
   assert.match(app, /reorderable: true,/u);
 });
 

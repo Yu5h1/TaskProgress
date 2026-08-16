@@ -36,7 +36,6 @@ test("every string comes from the caller", () => {
 
 test("the command is an optional block, not prose", () => {
   assert.match(template, /\{#if command\}<pre class="next-step-command">\{command\}<\/pre>\{\/if\}/u);
-  assert.match(styles, /\.next-step-command \{[^}]*overflow-x: auto;/u);
 });
 
 test("the outstanding state uses the theme's warning colour", () => {

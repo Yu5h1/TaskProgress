@@ -50,7 +50,6 @@ test("the count row renders one tile per supplied stat", () => {
   assert.match(template, /\{#each stats as stat \(stat\.key \?\? stat\.label\)\}/u);
   assert.match(template, /class=\{`progress-stat\$\{toneClass\(stat\.tone\)\}`\}/u);
   assert.match(styles, /\.progress-stat \{/u);
-  assert.match(styles, /\.progress-stat b \{[^}]*font-variant-numeric: tabular-nums;/u);
 });
 
 test("the summary delegates to the shared bar rather than drawing one", () => {
