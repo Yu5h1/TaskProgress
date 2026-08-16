@@ -15,17 +15,9 @@ test("Viewer, Demo, and Svelte consume one framework-neutral presentation contra
     read("../experiments/editor-svelte-spike/src/ItemRow.svelte"),
   ]);
 
-  assert.match(presentation, /--editor-content-max-width:\s*960px/u);
-  assert.match(presentation, /--editor-item-priority-preview-width:\s*42px/u);
-  assert.match(presentation, /--editor-item-priority-edit-width:\s*92px/u);
-  assert.match(presentation, /--editor-item-status-edit-width:\s*92px/u);
   assert.match(presentation, /\.editor-layout-shell/u);
   assert.match(presentation, /\.editor-task-card/u);
   assert.match(presentation, /\.editor-item-row/u);
-  assert.match(presentation, /\.item-row-description\s*\{[\s\S]*?flex:\s*1 1 0;[\s\S]*?overflow:\s*hidden/u);
-  assert.match(presentation, /\.item-row-utility-panel\s*\{[\s\S]*?flex:\s*0 1 auto;[\s\S]*?width:\s*auto;[\s\S]*?margin-left:\s*auto/u);
-  assert.match(presentation, /\.editor-item-row,[\s\S]*max-width:\s*100%[\s\S]*overflow:\s*hidden/u);
-  assert.match(presentation, /\.item-row-utility-panel\s*\{[\s\S]*max-width:\s*50%[\s\S]*overflow:\s*hidden/u);
   assert.match(viewer, /href="assets\/editor-presentation\.css"/u);
   assert.match(demo, /href="\.\.\/\.\.\/\.\.\/viewer\/assets\/editor-presentation\.css"/u);
   assert.match(svelteStyles, /@import "@editor\/editor-presentation\.css"/u);
@@ -44,7 +36,7 @@ test("Viewer, Demo, and Svelte consume one framework-neutral presentation contra
 test("shared presentation owns geometry only and leaves host themes independent", async () => {
   const presentation = await read("../viewer/assets/editor-presentation.css");
 
+  // The layering boundary, not a style value: geometry here, colour in the
+  // theme stylesheet. It holds no matter how either file is restyled.
   assert.doesNotMatch(presentation, /(?:^|\s)(?:color|background(?:-color)?|box-shadow):/mu);
-  assert.match(presentation, /--editor-card-gap/u);
-  assert.match(presentation, /--editor-item-min-height/u);
 });

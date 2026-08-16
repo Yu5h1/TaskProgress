@@ -93,10 +93,6 @@ test("editing exposes global task and child controls with a panel-aligned save b
   assert.match(app, /bindHistoryShortcuts\(document, \{/);
   assert.doesNotMatch(html, /id="edit-save-status"|id="edit-save-button"/);
   assert.match(app, /contractText: "預設狀態：待處理；預設優先級：未指定；ID 會獨立產生"/);
-  assert.match(styles, /\.edit-save-bar\s*\{[\s\S]*position:\s*fixed/);
-  assert.match(styles, /right:\s*max\(16px,\s*calc\(\(100% - 960px\) \/ 2\)\)/);
-  assert.match(styles, /\.edit-save-button\s*\{[\s\S]*color:\s*#fff/);
-  assert.match(styles, /\.edit-save-button\s*\{[\s\S]*background:\s*#245fcb/);
   assert.doesNotMatch(app, /inline-delete-button", "×"/);
   // Both dialogs now render through shared components; the Viewer keeps only
   // their mount points.

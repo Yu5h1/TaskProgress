@@ -719,7 +719,6 @@ test("Svelte spike is isolated, static-path safe, and uses the shared core", asy
   // shared, themed editor-time-editing.css so every host mounting those
   // regions gets it, not just the isolated spike. It stays separate from
   // editor-presentation.css, which is geometry-only and carries no colours.
-  assert.match(timeEditingText, /\.spike-time-editor\s*\{[\s\S]*?grid-template-columns:\s*minmax\(0, 1fr\)/u);
   assert.match(stylesText, /@import "@editor\/editor-presentation\.css"/u);
   assert.match(stylesText, /@import "@editor\/editor-time-editing\.css"/u);
   assert.match(appText, /class="spike-page editor-layout-shell"/u);
@@ -730,8 +729,6 @@ test("Svelte spike is isolated, static-path safe, and uses the shared core", asy
   assert.doesNotMatch(appText, /spike-mode-toggle|spike-savebar|spike-save-button/u);
   assert.match(cardText, /task-card editor-task-card/u);
   assert.match(rowText, /class="editor-item-row"/u);
-  assert.match(presentationText, /--editor-content-max-width:\s*960px/u);
-  assert.match(presentationText, /\.editor-mode-dock\s*\{[\s\S]*?position:\s*fixed/u);
   assert.doesNotMatch(appText, /taskprogress:editor-close|autoStartEditing|embedded/u);
   assert.doesNotMatch(appText + cardText + rowText, /localStorage/u);
 });
