@@ -504,6 +504,33 @@ Proof: 傳輸契約測試 | 精確檔案授權測試 | 面板實測（載入、�
 
 此節是核定方向，尚未實作。要進 `implementation-checklist.md` 需先結束目前 round 並核定各階段規格。
 
+##### 階段 3 的傳輸設計（2026-08-16 討論，待核定）
+
+> 狀態:**建議,尚未核定**。討論過程中我先推薦了常駐子程序,查證後推翻,以下記錄的是修正後的結論與依據。
+
+實作清單的 parser 與寫入在 C#(`ChecklistDocument.cs`),LocalWebService 是 Python。**Python 不得自己解析 Markdown** —— 那會是第二份 parser。除此之外的安排都是開放的,曾評估三種:
+
+| | HTTP 入口 | 解析與寫入 | 結論 |
+|---|---|---|---|
+| C# 自己起 loopback HTTP | 新增第二個 | C# | 帶來新的 port、新的信任邊界與新的生命週期問題 |
+| Python 路由 + **常駐** C# 子程序 | 沿用既有 | C# | 需要 stdio 分幀、子程序監管、重啟與關閉時機 |
+| **Python 路由 + 每次請求呼叫 CLI** | 沿用既有 | C# | **建議** |
+
+推翻常駐方案的是兩個可查證的事實:
+
+- **Python 早就在呼叫 C# CLI**:`service/taskprogress_host.py` 以 `subprocess.run([*analyzer_command, "analyze", folder], timeout=120)` 執行時間分析。所以「Python 啟動 C#」不是新方向,是既有模式。
+- **`ChecklistBridge` 沒有跨請求狀態**:`Load` 每次重讀檔案,`Save` 也重讀、比對 revision、原子寫回。它是 (檔案, 請求) 的純函式,因此常駐 process 只省下啟動時間,不保護任何東西。
+
+一併更正討論中的一個錯誤主張:「每次請求呼叫會讓 revision 檢查跨越 process 邊界而產生競態」是錯的。競態取決於「讀→比對→寫」是否被序列化,與 process 身分無關;常駐方案在並行請求下同樣需要處理。
+
+代價是每次請求約多出一次 CLI 啟動時間。若日後量到延遲確實擾人,再加上常駐模式即可 —— **bridge 契約不變**(`Handle` 兩種傳輸都一樣),所以那是加法,不是重做。
+
+尚待決定:
+
+1. **子命令形狀** —— 例如 `checklist request --file <path>`,stdin 收 JSON、stdout 回 JSON,使日後新增常駐模式不必更動契約。
+2. **授權** —— 沿用既有 bearer session 與 loopback／Host allowlist／Origin 拒絕,或另設。
+3. **哪些檔案可被開啟** —— 三項中最重要。桌面版的授權是「CLI 明確指定的那一個檔案」;改走 HTTP 後路由需要接受路徑參數,因此必須有允許清單,否則任意檔案都可被讀寫。既有的 scope 註冊機制是可能的沿用對象。
+
 #### 共用元件與傳輸接縫 Round（2026-08-15 核定）
 
 前一輪（結構化 Checklist 編輯）已結束。這一輪把上面幾節核定的方向實作出來，範圍是共用元件層加上一個最小的傳輸接縫：
