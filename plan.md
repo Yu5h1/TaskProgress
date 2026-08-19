@@ -199,6 +199,8 @@ Backlog.md 已提供 Agent-friendly Markdown tasks、CLI、JSON 與本機 Web bo
 - 將不同來源轉成兩層報告格式。
 - 對無法可靠解析的自由格式內容顯示明確診斷，不猜測狀態。
 - 視需要加入 Git、worktree、GitHub Projects 或 Backlog.md Adapter。
+- 將 `task-progress report apply` 保留為延後設計的 Agent-safe 非互動寫入介面；它只處理 TaskProgress 領域操作，不發展成通用標記語言 CLI，目前不因單份報告大小或單純節省 token 而實作。
+- 當反覆讀寫完整報告已明顯占用 Agent context、跨檔同步或驗證錯誤重複發生，或第二個獨立工作流需要相同 mutation 時，Agent 應提醒使用者進入設計討論。屆時再核定 compact JSON result、stable ID 操作、source revision、`--dry-run`、Schema／跨檔驗證與原子提交契約。
 - 穩定後將 Agent 操作方式整理成共用 skill。
 
 ## 新工作區的第一個實作順序
@@ -225,11 +227,94 @@ Backlog.md 已提供 Agent-friendly Markdown tasks、CLI、JSON 與本機 Web bo
 - 資料缺失或不相容時提供可理解的診斷。
 - 第一版不要求背景服務長時間運行。
 
+## Report 指路任務卡與單層 Scope 導航
+
+> 計畫狀態：需求已核定，尚未實作。核定日期：2026-08-18。
+
+### 系統階層與邊界
+
+```text
+Viewer（同一時間只有一個目前 scope／目前 report）
+├─ 一般任務卡
+│  └─ 顯示卡片本身保存的狀態、摘要與項目
+└─ Report 指路任務卡
+   ├─ 一層讀取被指向 report 的整體狀態與進度
+   ├─ 一層列出被指向 report 的所有任務卡狀態
+   ├─ 不讀取那些任務卡自己的 completed／pending items
+   └─ 開啟後把被指向 report 設為目前 report，整個畫面重新載入
+```
+
+這項設計讓上層 `report.json` 成為多專案入口，但不在上層複製各子專案的進度資料，也不把現有二層卡片 UI 改造成遞迴樹。上層任務卡只負責「指路與一層預覽」；被指向的子專案 report 仍是其內容的唯一事實來源。
+
+### 任務卡的兩種資料語意
+
+| 類型 | Canonical 資料 | Viewer 卡片內容 | 卡片項目 | 可否開啟另一份 report |
+|---|---|---|---|---|
+| 一般任務卡 | 自身的 `status`、`summary`、`completed_items`、`pending_items` | 顯示自身資料 | 顯示自身項目 | 否 |
+| Report 指路任務卡 | 穩定 `id`、`title` 與 `report_ref.scope_id` | 即時衍生目標 report 的整體狀態、進度與摘要 | 只投影目標 report 每張任務卡的 `id`、`title`、`status` | 是 |
+
+Report 指路任務卡不得再人工保存衍生的 `status`、`summary`、百分比或項目清單。若同一份資訊同時存在上層卡片與子專案 report，兩份資料一定會漂移，因此 Schema 應以互斥 variant 表達兩種卡片，而不是讓 `report_ref` 只成為普通任務卡上的可選連結。
+
+第一版資料方向：
+
+```json
+{
+  "id": "winform",
+  "title": "Yu5h1Lib.WinForm",
+  "report_ref": {
+    "scope_id": "winform"
+  }
+}
+```
+
+- `scope_id` 由 Launcher 的既有 scope catalog／安全 resolver 對應到實際 `report.json`；公開資料與 URL 不保存或暴露本機絕對路徑。
+- Report Schema 應以 `oneOf` 或等價的明確 variant 驗證一般任務卡與 Report 指路任務卡；指路 variant 禁止寫入可衍生欄位。
+- `id` 必須在目前 report 內穩定且唯一；`report_ref.scope_id` 必須可解析且不能直接指向目前 scope 本身。
+- 未註冊、無法載入、Schema 不相容或自我指向的 reference 只讓該卡顯示可理解診斷，不得使目前 report 其餘內容失效。
+
+### 單層摘要投影規則
+
+Report 指路任務卡載入目標 base `report.json` 後，必須建立唯讀 projection，不得把 projection 寫回上層 report：
+
+1. 卡片整體進度重用 TaskProgress 唯一的專案進度計算規則，不另外在 Report 指路功能實作第二套百分比公式。
+2. 卡片整體狀態由同一個集中式 derivation 依目標 report 的頂層 tasks 計算；不得由 UI 元件各自猜測。全部完成時為 `done`，有執行中工作時為 `in_progress`，尚未開始且仍有可執行工作時為 `planned`；只有所有未完成工作都無法推進時才投影為 `blocked`。`archive` 仍只代表明確封存，不用來假裝完成。
+3. 卡片項目逐一保留目標 report 頂層 task 的 stable `id`、`title` 與完整 `status`。這是專案任務狀態列，不得強迫轉成一般任務卡的「已完成／待處理」二分法；必要時使用專用唯讀 row view model。
+4. Projection 到此為止：不得讀取或顯示目標 task 的 `completed_items`、`pending_items`、Developer overlay、時間 sidecar 或更深層 report reference。
+5. 若目標 report 的某張 task 本身也是 Report 指路任務卡，上層預覽只顯示該 task 的標題與其可得狀態，不再解析它指向的 report。使用者真正導航到該 scope 後，新的目前 report 才能進行自己的一層預覽。
+
+這裡的「沒有遞迴」是資料讀取與 UI 契約，不只是視覺上收合：一次上層預覽最多讀取目標 report 的頂層 tasks，不能暗中抓完整樹後再隱藏。
+
+### 開啟與整頁換頁行為
+
+- 指路卡必須提供明確且可聚焦的「開啟專案報告」操作；卡片標題可同時作為連結。雙擊可以是桌面快捷方式，但不得成為唯一入口，確保鍵盤、觸控與輔助科技可用。
+- 開啟後 canonical URL 變成目標 `?scope=<scope_id>`，並沿用正常 report loader 完整替換目前 scope、標題、摘要、任務卡、Developer／時間附加資料與錯誤狀態；不得保留上一個專案的殘留 state。
+- 瀏覽器上一頁／下一頁必須能回到先前 scope。實作可採頁內 navigation 或真正 reload，但對使用者與資料狀態而言必須等同重新載入整個目標專案，不是在原卡片內展開第三層。
+- 目標 reference 載入失敗時維持目前 report 可用並在來源卡片附近顯示診斷；不得先清空整頁才回報錯誤。
+
+### 編輯、安全與一致性
+
+- Report 指路卡的衍生內容在上層 scope 一律唯讀。要修改任務狀態、摘要或項目，使用者必須先開啟目標 report，再沿用該 scope 的既有編輯能力與 revision／capability 保護。
+- 第一版不在一般任務編輯表單中提供任意本機路徑或 URL 欄位。建立或更換 `report_ref` 應由受保護、scope allowlist 限定的路由操作處理。
+- Reference preview 只取得 Viewer 本來可讀的 base report；不得因上層預覽而取得目標 scope 的私有 Developer 資料、編輯 capability、控制 token 或本機敏感路徑。
+- 上層報告不建立由 generator 定期複製的第二份總覽 manifest。狀態與進度在讀取時由被指向 report 衍生，目標 report 始終是唯一事實來源。
+
+### 實作範圍與驗收條件
+
+這是跨 Report Schema、Viewer、Launcher／scope catalog、驗證與編輯語意的 system-level 變更，不能只新增一個卡片按鈕。建議依序完成：Schema variant 與 fixture、集中式 projection／aggregate、Launcher reference resolver、Viewer 卡片與 navigation、錯誤隔離、編輯唯讀邊界，最後才接上 Yu5h1Lib 整體報告。
+
+- Yu5h1Lib 上層 report 能以一張 Report 指路卡表示一個子專案，且上層 JSON 不保存該子專案的衍生進度快照。
+- 指路卡內容會隨目標 report 改變而更新；不需要同步修改上層 report。
+- 指路卡的項目數與目標 report 的頂層任務卡數一致，並正確顯示每張任務卡狀態；測試同時證明沒有請求或渲染那些任務卡自己的項目。
+- 開啟指路卡後 URL、目前 scope 與整個畫面都切換到目標 report；上一頁能回到原 scope。
+- 一般任務卡行為與既有 report 相容；Report 指路卡不會進入一般 task／item 編輯流程，也不會把 projection 序列化回 report。
+- 缺少 scope、目標 404、無效 Schema、自我指向、重複 ID 及目標內含另一個 report reference 時都有測試，且錯誤不會破壞目前 report。
+- 桌面、390px、鍵盤、觸控與 screen-reader 可辨識操作均通過；不得要求使用者知道雙擊技巧。
+
 ## 尚待實作時決定
 
 1. `task-progress` 使用 PowerShell、.NET CLI 或其他實作方式。
 2. localhost server 的 port、session token、安全 allowlist 與結束條件。
-3. `?scope=` 的索引資料放置方式與跨 scope 總覽是否進入第一版。
+3. `?scope=` 的 catalog 實體放置方式與 reference cache／失效策略；跨 scope 總覽已核定使用 Report 指路任務卡與單層投影，不再列為未決產品方向。
 4. Viewer 第一版的視覺層級、卡片／列表形式與行動裝置支援程度。
 
 ## 人類任務編輯器擴充計畫
