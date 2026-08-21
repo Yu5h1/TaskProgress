@@ -55,11 +55,13 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
 
 ## Open decisions
 
+> Where each kind of statement lives: `plan.md` holds the design — what to build, why, and how it is accepted — and changes only when a design is added, revised or removed. Everything time-bound lives here: what is built, what is approved but unbuilt, what is deferred, and what is still undecided. A decision sits in this section until it is taken, then moves into `plan.md` as design and leaves this list. Writing progress into `plan.md` is what produced the drift found on 2026-08-19, where one section still claimed the shared progress summary and next-step card were unbuilt weeks after they shipped.
+
+
 Each needs the user's answer before the work it blocks can be specced. Nothing here is scheduled.
 
-**Report pointer cards** — `plan.md#report-指路任務卡與單層-scope-導航` (requirements approved 2026-08-18; explicit `kind: standard | report_pointer` tagged variant and the 1.0-to-1.1 compatibility direction approved 2026-08-19; nothing implemented and `report_ref` appears nowhere in the schema or code yet). These choices remain open:
+**Report pointer cards** — `plan.md#report-指路任務卡與單層-scope-導航` (requirements approved 2026-08-18; the tagged `kind: standard | report_pointer` variant and the 1.0-to-1.1 compatibility direction approved 2026-08-19; no caching of the target report, decided 2026-08-19 and now written into the plan as design; nothing implemented, and `report_ref` appears nowhere in the schema or code yet). These choices remain open:
 
-- **Reference cache and invalidation.** Listed in the plan's own `尚待實作時決定` #3. A pointer card derives everything on read, so the question is whether a target report is fetched once per view, per navigation, or cached with an invalidation rule.
 - **Navigation mechanism.** The plan permits in-page navigation or a real reload, requiring only that the result be equivalent to reloading the target project and that browser back/forward return to the previous scope. Pick one before building, because history handling differs.
 - **How a `report_ref` is created or changed.** The plan rules out an arbitrary path or URL field in the ordinary task editor and calls for a protected, scope-allowlisted route operation. That route is not designed.
 
