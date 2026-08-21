@@ -43,9 +43,8 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
 - Active claim: none.
 - **Next steps:**
   - The shared-component round is closed; `implementation-checklist.md` needs a new round written from a settled spec before any items are added to it.
-  - The `transport` prop on `ChecklistApp.svelte` is the entry point for preview-panel stage 3 (a loopback HTTP entry for the Checklist). Its transport design was discussed on 2026-08-16 and is recorded under `plan.md#階段-3-的傳輸設計2026-08-16-討論待核定`: a Python route that invokes the CLI per request, rather than a resident child process. Three questions are still open there, and the file allowlist is the one that matters — the desktop path is authorised for exactly one CLI-selected file, and an HTTP route taking a path parameter is not.
-  - The transport seam has one consumer, so its second-host value is asserted by a substitute transport in tests rather than proven by a real second host. Treat stage 3 as the thing that actually validates it.
-  - Not in this round, by decision: preview-panel stages 2 (shared Edit Application Service) and 3 (Checklist loopback HTTP entry) wait for the following round; stage 4 stays undecided. Real-device touch verification stays priority 3 and is not a round acceptance condition.
+  - Preview-panel stages 2 and 3 mean a loopback Web edition of the Checklist, not the existing Report Viewer. The user deferred that Web edition on 2026-08-19 with no scheduled re-entry; the completed `transport` seam stays as the desktop host boundary and substitute-transport test seam. The researched per-request CLI transport remains only a record in `plan.md`, and its subcommand, HTTP authorization and file allowlist are not current decisions.
+  - Stage 4 stays undecided. Real-device touch verification stays priority 3 and is not a round acceptance condition.
   - After the Checklist desktop path is stable, design the priority-2 Report Editor dual-host migration: extract one Edit Application Service below the existing HTTP endpoint and a future WebView bridge while preserving LocalWebService as the Browser path.
   - Continue Extension Module Phase 0 after the ItemRow presentation seam is fixed: settle manifest identity, visibility, unknown-module and stale-projection policies without letting manifest data control UI order.
   - If tablet editing is later promoted from priority 3, first define opt-in restricted-LAN binding, identity/capability boundaries, and firewall guidance; only then schedule real-device touch verification. Current supported editing remains PC exact-loopback.
@@ -55,22 +54,15 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
 
 Each needs the user's answer before the work it blocks can be specced. Nothing here is scheduled.
 
-**Report pointer cards** — `plan.md#report-指路任務卡與單層-scope-導航` (requirements approved 2026-08-18, nothing implemented; `report_ref` appears nowhere in the schema or code yet). The requirement is settled; these are the choices it deliberately left open:
+**Report pointer cards** — `plan.md#report-指路任務卡與單層-scope-導航` (requirements approved 2026-08-18; explicit `kind: standard | report_pointer` tagged variant and the 1.0-to-1.1 compatibility direction approved 2026-08-19; nothing implemented and `report_ref` appears nowhere in the schema or code yet). These choices remain open:
 
-- **Variant mechanism.** The plan asks for two mutually exclusive card kinds through `oneOf` "或等價的明確 variant". Choose `oneOf` on shape alone, or an explicit discriminator field. This decides how a validator reports a malformed pointer card, which is the difference between a useful diagnostic and a wall of alternatives.
 - **Reference cache and invalidation.** Listed in the plan's own `尚待實作時決定` #3. A pointer card derives everything on read, so the question is whether a target report is fetched once per view, per navigation, or cached with an invalidation rule.
 - **Navigation mechanism.** The plan permits in-page navigation or a real reload, requiring only that the result be equivalent to reloading the target project and that browser back/forward return to the previous scope. Pick one before building, because history handling differs.
 - **How a `report_ref` is created or changed.** The plan rules out an arbitrary path or URL field in the ordinary task editor and calls for a protected, scope-allowlisted route operation. That route is not designed.
 
-**Preview-panel stage 3** — three questions recorded under `plan.md#階段-3-的傳輸設計2026-08-16-討論待核定`: the subcommand shape, whether to reuse the existing bearer session, and which files an HTTP route may open. The last one is the one that matters: the desktop path is authorised for exactly one CLI-selected file, and a route taking a path parameter is not.
-
-**Item-level status** — whether report items get their own status field, so selecting a filter tag an item cannot hold stops emptying the card. Needs `report.schema.json`, the editor, C# validation, and a decision about whether `pending_items`／`completed_items` or a new field is the source of truth. Related to the pointer-card projection rule that refuses to coerce a target's task statuses into the completed／pending pair.
-
 **Checklist file name or extension** — keeping Markdown as the format while making a checklist file its own document type, openable by double-click. `ChecklistDocumentStore.ValidatePath` currently rejects any extension but `.md`, and the project registers the `task-progress://` protocol but no file-type association. The trade-off is a compound name such as `*.checklist.md`, which keeps editor Markdown support but associates poorly on Windows, against a dedicated extension such as `.checklist`, which associates cleanly but loses highlighting and preview until each editor is told about it.
 
 **Artifact-hosted Checklist (preview-panel stage 4)** — researched 2026-08-15: the Artifact runtime offers only `downloads` and `mcp`, so the page can neither hold state nor write the file. The workable shape is that it exports the existing bridge save payload (`{revision, results}`) and the existing C# writer applies it, keeping one parser／writer and the revision check. Three product questions block a spec: what "save" means when it cannot reach the file, whether the page is read-only or operable, and whether baking checklist content into a shareable page is acceptable. Do not implement a fake `chrome.webview` shim to shortcut this.
-
-**`task-progress report apply`** — deferred by decision, with re-entry conditions rather than a date. Per `plan.md`, it stays unbuilt and must not grow into a general markup CLI, and is not justified by report size or token saving alone. Raise it for design discussion when repeatedly reading and writing whole reports visibly consumes agent context, when cross-file sync or validation errors recur, or when a second independent workflow needs the same mutations.
 
 ## Standing project rule
 

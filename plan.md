@@ -229,7 +229,7 @@ Backlog.md 已提供 Agent-friendly Markdown tasks、CLI、JSON 與本機 Web bo
 
 ## Report 指路任務卡與單層 Scope 導航
 
-> 計畫狀態：需求已核定，尚未實作。核定日期：2026-08-18。
+> 計畫狀態：需求與 tagged variant 契約已核定，尚未實作。需求核定日期：2026-08-18；variant 契約核定日期：2026-08-19。
 
 ### 系統階層與邊界
 
@@ -255,20 +255,37 @@ Viewer（同一時間只有一個目前 scope／目前 report）
 
 Report 指路任務卡不得再人工保存衍生的 `status`、`summary`、百分比或項目清單。若同一份資訊同時存在上層卡片與子專案 report，兩份資料一定會漂移，因此 Schema 應以互斥 variant 表達兩種卡片，而不是讓 `report_ref` 只成為普通任務卡上的可選連結。
 
-第一版資料方向：
+核定的資料契約採用帶有 `kind` 鑑別欄位的互斥 variant。`kind` 是穩定的序列化契約，不保存 JavaScript 或 C# 類別名稱：
+
+```json
+{
+  "id": "viewer-editor",
+  "title": "Viewer Editor",
+  "kind": "standard",
+  "status": "in_progress",
+  "summary": "本機編輯流程已可使用。",
+  "completed_items": [],
+  "pending_items": []
+}
+```
 
 ```json
 {
   "id": "winform",
   "title": "Yu5h1Lib.WinForm",
+  "kind": "report_pointer",
   "report_ref": {
     "scope_id": "winform"
   }
 }
 ```
 
+- 共同契約只有 `id`、`title` 與 `kind`。`standard` variant 擁有自身的 `status`、`summary`、項目及可選進度；`report_pointer` variant 擁有 `report_ref`，並禁止保存由目標 report 衍生的欄位。
+- Report Schema 以 `oneOf` 分開兩個 `$defs`，各自使用 `kind.const` 選定分支。`kind` 負責指出種類，`oneOf` 負責驗證該種類允許及禁止的欄位；不得靠是否碰巧存在 `report_ref` 來猜種類。
+- JavaScript 資料層依 `kind` 分派 validation、projection 與 presentation model；Svelte 使用各 variant 的呈現元件。JSON 解析結果不需要先轉成 JavaScript `class`，但邊界等同於 C# 的基礎契約與兩個具體型別。
+- 現有 `schema_version: "1.0"` report 沒有 `kind`。相容讀取時只把 1.0 的既有 task 視為 `standard`；Report 指路卡只存在於新版契約。新版 writer 不再產生未標記種類的 task。
+- 新契約使用 `schema_version: "1.1"`，Viewer／validator 在遷移期同時讀取 1.0 與 1.1；`report.dev.json` 的版本契約同步更新並繼續與 base report 相符。必須先部署相容 reader，再遷移既有 report，不能在仍宣告 1.0 時偷偷加入 required 欄位。
 - `scope_id` 由 Launcher 的既有 scope catalog／安全 resolver 對應到實際 `report.json`；公開資料與 URL 不保存或暴露本機絕對路徑。
-- Report Schema 應以 `oneOf` 或等價的明確 variant 驗證一般任務卡與 Report 指路任務卡；指路 variant 禁止寫入可衍生欄位。
 - `id` 必須在目前 report 內穩定且唯一；`report_ref.scope_id` 必須可解析且不能直接指向目前 scope 本身。
 - 未註冊、無法載入、Schema 不相容或自我指向的 reference 只讓該卡顯示可理解診斷，不得使目前 report 其餘內容失效。
 
@@ -300,7 +317,7 @@ Report 指路任務卡載入目標 base `report.json` 後，必須建立唯讀 p
 
 ### 實作範圍與驗收條件
 
-這是跨 Report Schema、Viewer、Launcher／scope catalog、驗證與編輯語意的 system-level 變更，不能只新增一個卡片按鈕。建議依序完成：Schema variant 與 fixture、集中式 projection／aggregate、Launcher reference resolver、Viewer 卡片與 navigation、錯誤隔離、編輯唯讀邊界，最後才接上 Yu5h1Lib 整體報告。
+這是跨 Report Schema、Viewer、Launcher／scope catalog、驗證與編輯語意的 system-level 變更，不能只新增一個卡片按鈕。建議依序完成：1.0／1.1 相容 reader 與 tagged Schema fixtures、集中式 variant dispatch 與 projection／aggregate、Launcher reference resolver、Viewer 卡片與 navigation、錯誤隔離、編輯唯讀邊界，最後才遷移既有 report 並接上 Yu5h1Lib 整體報告。
 
 - Yu5h1Lib 上層 report 能以一張 Report 指路卡表示一個子專案，且上層 JSON 不保存該子專案的衍生進度快照。
 - 指路卡內容會隨目標 report 改變而更新；不需要同步修改上層 report。
@@ -312,10 +329,7 @@ Report 指路任務卡載入目標 base `report.json` 後，必須建立唯讀 p
 
 ## 尚待實作時決定
 
-1. `task-progress` 使用 PowerShell、.NET CLI 或其他實作方式。
-2. localhost server 的 port、session token、安全 allowlist 與結束條件。
-3. `?scope=` 的 catalog 實體放置方式與 reference cache／失效策略；跨 scope 總覽已核定使用 Report 指路任務卡與單層投影，不再列為未決產品方向。
-4. Viewer 第一版的視覺層級、卡片／列表形式與行動裝置支援程度。
+1. Report 指路卡的 reference cache 與失效策略：目標 report 是每次檢視取得、每次導航取得，或快取後依規則失效。`?scope=` catalog 的實體放置方式已隨 scope store 實作定案，跨 scope 總覽亦已核定使用 Report 指路任務卡與單層投影。
 
 ## 人類任務編輯器擴充計畫
 
@@ -557,6 +571,8 @@ Proof: 篩選列來源測試 | 兩個畫面的分類測試 | 實機觸控拖曳�
 
 #### AI 工具預覽面板的操作路徑（2026-08-15 決策）
 
+> 2026-08-19 決策：這一節的階段 2、3 是「Checklist 支援 loopback Web 版」，不是現有 Report Viewer。現有 Report Web 編輯維持不變；Checklist Web 版目前擱置，不排實作時程，也不先決定 CLI 子命令、HTTP 授權或檔案 allowlist。已完成的階段 1 傳輸接縫保留供桌面 Checklist 與測試使用。
+
 目標是讓報告與實作清單能在 AI 工具的右側預覽面板裡直接看、直接操作，而且共用元件改過、重新整理就看得到。做法是沿用「一份 UI、一份編輯契約、換傳輸方式」的既有方向，不為每個面板各做一套介面或一座橋。
 
 ```text
@@ -589,9 +605,9 @@ Proof: 傳輸契約測試 | 精確檔案授權測試 | 面板實測（載入、�
 
 此節是核定方向，尚未實作。要進 `implementation-checklist.md` 需先結束目前 round 並核定各階段規格。
 
-##### 階段 3 的傳輸設計（2026-08-16 討論，待核定）
+##### 階段 3 的傳輸設計（2026-08-16 討論，2026-08-19 擱置）
 
-> 狀態:**建議,尚未核定**。討論過程中我先推薦了常駐子程序,查證後推翻,以下記錄的是修正後的結論與依據。
+> 狀態：**擱置，不排程**。以下保留研究結論，只有日後重新核定 Checklist loopback Web 版時才恢復規格討論。
 
 實作清單的 parser 與寫入在 C#(`ChecklistDocument.cs`),LocalWebService 是 Python。**Python 不得自己解析 Markdown** —— 那會是第二份 parser。除此之外的安排都是開放的,曾評估三種:
 
@@ -610,7 +626,7 @@ Proof: 傳輸契約測試 | 精確檔案授權測試 | 面板實測（載入、�
 
 代價是每次請求約多出一次 CLI 啟動時間。若日後量到延遲確實擾人,再加上常駐模式即可 —— **bridge 契約不變**(`Handle` 兩種傳輸都一樣),所以那是加法,不是重做。
 
-尚待決定:
+重新啟動本階段時再決定：
 
 1. **子命令形狀** —— 例如 `checklist request --file <path>`,stdin 收 JSON、stdout 回 JSON,使日後新增常駐模式不必更動契約。
 2. **授權** —— 沿用既有 bearer session 與 loopback／Host allowlist／Origin 拒絕,或另設。
