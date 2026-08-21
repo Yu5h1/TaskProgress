@@ -227,6 +227,34 @@ Backlog.md 已提供 Agent-friendly Markdown tasks、CLI、JSON 與本機 Web bo
 - 資料缺失或不相容時提供可理解的診斷。
 - 第一版不要求背景服務長時間運行。
 
+## Report 摘要欄位與編輯 UX
+
+> 計畫狀態：資料格式已實作（2026-08-19）；編輯模式 UX 尚未實作。
+
+Report 層級原本只有 `title`。畫面上那行說明文字不是資料，是 Viewer 用 `tasks.length` 拼出來的固定句型，每一份 report 都長一樣。這讓兩個層級的資料形狀不對齊：
+
+```text
+project   { title ✅   summary ❌ 沒有這個欄位   tasks[] ✅ }
+taskcard  { title ✅   summary ✅              items[] ✅ }
+```
+
+不對齊的後果不只是少一行字。要把一份 report 投影成一張卡（Report 指路任務卡就是這樣做），三個欄位都得有來源，而 `summary` 沒有。
+
+### 已實作的資料格式
+
+- `report.json` 根層新增選填 `summary`，型別與長度與 task 的 `summary` 相同（字串，1–1000 字）。不設必填：既有 report 一份都不用改。
+- 有寫就顯示它；沒寫就沿用原本那句以任務數產生的說明，所以舊 report 的畫面完全不變。
+- 驗證只在欄位存在時檢查，空白字串視為未填。
+
+### 尚未實作：編輯模式 UX
+
+摘要要能在 Viewer 的編輯模式裡修改，作法比照任務卡的 summary 欄位，而不是另做一套：
+
+- 沿用既有的 Editor Core draft／validation／Undo／Redo 與全域儲存，不新增第二條儲存路徑。
+- 沿用共用元件；標題與摘要屬於同一個 report 標頭區塊，不因為新增一個欄位就長出獨立表單。
+- 未填是合法狀態。編輯器要能把已填的摘要清空回未填，不是強迫使用者留下佔位文字。
+- 儲存後 fallback 行為需保持一致：清空即回到以任務數產生的說明。
+
 ## Report 指路任務卡與單層 Scope 導航
 
 > 計畫狀態：需求與 tagged variant 契約已核定，尚未實作。需求核定日期：2026-08-18；variant 契約核定日期：2026-08-19。

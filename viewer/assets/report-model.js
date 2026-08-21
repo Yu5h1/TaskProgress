@@ -240,6 +240,11 @@ export function validateReport(report) {
   requireString(report.report_id, "report_id", errors, { id: true });
   requireString(report.scope_id, "scope_id", errors, { id: true });
   requireString(report.title, "title", errors);
+  // Optional, and validated only when present: a report written before the
+  // field existed stays valid, and the Viewer falls back to a generated line.
+  if (report.summary !== undefined) {
+    requireString(report.summary, "summary", errors);
+  }
   validateTimestamp(report.updated_at, "updated_at", errors);
 
   if (!Array.isArray(report.tasks)) {

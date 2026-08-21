@@ -793,11 +793,25 @@ function renderTasks() {
   renderTaskAdder();
 }
 
+/*
+ * A report describes itself the same way a task card does: a title and a
+ * summary written by whoever owns it.
+ *
+ * The field is optional, so a report written before it existed still shows
+ * something. The fallback is a generated count, which is what this line held
+ * for every report until now — informative, but the same sentence everywhere.
+ */
+function reportSummaryText(report) {
+  const summary = typeof report.summary === "string" ? report.summary.trim() : "";
+  if (summary) return summary;
+  return `${report.tasks.length} 個可追溯任務；狀態由報告資料提供。`;
+}
+
 function renderReport() {
   const { report } = state;
   document.title = `${report.title} — TaskProgress`;
   elements.title.textContent = report.title;
-  elements.summary.textContent = `${report.tasks.length} 個可追溯任務；狀態由報告資料提供。`;
+  elements.summary.textContent = reportSummaryText(report);
   elements.scope.textContent = report.scope_id;
   elements.updatedAt.textContent = formatTime(report.updated_at);
   elements.reportId.textContent = report.report_id;

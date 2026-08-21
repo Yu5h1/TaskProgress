@@ -27,6 +27,11 @@
       "minLength": 1,
       "maxLength": 120
     },
+    "summary": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1000
+    },
     "updated_at": {
       "type": "string",
       "format": "date-time"
