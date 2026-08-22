@@ -242,7 +242,7 @@ test("mode switches wait for pending automatic saves and refuse to strand a draf
 
 test("the Checklist session saves through the same controller and revision contract", async () => {
   const document = {
-    fileName: "implementation-checklist.md",
+    fileName: "task-a.checklist",
     revision: "abc",
     roundIdentity: "plan.md#round",
     items: [{

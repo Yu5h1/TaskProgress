@@ -337,7 +337,8 @@ Report 指路任務卡載入目標 base `report.json` 後，必須建立唯讀 p
 
 ### 編輯、安全與一致性
 
-- Report 指路卡的衍生內容在上層 scope 一律唯讀。要修改任務狀態、摘要或項目，使用者必須先開啟目標 report，再沿用該 scope 的既有編輯能力與 revision／capability 保護。
+- Report 指路卡在 Viewer 中整張唯讀，不進入一般 task／item 編輯流程，也不顯示修改、刪除或新增項目的控制。它每次直接讀取目標 base `report.json` 產生預覽；開啟目標 report 只會切換目前 scope，不是修改指路卡。
+- 要修改預覽中的任務狀態、摘要或項目，使用者必須先開啟目標 report，再沿用該 scope 的既有編輯能力與 revision／capability 保護。建立或更換指路關係屬於受保護的管理操作，不是卡片內編輯。
 - 第一版不在一般任務編輯表單中提供任意本機路徑或 URL 欄位。建立或更換 `report_ref` 應由受保護、scope allowlist 限定的路由操作處理。
 - Reference preview 只取得 Viewer 本來可讀的 base report；不得因上層預覽而取得目標 scope 的私有 Developer 資料、編輯 capability、控制 token 或本機敏感路徑。
 - 上層報告不建立由 generator 定期複製的第二份總覽 manifest。狀態與進度在讀取時由被指向 report 衍生，目標 report 始終是唯一事實來源。
@@ -370,16 +371,68 @@ Report 指路任務卡載入目標 base `report.json` 後，必須建立唯讀 p
 
 ### 結構化 Checklist 編輯 Draft 0.1（2026-08-13）
 
-`implementation-checklist.md` 後續由獨立的本機桌面入口編輯，但它不是任意 Markdown 編輯器。Markdown 保持唯一資料來源；Editor 只解析及寫回固定的 checklist 結構，公開 Viewer 維持唯讀，也不承擔 Checklist 文件編輯責任。
+Checklist round 文件後續由獨立的本機桌面入口編輯，但它不是任意 Markdown 編輯器。Markdown 保持唯一資料來源；Editor 只解析及寫回固定的 checklist 結構，公開 Viewer 維持唯讀，也不承擔 Checklist 文件編輯責任。
+
+#### Checklist 多任務檔案配置（2026-08-22 決策）
+
+一個專案以根目錄下的 `checklists/` 作為 Checklist 的固定邊界。一個可獨立指派及驗證的任務擁有一份 `<task-id>.checklist`；多個任務可以同時存在，並分別交給不同 Agent 執行。
+
+```text
+project/
+├─ checklists/
+│  ├─ task-a.checklist
+│  └─ task-b.checklist
+├─ plan.md
+└─ handoff.md
+
+Agent A ──writes──> checklists/task-a.checklist
+Agent B ──writes──> checklists/task-b.checklist
+task-progress.exe checklist <file> ──opens──> exactly one selected file
+```
+
+- Canonical 文件副檔名為 `.checklist`，內容格式仍是 UTF-8 Markdown；副檔名用來表達文件類型及建立 Windows 雙擊關聯，不改變 parser 語法。
+- `<task-id>` 是在專案內穩定且適合檔名的任務識別。第一版以明確檔案路徑完成指派與開啟，不另建 `tasks.md` 索引，也不讓 CLI 遞迴推測目前任務。
+- 每份 `.checklist` 只承載該任務的一個 active round；同一專案可以有多份 active checklist。各檔案內的 work-item 數字 ID 與 `Depends on` 只在該檔案內有效。
+- Round 完成後保留該 `.checklist` 的完成內容，並與該輪實作及驗證證據一起 commit；`checklists/` 是任務清單集合，不是只存放未完成工作的暫存區，是否 active 由檔案內的 checks 推導。
+- 同一 Task 的下一輪規格核定後，先確認上一輪完成狀態已 commit，再沿用同一個 `<task-id>.checklist`，移除上一輪項目並以新的 `Current round` 與全新 `[ ]` checks 重新開始；上一輪由 Git history 保存。實際上是另一個獨立目標時，改用新的 Task ID 與新檔案。
+- 分檔隔離的是 Checklist 的寫入與 revision；若不同任務仍會修改相同 source、generated artifact、lockfile 或共用服務，Agent 仍須依既有 claim 規則協調，不能把不同 `.checklist` 視為 source ownership。
+- Desktop Host 直接讀取被指定 `.checklist` 的原始 bytes，交給既有 `ChecklistDocument` parser，儲存後原子寫回同一份檔案。不得為了讓工具辨識 Markdown 而建立可編輯的 `temp.md` 第二來源；writer 既有的短暫 `.tmp` 原子替換檔不屬於文件來源。
+- 一般文字編輯器若不會自動辨識 `.checklist`，以檔案關聯或 language association 將它映射為 Markdown；這是編輯器呈現設定，不是 TaskProgress parser 的限制。
+
+##### CLI 與 Agent workflow 遷移
+
+- CLI 保持最小入口 `task-progress.exe checklist <file>`，但只接受明確指定的 `.checklist`。第一版不增加 `new`、`list`、檔案選擇器或自動任務排程；Agent 可以使用既有檔案工具建立文件，再把確切路徑交給 CLI。
+- `task-progress.exe checklist install|uninstall` 管理目前 Windows 使用者的 `.checklist` 檔案關聯；雙擊的 shell command 固定回到 `task-progress.exe checklist "%1"`。Uninstall 只有在 extension mapping 仍指向 TaskProgress ProgID 時才移除該 mapping，不修改 machine-wide Registry。
+- Agent work-route 由「專案旁存在唯一 `implementation-checklist.md`」改為「規格核定後，在該專案的 `checklists/` 建立或接續 `<task-id>.checklist`」。指派、執行、驗證與 co-commit 都只作用於目前任務的確切檔案。
+- `AgentArtifactGuide.md` 的 artifact ownership 也須同步改為 per-task `.checklist`，避免共享入口規則繼續把舊檔名指定為唯一來源。
+- 目前的 `implementation-checklist.md` 保存已結束的舊 round。遷移落地時由 Git 歷史保留它並移除工作樹中的舊入口；下一個已核定任務才建立對應 `.checklist`，不製造無任務內容的替代檔。
+- 遷移須同時更新 CLI `ValidatePath`、命令提示、Windows 檔案關聯、Agent work-route 與所有依賴舊檔名的測試。完成後不得讓 `.md` 與 `.checklist` 同時成為 canonical Checklist 入口。
+
+##### 驗收與非目標
+
+- 同一專案中的 `task-a.checklist` 與 `task-b.checklist` 可分別開啟、編輯及儲存；任一工作階段只取得指定檔案的 capability，儲存不改動另一份檔案。
+- parser／writer 的 Markdown round-trip、衍生狀態、凍結結果、source revision 與原子替換契約在改用 `.checklist` 後維持成立。
+- Agent work-route 能在沒有 `implementation-checklist.md` 的情況下，根據已核定 Task ID 選定唯一的 `checklists/<task-id>.checklist`，且不把其他任務的清單結果混入目前 round。
+- 已完成 `.checklist` 在沒有新 round 時維持可讀；同 Task 新 round 只在上一輪已 commit 後重設同一檔案，不刪除其他 Task 的完成或進行中清單。
+- 舊入口移除後，CLI、Windows 關聯、測試與 Agent 指令都不再依賴 `implementation-checklist.md`。
+- 第一版不處理 Checklist Browser 入口、`report.json` 投影、`tasks.md` 索引、跨檔 `Depends on`、多檔彙整畫面或自動 Agent 排程。
+
+```text
+Execution size: medium
+Architectural impact: system-level — changes Checklist file ownership from one project-wide document to one document per independently executable task, and changes the shared Agent workflow route
+Volume: touches CLI path validation／messages、Windows association、filename-dependent tests、shared agent-work-route skill and the one-time legacy-file migration
+Precedent: existing exact-file Desktop capability、Checklist parser／writer、revision conflict handling and Agent claim rules
+Proof: focused CLI tests | parser／writer round-trip tests | exact-file isolation test | shared-skill route review | two-file desktop interaction
+```
 
 ```text
 TaskProgress desktop tool
-└─ task-progress.exe checklist <implementation-checklist.md>
+└─ task-progress.exe checklist <checklists/task-a.checklist>
    ├─ WPF Window + WebView2（不啟動 LocalWebService）
    │  └─ shared Svelte Checklist UI
    ├─ restricted EXE ↔ WebView bridge
    └─ Checklist parser／writer
-      └─ implementation-checklist.md（唯一資料來源）
+      └─ task-a.checklist（Task A 的唯一 Checklist 資料來源）
          └─ Work item（狀態唯讀、自動彙總）
             ├─ Title：要完成的工作
             ├─ Outcome：可觀察的完成結果
@@ -390,7 +443,7 @@ TaskProgress desktop tool
 
 #### 桌面入口與責任邊界（2026-08-14 決策）
 
-- 第一版命令為 `task-progress.exe checklist <file>`。每次啟動只授權 CLI 明確指定的一個 `implementation-checklist.md`，不提供任意檔案瀏覽器。
+- 第一版命令為 `task-progress.exe checklist <file>`。每次啟動只授權 CLI 明確指定的一個 `.checklist`，不提供任意檔案瀏覽器。
 - EXE 建立 WPF 視窗，使用 WebView2 載入隨程式發布的 Svelte 資產。WPF 只負責桌面視窗、生命週期與 WebView 容器；Checklist 內容仍由共用 Svelte UI 呈現。介面不透過 HTTP 載入，因此不啟動 LocalWebService、不占用 port，也不需要防火牆規則。
 - Checklist 是獨立桌面入口，不加入 Report Viewer 的頁面或資料模型；兩者仍共用適用的 Svelte UI 元件、Editor transaction、Undo／Redo、主題與 SaveBar，不能複製另一套控制實作。
 - WebView 只取得解析後的 checklist snapshot、顯示名稱與 revision，不取得任意檔案系統能力。所有讀寫由 EXE 處理；UI 只能透過受限 bridge 提交目前文件的結構化草稿。
@@ -419,7 +472,7 @@ LocalWebService 是正式 Web 路線的一部分，不因 Desktop Host 出現而
 
 完整雙入口不得延後 Checklist 介面，也不得為 Desktop 複製現有 Viewer、Editor Core、transaction 或重新分析邏輯。
 
-- 文件開頭的 `Current round: <plan anchor>` 是 round identity，指向這一輪的核定規格。`implementation-checklist.md` 只保存一個 active round；舊 round 由 git history 保存。
+- 文件開頭的 `Current round: <plan anchor>` 是 round identity，指向這一輪的核定規格。每份 `<task-id>.checklist` 只保存該任務的一個 active round；同一專案的不同任務可以各有一份 active checklist，舊 round 由各檔案的 Git history 保存。
 - 每個 work item 使用簡單的數字 ID，例如 `1`、`2`、`3`。ID 只需在當前 round 內唯一，代表項目身分而非畫面順序；修改標題或排序時不得重新編號。修復若仍以原本的 `Outcome` 與 `Expect` 為目標，就留在同一項；只有工作範圍或驗收合約實質改變才使用新 ID。新 round 可以重新從 `1` 開始。
 - Markdown 內容維持英文，介面控制與提示可以本地化。句子採受控寫法：一個標題只表達一項工作，`Outcome` 只描述可觀察結果，不使用「正確處理」或「適當顯示」等無法驗收的詞。
 - work item 不再同時保存 `Acceptance` 與 `Verification`。它只有 `Title`、`Outcome` 與一個以上的 `Checks`；每個 check 只有 `Action` 與 `Expect`。URL、命令與人工步驟都寫入 `Action`，不再建立重複的 `Entry` 欄位。
@@ -588,36 +641,37 @@ Precedent: 既有的膠囊列互動實作、狀態順序模型與瀏覽器儲存
 Proof: 篩選列來源測試 | 兩個畫面的分類測試 | 實機觸控拖曳（一次，兩邊共用）
 ```
 
-#### AI 工具預覽面板的操作路徑（2026-08-15 決策）
+#### Viewer／Checklist 的 Browser 與 Desktop 雙入口（2026-08-22 決策）
 
-目標是讓報告與實作清單能在 AI 工具的右側預覽面板裡直接看、直接操作，而且共用元件改過、重新整理就看得到。做法是沿用「一份 UI、一份編輯契約、換傳輸方式」的既有方向，不為每個面板各做一套介面或一座橋。
+TaskProgress 只有 Browser 與 Desktop 兩種正式宿主；Viewer 與 Checklist 都應能逐步補齊兩種入口。兩個宿主共用同一套 Svelte UI、Editor Core 與編輯契約，只由 HTTP adapter 或受限 WebView bridge 負責傳輸差異。
 
 ```text
-共用 Svelte UI ＋ Editor Core（不知道自己走哪一種傳輸）
-└─ 編輯契約（commands／responses／revision 驗證）
-   ├─ WebView2 bridge — 已完成，桌面 Checklist App
-   ├─ loopback HTTP（LocalWebService）
-   │  ├─ 報告：已完成，面板載入 127.0.0.1 即可操作
-   │  └─ 實作清單：未實作，這是目前的缺口
-   └─ 快照＋結果匯出 — 未定，給連不到本機的沙箱面板
+TaskProgress surfaces
+├─ Browser host（LocalWebService／HTTP）
+│  ├─ Viewer：已完成
+│  └─ Checklist：未來補齊
+└─ Desktop host（task-progress.exe／WebView2 bridge）
+   ├─ Checklist：已完成
+   └─ Viewer：未來補齊
 ```
 
-- 面板分兩種，需要的東西不同。**能載入網址的面板**（Codex、VS Code、Claude Code 的瀏覽器窗格）不需要新機制，LocalWebService 已經是那座橋；缺的只是實作清單還沒有 HTTP 入口。**沙箱面板**（claude.ai artifact）連不到本機，只能載入烤進頁面的快照，操作結果以既有的儲存 payload 匯出，再由既有 C# writer 套用；三個產品問題未決前不進入實作，見 `handoff.md` 的 next steps。
-- 兩種傳輸共用同一套授權邊界：只授權明確指定的檔案、只綁 loopback、儲存前比對來源 revision 再原子寫回。多一個面板不放寬任何一條。
-- 「重新整理就看到」是這條路徑的驗收條件之一：面板載入的是建置後的資產，所以共用元件改完必須重新建置；資產檔名固定又沒有版本參數時面板會吃到快取，因此本機服務提供的資產需要版本化或明確不快取。
+- `task-progress.exe start` 啟動服務後開啟 Browser Viewer，仍屬於 Browser／HTTP 入口；未來的 Desktop Viewer 指由 `task-progress.exe` 自己以 WebView2 宿主承載 Viewer。
+- Browser 的本機寫入能力只存在於精確 loopback、scope capability 與 revision 保護下；公開靜態 Viewer 維持唯讀。Desktop 只授權 CLI 明確指定的 scope 或文件，不能因為補齊另一個畫面而取得任意檔案能力。
+- 同一畫面不得因宿主不同而複製 UI、parser、writer、transaction 或狀態推導。Host adapter 只提供資料、commands／responses 與生命週期；應用服務與資料規則保持單一來源。
+- Browser 資產必須在共用元件改變後重新建置，並以版本化或明確不快取避免面板保留舊 bundle；Desktop 發布包也必須包含同一次建置產物。
 
 收斂後的工作順序：
 
-1. **傳輸接縫**：Checklist 介面改成接收傳輸方式，不自己去抓 WebView 物件。這是其餘階段的前提，改動最小。
-2. **抽出共用編輯服務**：HTTP endpoint 與桌面 bridge 底下共用同一套編輯服務，即既有的雙入口項目。
-3. **實作清單的 loopback HTTP 入口**：沿用階段 2 的服務與既有的精確檔案授權，讓能載入網址的面板可以直接操作實作清單。
-4. **沙箱面板的快照與匯出**：待前述產品問題決定後再排。
+1. **傳輸接縫**：Checklist 已改成接收傳輸方式，不自己抓 WebView 物件。
+2. **抽出共用編輯服務**：HTTP endpoint 與 Desktop bridge 共用一套 Edit Application Service。
+3. **補 Checklist Browser 入口**：沿用共用服務與精確檔案授權，讓 loopback Browser 操作 `.checklist`。
+4. **補 Viewer Desktop 入口**：沿用同一 Viewer UI 與 Report 編輯服務，由 `task-progress.exe` 的 WebView2 Host 承載。
 
 ```text
-Execution size: large — 分四階段，前三階段可各自獨立驗收
-Architectural impact: system-level — 把傳輸方式從介面抽開，並讓實作清單多一個入口
-Precedent: 既有 WebView2 bridge、LocalWebService HTTP 契約、可注入的傳輸參數與 transport-agnostic 持久化控制
-Proof: 傳輸契約測試 | 精確檔案授權測試 | 面板實測（載入、操作、重新整理看到新版本）
+Execution size: large — 兩個既有入口加上兩個未來補齊入口
+Architectural impact: system-level — 同一 Viewer／Checklist 跨 HTTP 與 WebView bridge
+Precedent: 既有 WebView2 bridge、LocalWebService HTTP 契約、可注入 transport 與 transport-agnostic 持久化控制
+Proof: 兩宿主傳輸契約測試 | 精確 scope／檔案授權 | Browser／Desktop 載入與寫回實測 | 同源 UI bundle 驗證
 ```
 
 ##### 階段 3 的傳輸設計
@@ -651,9 +705,9 @@ Proof: 傳輸契約測試 | 精確檔案授權測試 | 面板實測（載入、�
 
 - 進度摘要與下一步卡片：見「進度摘要與下一步卡片的共用」，兩個畫面都改用同一份實作。
 - 篩選列：見「篩選列的共用」，把分類從元件裡拿出來，再讓實作清單接上自己的分類。
-- 預覽面板路徑的階段 1：見「AI 工具預覽面板的操作路徑」，介面改成接收傳輸方式。
+- 雙入口路徑的階段 1：見「Viewer／Checklist 的 Browser 與 Desktop 雙入口」，介面改成接收傳輸方式。
 
-明確不在這一輪：預覽面板路徑的階段 2（共用編輯服務）與階段 3（實作清單的 loopback HTTP 入口）留給下一輪，階段 4 仍未決定。實機觸控驗證維持既有的優先級 3，不列為本輪驗收條件。
+明確不在這一輪：雙入口路徑的階段 2（共用編輯服務）與階段 3（實作清單的 loopback HTTP 入口）留給後續 round；Viewer Desktop 入口也另行排程。實機觸控驗證維持既有的優先級 3，不列為本輪驗收條件。
 
 ### 介面決策
 
@@ -1283,7 +1337,7 @@ Svelte 是 UI 組合技術的替換，不是重新設計。每個區塊開始實
 
 ##### 時間編輯 UX parity 修復 Draft 0.1（2026-08-10）
 
-這一輪是既有 Viewer 操作的 settled port，不是新介面設計。實作入口為 `implementation-checklist.md`；以下規格是驗收依據，清單只追蹤本輪執行狀態。
+這一輪是既有 Viewer 操作的 settled port，不是新介面設計。以下規格是驗收依據；當輪執行狀態由對應 Task 的 Checklist 追蹤。
 
 **決策與理由**
 

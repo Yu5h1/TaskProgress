@@ -5,6 +5,8 @@ using TaskProgress;
 
 internal static class Program
 {
+    private static int assertionCount;
+
     public static int Main()
     {
         var root = Path.Combine(Path.GetTempPath(), $"task-progress-checklist-{Guid.NewGuid():N}");
@@ -96,33 +98,66 @@ internal static class Program
                     .ReplaceUtf8("  Depends on: 1.", "  Depends on: 99.")),
                 "missing dependency");
 
-            var activeChecklistPath = FindActiveChecklist();
-            var activeChecklistBytes = File.ReadAllBytes(activeChecklistPath);
-            var activeChecklist = ChecklistDocument.Parse(activeChecklistBytes);
-            SequenceEqual(
-                activeChecklistBytes,
-                activeChecklist.Serialize(),
-                "active Checklist byte round-trip");
+            var projectChecklists = FindProjectChecklists();
+            True(projectChecklists.Count > 0, "project has no .checklist files");
+            foreach (var projectChecklistPath in projectChecklists)
+            {
+                var projectChecklistBytes = File.ReadAllBytes(projectChecklistPath);
+                var projectChecklist = ChecklistDocument.Parse(projectChecklistBytes);
+                SequenceEqual(
+                    projectChecklistBytes,
+                    projectChecklist.Serialize(),
+                    $"project Checklist byte round-trip: {Path.GetFileName(projectChecklistPath)}");
+            }
 
-            var path = Path.Combine(root, "implementation-checklist.md");
+            var path = Path.Combine(root, "task-a.checklist");
             File.WriteAllBytes(path, source);
             string? openedPath = null;
             Equal(0, ChecklistCommand.Run([path], value => openedPath = value), "Checklist command result");
             Equal(Path.GetFullPath(path), openedPath, "Checklist command target");
             Throws(() => ChecklistCommand.Run([], _ => { }), "Checklist command missing target");
             Throws(() => ChecklistCommand.Run([path, path], _ => { }), "Checklist command extra target");
-            Throws(() => ChecklistCommand.Run([Path.Combine(root, "missing.md")], _ => { }),
+            Throws(() => ChecklistCommand.Run([Path.Combine(root, "missing.checklist")], _ => { }),
                 "Checklist command missing file");
-            var textPath = Path.Combine(root, "implementation-checklist.txt");
+            var markdownPath = Path.Combine(root, "legacy-checklist.md");
+            File.WriteAllBytes(markdownPath, source);
+            Throws(() => ChecklistCommand.Run([markdownPath], _ => { }), "Checklist command legacy Markdown target");
+            var textPath = Path.Combine(root, "task-a.txt");
             File.WriteAllBytes(textPath, source);
-            Throws(() => ChecklistCommand.Run([textPath], _ => { }), "Checklist command non-Markdown target");
+            Throws(() => ChecklistCommand.Run([textPath], _ => { }), "Checklist command unrelated extension");
+
+            var installed = false;
+            var uninstalled = false;
+            Equal(0, ChecklistCommand.Run(
+                ["install"],
+                _ => throw new InvalidOperationException("install must not open a file"),
+                () => installed = true,
+                () => { uninstalled = true; return true; }),
+                "Checklist association install result");
+            True(installed, "Checklist association install dispatch");
+            installed = false;
+            Equal(0, ChecklistCommand.Run(
+                ["uninstall"],
+                _ => throw new InvalidOperationException("uninstall must not open a file"),
+                () => installed = true,
+                () => { uninstalled = true; return true; }),
+                "Checklist association uninstall result");
+            True(!installed, "Checklist association uninstall did not dispatch install");
+            True(uninstalled, "Checklist association uninstall dispatch");
+            Equal(
+                "\"C:\\Program Files\\TaskProgress\\task-progress.exe\" checklist \"%1\"",
+                ChecklistFileRegistration.BuildLaunchCommand(
+                    @"C:\Program Files\TaskProgress\task-progress.exe"),
+                "Checklist association launch command");
             True(
                 ChecklistDesktopHost.CreateRuntimeMissingError("missing")
                     .Message.Contains("Evergreen Runtime", StringComparison.Ordinal),
                 "WebView2 runtime failure guidance");
 
-            var bridgePath = Path.Combine(root, "bridge-checklist.md");
+            var bridgePath = Path.Combine(root, "bridge-checklist.checklist");
+            var isolatedPath = Path.Combine(root, "isolated-checklist.checklist");
             File.WriteAllBytes(bridgePath, source);
+            File.WriteAllBytes(isolatedPath, source);
             var bridge = new ChecklistBridge(bridgePath);
             using var loadResponse = JsonDocument.Parse(bridge.Handle(
                 """{"version":1,"id":"load-1","type":"load"}"""));
@@ -130,7 +165,7 @@ internal static class Program
             var revision = loadResponse.RootElement.GetProperty("payload").GetProperty("revision").GetString();
             True(!string.IsNullOrWhiteSpace(revision), "bridge load revision");
             using var unknownResponse = JsonDocument.Parse(bridge.Handle(
-                """{"version":1,"id":"bad-1","type":"openPath","payload":{"path":"other.md"}}"""));
+                """{"version":1,"id":"bad-1","type":"openPath","payload":{"path":"other.checklist"}}"""));
             Equal("error", unknownResponse.RootElement.GetProperty("type").GetString(), "unknown bridge message");
             using var injectedPathResponse = JsonDocument.Parse(bridge.Handle(
                 JsonSerializer.Serialize(new
@@ -138,7 +173,7 @@ internal static class Program
                     version = 1,
                     id = "save-path",
                     type = "save",
-                    payload = new { revision, results = Array.Empty<object>(), path = "other.md" },
+                    payload = new { revision, results = Array.Empty<object>(), path = "other.checklist" },
                 })));
             Equal(
                 "invalid_request",
@@ -185,8 +220,9 @@ internal static class Program
                 ChecklistStatus.Pending,
                 new ChecklistDocumentStore().Load(bridgePath).Items[0].Checks[1].Status,
                 "bridge persisted manual revert");
+            SequenceEqual(source, File.ReadAllBytes(isolatedPath), "bridge changed a different Checklist file");
 
-            var conflictPath = Path.Combine(root, "bridge-conflict.md");
+            var conflictPath = Path.Combine(root, "bridge-conflict.checklist");
             File.WriteAllBytes(conflictPath, source);
             var conflictBridge = new ChecklistBridge(conflictPath);
             using var conflictLoad = JsonDocument.Parse(conflictBridge.Handle(
@@ -226,7 +262,7 @@ internal static class Program
                 File.ReadAllText(path, Encoding.UTF8).EndsWith("<!-- external -->", StringComparison.Ordinal),
                 "conflict overwrote external content");
 
-            Console.WriteLine("Checklist document, host, and bridge tests passed: 45 checks.");
+            Console.WriteLine($"Checklist document, host, and bridge tests passed: {assertionCount} checks.");
             return 0;
         }
         catch (Exception error)
@@ -275,16 +311,26 @@ internal static class Program
         return [.. Encoding.UTF8.Preamble, .. body];
     }
 
-    private static string FindActiveChecklist()
+    private static IReadOnlyList<string> FindProjectChecklists()
     {
         var directory = new DirectoryInfo(AppContext.BaseDirectory);
         while (directory is not null)
         {
-            var candidate = Path.Combine(directory.FullName, "implementation-checklist.md");
-            if (File.Exists(candidate)) return candidate;
+            var checklistDirectory = Path.Combine(directory.FullName, "checklists");
+            if (Directory.Exists(checklistDirectory))
+            {
+                var candidates = Directory.GetFiles(
+                    checklistDirectory,
+                    $"*{ChecklistFileRegistration.FileExtension}",
+                    SearchOption.TopDirectoryOnly);
+                if (candidates.Length > 0)
+                {
+                    return candidates.OrderBy(path => path, StringComparer.OrdinalIgnoreCase).ToArray();
+                }
+            }
             directory = directory.Parent;
         }
-        throw new InvalidOperationException("Active implementation-checklist.md was not found.");
+        throw new InvalidOperationException("Project checklists/*.checklist files were not found.");
     }
 
     private static void Equal<T>(T expected, T actual, string message)
@@ -293,11 +339,13 @@ internal static class Program
         {
             throw new InvalidOperationException($"{message}: expected {expected}, actual {actual}");
         }
+        assertionCount++;
     }
 
     private static void SequenceEqual(byte[] expected, byte[] actual, string message)
     {
         if (!expected.AsSpan().SequenceEqual(actual)) throw new InvalidOperationException(message);
+        assertionCount++;
     }
 
     private static void Throws(Action action, string message)
@@ -308,6 +356,7 @@ internal static class Program
         }
         catch (CliException)
         {
+            assertionCount++;
             return;
         }
         throw new InvalidOperationException($"Expected CliException: {message}");
@@ -316,6 +365,7 @@ internal static class Program
     private static void True(bool value, string message)
     {
         if (!value) throw new InvalidOperationException(message);
+        assertionCount++;
     }
 }
 

@@ -22,7 +22,7 @@ function check(index, status, overrides = {}) {
 }
 
 function documentFixture(items) {
-  return { fileName: "implementation-checklist.md", revision: "abc", roundIdentity: "plan.md#round", items };
+  return { fileName: "task-a.checklist", revision: "abc", roundIdentity: "plan.md#round", items };
 }
 
 test("counts cover every work item and every check in the document", () => {

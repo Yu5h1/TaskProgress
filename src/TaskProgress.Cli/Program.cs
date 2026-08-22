@@ -502,7 +502,9 @@ internal static class Program
         Console.WriteLine("  start                            啟動服務並載入所有已登記 scope");
         Console.WriteLine("  analyze <report-folder>          產生或更新 time.analysis.json");
         Console.WriteLine("  analyze --scope <scope-id>       分析已登記的 scope");
-        Console.WriteLine("  checklist <checklist.md>         開啟本機 WPF Checklist 編輯器");
+        Console.WriteLine("  checklist <task.checklist>       開啟本機 WPF Checklist 編輯器");
+        Console.WriteLine("  checklist install                註冊目前使用者的 .checklist 檔案關聯");
+        Console.WriteLine("  checklist uninstall              移除 TaskProgress .checklist 檔案關聯");
         Console.WriteLine("  open <report-folder>             開啟指定資料夾的報告");
         Console.WriteLine("  open --scope <scope-id>          開啟已登記的 scope");
         Console.WriteLine("  scope add <report-folder>        以資料夾名稱自動產生並登記 scope");
@@ -525,7 +527,7 @@ internal static class Program
         Console.WriteLine("範例：");
         Console.WriteLine("  scope add \"W:\\UnityProject\\BonghuoVR\"");
         Console.WriteLine("  analyze --scope bonghuo-vr");
-        Console.WriteLine("  checklist implementation-checklist.md");
+        Console.WriteLine("  checklist checklists\\task-a.checklist");
         Console.WriteLine("  start");
         Console.WriteLine("  open --scope bonghuo-vr --no-browser");
         Console.WriteLine("  http://127.0.0.1:8001/?scope=bonghuo-vr");

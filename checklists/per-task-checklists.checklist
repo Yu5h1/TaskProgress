@@ -1,0 +1,46 @@
+# Implementation Checklist
+
+Current round: `plan.md#checklist-多任務檔案配置2026-08-22-決策`.
+
+Implement the approved migration from one project-wide Markdown checklist to one `.checklist` file per independently executable task. Run every Agent check once. A completed round remains readable until the same task starts a new settled round; Git history owns the replaced round.
+
+- [x] **1. Enforce the `.checklist` exact-file contract**
+  Outcome: The Checklist CLI, document store, help text, bridge fixtures, and focused tests accept explicit `.checklist` files and reject the retired `.md` entry.
+  Checks:
+    - [x] **Focused C# contract**
+      - Action: Run the focused TaskProgress Checklist test project.
+      - Expect: Exact `.checklist` paths load and save, `.md` and unrelated extensions are rejected, and exact-file revision isolation still passes.
+    - [x] **Focused JavaScript contract**
+      - Action: Run the Checklist editor, transport, summary, filter, persistence, and active-file format tests.
+      - Expect: All focused tests pass with `.checklist` display names and no test depends on the retired root filename.
+
+- [x] **2. Register the Windows `.checklist` file association**
+  Depends on: 1.
+  Outcome: The published executable can install or remove a current-user `.checklist` association whose open command passes the selected file to the exact-file Checklist CLI.
+  Checks:
+    - [x] **Association command contract**
+      - Action: Run the focused TaskProgress Checklist test project.
+      - Expect: `checklist install` and `checklist uninstall` dispatch through their dedicated registration actions, and the generated shell command is `task-progress.exe checklist "%1"` with a quoted executable path.
+    - [x] **Registry ownership boundary**
+      - Action: Inspect the registration implementation and focused assertions.
+      - Expect: Registration is per-user, uninstall removes the extension mapping only when it still points to TaskProgress, and no test or implementation changes a machine-wide key.
+
+- [x] **3. Route every active task through its own file**
+  Outcome: Project guards discover all direct `checklists/*.checklist` files, validate them independently, and the retired `implementation-checklist.md` no longer exists in the worktree.
+  Checks:
+    - [x] **Repository checklist guard**
+      - Action: Run the active-checklist format test and the focused C# Checklist test project.
+      - Expect: Both enumerate the project `checklists/` directory, require at least one `.checklist`, and round-trip every discovered file without assuming one global active document.
+    - [x] **Legacy runtime reference scan**
+      - Action: Search CLI source, tests, and active Agent instructions for `implementation-checklist.md` and `.md` Checklist acceptance.
+      - Expect: No active runtime, test, or Agent route treats the legacy filename or `.md` extension as a valid Checklist entry; historical handoff and migration-plan references may remain.
+
+- [x] **4. Migrate shared Agent ownership and round lifecycle**
+  Outcome: Shared Agent instructions define `checklists/<task-id>.checklist` as one task's current round, preserve completed content until that task starts a new committed round, and keep source claims separate from Checklist ownership.
+  Checks:
+    - [x] **Shared instruction contract**
+      - Action: Review `AgentArtifactGuide.md` and `agent-work-route/SKILL.md`, then run focused text assertions or an equivalent exact search.
+      - Expect: Both documents agree on per-task discovery, co-commit, completed-round retention, same-task reset after commit, and independent source-file claims; neither designates `implementation-checklist.md` as canonical.
+    - [x] **Plan alignment**
+      - Action: Compare the shared instructions with the approved Checklist section in `plan.md`.
+      - Expect: File ownership, round lifecycle, first-version scope, and out-of-scope behavior do not contradict the product plan.

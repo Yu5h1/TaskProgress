@@ -42,7 +42,7 @@ test("a substitute transport drives the same screen contract", async () => {
   // What the screen does with the transport, without a browser: load once,
   // then save through the shared persistence controller.
   const document = {
-    fileName: "implementation-checklist.md",
+    fileName: "task-a.checklist",
     revision: "abc",
     roundIdentity: "plan.md#round",
     items: [{

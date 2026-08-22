@@ -512,12 +512,12 @@ internal sealed class ChecklistDocumentStore
 
     public static string ValidatePath(string path)
     {
-        if (string.IsNullOrWhiteSpace(path)) throw new CliException("請指定 Checklist Markdown 檔案。");
+        if (string.IsNullOrWhiteSpace(path)) throw new CliException("請指定 .checklist 檔案。");
         var fullPath = Path.GetFullPath(path);
         if (!File.Exists(fullPath)) throw new CliException($"找不到 Checklist：{fullPath}");
-        if (!string.Equals(Path.GetExtension(fullPath), ".md", StringComparison.OrdinalIgnoreCase))
+        if (!string.Equals(Path.GetExtension(fullPath), ChecklistFileRegistration.FileExtension, StringComparison.OrdinalIgnoreCase))
         {
-            throw new CliException("Checklist 必須是 .md 檔案。");
+            throw new CliException("Checklist 必須是 .checklist 檔案。");
         }
         return fullPath;
     }

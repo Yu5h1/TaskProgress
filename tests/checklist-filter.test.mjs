@@ -30,7 +30,7 @@ function check(index, status, isManual = false) {
 
 function fixture() {
   return {
-    fileName: "implementation-checklist.md",
+    fileName: "task-a.checklist",
     revision: "abc",
     roundIdentity: "plan.md#round",
     items: [

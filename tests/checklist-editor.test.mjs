@@ -8,7 +8,7 @@ import { createChecklistBridgeTransport } from "../experiments/editor-svelte-spi
 
 function documentFixture() {
   return {
-    fileName: "implementation-checklist.md",
+    fileName: "task-a.checklist",
     revision: "abc",
     roundIdentity: "plan.md#round",
     items: [{
@@ -158,7 +158,7 @@ test("Checklist transport exposes only load and save", async () => {
   listeners.get("message")({
     data: { version: 1, id: sent[0].id, type: "result", payload: documentFixture() },
   });
-  assert.equal((await load).fileName, "implementation-checklist.md");
+  assert.equal((await load).fileName, "task-a.checklist");
   assert.deepEqual(Object.keys(transport).sort(), ["load", "save"]);
 });
 

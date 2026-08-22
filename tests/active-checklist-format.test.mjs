@@ -1,26 +1,29 @@
 /*
- * The active checklist must stay parseable by the strict C# document core.
+ * Every project checklist must stay parseable by the strict C# document core.
  *
  * `task-progress.exe checklist <file>` parses before it opens a window, so a
  * malformed file is not a rendering glitch — the App exits with no window at
- * all. That happened: work-item markers were left at `[ ]` while their checks
- * were marked `[x]`, and the derived-marker rule rejected the file.
- *
- * The C# tests already cover this, but they are not what runs after every edit.
- * These assertions are the cheap guard on the file this project edits daily.
+ * all. The C# tests cover the parser too; these assertions are the cheap guard
+ * on every direct `checklists/*.checklist` file this project edits daily.
  */
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
+import { readFile, readdir } from "node:fs/promises";
 import test from "node:test";
 
-const source = await readFile(new URL("../implementation-checklist.md", import.meta.url), "utf8");
-const lines = source.split(/\r?\n/);
+const checklistDirectory = new URL("../checklists/", import.meta.url);
+const checklistNames = (await readdir(checklistDirectory))
+  .filter((name) => name.endsWith(".checklist"))
+  .sort((left, right) => left.localeCompare(right));
+const documents = await Promise.all(checklistNames.map(async (name) => ({
+  name,
+  lines: (await readFile(new URL(name, checklistDirectory), "utf8")).split(/\r?\n/),
+})));
 
 const WORK_ITEM = /^- \[([ x!])\] \*\*(\d+)\. (.+)\*\*$/u;
 const CHECK = /^ {4}- \[([ x!])\] \*\*(.+?)\*\*( `\[manual\]`)?$/u;
 const FIELD = /^ {6}- (Action|Expect|Reason|Observed|Resolved): .+$/u;
 
-function parseItems() {
+function parseItems(lines) {
   const items = [];
   lines.forEach((line, index) => {
     const item = WORK_ITEM.exec(line);
@@ -42,70 +45,89 @@ function derive(checks) {
   return " ";
 }
 
-const items = parseItems();
+test("the project has at least one per-task checklist", () => {
+  assert.ok(documents.length > 0, "checklists/ contains no .checklist file");
+});
 
-test("the round has work items and every one carries checks", () => {
-  assert.ok(items.length > 0, "no work item parsed — the shape has drifted");
-  for (const item of items) {
-    assert.ok(item.checks.length > 0, `item ${item.id} (line ${item.line}) has no checks`);
+test("every round has work items and every item carries checks", () => {
+  for (const { name, lines } of documents) {
+    const items = parseItems(lines);
+    assert.ok(items.length > 0, `${name}: no work item parsed — the shape has drifted`);
+    for (const item of items) {
+      assert.ok(item.checks.length > 0, `${name}: item ${item.id} (line ${item.line}) has no checks`);
+    }
   }
 });
 
 test("every work-item marker equals what its checks derive", () => {
-  for (const item of items) {
-    const expected = derive(item.checks);
-    assert.equal(
-      item.marker,
-      expected,
-      `item ${item.id} on line ${item.line} is [${item.marker}] but its checks derive [${expected}]`,
-    );
+  for (const { name, lines } of documents) {
+    for (const item of parseItems(lines)) {
+      const expected = derive(item.checks);
+      assert.equal(
+        item.marker,
+        expected,
+        `${name}: item ${item.id} on line ${item.line} is [${item.marker}] but its checks derive [${expected}]`,
+      );
+    }
   }
 });
 
 test("work items are separated by a blank line", () => {
-  // ChecklistDocument.cs requires an empty line after each work item. A reorder
-  // that rejoins two items with a single newline reads fine and parses fine
-  // here, and then the packaged App refuses to open the file at all.
-  for (const item of items.slice(1)) {
-    assert.equal(
-      lines[item.line - 2],
-      "",
-      `item ${item.id} on line ${item.line} does not start after a blank line`,
-    );
+  for (const { name, lines } of documents) {
+    for (const item of parseItems(lines).slice(1)) {
+      assert.equal(
+        lines[item.line - 2],
+        "",
+        `${name}: item ${item.id} on line ${item.line} does not start after a blank line`,
+      );
+    }
   }
 });
 
-test("work item ids are unique inside the round", () => {
-  const seen = new Set();
-  for (const item of items) {
-    assert.equal(seen.has(item.id), false, `duplicate work item id ${item.id} on line ${item.line}`);
-    seen.add(item.id);
+test("work item ids are unique inside each round", () => {
+  for (const { name, lines } of documents) {
+    const seen = new Set();
+    for (const item of parseItems(lines)) {
+      assert.equal(seen.has(item.id), false, `${name}: duplicate work item id ${item.id} on line ${item.line}`);
+      seen.add(item.id);
+    }
   }
 });
 
 test("a failed check states what was observed", () => {
-  items.forEach((item) => item.checks.forEach((check) => {
-    if (check.marker !== "!") return;
-    const body = lines.slice(check.line, check.line + 8).join("\n");
-    assert.match(body, /^ {6}- Observed: /mu, `check on line ${check.line} is [!] without Observed`);
-  }));
-});
-
-test("check fields use the nested bullet syntax the parser accepts", () => {
-  lines.forEach((line, index) => {
-    if (!/^ {6}- /u.test(line)) return;
-    assert.match(
-      line,
-      FIELD,
-      `line ${index + 1} is not a recognised check field: ${line.trim()}`,
-    );
-  });
-  // Legacy unbulleted fields are what the migration removed; they must not return.
-  for (const [index, line] of lines.entries()) {
-    assert.doesNotMatch(line, /^ {6}(Action|Expect|Reason|Observed|Resolved): /u, `line ${index + 1}`);
+  for (const { name, lines } of documents) {
+    for (const item of parseItems(lines)) {
+      for (const check of item.checks) {
+        if (check.marker !== "!") continue;
+        const body = lines.slice(check.line, check.line + 8).join("\n");
+        assert.match(body, /^ {6}- Observed: /mu, `${name}: check on line ${check.line} is [!] without Observed`);
+      }
+    }
   }
 });
 
-test("the round identity points at a plan anchor", () => {
-  assert.match(lines[2] ?? "", /^Current round: `plan\.md#.+`\.$/u);
+test("check fields use the nested bullet syntax the parser accepts", () => {
+  for (const { name, lines } of documents) {
+    lines.forEach((line, index) => {
+      if (!/^ {6}- /u.test(line)) return;
+      assert.match(
+        line,
+        FIELD,
+        `${name}: line ${index + 1} is not a recognised check field: ${line.trim()}`,
+      );
+    });
+    for (const [index, line] of lines.entries()) {
+      assert.doesNotMatch(
+        line,
+        /^ {6}(Action|Expect|Reason|Observed|Resolved): /u,
+        `${name}: line ${index + 1}`,
+      );
+    }
+  }
+});
+
+test("every round identity points at a plan anchor", () => {
+  for (const { name, lines } of documents) {
+    assert.match(lines[2] ?? "", /^Current round: `plan\.md#.+`\.$/u, name);
+  }
 });
