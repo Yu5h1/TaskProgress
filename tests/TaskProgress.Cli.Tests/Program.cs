@@ -161,6 +161,45 @@ internal static class Program
             var timeReport = ReportFolder.Load(Path.Combine(repositoryRoot, "reports", "example"));
             True(timeReport.TimeAnalysisPath is not null, "Example time analysis was not discovered");
 
+            var taggedFolder = Path.Combine(testHome, "TaggedReport");
+            Directory.CreateDirectory(taggedFolder);
+            await File.WriteAllTextAsync(
+                Path.Combine(taggedFolder, "report.json"),
+                reportSource
+                    .Replace(
+                        "\"schema_version\": \"1.0\"",
+                        "\"schema_version\": \"1.1\"",
+                        StringComparison.Ordinal)
+                    .Replace(
+                        "\"scope_id\": \"example\"",
+                        "\"scope_id\": \"tagged-report\"",
+                        StringComparison.Ordinal),
+                cancellation.Token);
+            Equal(
+                "tagged-report",
+                ReportFolder.Load(taggedFolder).Scope,
+                "CLI reader rejected a schema 1.1 report");
+
+            var unsupportedFolder = Path.Combine(testHome, "UnsupportedReport");
+            Directory.CreateDirectory(unsupportedFolder);
+            await File.WriteAllTextAsync(
+                Path.Combine(unsupportedFolder, "report.json"),
+                reportSource.Replace(
+                    "\"schema_version\": \"1.0\"",
+                    "\"schema_version\": \"2.0\"",
+                    StringComparison.Ordinal),
+                cancellation.Token);
+            var unsupportedRejected = false;
+            try
+            {
+                ReportFolder.Load(unsupportedFolder);
+            }
+            catch (CliException)
+            {
+                unsupportedRejected = true;
+            }
+            True(unsupportedRejected, "CLI reader accepted an unsupported schema_version");
+
             int firstProcessId;
             using (var first = await LocalWebServiceClient.EnsureAsync(settings, cancellation.Token))
             {

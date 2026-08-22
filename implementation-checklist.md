@@ -1,148 +1,56 @@
 # Implementation Checklist
 
-Current round: `plan.md#共用元件與傳輸接縫-round2026-08-15-核定`.
+Current round: `plan.md#report-指路任務卡與單層-scope-導航`.
+
+本輪只做該設計的階段 1–2（相容 reader 與 tagged fixtures、集中式 variant dispatch 與單層投影），並一併完成 `plan.md#report-摘要欄位與編輯-ux` 的編輯部分。
 
 Run every Agent check once. If a check fails, mark it `[!]`, add `Observed`, and pause automatic retries plus dependent work. After an intervention, the user may request one new verification attempt; success changes the same check to `[x]` while preserving `Observed` and adding `Resolved`. Manual checks remain user-editable through the shared marker cycle; Agent results do not. Continue independent work when safe. Create a new item only when the outcome or acceptance contract changes. The parent marker is derived from its checks. This file contains only the active round; git history owns prior rounds.
 
-- [x] **1. Add the shared progress summary**
-  Outcome: One implementation renders the total, completed, and outstanding counts, a progress bar, and a one-line text progress, from numbers and labels the calling screen supplies.
-  Checks:
-    - [x] **Summary source contract**
-      - Action: Run focused tests for the count row, both progress-bar forms, the text line, and the absence of domain knowledge in the component.
-      - Expect: The component reads no report or checklist structure, every label comes from its caller, and the segmented and continuous bar forms are selectable without a second component.
+本輪不含指路卡的 resolver、Viewer 卡片、導航與遷移階段：它們分別被 handoff「Open decisions」裡的導航機制與 `report_ref` 建立方式擋住。
 
-- [x] **2. Add the shared next-step card**
-  Outcome: One implementation shows a single outstanding item with what to do, how it passes, and an optional command block.
+- [x] **1. 帶 `kind` 的互斥 variant 與 1.0／1.1 相容 reader**
+  Outcome: Report Schema 以 `kind` 鑑別的 `oneOf` 表達一般任務卡與 Report 指路任務卡，Viewer、CLI 與 Python edit host 三個 reader 同時接受 `1.0` 與 `1.1`；`1.0` 的未標記 task 一律視為 `standard`，指路卡不得保存衍生欄位，且沒有任何 reader 靠 `report_ref` 是否存在來猜種類。
   Checks:
-    - [x] **Next-step source contract**
-      - Action: Run focused tests for single-item rendering, the optional command block, and the outstanding-state presentation.
-      - Expect: The card renders exactly one item, takes its text from the caller, and uses the existing semantic warning colour rather than a new literal.
+    - [x] **Schema variant 契約**
+      - Action: 執行 `node --test tests/report-variant.test.mjs`。
+      - Expect: `schema_version` 同時接受 `1.0` 與 `1.1`；`tasks` 走 `oneOf` 兩個 `$defs`，各以 `kind.const` 選定分支；`report_pointer` 分支只允許 `id`、`title`、`kind`、`report_ref`；未標記 `kind` 的 task 仍通過 `standard` 分支；帶 `report_ref` 的 `standard` task 被拒絕。
+    - [x] **共用 fixture 通過三個 reader**
+      - Action: 執行 `node --test tests/report-variant.test.mjs tests/report-model.test.mjs`。
+      - Expect: `tests/fixtures/` 下的 1.0 未標記與 1.1 tagged fixture 都通過 JSON Schema 與 `validateReport()`；未知 `kind`、指路卡保存 `status`／`summary`／項目、`report_ref` 指向目前 scope 自身、以及重複 `id` 各自產生一筆可辨識的錯誤，且不影響其餘 task 的驗證。
+    - [x] **Viewer 版本閘門**
+      - Action: 執行 `node --test tests/report-variant.test.mjs tests/report-model.test.mjs tests/report-summary.test.mjs`。
+      - Expect: 版本判斷來自 `report-model.js` 單一 `SUPPORTED_SCHEMA_VERSIONS`，`app.js` 與 spike data-loader 都不再各自比對字串常數；`2.0` 之類的版本仍被擋下並顯示可理解訊息。
+    - [x] **CLI reader 相容**
+      - Action: 執行 `dotnet run --project tests/TaskProgress.Cli.Tests`。
+      - Expect: `ReportFolder` 接受 1.0 與 1.1 的 `report.json`，拒絕其他版本，`report.dev.json` 仍必須與 base report 同版本；既有 CLI 檢查全數通過。
+    - [x] **Python edit host 相容**
+      - Action: 執行 `python -c "import sys,unittest,importlib.util; sys.path.insert(0,'.'); spec=importlib.util.spec_from_file_location('taskprogress_host_tests','tests/test_taskprogress_host.py'); m=importlib.util.module_from_spec(spec); sys.modules[spec.name]=m; spec.loader.exec_module(m); unittest.main(module=m, argv=['run','-v'], exit=False)"`（site-packages 另有一個 `tests` 套件會遮蔽本地目錄，所以不能用 `python -m unittest tests....`）。
+      - Expect: host 沿用同一份 schema 檔，1.1 tagged fixture 通過驗證，既有 host 檢查全數通過，且沒有第二份版本清單被加進 Python。
 
-- [x] **3. Use the shared summary and next-step card on the Checklist screen**
-  Depends on: 1, 2.
-  Outcome: The Checklist screen opens with its own counts and the single check that is outstanding and not blocked by a dependency.
+- [x] **2. 集中式 variant dispatch 與單層投影**
+  Depends on: 1.
+  Outcome: 一個集中式 `deriveReportStatus(tasks)` 與唯讀投影建構器，重用既有 `calculateProjectProgress`，只投影目標 report 頂層 task 的 `id`、`title`、`status`，且不快取目標 report。
   Checks:
-    - [x] **Checklist summary wiring**
-      - Action: Run focused tests for the derived counts, outstanding-check selection under dependencies, and the segmented bar choice.
-      - Expect: Counts cover the whole document, the selected next step skips checks blocked by an unfinished dependency, and no summary logic is duplicated in the screen.
-    - [x] **Checklist asset build**
-      - Action: Build the Checklist UI asset once from the locked npm dependency graph.
-      - Expect: The build succeeds and the WPF-loadable assets contain the shared summary and card rather than a Checklist-only copy.
+    - [x] **集中式狀態推導**
+      - Action: 執行 `node --test tests/report-projection.test.mjs`。
+      - Expect: 全部完成為 `done`，有 `in_progress` 為 `in_progress`，未完成工作全部受阻才為 `blocked`，其餘為 `planned`；`archive` 只代表明確封存，不計入完成，也不被用來假裝完成；同一份 tasks 只有這一個函式會回答狀態。
+    - [x] **單層投影邊界**
+      - Action: 執行 `node --test tests/report-projection.test.mjs`。
+      - Expect: 投影出的項目數等於目標 report 頂層 task 數並保留完整 `status`，不轉成已完成／待處理二分；投影不讀取 base report 以外的任何資料（Developer overlay、時間 sidecar、更深層 report），也不把目標 task 的項目或 Developer 內容帶出卡片；目標內若還有指路卡，只取其標題與可得狀態而不解析它指向的 report。計畫第 1 條要求重用唯一的專案進度規則，而該規則本來就以項目計數為輸入，因此讀取已載入 base report 的項目陣列僅限於算出這個進度。
+    - [x] **重用與無快取**
+      - Action: 執行 `node --test tests/report-projection.test.mjs tests/report-model.test.mjs`。
+      - Expect: 進度來自既有 `calculateProjectProgress`，指路功能沒有第二套百分比公式；模組不保存目標 report，重複投影時每次都用呼叫端提供的最新資料，且投影結果為凍結的唯讀物件。
 
-- [x] **4. Make the progress bar one implementation across both screens**
-  Depends on: 1, 3.
-  Outcome: The task-progress meter and the Checklist bar are the same component, and the status overview keeps its own status-card presentation.
+- [ ] **3. Report 摘要可在 Viewer 編輯**
+  Outcome: 編輯模式能修改與清空 report 層級 `summary`，走既有 Editor Core draft／validation／Undo／Redo 與同一條全域儲存路徑；清空後回到以任務數產生的說明。
   Checks:
-    - [x] **Shared progress bar contract**
-      - Action: Run focused tests for the continuous form keeping native progress semantics and the accent gradient, the segmented form staying unchanged, and the task-progress screen holding no meter markup of its own; then rebuild the preview bundle.
-      - Expect: The continuous form renders one native progress element with the existing classes, both callers reach it without a host-specific option, the status overview is untouched, and the bundle rebuilds.
-    - [x] **Rendered task-progress meter** `[manual]`
-      - Action: Open the local Viewer at desktop width and 390px and compare the overall-progress meter against the previous layout in both themes.
-      - Expect: The meter reads the same as before, including its gradient and any deadline overlay, nothing overflows horizontally, and the status cards above it are unchanged.
-      - Reason: Requires direct visual comparison in the user's running browser.
-
-- [x] **5. Lift the filter categories out of the shared strip**
-  Outcome: The filter strip receives its categories and selection from the calling screen while keeping one pointer and keyboard implementation.
-  Checks:
-    - [x] **Filter strip source contract**
-      - Action: Run focused tests for caller-supplied categories, selection callbacks, the optional reordering, and the unchanged pointer and keyboard behaviour.
-      - Expect: The strip defines no categories of its own, reordering is opt-in per screen, and the task-progress screen keeps its existing order persistence.
-
-- [x] **6. Give the Checklist its filter categories**
-  Depends on: 3, 5.
-  Outcome: The Checklist filters by check status and by owner without reordering, and filtering never changes what is saved or counted.
-  Checks:
-    - [x] **Checklist filter model**
-      - Action: Run focused tests for the check-status and owner categories, reordering staying off, summary counts under an active filter, and dependency blocking under an active filter.
-      - Expect: Counts stay whole-document, a filtered-out failed check still blocks dependent work, and work item order follows the document.
-    - [x] **Checklist asset build**
-      - Action: Build the Checklist UI asset once from the locked npm dependency graph.
-      - Expect: The build succeeds and the filter strip comes from the shared implementation.
-
-- [x] **7. Make the Checklist UI receive its transport**
-  Outcome: The Checklist screen takes its transport from its host instead of reaching for the WebView object, without changing the desktop behaviour.
-  Checks:
-    - [x] **Transport seam contract**
-      - Action: Run focused tests for the injected transport, the desktop entry supplying the WebView transport, and the screen holding no direct WebView reference.
-      - Expect: The screen resolves no global WebView object, the existing bridge path is unchanged, and a substitute transport can drive the same screen in tests.
-
-- [x] **8. Verify the packaged flow after the shared component move**
-  Depends on: 3, 4, 6, 7.
-  Outcome: The Release WPF Checklist App shows the shared summary, next-step card, and filters, and still saves safely against a disposable Markdown file without LocalWebService.
-  Checks:
-    - [x] **Focused package build and tests**
-      - Action: Run the focused Checklist, CLI, and Node tests and the Release build once with the locked dependency graph, then inspect the packaged Checklist UI and WebView2 files.
-      - Expect: All focused tests and the build pass, and the output contains the executable, current Checklist assets, WebView2 managed assemblies, and native loader.
-    - [x] **Packaged Checklist interaction** `[manual]`
-      - Action: Open a disposable Checklist copy, read the summary and next-step card, apply a status filter and an owner filter, cycle one manual marker through all three states, then reopen the App.
-      - Expect: The summary counts match the file, the next-step card names the outstanding check, filtering changes only what is visible, saving still works in both persistence modes, and only the disposable file changes.
-      - Reason: Requires the user's Windows desktop, installed Evergreen WebView2 Runtime, and direct UX confirmation.
-
-- [x] **9. Give component colours one categorised source**
-  Outcome: Every shared component takes its colour from a named role that resolves to the Viewer's existing theme tokens, so anything in the same category changes in one place.
-  Checks:
-    - [x] **Colour role contract**
-      - Action: Run focused tests for the role definitions, the shared components referencing only roles, and a progress fill resolving to the same source as the task-progress meter.
-      - Expect: Roles are defined once from existing theme tokens with no new literal colour, a filled indicator never takes a text or surface token, and the segmented and continuous forms share one fill source.
-    - [x] **Rendered colour comparison** `[manual]`
-      - Action: Open the Checklist App and the local Viewer side by side in both themes and compare the progress fill, the count tiles, and the state markers.
-      - Expect: The same state reads as the same colour on both screens, filled areas hold their contrast in dark mode, and no element looks washed out against its background.
-      - Reason: Requires direct visual comparison across two running surfaces.
-
-- [x] **10. Make the Checklist filter bar one reorderable row**
-  Depends on: 6, 9.
-  Outcome: The Checklist filters sit in a single horizontal strip whose capsules the reader can reorder, with the order persisted per user.
-  Checks:
-    - [x] **Single-strip filter contract**
-      - Action: Run focused tests for one strip carrying both groups, independent selection across groups, capsule reordering through the shared order model, and the persisted preference.
-      - Expect: One strip renders both groups, selecting in one group leaves the other alone, the order persists in the user profile only, and work item order still follows the document.
-
-- [x] **11. Bind state presentation to one status source**
-  Depends on: 9.
-  Outcome: A per-item progress cell, a card border, a manual check row, and a marker all show the same state in the same colour, and every card label is a capsule.
-  Checks:
-    - [x] **Status presentation contract**
-      - Action: Run focused tests for the status roles, per-item cells using status rather than the proportion fill, card borders following status with completed excluded, manual rows carrying their state, and the capsule labels.
-      - Expect: One status source serves cells, borders, rows, markers and tiles; a completed card shows no status border; a manual row shows its own state while Agent rows stay plain.
-    - [x] **Rendered state comparison** `[manual]`
-      - Action: Open the Checklist App and the Viewer in both themes, and check a completed item, a pending item, and a failed item on each.
-      - Expect: The same state is the same colour everywhere it appears, completed cards have no coloured border, pending cards read as waiting without shouting, and every label is a capsule.
-      - Reason: Requires direct visual comparison across two running surfaces.
-
-- [x] **12. Separate the Viewer's task and item filters**
-  Outcome: The task-progress strip carries a task-status group and an item-status group, and selecting an item status also hides the non-matching items inside a card.
-  Checks:
-    - [x] **Two-axis filter contract**
-      - Action: Run focused tests for the two groups, independent selection, task-status matching without the planned overload, and item-level filtering hiding non-matching items inside a surviving card.
-      - Expect: A task status matches only that status, an item status keeps cards holding a matching item and shows only those items, and the two groups combine.
-    - [x] **Rendered Viewer filtering** `[manual]`
-      - Action: Open the local Viewer, select a task status, then an item status, then both, and watch the cards and their items.
-      - Expect: Selecting 未完成 leaves no completed sub-item on screen, the card ordering still follows the capsule order, and clearing a group restores everything.
-      - Reason: Requires the user's running browser and direct UX confirmation.
-
-- [x] **13. Make the filter strip a multi-select with a default capsule**
-  Outcome: Every strip carries a leading 預設 capsule that selects or clears every tag, lights when all tags are selected, and dims when any is cleared, with an empty selection showing nothing.
-  Checks:
-    - [x] **Default capsule contract**
-      - Action: Run focused tests for the select-all and clear-all clicks, the derived lit state, the empty selection, and the strip holding no tag vocabulary of its own.
-      - Expect: Clicking a dim 預設 selects every tag and clicking a lit one clears them, the lit state follows the other capsules without being clicked, an empty selection matches nothing, and 預設 matches no status itself.
-
-- [x] **14. Let the default capsule's position choose the order**
-  Depends on: 13.
-  Outcome: A strip whose 預設 sits first renders its cards in the data's own order, and moving 預設 away groups the cards by capsule order with priority sorting inside each group.
-  Checks:
-    - [x] **Ordering mode contract**
-      - Action: Run focused tests for the data order when 預設 leads, grouping by capsule order when it does not, priority sorting inside a group only, and dragging never changing the selection.
-      - Expect: Leading 預設 applies neither status grouping nor priority sorting, a moved 預設 groups by capsule order with priority inside each group, and a drag leaves the selected set untouched.
-
-- [x] **15. Apply the filter to both screens and their children**
-  Depends on: 13.
-  Outcome: The task-progress and Checklist screens filter containers and children against the selected set, and show every tag including empty ones.
-  Checks:
-    - [x] **Two-screen filter contract**
-      - Action: Run focused tests for container and child matching against the selected set on both screens, zero-count tags staying visible, and the Checklist keeping check-level matching without owner capsules.
-      - Expect: A container survives when any child matches and shows only matching children, a Checklist card is matched by every one of its checks rather than by its derived marker, owner capsules are gone, and a tag with no matches still renders with 0.
-    - [x] **Rendered filtering** `[manual]`
-      - Action: In both screens, clear and restore the selection with 預設, select single tags, and move 預設 out of and back into first place.
-      - Expect: Clearing shows nothing, 預設 lights only when every tag is selected, leading 預設 restores the written order, and moving it regroups the cards.
-      - Reason: Requires the user's running Viewer and packaged Checklist App.
+    - [x] **Editor Core report 欄位命令**
+      - Action: 執行 `node --test tests/editor-core.test.mjs`。
+      - Expect: 新增的 report 欄位命令只接受白名單欄位；連續輸入合併為一筆 Undo；Undo／Redo 可還原；清空會移除欄位而不是寫入空字串，`prepareSave()` 的輸出因此仍通過 schema；diff 會回報 report 層級變更並標記 `dirty`，且不觸發時間資料失效。
+    - [x] **共用標頭區塊與單一儲存路徑**
+      - Action: 執行 `node --test tests/report-summary.test.mjs tests/ui-host.test.mjs tests/local-edit-interface.test.mjs`。
+      - Expect: 摘要在預覽與編輯都由同一個共用元件渲染，起始畫面、scope 目錄與錯誤畫面也走同一條 region，`app.js` 不再直接寫入該節點的 textContent；沒有新增第二條儲存或驗證路徑；fallback 文字只有一個實作來源。
+    - [ ] **Viewer 產品包實測** `[manual]`
+      - Action: 以 `Build/win-x64/task-progress.exe start --no-browser` 啟動本機 edit host，開啟 `http://127.0.0.1:8001/?scope=task-progress`，進入編輯模式修改摘要並儲存；再清空摘要並儲存一次。桌面與 390px 各看一次。
+      - Expect: 修改後重新載入仍顯示新摘要；清空後顯示以任務數產生的原句；沒有水平溢出，鍵盤可聚焦該欄位。
+      - Reason: 需要使用者本機的 edit host 與真實瀏覽器互動判斷。

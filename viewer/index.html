@@ -55,7 +55,9 @@
                    renders the pill itself. -->
               <div class="time-summary-dock" id="time-summary-dock" hidden></div>
             </div>
-            <p class="hero-summary" id="report-summary">資料會由目前連結自動載入。</p>
+            <!-- Mount point only. The shared ReportSummary component renders
+                 the line itself, in preview and in edit. -->
+            <div id="report-summary"></div>
           </div>
           <dl class="report-meta" id="report-meta" hidden>
             <div>

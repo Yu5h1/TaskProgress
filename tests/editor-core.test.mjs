@@ -378,3 +378,65 @@ test("editor core runtime works as a classic script for the file Demo", async ()
   session.discard();
   assert.equal(session.dirty, false);
 });
+
+test("a report-level field is edited through the same session, draft and history", () => {
+  const session = createReportEditorSession(sampleReport(), { fallbackPriority: 4 });
+
+  assert.equal(
+    session.dispatch({ type: "set-report-field", field: "summary", value: "本機編輯流程已可使用。" }),
+    true,
+  );
+  assert.equal(session.draft.summary, "本機編輯流程已可使用。");
+  assert.equal(session.dirty, true);
+  assert.deepEqual(session.derived.diff.changes, [{ kind: "report-updated", fields: ["summary"] }]);
+  assert.equal(
+    session.derived.timeInvalidation.stale,
+    false,
+    "a sentence about the report does not invalidate its time data",
+  );
+  assert.deepEqual(session.validate(), []);
+
+  session.dispatch({ type: "set-report-field", field: "summary", value: "改過的摘要。" });
+  assert.equal(session.history.undoDepth, 1, "typing into one field stays one undo step");
+  session.undo();
+  assert.equal(session.draft.summary, undefined);
+  session.redo();
+  assert.equal(session.draft.summary, "改過的摘要。");
+});
+
+test("clearing a report-level field returns it to unwritten rather than blank", () => {
+  const session = createReportEditorSession({ ...sampleReport(), summary: "先前寫過的摘要。" });
+
+  session.dispatch({ type: "set-report-field", field: "summary", value: "   " });
+  assert.equal(Object.hasOwn(session.draft, "summary"), false);
+  assert.equal(session.dirty, true);
+  // An empty string would fail the schema; unwritten is the legal state that
+  // sends the report back to its generated line.
+  assert.deepEqual(session.validate(), []);
+  assert.equal(Object.hasOwn(session.prepareSave("2026-08-21T00:00:00Z"), "summary"), false);
+});
+
+test("only whitelisted report fields can be written", () => {
+  const session = createReportEditorSession(sampleReport());
+
+  assert.throws(
+    () => session.dispatch({ type: "set-report-field", field: "scope_id", value: "elsewhere" }),
+    /不支援的報告欄位/,
+  );
+  assert.throws(
+    () => session.dispatch({ type: "set-report-field", field: "tasks", value: [] }),
+    /不支援的報告欄位/,
+  );
+  assert.equal(session.dirty, false);
+});
+
+test("a report-level change is reported by the plain diff too", () => {
+  const baseline = sampleReport();
+  const draft = { ...sampleReport(), summary: "新的摘要。" };
+  const diff = diffEditableReports(baseline, draft);
+
+  assert.deepEqual(diff.changes, [{ kind: "report-updated", fields: ["summary"] }]);
+  assert.equal(diff.dirty, true);
+  assert.equal(diff.timeInvalidation.stale, false);
+  assert.equal(deriveReportEditorState(baseline, draft).dirty, true);
+});

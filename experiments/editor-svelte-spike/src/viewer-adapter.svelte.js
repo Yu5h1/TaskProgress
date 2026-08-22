@@ -6,6 +6,7 @@ import DeliverySaveConfirmation from "./DeliverySaveConfirmation.svelte";
 import Diagnostics from "./Diagnostics.svelte";
 import ModeToggle from "./ModeToggle.svelte";
 import ProjectProgress from "./ProjectProgress.svelte";
+import ReportSummary from "./ReportSummary.svelte";
 import ScopeDirectory from "./ScopeDirectory.svelte";
 import SaveBar from "./SaveBar.svelte";
 import FilterStrip from "./FilterStrip.svelte";
@@ -32,6 +33,7 @@ const components = {
   "status-overview": StatusOverview,
   "status-filters": FilterStrip,
   "project-progress": ProjectProgress,
+  "report-summary": ReportSummary,
   "mode-toggle": ModeToggle,
   "save-bar": SaveBar,
   "add-control": AddControl,

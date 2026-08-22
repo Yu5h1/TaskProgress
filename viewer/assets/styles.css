@@ -997,6 +997,7 @@ h1 {
 
 .task-title-input,
 .task-summary-input,
+.report-summary-input,
 .inline-edit-input,
 .inline-priority-select,
 .inline-status-select {
@@ -1019,6 +1020,17 @@ h1 {
   display: block;
   width: 100%;
   padding: 8px 10px;
+  resize: vertical;
+}
+
+.report-summary-input {
+  display: block;
+  width: 100%;
+  max-width: 680px;
+  margin-top: 5px;
+  padding: 6px 9px;
+  font-size: 0.82rem;
+  line-height: 1.4;
   resize: vertical;
 }
 

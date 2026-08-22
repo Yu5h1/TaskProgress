@@ -7,6 +7,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 from fastapi.testclient import TestClient
+from jsonschema import Draft202012Validator, FormatChecker
 
 from service.taskprogress_host import (
     LocalFileTransaction,
@@ -21,6 +22,7 @@ from service.taskprogress_host import (
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 LOCAL_WEB_SERVICE = REPOSITORY_ROOT.parent / "LocalWebService" / "localHost.py"
 REPORT_SCHEMA = REPOSITORY_ROOT / "schemas" / "report.schema.json"
+FIXTURES = REPOSITORY_ROOT / "tests" / "fixtures"
 PORT = 8765
 ORIGIN = f"http://127.0.0.1:{PORT}"
 HOST = f"127.0.0.1:{PORT}"
@@ -115,6 +117,33 @@ def time_estimates_payload() -> dict[str, object]:
             }
         ],
     }
+
+
+class ReportSchemaVersionTests(unittest.TestCase):
+    """The edit host validates against the shared schema file, so it inherits
+    both live versions instead of keeping a version list of its own."""
+
+    @staticmethod
+    def _validator() -> Draft202012Validator:
+        schema = json.loads(REPORT_SCHEMA.read_text(encoding="utf-8"))
+        return Draft202012Validator(schema, format_checker=FormatChecker())
+
+    def test_both_live_versions_validate(self) -> None:
+        validator = self._validator()
+        for name in ("report-1.0-untagged.json", "report-1.1-tagged.json"):
+            with self.subTest(fixture=name):
+                fixture = json.loads((FIXTURES / name).read_text(encoding="utf-8"))
+                self.assertEqual(list(validator.iter_errors(fixture)), [])
+
+    def test_a_pointer_card_may_not_keep_derived_fields(self) -> None:
+        fixture = json.loads((FIXTURES / "report-1.1-tagged.json").read_text(encoding="utf-8"))
+        fixture["tasks"][1]["status"] = "done"
+        self.assertNotEqual(list(self._validator().iter_errors(fixture)), [])
+
+    def test_an_unsupported_version_is_rejected(self) -> None:
+        fixture = json.loads((FIXTURES / "report-1.0-untagged.json").read_text(encoding="utf-8"))
+        fixture["schema_version"] = "2.0"
+        self.assertNotEqual(list(self._validator().iter_errors(fixture)), [])
 
 
 class TaskProgressEditHostTests(unittest.TestCase):

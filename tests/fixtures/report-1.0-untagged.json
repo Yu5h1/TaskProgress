@@ -1,0 +1,30 @@
+{
+  "schema_version": "1.0",
+  "report_id": "fixture-untagged",
+  "scope_id": "fixture-untagged",
+  "title": "1.0 未標記種類的報告",
+  "summary": "遷移前寫成的報告：沒有 kind，每張卡都是一般任務卡。",
+  "updated_at": "2026-08-21T09:00:00+08:00",
+  "tasks": [
+    {
+      "id": "viewer",
+      "title": "Viewer",
+      "status": "done",
+      "summary": "唯讀報告已可使用。",
+      "completed_items": [
+        { "id": "viewer-load", "title": "載入 scope 報告", "priority": 2 }
+      ],
+      "pending_items": []
+    },
+    {
+      "id": "editor",
+      "title": "Editor",
+      "status": "in_progress",
+      "summary": "本機編輯流程進行中。",
+      "completed_items": [],
+      "pending_items": [
+        { "id": "editor-summary", "title": "報告摘要編輯", "priority": 1 }
+      ]
+    }
+  ]
+}

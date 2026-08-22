@@ -1,5 +1,6 @@
 import {
-  SUPPORTED_SCHEMA_VERSION,
+  SUPPORTED_SCHEMA_VERSIONS,
+  isSupportedSchemaVersion,
   resolveReportRequest,
   validateReport,
 } from "../../../viewer/assets/report-model.js";
@@ -73,9 +74,9 @@ export async function loadSvelteEditorData({
 
   const report = await fetchJson(fetchImpl, request.reportUrl, "report.json");
   const reportErrors = validateReport(report);
-  if (report.schema_version !== SUPPORTED_SCHEMA_VERSION) {
+  if (!isSupportedSchemaVersion(report.schema_version)) {
     reportErrors.unshift({
-      message: `Editor 支援 schema ${SUPPORTED_SCHEMA_VERSION}，收到 ${report.schema_version ?? "未指定"}。`,
+      message: `Editor 支援 schema ${SUPPORTED_SCHEMA_VERSIONS.join("、")}，收到 ${report.schema_version ?? "未指定"}。`,
     });
   }
   if (reportErrors.length) {

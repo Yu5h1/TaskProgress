@@ -10,7 +10,7 @@ internal sealed record ReportFolder(
     string Scope,
     string ReportId)
 {
-    private const string SupportedSchemaVersion = "1.0";
+    private static readonly string[] SupportedSchemaVersions = ["1.0", "1.1"];
 
     public static ReportFolder Load(string pathValue)
     {
@@ -90,10 +90,10 @@ internal sealed record ReportFolder(
             }
 
             var schemaVersion = RequiredString(document.RootElement, "schema_version", label);
-            if (!string.Equals(schemaVersion, SupportedSchemaVersion, StringComparison.Ordinal))
+            if (Array.IndexOf(SupportedSchemaVersions, schemaVersion) < 0)
             {
                 throw new CliException(
-                    $"{label} schema_version 必須是 {SupportedSchemaVersion}，目前是 {schemaVersion}。");
+                    $"{label} schema_version 必須是 {string.Join("、", SupportedSchemaVersions)}，目前是 {schemaVersion}。");
             }
 
             var reportId = RequiredString(document.RootElement, "report_id", label);

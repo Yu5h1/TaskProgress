@@ -1,11 +1,13 @@
 import {
   PRIORITY_POLICY,
   STATUS_META,
-  SUPPORTED_SCHEMA_VERSION,
+  SUPPORTED_SCHEMA_VERSIONS,
   buildScopeHref,
   calculateProjectProgress,
   calculateTaskProgress,
+  isSupportedSchemaVersion,
   mergeReports,
+  reportSummaryText,
   resolveDeveloperReportSource,
   resolveReportRequest,
   stableSortTasksByPriority,
@@ -176,6 +178,18 @@ const state = {
 
 let viewModeToggleView = null;
 let saveBarView = null;
+let reportSummaryView = null;
+
+/*
+ * One region for the line under the report title. The report's own summary,
+ * the start screen's guidance and a load error's advice are the same line in
+ * the same place; the host supplies the sentence and, in edit mode, the field
+ * behind it, and never writes text into the node itself.
+ */
+function renderReportSummary(props) {
+  if (reportSummaryView) reportSummaryView.update(props);
+  else reportSummaryView = createUiView("report-summary", elements.summary, props);
+}
 
 // The theme adapter owns storage and the document root; the shared component
 // renders the picker and the custom-palette dialog and reports the reader's
@@ -793,25 +807,22 @@ function renderTasks() {
   renderTaskAdder();
 }
 
-/*
- * A report describes itself the same way a task card does: a title and a
- * summary written by whoever owns it.
- *
- * The field is optional, so a report written before it existed still shows
- * something. The fallback is a generated count, which is what this line held
- * for every report until now — informative, but the same sentence everywhere.
- */
-function reportSummaryText(report) {
-  const summary = typeof report.summary === "string" ? report.summary.trim() : "";
-  if (summary) return summary;
-  return `${report.tasks.length} 個可追溯任務；狀態由報告資料提供。`;
-}
-
 function renderReport() {
   const { report } = state;
   document.title = `${report.title} — TaskProgress`;
   elements.title.textContent = report.title;
-  elements.summary.textContent = reportSummaryText(report);
+  renderReportSummary({
+    text: reportSummaryText(report),
+    editable: state.editor.editing && Boolean(state.editor.session),
+    value: typeof report.summary === "string" ? report.summary : "",
+    placeholder: reportSummaryText({ ...report, summary: "" }),
+    onCommit: (value) => {
+      applyEditorCommand(
+        { type: "set-report-field", field: "summary", value },
+        "報告摘要已修改",
+      );
+    },
+  });
   elements.scope.textContent = report.scope_id;
   elements.updatedAt.textContent = formatTime(report.updated_at);
   elements.reportId.textContent = report.report_id;
@@ -1070,7 +1081,7 @@ function renderScopeDirectory(scopes) {
 
 async function showStart() {
   elements.title.textContent = "TaskProgress Viewer";
-  elements.summary.textContent = "每個連結只載入指定 scope 的唯讀報告。";
+  renderReportSummary({ text: "每個連結只載入指定 scope 的唯讀報告。" });
   elements.scope.textContent = "尚未指定 report 或 scope";
   elements.startKicker.textContent = "Link-first viewer";
   elements.startTitle.textContent = "從報告連結開始";
@@ -1087,7 +1098,7 @@ async function showStart() {
     const scopes = await loadScopeCatalog();
     if (!scopes || scopes.length === 0) return;
     elements.title.textContent = "TaskProgress Scopes";
-    elements.summary.textContent = "選擇已由本機 Launcher 載入的任務報告。";
+    renderReportSummary({ text: "選擇已由本機 Launcher 載入的任務報告。" });
     elements.scope.textContent = `本機服務 · ${scopes.length} 個 scope`;
     elements.startKicker.textContent = "Local scope directory";
     elements.startTitle.textContent = "已註冊的 Scope";
@@ -1105,7 +1116,7 @@ async function showStart() {
 
 function showFatal(message, details = []) {
   elements.title.textContent = "報告無法載入";
-  elements.summary.textContent = "請檢查連結與資料格式後再試一次。";
+  renderReportSummary({ text: "請檢查連結與資料格式後再試一次。" });
   elements.scope.textContent = "資料診斷";
   elements.content.hidden = true;
   elements.projectProgress.hidden = true;
@@ -1118,6 +1129,7 @@ function showFatal(message, details = []) {
 }
 
 async function main() {
+  renderReportSummary({ text: "資料會由目前連結自動載入。" });
   const params = new URLSearchParams(window.location.search);
   let request;
   try {
@@ -1134,8 +1146,10 @@ async function main() {
   try {
     const report = await fetchJson(request.reportSource, "report.json");
     const errors = validateReport(report);
-    if (report.schema_version !== SUPPORTED_SCHEMA_VERSION) {
-      errors.unshift({ message: `Viewer 支援 schema ${SUPPORTED_SCHEMA_VERSION}，收到 ${report.schema_version ?? "未指定"}。` });
+    if (!isSupportedSchemaVersion(report.schema_version)) {
+      errors.unshift({
+        message: `Viewer 支援 schema ${SUPPORTED_SCHEMA_VERSIONS.join("、")}，收到 ${report.schema_version ?? "未指定"}。`,
+      });
     }
     if (errors.length) {
       showFatal("report.json 未通過驗證。", errors);

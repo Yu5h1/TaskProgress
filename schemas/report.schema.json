@@ -14,7 +14,7 @@
   ],
   "properties": {
     "schema_version": {
-      "const": "1.0"
+      "enum": ["1.0", "1.1"]
     },
     "report_id": {
       "$ref": "#/$defs/id"
@@ -50,12 +50,52 @@
       "maxLength": 100
     },
     "task": {
+      "oneOf": [
+        { "$ref": "#/$defs/standardTask" },
+        { "$ref": "#/$defs/reportPointerTask" }
+      ]
+    },
+    "reportRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["scope_id"],
+      "properties": {
+        "scope_id": {
+          "$ref": "#/$defs/id"
+        }
+      }
+    },
+    "reportPointerTask": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "title", "kind", "report_ref"],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "kind": {
+          "const": "report_pointer"
+        },
+        "report_ref": {
+          "$ref": "#/$defs/reportRef"
+        }
+      }
+    },
+    "standardTask": {
       "type": "object",
       "additionalProperties": false,
       "required": ["id", "title", "status", "summary"],
       "properties": {
         "id": {
           "$ref": "#/$defs/id"
+        },
+        "kind": {
+          "const": "standard"
         },
         "title": {
           "type": "string",

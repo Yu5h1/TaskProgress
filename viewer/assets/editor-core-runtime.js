@@ -13,6 +13,7 @@ if (
 }
 
 const ITEM_FIELDS = Object.freeze(["completed_items", "pending_items"]);
+const REPORT_FIELDS = new Set(["summary"]);
 const TASK_FIELDS = new Set(["title", "summary", "status", "priority"]);
 const ITEM_PROPERTIES = new Set(["title", "priority"]);
 
@@ -113,6 +114,15 @@ function diffEditableReports(baselineReport, draftReport) {
   const changes = [];
   const timeAffectedTaskIds = new Set();
   const timeAffectedItemIds = new Set();
+
+  // A report-level field describes the report, not its work, so it makes the
+  // draft dirty without invalidating any time data.
+  const changedReportFields = [...REPORT_FIELDS].filter(
+    (field) => reportSignature(baselineReport[field]) !== reportSignature(draftReport[field]),
+  );
+  if (changedReportFields.length) {
+    changes.push({ kind: "report-updated", fields: changedReportFields });
+  }
 
   taskIds.forEach((taskId) => {
     const baselineTask = baselineTasks.get(taskId);
@@ -236,6 +246,9 @@ function createReportEditorSession(
     : 100;
 
   function commandMergeKey(command) {
+    if (command.type === "set-report-field") {
+      return [command.type, command.field].join(":");
+    }
     if (command.type === "set-task-field") {
       return [command.type, command.taskId, command.field].join(":");
     }
@@ -298,6 +311,21 @@ function createReportEditorSession(
     const beforeDraft = cloneValue(draft);
     const before = reportSignature(beforeDraft);
     switch (command.type) {
+      /*
+       * Unwritten is a legal state for a report-level field, and the report
+       * shows its generated line again when it is. Clearing one therefore
+       * removes the field rather than saving an empty string, which the
+       * schema would reject anyway.
+       */
+      case "set-report-field": {
+        if (!REPORT_FIELDS.has(command.field)) {
+          throw new Error(`不支援的報告欄位「${command.field}」。`);
+        }
+        const value = typeof command.value === "string" ? command.value : "";
+        if (value.trim()) draft[command.field] = value;
+        else delete draft[command.field];
+        break;
+      }
       case "set-task-field": {
         if (!TASK_FIELDS.has(command.field)) {
           throw new Error(`不支援的任務欄位「${command.field}」。`);

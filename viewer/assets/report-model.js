@@ -1,6 +1,28 @@
 import "./priority-policy.js";
 
-export const SUPPORTED_SCHEMA_VERSION = "1.0";
+/*
+ * Every reader in the project accepts the same set of report versions, and
+ * reads it from here. 1.1 adds the tagged task variants; 1.0 reports stay
+ * readable unchanged, so both are live during the migration.
+ */
+export const SUPPORTED_SCHEMA_VERSIONS = Object.freeze(["1.0", "1.1"]);
+
+export function isSupportedSchemaVersion(version) {
+  return SUPPORTED_SCHEMA_VERSIONS.includes(version);
+}
+
+export const TASK_KINDS = Object.freeze(["standard", "report_pointer"]);
+export const DEFAULT_TASK_KIND = "standard";
+
+/*
+ * A 1.0 report carries no `kind` and all of its tasks are standard ones.
+ * Reading the kind through one function keeps that compatibility rule in a
+ * single place. Do not infer the variant from whether `report_ref` happens to
+ * be present: the tag is the contract, the field is not.
+ */
+export function taskKind(task) {
+  return task?.kind ?? DEFAULT_TASK_KIND;
+}
 
 export const STATUS_META = Object.freeze({
   planned: { label: "待處理", tone: "neutral" },
@@ -121,6 +143,74 @@ export function calculateProjectProgress(tasks) {
   return { completed, total, percentage };
 }
 
+/*
+ * A report describes itself the way a task card does: a title and a summary
+ * written by whoever owns it. The field is optional, so a report written
+ * before it existed still shows something — the fallback is the generated
+ * count line that every report displayed until the field arrived.
+ *
+ * One implementation, because the Viewer header and a pointer card's derived
+ * summary must not answer this differently.
+ */
+export function reportSummaryText(report) {
+  const summary = typeof report?.summary === "string" ? report.summary.trim() : "";
+  if (summary) return summary;
+  return `${report?.tasks?.length ?? 0} 個可追溯任務；狀態由報告資料提供。`;
+}
+
+/*
+ * One report, one status, derived here and nowhere else — a card that guessed
+ * its own would disagree with the report it points at.
+ *
+ * `archive` means explicitly archived and only that: archived tasks are left
+ * out of the outstanding work rather than counted as finished, and a report
+ * whose every task is archived reports itself archived instead of done.
+ *
+ * A task carrying no status of its own — a pointer card is the case that
+ * exists — stays outstanding. It cannot be counted as finished, so a report
+ * holding one never reports `done` on its behalf.
+ */
+export function deriveReportStatus(tasks) {
+  const considered = (tasks ?? []).filter((task) => task?.status !== "archive");
+  if (considered.length === 0) return (tasks ?? []).length > 0 ? "archive" : "planned";
+
+  const outstanding = considered.filter((task) => task.status !== "done");
+  if (outstanding.length === 0) return "done";
+  if (outstanding.some((task) => task.status === "in_progress")) return "in_progress";
+  if (outstanding.every((task) => task.status === "blocked")) return "blocked";
+  return "planned";
+}
+
+/*
+ * The read-only projection behind a Report pointer card: one layer deep, and
+ * derived on demand from the target report the caller just read.
+ *
+ * Nothing here is written back to the upper report and nothing is kept between
+ * calls. Two copies of the same number drift the moment one is edited, so the
+ * target report stays the only source and this function holds no state.
+ *
+ * A target task that is itself a pointer contributes its title and whatever
+ * status it already has — which is none, because a pointer stores none. Its
+ * own target is not read: that is the reader's next scope, not this preview.
+ */
+export function projectPointerCard(pointerTask, targetReport) {
+  const targetTasks = targetReport?.tasks ?? [];
+  return Object.freeze({
+    id: pointerTask.id,
+    title: pointerTask.title,
+    kind: "report_pointer",
+    scopeId: pointerTask.report_ref?.scope_id ?? null,
+    status: deriveReportStatus(targetTasks),
+    summary: reportSummaryText(targetReport),
+    progress: Object.freeze(calculateProjectProgress(targetTasks)),
+    rows: Object.freeze(targetTasks.map((task) => Object.freeze({
+      id: task.id,
+      title: task.title,
+      status: taskKind(task) === "report_pointer" ? null : task.status,
+    }))),
+  });
+}
+
 function normalizedPriority(value) {
   return PRIORITY_POLICY.normalize(value, DEFAULT_PRIORITY);
 }
@@ -230,6 +320,87 @@ function validateTimestamp(value, path, errors) {
   }
 }
 
+const POINTER_FORBIDDEN_FIELDS = Object.freeze([
+  "status",
+  "summary",
+  "completed_items",
+  "pending_items",
+  "progress",
+  "priority",
+]);
+
+function validatePriority(value, path, errors) {
+  if (value === undefined) return;
+  if (!Number.isInteger(value) || value < 0 || value > 4) {
+    errors.push(issue("invalid_priority", path, `${path} 必須是 0、1、2、3 或 4。`));
+  }
+}
+
+function validateStandardTask(task, path, errors) {
+  requireString(task.summary, `${path}.summary`, errors);
+  if (!Object.hasOwn(STATUS_META, task.status)) {
+    errors.push(issue("invalid_status", `${path}.status`, `${path}.status 不是支援的狀態。`));
+  }
+  validatePriority(task.priority, `${path}.priority`, errors);
+  if (task.report_ref !== undefined) {
+    errors.push(issue(
+      "unexpected_report_ref",
+      `${path}.report_ref`,
+      `${path} 是一般任務卡，不能保存 report_ref；指路卡必須標記 kind: "report_pointer"。`,
+    ));
+  }
+
+  const itemIds = new Set();
+  validateTaskItemList(task.completed_items, `${path}.completed_items`, errors, itemIds);
+  validateTaskItemList(task.pending_items, `${path}.pending_items`, errors, itemIds);
+
+  if (task.progress !== undefined) {
+    if (!isObject(task.progress)) {
+      errors.push(issue("invalid_progress", `${path}.progress`, `${path}.progress 必須是物件。`));
+      return;
+    }
+    const { completed, total } = task.progress;
+    if (!Number.isInteger(completed) || completed < 0) {
+      errors.push(issue("invalid_progress", `${path}.progress.completed`, "completed 必須是非負整數。"));
+    }
+    if (!Number.isInteger(total) || total < 1) {
+      errors.push(issue("invalid_progress", `${path}.progress.total`, "total 必須是大於零的整數。"));
+    }
+    if (Number.isInteger(completed) && Number.isInteger(total) && completed > total) {
+      errors.push(issue("invalid_progress", `${path}.progress`, "completed 不可大於 total。"));
+    }
+  }
+}
+
+/*
+ * A pointer card holds a route and nothing else. Every field it is forbidden
+ * to keep is one the target report already owns, and two copies of the same
+ * number drift apart the moment one of them is edited.
+ */
+function validateReportPointerTask(task, path, errors, currentScopeId) {
+  POINTER_FORBIDDEN_FIELDS.forEach((field) => {
+    if (task[field] === undefined) return;
+    errors.push(issue(
+      "unexpected_pointer_field",
+      `${path}.${field}`,
+      `${path} 是 Report 指路卡，不能保存由目標 report 衍生的 ${field}。`,
+    ));
+  });
+
+  if (!isObject(task.report_ref)) {
+    errors.push(issue("invalid_report_ref", `${path}.report_ref`, `${path}.report_ref 必須是物件。`));
+    return;
+  }
+  requireString(task.report_ref.scope_id, `${path}.report_ref.scope_id`, errors, { id: true });
+  if (task.report_ref.scope_id === currentScopeId) {
+    errors.push(issue(
+      "self_reference",
+      `${path}.report_ref.scope_id`,
+      `${path}.report_ref 不能指向目前 scope 自身。`,
+    ));
+  }
+}
+
 export function validateReport(report) {
   const errors = [];
   if (!isObject(report)) {
@@ -261,46 +432,27 @@ export function validateReport(report) {
     }
     requireString(task.id, `${path}.id`, errors, { id: true });
     requireString(task.title, `${path}.title`, errors);
-    requireString(task.summary, `${path}.summary`, errors);
-    if (!Object.hasOwn(STATUS_META, task.status)) {
-      errors.push(issue("invalid_status", `${path}.status`, `${path}.status 不是支援的狀態。`));
-    }
-    if (
-      task.priority !== undefined
-      && (!Number.isInteger(task.priority) || task.priority < 0 || task.priority > 4)
-    ) {
-      errors.push(issue(
-        "invalid_priority",
-        `${path}.priority`,
-        `${path}.priority 必須是 0、1、2、3 或 4。`,
-      ));
-    }
     if (typeof task.id === "string") {
       if (ids.has(task.id)) {
         errors.push(issue("duplicate_task", `${path}.id`, `task id「${task.id}」重複。`));
       }
       ids.add(task.id);
     }
-    const itemIds = new Set();
-    validateTaskItemList(task.completed_items, `${path}.completed_items`, errors, itemIds);
-    validateTaskItemList(task.pending_items, `${path}.pending_items`, errors, itemIds);
 
-    if (task.progress !== undefined) {
-      if (!isObject(task.progress)) {
-        errors.push(issue("invalid_progress", `${path}.progress`, `${path}.progress 必須是物件。`));
-      } else {
-        const { completed, total } = task.progress;
-        if (!Number.isInteger(completed) || completed < 0) {
-          errors.push(issue("invalid_progress", `${path}.progress.completed`, "completed 必須是非負整數。"));
-        }
-        if (!Number.isInteger(total) || total < 1) {
-          errors.push(issue("invalid_progress", `${path}.progress.total`, "total 必須是大於零的整數。"));
-        }
-        if (Number.isInteger(completed) && Number.isInteger(total) && completed > total) {
-          errors.push(issue("invalid_progress", `${path}.progress`, "completed 不可大於 total。"));
-        }
-      }
+    const kind = taskKind(task);
+    if (!TASK_KINDS.includes(kind)) {
+      errors.push(issue(
+        "invalid_kind",
+        `${path}.kind`,
+        `${path}.kind 不是支援的任務卡種類。`,
+      ));
+      return;
     }
+    if (kind === "report_pointer") {
+      validateReportPointerTask(task, path, errors, report.scope_id);
+      return;
+    }
+    validateStandardTask(task, path, errors);
   });
 
   return errors;

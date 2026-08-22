@@ -1,0 +1,31 @@
+{
+  "schema_version": "1.1",
+  "report_id": "fixture-tagged",
+  "scope_id": "fixture-tagged",
+  "title": "1.1 標記種類的報告",
+  "summary": "每張卡都標記 kind；指路卡只保存路由。",
+  "updated_at": "2026-08-21T09:00:00+08:00",
+  "tasks": [
+    {
+      "id": "viewer",
+      "title": "Viewer",
+      "kind": "standard",
+      "status": "in_progress",
+      "summary": "一般任務卡保存自己的狀態與項目。",
+      "completed_items": [
+        { "id": "viewer-load", "title": "載入 scope 報告", "priority": 2 }
+      ],
+      "pending_items": [
+        { "id": "viewer-pointer", "title": "指路卡渲染", "priority": 1 }
+      ]
+    },
+    {
+      "id": "winform",
+      "title": "Yu5h1Lib.WinForm",
+      "kind": "report_pointer",
+      "report_ref": {
+        "scope_id": "winform"
+      }
+    }
+  ]
+}
