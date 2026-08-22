@@ -62,6 +62,19 @@ test("every work-item marker equals what its checks derive", () => {
   }
 });
 
+test("work items are separated by a blank line", () => {
+  // ChecklistDocument.cs requires an empty line after each work item. A reorder
+  // that rejoins two items with a single newline reads fine and parses fine
+  // here, and then the packaged App refuses to open the file at all.
+  for (const item of items.slice(1)) {
+    assert.equal(
+      lines[item.line - 2],
+      "",
+      `item ${item.id} on line ${item.line} does not start after a blank line`,
+    );
+  }
+});
+
 test("work item ids are unique inside the round", () => {
   const seen = new Set();
   for (const item of items) {

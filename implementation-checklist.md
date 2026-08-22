@@ -54,6 +54,7 @@ Run every Agent check once. If a check fails, mark it `[!]`, add `Observed`, and
       - Action: 以 `Build/win-x64/task-progress.exe start --no-browser` 啟動本機 edit host，開啟 `http://127.0.0.1:8001/?scope=task-progress`，進入編輯模式修改摘要並儲存；再清空摘要並儲存一次。桌面與 390px 各看一次。
       - Expect: 修改後重新載入仍顯示新摘要；清空後顯示以任務數產生的原句；沒有水平溢出，鍵盤可聚焦該欄位。
       - Reason: 需要使用者本機的 edit host 與真實瀏覽器互動判斷。
+
 - [x] **4. Schema 改動不需重啟 edit host，驗證失敗會指認自己**
   Outcome: Python edit host 依 `schemas/report.schema.json` 檔案本身驗證，而不是啟動時取的副本；report 驗證失敗的訊息附上該 schema 的指紋與讀取時間，過期時能被看出來。
   Checks:
