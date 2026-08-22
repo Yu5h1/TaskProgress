@@ -40,6 +40,15 @@ internal static class Program
             return 0;
         }
 
+        // Windows default-App activation passes only the selected file path;
+        // it does not preserve the `checklist` command inserted by our own
+        // Registry installer. Both activation forms must reach the same exact-
+        // file validation and error-dialog boundary.
+        if (IsDirectChecklistActivation(args))
+        {
+            return ChecklistCommand.Run(args);
+        }
+
         var store = new ScopeStore();
         if (Uri.TryCreate(args[0], UriKind.Absolute, out var activationUri)
             && string.Equals(activationUri.Scheme, ProtocolRegistration.Scheme, StringComparison.OrdinalIgnoreCase))
@@ -489,6 +498,13 @@ internal static class Program
     }
 
     private static bool IsHelp(string value) => value is "--help" or "-help" or "-h" or "help";
+
+    internal static bool IsDirectChecklistActivation(string[] args) =>
+        args.Length == 1
+        && string.Equals(
+            Path.GetExtension(args[0]),
+            ChecklistFileRegistration.FileExtension,
+            StringComparison.OrdinalIgnoreCase);
 
     private static void PrintHelp()
     {

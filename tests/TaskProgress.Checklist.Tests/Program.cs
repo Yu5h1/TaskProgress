@@ -125,6 +125,18 @@ internal static class Program
             var textPath = Path.Combine(root, "task-a.txt");
             File.WriteAllBytes(textPath, source);
             Throws(() => ChecklistCommand.Run([textPath], _ => { }), "Checklist command unrelated extension");
+            True(
+                TaskProgress.Program.IsDirectChecklistActivation([path]),
+                "direct .checklist activation");
+            True(
+                TaskProgress.Program.IsDirectChecklistActivation([path.ToUpperInvariant()]),
+                "case-insensitive direct .checklist activation");
+            True(
+                !TaskProgress.Program.IsDirectChecklistActivation([markdownPath]),
+                "legacy Markdown is not a direct Checklist activation");
+            True(
+                !TaskProgress.Program.IsDirectChecklistActivation([path, path]),
+                "direct Checklist activation requires exactly one path");
 
             var installed = false;
             var uninstalled = false;

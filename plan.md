@@ -392,6 +392,7 @@ task-progress.exe checklist <file> ──opens──> exactly one selected file
 
 - Canonical 文件副檔名為 `.checklist`，內容格式仍是 UTF-8 Markdown；副檔名用來表達文件類型及建立 Windows 雙擊關聯，不改變 parser 語法。
 - `<task-id>` 是在專案內穩定且適合檔名的任務識別。第一版以明確檔案路徑完成指派與開啟，不另建 `tasks.md` 索引，也不讓 CLI 遞迴推測目前任務。
+- 第一版不自動將 `.checklist` 與 `report.json` 配對或比對狀態；Checklist 是執行及驗證來源，Report 是觀看者投影。若同一工作也需要出現在 Report，兩邊可以人工沿用相同 stable Task ID，但不因此建立雙向寫入或隱含同步。
 - 每份 `.checklist` 只承載該任務的一個 active round；同一專案可以有多份 active checklist。各檔案內的 work-item 數字 ID 與 `Depends on` 只在該檔案內有效。
 - Round 完成後保留該 `.checklist` 的完成內容，並與該輪實作及驗證證據一起 commit；`checklists/` 是任務清單集合，不是只存放未完成工作的暫存區，是否 active 由檔案內的 checks 推導。
 - 同一 Task 的下一輪規格核定後，先確認上一輪完成狀態已 commit，再沿用同一個 `<task-id>.checklist`，移除上一輪項目並以新的 `Current round` 與全新 `[ ]` checks 重新開始；上一輪由 Git history 保存。實際上是另一個獨立目標時，改用新的 Task ID 與新檔案。
@@ -402,7 +403,7 @@ task-progress.exe checklist <file> ──opens──> exactly one selected file
 ##### CLI 與 Agent workflow 遷移
 
 - CLI 保持最小入口 `task-progress.exe checklist <file>`，但只接受明確指定的 `.checklist`。第一版不增加 `new`、`list`、檔案選擇器或自動任務排程；Agent 可以使用既有檔案工具建立文件，再把確切路徑交給 CLI。
-- `task-progress.exe checklist install|uninstall` 管理目前 Windows 使用者的 `.checklist` 檔案關聯；雙擊的 shell command 固定回到 `task-progress.exe checklist "%1"`。Uninstall 只有在 extension mapping 仍指向 TaskProgress ProgID 時才移除該 mapping，不修改 machine-wide Registry。
+- `task-progress.exe checklist install|uninstall` 管理目前 Windows 使用者的 `.checklist` 檔案關聯；安裝器建立的 shell command 固定回到 `task-progress.exe checklist "%1"`。使用者也可以透過 Windows「預設 App」直接關聯 EXE，此時系統只傳入 `task-progress.exe "%1"`；CLI 必須辨識唯一的 `.checklist` 參數並導向同一個 exact-file Checklist 入口。Uninstall 只有在 extension mapping 仍指向 TaskProgress ProgID 時才移除該 mapping，不修改 machine-wide Registry。
 - Agent work-route 由「專案旁存在唯一 `implementation-checklist.md`」改為「規格核定後，在該專案的 `checklists/` 建立或接續 `<task-id>.checklist`」。指派、執行、驗證與 co-commit 都只作用於目前任務的確切檔案。
 - `AgentArtifactGuide.md` 的 artifact ownership 也須同步改為 per-task `.checklist`，避免共享入口規則繼續把舊檔名指定為唯一來源。
 - 目前的 `implementation-checklist.md` 保存已結束的舊 round。遷移落地時由 Git 歷史保留它並移除工作樹中的舊入口；下一個已核定任務才建立對應 `.checklist`，不製造無任務內容的替代檔。
