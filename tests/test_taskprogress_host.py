@@ -146,6 +146,27 @@ class ReportSchemaVersionTests(unittest.TestCase):
         self.assertNotEqual(list(self._validator().iter_errors(fixture)), [])
 
 
+class SchemaSourceWiringTests(unittest.TestCase):
+    """One reader of the schema file, one annotation, no frozen copy."""
+
+    SOURCE = (REPOSITORY_ROOT / "service" / "taskprogress_host.py").read_text(
+        encoding="utf-8"
+    )
+
+    def test_no_report_validation_uses_a_startup_copy(self) -> None:
+        self.assertEqual(
+            0,
+            self.SOURCE.count("_schema_errors(validator, report)"),
+            "a report is still validated against a validator frozen at startup",
+        )
+        self.assertEqual(
+            5, self.SOURCE.count("_schema_errors(schema_source.validator(), report)")
+        )
+
+    def test_every_report_schema_failure_is_annotated_the_same_way(self) -> None:
+        self.assertEqual(5, self.SOURCE.count("schema_source.annotate("))
+
+
 class TaskProgressEditHostTests(unittest.TestCase):
     def setUp(self) -> None:
         self.temporary = tempfile.TemporaryDirectory()
@@ -156,6 +177,9 @@ class TaskProgressEditHostTests(unittest.TestCase):
             json.dumps(report_payload(), ensure_ascii=False, indent=2) + "\n",
             encoding="utf-8",
         )
+        self.schema_path = self.root / "schema" / "report.schema.json"
+        self.schema_path.parent.mkdir()
+        self.schema_path.write_bytes(REPORT_SCHEMA.read_bytes())
         local_web_service = _load_module(LOCAL_WEB_SERVICE)
         application = local_web_service.create_app(
             self.root,
@@ -166,7 +190,7 @@ class TaskProgressEditHostTests(unittest.TestCase):
         )
         install_edit_api(
             application,
-            report_schema=REPORT_SCHEMA,
+            report_schema=self.schema_path,
             control_port=PORT,
         )
         self.client = TestClient(
@@ -568,6 +592,93 @@ class TaskProgressEditHostTests(unittest.TestCase):
         )
         self.assertEqual(409, response.status_code)
         self.assertEqual("source_changed", response.json()["code"])
+
+    def test_the_schema_is_read_from_disk_instead_of_frozen_at_startup(self) -> None:
+        """A schema edit reaches the running host without a restart.
+
+        The frozen validator this replaces produced the worst kind of failure:
+        the save was rejected as invalid data, ten minutes after the schema
+        that would have accepted it was written.
+        """
+        session = self.session()
+        extended = report_payload()
+        extended["note"] = "a field the schema does not know yet"
+        headers = {
+            "origin": ORIGIN,
+            "x-taskprogress-editor": "1",
+            "authorization": f"Bearer {session['token']}",
+            "if-match": f"\"{session['revision']}\"",
+            "content-type": "application/json",
+        }
+
+        rejected = self.client.put(
+            "/__taskprogress/v1/reports/secure-test",
+            headers=headers,
+            content=json.dumps(extended),
+        )
+        self.assertEqual(422, rejected.status_code, rejected.text)
+        self.assertIn("'note' was unexpected", rejected.json()["detail"])
+
+        schema = json.loads(self.schema_path.read_text(encoding="utf-8"))
+        schema["properties"]["note"] = {"type": "string", "minLength": 1}
+        self.schema_path.write_text(
+            json.dumps(schema, ensure_ascii=False, indent=2),
+            encoding="utf-8",
+        )
+
+        accepted = self.client.put(
+            "/__taskprogress/v1/reports/secure-test",
+            headers=headers,
+            content=json.dumps(extended),
+        )
+        self.assertEqual(200, accepted.status_code, accepted.text)
+        persisted = json.loads(self.report_path.read_text(encoding="utf-8"))
+        self.assertEqual("a field the schema does not know yet", persisted["note"])
+
+    def test_a_rejected_report_names_the_schema_that_rejected_it(self) -> None:
+        """Which schema said no, and when it was read.
+
+        Without this the message points at the data and never at itself, which
+        is exactly how a stale validator hides.
+        """
+        session = self.session()
+        invalid = report_payload()
+        invalid["tasks"][0]["summary"] = ""
+        response = self.client.put(
+            "/__taskprogress/v1/reports/secure-test",
+            headers={
+                "origin": ORIGIN,
+                "x-taskprogress-editor": "1",
+                "authorization": f"Bearer {session['token']}",
+                "if-match": f"\"{session['revision']}\"",
+                "content-type": "application/json",
+            },
+            content=json.dumps(invalid),
+        )
+        self.assertEqual(422, response.status_code, response.text)
+        detail = response.json()["detail"]
+        self.assertRegex(detail, r"\[report\.schema\.json@[0-9a-f]{12} loaded .+\]$")
+
+    def test_an_unreadable_schema_keeps_the_last_good_one(self) -> None:
+        session = self.session()
+        self.schema_path.write_text("{ not json", encoding="utf-8")
+        changed = report_payload()
+        changed["tasks"][0]["summary"] = "Saved while the schema file was broken"
+        response = self.client.put(
+            "/__taskprogress/v1/reports/secure-test",
+            headers={
+                "origin": ORIGIN,
+                "x-taskprogress-editor": "1",
+                "authorization": f"Bearer {session['token']}",
+                "if-match": f"\"{session['revision']}\"",
+                "content-type": "application/json",
+            },
+            content=json.dumps(changed),
+        )
+        # The half-written file does not break the editor; the previous schema
+        # still validates and its unchanged fingerprint is what shows up in the
+        # next rejection.
+        self.assertEqual(200, response.status_code, response.text)
 
     def test_valid_save_rotates_token_and_rejects_reuse(self) -> None:
         session = self.session()

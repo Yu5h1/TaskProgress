@@ -152,6 +152,59 @@ def _cross_validate_report(report: dict[str, Any]) -> list[str]:
     return errors
 
 
+class _SchemaSource:
+    """The report schema as the file it is, not as a copy taken at startup.
+
+    A validator built once and kept forever keeps answering with whatever the
+    schema said at that moment — and it answers confidently, blaming the report
+    it was handed rather than reporting itself as stale. That failure is
+    silent, misleading, and costs a restart to clear. Reading the file back
+    whenever it changes on disk costs one ``stat`` per validation.
+
+    A schema that momentarily fails to parse — an editor writing it — leaves
+    the last good validator in place rather than breaking every save. The
+    fingerprint in :meth:`label` is what shows that it did not advance.
+    """
+
+    def __init__(self, path: os.PathLike[str] | str) -> None:
+        self._path = Path(path)
+        self._signature: object = None
+        self._validator: Draft202012Validator | None = None
+        self._fingerprint = "unreadable"
+        self._loaded_at = "never"
+
+    def validator(self) -> Draft202012Validator:
+        try:
+            stat = self._path.stat()
+            signature: object = (stat.st_mtime_ns, stat.st_size)
+        except OSError:
+            signature = self._signature
+        if self._validator is not None and signature == self._signature:
+            return self._validator
+        try:
+            source = self._path.read_bytes()
+            validator = Draft202012Validator(
+                json.loads(source), format_checker=FormatChecker()
+            )
+        except (OSError, ValueError):
+            if self._validator is None:
+                raise
+            return self._validator
+        self._validator = validator
+        self._signature = signature
+        self._fingerprint = hashlib.sha256(source).hexdigest()[:12]
+        self._loaded_at = datetime.now(datetime_timezone.utc).isoformat(
+            timespec="seconds"
+        )
+        return validator
+
+    def label(self) -> str:
+        return f"{self._path.name}@{self._fingerprint} loaded {self._loaded_at}"
+
+    def annotate(self, errors: Sequence[str]) -> str:
+        return "; ".join(list(errors)[:8]) + f" [{self.label()}]"
+
+
 def _schema_errors(
     validator: Draft202012Validator,
     report: dict[str, Any],
@@ -696,8 +749,8 @@ def install_edit_api(
     analyzer_command: Sequence[str] = (),
     now: Callable[[], float] = time.time,
 ) -> None:
-    schema = json.loads(Path(report_schema).read_text(encoding="utf-8"))
-    validator = Draft202012Validator(schema, format_checker=FormatChecker())
+    schema_source = _SchemaSource(report_schema)
+    schema_source.validator()
     time_validators = {
         "config": Draft202012Validator(
             json.loads(
@@ -906,13 +959,13 @@ def install_edit_api(
                         "The service default time configuration is invalid",
                         "; ".join(default_errors[:8]),
                     )
-        errors = _schema_errors(validator, report)
+        errors = _schema_errors(schema_source.validator(), report)
         if errors:
             return _problem(
                 409,
                 "source_report_invalid",
                 "Source report is invalid",
-                "; ".join(errors[:8]),
+                schema_source.annotate(errors),
             )
         if report.get("scope_id") != scope:
             return _problem(409, "scope_mismatch", "Registered report scope does not match")
@@ -1000,13 +1053,13 @@ def install_edit_api(
         replacement_inputs = payload["inputs"]
         if not isinstance(report, dict):
             return _problem(422, "invalid_report", "report.json root must be an object")
-        report_errors = _schema_errors(validator, report)
+        report_errors = _schema_errors(schema_source.validator(), report)
         if report_errors:
             return _problem(
                 422,
                 "invalid_report",
                 "report.json failed validation",
-                "; ".join(report_errors[:8]),
+                schema_source.annotate(report_errors),
             )
         if report.get("scope_id") != scope or report.get("report_id") != session.report_id:
             return _problem(
@@ -1224,10 +1277,11 @@ def install_edit_api(
                 next_local_state["history"].append(event)
 
             def validate_staged_payloads() -> None:
-                report_errors = _schema_errors(validator, report)
+                report_errors = _schema_errors(schema_source.validator(), report)
                 if report_errors:
                     raise ValueError(
-                        f"report.json failed validation: {'; '.join(report_errors[:8])}"
+                        "report.json failed validation: "
+                        + schema_source.annotate(report_errors)
                     )
                 for key, payload in replacement_inputs.items():
                     errors = _json_schema_errors(time_validators[key], payload)
@@ -1460,13 +1514,13 @@ def install_edit_api(
             )
         if not isinstance(report, dict):
             return _problem(422, "invalid_report", "report.json root must be an object")
-        report_errors = _schema_errors(validator, report)
+        report_errors = _schema_errors(schema_source.validator(), report)
         if report_errors:
             return _problem(
                 422,
                 "invalid_report",
                 "report.json failed validation",
-                "; ".join(report_errors[:8]),
+                schema_source.annotate(report_errors),
             )
         if report.get("scope_id") != scope or report.get("report_id") != session.report_id:
             return _problem(
@@ -1559,13 +1613,13 @@ def install_edit_api(
             return _problem(422, "invalid_json", "report.json is not valid JSON", str(error))
         if not isinstance(report, dict):
             return _problem(422, "invalid_report", "report.json root must be an object")
-        errors = _schema_errors(validator, report)
+        errors = _schema_errors(schema_source.validator(), report)
         if errors:
             return _problem(
                 422,
                 "invalid_report",
                 "report.json failed validation",
-                "; ".join(errors[:8]),
+                schema_source.annotate(errors),
             )
         if report.get("scope_id") != scope or report.get("report_id") != session.report_id:
             return _problem(

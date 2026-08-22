@@ -54,3 +54,12 @@ Run every Agent check once. If a check fails, mark it `[!]`, add `Observed`, and
       - Action: 以 `Build/win-x64/task-progress.exe start --no-browser` 啟動本機 edit host，開啟 `http://127.0.0.1:8001/?scope=task-progress`，進入編輯模式修改摘要並儲存；再清空摘要並儲存一次。桌面與 390px 各看一次。
       - Expect: 修改後重新載入仍顯示新摘要；清空後顯示以任務數產生的原句；沒有水平溢出，鍵盤可聚焦該欄位。
       - Reason: 需要使用者本機的 edit host 與真實瀏覽器互動判斷。
+- [x] **4. Schema 改動不需重啟 edit host，驗證失敗會指認自己**
+  Outcome: Python edit host 依 `schemas/report.schema.json` 檔案本身驗證，而不是啟動時取的副本；report 驗證失敗的訊息附上該 schema 的指紋與讀取時間，過期時能被看出來。
+  Checks:
+    - [x] **Schema 熱讀**
+      - Action: 執行 `python -c "import sys,unittest,importlib.util; sys.path.insert(0,'.'); spec=importlib.util.spec_from_file_location('taskprogress_host_tests','tests/test_taskprogress_host.py'); m=importlib.util.module_from_spec(spec); sys.modules[spec.name]=m; spec.loader.exec_module(m); unittest.main(module=m, argv=['run','-v'], exit=False)"`。
+      - Expect: 在服務執行中修改 schema 檔後，原本被拒絕的儲存立刻通過，過程不重啟進程；schema 檔暫時無法解析時沿用上一份可用的 validator，不讓半寫入的檔案中斷編輯。
+    - [x] **失敗訊息指認 schema**
+      - Action: 同上一則測試指令。
+      - Expect: report 驗證失敗的 `detail` 以 `[report.schema.json@<12 碼指紋> loaded <時間>]` 結尾；原始碼中不再有啟動時凍結的 validator，五個 report 驗證入口都改讀同一個來源並共用同一個標註函式。
