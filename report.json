@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-08-21T15:10:00+08:00",
+  "updated_at": "2026-08-22T11:30:00+08:00",
   "tasks": [
     {
       "id": "viewer-core",
@@ -508,14 +508,14 @@
           "id": "item-edit-host-live-schema",
           "title": "Edit host 改為依 schema 檔案本身驗證而不是啟動時的副本，schema 改動不需重啟；report 驗證失敗訊息附上 schema 指紋與讀取時間，過期時能自我指認",
           "priority": 1
-        }
-      ],
-      "pending_items": [
+        },
         {
           "id": "verify-report-summary-editing",
           "title": "驗證正式 Viewer 編輯模式可修改與清空 report 摘要，清空後回到以任務數產生的說明，且桌面與 390px 無水平溢出",
           "priority": 1
-        },
+        }
+      ],
+      "pending_items": [
         {
           "id": "structured-checklist-editor",
           "title": "完成 WPF／WebView2 Checklist Editor 的新互動：預設 revision-safe 自動儲存、使用者 cache 的謹慎模式，以及可持續編輯的左側單一循環 manual marker；維持受限 bridge 與 no-LocalWebService 邊界",

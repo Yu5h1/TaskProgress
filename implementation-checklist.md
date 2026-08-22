@@ -41,7 +41,7 @@ Run every Agent check once. If a check fails, mark it `[!]`, add `Observed`, and
       - Action: 執行 `node --test tests/report-projection.test.mjs tests/report-model.test.mjs`。
       - Expect: 進度來自既有 `calculateProjectProgress`，指路功能沒有第二套百分比公式；模組不保存目標 report，重複投影時每次都用呼叫端提供的最新資料，且投影結果為凍結的唯讀物件。
 
-- [ ] **3. Report 摘要可在 Viewer 編輯**
+- [x] **3. Report 摘要可在 Viewer 編輯**
   Outcome: 編輯模式能修改與清空 report 層級 `summary`，走既有 Editor Core draft／validation／Undo／Redo 與同一條全域儲存路徑；清空後回到以任務數產生的說明。
   Checks:
     - [x] **Editor Core report 欄位命令**
@@ -50,7 +50,7 @@ Run every Agent check once. If a check fails, mark it `[!]`, add `Observed`, and
     - [x] **共用標頭區塊與單一儲存路徑**
       - Action: 執行 `node --test tests/report-summary.test.mjs tests/ui-host.test.mjs tests/local-edit-interface.test.mjs`。
       - Expect: 摘要在預覽與編輯都由同一個共用元件渲染，起始畫面、scope 目錄與錯誤畫面也走同一條 region，`app.js` 不再直接寫入該節點的 textContent；沒有新增第二條儲存或驗證路徑；fallback 文字只有一個實作來源。
-    - [ ] **Viewer 產品包實測** `[manual]`
+    - [x] **Viewer 產品包實測** `[manual]`
       - Action: 以 `Build/win-x64/task-progress.exe start --no-browser` 啟動本機 edit host，開啟 `http://127.0.0.1:8001/?scope=task-progress`，進入編輯模式修改摘要並儲存；再清空摘要並儲存一次。桌面與 390px 各看一次。
       - Expect: 修改後重新載入仍顯示新摘要；清空後顯示以任務數產生的原句；沒有水平溢出，鍵盤可聚焦該欄位。
       - Reason: 需要使用者本機的 edit host 與真實瀏覽器互動判斷。

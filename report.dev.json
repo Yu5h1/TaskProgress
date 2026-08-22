@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "report_id": "task-progress-development",
-  "updated_at": "2026-08-21T15:10:00+08:00",
+  "updated_at": "2026-08-22T11:30:00+08:00",
   "tasks": [
     {
       "id": "viewer-core",
@@ -98,7 +98,7 @@
     },
     {
       "id": "local-task-editing",
-      "next_step": "Report 摘要編輯已實作並通過 Agent 檢查，等待正式 Viewer 實機驗證；通過後進入 priority-2 Report Editor 雙宿主遷移設計。",
+      "next_step": "本輪已結束。下一步是 priority-2 Report Editor 雙宿主遷移設計：在既有 HTTP endpoint 與未來 WebView bridge 之下抽出單一 Edit Application Service，並保留 LocalWebService 作為 Browser 路徑。",
       "blockers": [
         "首版 WPF App 已可開啟且 package contract 通過，但人工 review 否決既有互動：目前仍預設顯示 Save／Discard、manual check 使用右側兩按鈕且已儲存結果不可再編輯。新規格已核定但尚未實作。",
         "時間參考 Demo 已隨此次收斂停止運作（依使用者裁示 (a)）：它呼叫的 createModeController／createSaveBar／createAddControl 已刪除，開啟頁面會拋錯。不得為了讓 Demo 復活而還原那些函式。",
