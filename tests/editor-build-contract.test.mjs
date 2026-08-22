@@ -24,10 +24,12 @@ test("standalone Editor build is retired while Viewer bundle verification remain
   ]) {
     await assert.rejects(access(new URL(path, import.meta.url)));
   }
-  assert.match(workflowText, /- viewer\/\*\*/u);
-  // The preview bundle is built from the spike sources, so a change there must
-  // still trigger the committed Viewer bundle staleness check.
-  assert.match(workflowText, /- experiments\/editor-svelte-spike\/\*\*/u);
+  // The bundle is built from sources outside viewer/, and the whole suite gates
+  // the dispatch, so the job must run for every push. A path filter can only
+  // name the paths someone remembered, and the ones that can turn this job red
+  // are not the ones such a list would name — which is how a broken test once
+  // landed green and blocked the dispatch two releases later.
+  assert.doesNotMatch(workflowText, /^\s*paths:/mu);
   assert.doesNotMatch(workflowText, /BuildEditor|editor:svelte:build/u);
   // The committed bundle is a build product, so the dispatch must be gated on
   // rebuilding it and finding no difference — reporting staleness after the
