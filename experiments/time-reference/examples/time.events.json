@@ -1,0 +1,46 @@
+{
+  "schema_version": "0.2",
+  "scope_id": "taskprogress-time-reference",
+  "updated_at": "2026-07-22T12:15:00+08:00",
+  "events": [
+    {
+      "event_id": "event-draft-schemas-started",
+      "task_id": "time-reference-prototype",
+      "item_id": "define-draft-schemas",
+      "kind": "status_changed",
+      "occurred_at": "2026-07-22T09:00:00+08:00",
+      "recorded_at": "2026-07-22T09:00:00+08:00",
+      "source": "agent",
+      "status_change": {
+        "from": "planned",
+        "to": "in_progress"
+      }
+    },
+    {
+      "event_id": "event-draft-schemas-session-1",
+      "task_id": "time-reference-prototype",
+      "item_id": "define-draft-schemas",
+      "kind": "work_session_recorded",
+      "occurred_at": "2026-07-22T12:00:00+08:00",
+      "recorded_at": "2026-07-22T12:05:00+08:00",
+      "source": "manual",
+      "session": {
+        "started_at": "2026-07-22T09:00:00+08:00",
+        "ended_at": "2026-07-22T12:00:00+08:00",
+        "break_minutes": 15
+      },
+      "note": "實際投入 165 分鐘；此紀錄不會從工程總估算自動扣除。"
+    },
+    {
+      "event_id": "event-unknown-route-estimate-confirmed",
+      "task_id": "time-reference-prototype",
+      "item_id": "evaluate-unknown-route",
+      "kind": "estimate_revised",
+      "occurred_at": "2026-07-22T09:08:00+08:00",
+      "recorded_at": "2026-07-22T09:08:00+08:00",
+      "source": "manual",
+      "estimate_id": "estimate-unknown-route-v2",
+      "note": "人工補充基礎工時與探索數量參數後重新計算；此動作不代表已確認最後估算。"
+    }
+  ]
+}

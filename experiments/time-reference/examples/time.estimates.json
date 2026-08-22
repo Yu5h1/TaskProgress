@@ -1,0 +1,185 @@
+{
+  "schema_version": "0.2",
+  "scope_id": "taskprogress-time-reference",
+  "updated_at": "2026-07-22T12:15:00+08:00",
+  "estimates": [
+    {
+      "estimate_id": "estimate-draft-schemas-v1",
+      "task_id": "time-reference-prototype",
+      "item_id": "define-draft-schemas",
+      "low_minutes": 240,
+      "likely_minutes": 360,
+      "high_minutes": 720,
+      "contributors": [
+        {
+          "kind": "human_estimate",
+          "summary": "人工依工程計畫直接估算工時。"
+        }
+      ],
+      "human_confirmed": true,
+      "inputs": [
+        {
+          "name": "likely_hours",
+          "value": 6,
+          "unit": "hr",
+          "origin": "human",
+          "note": "人工直接輸入最可能工時。"
+        }
+      ],
+      "confidence": "medium",
+      "estimated_at": "2026-07-22T09:00:00+08:00",
+      "active": true,
+      "rationale": "人工依照原型計畫，估算建立四份旁掛資料契約與相互一致範例所需工時，並另行確認最後結果。",
+      "human_note": "依目前四份 Schema、範例與驗證範圍，人工估算約需 6 小時。",
+      "calculation": {
+        "algorithm_id": "direct-human-estimate",
+        "formula": "likely_hours * 60",
+        "version": "0.1",
+        "explanation": "6 hr × 60 = 360 min。"
+      },
+      "reference": "plan.md#時間參考擴充計畫"
+    },
+    {
+      "estimate_id": "estimate-unknown-route-v1",
+      "task_id": "time-reference-prototype",
+      "item_id": "evaluate-unknown-route",
+      "low_minutes": 960,
+      "likely_minutes": 1560,
+      "high_minutes": 3120,
+      "contributors": [
+        {
+          "kind": "ai_analysis",
+          "summary": "AI 依任務描述提出初步工程拆解。"
+        },
+        {
+          "kind": "deterministic_formula",
+          "summary": "固定公式將基礎工時與探索項目相加。"
+        }
+      ],
+      "human_confirmed": false,
+      "inputs": [
+        {
+          "name": "base_implementation_hours",
+          "value": 18,
+          "unit": "hr",
+          "origin": "ai"
+        },
+        {
+          "name": "exploration_routes",
+          "value": 2,
+          "unit": "route",
+          "origin": "ai"
+        }
+      ],
+      "analysis_method": {
+        "name": "engineering-decomposition",
+        "version": "0.1",
+        "performed_by": "ai",
+        "explanation": "AI 將工作拆成基礎實作與未知技術路線探索。"
+      },
+      "calculation": {
+        "algorithm_id": "engineering-decomposition",
+        "formula": "base_implementation_hours + exploration_routes * 4",
+        "version": "0.1",
+        "explanation": "18 hr + 2 × 4 hr = 26 hr。"
+      },
+      "confidence": "low",
+      "estimated_at": "2026-07-22T09:05:00+08:00",
+      "active": false,
+      "rationale": "初步估算包含基礎實作與兩條未知技術路線探索。"
+    },
+    {
+      "estimate_id": "estimate-unknown-route-v2",
+      "task_id": "time-reference-prototype",
+      "item_id": "evaluate-unknown-route",
+      "low_minutes": 960,
+      "likely_minutes": 1800,
+      "high_minutes": 3600,
+      "contributors": [
+        {
+          "kind": "human_parameter",
+          "summary": "人工提供基礎實作工時與需要探索的路線數量。"
+        },
+        {
+          "kind": "ai_analysis",
+          "summary": "AI 判斷採用工程拆解方法並解釋探索成本。"
+        },
+        {
+          "kind": "deterministic_formula",
+          "summary": "固定公式依輸入參數計算最後工時。"
+        }
+      ],
+      "human_confirmed": false,
+      "inputs": [
+        {
+          "name": "base_implementation_hours",
+          "value": 18,
+          "unit": "hr",
+          "origin": "human",
+          "note": "人工依已知工程範圍提供。"
+        },
+        {
+          "name": "exploration_routes",
+          "value": 3,
+          "unit": "route",
+          "origin": "human",
+          "note": "人工確認目前有三條候選技術路線需要驗證。"
+        }
+      ],
+      "analysis_method": {
+        "name": "engineering-decomposition",
+        "version": "0.2",
+        "performed_by": "ai",
+        "explanation": "AI 將人工參數映射為基礎實作與每條未知路線的探索成本。"
+      },
+      "calculation": {
+        "algorithm_id": "engineering-decomposition",
+        "formula": "base_implementation_hours + exploration_routes * 4",
+        "version": "0.1",
+        "explanation": "18 hr + 3 × 4 hr = 30 hr。"
+      },
+      "confidence": "low",
+      "estimated_at": "2026-07-22T09:08:00+08:00",
+      "active": true,
+      "derived_from_estimate_id": "estimate-unknown-route-v1",
+      "supersedes_estimate_id": "estimate-unknown-route-v1",
+      "rationale": "人工提供工程參數，AI 選擇拆解方法，再由固定公式計算基礎實作與三條探索路線的總工時；最後結果尚未人工確認。",
+      "human_note": "基礎實作先抓 18 小時，目前有三條候選技術路線需要驗證。"
+    },
+    {
+      "estimate_id": "estimate-document-fallback-v1",
+      "task_id": "time-reference-prototype",
+      "item_id": "document-fallback",
+      "likely_minutes": 480,
+      "contributors": [
+        {
+          "kind": "system_default",
+          "summary": "沒有足夠工程資料，採用設定檔的一個標準工作日。"
+        },
+        {
+          "kind": "deterministic_formula",
+          "summary": "固定公式將預設小時換算為分鐘。"
+        }
+      ],
+      "human_confirmed": false,
+      "inputs": [
+        {
+          "name": "default_item_hours",
+          "value": 8,
+          "unit": "hr",
+          "origin": "default"
+        }
+      ],
+      "calculation": {
+        "algorithm_id": "default-workday",
+        "formula": "default_item_hours * 60",
+        "version": "0.1",
+        "explanation": "8 hr × 60 = 480 min。"
+      },
+      "confidence": "low",
+      "estimated_at": "2026-07-22T09:10:00+08:00",
+      "active": true,
+      "rationale": "尚無工程計畫，套用預設一日；未虛構低值與高值。"
+    }
+  ]
+}

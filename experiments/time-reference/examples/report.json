@@ -1,0 +1,31 @@
+{
+  "schema_version": "1.0",
+  "report_id": "taskprogress-time-reference-example",
+  "scope_id": "taskprogress-time-reference",
+  "title": "時間參考分析器範例",
+  "updated_at": "2026-07-22T12:15:00+08:00",
+  "tasks": [
+    {
+      "id": "time-reference-prototype",
+      "title": "時間參考原型",
+      "status": "in_progress",
+      "summary": "以人工、混合與預設三種估算模式驗證自動分析資料產生流程。",
+      "completed_items": [
+        {
+          "id": "define-draft-schemas",
+          "title": "定義 Draft Schemas"
+        }
+      ],
+      "pending_items": [
+        {
+          "id": "evaluate-unknown-route",
+          "title": "評估未知技術路線"
+        },
+        {
+          "id": "document-fallback",
+          "title": "記錄無計畫預設行為"
+        }
+      ]
+    }
+  ]
+}

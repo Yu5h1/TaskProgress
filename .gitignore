@@ -20,6 +20,9 @@ Build/
 coverage/
 experiments/editor-svelte-spike/dist/
 
-# Local report fixtures are intentionally not versioned. The tracked public
-# sample lives under reports/example/.
-examples/
+# A local report fixtures directory at the repository root is intentionally not
+# versioned; the tracked public sample lives under reports/example/. Anchored to
+# the root on purpose — an unanchored rule also swallowed
+# experiments/time-reference/examples/, which the README points readers at and a
+# test reads, so the suite passed locally and failed on every clean checkout.
+/examples/
