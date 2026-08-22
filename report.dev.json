@@ -1,10 +1,11 @@
 {
   "schema_version": "1.0",
   "report_id": "task-progress-development",
-  "updated_at": "2026-08-15T20:05:56+08:00",
+  "updated_at": "2026-08-21T15:10:00+08:00",
   "tasks": [
     {
       "id": "viewer-core",
+      "next_step": "指路卡的相容 reader 與單層投影已完成；resolver、卡片與導航等 handoff「Open decisions」的導航機制與 report_ref 建立方式定案後再開。",
       "decisions": [
         {
           "summary": "公開 Pages 與 localhost 使用同一份 Viewer 原始碼；Viewer 只依明確連結載入資料。",
@@ -17,6 +18,10 @@
         {
           "summary": "狀態標籤順序已上線為正式 Viewer 的 browser-local 檢視偏好；planned 任務與 pending 子項目投影為「待處理」，archive 保持獨立，且子面板跟隨「待處理／已完成」相對順序。",
           "reference": "plan.md#編輯互動與資料操作"
+        },
+        {
+          "summary": "任務卡種類由 kind 鑑別欄位決定，不得靠是否存在 report_ref 猜測；指路卡不得保存由目標 report 衍生的狀態、摘要、項目或進度。",
+          "reference": "plan.md#report-指路任務卡與單層-scope-導航"
         }
       ],
       "routes": [
@@ -93,7 +98,7 @@
     },
     {
       "id": "local-task-editing",
-      "next_step": "依 implementation-checklist items 8／9 實作新 persistence 與 marker contract：先擴充共用 editor transaction／SaveBar 為預設 auto、cache-persisted cautious，再讓 document core／bridge 支援 saved manual result cycle；完成 Agent checks 後才執行 item 10 WPF 驗證。",
+      "next_step": "Report 摘要編輯已實作並通過 Agent 檢查，等待正式 Viewer 實機驗證；通過後進入 priority-2 Report Editor 雙宿主遷移設計。",
       "blockers": [
         "首版 WPF App 已可開啟且 package contract 通過，但人工 review 否決既有互動：目前仍預設顯示 Save／Discard、manual check 使用右側兩按鈕且已儲存結果不可再編輯。新規格已核定但尚未實作。",
         "時間參考 Demo 已隨此次收斂停止運作（依使用者裁示 (a)）：它呼叫的 createModeController／createSaveBar／createAddControl 已刪除，開啟頁面會拋錯。不得為了讓 Demo 復活而還原那些函式。",

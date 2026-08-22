@@ -3,12 +3,12 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-08-15T20:05:56+08:00",
+  "updated_at": "2026-08-21T15:10:00+08:00",
   "tasks": [
     {
       "id": "viewer-core",
       "title": "TaskProgress Viewer",
-      "status": "done",
+      "status": "in_progress",
       "priority": 2,
       "summary": "正式 Viewer 已具備可分享的唯讀進度報告、Developer overlay、主題系統與響應式介面。",
       "completed_items": [
@@ -46,9 +46,25 @@
           "id": "item-viewer-core-done-7",
           "title": "將 planned 任務與 pending 子項目統一為「待處理」檢視，保留封存語意並讓子面板跟隨排序",
           "priority": 4
+        },
+        {
+          "id": "item-viewer-core-tagged-variants",
+          "title": "以 kind 鑑別的互斥 variant 表達一般任務卡與 Report 指路卡，Viewer、CLI 與 Python edit host 三個 reader 同時接受 schema 1.0 與 1.1，未標記種類的 1.0 task 一律視為 standard",
+          "priority": 1
+        },
+        {
+          "id": "item-viewer-core-pointer-projection",
+          "title": "集中化 deriveReportStatus 與 Report 指路卡的單層唯讀投影：重用既有專案進度規則、只投影目標 report 頂層任務卡，且不快取目標 report",
+          "priority": 1
         }
       ],
-      "pending_items": []
+      "pending_items": [
+        {
+          "id": "item-viewer-core-pointer-navigation",
+          "title": "Report 指路卡的 scope resolver、卡片渲染、整頁換頁與錯誤隔離；等待導航機制與 report_ref 建立方式兩項決策",
+          "priority": 2
+        }
+      ]
     },
     {
       "id": "windows-launcher",
@@ -171,7 +187,7 @@
       "title": "本機任務編輯",
       "status": "in_progress",
       "priority": 1,
-      "summary": "Checklist document core、WPF／WebView2 Host、restricted bridge、共用 Svelte UI 與首版 Release package contract 已驗證。實機 WPF review 已改版 UX：預設自動儲存、cache 持久化的謹慎模式，以及左側單一循環 manual marker；新規格尚未實作。",
+      "summary": "Checklist document core、WPF／WebView2 Host、restricted bridge、共用 Svelte UI 與首版 Release package contract 已驗證。實機 WPF review 已改版 UX：預設自動儲存、cache 持久化的謹慎模式，以及左側單一循環 manual marker；新規格尚未實作。 Report 層級摘要已可在正式 Viewer 編輯模式修改與清空，沿用同一條 Editor Core 草稿與儲存路徑。",
       "completed_items": [
         {
           "id": "item-local-task-editing-done-1",
@@ -487,9 +503,19 @@
           "id": "verify-shared-discard-action",
           "title": "驗證共用 SaveBar 放棄按鈕會還原 persisted snapshot、關閉 edit session 並返回預覽模式，且不寫入檔案",
           "priority": 1
+        },
+        {
+          "id": "item-edit-host-live-schema",
+          "title": "Edit host 改為依 schema 檔案本身驗證而不是啟動時的副本，schema 改動不需重啟；report 驗證失敗訊息附上 schema 指紋與讀取時間，過期時能自我指認",
+          "priority": 1
         }
       ],
       "pending_items": [
+        {
+          "id": "verify-report-summary-editing",
+          "title": "驗證正式 Viewer 編輯模式可修改與清空 report 摘要，清空後回到以任務數產生的說明，且桌面與 390px 無水平溢出",
+          "priority": 1
+        },
         {
           "id": "structured-checklist-editor",
           "title": "完成 WPF／WebView2 Checklist Editor 的新互動：預設 revision-safe 自動儲存、使用者 cache 的謹慎模式，以及可持續編輯的左側單一循環 manual marker；維持受限 bridge 與 no-LocalWebService 邊界",
