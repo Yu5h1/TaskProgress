@@ -1,15 +1,18 @@
 name: Notify docs of Viewer updates
 
+# No path filter, deliberately. verify-bundle runs the whole suite, so a change
+# anywhere — tests, schemas, service — can turn this job red, while a filter can
+# only ever list the paths someone remembered. That gap already cost two
+# releases: a test reading an untracked fixture landed green because its path
+# was not watched, and the fix for it could not verify itself for the same
+# reason. A list that must stay complete is the failure; deleting it is the fix.
+# The job takes about twenty seconds, and a dispatch for an unchanged Viewer
+# rebuilds the same artifact, so running it every time costs nothing worth
+# keeping a list for.
 on:
   push:
     branches:
       - main
-    paths:
-      - viewer/**
-      - experiments/editor-svelte-spike/**
-      - package.json
-      - package-lock.json
-      - .github/workflows/notify-docs.yml
   workflow_dispatch:
 
 permissions:
