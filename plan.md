@@ -400,31 +400,20 @@ task-progress.exe checklist <file> ──opens──> exactly one selected file
 - Desktop Host 直接讀取被指定 `.checklist` 的原始 bytes，交給既有 `ChecklistDocument` parser，儲存後原子寫回同一份檔案。不得為了讓工具辨識 Markdown 而建立可編輯的 `temp.md` 第二來源；writer 既有的短暫 `.tmp` 原子替換檔不屬於文件來源。
 - 一般文字編輯器若不會自動辨識 `.checklist`，以檔案關聯或 language association 將它映射為 Markdown；這是編輯器呈現設定，不是 TaskProgress parser 的限制。
 
-##### CLI 與 Agent workflow 遷移
+##### CLI 與 Agent workflow
 
 - CLI 保持最小入口 `task-progress.exe checklist <file>`，但只接受明確指定的 `.checklist`。第一版不增加 `new`、`list`、檔案選擇器或自動任務排程；Agent 可以使用既有檔案工具建立文件，再把確切路徑交給 CLI。
 - `task-progress.exe checklist install|uninstall` 管理目前 Windows 使用者的 `.checklist` 檔案關聯；安裝器建立的 shell command 固定回到 `task-progress.exe checklist "%1"`。使用者也可以透過 Windows「預設 App」直接關聯 EXE，此時系統只傳入 `task-progress.exe "%1"`；CLI 必須辨識唯一的 `.checklist` 參數並導向同一個 exact-file Checklist 入口。Uninstall 只有在 extension mapping 仍指向 TaskProgress ProgID 時才移除該 mapping，不修改 machine-wide Registry。
-- Agent work-route 由「專案旁存在唯一 `implementation-checklist.md`」改為「規格核定後，在該專案的 `checklists/` 建立或接續 `<task-id>.checklist`」。指派、執行、驗證與 co-commit 都只作用於目前任務的確切檔案。
-- `AgentArtifactGuide.md` 的 artifact ownership 也須同步改為 per-task `.checklist`，避免共享入口規則繼續把舊檔名指定為唯一來源。
-- 目前的 `implementation-checklist.md` 保存已結束的舊 round。遷移落地時由 Git 歷史保留它並移除工作樹中的舊入口；下一個已核定任務才建立對應 `.checklist`，不製造無任務內容的替代檔。
-- 遷移須同時更新 CLI `ValidatePath`、命令提示、Windows 檔案關聯、Agent work-route 與所有依賴舊檔名的測試。完成後不得讓 `.md` 與 `.checklist` 同時成為 canonical Checklist 入口。
+- Agent work-route 在規格核定後建立或接續目前任務的 `checklists/<task-id>.checklist`；指派、執行、驗證與 co-commit 都只作用於該確切檔案。
+- `.agents/AgentArtifactGuide.md` 定義 per-task Checklist 的 artifact ownership，`.agents/skills/agent-work-route/SKILL.md` 定義可重用的執行與換輪程序；本計畫只保留 TaskProgress 的產品契約。
 
 ##### 驗收與非目標
 
 - 同一專案中的 `task-a.checklist` 與 `task-b.checklist` 可分別開啟、編輯及儲存；任一工作階段只取得指定檔案的 capability，儲存不改動另一份檔案。
 - parser／writer 的 Markdown round-trip、衍生狀態、凍結結果、source revision 與原子替換契約在改用 `.checklist` 後維持成立。
-- Agent work-route 能在沒有 `implementation-checklist.md` 的情況下，根據已核定 Task ID 選定唯一的 `checklists/<task-id>.checklist`，且不把其他任務的清單結果混入目前 round。
+- Agent work-route 能根據已核定 Task ID 選定唯一的 `checklists/<task-id>.checklist`，且不把其他任務的清單結果混入目前 round。
 - 已完成 `.checklist` 在沒有新 round 時維持可讀；同 Task 新 round 只在上一輪已 commit 後重設同一檔案，不刪除其他 Task 的完成或進行中清單。
-- 舊入口移除後，CLI、Windows 關聯、測試與 Agent 指令都不再依賴 `implementation-checklist.md`。
 - 第一版不處理 Checklist Browser 入口、`report.json` 投影、`tasks.md` 索引、跨檔 `Depends on`、多檔彙整畫面或自動 Agent 排程。
-
-```text
-Execution size: medium
-Architectural impact: system-level — changes Checklist file ownership from one project-wide document to one document per independently executable task, and changes the shared Agent workflow route
-Volume: touches CLI path validation／messages、Windows association、filename-dependent tests、shared agent-work-route skill and the one-time legacy-file migration
-Precedent: existing exact-file Desktop capability、Checklist parser／writer、revision conflict handling and Agent claim rules
-Proof: focused CLI tests | parser／writer round-trip tests | exact-file isolation test | shared-skill route review | two-file desktop interaction
-```
 
 ```text
 TaskProgress desktop tool
