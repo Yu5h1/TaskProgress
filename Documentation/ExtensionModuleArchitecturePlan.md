@@ -1,8 +1,30 @@
 # 擴充資訊模組架構計畫
 
-> 狀態：Draft 0.1  
+> 狀態：Draft 0.2；Phase 0 合約決策已收斂；production 通用接口尚未實作，隔離 spike 不接管正式路徑。
 > 文件目的：定義 TaskProgress 如何在不擴張核心報告責任的前提下，接入目前尚未出現的專案資訊。  
 > 第一個參考實作：既有 `time.analysis.json` 時間分析功能。
+
+## 系統位置
+
+```text
+TaskProgress
+├─ Core report：report.json、report.dev.json
+│  └─ 擁有 scope、task、stable item、狀態與進度事實
+├─ Extension module system（本計畫）
+│  ├─ Discovery：report.modules.json
+│  ├─ Trusted runtime：registry、validator、subject index、slots、diagnostics
+│  ├─ First module：Time
+│  │  ├─ 私有輸入：time.config／estimates／events.json
+│  │  └─ Viewer 投影：time.analysis.json
+│  └─ Second proof：Cost
+│     └─ 只透過共同接口接入，不讓 Core 認識成本語意
+└─ Hosts and producers
+   ├─ Viewer：載入與呈現可信任模組
+   ├─ Launcher／LocalWebService：驗證並註冊精確 artifact
+   └─ Analyzer／外部工具：產生可發布投影
+```
+
+依賴方向固定為 `Host → Module Contract ← Trusted Module`。Core 不依賴 Time 或 Cost；Cost 分析器可以把 Time 投影當作具版本的輸入，但 Cost Renderer 不依賴 Time Renderer。
 
 ## 背景
 
@@ -92,7 +114,7 @@ TaskProgress Viewer
 
 `visibility`、隱藏按鈕或模組是否展開都不是存取控制。不能公開的資料不得進入 Pages artifact，也不得註冊到不適當的本機靜態路由。
 
-## 建議架構
+## 執行架構
 
 ```text
 report.json
@@ -179,6 +201,15 @@ Viewer Slots
 | `optional` | 載入失敗是否只產生模組診斷；第一版只接受 `true` |
 | `visibility` | `public`、`developer` 或 `local` 發布分類，不是授權機制 |
 
+Phase 0 將 Descriptor identity 固定如下：
+
+- 正式檔名為 `report.modules.json`；它是與 `report.json` 同目錄的選用 manifest。
+- 第一版一個 scope 內同一 `type` 只允許一個 instance；`id` 仍保留為穩定實例 identity，但重複 `id` 或重複 `type` 都拒絕整份 manifest。多 instance 等出現實際需求與命名 UX 後再升級契約。
+- `source` 必須是正規化後仍位於 report folder 內的同源相對 JSON 路徑；不得接受 query、fragment、絕對路徑或 `..`。
+- Descriptor 第一版不保存由作者提供的 sidecar digest。Loader 讀取後自行計算 artifact SHA-256，供快取、診斷與同一次載入的一致性檢查；digest 不作為授權或簽章。
+- `visibility` 決定 artifact 組裝邊界：公開部署產生的 manifest 只能列出 `public` entries；Developer／local entries 必須從公開 artifact 實際排除，而不是只靠 Viewer 隱藏。
+- Descriptor 不提供 slot order。Core 擁有 module type 的預設順序，browser-local preference 只能重排 Core 已允許的類型。
+
 第一版不在 Descriptor 中接受：
 
 - script URL；
@@ -200,6 +231,7 @@ Viewer Slots
   "module_id": "difficulty",
   "report_id": "task-progress-report",
   "scope_id": "task-progress",
+  "report_revision": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
   "generated_at": "2026-07-29T18:00:00+08:00",
   "generator": {
     "id": "taskprogress-difficulty-analyzer",
@@ -214,6 +246,8 @@ Viewer Slots
 
 共同欄位負責配對及追溯，`data` 由模組自己的 Schema 定義。模組不得假設其他模組的欄位存在；跨模組分析應由上游分析器明確讀取多個來源並產生新的獨立投影。
 
+`report_revision` 是產生投影時所讀取之 `report.json` 原始 bytes 的 SHA-256，格式固定為 `sha256:<64 lowercase hex>`。它用來判斷投影是否對應目前報告，不取代 sidecar 自己的 `schema_version`、`generated_at` 或來源 revision。legacy Time adapter 在遷移期可缺少此欄位；缺少時只記錄 `freshness_unknown`，不得宣稱投影已驗證為最新。
+
 ### Subject 對應規則
 
 - project-level 資料以共同 `scope_id` 對應。
@@ -222,6 +256,14 @@ Viewer Slots
 - 不使用畫面索引、陣列位置或顯示文字作為 identity。
 - 找不到 subject 時產生 orphan diagnostic，不猜測最相近項目。
 - 依賴 report 結構的模組應保存來源 revision、`updated_at` 或內容指紋，以偵測過期投影。
+
+### Stale 最低政策
+
+- `report_revision` 相符：可正常呈現。
+- revision 缺少：模組可呈現，但詳細診斷標示 `freshness_unknown`；這只適用於 legacy 遷移，不是新模組的合法輸出。
+- revision 不符：共同狀態為 `stale`。Core 隱藏 task／item inline 值、停止 action 與 runtime controller，只允許 detail slot 顯示「資料待重算」及投影時間；不得用過期資料產生期限燈號或可編輯預覽。
+- orphan subjects 與 stale 是不同診斷；不得因一個 orphan 丟棄其餘仍能對應的 subject。
+- Analyzer 成功重算並通過驗證後才清除 stale；Viewer 不自行改寫 revision，也不以目前時間猜測資料已恢復。
 
 ## Viewer 模組接口
 
@@ -365,7 +407,7 @@ External status 模組不得讓 TaskProgress 成為交易或法律事實的 cano
 - 相容的小版本可由模組 Adapter 正規化；破壞性變更使用新 major schema。
 - 未知 type、未知版本或無效資料只停用該模組。
 - manifest 不存在時保持基本報告；遷移期仍可沿用既有時間 sidecar 自動發現。
-- 明確停用全部模組時可考慮 `?modules=none`；個別模組停用的 URL 介面留待 Phase 1 決定。
+- `?modules=none` 是第一版唯一共同 override，停用所有模組但不影響基本報告。既有 `?time=none` 在遷移期保留為只停用 `taskprogress.time` 的相容 alias；第一版不新增任意 per-module query 語法。
 
 ## 錯誤與降級政策
 
@@ -381,6 +423,13 @@ External status 模組不得讓 TaskProgress 成為交易或法律事實的 cano
 | 投影落後於 report revision | 標示 stale 或依模組政策暫停顯示 |
 | Renderer 發生例外 | 捕捉於模組邊界，清理該模組 UI |
 | Runtime controller 失敗 | 停止動態更新，保留仍可信的靜態資料或隔離模組 |
+
+診斷分級固定為：
+
+- 公開 Viewer 的主報告不顯示技術細節；只有當使用者已看見模組入口但該模組之後失效時，顯示低干擾的「部分擴充資訊無法使用」。
+- localhost／Developer 模式提供結構化 module diagnostics，包括 module ID、階段、錯誤碼與安全裁切後的訊息。
+- Console 可以記錄相同錯誤碼，但不得輸出 local path、private source 或未裁切 payload。
+- unknown type 在公開模式靜默跳過，在 localhost／Developer 模式記錄 `unsupported_module_type`。
 
 模組不得自行吞掉錯誤後顯示虛構的零值、預設值或成功狀態。預設值必須由來源或分析器明確產生，並攜帶 provenance 與 confidence。
 
@@ -430,6 +479,59 @@ External status 模組不得讓 TaskProgress 成為交易或法律事實的 cano
 
 完成公開報告、Launcher 與 tests 的遷移後，再決定何時停止 legacy discovery。停止前必須有明確版本及升級說明。
 
+### Time-first 垂直切片
+
+Time 不整包搬遷；依能力由低到高驗證同一契約：
+
+1. **唯讀 estimate-only**：manifest 發現既有 Draft 0.2 sidecar，建立 project／task／item index，顯示「交付日未定」摘要、item capsule 與估算 detail。這是最小 end-to-end case，不啟動 deadline runtime，也不改本機寫入。
+2. **完整 deadline**：沿用同一 Time Module 增加容量、風險、每分鐘／`pageshow`／foreground refresh 與 `dispose()`，證明 Runtime Controller 不洩漏到 Core。
+3. **本機編輯與 preview**：在 Launcher provider 與 analysis module 完成後，讓共享 Time Dialog 的草稿、重新計算、multi-file transaction 走 module capability；公開 Viewer 仍沒有寫入能力。
+4. **legacy parity gate**：對相同 `time.analysis.json`，manifest 路徑與 legacy discovery 的可見模型、診斷、無障礙名稱及風險計算相同；只有載入來源不同。
+
+若第一切片仍要求 `app.js`、`ReportFolder` 或 route registration 新增 Time 專用分支，先修正共同接口，不進入 deadline 或編輯切片。
+
+### 實驗性遷移與功能唯一性
+
+實驗版本可以與正式版本同時存在於 source tree，但不得同時成為功能權威。功能唯一性以「一次執行只有一個資料擁有者、一個 Renderer、一個 Runtime Controller 與一條寫入路徑」判定，不以「repository 只能出現一個 adapter class」判定。
+
+Time 的共用邊界固定如下：
+
+```text
+Legacy discovery adapter ─┐
+                          ├─ Normalized Module Input
+Manifest module loader ───┘          │
+                                     ▼
+                              Shared Time Module
+                              ├─ time-model／validator／subject index
+                              ├─ TimeDialog／capsule／detail Renderer
+                              ├─ deadline runtime
+                              └─ preview／save capability adapter
+```
+
+- Legacy 與 manifest 路徑只負責「如何找到並正規化 artifact」，不得各自複製 Time Schema 驗證、估算算法、TimeDialog、capsule、deadline runtime 或編輯 transaction。
+- Loader 對 sidecar 只讀取一次，再把不可變 snapshot 交給選定的 adapter；不得讓兩條路徑各自 fetch 後形成不同時間點的狀態。
+- Production composition root 每次只啟用一個 discovery adapter。manifest 存在時選 manifest；不存在時選 legacy。兩者最後註冊同一個可信任 Time Module。
+- 實驗 registry 選擇由 test harness 或 exact-loopback Developer host 注入，不寫入 report／manifest，也不成為公開 URL capability；資料檔不能要求 Viewer 啟用實驗程式。
+- 新舊 adapter 的選擇只能存在於 composition root，不得散布成 `if experimental`、`if legacy` 或產品名稱分支。
+
+實驗依序使用四種模式：
+
+1. **Fixture mode**：新 loader 只跑純模型與 contract fixtures，不載入 production Viewer。
+2. **Passive shadow mode**：正式 legacy adapter 繼續擁有畫面與 runtime；新 loader 對同一不可變輸入產生 normalized result，僅記錄安全裁切後的差異。Shadow 不得呼叫 `render()`、`start()`、preview、save 或 route mutation。
+3. **Isolated preview mode**：只在測試或 exact-loopback Developer host 中，由新 loader 單獨成為 active adapter；legacy adapter 完全不啟動。它仍使用同一個 Time Module 與共享 UI，讓人可操作測試但不產生第二套介面。
+4. **Production cutover**：parity gate 通過後，composition root 將 manifest loader 設為正式路徑；legacy adapter 僅保留為無 manifest scope 的相容 fallback，直到移除條件成立。
+
+Shadow 比對使用固定 `as_of`，比較 schema version、identity、subject index、capability、估算數值、風險結果、diagnostic code 與可執行 action 集合；排除 fetch timing、物件順序及非語意性的產生時間。若新版刻意改變產品行為，差異必須先成為明確的新驗收規格，不得把它列入 parity 例外後靜默放行。
+
+實驗性遷移的退出條件：
+
+- source scan 證明 Time UI 與領域算法各只有一份 production implementation；
+- instrumentation 證明一次 scope load 只有一個 active adapter、一個 Time Module instance 與一個 deadline timer；
+- shadow mode 無 DOM、timer、network mutation、route mutation 或檔案寫入能力；
+- isolated preview 關閉後不留下 module state、event listener、timer 或 edit session；
+- 相同 fixture 在 legacy 與 manifest 路徑產生相同 normalized semantic result；
+- 切換 adapter 不改 `report.json`、Time sidecar 或共享 UI contract，回退只需切回 composition selection。
+
 ## 第二個驗證模組：Cost
 
 完成 time 遷移後，以 `taskprogress.cost` 驗證 project／task／item 三層對應、商業資料隱私與跨模組分析，同時不得讓核心新增成本領域特例。
@@ -449,15 +551,38 @@ Cost 是 Time 的同級模組，不是 Time 的附屬欄位。成本分析器可
 
 ## 分階段實作
 
+### 規模與依賴
+
+```text
+Phase 0 契約凍結（本 Draft 已完成）
+└─ Phase 1 Schema／純模型
+   ├─ Phase 2 Viewer／Time 遷移
+   ├─ Phase 3 Launcher／Analyzer 遷移
+   └─ Gate：Phase 2＋3 的 Time parity 都通過
+      └─ Phase 4 Cost 第二模組驗證
+         └─ Phase 5 Generic metrics／SDK 評估
+```
+
+```text
+Execution size       : large
+Architectural impact : system-level
+Evidence             : 現有 Time 特例至少分布於 17 個 JS／Svelte／Node 檔與 7 個 C#／Python 檔，並跨 Viewer、CLI、LocalWebService、Analyzer、Schema 與發布流程
+Precedent             : Phase 1 是新共同契約；Phase 2／3 是保行為的既有 Time 移植；Phase 4 是第二案例的抽象驗證
+Proof                 : Schema／純模型單元測試、Node 與 .NET 整合測試、實際 localhost Viewer、靜態 Pages 路徑與 390px／鍵盤／螢幕閱讀器人工驗證
+```
+
+整體工作不可視為一次大改。每個 Phase 必須能獨立合併、保留基本報告可用，且前一 Phase 的退出條件通過後才進下一 Phase。Phase 2 與 Phase 3 可以分支開發，但 Time 遷移的完成判定必須同時滿足 Viewer 與 Host／Analyzer 兩側。
+
 ### Phase 0：語意與邊界
 
-- 確認 `report.modules.json` 命名與位置。
-- 確認 module type、instance ID、schema version 與 report identity 規則。
-- 確認 public、developer、local 的發布語意。
-- 決定 unknown module 是否顯示低干擾診斷。
-- 決定 stale projection 的共同最低行為。
+- 採 `report.modules.json`，第一版每個 module type 每 scope 一個 instance。
+- manifest、共同 envelope 與領域 Schema 各自版本化；新模組必須提供 `report_revision`。
+- public／developer／local 由 artifact 組裝與 route 註冊真正分離。
+- unknown module 只在 localhost／Developer diagnostics 顯示技術資訊。
+- stale projection 停止 inline、action 與 runtime，只保留待重算的 detail 說明。
+- Core 固定預設顯示順序；manifest 與 Renderer 不得控制 slot order。
 
-完成條件：不依賴 time 欄位即可描述一個模組及其生命週期。
+完成條件：不依賴 Time 欄位即可描述一個模組及其生命週期，且上述決策已由本 Draft 固定。此 Phase 不產生 production code。
 
 ### Phase 1：Schema 與純模型
 
@@ -467,17 +592,22 @@ Cost 是 Time 的同級模組，不是 Time 的附屬欄位。成本分析器可
 - 建立 registry、version negotiation、diagnostic 與 subject index 純函式。
 - 為未知 type、版本不符、identity 不符、orphan、stale 與部分失敗建立測試。
 
-完成條件：不操作 DOM、不啟動服務即可完整驗證模組發現與配對。
+交付物：manifest Schema、common `$defs`、module loader 純模型、diagnostic code 表與 fixture matrix。
+
+完成條件：不操作 DOM、不啟動服務即可完整驗證模組發現、版本協商、路徑限制、identity、revision 與 subject 配對；無效 manifest 不影響獨立的 `report.json` 驗證。
 
 ### Phase 2：Viewer Registry 與 Time 遷移
 
 - 建立可信任 Viewer module registry。
 - 定義 slots 與 Renderer context。
-- 將 time-model、time-view 與 deadline runtime 包裝成 Time Viewer Module。
+- 先將 time-model、共享 Time UI 與 deadline runtime 包裝成唯一的 Time Viewer Module，讓 legacy discovery adapter 呼叫它而不改行為。
+- 再加入 manifest loader、passive shadow 與 isolated preview composition；兩條 discovery 路徑只能產生同一 normalized module input。
 - 保持既有時間功能及視覺回歸測試。
 - 增加單一 Renderer 失敗不影響其他模組與基本報告的測試。
 
-完成條件：核心 `app.js` 不再直接包含時間領域載入流程。
+交付物：可信任 registry、slot contract、唯一 Time Viewer Module、legacy／manifest discovery adapters、shadow comparator、Developer preview composition 與 runtime dispose 測試。
+
+完成條件：核心 `app.js` 不再直接包含時間領域載入流程；有 manifest Time、legacy Time、無 Time 三條路徑的可見行為與現況一致；一次只啟用一個 adapter／Renderer／controller，且模組例外不移除 task／item 核心內容。
 
 ### Phase 3：Launcher Provider 與 Time Analyzer 遷移
 
@@ -487,7 +617,9 @@ Cost 是 Time 的同級模組，不是 Time 的附屬欄位。成本分析器可
 - 保留沒有時間輸入時不自動建立資料的政策。
 - 驗證多 scope、多模組、路由衝突與目錄逃逸。
 
-完成條件：新增純資料模組時，不必修改 `ReportFolder` record 或 LocalWebService 固定檔名白名單。
+交付物：module provider、analysis-module registry、Time provider／analyzer adapter、精確 route 註冊與 stale route 清理。
+
+完成條件：新增純資料模組時，不必修改 `ReportFolder` record 或 LocalWebService 固定檔名白名單；`analyze`、`open`、`start` 的 Time 行為與原有輸出保持相容，目錄逃逸與衝突在任何 service mutation 前失敗。
 
 ### Phase 4：Cost 第二模組
 
@@ -496,7 +628,9 @@ Cost 是 Time 的同級模組，不是 Time 的附屬欄位。成本分析器可
 - 驗證 project/task/item 三層掛載。
 - 驗證 time 與 cost 同時存在、cost 明確讀取 time 投影、任一模組失敗及顯示順序。
 
-完成條件：第二模組只透過共同接口接入，核心沒有領域名稱特例。
+交付物：Cost Draft Schema、最小 analyzer／外部投影 fixture、Renderer 與跨模組 lineage 測試。
+
+完成條件：第二模組只透過共同接口接入，Core 沒有 Cost 領域名稱、固定檔名或 Time Renderer 相依；沒有 Time 時仍能顯示直接成本，有 Time 時能以明確 input revision 重算 estimated／replacement 成本。
 
 ### Phase 5：一般指標與開發套件評估
 
@@ -505,12 +639,25 @@ Cost 是 Time 的同級模組，不是 Time 的附屬欄位。成本分析器可
 - 只有在第三方確實需要獨立開發模組時，才評估外部 SDK、套件載入與安裝流程。
 - 動態程式模組若進入設計，必須另行處理簽章、來源信任、權限、更新與隔離，不沿用資料 manifest 直接執行。
 
+此 Phase 不阻塞 Time／Cost。`taskprogress.metrics` 白名單、外部 SDK 與多 instance 支援只有在出現第三個真實案例後才設計，避免用假想變體擴張第一版契約。
+
+## 遷移與回退
+
+- Phase 1 只新增純模型，不接管 production 載入路徑；回退是停止呼叫新模型，基本報告與 Time 不受影響。
+- Phase 2／3 期間先由 legacy adapter 接上唯一 Time Module，再以 passive shadow 驗證 manifest loader。新路徑發生回歸時，關閉 Developer composition 或移除 `report.modules.json` 即回到 legacy discovery；不得要求修改 `report.json`。
+- manifest 存在時以 manifest 為唯一 discovery 來源，不再執行 legacy filename discovery；manifest 不存在時才自動尋找既有 `time.analysis.json`。同一 sidecar 不得被載入或顯示兩次。
+- legacy discovery 至少保留到 Cost 完成、公開 Pages 與 localhost 都通過一個 release cycle；移除必須另立遷移決策、版本與升級說明。
+- 每個 Phase 的 schema、source 與產出 bundle 必須同一變更交付；已提交的 Viewer bundle 不得落後於 registry／Renderer source。
+
 ## 驗證矩陣
 
 至少覆蓋：
 
 - 無 manifest、空 manifest、有效 manifest、無效 manifest；
 - legacy time、有 manifest time、兩者同時存在；
+- fixture、passive shadow、isolated preview 與 production composition；
+- shadow 嘗試 render、start、preview、save 或 route mutation 時必須被 capability boundary 拒絕；
+- legacy／manifest adapter 對相同 snapshot 的 normalized parity，以及固定 `as_of` 的 deadline parity；
 - 未知 module type；
 - 支援及不支援的 module schema version；
 - module/report identity 相符與不符；
@@ -538,15 +685,25 @@ Cost 是 Time 的同級模組，不是 Time 的附屬欄位。成本分析器可
 - 公開與非公開模組資料在部署及本機註冊層真正分離。
 - 文件能清楚區分「模組資料」、「可信任 Renderer」、「分析器」與「外部交易系統」。
 
-## 尚待決定
+## 驗收清單
 
-1. manifest 正式採 `report.modules.json`、`modules.json` 或其他名稱。
-2. Descriptor 是否保存 sidecar digest，以驗證內容配對及快取。
-3. 同一 module type 是否允許多個 instance，以及 UI 如何命名。
-4. 模組在同一 slot 的順序由核心、registry 或 manifest 哪一方決定。
-5. unknown module 診斷預設只進開發診斷，或也向一般觀看者顯示。
-6. stale projection 的共同欄位採 report `updated_at`、內容 digest 或獨立 revision。
-7. manifest 是否需要 Developer overlay，或由單一 manifest 配合發布流程裁切。
-8. `?time=` 等 legacy query 如何映射到共同 module override。
-9. 一般指標 Renderer 的資料元件白名單與無障礙限制。
-10. 模組 Schema 何時從 repository 內部契約升為可供外部工具使用的穩定規格。
+1. 以只有 `report.json` 的 fixture 證明零模組路徑不增加錯誤或空 UI。
+2. 以 manifest Time fixture 證明工程估算、estimate-only、deadline、容量編輯與 runtime refresh 保持行為。
+3. 以 legacy Time fixture 證明遷移期間不要求既有 scope 先改資料。
+4. 以 instrumentation 證明新舊 adapter 可留在 source tree，但一次只存在一個 active Renderer、controller、timer 與寫入能力。
+5. 以 shadow capability tests 證明實驗路徑不能產生 DOM、timer、network／route mutation 或檔案寫入。
+6. 以未知、無效、stale 與 Renderer exception fixtures 證明錯誤只隔離單一模組。
+7. 以路徑 traversal、cross-origin、過大 payload 與重複 identity fixtures 證明資料不能擴權。
+8. 以 Cost fixture 證明三層 subject、visibility 裁切、Time 可選輸入與無 Time 降級。
+9. 以 source scan 證明 Core loader、`ReportFolder` 與 route whitelist 不含 `cost` 特例；Time UI／算法只有一份 production source，adapter 選擇只存在於 composition root。
+10. 以實際 localhost 與靜態相對路徑驗證 manifest、sidecar、query override、scope switch 與 stale route 清理。
+11. 以 390px、鍵盤與螢幕閱讀器驗證 capsule strip、detail、diagnostic 與 focus restoration。
+12. 由未參與實作者逐項對照本清單，任何一項可判為 unmet；不以「全部測試有跑」取代架構驗收。
+
+## 延後但不阻塞的決策
+
+1. 同一 module type 的多 instance 支援：等出現真實命名與比較需求後另行升級 manifest major version。
+2. `taskprogress.metrics` 的元件白名單與無障礙限制：在 Phase 5 由第三個真實模組案例決定。
+3. 外部開發 SDK 與動態 Renderer：Time／Cost 只驗證內建可信任 registry，不因此承諾套件安裝系統。
+4. 對外穩定 Schema：manifest 與 common envelope 在 Time 遷移及 Cost 驗證期間維持 repository-internal Draft；Phase 4 通過並有升級／相容指南後才評估 1.0。
+5. legacy Time discovery 的移除版本：必須取得至少一個 release cycle 的雙 host 證據後另行決定。

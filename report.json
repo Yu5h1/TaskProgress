@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-08-22T11:30:00+08:00",
+  "updated_at": "2026-08-23T12:22:38+08:00",
   "tasks": [
     {
       "id": "viewer-core",
@@ -519,6 +519,11 @@
         {
           "id": "structured-checklist-editor",
           "title": "完成 WPF／WebView2 Checklist Editor 的新互動：預設 revision-safe 自動儲存、使用者 cache 的謹慎模式，以及可持續編輯的左側單一循環 manual marker；維持受限 bridge 與 no-LocalWebService 邊界",
+          "priority": 1
+        },
+        {
+          "id": "move-time-settings-into-delivery-dialog",
+          "title": "將時間編輯設定收進交付日按鈕開啟的共享 TimeDialog：主頁不直接暴露表單，編輯模式在面板內依序提供交付日、每日分配、工作日、休假／容量例外與重新計算",
           "priority": 1
         },
         {

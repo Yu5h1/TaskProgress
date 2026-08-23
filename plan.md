@@ -405,7 +405,7 @@ task-progress.exe checklist <file> ──opens──> exactly one selected file
 - CLI 保持最小入口 `task-progress.exe checklist <file>`，但只接受明確指定的 `.checklist`。第一版不增加 `new`、`list`、檔案選擇器或自動任務排程；Agent 可以使用既有檔案工具建立文件，再把確切路徑交給 CLI。
 - `task-progress.exe checklist install|uninstall` 管理目前 Windows 使用者的 `.checklist` 檔案關聯；安裝器建立的 shell command 固定回到 `task-progress.exe checklist "%1"`。使用者也可以透過 Windows「預設 App」直接關聯 EXE，此時系統只傳入 `task-progress.exe "%1"`；CLI 必須辨識唯一的 `.checklist` 參數並導向同一個 exact-file Checklist 入口。Uninstall 只有在 extension mapping 仍指向 TaskProgress ProgID 時才移除該 mapping，不修改 machine-wide Registry。
 - Agent work-route 在規格核定後建立或接續目前任務的 `checklists/<task-id>.checklist`；指派、執行、驗證與 co-commit 都只作用於該確切檔案。
-- `.agents/AgentArtifactGuide.md` 定義 per-task Checklist 的 artifact ownership，`.agents/skills/agent-work-route/SKILL.md` 定義可重用的執行與換輪程序；本計畫只保留 TaskProgress 的產品契約。
+- `.agents/skills/checklist-round/SKILL.md`（本 repo）定義 per-task Checklist 的 artifact ownership、執行與換輪程序；`../.agents/skills/agent-work-route/SKILL.md` 只保留 opt-in 觸發條件並指向它。本計畫只保留 TaskProgress 的產品契約。
 
 ##### 驗收與非目標
 
@@ -1279,7 +1279,7 @@ Agent 先依穩定 task/item id 與可驗證特徵尋找相似歷史資料，再
 
 report 與時間輸入的正式儲存均已完成：全域模式可修改 task title／summary／status／priority、子項目 title／priority、新增或刪除兩層任務，也可修改交付日，以及穩定子項目的人工工時、人工依據與獨立人工確認。每張卡只在最底部保留一個新增待處理項目的「＋」。切回預覽直接從 persisted snapshot 重建，離頁只在 dirty 時警告。全域儲存以同一 transaction 更新 canonical report／config／estimates、建立 estimate supersede version、寫入遮蔽歷史並呼叫既有 analyzer；任一步驟失敗都回復全部來源。
 
-工作容量介面不再持有第二套編輯狀態。預覽模式的「工作容量」頁完全唯讀；進入全域編輯後，標題精簡為「設定」的容量表單直接置於該頁最上方，不顯示「編輯工作容量」、局部「編輯中」或「取消」。面板內唯一動作是「重新計算」，它只把驗證後的容量 profile 套到記憶體分析並更新期限預覽，同時將全域草稿標為 dirty。全域儲存開始時才暫存 localStorage 變更；report 寫入成功後提交，失敗則回復原 localStorage。切回預覽會用 persisted capacity profile 還原分析及畫面。
+工作容量介面不再持有第二套編輯狀態，也不得直接暴露在報告頁面。專案層只保留既有「交付日」膠囊／按鈕作為時間明細與編輯的唯一入口；點擊後開啟共享 `TimeDialog`，全域編輯模式才在該面板內顯示「設定」。設定使用單一垂直資訊流，依序為交付日、每日分配、工作日、休假／容量例外及「重新計算」。重新計算只把驗證後的容量 profile 套到記憶體分析並更新期限預覽，同時將全域草稿標為 dirty；正式保存仍遵循全域 persistence mode 與同一 multi-file transaction。關閉面板不等於保存或放棄，主畫面也不得另掛第二份 `TimeSettingsEditor`。
 
 ### 正式人工估算編輯契約
 
@@ -1317,21 +1317,22 @@ Editor UI 尚未模組化完成，但已不再從零開始。正式 Viewer 與 D
 
 Svelte 是 UI 組合技術的替換，不是重新設計。每個區塊開始實作前，先以既有 Viewer 為基準列出並凍結：內容順序、垂直／水平結構、按鈕目的地、Dialog 流程、文字、焦點與鍵盤、主題，以及桌面與 390px 行為。新元件只有在自動測試與實際畫面比對都通過後，才能取代舊 Surface。
 
-目前時間區塊必須先恢復三項契約：
+時間區塊遵循三項契約：
 
-- 交付日位於時間設定最上方，其後才是每日分配、工作日及休假／容量例外。
-- 時間設定的面板標題與編輯內容垂直排列，不使用左右兩欄重新詮釋既有版面。
+- 報告頁面只顯示「交付日」膠囊／按鈕，不直接展開時間設定；該按鈕開啟既有共享 `TimeDialog`。
+- 全域編輯模式的時間設定位於此 Dialog 內，交付日排在最上方，其後才是每日分配、工作日及休假／容量例外；標題與內容垂直排列。
 - 任務項目的工時維持可點擊膠囊，點擊後進入既有時間彈出面板；人工工時、人工依據與人工確認放在彈出面板內，不在項目列展開 inline details。
 
 若 parity matrix 尚未建立或畫面比對失敗，不繼續搬移下一個 Viewer 區塊，也不刪除舊實作。
 
-##### 時間編輯 UX parity 修復 Draft 0.1（2026-08-10）
+##### 時間編輯入口與面板 UX Draft 0.2（2026-08-23）
 
-這一輪是既有 Viewer 操作的 settled port，不是新介面設計。以下規格是驗收依據；當輪執行狀態由對應 Task 的 Checklist 追蹤。
+時間功能使用同一個共享 Dialog，不在頁面與 Dialog 各維護一份設定介面。以下規格是後續實作與驗收依據；執行狀態由 `report.json` 的 `local-task-editing.pending_items` 指路。
 
 **決策與理由**
 
-- `TimeSettingsEditor` 使用單一垂直資訊流：標題、交付日、每日分配／工作日、休假與容量例外、重新計算。交付日影響後續所有估算，因此先於容量細節；標題與內容不可形成左右欄。
+- 專案層的「交付日」膠囊／按鈕是時間明細與時間設定的唯一入口。預覽與編輯模式都開啟既有共享 `TimeDialog`，主報告內容區不得直接 mount `TimeSettingsEditor`。
+- 預覽模式的 Dialog 保持唯讀；全域編輯模式在同一 Dialog 內顯示 `TimeSettingsEditor`。設定使用單一垂直資訊流：交付日、每日分配／工作日、休假與容量例外、重新計算。交付日影響後續所有估算，因此先於容量細節；標題與內容不可形成左右欄。
 - `ItemRow` 的時間膠囊在預覽與編輯模式保持同一位置與同一入口。點擊後開啟既有的共享 `TimeDialog`，不在列內展開第二套人工估算表單。
 - 人工工時、人工依據與人工確認在 `TimeDialog` 的項目內容中編輯。現有顯示值轉為可編輯狀態，不在唯讀內容後方追加重複表單。
 - 套用人工估算只更新記憶體中的共用 draft 並標記全域編輯工作階段為 dirty；不直接寫檔。全域儲存才執行驗證、重新分析與交易寫入，切回預覽則放棄草稿。
@@ -1339,13 +1340,14 @@ Svelte 是 UI 組合技術的替換，不是重新設計。每個區塊開始實
 
 **驗收清單**
 
-- [ ] 桌面與 390px 寬度下，時間設定標題與內容皆垂直排列，交付日是第一個可編輯區塊，沒有水平溢位。
+- [ ] 預覽與編輯模式的主報告內容都只顯示「交付日」入口，頁面中沒有直接展開或重複的時間設定表單。
+- [ ] 點擊「交付日」後開啟共享 `TimeDialog`；全域編輯模式下，時間設定在該面板內垂直排列，交付日是第一個可編輯區塊，桌面與 390px 均無水平溢位。
 - [ ] 有時間資料的項目在預覽／編輯模式都顯示同一顆可由滑鼠與鍵盤啟動的時間膠囊，位置不因模式改變。
 - [ ] 編輯模式點擊膠囊後，人工工時、人工依據與人工確認出現在既有項目 `TimeDialog`；項目列不再出現 inline `<details>`。
 - [ ] Dialog 以目前 draft 初始化欄位；合法套用後更新畫面與全域 dirty 狀態，錯誤留在 Dialog 內且不修改 draft。
 - [ ] 關閉 Dialog 不等於儲存；離開全域編輯模式仍依既有 discard 契約還原，正式儲存仍走既有 preview／confirmation／transaction 流程。
 - [ ] 關閉 Dialog 後焦點回到啟動它的時間膠囊；既有 Escape、關閉按鈕與背景關閉行為不退化。
-- [ ] 原始 Svelte 元件、Viewer committed bundle 與針對性契約測試一致；沒有新增第二個時間 Dialog 或 host-specific markup。
+- [ ] 原始 Svelte 元件、Viewer committed bundle 與針對性契約測試一致；沒有新增第二個時間 Dialog、頁面直出設定或 host-specific markup。
 
 **明確排除**
 
@@ -1577,7 +1579,7 @@ ItemRow 是每張任務卡內的一筆子項目。這份矩陣已於 2026-08-02 
 
 編輯模式中的初版互動：
 
-- 交付膠囊與時間報告面板在全域編輯模式顯示日期、時間、唯讀 timezone、交付日未定切換及修改原因。
+- 交付膠囊／按鈕是主報告頁面唯一的時間設定入口；點擊後由共享 `TimeDialog` 在全域編輯模式顯示日期、時間、唯讀 timezone、交付日未定切換、修改原因及其他時間設定，這些欄位不得直接暴露於主頁。
 - 尚未儲存時使用 draft 重建容量時間線及期限風險，只作預覽，不改寫來源或歷史。
 - 與其他任務修改共用固定於 viewport 底部、右緣對齊內容面板的全域「儲存」；離開或 reload 前沿用未儲存內容保護，切回預覽模式則直接放棄草稿。
 - 儲存時檢查 `scope_id`、來源 `updated_at`／內容指紋及目前 revision，禁止另一分頁或 Agent 更新後仍採最後寫入者覆蓋。

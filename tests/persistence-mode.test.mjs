@@ -134,6 +134,77 @@ test("automatic mode commits discrete commands at once and debounces text", asyn
   assert.equal(controller.snapshot().status, "saved");
 });
 
+test("the controller forwards a document-specific payload without owning its schema", async () => {
+  let dirty = false;
+  const calls = [];
+  const session = {
+    snapshot: () => ({ dirty, history: { canUndo: false, canRedo: false } }),
+    dispatch() { dirty = true; },
+    prepareSave: () => ({
+      report: { report_id: "example" },
+      inputs: { config: { scope_id: "example" } },
+      changes: [{ field_path: "time.config.project.delivery_at" }],
+      errors: [],
+    }),
+    commit() { dirty = false; },
+    discard() { dirty = false; },
+  };
+  const { controller } = harness({
+    session,
+    save: async (payload) => {
+      calls.push(payload);
+      return { report: payload.report };
+    },
+  });
+
+  await controller.dispatch({ type: "set-report-field" });
+  assert.deepEqual(calls, [{
+    report: { report_id: "example" },
+    inputs: { config: { scope_id: "example" } },
+    changes: [{ field_path: "time.config.project.delivery_at" }],
+  }]);
+  assert.equal(controller.snapshot().dirty, false);
+});
+
+test("external domain drafts use the same schedule and confirmation boundary", async () => {
+  let dirty = true;
+  let allow = false;
+  const calls = [];
+  const session = {
+    snapshot: () => ({ dirty, history: { canUndo: false, canRedo: false } }),
+    dispatch() {},
+    prepareSave: () => ({ report: { report_id: "example" }, errors: [] }),
+    commit() { dirty = false; },
+    discard() { dirty = false; },
+  };
+  const { controller } = harness({
+    session,
+    save: async (payload) => {
+      calls.push(payload);
+      return payload;
+    },
+  });
+  const guarded = createPersistenceController({
+    session,
+    save: async (payload) => {
+      calls.push(payload);
+      return payload;
+    },
+    confirmSave: async () => allow,
+  });
+
+  await guarded.changed({ type: "set-time-settings" });
+  assert.equal(calls.length, 0);
+  assert.equal(guarded.snapshot().status, "cancelled");
+  assert.equal(guarded.snapshot().dirty, true);
+
+  allow = true;
+  await guarded.save();
+  assert.equal(calls.length, 1);
+  assert.equal(guarded.snapshot().dirty, false);
+  assert.equal(controller.snapshot().dirty, false);
+});
+
 test("Undo and Redo are ordinary automatic commits", async () => {
   const { controller, calls } = harness();
   await controller.dispatch({ type: "set-flag", value: "on" });

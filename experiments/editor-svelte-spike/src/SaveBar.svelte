@@ -6,11 +6,9 @@
   // its styling instead of being restyled from scratch.
   //
   // `cautious` is the persistence mode, not a host knob: Save and Discard exist
-  // only in cautious mode, while status and Undo/Redo exist in both. It defaults
-  // to `true` because the Report Editor still owns an explicit-save flow (its
-  // dual-host migration is the separate priority-2 item); a host on the shared
-  // persistence controller passes the real mode and the toggle callback.
-  export let cautious = true;
+  // only in cautious mode, while status and Undo/Redo exist in both. Automatic
+  // mode is the shared default; each host passes the controller's current mode.
+  export let cautious = false;
   export let onToggleCautious = null;
   export let cautiousLabel = "謹慎模式";
   export let dirty = false;
@@ -60,7 +58,7 @@
   <button
     class="secondary-button edit-discard-button"
     type="button"
-    aria-label="放棄全部修改並回到預覽模式"
+    aria-label="放棄全部修改"
     disabled={saving}
     onclick={onDiscard}
   >{discardLabel}</button>

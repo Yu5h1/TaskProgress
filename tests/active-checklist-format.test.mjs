@@ -126,8 +126,12 @@ test("check fields use the nested bullet syntax the parser accepts", () => {
   }
 });
 
-test("every round identity points at a plan anchor", () => {
+test("every round identity points at a project plan anchor", () => {
   for (const { name, lines } of documents) {
-    assert.match(lines[2] ?? "", /^Current round: `plan\.md#.+`\.$/u, name);
+    assert.match(
+      lines[2] ?? "",
+      /^Current round: `(?:plan\.md|Documentation\/(?:[A-Za-z0-9._-]+\/)*[A-Za-z0-9._-]+\.md)#[^`]+`\.$/u,
+      name,
+    );
   }
 });

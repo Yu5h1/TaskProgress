@@ -23,6 +23,7 @@ const SAVED = "已儲存。";
 const DISCARDED = "已放棄尚未儲存的變更。";
 const NOTHING_TO_SAVE = "沒有需要儲存的變更。";
 const SAVE_FAILED = "儲存失敗。";
+const SAVE_CANCELLED = "已取消儲存；草稿仍保留。";
 const MODE_BLOCKED = "謹慎模式仍有未儲存草稿；請先儲存或放棄再切換。";
 
 export function loadCautiousPreference(storage = globalThis.localStorage) {
@@ -49,6 +50,7 @@ export function createPersistenceController({
   storage = globalThis.localStorage ?? null,
   debounceMs = 400,
   debounceCommand = () => false,
+  confirmSave = null,
   timers = globalThis,
   onChange = () => {},
 } = {}) {
@@ -115,10 +117,17 @@ export function createPersistenceController({
       return;
     }
     const prepared = session.prepareSave();
-    if (prepared.errors.length) {
+    const errors = Array.isArray(prepared.errors) ? prepared.errors : [];
+    if (errors.length) {
       // An incomplete draft (a failure without Observed) is never written and
       // never pauses the mode — the next valid edit commits it.
-      setStatus("incomplete", prepared.errors[0].message);
+      setStatus("incomplete", errors[0].message);
+      notify();
+      return;
+    }
+    const { errors: _errors, ...payload } = prepared;
+    if (typeof confirmSave === "function" && await confirmSave(payload, { manual }) === false) {
+      setStatus("cancelled", SAVE_CANCELLED);
       notify();
       return;
     }
@@ -126,7 +135,7 @@ export function createPersistenceController({
     setStatus("saving", SAVING);
     notify();
     try {
-      const saved = await save({ revision: prepared.revision, results: prepared.results });
+      const saved = await save(payload);
       session.commit(saved);
       setStatus("saved", SAVED);
     } catch (error) {
@@ -210,7 +219,14 @@ export function createPersistenceController({
   return Object.freeze({
     snapshot,
     dispatch(command) {
-      session.dispatch(command);
+      const changed = session.dispatch(command);
+      if (changed === false) {
+        notify();
+        return null;
+      }
+      return afterChange(debounceCommand(command) === true);
+    },
+    changed(command = {}) {
       return afterChange(debounceCommand(command) === true);
     },
     undo() {

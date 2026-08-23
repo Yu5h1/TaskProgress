@@ -1,0 +1,36 @@
+# Experimental Time Module Checklist
+
+Current round: `plan.md#擴充資訊模組方向`.
+
+Implement the approved isolated Time module experiment. The production Viewer remains unchanged; this round proves discovery, normalization, single-owner composition, and current-estimate parity.
+
+- [x] **1. Establish the experimental module contract**
+  Outcome: An isolated pure-JavaScript contract validates manifest identity and safe module sources, then normalizes manifest and legacy Time discovery into the same immutable input.
+  Checks:
+    - [x] **Discovery contract tests**
+      - Action: Run the focused experimental Time module test file.
+      - Expect: Valid manifest and legacy discovery converge; mismatched identity, duplicate types, and unsafe sources are rejected.
+
+- [x] **2. Reuse the one production Time behavior owner**
+  Depends on: 1.
+  Outcome: The experimental Time module delegates validation and subject indexing to `viewer/assets/time-model.js` and exposes a renderer-neutral semantic snapshot without duplicating Time UI or estimation algorithms.
+  Checks:
+    - [x] **Single-owner tests**
+      - Action: Run the focused experimental Time module test file and inspect its production imports.
+      - Expect: Valid Time analysis creates project/task/item semantics through production `inspectTimeAnalysis` and `createTimeIndex`; the spike contains no Time formula, Dialog, capsule, or deadline runtime implementation.
+
+- [x] **3. Enforce shadow and activation isolation**
+  Depends on: 1, 2.
+  Outcome: Fixture, passive-shadow, isolated-preview, and cutover compositions allow at most one active adapter, while shadow results remain inspect-only.
+  Checks:
+    - [x] **Capability-boundary tests**
+      - Action: Run the focused experimental Time module test file.
+      - Expect: Shadow cannot render, start runtime, preview, save, or mutate routes; preview activates manifest only, and cutover falls back to legacy only when no manifest exists.
+
+- [x] **4. Verify the current estimate fixture end to end**
+  Depends on: 1, 2, 3.
+  Outcome: The repository's current `time.estimates.json` proves active-version selection, total minutes, stable IDs, and legacy/manifest semantic parity against the existing deterministic analysis projection.
+  Checks:
+    - [x] **Current-data test and runner**
+      - Action: Run the focused test and the experimental current-estimates runner.
+      - Expect: Three active estimates total 2640 minutes, the inactive superseded estimate is excluded, task/item IDs match the report and analysis, and shadow parity reports no differences.

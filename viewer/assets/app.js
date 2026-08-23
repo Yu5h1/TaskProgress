@@ -16,9 +16,10 @@ import {
   validateReport,
 } from "./report-model.js";
 import {
-  createReportEditorSession,
   normalizeMeaningfulText,
 } from "./editor-core.js";
+import { createReportEditorAdapter } from "./report-editor-adapter.js";
+import { createPersistenceController } from "./persistence-mode.js";
 import {
   bindHistoryShortcuts,
 } from "./editor-surface.js";
@@ -157,13 +158,13 @@ const state = {
   editor: {
     available: false,
     editing: false,
-    dirty: false,
     externalDirty: false,
-    saving: false,
     previewing: false,
     scope: null,
     client: null,
     session: null,
+    persistence: null,
+    persistenceView: null,
     // The time-input draft (config + versioned manual estimates) is a
     // second draft alongside the Editor Core session: report edits and
     // time-settings edits save through the same dual-revision request, but
@@ -173,6 +174,7 @@ const state = {
     timeSettingsPending: false,
     deliveryPreview: null,
     confirmingDeliverySave: false,
+    confirmationResolve: null,
   },
 };
 
@@ -270,7 +272,7 @@ function applyManualEstimateDraft(change) {
   const result = state.editor.timeDraft.setManualEstimate(change);
   state.editor.timeDraftView = result.snapshot;
   if (!result.error) invalidateDeliveryPreview();
-  syncEditorDirty(result.error || "人工工時已套用到草稿");
+  if (!result.error) state.editor.persistence?.changed({ type: "set-manual-estimate" });
   renderEditorTimeExtras();
   renderTimeReference();
   return result;
@@ -283,7 +285,11 @@ function invalidateDeliveryPreview() {
 
 function refreshModeToggleDisabled() {
   viewModeToggleView?.update({
-    disabled: state.editor.saving || state.editor.previewing || state.editor.confirmingDeliverySave,
+    disabled: Boolean(
+      state.editor.persistenceView?.saving
+      || state.editor.previewing
+      || state.editor.confirmingDeliverySave
+    ),
   });
 }
 
@@ -316,7 +322,7 @@ function renderMissingTimeConfigPanel(dock) {
     const result = state.editor.timeDraft.initializeConfig();
     state.editor.timeDraftView = result.snapshot;
     if (!result.error) invalidateDeliveryPreview();
-    syncEditorDirty(result.error || "已建立預設草稿");
+    if (!result.error) state.editor.persistence?.changed({ type: "initialize-time-config" });
     renderEditorTimeExtras();
   });
   panel.append(copy, button);
@@ -346,11 +352,10 @@ function renderTimeSettings() {
       const result = state.editor.timeDraft.setTimeSettings(settings);
       state.editor.timeDraftView = result.snapshot;
       if (!result.error) invalidateDeliveryPreview();
-      syncEditorDirty(result.error || "時間設定已套用到草稿");
       renderEditorTimeExtras();
       return result;
     },
-    onPreview: () => requestRiskPreview(),
+    onPreview: () => requestRiskPreview({ scheduleSave: true }),
     onPendingChange: (pending) => {
       state.editor.timeSettingsPending = pending;
       if (pending) invalidateDeliveryPreview();
@@ -388,18 +393,24 @@ function renderDeliverySaveConfirmation() {
   }
   const props = {
     preview: state.editor.deliveryPreview,
-    busy: state.editor.saving,
+    busy: false,
     onBack: () => {
-      if (state.editor.saving) return;
-      state.editor.confirmingDeliverySave = false;
-      renderDeliverySaveConfirmation();
-      refreshModeToggleDisabled();
+      settleDeliveryConfirmation(false);
     },
-    onConfirm: () => persistSave(),
+    onConfirm: () => settleDeliveryConfirmation(true),
   };
   if (state.deliverySaveConfirmationView) state.deliverySaveConfirmationView.update(props);
   else state.deliverySaveConfirmationView = createUiView("delivery-save-confirmation", dock, props);
   refreshModeToggleDisabled();
+}
+
+function settleDeliveryConfirmation(confirmed) {
+  const resolve = state.editor.confirmationResolve;
+  state.editor.confirmationResolve = null;
+  state.editor.confirmingDeliverySave = false;
+  renderDeliverySaveConfirmation();
+  refreshModeToggleDisabled();
+  resolve?.(confirmed === true);
 }
 
 function el(tag, className, text) {
@@ -432,29 +443,29 @@ function updateSaveBar(patch = {}) {
   saveBarView?.update(saveBarState);
 }
 
-function syncEditorDirty(message = "有尚未儲存的修改") {
-  const derived = state.editor.session?.derived;
-  const history = state.editor.session?.history;
-  state.editor.dirty = Boolean(
-    state.editor.externalDirty || derived?.dirty || state.editor.timeDraftView?.dirty,
-  );
+function syncPersistenceView(next = state.editor.persistence?.snapshot()) {
+  if (!next) return;
+  state.editor.persistenceView = next;
+  state.report = next.report;
   state.timeController?.setReportStructureStale(
-    Boolean(derived?.timeInvalidation.stale),
+    Boolean(next.derived?.timeInvalidation.stale),
   );
   updateSaveBar({
     editing: state.editor.editing,
-    dirty: state.editor.dirty,
-    saving: state.editor.saving,
-    canUndo: Boolean(history?.canUndo),
-    canRedo: Boolean(history?.canRedo),
-    message: state.editor.dirty ? message : "尚未修改",
+    cautious: next.cautious,
+    dirty: next.dirty,
+    saving: next.saving,
+    canUndo: Boolean(next.history?.canUndo),
+    canRedo: Boolean(next.history?.canRedo),
+    message: next.message,
   });
   renderTimeReference();
+  refreshModeToggleDisabled();
 }
 
 function markEditorDirty(message = "有尚未儲存的修改") {
   state.editor.externalDirty = true;
-  syncEditorDirty(message);
+  state.editor.persistence?.changed({ type: "set-local-capacity", message });
 }
 
 function applyEditorCommand(
@@ -462,11 +473,9 @@ function applyEditorCommand(
   message = "有尚未儲存的修改",
   { render = false } = {},
 ) {
-  if (!state.editor.session) throw new Error("Editor Core 尚未啟動。");
-  const changed = state.editor.session.dispatch(command);
-  state.report = state.editor.session.draft;
-  if (!changed) return false;
-  syncEditorDirty(message);
+  if (!state.editor.persistence) throw new Error("Editor Core 尚未啟動。");
+  state.editor.persistence.dispatch(command);
+  state.report = state.editor.persistence.snapshot().report;
   if (render) {
     rebuildMergedTasks();
     renderReport();
@@ -475,28 +484,25 @@ function applyEditorCommand(
 }
 
 function applyEditorHistory(direction) {
-  if (!state.editor.editing || state.editor.saving || !state.editor.session) return false;
-  const changed = direction === "redo"
-    ? state.editor.session.redo()
-    : state.editor.session.undo();
-  if (!changed) return false;
-  state.report = state.editor.session.draft;
-  syncEditorDirty(direction === "redo" ? "已重做修改" : "已復原修改");
+  if (!state.editor.editing || state.editor.persistenceView?.saving || !state.editor.persistence) return false;
+  if (direction === "redo") state.editor.persistence.redo();
+  else state.editor.persistence.undo();
+  state.report = state.editor.persistence.snapshot().report;
   rebuildMergedTasks();
   renderReport();
   return true;
 }
 
 function currentProjectProgress(tasks) {
-  if (state.editor.editing && state.editor.session) {
-    return state.editor.session.derived.progress.project;
+  if (state.editor.editing && state.editor.persistenceView) {
+    return state.editor.persistenceView.derived.progress.project;
   }
   return calculateProjectProgress(tasks);
 }
 
 function currentTaskProgress(task) {
-  if (state.editor.editing && state.editor.session) {
-    return state.editor.session.derived.progress.tasks[task.id]
+  if (state.editor.editing && state.editor.persistenceView) {
+    return state.editor.persistenceView.derived.progress.tasks[task.id]
       ?? calculateTaskProgress(task);
   }
   return calculateTaskProgress(task);
@@ -768,6 +774,10 @@ function taskListProps(tasks) {
     policy: PRIORITY_POLICY,
     emptyLabel: "沒有符合目前篩選的工作項目。",
     onCommand: (command) => {
+      if (["delete-task", "delete-item"].includes(command.type)
+        && !globalThis.confirm("這會永久刪除所選項目。確定繼續？")) {
+        return;
+      }
       applyEditorCommand(command, "有尚未儲存的修改", { render: true });
     },
     onAddItem: (taskId, title, priority) => addTaskItem(taskId, title, priority),
@@ -855,6 +865,12 @@ async function discoverLocalEditor(scope) {
   viewModeToggleView?.update({ available: true });
 }
 
+function isTextEditorCommand(command) {
+  return command?.type === "set-report-field"
+    || (command?.type === "set-task-field" && ["title", "summary"].includes(command.field))
+    || (command?.type === "set-item-field" && command.property === "title");
+}
+
 // Editing happens in this document, in place — no iframe, no second load of
 // the report. A local edit session opens both drafts a save can touch: the
 // Editor Core session for the report, and the time-input draft for
@@ -863,22 +879,49 @@ async function discoverLocalEditor(scope) {
 async function startEditing() {
   if (!state.editor.available || state.editor.editing) return false;
   try {
-    const session = await state.editor.client.start();
-    state.editor.session = createReportEditorSession(state.persistedReport, {
-      fallbackPriority: PRIORITY_POLICY.fallbackValue,
+    const hostSession = await state.editor.client.start();
+    state.editor.timeDraft = createTimeInputDraft(hostSession.inputs, state.editor.scope, {
+      configTemplate: hostSession.input_defaults?.config ?? null,
     });
-    state.editor.timeDraft = createTimeInputDraft(session.inputs, state.editor.scope, {
-      configTemplate: session.input_defaults?.config ?? null,
+    state.editor.externalDirty = false;
+    state.editor.session = createReportEditorAdapter(state.persistedReport, {
+      fallbackPriority: PRIORITY_POLICY.fallbackValue,
+      timeDraft: state.editor.timeDraft,
+      isExternalDirty: () => state.editor.externalDirty,
+      onCommit: (saved) => {
+        state.persistedReport = structuredClone(saved.report);
+        state.editor.externalDirty = false;
+        state.editor.timeDraftView = state.editor.timeDraft.snapshot();
+        invalidateDeliveryPreview();
+      },
+      onDiscard: () => {
+        state.editor.externalDirty = false;
+        state.editor.timeDraftView = state.editor.timeDraft.snapshot();
+        state.timeController?.setEditing(false);
+        state.timeController?.setEditing(true);
+        invalidateDeliveryPreview();
+      },
+    });
+    state.editor.editing = true;
+    state.editor.persistence = createPersistenceController({
+      session: state.editor.session,
+      save: saveReportDraft,
+      confirmSave: confirmReportSave,
+      debounceCommand: isTextEditorCommand,
+      onChange: (next) => {
+        syncPersistenceView(next);
+        if (next.status === "saved") {
+          rebuildMergedTasks();
+          renderReport();
+        }
+      },
     });
     state.editor.timeDraftView = state.editor.timeDraft.snapshot();
     state.editor.timeSettingsPending = false;
     invalidateDeliveryPreview();
-    state.editor.externalDirty = false;
-    state.editor.editing = true;
-    state.report = state.editor.session.draft;
+    syncPersistenceView(state.editor.persistence.snapshot());
     rebuildMergedTasks();
     state.timeController?.setEditing(true);
-    syncEditorDirty("尚未修改");
     renderReport();
     return true;
   } catch (error) {
@@ -893,16 +936,21 @@ async function startEditing() {
 
 async function cancelEditing() {
   if (!state.editor.editing) return false;
-  state.editor.session?.discard();
+  if (state.editor.confirmationResolve) settleDeliveryConfirmation(false);
+  if (state.editor.persistenceView?.mode === "auto") {
+    await state.editor.persistence?.flush();
+    if (state.editor.persistence?.snapshot().dirty) return false;
+  }
+  state.editor.persistence?.discard();
+  state.editor.persistence = null;
+  state.editor.persistenceView = null;
   state.editor.session = null;
-  state.editor.timeDraft?.discard();
   state.editor.timeDraft = null;
   state.editor.timeDraftView = null;
   state.editor.timeSettingsPending = false;
   invalidateDeliveryPreview();
   state.editor.externalDirty = false;
   state.editor.editing = false;
-  state.editor.dirty = false;
   state.timeController?.setEditing(false);
   state.timeController?.setReportStructureStale(false);
   state.report = structuredClone(state.persistedReport);
@@ -918,7 +966,7 @@ async function cancelEditing() {
 // nothing. Delivery-date changes route through this before a save can even
 // be requested, so the risk comparison always reflects the draft being
 // saved, not a stale one.
-async function requestRiskPreview() {
+async function requestRiskPreview({ scheduleSave = false, report = null } = {}) {
   if (!state.editor.available || !state.editor.client || !state.editor.timeDraft) {
     updateSaveBar({ editing: true, saving: false, tone: "error", message: "期限風險預覽需要本機安全編輯服務。" });
     return null;
@@ -932,8 +980,11 @@ async function requestRiskPreview() {
     updateSaveBar({ editing: true, saving: false, message: "時間設定沒有變更，不需要重新計算。" });
     return null;
   }
-  const reportToPreview = state.editor.session.prepareSave(new Date().toISOString());
-  const errors = state.editor.session.validate(reportToPreview);
+  const prepared = report
+    ? { report, errors: [] }
+    : state.editor.session.prepareSave(new Date().toISOString());
+  const reportToPreview = prepared.report;
+  const errors = prepared.errors;
   if (errors.length) {
     updateSaveBar({ editing: true, saving: false, tone: "error", message: errors[0].message });
     return null;
@@ -961,6 +1012,7 @@ async function requestRiskPreview() {
       : "時間設定草稿已重新計算；預覽沒有修改任何檔案。";
     updateSaveBar({ editing: true, saving: false, message });
     renderEditorTimeExtras();
+    if (scheduleSave) state.editor.persistence?.changed({ type: "set-time-settings" });
     return state.editor.deliveryPreview;
   } catch (error) {
     state.editor.deliveryPreview = null;
@@ -978,74 +1030,39 @@ async function requestRiskPreview() {
   }
 }
 
-// The save button's entry point. A plain report edit saves immediately; a
-// delivery-date change needs a risk preview and an explicit confirmation
-// first, because it can change deadline urgency for everyone reading the
-// report, not just the editor.
-async function requestSave() {
-  if (!state.editor.editing || !state.editor.dirty || state.editor.saving) return;
+// The shared persistence controller calls this boundary before either an
+// automatic or cautious save. Plain edits pass through; a delivery-date change
+// waits on the same risk preview and explicit confirmation in both modes.
+async function confirmReportSave(payload) {
   if (state.editor.timeSettingsPending) {
     updateSaveBar({ editing: true, saving: false, tone: "error", message: "時間設定仍有未套用內容；請先按重新計算預覽。" });
-    return;
+    return false;
   }
   const deliveryChange = state.editor.timeDraft?.deliveryChangePreview() ?? null;
-  if (!deliveryChange) {
-    await persistSave();
-    return;
-  }
-  const preview = state.editor.deliveryPreview ?? await requestRiskPreview();
-  if (!preview) return;
+  if (!deliveryChange) return true;
+  const preview = state.editor.deliveryPreview
+    ?? await requestRiskPreview({ report: payload.report });
+  if (!preview) return false;
   if (preview.after.present && !preview.next.available) {
     updateSaveBar({ editing: true, saving: false, tone: "error", message: "交付日草稿尚無有效期限分析，不能進入儲存確認。" });
-    return;
+    return false;
   }
   state.editor.confirmingDeliverySave = true;
   renderDeliverySaveConfirmation();
+  return new Promise((resolve) => {
+    state.editor.confirmationResolve = resolve;
+  });
 }
 
-async function persistSave() {
-  const reportToSave = state.editor.session.prepareSave(new Date().toISOString());
-  const errors = state.editor.session.validate(reportToSave);
-  if (errors.length) {
-    updateSaveBar({ editing: true, saving: false, tone: "error", message: errors[0].message });
-    return;
-  }
-  state.editor.saving = true;
-  refreshModeToggleDisabled();
-  updateSaveBar({
-    editing: true,
-    dirty: true,
-    saving: true,
-    message: "正在驗證、儲存並重新分析…",
-  });
+async function saveReportDraft(payload) {
   let timeSave = null;
   try {
     timeSave = state.timeController?.prepareSave() ?? null;
-    await state.editor.client.save({
-      report: reportToSave,
-      inputs: state.editor.timeDraft?.replacements() ?? {},
-      changes: state.editor.timeDraft?.changes() ?? [],
-    });
-    timeSave?.commit();
-    updateSaveBar({
-      editing: true,
-      dirty: false,
-      saving: true,
-      message: "已安全儲存，正在重新載入…",
-    });
-    state.editor.session.commit(reportToSave);
-    state.editor.timeDraft?.commit();
-    state.editor.externalDirty = false;
-    state.editor.dirty = false;
-    window.location.reload();
+    const saved = await state.editor.client.save(payload);
+    return { ...saved, externalSave: timeSave };
   } catch (error) {
     timeSave?.rollback();
-    updateSaveBar({ editing: true, saving: false, tone: "error", message: error instanceof Error
-      ? error.message
-      : "儲存失敗；原始檔案未變更。" });
-  } finally {
-    state.editor.saving = false;
-    refreshModeToggleDisabled();
+    throw error;
   }
 }
 
@@ -1276,20 +1293,29 @@ viewModeToggleView = createUiView("mode-toggle", elements.viewModeToggle, {
   },
 });
 saveBarView = createUiView("save-bar", elements.editSaveBar, {
+  cautious: false,
   editing: false,
   dirty: false,
   saving: false,
   canUndo: false,
   canRedo: false,
+  onToggleCautious: (next) => {
+    void state.editor.persistence?.setCautious(next);
+  },
   onUndo: () => applyEditorHistory("undo"),
   onRedo: () => applyEditorHistory("redo"),
   onDiscard: () => {
-    void cancelEditing();
+    state.editor.persistence?.discard();
+    state.editor.timeDraftView = state.editor.timeDraft?.snapshot() ?? null;
+    rebuildMergedTasks();
+    renderReport();
   },
-  onSave: requestSave,
+  onSave: () => {
+    void state.editor.persistence?.save();
+  },
 });
 bindHistoryShortcuts(document, {
-  isActive: () => state.editor.editing && !state.editor.saving,
+  isActive: () => state.editor.editing && !state.editor.persistenceView?.saving,
   onUndo: () => applyEditorHistory("undo"),
   onRedo: () => applyEditorHistory("redo"),
 });
@@ -1303,7 +1329,7 @@ document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "visible") refreshTimeReference();
 });
 window.addEventListener("beforeunload", (event) => {
-  if (!state.editor.dirty) return;
+  if (!state.editor.persistenceView?.dirty) return;
   event.preventDefault();
   event.returnValue = "";
 });

@@ -2,17 +2,12 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 
-import {
-  loadSvelteEditorData,
-  resolveSvelteDataRequest,
-} from "../experiments/editor-svelte-spike/src/data-loader.js";
 import { createEditHostClient } from "../viewer/assets/edit-host-client.js";
-import { createSvelteEditorAdapter } from "../experiments/editor-svelte-spike/src/editor-adapter.js";
+import { createReportEditorAdapter } from "../viewer/assets/report-editor-adapter.js";
 import {
   buildDeliveryRiskPreview,
   buildTimeSettingsRiskPreview,
 } from "../viewer/assets/delivery-risk-preview.js";
-import { fixtureReport } from "../experiments/editor-svelte-spike/src/fixture.js";
 import {
   activeEstimateIndex,
   createTimeInputDraft,
@@ -37,17 +32,13 @@ function jsonResponse(value, status = 200) {
   };
 }
 
-function createFetch(routes) {
-  return async (url) => routes.get(String(url)) ?? jsonResponse(null, 404);
-}
-
-test("Svelte adapter delegates mutations and history to the shared Editor Core", () => {
-  const adapter = createSvelteEditorAdapter(fixtureReport);
+test("Report adapter delegates mutations and history to the shared Editor Core", () => {
+  const adapter = createReportEditorAdapter(exampleReport);
   const baseline = adapter.snapshot();
 
   const changed = adapter.dispatch({
     type: "set-task-field",
-    taskId: "editor-framework-spike",
+    taskId: "scope-link",
     field: "summary",
     value: "Svelte view-model draft",
   });
@@ -56,7 +47,7 @@ test("Svelte adapter delegates mutations and history to the shared Editor Core",
   assert.equal(changed.history.canUndo, true);
   assert.equal(changed.report.tasks[0].summary, "Svelte view-model draft");
   assert.notStrictEqual(changed.report, baseline.report);
-  assert.equal(fixtureReport.tasks[0].summary.includes("正式 Editor Core"), true);
+  assert.equal(exampleReport.tasks[0].summary, baseline.report.tasks[0].summary);
 
   const undone = adapter.undo();
   assert.equal(undone.report.tasks[0].summary, baseline.report.tasks[0].summary);
@@ -67,137 +58,101 @@ test("Svelte adapter delegates mutations and history to the shared Editor Core",
   assert.equal(redone.history.canRedo, false);
 });
 
-test("Svelte adapter validates and adds pending items through stable-ID commands", () => {
-  const adapter = createSvelteEditorAdapter(fixtureReport);
-  const originalCount = adapter.snapshot().report.tasks[0].pending_items.length;
+test("Report adapter validates and adds pending items through stable-ID commands", () => {
+  const adapter = createReportEditorAdapter(exampleReport);
+  const originalCount = adapter.snapshot().report.tasks[1].pending_items.length;
 
-  const rejected = adapter.addPendingItem("editor-framework-spike", "✨…!!!", 2);
+  const rejected = adapter.addPendingItem("pages-deployment", "✨…!!!", 2);
   assert.match(rejected.error, /文字或數字/u);
-  assert.equal(rejected.snapshot.report.tasks[0].pending_items.length, originalCount);
+  assert.equal(rejected.snapshot.report.tasks[1].pending_items.length, originalCount);
 
-  const accepted = adapter.addPendingItem("editor-framework-spike", "  驗證鍵盤操作  ", 1);
-  const items = accepted.snapshot.report.tasks[0].pending_items;
+  const accepted = adapter.addPendingItem("pages-deployment", "  驗證鍵盤操作  ", 1);
+  const items = accepted.snapshot.report.tasks[1].pending_items;
   assert.equal(accepted.error, "");
   assert.equal(items.length, originalCount + 1);
   assert.equal(items.at(-1).title, "驗證鍵盤操作");
-  assert.match(items.at(-1).id, /^item-editor-framework-spike-pending/u);
-  assert.equal(accepted.snapshot.derived.progress.tasks["editor-framework-spike"].total, 4);
+  assert.match(items.at(-1).id, /^item-pages-deployment-pending/u);
+  assert.equal(accepted.snapshot.derived.progress.tasks["pages-deployment"].total, 3);
 });
 
-test("Svelte adapter keeps invalid saves as drafts and resets history after commit", () => {
-  const adapter = createSvelteEditorAdapter(fixtureReport);
+test("Report adapter keeps invalid saves as drafts and history after commit", () => {
+  const adapter = createReportEditorAdapter(exampleReport);
   adapter.dispatch({
     type: "set-task-field",
-    taskId: "editor-framework-spike",
+    taskId: "scope-link",
     field: "summary",
     value: "",
   });
 
-  const rejected = adapter.save("2026-08-02T12:00:00+08:00");
+  const rejected = adapter.prepareSave("2026-08-02T12:00:00+08:00");
   assert.ok(rejected.errors.length > 0);
-  assert.equal(rejected.snapshot.dirty, true);
-  assert.equal(rejected.snapshot.history.canUndo, true);
+  assert.equal(adapter.snapshot().dirty, true);
+  assert.equal(adapter.snapshot().history.canUndo, true);
 
   adapter.dispatch({
     type: "set-task-field",
-    taskId: "editor-framework-spike",
+    taskId: "scope-link",
     field: "summary",
     value: "有效描述",
   });
-  const saved = adapter.save("2026-08-02T12:30:00+08:00");
+  const saved = adapter.prepareSave("2026-08-02T12:30:00+08:00");
   assert.deepEqual(saved.errors, []);
-  assert.equal(saved.snapshot.report.updated_at, "2026-08-02T12:30:00+08:00");
-  assert.equal(saved.snapshot.dirty, false);
-  assert.equal(saved.snapshot.history.canUndo, false);
+  adapter.commit({ report: saved.report });
+  assert.equal(adapter.snapshot().report.updated_at, "2026-08-02T12:30:00+08:00");
+  assert.equal(adapter.snapshot().dirty, false);
+  assert.equal(adapter.snapshot().history.canUndo, true);
+  adapter.undo();
+  assert.equal(adapter.snapshot().report.tasks[0].summary, exampleReport.tasks[0].summary);
+  adapter.redo();
+  assert.equal(adapter.snapshot().report.tasks[0].summary, "有效描述");
 });
 
-test("Svelte adapter applies the shared meaningful-text rule before commit", () => {
-  const adapter = createSvelteEditorAdapter(fixtureReport);
+test("Report adapter applies the shared meaningful-text rule before commit", () => {
+  const adapter = createReportEditorAdapter(exampleReport);
   adapter.dispatch({
     type: "set-item-field",
-    taskId: "editor-framework-spike",
+    taskId: "pages-deployment",
     field: "pending_items",
-    itemId: "svelte-parity",
+    itemId: "build-deployment-artifact",
     property: "title",
     value: "✨…!!!",
   });
 
-  const rejected = adapter.save("2026-08-02T12:45:00+08:00");
-  assert.equal(rejected.snapshot.dirty, true);
+  const rejected = adapter.prepareSave("2026-08-02T12:45:00+08:00");
+  assert.equal(adapter.snapshot().dirty, true);
   assert.equal(rejected.errors.some((error) => (
-    error.path === "tasks[0].pending_items[0].title"
+    error.path === "tasks[1].pending_items[0].title"
   )), true);
 });
 
-test("Svelte data request keeps Viewer query precedence and resolves experiment scope paths", () => {
-  const baseUrl = "https://example.test/experiments/editor-svelte-spike/";
-  const scoped = resolveSvelteDataRequest(new URLSearchParams("scope=example"), baseUrl);
-  assert.equal(scoped.reportUrl.href, "https://example.test/reports/example/report.json");
-  assert.equal(scoped.timeUrl.href, "https://example.test/reports/example/time.analysis.json");
-
-  const explicit = resolveSvelteDataRequest(
-    new URLSearchParams("scope=ignored&report=/custom/report.json&time=none"),
-    baseUrl,
-  );
-  assert.equal(explicit.source, "report");
-  assert.equal(explicit.scope, null);
-  assert.equal(explicit.reportUrl.href, "https://example.test/custom/report.json");
-  assert.equal(explicit.timeUrl, null);
-});
-
-test("Svelte data loader reads and validates real report and time contracts", async () => {
-  const reportUrl = "https://example.test/reports/example/report.json";
-  const timeUrl = "https://example.test/reports/example/time.analysis.json";
-  const loaded = await loadSvelteEditorData({
-    params: new URLSearchParams("scope=example"),
-    baseUrl: "https://example.test/experiments/editor-svelte-spike/",
-    fetchImpl: createFetch(new Map([
-      [reportUrl, jsonResponse(exampleReport)],
-      [timeUrl, jsonResponse(exampleTimeAnalysis)],
-    ])),
+test("Report adapter combines report and private time drafts into one payload", () => {
+  let externalDirty = true;
+  let externalCommitted = false;
+  const timeDraft = createTimeInputDraft({
+    config: { scope_id: "example", project: { executor_count: 1 } },
+    estimates: null,
+  }, "example");
+  timeDraft.setDeliveryAt("2026-08-30T17:00:00+08:00", {
+    reason: "契約驗證",
+    updatedAt: "2026-08-23T12:00:00+08:00",
+  });
+  const adapter = createReportEditorAdapter(exampleReport, {
+    timeDraft,
+    isExternalDirty: () => externalDirty,
+    onCommit: () => { externalDirty = false; },
+    now: () => "2026-08-23T12:01:00+08:00",
   });
 
-  assert.equal(loaded.report.scope_id, "example");
-  assert.equal(loaded.timeAnalysis.scope_id, "example");
-  assert.deepEqual(loaded.diagnostics, []);
-});
-
-test("Svelte data loader treats missing or malformed time analysis as optional", async () => {
-  const reportUrl = "https://example.test/reports/example/report.json";
-  const timeUrl = "https://example.test/reports/example/time.analysis.json";
-  const baseUrl = "https://example.test/experiments/editor-svelte-spike/";
-
-  const missing = await loadSvelteEditorData({
-    params: new URLSearchParams("scope=example"),
-    baseUrl,
-    fetchImpl: createFetch(new Map([[reportUrl, jsonResponse(exampleReport)]])),
+  const prepared = adapter.prepareSave();
+  assert.equal(adapter.snapshot().dirty, true);
+  assert.deepEqual(Object.keys(prepared.inputs), ["config"]);
+  assert.equal(prepared.changes[0].field_path, "time.config.project.delivery_at");
+  adapter.commit({
+    report: prepared.report,
+    externalSave: { commit: () => { externalCommitted = true; } },
   });
-  assert.equal(missing.timeAnalysis, null);
-  assert.deepEqual(missing.diagnostics, []);
-
-  const malformed = await loadSvelteEditorData({
-    params: new URLSearchParams("scope=example"),
-    baseUrl,
-    fetchImpl: createFetch(new Map([
-      [reportUrl, jsonResponse(exampleReport)],
-      [timeUrl, jsonResponse({ schema_version: "broken" })],
-    ])),
-  });
-  assert.equal(malformed.timeAnalysis, null);
-  assert.match(malformed.diagnostics[0].message, /time\.analysis\.json 已忽略/u);
-});
-
-test("Svelte data loader rejects invalid reports without showing fixture data", async () => {
-  const reportUrl = "https://example.test/reports/example/report.json";
-  const invalidReport = { ...exampleReport, tasks: "invalid" };
-  await assert.rejects(
-    loadSvelteEditorData({
-      params: new URLSearchParams("scope=example"),
-      baseUrl: "https://example.test/experiments/editor-svelte-spike/",
-      fetchImpl: createFetch(new Map([[reportUrl, jsonResponse(invalidReport)]])),
-    }),
-    /report\.json 未通過驗證/u,
-  );
+  assert.equal(externalCommitted, true);
+  assert.equal(adapter.snapshot().dirty, false);
 });
 
 test("time input draft edits and clears delivery without mutating its baseline", () => {
@@ -635,24 +590,21 @@ test("Svelte edit-host client sends the dual-revision multi-file contract", asyn
   assert.equal(calls.at(-1).options.headers.Authorization, "Bearer next-token");
 });
 
-test("Svelte spike is isolated, static-path safe, and uses the shared core", async () => {
-  const [packageText, viteText, appText, cardText, rowText, addControlText, dialogText, manualEstimateText, adapterText, loaderText, clientText, timeDraftText, timeSettingsText, previewText, confirmationText, stylesText, viewerStylesText, timeEditingText, presentationText] = await Promise.all([
+test("formal Viewer sources use shared Svelte components and the shared core", async () => {
+  const [packageText, cardText, rowText, addControlText, dialogText, manualEstimateText, adapterText, viewerAdapterText, clientText, timeDraftText, timeSettingsText, previewText, confirmationText, viewerStylesText, timeEditingText, presentationText] = await Promise.all([
     readFile(new URL("../package.json", import.meta.url), "utf8"),
-    readFile(new URL("../experiments/editor-svelte-spike/vite.config.js", import.meta.url), "utf8"),
-    readFile(new URL("../experiments/editor-svelte-spike/src/App.svelte", import.meta.url), "utf8"),
     readFile(new URL("../experiments/editor-svelte-spike/src/TaskCard.svelte", import.meta.url), "utf8"),
     readFile(new URL("../experiments/editor-svelte-spike/src/ItemRow.svelte", import.meta.url), "utf8"),
     readFile(new URL("../experiments/editor-svelte-spike/src/AddControl.svelte", import.meta.url), "utf8"),
     readFile(new URL("../experiments/editor-svelte-spike/src/TimeDialog.svelte", import.meta.url), "utf8"),
     readFile(new URL("../experiments/editor-svelte-spike/src/ManualEstimateEditor.svelte", import.meta.url), "utf8"),
-    readFile(new URL("../experiments/editor-svelte-spike/src/editor-adapter.js", import.meta.url), "utf8"),
-    readFile(new URL("../experiments/editor-svelte-spike/src/data-loader.js", import.meta.url), "utf8"),
+    readFile(new URL("../viewer/assets/report-editor-adapter.js", import.meta.url), "utf8"),
+    readFile(new URL("../experiments/editor-svelte-spike/src/viewer-adapter.svelte.js", import.meta.url), "utf8"),
     readFile(new URL("../viewer/assets/edit-host-client.js", import.meta.url), "utf8"),
     readFile(new URL("../viewer/assets/time-input-draft.js", import.meta.url), "utf8"),
     readFile(new URL("../experiments/editor-svelte-spike/src/TimeSettingsEditor.svelte", import.meta.url), "utf8"),
     readFile(new URL("../viewer/assets/delivery-risk-preview.js", import.meta.url), "utf8"),
     readFile(new URL("../experiments/editor-svelte-spike/src/DeliverySaveConfirmation.svelte", import.meta.url), "utf8"),
-    readFile(new URL("../experiments/editor-svelte-spike/src/styles.css", import.meta.url), "utf8"),
     readFile(new URL("../viewer/assets/styles.css", import.meta.url), "utf8"),
     readFile(new URL("../viewer/assets/editor-time-editing.css", import.meta.url), "utf8"),
     readFile(new URL("../viewer/assets/editor-presentation.css", import.meta.url), "utf8"),
@@ -664,12 +616,10 @@ test("Svelte spike is isolated, static-path safe, and uses the shared core", asy
   assert.equal(packageJson.devDependencies.vue, undefined);
   assert.equal(packageJson.scripts["spike:svelte:build"], undefined);
   assert.equal(packageJson.scripts["editor:svelte:build"], undefined);
-  assert.match(viteText, /base:\s*"\.\/"/u);
-  assert.doesNotMatch(viteText, /editor\.html|rollupOptions/u);
-  assert.match(appText, /createSvelteEditorAdapter/u);
-  assert.match(appText, /view\.history\.canUndo/u);
-  assert.match(appText, /loadSvelteEditorData/u);
-  assert.match(appText, /#each tasks as task/u);
+  assert.equal(packageJson.scripts["spike:svelte:dev"], undefined);
+  assert.match(viewerAdapterText, /"task-list": TaskList/u);
+  assert.match(viewerAdapterText, /"save-bar": SaveBar/u);
+  assert.match(viewerAdapterText, /"delivery-save-confirmation": DeliverySaveConfirmation/u);
   assert.match(cardText, /<ItemRow/u);
   assert.match(cardText, /timeItems/u);
   assert.match(rowText, /type:\s*"set-item-field"/u);
@@ -698,10 +648,8 @@ test("Svelte spike is isolated, static-path safe, and uses the shared core", asy
   assert.match(manualEstimateText, /humanConfirmed:\s*estimateConfirmed/u);
   assert.match(manualEstimateText, /人工確認此工時/u);
   assert.match(manualEstimateText, /未勾選仍可儲存人工工時與依據/u);
-  assert.match(adapterText, /viewer\/assets\/editor-core\.js/u);
+  assert.match(adapterText, /\.\/editor-core\.js/u);
   assert.match(adapterText, /normalizeMeaningfulText/u);
-  assert.match(loaderText, /resolveReportRequest/u);
-  assert.match(loaderText, /inspectTimeAnalysis/u);
   assert.match(clientText, /inputs_revision/u);
   assert.match(clientText, /\/preview/u);
   assert.match(timeDraftText, /supersedes_estimate_id/u);
@@ -710,25 +658,15 @@ test("Svelte spike is isolated, static-path safe, and uses the shared core", asy
   assert.ok(timeSettingsText.indexOf("spike-delivery-settings") < timeSettingsText.indexOf("spike-capacity-settings"));
   assert.match(timeSettingsText, /既有私人理由會保留但不在此顯示或修改/u);
   assert.match(timeSettingsText, /capacityExceptions/u);
-  assert.match(appText, /<TimeSettingsEditor/u);
+  assert.match(viewerAdapterText, /"time-settings": TimeSettingsEditor/u);
   assert.match(previewText, /capacityDelta/u);
   assert.match(confirmationText, /確認儲存/u);
   assert.match(confirmationText, /event\.key !== "Escape"/u);
   assert.match(confirmationText, /onkeydown=\{keydown\}/u);
-  // The time-settings/risk-preview/save-confirmation styling moved into the
-  // shared, themed editor-time-editing.css so every host mounting those
-  // regions gets it, not just the isolated spike. It stays separate from
-  // editor-presentation.css, which is geometry-only and carries no colours.
-  assert.match(stylesText, /@import "@editor\/editor-presentation\.css"/u);
-  assert.match(stylesText, /@import "@editor\/editor-time-editing\.css"/u);
-  assert.match(appText, /class="spike-page editor-layout-shell"/u);
-  // The editor shell uses the shared controls rather than its own markup.
-  assert.match(appText, /<ModeToggle/u);
-  assert.match(appText, /<SaveBar/u);
-  assert.match(appText, /onDiscard=\{toggleMode\}/u);
-  assert.doesNotMatch(appText, /spike-mode-toggle|spike-savebar|spike-save-button/u);
+  // Presentation remains split between geometry and themed editing rules.
+  assert.match(presentationText, /\.editor-layout-shell/u);
+  assert.match(timeEditingText, /\.spike-time-editor/u);
   assert.match(cardText, /task-card editor-task-card/u);
   assert.match(rowText, /class="editor-item-row"/u);
-  assert.doesNotMatch(appText, /taskprogress:editor-close|autoStartEditing|embedded/u);
-  assert.doesNotMatch(appText + cardText + rowText, /localStorage/u);
+  assert.doesNotMatch(cardText + rowText, /localStorage/u);
 });

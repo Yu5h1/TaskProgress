@@ -143,13 +143,12 @@ test("the theme adapter keeps storage and the document root out of the component
   assert.equal(root.properties.size, 0);
 });
 
-test("one theme control serves every host: picker and dialog have a single implementation", async () => {
-  const [html, app, adapter, control, editorApp] = await Promise.all([
+test("the formal Viewer mounts the single theme picker and dialog implementation", async () => {
+  const [html, app, adapter, control] = await Promise.all([
     readFile(new URL("../viewer/index.html", import.meta.url), "utf8"),
     readFile(new URL("../viewer/assets/app.js", import.meta.url), "utf8"),
     readFile(new URL("../experiments/editor-svelte-spike/src/viewer-adapter.svelte.js", import.meta.url), "utf8"),
     readFile(new URL("../experiments/editor-svelte-spike/src/ThemeControl.svelte", import.meta.url), "utf8"),
-    readFile(new URL("../experiments/editor-svelte-spike/src/App.svelte", import.meta.url), "utf8"),
   ]);
 
   // The Viewer keeps a mount point; the markup belongs to the component.
@@ -158,10 +157,8 @@ test("one theme control serves every host: picker and dialog have a single imple
   assert.match(app, /createUiView\("theme-control", elements\.themeControl/u);
   assert.match(adapter, /"theme-control": ThemeControl/u);
 
-  // Both hosts mount the same component, so `自訂` needs no second dialog and
-  // no host-specific option list.
-  assert.match(editorApp, /<ThemeControl/u);
-  assert.doesNotMatch(editorApp, /spike-theme-select|theme-picker/u);
+  // The formal host mounts one component, so `自訂` needs no second dialog or
+  // host-specific option list.
   assert.match(control, /id="theme-select"/u);
   assert.match(control, /id="theme-dialog"/u);
   assert.match(control, /自訂…/u);

@@ -2,11 +2,11 @@
 
 ## Status
 
-2026-08-12：**Svelte production migration complete; standalone Editor entry retired.**
+2026-08-23：**Svelte production migration complete; standalone and isolated Spike entries retired.**
 
 正式 Viewer 的預覽與編輯已共用同一頁、同一組 Svelte 元件及 framework-neutral Editor Core。`editor.html`、host-only wrapper、專用 build gate 與 edit-host asset route 已退場；公開 Viewer 仍因缺少本機 capability 而保持唯讀。
 
-以下內容保留 2026-08-02 至 2026-08-07 的選型與遷移紀錄；其中雙入口與 iframe 描述是歷史階段，不代表目前架構。
+以下內容保留 2026-08-02 至 2026-08-07 的選型與遷移紀錄；其中雙入口、iframe 與隔離 App 描述是歷史階段，不代表目前架構。Spike 的完整 App shell、loader、fixture 與開發入口已於 2026-08-23 移除；`experiments/editor-svelte-spike/src` 目前只保留正式建置仍使用的共用 Svelte 元件及 entry adapters。
 
 ## Context
 
@@ -20,9 +20,9 @@ TaskProgress 已有 framework-neutral Editor Core、完整 Undo／Redo、共享 
 
 Vue 暫不安裝。原生 Viewer／Demo 是行為基準與回退路徑；只有 Svelte 通過真實資料載入、能力授權、儲存錯誤、focus／鍵盤、桌面及行動版 parity 後，才討論正式切換。
 
-## Implemented spike
+## Historical spike
 
-`experiments/editor-svelte-spike/` 提供隔離的 `App`、`TaskCard`、`ItemRow`、`TimeSettingsEditor` 與薄 adapter：
+遷移期間，`experiments/editor-svelte-spike/` 曾提供隔離的 `App`、`TaskCard`、`ItemRow`、`TimeSettingsEditor` 與薄 adapter：
 
 - adapter 直接委派正式 `viewer/assets/editor-core.js`，元件不修改 canonical report object；
 - 支援全域預覽／編輯、task title／summary／status／priority、item title／priority、新增、刪除、Undo／Redo、驗證、discard 與記憶體 commit；

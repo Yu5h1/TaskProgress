@@ -12,4 +12,10 @@
     <ProjectReference Include="..\..\src\TaskProgress.Cli\TaskProgress.Cli.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Include="..\fixtures\checklist-semantics.json"
+          Link="fixtures\checklist-semantics.json"
+          CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
 </Project>

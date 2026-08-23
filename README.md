@@ -24,7 +24,7 @@ Launcher 會自動讀取資料夾內的 `report.json`，並在存在時一併載
 
 第一次執行會在 `127.0.0.1:8001` 啟動 LocalWebService；之後開啟其他 scope 會重用同一個 process，並透過受保護的控制 API 註冊精確 JSON 路徑。Launcher 結束不會停止服務。
 
-本機 Viewer 在確認目前 scope 是由 Launcher 精確註冊後，頁首才會出現「預覽模式／編輯模式」。編輯資料先留在記憶體；切回預覽會直接放棄草稿，只有固定在內容面板右下方的「儲存」會寫回 canonical files。服務以短效 scope session、來源 revision、完整 Schema 驗證、重複 ID 檢查與同目錄原子取代保護來源；另一分頁或 Agent 已修改檔案時會拒絕覆寫。公開網站沒有編輯 API，因此不會顯示編輯選項。本機 Svelte Editor 可修改交付日，以及每個穩定子項目的人工工時、人工依據與獨立人工確認；人工估算會在 `time.estimates.json` 建立新版本並 supersede 舊 active version，儲存後由既有分析器重新產生 `time.analysis.json`。
+本機 Viewer 在確認目前 scope 是由 Launcher 精確註冊後，頁首才會出現「預覽模式／編輯模式」。編輯預設採自動儲存：離散操作立即排程，文字輸入短暫 debounce；可切換「謹慎模式」保留明確的儲存與放棄。兩種模式共用同一個 persistence controller、Undo／Redo、草稿驗證與衝突處理；交付日變更仍先顯示風險預覽並要求確認，永久刪除也必須先確認。服務以短效 scope session、來源 revision、完整 Schema 驗證、重複 ID 檢查與同目錄原子取代保護來源；另一分頁或 Agent 已修改檔案時會拒絕覆寫。公開網站沒有編輯 API，因此不會顯示編輯選項。本機 Svelte Editor 可修改交付日，以及每個穩定子項目的人工工時、人工依據與獨立人工確認；人工估算會在 `time.estimates.json` 建立新版本並 supersede 舊 active version，儲存後由既有分析器重新產生 `time.analysis.json`。
 
 檢查或停止服務：
 
@@ -158,7 +158,7 @@ npm.cmd test
 npm.cmd run viewer:ui:build
 ```
 
-C# launcher 的原始碼位於 `src\TaskProgress.Cli`。正式本機編輯功能與 Viewer 共用同一頁及同一份 Svelte 元件；edit host capability 只授權已精確註冊的 scope，不再提供獨立 `editor.html`。`experiments/editor-svelte-spike/index.html` 僅保留為隔離開發入口。
+C# launcher 的原始碼位於 `src\TaskProgress.Cli`。正式本機編輯功能與 Viewer 共用同一頁及同一份 Svelte 元件；edit host capability 只授權已精確註冊的 scope，不提供獨立 Editor 或隔離 Spike 入口。
 
 發布 Windows x64 single-file EXE 時使用根目錄 `Publish.cmd`；Viewer UI bundle 由 `npm.cmd run viewer:ui:build` 獨立產生並由既有 CI staleness gate 檢查：
 

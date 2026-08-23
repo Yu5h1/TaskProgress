@@ -32,6 +32,10 @@ const timeCapacityEditorSource = await readFile(
   new URL("../experiments/editor-svelte-spike/src/TimeCapacityEditor.svelte", import.meta.url),
   "utf8",
 );
+const reportAdapterSource = await readFile(
+  new URL("../viewer/assets/report-editor-adapter.js", import.meta.url),
+  "utf8",
+);
 const manualEstimateEditorSource = await readFile(
   new URL("../experiments/editor-svelte-spike/src/ManualEstimateEditor.svelte", import.meta.url),
   "utf8",
@@ -83,7 +87,7 @@ test("production capacity editing follows the one global edit transaction", () =
   assert.match(appSource, /state\.timeController\?\.setEditing\(true\)/);
   assert.match(appSource, /state\.timeController\?\.setEditing\(false\)/);
   assert.match(appSource, /timeSave = state\.timeController\?\.prepareSave\(\) \?\? null/);
-  assert.match(appSource, /timeSave\?\.commit\(\)/);
+  assert.match(reportAdapterSource, /saved\?\.externalSave\?\.commit\?\.\(\)/);
   assert.match(appSource, /timeSave\?\.rollback\(\)/);
 });
 
@@ -122,12 +126,4 @@ test("production item time actions remain visible in global edit mode", async ()
   assert.match(manualEstimateEditorSource, /人工確認此工時/);
   assert.match(appSource, /onManualEstimate: state\.editor\.editing && state\.editor\.timeDraft/);
   assert.match(timeControlSource, /function itemTime\(itemId\)/);
-  // The dialog is shared by both hosts: the standalone editor wires the same
-  // capsule click to the same controller instead of rendering an inert span.
-  const appSvelteSource = await readFile(
-    new URL("../experiments/editor-svelte-spike/src/App.svelte", import.meta.url),
-    "utf8",
-  );
-  assert.match(appSvelteSource, /createTimeReferenceController/);
-  assert.match(appSvelteSource, /onTimeClick=\{timeController \? openItemTime : null\}/);
 });

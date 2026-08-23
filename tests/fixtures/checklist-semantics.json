@@ -1,0 +1,63 @@
+{
+  "status_cases": [
+    {
+      "name": "failure takes precedence",
+      "checks": ["passed", "failed", "pending"],
+      "expected": "failed"
+    },
+    {
+      "name": "all checks passed",
+      "checks": ["passed", "passed"],
+      "expected": "passed"
+    },
+    {
+      "name": "unfinished without failure",
+      "checks": ["passed", "pending"],
+      "expected": "pending"
+    }
+  ],
+  "transition_cases": [
+    {
+      "name": "manual pending to passed",
+      "manual": true,
+      "initial": { "status": "pending", "observed": null, "resolved": null },
+      "target": { "status": "passed", "observed": null },
+      "expected": { "error": false, "status": "passed", "observed": null, "resolved": null, "item_status": "passed" }
+    },
+    {
+      "name": "manual failure records observed",
+      "manual": true,
+      "initial": { "status": "pending", "observed": null, "resolved": null },
+      "target": { "status": "failed", "observed": "The dialog stayed open." },
+      "expected": { "error": false, "status": "failed", "observed": "The dialog stayed open.", "resolved": null, "item_status": "failed" }
+    },
+    {
+      "name": "failure requires observed",
+      "manual": true,
+      "initial": { "status": "pending", "observed": null, "resolved": null },
+      "target": { "status": "failed", "observed": null },
+      "expected": { "error": true }
+    },
+    {
+      "name": "leaving failure clears evidence",
+      "manual": true,
+      "initial": { "status": "failed", "observed": "Old failure.", "resolved": null },
+      "target": { "status": "pending", "observed": null },
+      "expected": { "error": false, "status": "pending", "observed": null, "resolved": null, "item_status": "pending" }
+    },
+    {
+      "name": "revising resolved result clears evidence",
+      "manual": true,
+      "initial": { "status": "passed", "observed": "Earlier failure.", "resolved": "Retest passed." },
+      "target": { "status": "pending", "observed": null },
+      "expected": { "error": false, "status": "pending", "observed": null, "resolved": null, "item_status": "pending" }
+    },
+    {
+      "name": "agent result is immutable",
+      "manual": false,
+      "initial": { "status": "pending", "observed": null, "resolved": null },
+      "target": { "status": "passed", "observed": null },
+      "expected": { "error": true }
+    }
+  ]
+}

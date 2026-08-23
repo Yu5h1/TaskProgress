@@ -1,0 +1,4 @@
+interface:
+  display_name: "TaskProgress Report"
+  short_description: "Generate and roll up progress, estimates, and risk"
+  default_prompt: "Use $task-progress-report to generate, roll up, and validate this scope's progress, optional time estimates, and deadline risk for the shared Viewer."

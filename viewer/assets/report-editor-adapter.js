@@ -1,7 +1,15 @@
+/*
+ * Report-specific editor session for the shared persistence controller.
+ *
+ * Editor Core owns report mutations and history; the time-input draft owns
+ * its private files. This adapter presents both as one atomic save payload
+ * without deciding when to save. Timing, retries, modes, and failure state
+ * remain the responsibility of `persistence-mode.js`.
+ */
 import {
   createReportEditorSession,
   normalizeMeaningfulText,
-} from "../../../viewer/assets/editor-core.js";
+} from "./editor-core.js";
 
 function clone(value) {
   return structuredClone(value);
@@ -34,9 +42,17 @@ function meaningfulTextErrors(report) {
   return errors;
 }
 
-export function createSvelteEditorAdapter(
+export function createReportEditorAdapter(
   report,
-  { fallbackPriority = 4, historyLimit = 100 } = {},
+  {
+    fallbackPriority = 4,
+    historyLimit = 100,
+    timeDraft = null,
+    isExternalDirty = () => false,
+    onCommit = () => {},
+    onDiscard = () => {},
+    now = () => new Date().toISOString(),
+  } = {},
 ) {
   const session = createReportEditorSession(report, {
     fallbackPriority,
@@ -47,18 +63,23 @@ export function createSvelteEditorAdapter(
     return Object.freeze({
       report: clone(session.draft),
       derived: session.derived,
-      dirty: session.dirty,
+      dirty: Boolean(session.dirty || timeDraft?.snapshot().dirty || isExternalDirty()),
       history: session.history,
     });
   }
 
-  function prepareSave(updatedAt) {
+  function prepareSave(updatedAt = now()) {
     const report = session.prepareSave(updatedAt);
     const errors = [
       ...session.validate(report),
       ...meaningfulTextErrors(report),
     ];
-    return Object.freeze({ report: clone(report), errors });
+    return Object.freeze({
+      report: clone(report),
+      inputs: clone(timeDraft?.replacements() ?? {}),
+      changes: clone(timeDraft?.changes() ?? []),
+      errors,
+    });
   }
 
   return Object.freeze({
@@ -77,6 +98,8 @@ export function createSvelteEditorAdapter(
     },
     discard() {
       session.discard();
+      timeDraft?.discard();
+      onDiscard();
       return snapshot();
     },
     addPendingItem(taskId, title, priority) {
@@ -97,17 +120,19 @@ export function createSvelteEditorAdapter(
       return Object.freeze({ error: "", snapshot: snapshot() });
     },
     prepareSave,
-    commit(report) {
-      session.commit(report);
+    commit(saved) {
+      const savedReport = saved?.report ?? saved;
+      session.commit(savedReport, { keepHistory: true });
+      timeDraft?.commit();
+      saved?.externalSave?.commit?.();
+      onCommit(saved);
       return snapshot();
     },
-    save(updatedAt) {
-      const { report: prepared, errors } = prepareSave(updatedAt);
-      if (errors.length) {
-        return Object.freeze({ errors, snapshot: snapshot() });
-      }
-      session.commit(prepared);
-      return Object.freeze({ errors: [], snapshot: snapshot() });
+    createTaskId(prefix) {
+      return session.createTaskId(prefix);
+    },
+    createItemId(taskId, prefix) {
+      return session.createItemId(taskId, prefix);
     },
   });
 }

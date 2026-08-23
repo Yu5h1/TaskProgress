@@ -1,0 +1,4 @@
+interface:
+  display_name: "Checklist Round"
+  short_description: "Run one settled spec through a per-task .checklist file"
+  default_prompt: "Use $checklist-round to write, mark, and complete this task's checklist round."

@@ -1,0 +1,67 @@
+# Duplicate Maintenance Convergence Checklist
+
+Current round: `Documentation/DuplicateMaintenanceConvergencePlan.md#acceptance`.
+
+- [x] **1. Retire the isolated Svelte Report Editor spike**
+  Outcome: The formal Viewer is the only complete Report Editor application while shared Svelte components remain reusable.
+  Checks:
+    - [x] **Remove spike-only application paths**
+      - Action: Remove the isolated app shell, fixture, data loader, adapter, standalone Vite entry, and root development script.
+      - Expect: No runnable second Report Editor application remains under `experiments/editor-svelte-spike`.
+    - [x] **Retarget contracts to formal sources**
+      - Action: Update focused tests and current documentation that still treat the spike app as a maintained product path.
+      - Expect: Shared components and formal Viewer behavior remain covered without importing retired files.
+    - [x] **Run focused retirement checks**
+      - Action: Run only the tests that cover build ownership, presentation contracts, variants, themes, time behavior, and shared Svelte components.
+      - Expect: All focused checks pass.
+
+- [x] **2. Guard both committed UI bundles against staleness**
+  Outcome: CI rejects stale Viewer or Checklist generated bundles.
+  Checks:
+    - [x] **Extend the workflow**
+      - Action: Build both UI bundles and diff every committed generated JavaScript and CSS artifact.
+      - Expect: A stale artifact in either surface fails the workflow.
+    - [x] **Verify the build contract**
+      - Action: Update and run the focused build-contract tests, then rebuild both bundles.
+      - Expect: Generated artifacts are current and the contract test passes.
+
+- [x] **3. Move Report Editor persistence to the shared owner**
+  Outcome: Report Editor and Checklist use the same controller for persistence state and commands.
+  Checks:
+    - [x] **Introduce the formal Report adapter**
+      - Action: Keep Report-specific session and transport translation in a formal Viewer adapter without duplicating persistence state.
+      - Expect: The adapter exposes the controller-compatible session contract.
+    - [x] **Replace the Report persistence state machine**
+      - Action: Route edits, auto/debounced saves, cautious Save/Discard, Undo/Redo, retries, and preference storage through `persistence-mode.js`.
+      - Expect: `app.js` no longer independently owns equivalent dirty/save/cancel state.
+    - [x] **Preserve high-impact safeguards**
+      - Action: Keep delivery-date preview/confirmation and permanent-delete confirmation at the Report boundary.
+      - Expect: Auto mode cannot silently bypass either safeguard.
+    - [x] **Run focused persistence and Viewer checks**
+      - Action: Run controller, editor-core, Report adapter, and production-interface tests and rebuild the Viewer bundle.
+      - Expect: All focused checks pass and the bundle is current.
+
+- [x] **4. Add a shared Checklist semantics parity guard**
+  Outcome: JavaScript optimism and C# authority are checked against the same behavior cases.
+  Checks:
+    - [x] **Create the shared contract cases**
+      - Action: Define status and manual-result cases in one language-neutral fixture consumed by both test runtimes.
+      - Expect: The fixture covers precedence, transitions, observed rules, agent immutability, and failure cleanup.
+    - [x] **Verify JavaScript semantics**
+      - Action: Run the JavaScript editor session against every shared case.
+      - Expect: Every expected snapshot and rejection matches.
+    - [x] **Verify C# semantics**
+      - Action: Run the C# document behavior against the same shared cases.
+      - Expect: Every expected document state and validation result matches JavaScript.
+
+- [ ] **5. Verify the production interaction boundary**
+  Outcome: The formal Viewer behaves correctly after architectural convergence.
+  Checks:
+    - [ ] **Exercise Report persistence modes** `[manual]`
+      - Action: In the formal Viewer, edit a normal field in auto mode, switch to cautious mode, and exercise Save, Discard, Undo, and Redo.
+      - Expect: Auto edits persist after their proper scheduling; cautious edits wait for Save; Discard and history commands produce the visible expected state.
+      - Reason: Requires direct interaction with the production Viewer and visible persistence timing.
+    - [ ] **Exercise high-impact confirmation** `[manual]`
+      - Action: Change the delivery date and initiate a permanent deletion in the formal Viewer.
+      - Expect: Both operations still require their intended preview or confirmation before persistence.
+      - Reason: Requires direct judgment of modal behavior before any canonical write.

@@ -159,7 +159,7 @@ test("every reader asks the same list which versions are live", async () => {
   assert.equal(isSupportedSchemaVersion("2.0"), false);
   assert.equal(isSupportedSchemaVersion(undefined), false);
 
-  for (const source of ["viewer/assets/app.js", "experiments/editor-svelte-spike/src/data-loader.js"]) {
+  for (const source of ["viewer/assets/app.js"]) {
     const text = await readFile(new URL(`../${source}`, import.meta.url), "utf8");
     assert.match(text, /isSupportedSchemaVersion\(report\.schema_version\)/u, source);
     assert.doesNotMatch(text, /schema_version !== /u, source);

@@ -441,8 +441,14 @@ function createReportEditorSession(
     return draft;
   }
 
-  function commit(savedReport) {
+  function commit(savedReport, { keepHistory = false } = {}) {
     persisted = cloneValue(savedReport);
+    if (keepHistory) {
+      draft = normalizeEditableReport(persisted, fallbackPriority);
+      baseline = cloneValue(draft);
+      derived = deriveReportEditorState(baseline, draft);
+      return draft;
+    }
     return discard();
   }
 

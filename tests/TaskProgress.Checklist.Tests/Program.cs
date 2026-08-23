@@ -13,6 +13,7 @@ internal static class Program
         Directory.CreateDirectory(root);
         try
         {
+            VerifySharedSemantics();
             var source = Sample("\r\n", bom: true);
             var document = ChecklistDocument.Parse(source);
             Equal("plan.md#round", document.RoundIdentity, "round identity");
@@ -286,6 +287,122 @@ internal static class Program
         {
             try { Directory.Delete(root, recursive: true); } catch { }
         }
+    }
+
+    private static void VerifySharedSemantics()
+    {
+        var fixturePath = Path.Combine(AppContext.BaseDirectory, "fixtures", "checklist-semantics.json");
+        using var fixture = JsonDocument.Parse(File.ReadAllBytes(fixturePath));
+        foreach (var statusCase in fixture.RootElement.GetProperty("status_cases").EnumerateArray())
+        {
+            var statuses = statusCase.GetProperty("checks")
+                .EnumerateArray()
+                .Select(value => ParseFixtureStatus(value.GetString()))
+                .ToArray();
+            var expected = ParseFixtureStatus(statusCase.GetProperty("expected").GetString());
+            var document = ChecklistDocument.Parse(StatusFixture(statuses, expected));
+            Equal(expected, document.Items[0].Status, statusCase.GetProperty("name").GetString()!);
+        }
+
+        foreach (var transitionCase in fixture.RootElement.GetProperty("transition_cases").EnumerateArray())
+        {
+            var name = transitionCase.GetProperty("name").GetString()!;
+            var manual = transitionCase.GetProperty("manual").GetBoolean();
+            var initial = transitionCase.GetProperty("initial");
+            var target = transitionCase.GetProperty("target");
+            var expected = transitionCase.GetProperty("expected");
+            var document = ChecklistDocument.Parse(TransitionFixture(manual, initial));
+            var result = new ChecklistManualResult(
+                1,
+                0,
+                ParseFixtureStatus(target.GetProperty("status").GetString()),
+                NullableString(target, "observed"));
+            if (expected.GetProperty("error").GetBoolean())
+            {
+                Throws(() => document.ApplyManualResults([result]), name);
+                continue;
+            }
+
+            var updated = document.ApplyManualResults([result]);
+            var check = updated.Items[0].Checks[0];
+            Equal(ParseFixtureStatus(expected.GetProperty("status").GetString()), check.Status, $"{name} status");
+            Equal(NullableString(expected, "observed"), check.Observed, $"{name} Observed");
+            Equal(NullableString(expected, "resolved"), check.Resolved, $"{name} Resolved");
+            Equal(ParseFixtureStatus(expected.GetProperty("item_status").GetString()), updated.Items[0].Status, $"{name} item status");
+        }
+    }
+
+    private static byte[] StatusFixture(
+        IReadOnlyList<ChecklistStatus> statuses,
+        ChecklistStatus expected)
+    {
+        var lines = new List<string>
+        {
+            "# Semantics Checklist",
+            "",
+            "Current round: `plan.md#semantics`.",
+            "",
+            $"- [{FixtureMarker(expected)}] **1. Status precedence**",
+            "  Outcome: Both runtimes derive the same item status.",
+            "  Checks:",
+        };
+        for (var index = 0; index < statuses.Count; index++)
+        {
+            var status = statuses[index];
+            lines.Add($"    - [{FixtureMarker(status)}] **Check {index + 1}**");
+            lines.Add("      - Action: Apply the fixture case.");
+            lines.Add("      - Expect: The canonical result matches.");
+            if (status == ChecklistStatus.Failed) lines.Add("      - Observed: Fixture failure.");
+        }
+        lines.Add(string.Empty);
+        return Encoding.UTF8.GetBytes(string.Join("\n", lines));
+    }
+
+    private static byte[] TransitionFixture(bool manual, JsonElement initial)
+    {
+        var status = ParseFixtureStatus(initial.GetProperty("status").GetString());
+        var lines = new List<string>
+        {
+            "# Semantics Checklist",
+            "",
+            "Current round: `plan.md#semantics`.",
+            "",
+            $"- [{FixtureMarker(status)}] **1. Transition**",
+            "  Outcome: Both runtimes apply the same manual result.",
+            "  Checks:",
+            $"    - [{FixtureMarker(status)}] **Check 1**{(manual ? " `[manual]`" : string.Empty)}",
+            "      - Action: Apply the fixture case.",
+            "      - Expect: The canonical result matches.",
+        };
+        if (manual) lines.Add("      - Reason: Shared semantics fixture.");
+        var observed = NullableString(initial, "observed");
+        var resolved = NullableString(initial, "resolved");
+        if (observed is not null) lines.Add($"      - Observed: {observed}");
+        if (resolved is not null) lines.Add($"      - Resolved: {resolved}");
+        lines.Add(string.Empty);
+        return Encoding.UTF8.GetBytes(string.Join("\n", lines));
+    }
+
+    private static ChecklistStatus ParseFixtureStatus(string? value) => value switch
+    {
+        "pending" => ChecklistStatus.Pending,
+        "passed" => ChecklistStatus.Passed,
+        "failed" => ChecklistStatus.Failed,
+        _ => throw new InvalidOperationException($"Unknown fixture status: {value}"),
+    };
+
+    private static string FixtureMarker(ChecklistStatus status) => status switch
+    {
+        ChecklistStatus.Pending => " ",
+        ChecklistStatus.Passed => "x",
+        ChecklistStatus.Failed => "!",
+        _ => throw new ArgumentOutOfRangeException(nameof(status)),
+    };
+
+    private static string? NullableString(JsonElement source, string property)
+    {
+        var value = source.GetProperty(property);
+        return value.ValueKind == JsonValueKind.Null ? null : value.GetString();
     }
 
     private static byte[] Sample(string newline, bool bom)

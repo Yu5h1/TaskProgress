@@ -19,12 +19,10 @@ permissions:
   contents: read
 
 jobs:
-  # `viewer/assets/viewer-ui.js` is a build product kept under version control so
-  # the docs Pages artifact can copy it without running a build. Nothing stops a
-  # change to a `.svelte` source from being committed without rebuilding, and the
-  # test suite reads sources rather than the bundle, so a stale bundle would ship
-  # silently. Rebuild here and compare; a mismatch must block the dispatch rather
-  # than be reported after the deployment has already gone out.
+  # Viewer and Checklist UI bundles are build products kept under version
+  # control for hosts that do not run Vite. Nothing stops a `.svelte` change
+  # from being committed without rebuilding, and source-level tests cannot
+  # detect that drift. Rebuild both here and compare every committed artifact.
   verify-bundle:
     runs-on: ubuntu-latest
 
@@ -39,21 +37,29 @@ jobs:
       - name: Install locked dependencies
         run: npm ci --no-audit --no-fund
 
-      - name: Rebuild the preview bundle
-        run: npm run viewer:ui:build
+      - name: Rebuild committed UI bundles
+        run: |
+          npm run viewer:ui:build
+          npm run checklist:ui:build
 
       - name: Fail if the committed bundle is stale
         shell: bash
         run: |
           set -euo pipefail
 
-          if git diff --quiet -- viewer/assets/viewer-ui.js; then
-            echo "viewer/assets/viewer-ui.js matches its sources."
+          bundles=(
+            viewer/assets/viewer-ui.js
+            src/TaskProgress.Cli/checklist-ui/checklist-ui.js
+            src/TaskProgress.Cli/checklist-ui/checklist-ui.css
+          )
+
+          if git diff --quiet -- "${bundles[@]}"; then
+            echo "All committed UI bundles match their sources."
             exit 0
           fi
 
-          echo "::error::viewer/assets/viewer-ui.js is stale. Run 'npm run viewer:ui:build' and commit the result." >&2
-          git diff --stat -- viewer/assets/viewer-ui.js >&2
+          echo "::error::A committed UI bundle is stale. Run 'npm run viewer:ui:build' and 'npm run checklist:ui:build', then commit the results." >&2
+          git diff --stat -- "${bundles[@]}" >&2
           exit 1
 
       - name: Run the test suite

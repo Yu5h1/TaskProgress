@@ -39,26 +39,30 @@ test("production Viewer discovers local editing through the shared edit-host cli
 });
 
 test("local editor opens a dual-revision session and saves through the shared edit-host client", async () => {
-  const [app, client] = await Promise.all([
+  const [app, client, adapter, persistence] = await Promise.all([
     readFile(appUrl, "utf8"),
     readFile(new URL("../viewer/assets/edit-host-client.js", import.meta.url), "utf8"),
+    readFile(new URL("../viewer/assets/report-editor-adapter.js", import.meta.url), "utf8"),
+    readFile(new URL("../viewer/assets/persistence-mode.js", import.meta.url), "utf8"),
   ]);
-  assert.match(app, /createReportEditorSession\(state\.persistedReport/);
-  assert.match(app, /state\.editor\.session\.dispatch\(command\)/);
-  assert.match(app, /state\.editor\.session\.prepareSave\(/);
-  assert.match(app, /state\.editor\.session\.validate\(/);
+  assert.match(app, /createReportEditorAdapter\(state\.persistedReport/);
+  assert.match(app, /createPersistenceController\(\{/);
+  assert.match(app, /state\.editor\.persistence\.dispatch\(command\)/);
+  assert.match(adapter, /function prepareSave\(/);
+  assert.match(adapter, /timeDraft\?\.replacements\(\)/);
+  assert.match(persistence, /const saved = await save\(payload\)/);
   // A second draft opens alongside the report session: config/estimates,
   // seeded from whatever the session already carries as defaults.
-  assert.match(app, /createTimeInputDraft\(session\.inputs, state\.editor\.scope/);
+  assert.match(app, /createTimeInputDraft\(hostSession\.inputs, state\.editor\.scope/);
   assert.match(app, /await state\.editor\.client\.start\(\)/);
-  assert.match(app, /await state\.editor\.client\.save\(\{/);
+  assert.match(app, /await state\.editor\.client\.save\(payload\)/);
   assert.match(app, /await state\.editor\.client\?\.close\(\)/);
   // The token/revision precondition lives inside the shared client now, not
   // duplicated as raw fetch headers in the host.
   assert.match(client, /X-TaskProgress-Editor/);
   assert.match(client, /Authorization: `Bearer \$\{session\.token\}`/);
   assert.match(client, /"If-Match": `"\$\{session\.revision\}"`/);
-  assert.match(app, /window\.location\.reload\(\)/);
+  assert.doesNotMatch(app, /window\.location\.reload\(\)/);
   assert.doesNotMatch(app, /state\.report\.tasks\.(?:push|splice)\(/);
   assert.doesNotMatch(app, /editableTask\.(?:title|summary|status|priority)\s*=/);
   assert.doesNotMatch(app, /localStorage\.setItem\([^)]*token/i);
@@ -89,7 +93,8 @@ test("editing exposes global task and child controls with a panel-aligned save b
   assert.match(saveBar, /class="primary-button edit-save-button"/);
   assert.match(app, /onUndo: \(\) => applyEditorHistory\("undo"\)/);
   assert.match(app, /onRedo: \(\) => applyEditorHistory\("redo"\)/);
-  assert.match(app, /onDiscard: \(\) => \{\s*void cancelEditing\(\);\s*\}/);
+  assert.match(app, /onDiscard: \(\) => \{\s*state\.editor\.persistence\?\.discard\(\)/);
+  assert.match(app, /globalThis\.confirm\("這會永久刪除所選項目。確定繼續？"\)/);
   assert.match(app, /bindHistoryShortcuts\(document, \{/);
   assert.doesNotMatch(html, /id="edit-save-status"|id="edit-save-button"/);
   assert.match(app, /contractText: "預設狀態：待處理；預設優先級：未指定；ID 會獨立產生"/);
