@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-08-23T12:22:38+08:00",
+  "updated_at": "2026-08-24T18:56:42Z",
   "tasks": [
     {
       "id": "viewer-core",
@@ -184,6 +184,11 @@
           "id": "item-time-reference-todo-2",
           "title": "建立可保存人工估算版本的本機寫入服務",
           "priority": 4
+        },
+        {
+          "id": "item-time-reference-todo-3",
+          "title": "從零建立 time.config／首次重新計算並儲存後，交付按鈕與膠囊應直接反映新的 time.analysis.json，不必整頁重新整理",
+          "priority": 2
         }
       ]
     },

@@ -36,6 +36,10 @@ const manualEstimateEditorSource = await readFile(
   new URL("../experiments/editor-svelte-spike/src/ManualEstimateEditor.svelte", import.meta.url),
   "utf8",
 );
+const timeViewerModuleSource = await readFile(
+  new URL("../viewer/assets/time-viewer-module.js", import.meta.url),
+  "utf8",
+);
 
 test("unfinished work is independent from deadline data", () => {
   assert.equal(remainingWorkload({
@@ -118,6 +122,13 @@ test("production item time actions remain visible in global edit mode", async ()
   assert.match(manualEstimateEditorSource, /人工工時（hr）/);
   assert.match(manualEstimateEditorSource, /人工依據/);
   assert.match(manualEstimateEditorSource, /人工確認此工時/);
-  assert.match(appSource, /onManualEstimate: state\.editor\.editing && state\.editor\.timeDraft/);
+  // The editing-gate for manual estimate access moved into the extracted
+  // Time render layer (2026-08-25 production cutover); app.js now just wires
+  // the always-present callback through `context.callbacks.onManualEstimate`.
+  assert.match(appSource, /onManualEstimate: applyManualEstimateDraft/);
+  assert.match(
+    timeViewerModuleSource,
+    /onManualEstimate: editing && hasTimeDraft \? callbacks\.onManualEstimate : null/,
+  );
   assert.match(timeControlSource, /function itemTime\(itemId\)/);
 });

@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://task-progress.local/schemas/report.modules.schema.json",
+  "title": "TaskProgress Module Manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "report_id", "scope_id", "modules"],
+  "properties": {
+    "schema_version": {
+      "const": "0.1"
+    },
+    "report_id": {
+      "$ref": "#/$defs/id"
+    },
+    "scope_id": {
+      "$ref": "#/$defs/id"
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "modules": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/moduleDescriptor"
+      }
+    }
+  },
+  "$defs": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:[._-][a-z0-9]+)*$",
+      "maxLength": 100
+    },
+    "moduleType": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:[._-][a-z0-9]+)+$",
+      "maxLength": 100
+    },
+    "moduleSource": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9._/-]*\\.json$",
+      "maxLength": 255
+    },
+    "moduleDescriptor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "source", "optional", "visibility"],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "type": {
+          "$ref": "#/$defs/moduleType"
+        },
+        "source": {
+          "$ref": "#/$defs/moduleSource"
+        },
+        "optional": {
+          "const": true
+        },
+        "visibility": {
+          "enum": ["public", "developer", "local"]
+        }
+      }
+    }
+  }
+}

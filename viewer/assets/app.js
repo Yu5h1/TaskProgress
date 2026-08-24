@@ -28,7 +28,6 @@ import {
 } from "./editor-surface.js";
 import { createEditHostClient } from "./edit-host-client.js";
 import {
-  activeEstimateIndex,
   createTimeInputDraft,
 } from "./time-input-draft.js";
 import { buildTimeSettingsRiskPreview } from "./delivery-risk-preview.js";
@@ -48,6 +47,11 @@ import {
   resolveTimeAnalysisSource,
 } from "./time-model.js";
 import { createTimeReferenceController } from "./time-dialog-control.js";
+import {
+  buildTimeDialogProps,
+  buildTimeSummaryProps,
+} from "./time-viewer-module.js";
+import { loadLegacyTimeAnalysis } from "./time-legacy-discovery.js";
 import { createModuleOrderControl } from "./module-order-control.js";
 import {
   STATUS_ORDER_STORAGE_KEY,
@@ -226,46 +230,69 @@ function renderThemeControl() {
 // data: no DOM node crosses out of it. This host function is the single
 // place that turns its snapshot into the two UI regions, called after every
 // command so a periodic refresh, a capsule click and a capacity recalculation
-// all converge on the same render path.
+// all converge on the same render path. Prop computation itself lives in
+// `time-viewer-module.js` (verified equivalent to the previous inline version
+// through a stage-2 passive-shadow comparison, 2026-08-25); this function
+// only assembles the context — including every editing-session callback,
+// since that state stays owned here, not by the render module — and mounts
+// the result.
 function renderTimeReference() {
   if (!state.timeController) return;
   const snap = state.timeController.snapshot();
   elements.timeSummaryButton.hidden = false;
-  const summaryProps = {
-    ...snap.summary,
-    onClick: () => {
-      state.timeController.openProjectDetail();
-      renderTimeReference();
+
+  const context = {
+    snapshot: snap,
+    editing: state.editor.editing,
+    timeDraftView: state.editor.timeDraftView,
+    hasTimeDraft: Boolean(state.editor.timeDraft),
+    deliveryPreview: state.editor.deliveryPreview,
+    callbacks: {
+      onOpenProjectDetail: () => {
+        state.timeController.openProjectDetail();
+        renderTimeReference();
+      },
+      onManualEstimate: applyManualEstimateDraft,
+      onClose: () => {
+        state.timeController.closeDialog();
+        renderTimeReference();
+      },
+      onToggleDetails: () => {
+        state.timeController.toggleDetails();
+        renderTimeReference();
+      },
+      onSetTab: (name) => {
+        state.timeController.setActiveTab(name);
+        renderTimeReference();
+      },
+      onApplyTimeSettings: (settings) => {
+        const result = state.editor.timeDraft.setTimeSettings(settings);
+        state.editor.timeDraftView = result.snapshot;
+        if (!result.error) invalidateDeliveryPreview();
+        renderEditorTimeExtras();
+        return result;
+      },
+      onPreviewTimeSettings: () => requestRiskPreview({ scheduleSave: true }),
+      onPendingTimeSettingsChange: (pending) => {
+        state.editor.timeSettingsPending = pending;
+        if (pending) invalidateDeliveryPreview();
+        renderEditorTimeExtras();
+      },
+      onInitializeTimeConfig: () => {
+        const result = state.editor.timeDraft.initializeConfig();
+        state.editor.timeDraftView = result.snapshot;
+        if (!result.error) invalidateDeliveryPreview();
+        if (!result.error) state.editor.persistence?.changed({ type: "initialize-time-config" });
+        renderEditorTimeExtras();
+      },
     },
   };
+
+  const summaryProps = buildTimeSummaryProps(context);
   if (state.timeSummaryView) state.timeSummaryView.update(summaryProps);
   else state.timeSummaryView = createUiView("time-summary-button", elements.timeSummaryButton, summaryProps);
 
-  const dialogProps = {
-    ...snap.dialog,
-    editing: state.editor.editing,
-    activeEstimate: snap.dialog.kind === "item"
-      ? activeEstimateIndex(state.editor.timeDraftView?.inputs ?? null)
-        .get(snap.dialog.item?.itemId) ?? null
-      : null,
-    onManualEstimate: state.editor.editing && state.editor.timeDraft
-      ? applyManualEstimateDraft
-      : null,
-    onClose: () => {
-      state.timeController.closeDialog();
-      renderTimeReference();
-    },
-    onToggleDetails: () => {
-      state.timeController.toggleDetails();
-      renderTimeReference();
-    },
-    onSetTab: (name) => {
-      state.timeController.setActiveTab(name);
-      renderTimeReference();
-    },
-    timeSettings: timeSettingsProps(),
-    deliveryPreview: state.editor.deliveryPreview,
-  };
+  const dialogProps = buildTimeDialogProps(context);
   if (state.timeDialogView) state.timeDialogView.update(dialogProps);
   else state.timeDialogView = createUiView("time-dialog", elements.timeDialog, dialogProps);
 }
@@ -348,41 +375,6 @@ function renderMissingTimeConfigFallback() {
   });
   panel.append(copy, button);
   dock.replaceChildren(panel);
-}
-
-// The one project-level editing surface — delivery date, daily allocation,
-// working weekdays, capacity exceptions — passed into the shared TimeDialog
-// so it renders in the same place its read-only figures already show,
-// instead of a second form living on the main report page. `null` outside a
-// global edit session, so the dialog falls back to its ordinary read-only
-// tabs.
-function timeSettingsProps() {
-  if (!state.editor.editing) return null;
-  const config = state.editor.timeDraftView?.inputs.config ?? null;
-  return {
-    hasConfig: Boolean(config),
-    config,
-    onApply: (settings) => {
-      const result = state.editor.timeDraft.setTimeSettings(settings);
-      state.editor.timeDraftView = result.snapshot;
-      if (!result.error) invalidateDeliveryPreview();
-      renderEditorTimeExtras();
-      return result;
-    },
-    onPreview: () => requestRiskPreview({ scheduleSave: true }),
-    onPendingChange: (pending) => {
-      state.editor.timeSettingsPending = pending;
-      if (pending) invalidateDeliveryPreview();
-      renderEditorTimeExtras();
-    },
-    onInitializeConfig: () => {
-      const result = state.editor.timeDraft.initializeConfig();
-      state.editor.timeDraftView = result.snapshot;
-      if (!result.error) invalidateDeliveryPreview();
-      if (!result.error) state.editor.persistence?.changed({ type: "initialize-time-config" });
-      renderEditorTimeExtras();
-    },
-  };
 }
 
 // The confirmation is a self-managing <dialog> (it calls showModal() on
@@ -571,6 +563,39 @@ async function fetchOptionalJson(value, label) {
     return await response.json();
   } catch {
     throw new Error(`${label} 不是有效的 JSON。`);
+  }
+}
+
+/*
+ * TEMPORARY — stage 2 passive-shadow verification for the legacy Time
+ * discovery/loading extraction
+ * (Documentation/ExtensionModuleArchitecturePlan.md#phase-2viewer-registry-與-time-遷移).
+ * Recomputes the same load through `loadLegacyTimeAnalysis` and diffs it
+ * against what the inline block that just ran actually produced. Every value
+ * involved is plain JSON (no callbacks, unlike the render-layer shadow
+ * check), so a stringified comparison is enough. Console-only — the inline
+ * result is what actually gets used; this changes nothing. Delete this
+ * function and its one call site once cutover replaces the inline block with
+ * a direct call to `loadLegacyTimeAnalysis`.
+ */
+async function shadowCheckLegacyTimeDiscovery({
+  explicitTimeSource, reportSource, scopeId, capturedTimeAnalysis, capturedDiagnostics,
+}) {
+  const shadow = await loadLegacyTimeAnalysis({
+    reportSource,
+    baseUrl: document.baseURI,
+    explicitTimeSource,
+    scopeId,
+    fetchJson: (url) => fetchOptionalJson(url, "time.analysis.json"),
+  });
+  const timeAnalysisMatches = JSON.stringify(shadow.timeAnalysis) === JSON.stringify(capturedTimeAnalysis);
+  const diagnosticsMatch = JSON.stringify(shadow.diagnostics) === JSON.stringify(capturedDiagnostics);
+  if (timeAnalysisMatches && diagnosticsMatch) {
+    console.log("[time-legacy-discovery shadow] match — inline and module loading agree");
+  } else {
+    console.warn("[time-legacy-discovery shadow] mismatch", {
+      timeAnalysisMatches, diagnosticsMatch, shadow, capturedTimeAnalysis, capturedDiagnostics,
+    });
   }
 }
 
@@ -1277,6 +1302,7 @@ async function main() {
     void loadPointerCards();
 
     const explicitTimeSource = params.get("time") ?? undefined;
+    const diagnosticsBeforeTimeLoad = state.diagnostics.length;
     try {
       const timeSource = resolveTimeAnalysisSource(
         request.reportSource,
@@ -1314,6 +1340,13 @@ async function main() {
           : "時間參考無法載入。",
       });
     }
+    await shadowCheckLegacyTimeDiscovery({
+      explicitTimeSource,
+      reportSource: request.reportSource,
+      scopeId: report.scope_id,
+      capturedTimeAnalysis: state.timeAnalysis ? JSON.parse(JSON.stringify(state.timeAnalysis)) : null,
+      capturedDiagnostics: state.diagnostics.slice(diagnosticsBeforeTimeLoad),
+    });
 
     if (state.timeAnalysis) {
       try {

@@ -1,6 +1,6 @@
 # 擴充資訊模組架構計畫
 
-> 狀態：Draft 0.2；Phase 0 合約決策已收斂；production 通用接口尚未實作，隔離 spike 不接管正式路徑。
+> 狀態：Draft 0.2；Phase 0 合約決策已收斂，Phase 1（Schema／純模型）已完成；Phase 2 的 registry／slot contract 切片已完成。Time 遷移目前只完成「渲染層」抽出（`time-viewer-module.js`，經 fixture／real-browser passive shadow／production cutover 三階段驗證，2026-08-25 已接進 `app.js` 正式路徑，待使用者做桌面／375px／編輯回歸確認），编輯 session 狀態擁有權仍在 `app.js`、尚未走 module capability；把它註冊進 `module-registry.js` 成為真正的 `taskprogress.time` trusted module，以及 manifest-driven dispatch，都還沒開始。Phase 3 尚未開始。
 > 文件目的：定義 TaskProgress 如何在不擴張核心報告責任的前提下，接入目前尚未出現的專案資訊。  
 > 第一個參考實作：既有 `time.analysis.json` 時間分析功能。
 
@@ -569,6 +569,8 @@ Cost 是 Time 的同級模組，不是 Time 的附屬欄位。成本分析器可
 
 若新增 cost 時仍需在核心程式加入大量 `if cost`、固定檔名或 Time Renderer 相依，表示模組接口尚未真正成立。
 
+`estimated` 分類的領域設計草稿（`cost.config.json`、`cost.analysis.json` 形狀、Analyzer 邏輯、與 Time 的跨模組新鮮度處理）在 `Documentation/CostEstimationModulePlan.md`；本節只保留排程與跨領域邊界決策，避免與該文件重複維護同一份 schema。
+
 ## 分階段實作
 
 ### 規模與依賴
@@ -616,6 +618,8 @@ Proof                 : Schema／純模型單元測試、Node 與 .NET 整合測
 
 完成條件：不操作 DOM、不啟動服務即可完整驗證模組發現、版本協商、路徑限制、identity、revision 與 subject 配對；無效 manifest 不影響獨立的 `report.json` 驗證。
 
+**已完成（2026-08-24）：** `schemas/report.modules.schema.json`（manifest Schema，`schema_version` 固定 `"0.1"`）、`schemas/module-envelope.schema.json`（common envelope `$defs`，供未來領域 Schema 以 `$ref` 引用、`data` 保持開放）、`viewer/assets/module-model.js`（`validateModuleManifest`、`validateModuleEnvelope`、`isSafeModuleSource`／`resolveModuleSource`、`evaluateProjectionFreshness`、`createSubjectIndex`、`loadReportModules` 純函式，`MODULE_DIAGNOSTIC_CODES` 診斷代碼表）、`tests/module-model.test.mjs`（27 個 fixture，涵蓋 unknown type、版本不符、identity 不符、orphan、stale、一個模組失敗不影響另一個）。純模型完全獨立於 `report-model.js` 與任何 Renderer；尚未被 `app.js`、Viewer registry 或 Launcher 引用——那是 Phase 2／3 的範圍。
+
 ### Phase 2：Viewer Registry 與 Time 遷移
 
 - 建立可信任 Viewer module registry。
@@ -628,6 +632,8 @@ Proof                 : Schema／純模型單元測試、Node 與 .NET 整合測
 交付物：可信任 registry、slot contract、唯一 Time Viewer Module、legacy／manifest discovery adapters、shadow comparator、Developer preview composition 與 runtime dispose 測試。
 
 完成條件：核心 `app.js` 不再直接包含時間領域載入流程；有 manifest Time、legacy Time、無 Time 三條路徑的可見行為與現況一致；一次只啟用一個 adapter／Renderer／controller，且模組例外不移除 task／item 核心內容。
+
+**registry／slot contract 切片已完成（2026-08-24），Time 遷移本身尚未開始。** `viewer/assets/module-registry.js` 提供 `VIEWER_MODULE_SLOTS`（八個 slot 名稱）與 `createTrustedModuleRegistry(definitions)`：驗證每個 module type 的 `supportedSchemaVersions`、宣告的 slots 屬於白名單、`attach()` 必備、`render`／`start`／`dispose` 若存在必須是函式；重複 type 或格式錯誤在註冊時直接 throw（build-time 契約問題，不是 report 資料，不走 per-module 診斷隔離）。`supportedVersionsMap()` 的輸出形狀與 Phase 1 `loadReportModules({ registrySupportedVersions })` 的參數完全一致，`tests/module-registry.test.mjs` 有一個測試直接把 registry 接上 loader 證明兩者契合。**這個切片刻意不含**：把 `time-model.js`、共享 Time UI 與 deadline runtime 包成唯一 Time Viewer Module、legacy／manifest discovery adapters、shadow comparator——原因是探查 `app.js` 後發現時間邏輯與編輯功能（`state.editor.timeDraft`、`state.editor.deliveryPreview`、`state.editor.confirmingDeliverySave`、人工工時編輯）深度交織，直接包裝屬於改動已驗證正式程式碼的大範圍重構，使用者決定先只做風險與 Phase 1 相當的純新增部分，Time 包裝留待下一次單獨確認範圍。`app.js` 目前不 import `module-registry.js` 或 `module-model.js`，此切片不影響任何現有行為。
 
 ### Phase 3：Launcher Provider 與 Time Analyzer 遷移
 
@@ -651,6 +657,8 @@ Proof                 : Schema／純模型單元測試、Node 與 .NET 整合測
 交付物：Cost Draft Schema、最小 analyzer／外部投影 fixture、Renderer 與跨模組 lineage 測試。
 
 完成條件：第二模組只透過共同接口接入，Core 沒有 Cost 領域名稱、固定檔名或 Time Renderer 相依；沒有 Time 時仍能顯示直接成本，有 Time 時能以明確 input revision 重算 estimated／replacement 成本。
+
+`estimated` 切片的第一版 Schema 草案與案例見 `Documentation/CostEstimationModulePlan.md`；此 Phase 開始時以該文件為起點，`actual`／`committed`／`replacement` 與 item 層仍依本節既有範圍延伸。
 
 ### Phase 5：一般指標與開發套件評估
 
