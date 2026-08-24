@@ -54,14 +54,14 @@ Current round: `Documentation/DuplicateMaintenanceConvergencePlan.md#acceptance`
       - Action: Run the C# document behavior against the same shared cases.
       - Expect: Every expected document state and validation result matches JavaScript.
 
-- [ ] **5. Verify the production interaction boundary**
+- [x] **5. Verify the production interaction boundary**
   Outcome: The formal Viewer behaves correctly after architectural convergence.
   Checks:
-    - [ ] **Exercise Report persistence modes** `[manual]`
+    - [x] **Exercise Report persistence modes** `[manual]`
       - Action: In the formal Viewer, edit a normal field in auto mode, switch to cautious mode, and exercise Save, Discard, Undo, and Redo.
       - Expect: Auto edits persist after their proper scheduling; cautious edits wait for Save; Discard and history commands produce the visible expected state.
       - Reason: Requires direct interaction with the production Viewer and visible persistence timing.
-    - [ ] **Exercise high-impact confirmation** `[manual]`
+    - [x] **Exercise high-impact confirmation** `[manual]`
       - Action: Change the delivery date and initiate a permanent deletion in the formal Viewer.
       - Expect: Both operations still require their intended preview or confirmation before persistence.
       - Reason: Requires direct judgment of modal behavior before any canonical write.
