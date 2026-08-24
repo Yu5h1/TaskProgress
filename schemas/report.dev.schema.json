@@ -7,7 +7,7 @@
   "required": ["schema_version", "report_id", "updated_at", "tasks"],
   "properties": {
     "schema_version": {
-      "const": "1.0"
+      "enum": ["1.0", "1.1"]
     },
     "report_id": {
       "$ref": "#/$defs/id"

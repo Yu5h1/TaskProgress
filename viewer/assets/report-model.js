@@ -80,6 +80,20 @@ export function buildScopeHref(scope, developerMode = "auto") {
   return `?${params}`;
 }
 
+/*
+ * The one relative-path rule for reaching another scope's base report,
+ * whether that is the page's own scope switch or a Report pointer card's
+ * target. Both a Launcher-hosted loopback root and the public docs site serve
+ * every registered scope at this same `../reports/<id>/` layout, so no
+ * caller needs its own copy of the path.
+ */
+export function reportPathForScope(scopeId) {
+  if (typeof scopeId !== "string" || scopeId.length > 100 || !ID_PATTERN.test(scopeId)) {
+    throw new Error("scope 必須是小寫英數字組成的穩定 ID，可使用點、底線或連字號。");
+  }
+  return `../reports/${scopeId}/report.json`;
+}
+
 export function resolveReportRequest(params) {
   const explicitReport = params.get("report");
   if (explicitReport) {
@@ -88,12 +102,9 @@ export function resolveReportRequest(params) {
 
   const scope = params.get("scope");
   if (!scope) return null;
-  if (scope.length > 100 || !ID_PATTERN.test(scope)) {
-    throw new Error("scope 必須是小寫英數字組成的穩定 ID，可使用點、底線或連字號。");
-  }
   return {
     source: "scope",
-    reportSource: `../reports/${scope}/report.json`,
+    reportSource: reportPathForScope(scope),
     scope,
   };
 }
@@ -545,9 +556,33 @@ export function validateDeveloperReport(report) {
   return errors;
 }
 
+const ITEM_FIELDS = ["completed_items", "pending_items"];
+
+/*
+ * A legacy plain-string item is a valid, schema-accepted stable item — the
+ * string itself is its title, and it carries no id of its own. Every shared
+ * component built since (`ItemRow.svelte`, its `TaskCard.svelte` each-block
+ * key) assumes an object with `.id`/`.title`, so a bare string has to become
+ * one before it reaches them. This is presentation-only: it is derived fresh
+ * from the report the caller just read, on the merged view `mergeReports`
+ * already produces for rendering, and is never written back — editing still
+ * operates on `state.persistedReport`, the untouched source.
+ */
+function normalizeStableItem(item, taskId, field, index) {
+  if (typeof item !== "string") return item;
+  return { id: `legacy-${taskId}-${field}-${index}`, title: item };
+}
+
 export function mergeReports(report, developerReport = null) {
   const diagnostics = [];
-  const tasks = report.tasks.map((task) => ({ ...task, developer: null }));
+  const tasks = report.tasks.map((task) => {
+    const next = { ...task, developer: null };
+    for (const field of ITEM_FIELDS) {
+      if (!Array.isArray(next[field])) continue;
+      next[field] = next[field].map((item, index) => normalizeStableItem(item, task.id, field, index));
+    }
+    return next;
+  });
   if (!developerReport) return { tasks, diagnostics, developerAvailable: false };
 
   if (developerReport.schema_version !== report.schema_version) {

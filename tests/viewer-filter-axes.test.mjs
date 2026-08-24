@@ -85,8 +85,9 @@ test("filtering never reorders", () => {
 
 test("the host filters both levels and lets 預設 choose the order", async () => {
   const app = await readFile(new URL("../viewer/assets/app.js", import.meta.url), "utf8");
-  assert.match(app, /taskMatchesSelection\(task, selected\) \|\| taskHasSelectedItem\(task, selected\)/u);
-  assert.match(app, /\.map\(\(task\) => filterTaskItems\(task, selected\)\)/u);
+  assert.match(app, /taskMatchesSelection\(task, selected\)\s*\|\|\s*taskHasSelectedItem\(task, selected\)/u);
+  assert.match(app, /kind === "report_pointer"\s*\?\s*\{ \.\.\.task, kind \}/u);
+  assert.match(app, /filterTaskItems\(task, selected\), kind \}/u);
   // 預設 marks where explicit ordering stops, so the host groups only what is
   // to its left and sorts by priority inside those groups.
   assert.match(app, /orderByCapsuleBoundary\(\s*state\.tasks,\s*groupingOrder\(state\.statusOrder\)/u);

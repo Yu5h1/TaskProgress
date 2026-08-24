@@ -5,7 +5,7 @@
   "tasks": [
     {
       "id": "viewer-core",
-      "next_step": "指路卡的相容 reader 與單層投影已完成；resolver、卡片與導航等 handoff「Open decisions」的導航機制與 report_ref 建立方式定案後再開。",
+      "next_step": "指路卡讀取、卡片渲染、開啟換頁與錯誤隔離已完成並以 Yu5h1Lib 上層 report 為真實資料驗證；剩下受保護的 report_ref 建立／更換路由未設計，見 pending item-viewer-core-pointer-ref-route。",
       "decisions": [
         {
           "summary": "公開 Pages 與 localhost 使用同一份 Viewer 原始碼；Viewer 只依明確連結載入資料。",
@@ -22,6 +22,14 @@
         {
           "summary": "任務卡種類由 kind 鑑別欄位決定，不得靠是否存在 report_ref 猜測；指路卡不得保存由目標 report 衍生的狀態、摘要、項目或進度。",
           "reference": "plan.md#report-指路任務卡與單層-scope-導航"
+        },
+        {
+          "summary": "指路卡開啟操作採用真正整頁換頁：卡片標題與「開啟專案報告」都是導向 buildScopeHref(scope_id) 的一般連結，與 ScopeDirectory 既有的換 scope 方式相同，不引入頁內 navigation 機制；瀏覽器上一頁／下一頁因此原生可用，未另外處理 history。",
+          "reference": "handoff.md"
+        },
+        {
+          "summary": "指路卡的目標 report 由既有 scope 相對路徑規則解析：../reports/<scope_id>/report.json 與一般切換 scope 完全相同，不需要新的 Launcher 端 resolver 或路徑對照表；report-model.js 的 reportPathForScope 是這條規則的唯一實作，resolveReportRequest 也改呼叫它。",
+          "reference": "viewer/assets/report-model.js"
         }
       ],
       "routes": [

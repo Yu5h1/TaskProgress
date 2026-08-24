@@ -10,6 +10,7 @@ import {
   calculateProjectProgress,
   calculateTaskProgress,
   mergeReports,
+  reportPathForScope,
   resolveDeveloperReportSource,
   resolveReportRequest,
   stableSortTasksByPriority,
@@ -184,6 +185,67 @@ test("project progress is zero when only archived tasks exist", () => {
   );
 });
 
+test("a legacy plain-string item becomes a stable, unique-keyed object", () => {
+  const report = {
+    schema_version: "1.0",
+    report_id: "legacy-report",
+    scope_id: "legacy-scope",
+    title: "Legacy",
+    updated_at: "2026-07-20T00:00:00Z",
+    tasks: [{
+      id: "numeric-fixes",
+      title: "Numeric fixes",
+      status: "in_progress",
+      summary: "Legacy string items, the pre-object format the schema still accepts.",
+      completed_items: ["Fixed Equals", "Made formatting safe", "Added StrictEquals"],
+      pending_items: ["Parse ul/UL first"],
+    }],
+  };
+  const { tasks } = mergeReports(report);
+  const [task] = tasks;
+
+  for (const field of ["completed_items", "pending_items"]) {
+    for (const item of task[field]) {
+      assert.equal(typeof item, "object", `${field} entries must become objects`);
+      assert.equal(typeof item.id, "string");
+      assert.equal(typeof item.title, "string");
+    }
+  }
+  const allIds = [...task.completed_items, ...task.pending_items].map((item) => item.id);
+  assert.equal(new Set(allIds).size, allIds.length, "every synthesized id must be unique — this is the each_key_duplicate crash otherwise");
+  assert.deepEqual(
+    task.completed_items.map((item) => item.title),
+    ["Fixed Equals", "Made formatting safe", "Added StrictEquals"],
+    "the original string is preserved as the title",
+  );
+
+  const again = mergeReports(report).tasks[0];
+  assert.deepEqual(
+    again.completed_items.map((item) => item.id),
+    task.completed_items.map((item) => item.id),
+    "the synthesized id is deterministic across reloads, or Svelte would remount every item",
+  );
+});
+
+test("an object-shaped stable item passes through unchanged", () => {
+  const report = {
+    schema_version: "1.0",
+    report_id: "r",
+    scope_id: "s",
+    title: "T",
+    updated_at: "2026-07-20T00:00:00Z",
+    tasks: [{
+      id: "t",
+      title: "T",
+      status: "planned",
+      summary: "s",
+      pending_items: [{ id: "already-stable", title: "Keep me", priority: 1 }],
+    }],
+  };
+  const { tasks } = mergeReports(report);
+  assert.deepEqual(tasks[0].pending_items[0], { id: "already-stable", title: "Keep me", priority: 1 });
+});
+
 test("a version mismatch keeps viewer data and ignores the overlay", async () => {
   const report = await readJson("reports/example/report.json");
   const dev = {
@@ -236,6 +298,17 @@ test("scope resolves to its deterministic public report path", () => {
     reportSource: "../reports/yu5h1lib/report.json",
     scope: "yu5h1lib",
   });
+});
+
+test("a Report pointer card resolves its target through the one scope-path rule", () => {
+  assert.equal(reportPathForScope("winform"), "../reports/winform/report.json");
+  assert.equal(
+    reportPathForScope("winform"),
+    resolveReportRequest(new URLSearchParams("scope=winform")).reportSource,
+    "a pointer card's target and an ordinary scope switch must resolve identically",
+  );
+  assert.throws(() => reportPathForScope("../etc"), /scope 必須是/u);
+  assert.throws(() => reportPathForScope(""), /scope 必須是/u);
 });
 
 test("an explicit report takes precedence over scope", () => {

@@ -56,12 +56,17 @@
           "id": "item-viewer-core-pointer-projection",
           "title": "集中化 deriveReportStatus 與 Report 指路卡的單層唯讀投影：重用既有專案進度規則、只投影目標 report 頂層任務卡，且不快取目標 report",
           "priority": 1
+        },
+        {
+          "id": "item-viewer-core-pointer-navigation",
+          "title": "Report 指路卡的 scope resolver、卡片渲染、整頁換頁與錯誤隔離：共用元件 ReportPointerCard 顯示目標狀態、進度與頂層任務列，開啟操作沿用既有 scope 連結機制達成真正換頁，未註冊／無法載入／不相容目標各自顯示唯讀診斷且不影響其餘卡片",
+          "priority": 1
         }
       ],
       "pending_items": [
         {
-          "id": "item-viewer-core-pointer-navigation",
-          "title": "Report 指路卡的 scope resolver、卡片渲染、整頁換頁與錯誤隔離；等待導航機制與 report_ref 建立方式兩項決策",
+          "id": "item-viewer-core-pointer-ref-route",
+          "title": "受保護、scope allowlist 限定的路由，用來建立或更換 report_ref；第一版指路卡本身已完成，這條路由仍待設計，目前指路關係由維護者直接編輯 report.json 建立",
           "priority": 2
         }
       ]

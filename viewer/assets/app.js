@@ -7,10 +7,13 @@ import {
   calculateTaskProgress,
   isSupportedSchemaVersion,
   mergeReports,
+  projectPointerCard,
+  reportPathForScope,
   reportSummaryText,
   resolveDeveloperReportSource,
   resolveReportRequest,
   stableSortTasksByPriority,
+  taskKind,
   validateScopeCatalog,
   validateDeveloperReport,
   validateReport,
@@ -133,6 +136,11 @@ const state = {
   persistedReport: null,
   developerReport: null,
   tasks: [],
+  // Report pointer cards fetch their target report independently of the
+  // current report's own load; each entry is keyed by the pointer task's own
+  // stable id and never by the target scope, since two pointers could name
+  // the same target. Nothing here is written back to `report`.
+  pointerCards: new Map(),
   // One selected set of task statuses; items match the two they can carry.
   // Seeded with every status: an empty set is a deliberate "show nothing", and
   // starting there would open the screen with no cards at all.
@@ -570,6 +578,53 @@ async function fetchOptionalJson(value, label) {
   }
 }
 
+// The read-only state behind one Report pointer card, keyed by the pointer
+// task's own id. `loading` is the default so a first paint shows a card
+// before its target report ever resolves.
+function pointerCardView(taskId) {
+  return state.pointerCards.get(taskId) ?? { status: "loading" };
+}
+
+/*
+ * Report pointer cards fetch their target report independently of the
+ * current report's own load, and one failing target must not take the rest
+ * of this report down with it — each fetch is isolated in its own try/catch
+ * and only ever updates its own entry.
+ *
+ * Nothing is cached between calls to `main`/`renderReport`: this always reads
+ * the target report fresh, so a stale card never outlives the data it was
+ * built from.
+ */
+async function loadPointerCards() {
+  const pointerTasks = state.tasks.filter((task) => taskKind(task) === "report_pointer");
+  if (!pointerTasks.length) {
+    if (state.pointerCards.size) state.pointerCards = new Map();
+    return;
+  }
+
+  const entries = await Promise.all(pointerTasks.map(async (task) => {
+    const scopeId = task.report_ref?.scope_id;
+    try {
+      const targetReport = await fetchJson(reportPathForScope(scopeId), `${scopeId} 的 report.json`);
+      if (!isSupportedSchemaVersion(targetReport.schema_version)) {
+        throw new Error(`不支援的 schema 版本：${targetReport.schema_version ?? "未指定"}`);
+      }
+      const errors = validateReport(targetReport);
+      if (errors.length) {
+        throw new Error(`目標報告未通過驗證：${errors[0].message}`);
+      }
+      return [task.id, { status: "ready", card: projectPointerCard(task, targetReport) }];
+    } catch (error) {
+      return [task.id, {
+        status: "error",
+        message: error instanceof Error ? error.message : "指路卡載入失敗。",
+      }];
+    }
+  }));
+  state.pointerCards = new Map(entries);
+  renderTasks();
+}
+
 function formatTime(value) {
   const formatter = new Intl.DateTimeFormat(undefined, {
     dateStyle: "medium",
@@ -752,7 +807,18 @@ function taskListProps(tasks) {
   const timeItems = new Map();
   const durations = {};
   const progress = {};
+  const pointerCards = {};
   tasks.forEach((task) => {
+    // A pointer card has no items or time detail of its own to fetch — its
+    // own status, progress and rows come from its fetched target instead.
+    if (task.kind === "report_pointer") {
+      const scopeId = task.report_ref?.scope_id ?? null;
+      pointerCards[task.id] = {
+        ...pointerCardView(task.id),
+        openHref: scopeId ? buildScopeHref(scopeId) : null,
+      };
+      return;
+    }
     progress[task.id] = currentTaskProgress(task);
     const duration = time?.taskDuration(task.id);
     if (duration) durations[task.id] = duration;
@@ -768,6 +834,7 @@ function taskListProps(tasks) {
     progress,
     durations,
     timeItems,
+    pointerCards,
     editing: state.editor.editing,
     statusOrder: state.statusOrder,
     moduleOrder: state.moduleOrder,
@@ -803,11 +870,21 @@ function renderTasks() {
   );
   // Filtering only hides, and it applies at both levels: a card survives when
   // it matches or when it still holds a matching item, and it then shows only
-  // those items. Ordering above is untouched by any of it.
+  // those items. Ordering above is untouched by any of it. A pointer card
+  // carries no status of its own to match against a status filter — the
+  // 待處理／已完成 split describes work, not a link to another report — so
+  // it stays visible regardless of the current selection.
   const selected = state.selection.selected;
   const tasks = orderedTasks
-    .filter((task) => taskMatchesSelection(task, selected) || taskHasSelectedItem(task, selected))
-    .map((task) => filterTaskItems(task, selected));
+    .filter((task) => taskKind(task) === "report_pointer"
+      || taskMatchesSelection(task, selected)
+      || taskHasSelectedItem(task, selected))
+    .map((task) => {
+      const kind = taskKind(task);
+      return kind === "report_pointer"
+        ? { ...task, kind }
+        : { ...filterTaskItems(task, selected), kind };
+    });
 
   const props = taskListProps(tasks);
   if (state.taskListView) state.taskListView.update(props);
@@ -1210,6 +1287,10 @@ async function main() {
     state.tasks = merged.tasks;
     state.developerAvailable = merged.developerAvailable;
     state.diagnostics.push(...merged.diagnostics);
+    // Fire-and-forget: pointer cards paint as "loading" on first render and
+    // repaint themselves through `renderTasks()` once each target resolves,
+    // independently of the rest of this report's own load.
+    void loadPointerCards();
 
     const explicitTimeSource = params.get("time") ?? undefined;
     try {

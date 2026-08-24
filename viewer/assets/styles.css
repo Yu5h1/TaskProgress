@@ -1352,6 +1352,78 @@ h1 {
   font-weight: 900;
 }
 
+/* Report pointer card: same task-card shell, a different body. It shows one
+   layer of another report's own tasks and never grows edit affordances. */
+.pointer-card-badge {
+  padding: 3px 7px;
+  color: var(--blue);
+  background: var(--blue-soft);
+  border-radius: var(--radius-sm);
+  font-size: 0.72rem;
+  font-weight: 650;
+  letter-spacing: 0.02em;
+  text-decoration: none;
+}
+
+.pointer-card-badge:hover,
+.pointer-card-badge:focus-visible {
+  text-decoration: underline;
+}
+
+.pointer-card-title-link {
+  color: inherit;
+  text-decoration: none;
+}
+
+.pointer-card-title-link:hover,
+.pointer-card-title-link:focus-visible {
+  text-decoration: underline;
+}
+
+.pointer-card-status {
+  margin: 7px 0 0;
+  color: var(--ink-soft);
+  font-size: 0.8rem;
+}
+
+.pointer-card-error {
+  color: var(--color-danger-text);
+}
+
+.pointer-card-progress {
+  margin: 7px 0 0;
+  color: var(--ink);
+  font-size: 0.82rem;
+  font-weight: 650;
+}
+
+.pointer-card-rows {
+  display: grid;
+  gap: 7px;
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pointer-card-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6px 10px;
+  background: var(--color-elevated-bg);
+  border-radius: var(--radius-sm);
+}
+
+.pointer-card-row-title {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--ink);
+  font-size: 0.82rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .developer-details {
   margin-top: 10px;
   padding: 9px 11px;
