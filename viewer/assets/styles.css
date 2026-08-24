@@ -1460,6 +1460,7 @@ section.developer-details .developer-summary {
 }
 
 .developer-expand-hint {
+  grid-column: 3;
   color: var(--ink-soft);
   font-size: 0.66rem;
   font-weight: 650;

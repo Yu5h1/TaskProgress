@@ -2954,63 +2954,70 @@ function va(e, t) {
 }
 //#endregion
 //#region experiments/editor-svelte-spike/src/DeveloperDetails.svelte
-var ya = /* @__PURE__ */ K("<span class=\"developer-expand-hint\">展開作法與方向</span>"), ba = /* @__PURE__ */ K("<span class=\"developer-next-label\">Next Step :</span> <span class=\"developer-next-action\"> </span> <!>", 1), xa = /* @__PURE__ */ K("<li> </li>"), Sa = /* @__PURE__ */ K("<section class=\"detail-section next-steps\"><h4 class=\"detail-heading\">後續動作</h4> <ul class=\"detail-list\"></ul></section>"), Ca = /* @__PURE__ */ K("<section class=\"detail-section blockers\"><h4 class=\"detail-heading\">Blockers</h4> <ul class=\"detail-list\"></ul></section>"), wa = /* @__PURE__ */ K("<code class=\"reference\"> </code>"), Ta = /* @__PURE__ */ K("<article class=\"decision-item\"><p> </p> <!></article>"), Ea = /* @__PURE__ */ K("<section class=\"detail-section\"><h4 class=\"detail-heading\">Decisions</h4> <div class=\"decision-list\"></div></section>"), Da = /* @__PURE__ */ K("<p> </p>"), Oa = /* @__PURE__ */ K("<article class=\"route-item\"><div class=\"route-heading\"><strong> </strong> <span> </span></div> <!></article>"), ka = /* @__PURE__ */ K("<section class=\"detail-section\"><h4 class=\"detail-heading\">Routes</h4> <div class=\"route-list\"></div></section>"), Aa = /* @__PURE__ */ K("<div class=\"path-list\"></div>"), ja = /* @__PURE__ */ K("<section class=\"detail-section claim-section\"><h4 class=\"detail-heading\">Claim</h4> <p> </p> <!> <!></section>"), Ma = /* @__PURE__ */ K("<div class=\"developer-body\"><h4 class=\"developer-body-title\">作法與方向</h4> <!> <!> <!> <!> <!></div>"), Na = /* @__PURE__ */ K("<!> <!>", 1);
+var ya = /* @__PURE__ */ K("<span class=\"developer-next-label\">Next Step :</span> <span class=\"developer-next-action\"> </span>", 1), ba = /* @__PURE__ */ K("<span class=\"developer-expand-hint\">展開作法與方向</span>"), xa = /* @__PURE__ */ K("<!> <!>", 1), Sa = /* @__PURE__ */ K("<li> </li>"), Ca = /* @__PURE__ */ K("<section class=\"detail-section next-steps\"><h4 class=\"detail-heading\">後續動作</h4> <ul class=\"detail-list\"></ul></section>"), wa = /* @__PURE__ */ K("<section class=\"detail-section blockers\"><h4 class=\"detail-heading\">Blockers</h4> <ul class=\"detail-list\"></ul></section>"), Ta = /* @__PURE__ */ K("<code class=\"reference\"> </code>"), Ea = /* @__PURE__ */ K("<article class=\"decision-item\"><p> </p> <!></article>"), Da = /* @__PURE__ */ K("<section class=\"detail-section\"><h4 class=\"detail-heading\">Decisions</h4> <div class=\"decision-list\"></div></section>"), Oa = /* @__PURE__ */ K("<p> </p>"), ka = /* @__PURE__ */ K("<article class=\"route-item\"><div class=\"route-heading\"><strong> </strong> <span> </span></div> <!></article>"), Aa = /* @__PURE__ */ K("<section class=\"detail-section\"><h4 class=\"detail-heading\">Routes</h4> <div class=\"route-list\"></div></section>"), ja = /* @__PURE__ */ K("<div class=\"path-list\"></div>"), Ma = /* @__PURE__ */ K("<section class=\"detail-section claim-section\"><h4 class=\"detail-heading\">Claim</h4> <p> </p> <!> <!></section>"), Na = /* @__PURE__ */ K("<div class=\"developer-body\"><h4 class=\"developer-body-title\">作法與方向</h4> <!> <!> <!> <!> <!></div>");
 function Pa(e, t) {
 	Ge(t, !1);
-	let n = /* @__PURE__ */ N(), r = /* @__PURE__ */ N(), i = /* @__PURE__ */ N(), a = /* @__PURE__ */ N(), o = $(t, "developer", 8, null);
-	R(() => W(o()), () => {
-		P(n, o()?.next_steps ?? []);
-	}), R(() => (W(o()), H(n)), () => {
-		P(r, o()?.next_step ?? H(n)[0] ?? "尚未指定下一步");
-	}), R(() => (W(o()), H(n)), () => {
-		P(i, o()?.next_step ? H(n) : H(n).slice(1));
-	}), R(() => (H(i), W(o())), () => {
-		P(a, !!(H(i).length || o()?.blockers?.length || o()?.decisions?.length || o()?.routes?.length || o()?.claim));
+	let n = /* @__PURE__ */ N(), r = /* @__PURE__ */ N(), i = /* @__PURE__ */ N(), a = /* @__PURE__ */ N(), o = /* @__PURE__ */ N(), s = $(t, "developer", 8, null);
+	R(() => W(s()), () => {
+		P(n, s()?.next_steps ?? []);
+	}), R(() => (W(s()), H(n)), () => {
+		P(r, s()?.next_step ?? H(n)[0] ?? null);
+	}), R(() => (W(s()), H(n)), () => {
+		P(i, s()?.next_step ? H(n) : H(n).slice(1));
+	}), R(() => (H(i), W(s())), () => {
+		P(a, !!(H(i).length || s()?.blockers?.length || s()?.decisions?.length || s()?.routes?.length || s()?.claim));
+	}), R(() => (H(r), H(a)), () => {
+		P(o, !!H(r) || H(a));
 	}), kn(), ki();
-	var s = Mr(), c = I(s), l = (e) => {
+	var c = Mr(), l = I(c), u = (e) => {
 		var t = Mr();
 		ni(I(t), () => H(a) ? "details" : "section", !1, (e, t) => {
 			Z(e, 0, "developer-details");
-			var n = Na(), s = I(n);
-			ni(s, () => H(a) ? "summary" : "div", !1, (e, t) => {
+			var n = xa(), o = I(n);
+			ni(o, () => H(a) ? "summary" : "div", !1, (e, t) => {
 				Z(e, 0, "developer-summary");
-				var n = ba(), i = L(I(n), 2), o = F(i, !0);
-				A(i);
+				var n = xa(), i = I(n), o = (e) => {
+					var t = ya(), n = L(I(t), 2), i = F(n, !0);
+					A(n), z(() => J(i, H(r))), q(e, t);
+				};
+				Y(i, (e) => {
+					H(r) && e(o);
+				});
 				var s = L(i, 2), c = (e) => {
-					q(e, ya());
+					q(e, ba());
 				};
 				Y(s, (e) => {
 					H(a) && e(c);
-				}), z(() => J(o, H(r))), q(t, n);
+				}), q(t, n);
 			});
-			var c = L(s, 2), l = (e) => {
-				var t = Ma(), n = L(F(t), 2), r = (e) => {
-					var t = Sa(), n = L(F(t), 2);
+			var c = L(o, 2), l = (e) => {
+				var t = Na(), n = L(F(t), 2), r = (e) => {
+					var t = Ca(), n = L(F(t), 2);
 					X(n, 5, () => H(i), qr, (e, t) => {
-						var n = xa(), r = F(n, !0);
+						var n = Sa(), r = F(n, !0);
 						A(n), z(() => J(r, H(t))), q(e, n);
 					}), A(n), A(t), q(e, t);
 				};
 				Y(n, (e) => {
 					H(i), U(() => H(i).length) && e(r);
 				});
-				var a = L(n, 2), s = (e) => {
-					var t = Ca(), n = L(F(t), 2);
-					X(n, 5, () => (W(o()), U(() => o().blockers)), qr, (e, t) => {
-						var n = xa(), r = F(n, !0);
+				var a = L(n, 2), o = (e) => {
+					var t = wa(), n = L(F(t), 2);
+					X(n, 5, () => (W(s()), U(() => s().blockers)), qr, (e, t) => {
+						var n = Sa(), r = F(n, !0);
 						A(n), z(() => J(r, H(t))), q(e, n);
 					}), A(n), A(t), q(e, t);
 				};
 				Y(a, (e) => {
-					W(o()), U(() => o().blockers?.length) && e(s);
+					W(s()), U(() => s().blockers?.length) && e(o);
 				});
 				var c = L(a, 2), l = (e) => {
-					var t = Ea(), n = L(F(t), 2);
-					X(n, 5, () => (W(o()), U(() => o().decisions)), qr, (e, t) => {
-						var n = Ta(), r = F(n), i = F(r, !0);
+					var t = Da(), n = L(F(t), 2);
+					X(n, 5, () => (W(s()), U(() => s().decisions)), qr, (e, t) => {
+						var n = Ea(), r = F(n), i = F(r, !0);
 						A(r);
 						var a = L(r, 2), o = (e) => {
-							var n = wa(), r = F(n, !0);
+							var n = Ta(), r = F(n, !0);
 							A(n), z(() => J(r, (H(t), U(() => H(t).reference)))), q(e, n);
 						};
 						Y(a, (e) => {
@@ -3019,17 +3026,17 @@ function Pa(e, t) {
 					}), A(n), A(t), q(e, t);
 				};
 				Y(c, (e) => {
-					W(o()), U(() => o().decisions?.length) && e(l);
+					W(s()), U(() => s().decisions?.length) && e(l);
 				});
 				var u = L(c, 2), d = (e) => {
-					var t = ka(), n = L(F(t), 2);
-					X(n, 5, () => (W(o()), U(() => o().routes)), qr, (e, t) => {
-						var n = Oa(), r = F(n), i = F(r), a = F(i, !0);
+					var t = Aa(), n = L(F(t), 2);
+					X(n, 5, () => (W(s()), U(() => s().routes)), qr, (e, t) => {
+						var n = ka(), r = F(n), i = F(r), a = F(i, !0);
 						A(i);
 						var o = L(i, 2), s = F(o, !0);
 						A(o), A(r);
 						var c = L(r, 2), l = (e) => {
-							var n = Da(), r = F(n, !0);
+							var n = Oa(), r = F(n, !0);
 							A(n), z(() => J(r, (H(t), U(() => H(t).reason)))), q(e, n);
 						};
 						Y(c, (e) => {
@@ -3040,31 +3047,31 @@ function Pa(e, t) {
 					}), A(n), A(t), q(e, t);
 				};
 				Y(u, (e) => {
-					W(o()), U(() => o().routes?.length) && e(d);
+					W(s()), U(() => s().routes?.length) && e(d);
 				});
 				var f = L(u, 2), p = (e) => {
-					var t = ja(), n = L(F(t), 2), r = F(n);
+					var t = Ma(), n = L(F(t), 2), r = F(n);
 					A(n);
 					var i = L(n, 2), a = (e) => {
-						var t = Da(), n = F(t);
-						A(t), z(() => J(n, `Worktree: ${W(o()), U(() => o().claim.worktree) ?? ""}`)), q(e, t);
+						var t = Oa(), n = F(t);
+						A(t), z(() => J(n, `Worktree: ${W(s()), U(() => s().claim.worktree) ?? ""}`)), q(e, t);
 					};
 					Y(i, (e) => {
-						W(o()), U(() => o().claim.worktree) && e(a);
+						W(s()), U(() => s().claim.worktree) && e(a);
 					});
-					var s = L(i, 2), c = (e) => {
-						var t = Aa();
-						X(t, 5, () => (W(o()), U(() => o().claim.source_paths)), qr, (e, t) => {
-							var n = wa(), r = F(n, !0);
+					var o = L(i, 2), c = (e) => {
+						var t = ja();
+						X(t, 5, () => (W(s()), U(() => s().claim.source_paths)), qr, (e, t) => {
+							var n = Ta(), r = F(n, !0);
 							A(n), z(() => J(r, H(t))), q(e, n);
 						}), A(t), q(e, t);
 					};
-					Y(s, (e) => {
-						W(o()), U(() => o().claim.source_paths?.length) && e(c);
-					}), A(t), z(() => J(r, `Agent: ${W(o()), U(() => o().claim.agent) ?? ""}`)), q(e, t);
+					Y(o, (e) => {
+						W(s()), U(() => s().claim.source_paths?.length) && e(c);
+					}), A(t), z(() => J(r, `Agent: ${W(s()), U(() => s().claim.agent) ?? ""}`)), q(e, t);
 				};
 				Y(f, (e) => {
-					W(o()), U(() => o().claim) && e(p);
+					W(s()), U(() => s().claim) && e(p);
 				}), A(t), q(e, t);
 			};
 			Y(c, (e) => {
@@ -3072,9 +3079,9 @@ function Pa(e, t) {
 			}), q(t, n);
 		}), q(e, t);
 	};
-	Y(c, (e) => {
-		o() && e(l);
-	}), q(e, s), Ke();
+	Y(l, (e) => {
+		s() && H(o) && e(u);
+	}), q(e, c), Ke();
 }
 //#endregion
 //#region experiments/editor-svelte-spike/src/ModuleCapsuleStrip.svelte

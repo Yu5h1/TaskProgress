@@ -1,11 +1,14 @@
 <script>
-  // Developer overlay, matching the Viewer's structure: Next Step is always
-  // visible directly under the task summary, and only approach/direction
-  // detail collapses behind the disclosure.
+  // Developer overlay, matching the Viewer's structure: Next Step is visible
+  // directly under the task summary when one is written, and only
+  // approach/direction detail collapses behind the disclosure. An unspecified
+  // Next Step shows nothing rather than a placeholder — silence reads as
+  // "nothing to report" without asking the reader to parse a sentence to
+  // learn that.
   export let developer = null;
 
   $: legacySteps = developer?.next_steps ?? [];
-  $: nextAction = developer?.next_step ?? legacySteps[0] ?? "尚未指定下一步";
+  $: nextAction = developer?.next_step ?? legacySteps[0] ?? null;
   $: followupSteps = developer?.next_step ? legacySteps : legacySteps.slice(1);
   $: hasDiscussion = Boolean(
     followupSteps.length
@@ -14,13 +17,16 @@
     || developer?.routes?.length
     || developer?.claim,
   );
+  $: hasContent = Boolean(nextAction) || hasDiscussion;
 </script>
 
-{#if developer}
+{#if developer && hasContent}
   <svelte:element this={hasDiscussion ? "details" : "section"} class="developer-details">
     <svelte:element this={hasDiscussion ? "summary" : "div"} class="developer-summary">
-      <span class="developer-next-label">Next Step :</span>
-      <span class="developer-next-action">{nextAction}</span>
+      {#if nextAction}
+        <span class="developer-next-label">Next Step :</span>
+        <span class="developer-next-action">{nextAction}</span>
+      {/if}
       {#if hasDiscussion}
         <span class="developer-expand-hint">展開作法與方向</span>
       {/if}
