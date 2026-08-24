@@ -314,6 +314,26 @@ ViewerModule
 
 核心控制插入順序、無障礙要求、行動版限制與模組可用空間。Renderer 不直接覆蓋其他模組或核心內容。
 
+### 兩種膠囊按鈕：主面板與子項
+
+每個模組的摘要膠囊只有兩種宿主層級，對應到上表的兩組 slot pairing，第一版不再細分：
+
+- **模組主面板膠囊按鈕**：掛在 `project-summary`／`task-header`／`task-body`，代表整個 subject（專案或 task）在該模組的狀態；點擊開啟同一 subject 的 `project-detail`／`task-detail` 主面板。
+- **模組子項膠囊按鈕**：掛在 `item-inline`，代表單一 stable item 在該模組的狀態；點擊開啟該 item 的 `item-detail` 面板。
+
+兩者共用同一條規則：**膠囊顯示的欄位與面板內的編輯欄位必須同位置，不得分成兩處各自維護一份。** 膠囊只是面板的開關與摘要，不是面板內容的另一份副本；面板內沒有對應摘要欄位的編輯項，膠囊也不該單獨顯示它。
+
+Time 模組是這個分類的第一個真實案例，即使它尚未走 manifest／registry 接口，仍先建立正確的先例讓 Phase 1 直接套用：
+
+| | 主面板膠囊按鈕 | 子項膠囊按鈕 |
+|---|---|---|
+| 現況元件 | `TimeSummaryButton.svelte`（「交付日」） | `ItemRow` 內的 `time` module capsule |
+| 對應 slot | `project-summary` | `item-inline` |
+| 開啟的面板 | `TimeDialog` 的 project detail（評估流程／工程估算／工作容量） | `TimeDialog` 的 item detail（人工工時、依據、確認） |
+| 面板擁有的編輯 | 交付日、每日分配、工作日、休假／容量例外 | 人工工時、人工依據、人工確認 |
+
+`plan.md#時間編輯入口與面板-ux-draft-02-2026-08-23` 是這條規則在 Time 上的落地規格；子項欄位已符合，主面板欄位（交付日與容量設定）目前不符合，見該節的驗收清單與 handoff 的待處理項目。
+
 ### Item inline 膠囊列
 
 `item-inline` 不讓每個 Renderer 各自插入 DOM。Viewer Core 收集通過驗證的膠囊描述，再交給共享 `ItemRow` 的單一 module strip 呈現：

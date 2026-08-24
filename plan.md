@@ -1340,14 +1340,16 @@ Svelte 是 UI 組合技術的替換，不是重新設計。每個區塊開始實
 
 **驗收清單**
 
-- [ ] 預覽與編輯模式的主報告內容都只顯示「交付日」入口，頁面中沒有直接展開或重複的時間設定表單。
-- [ ] 點擊「交付日」後開啟共享 `TimeDialog`；全域編輯模式下，時間設定在該面板內垂直排列，交付日是第一個可編輯區塊，桌面與 390px 均無水平溢位。
-- [ ] 有時間資料的項目在預覽／編輯模式都顯示同一顆可由滑鼠與鍵盤啟動的時間膠囊，位置不因模式改變。
-- [ ] 編輯模式點擊膠囊後，人工工時、人工依據與人工確認出現在既有項目 `TimeDialog`；項目列不再出現 inline `<details>`。
-- [ ] Dialog 以目前 draft 初始化欄位；合法套用後更新畫面與全域 dirty 狀態，錯誤留在 Dialog 內且不修改 draft。
-- [ ] 關閉 Dialog 不等於儲存；離開全域編輯模式仍依既有 discard 契約還原，正式儲存仍走既有 preview／confirmation／transaction 流程。
-- [ ] 關閉 Dialog 後焦點回到啟動它的時間膠囊；既有 Escape、關閉按鈕與背景關閉行為不退化。
-- [ ] 原始 Svelte 元件、Viewer committed bundle 與針對性契約測試一致；沒有新增第二個時間 Dialog、頁面直出設定或 host-specific markup。
+- [x] 預覽與編輯模式的主報告內容都只顯示「交付日」入口，頁面中沒有直接展開或重複的時間設定表單。（唯一例外：專案完全沒有 `time.analysis.json` 時，主頁面保留一個「建立 8/8/8 預設設定」bootstrap 提示，因為此時尚無交付日膠囊可以點擊；一旦該提示建立草稿並完成一次儲存，之後的編輯一律回到 `TimeDialog`。）
+- [x] 點擊「交付日」後開啟共享 `TimeDialog`；全域編輯模式下，時間設定在該面板內垂直排列，交付日是第一個可編輯區塊，桌面與 390px 均無水平溢位。
+- [ ] 有時間資料的項目在預覽／編輯模式都顯示同一顆可由滑鼠與鍵盤啟動的時間膠囊，位置不因模式改變。（本輪未觸碰 item-level 時間膠囊，維持既有實作；未重新驗證。）
+- [ ] 編輯模式點擊膠囊後，人工工時、人工依據與人工確認出現在既有項目 `TimeDialog`；項目列不再出現 inline `<details>`。（同上，未觸碰、未重新驗證。）
+- [x] Dialog 以目前 draft 初始化欄位；合法套用後更新畫面與全域 dirty 狀態，錯誤留在 Dialog 內且不修改 draft。
+- [x] 關閉 Dialog 不等於儲存；離開全域編輯模式仍依既有 discard 契約還原，正式儲存仍走既有 preview／confirmation／transaction 流程。
+- [ ] 關閉 Dialog 後焦點回到啟動它的時間膠囊；既有 Escape、關閉按鈕與背景關閉行為不退化。（本輪未觸碰 Dialog 的關閉／焦點邏輯；未重新驗證。）
+- [x] 原始 Svelte 元件、Viewer committed bundle 與針對性契約測試一致；沒有新增第二個時間 Dialog、頁面直出設定或 host-specific markup。
+
+**2026-08-24 實作完成，即時資料驗證。** `TimeCapacityEditor.svelte` 與其獨立的瀏覽器 `localStorage` 容量覆寫機制（`time-dialog-control.js` 的 `setEditing`／`submitCapacityForm`／`prepareSave`，`report-editor-adapter.js` 的 `externalSave` 掛勾）整組移除——使用者已確認這是可以收掉的重複系統，不是要保留的獨立功能。`TimeDialog.svelte` 現在直接 mount 既有 `TimeSettingsEditor`（交付日在最上方）與 `DeliveryRiskPreview`（重新計算後的草稿比較），全域編輯模式下取代原本的唯讀分頁；沒有 `time.config.json` 時改顯示一個精簡的「建立 8/8/8 預設設定」提示，取代舊有的獨立 bootstrap 面板。實機在 `task-progress` scope 驗證：填交付日、缺原因時的驗證錯誤留在 Dialog 內、補原因後重新計算、`DeliveryRiskPreview` 正確顯示在 Dialog 內（不是消失在背後的 modal 遮罩下）、儲存觸發的『確認儲存交付日變更？』以巢狀 `<dialog>` 疊在 TimeDialog 之上、『返回修改』正確取消而不寫入。桌面與 390px 皆無水平溢位。驗證用的草稿資料（8/8/8 預設容量、測試交付日）未保留，已還原 `report.json` 並刪除驗證產生的 `time.config.json`／`time.analysis.json`。Node 326/326，bundle 重建 133 modules。
 
 **明確排除**
 

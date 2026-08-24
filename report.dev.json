@@ -106,7 +106,7 @@
     },
     {
       "id": "local-task-editing",
-      "next_step": "先完成 move-time-settings-into-delivery-dialog：移除主頁直接展開的時間設定，改由交付日按鈕開啟共享 TimeDialog，並保留既有草稿、重新計算與 multi-file transaction。",
+      "next_step": "完成 WPF／WebView2 Checklist Editor 的新互動（structured-checklist-editor）：預設 revision-safe 自動儲存、使用者 cache 的謹慎模式，以及可持續編輯的左側單一循環 manual marker。",
       "blockers": [
         "首版 WPF App 已可開啟且 package contract 通過，但人工 review 否決既有互動：目前仍預設顯示 Save／Discard、manual check 使用右側兩按鈕且已儲存結果不可再編輯。新規格已核定但尚未實作。",
         "時間參考 Demo 已隨此次收斂停止運作（依使用者裁示 (a)）：它呼叫的 createModeController／createSaveBar／createAddControl 已刪除，開啟頁面會拋錯。不得為了讓 Demo 復活而還原那些函式。",
@@ -170,7 +170,7 @@
           "reference": "plan.md#交付日編輯與敏感修改歷史-draft-01"
         },
         {
-          "summary": "主報告頁面只保留交付日膠囊／按鈕作為時間明細與設定入口；時間編輯不得直接暴露，必須在該入口開啟的共享 TimeDialog 內垂直呈現，且不得建立第二套面板或交易狀態。",
+          "summary": "主報告頁面只保留交付日膠囊／按鈕作為時間明細與設定入口；時間編輯不得直接暴露，必須在該入口開啟的共享 TimeDialog 內垂直呈現，且不得建立第二套面板或交易狀態。已實作並以真實資料驗證：TimeSettingsEditor 與 DeliveryRiskPreview 移入 TimeDialog，交付日排在最上方；獨立的瀏覽器本機容量覆寫（localStorage，與正式編輯無關）整組移除。",
           "reference": "plan.md#時間編輯入口與面板-ux-draft-02-2026-08-23"
         },
         {

@@ -28,10 +28,6 @@ const itemRowSource = await readFile(
   new URL("../experiments/editor-svelte-spike/src/ItemRow.svelte", import.meta.url),
   "utf8",
 );
-const timeCapacityEditorSource = await readFile(
-  new URL("../experiments/editor-svelte-spike/src/TimeCapacityEditor.svelte", import.meta.url),
-  "utf8",
-);
 const reportAdapterSource = await readFile(
   new URL("../viewer/assets/report-editor-adapter.js", import.meta.url),
   "utf8",
@@ -67,28 +63,26 @@ test("production Viewer exposes a neutral undated estimate surface", () => {
   assert.doesNotMatch(noDeadlineBranch, /showDot: true/);
 });
 
+test("delivery date and capacity are edited in one place: the shared TimeDialog", () => {
+  // The browser-local capacity override (its own draft, its own localStorage
+  // commit/rollback, independent of the canonical report save) is retired —
+  // TimeSettingsEditor is the one editing surface now, and it lives inside
+  // the same dialog that already shows these figures read-only.
+  assert.doesNotMatch(timeControlSource, /localStorage|prepareSave|setEditing|capacityEditorOpen/);
+  assert.doesNotMatch(appSource, /timeController\?\.setEditing|timeController\?\.prepareSave/);
+  assert.doesNotMatch(reportAdapterSource, /externalSave/);
+  assert.match(timeDialogSource, /<TimeSettingsEditor/);
+  assert.match(timeDialogSource, /<DeliveryRiskPreview preview=\{deliveryPreview\}/);
+  // Only shown outside the dialog while there is truly nothing to build a
+  // dialog from yet — no time.analysis.json means no TimeSummaryButton to
+  // open one through.
+  assert.match(appSource, /!state\.timeController\s*\n\s*&& !state\.editor\.timeDraftView\?\.inputs\.config/);
+});
+
 test("production loading isolates deadline diagnostics from estimate diagnostics", () => {
   assert.match(appSource, /inspectTimeAnalysis/);
   assert.match(appSource, /期限分析已忽略/);
   assert.match(appSource, /delete state\.timeAnalysis\.summary\.deadline/);
-});
-
-test("production capacity editing follows the one global edit transaction", () => {
-  assert.doesNotMatch(timeControlSource, /編輯工作容量/);
-  // The capacity form has exactly one action — recalculate — because there is
-  // no per-dialog editor toggle; visibility is tied to the global edit
-  // session, so cancelling it means leaving edit mode, not a form control.
-  assert.doesNotMatch(timeCapacityEditorSource, /取消/);
-  assert.match(timeCapacityEditorSource, /<h3>設定<\/h3>/);
-  assert.match(timeCapacityEditorSource, /重新計算/);
-  assert.match(timeControlSource, /onDraftChange\?\.\("工作容量已重新計算，尚未全域儲存"\)/);
-  assert.match(timeControlSource, /function setEditing\(enabled\)/);
-  assert.match(timeControlSource, /function prepareSave\(\)/);
-  assert.match(appSource, /state\.timeController\?\.setEditing\(true\)/);
-  assert.match(appSource, /state\.timeController\?\.setEditing\(false\)/);
-  assert.match(appSource, /timeSave = state\.timeController\?\.prepareSave\(\) \?\? null/);
-  assert.match(reportAdapterSource, /saved\?\.externalSave\?\.commit\?\.\(\)/);
-  assert.match(appSource, /timeSave\?\.rollback\(\)/);
 });
 
 test("each production task card has one bottom child-item add control", () => {

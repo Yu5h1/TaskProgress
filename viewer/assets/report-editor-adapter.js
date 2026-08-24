@@ -124,7 +124,6 @@ export function createReportEditorAdapter(
       const savedReport = saved?.report ?? saved;
       session.commit(savedReport, { keepHistory: true });
       timeDraft?.commit();
-      saved?.externalSave?.commit?.();
       onCommit(saved);
       return snapshot();
     },

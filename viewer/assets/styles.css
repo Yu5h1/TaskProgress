@@ -2158,8 +2158,7 @@ footer {
 .time-summary-button[hidden],
 .time-project-details[hidden],
 .time-tab-panel[hidden],
-.time-item-technical[hidden],
-.time-editor-error[hidden] {
+.time-item-technical[hidden] {
   display: none;
 }
 
@@ -2346,9 +2345,7 @@ footer {
 }
 
 .time-detail-toolbar,
-.time-capacity-toolbar,
-.time-editor-heading,
-.time-editor-actions {
+.time-capacity-toolbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -2552,7 +2549,7 @@ footer {
 
 .time-explanation-card,
 .time-composition,
-.time-capacity-editor {
+.time-missing-config {
   padding: 13px 14px;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
@@ -2561,10 +2558,27 @@ footer {
 
 .time-explanation-card h3,
 .time-composition h3,
-.time-capacity-editor h3 {
+.time-missing-config h3 {
   margin: 0 0 7px;
   color: var(--color-panel-heading);
   font-size: 0.8rem;
+}
+
+.time-missing-config p {
+  margin: 0 0 12px;
+  color: var(--color-secondary-text);
+  font-size: 0.74rem;
+  line-height: 1.55;
+}
+
+.time-missing-config button {
+  padding: 7px 12px;
+  color: white;
+  background: var(--blue);
+  border: 1px solid var(--blue);
+  border-radius: 999px;
+  font-size: 0.76rem;
+  font-weight: 700;
 }
 
 .time-explanation-card p,
@@ -2631,98 +2645,6 @@ footer {
 
 .time-capacity-toolbar p {
   margin: 0;
-}
-
-.time-editor-heading > span,
-.time-exceptions-editor small {
-  color: var(--color-muted-text);
-  font-size: 0.66rem;
-}
-
-.time-editor-fields {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
-  margin-top: 12px;
-}
-
-.time-editor-field,
-.time-exceptions-editor {
-  display: grid;
-  gap: 6px;
-  color: var(--color-secondary-text);
-  font-size: 0.7rem;
-  font-weight: 700;
-}
-
-.time-editor-control {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.time-editor-control input,
-.time-exceptions-editor textarea {
-  width: 100%;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
-  background: var(--color-panel-bg);
-  color: var(--color-heading);
-  font: inherit;
-}
-
-.time-editor-control input {
-  min-width: 0;
-  padding: 7px 8px;
-}
-
-.time-exceptions-editor textarea {
-  box-sizing: border-box;
-  padding: 9px;
-  resize: vertical;
-}
-
-.time-capacity-derived {
-  margin: 10px 0;
-  color: var(--color-active-text);
-  font-size: 0.74rem;
-  font-weight: 760;
-}
-
-.time-weekdays {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px 12px;
-  margin: 0 0 12px;
-  padding: 10px;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
-  color: var(--color-secondary-text);
-  font-size: 0.7rem;
-}
-
-.time-weekdays legend {
-  padding: 0 5px;
-  color: var(--color-heading);
-  font-weight: 760;
-}
-
-.time-weekdays label {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.time-editor-error {
-  margin: 9px 0;
-  color: var(--color-danger-text);
-  font-size: 0.72rem;
-  font-weight: 720;
-}
-
-.time-editor-actions {
-  justify-content: flex-end;
-  margin-top: 12px;
 }
 
 .time-confidence,
@@ -2810,8 +2732,7 @@ footer {
   }
 
   .time-report-grid,
-  .time-metric-grid,
-  .time-editor-fields {
+  .time-metric-grid {
     grid-template-columns: 1fr;
   }
 

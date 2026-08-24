@@ -1,7 +1,8 @@
 <script>
   import { tick } from "svelte";
   import ManualEstimateEditor from "./ManualEstimateEditor.svelte";
-  import TimeCapacityEditor from "./TimeCapacityEditor.svelte";
+  import TimeSettingsEditor from "./TimeSettingsEditor.svelte";
+  import DeliveryRiskPreview from "./DeliveryRiskPreview.svelte";
 
   /*
    * The shared progress-report dialog: project detail (evaluation flow,
@@ -10,6 +11,15 @@
    * `viewer/assets/time-dialog-control.js`. One dialog element serves both
    * subjects — only the content inside changes — matching the Viewer's
    * original single-dialog contract.
+   *
+   * `timeSettings` is the one project-level editing surface: the delivery
+   * date, daily allocation, working weekdays and capacity exceptions. It
+   * replaces the read-only flow/engineering/capacity tabs while a global
+   * edit session is open, rather than nesting inside one of them — the
+   * displayed and edited fields must stay in the same place, and delivery
+   * date is not specific to the 工作容量 tab. `deliveryPreview` renders
+   * alongside it so recalculating stays inside this same dialog instead of
+   * surfacing a panel the reader can't see behind the open modal.
    */
   export let open = false;
   export let kind = null; // 'project' | 'item' | null
@@ -20,10 +30,11 @@
   export let onClose = () => {};
   export let onToggleDetails = () => {};
   export let onSetTab = (name) => {};
-  export let onSubmitCapacity = (values) => {};
   export let editing = false;
   export let activeEstimate = null;
   export let onManualEstimate = null;
+  export let timeSettings = null;
+  export let deliveryPreview = null;
 
   let dialogEl;
   let tabRefs = [];
@@ -191,11 +202,6 @@
     aria-labelledby="time-capacity-tab"
     hidden={!active}
   >
-    {#if cap.editorOpen}
-      {#key cap.editor.revision}
-        <TimeCapacityEditor editor={cap.editor} onSubmit={onSubmitCapacity} />
-      {/key}
-    {/if}
     <div class="time-capacity-toolbar">
       <p>工作容量由每日分配、工作日及休假例外共同產生。</p>
     </div>
@@ -330,7 +336,25 @@
           <p class="time-report-updated">{project.updatedLabel}</p>
         </section>
         <section class="time-project-details" hidden={!project.detailsExpanded}>
-          {#if project.hasDeadline}
+          {#if editing && timeSettings}
+            {#if timeSettings.hasConfig}
+              <TimeSettingsEditor
+                config={timeSettings.config}
+                onApply={timeSettings.onApply}
+                onPreview={timeSettings.onPreview}
+                onPendingChange={timeSettings.onPendingChange}
+              />
+              {#if deliveryPreview}
+                <DeliveryRiskPreview preview={deliveryPreview} />
+              {/if}
+            {:else}
+              <section class="time-missing-config" aria-labelledby="time-missing-config-title">
+                <h3 id="time-missing-config-title">尚未建立工作容量設定</h3>
+                <p>建立後採單人、平日 09:00–17:00、睡眠 8h／生活 8h／工作 8h；只是草稿，仍由全域儲存決定是否寫入。</p>
+                <button type="button" onclick={timeSettings.onInitializeConfig}>建立 8/8/8 預設設定</button>
+              </section>
+            {/if}
+          {:else if project.hasDeadline}
             <div class="time-tab-list" role="tablist" aria-label="進度報告詳細資訊">
               {#each project.tabs as tab, index (tab.name)}
                 <button

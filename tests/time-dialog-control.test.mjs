@@ -9,15 +9,6 @@ const analysis = JSON.parse(await readFile(
   "utf8",
 ));
 
-function fakeStorage() {
-  const values = new Map();
-  return {
-    getItem: (key) => values.get(key) ?? null,
-    setItem: (key, value) => values.set(key, value),
-    removeItem: (key) => values.delete(key),
-  };
-}
-
 // Matches the fixture's own `evaluated_at`/`as_of`. The controller's
 // constructor calls `refresh()` once against the real clock (the same thing
 // `time-view.js` always did) so the urgency it reports drifts with the
@@ -27,13 +18,9 @@ function fakeStorage() {
 const ASOF = new Date("2026-07-24T17:00:00+08:00");
 
 function makeController(overrides = {}) {
-  globalThis.localStorage = overrides.storage ?? fakeStorage();
   const controller = createTimeReferenceController({
     sourceAnalysis: overrides.analysis ?? analysis,
-    report: { scope_id: "example" },
-    location: overrides.location ?? new URL("http://127.0.0.1:8000/viewer/"),
     workProgressRatio: overrides.workProgressRatio,
-    onDraftChange: overrides.onDraftChange,
   });
   controller.refresh(overrides.now ?? ASOF);
   return controller;
@@ -128,83 +115,13 @@ test("itemTime and taskDuration go stale together with reportStructureStale", ()
   assert.equal(controller.taskDuration("pages-deployment"), null);
 });
 
-test("the capacity form validates before applying and reports its error through the snapshot", () => {
+test("the capacity tab stays read-only figures — editing lives in TimeSettingsEditor, not this controller", () => {
   const controller = makeController();
   controller.openProjectDetail();
-  controller.setEditing(true);
-  const openEditor = controller.snapshot().dialog.project.capacity.editor;
-  assert.ok(openEditor, "the editor should be open while globally editing on a local origin");
-  assert.equal(openEditor.sleepHours, 8);
-  assert.equal(openEditor.workingWeekdays.length, 5);
-
-  const rejected = controller.submitCapacityForm({
-    sleepHours: 12,
-    lifeHours: 12,
-    otherHours: 2,
-    workingWeekdays: [1, 2, 3, 4, 5],
-    exceptionsText: "",
-  });
-  assert.equal(rejected, false);
-  assert.match(
-    controller.snapshot().dialog.project.capacity.editor.error,
-    /24 hr/,
-  );
-
-  const accepted = controller.submitCapacityForm({
-    sleepHours: 7,
-    lifeHours: 7,
-    otherHours: 0,
-    workingWeekdays: [1, 2, 3, 4, 5, 6],
-    exceptionsText: "2026-08-10 | 0 | 休假",
-  });
-  assert.equal(accepted, true);
   const capacity = controller.snapshot().dialog.project.capacity;
-  assert.equal(capacity.editor.error, "");
-  assert.match(capacity.formulaCode, /10 hr/);
-  assert.equal(capacity.editor.revision, 1);
-});
-
-test("setEditing(false) discards a pending capacity draft that was never saved", () => {
-  const controller = makeController();
-  controller.openProjectDetail();
-  controller.setEditing(true);
-  controller.submitCapacityForm({
-    sleepHours: 6,
-    lifeHours: 6,
-    otherHours: 0,
-    workingWeekdays: [1, 2, 3, 4, 5],
-    exceptionsText: "",
-  });
-  assert.match(controller.snapshot().dialog.project.capacity.formulaCode, /12 hr/);
-  controller.setEditing(false);
-  assert.match(controller.snapshot().dialog.project.capacity.formulaCode, /8 hr/);
-  assert.equal(controller.prepareSave(), null);
-});
-
-test("prepareSave stages a local override and commit/rollback settle it", () => {
-  const storage = fakeStorage();
-  const controller = makeController({ storage });
-  controller.openProjectDetail();
-  controller.setEditing(true);
-  controller.submitCapacityForm({
-    sleepHours: 6,
-    lifeHours: 6,
-    otherHours: 0,
-    workingWeekdays: [1, 2, 3, 4, 5],
-    exceptionsText: "",
-  });
-  const save = controller.prepareSave();
-  assert.ok(save);
-  assert.ok(storage.getItem("taskprogress.time-capacity.example.v1"));
-  save.commit();
-  // A second setEditing(false) after commit must not revert the committed profile.
-  controller.setEditing(false);
-  assert.match(controller.snapshot().dialog.project.capacity.formulaCode, /12 hr/);
-});
-
-test("remote origins never expose the local capacity editor", () => {
-  const controller = makeController({ location: new URL("https://example.test/viewer/") });
-  controller.openProjectDetail();
-  controller.setEditing(true);
-  assert.equal(controller.snapshot().dialog.project.capacity.editor, null);
+  assert.equal(Object.hasOwn(capacity, "editor"), false);
+  assert.equal(Object.hasOwn(capacity, "editorOpen"), false);
+  assert.equal(typeof controller.setEditing, "undefined");
+  assert.equal(typeof controller.submitCapacityForm, "undefined");
+  assert.equal(typeof controller.prepareSave, "undefined");
 });

@@ -35,17 +35,6 @@ function clockMinutes(value) {
   return Number(match[1]) * 60 + Number(match[2]);
 }
 
-function nextDate(date) {
-  const value = new Date(`${date}T00:00:00Z`);
-  value.setUTCDate(value.getUTCDate() + 1);
-  return value.toISOString().slice(0, 10);
-}
-
-function isoWeekday(date) {
-  const weekday = new Date(`${date}T00:00:00Z`).getUTCDay();
-  return weekday === 0 ? 7 : weekday;
-}
-
 export function resolveTimeAnalysisSource(
   reportSource,
   baseUrl,
@@ -349,85 +338,6 @@ export function calculateDeadlineRisk(deadline, nowValue = new Date()) {
     urgency,
     ...(capacityAware ? { risk_basis: riskBasis } : {}),
   };
-}
-
-export function buildCapacityTimeline(deadline, profile) {
-  const fixedMinutes = [
-    profile.sleep_minutes_per_day,
-    profile.life_minutes_per_day,
-    profile.other_unavailable_minutes_per_day,
-  ];
-  const derivedCapacity = profile.total_minutes_per_day
-    - fixedMinutes.reduce((total, value) => total + value, 0);
-  if (!fixedMinutes.every((value) => Number.isInteger(value) && value >= 0)
-    || derivedCapacity <= 0
-    || derivedCapacity !== profile.capacity_minutes_per_executor_day
-    || !Array.isArray(profile.working_weekdays)
-    || profile.working_weekdays.length === 0
-    || !Array.isArray(profile.capacity_exceptions)) {
-    throw new Error("工作容量設定無效。");
-  }
-  const startDate = deadline.started_at.slice(0, 10);
-  const deliveryDate = deadline.delivery_at.slice(0, 10);
-  const workingDays = new Set(profile.working_weekdays);
-  const exceptions = new Map(
-    profile.capacity_exceptions.map((exception) => [exception.date, exception]),
-  );
-  const timeline = [];
-  for (let date = startDate; date < deliveryDate; date = nextDate(date)) {
-    const exception = exceptions.get(date);
-    if (!workingDays.has(isoWeekday(date)) && !exception) continue;
-    timeline.push({
-      date,
-      capacity_minutes: exception
-        ? exception.available_minutes
-        : profile.capacity_minutes_per_executor_day,
-    });
-  }
-  if (!timeline.some((day) => day.capacity_minutes > 0)) {
-    throw new Error("交付前必須至少保留一段可工作容量。");
-  }
-  return timeline;
-}
-
-export function parseCapacityExceptions(value) {
-  const dates = new Set();
-  return value
-    .split(/\r?\n/)
-    .map((line) => line.trim())
-    .filter(Boolean)
-    .map((line, index) => {
-      const [date = "", hourText = "", ...labelParts] = line
-        .split("|")
-        .map((part) => part.trim());
-      const parsedDate = new Date(`${date}T00:00:00Z`);
-      if (!/^\d{4}-\d{2}-\d{2}$/.test(date)
-        || Number.isNaN(parsedDate.getTime())
-        || parsedDate.toISOString().slice(0, 10) !== date) {
-        throw new Error(`第 ${index + 1} 筆例外日期無效。`);
-      }
-      if (dates.has(date)) throw new Error(`例外日期重複：${date}`);
-      dates.add(date);
-      const availableHours = Number(hourText);
-      if (!Number.isFinite(availableHours) || availableHours < 0 || availableHours > 24) {
-        throw new Error(`第 ${index + 1} 筆可工作時數必須介於 0 至 24。`);
-      }
-      return {
-        date,
-        available_minutes: Math.round(availableHours * 60),
-        public_label: labelParts.join(" | ") || "其他不可工作時間",
-      };
-    });
-}
-
-export function canUseLocalTimeOverrides(locationLike) {
-  if (locationLike.protocol === "file:") return true;
-  if (!["http:", "https:"].includes(locationLike.protocol)) return false;
-  const hostname = String(locationLike.hostname ?? "").toLowerCase();
-  return hostname === "localhost"
-    || hostname === "127.0.0.1"
-    || hostname === "::1"
-    || hostname === "[::1]";
 }
 
 export function createTimeIndex(analysis) {

@@ -3,9 +3,7 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 import {
-  buildCapacityTimeline,
   calculateDeadlineRisk,
-  canUseLocalTimeOverrides,
   inspectTimeAnalysis,
   resolveTimeAnalysisSource,
   validateTimeAnalysis,
@@ -79,19 +77,6 @@ test("Viewer resolves the optional sidecar beside report.json", () => {
   );
 });
 
-test("capacity profile rebuilds the timeline while excluding weekends", () => {
-  const timeline = buildCapacityTimeline(
-    analysis.summary.deadline,
-    analysis.summary.deadline.schedule.capacity_profile,
-  );
-  assert.deepEqual(timeline, analysis.summary.deadline.schedule.capacity_timeline);
-});
-
-test("capacity overrides are local-only", () => {
-  assert.equal(canUseLocalTimeOverrides(new URL("file:///viewer/index.html")), true);
-  assert.equal(canUseLocalTimeOverrides(new URL("http://127.0.0.1:8765/")), true);
-  assert.equal(canUseLocalTimeOverrides(new URL("https://example.test/viewer/")), false);
-});
 
 test("a broken or mismatched sidecar remains optional", () => {
   const errors = validateTimeAnalysis(

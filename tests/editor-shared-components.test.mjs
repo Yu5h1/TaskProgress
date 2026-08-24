@@ -127,7 +127,6 @@ test("Report adapter applies the shared meaningful-text rule before commit", () 
 
 test("Report adapter combines report and private time drafts into one payload", () => {
   let externalDirty = true;
-  let externalCommitted = false;
   const timeDraft = createTimeInputDraft({
     config: { scope_id: "example", project: { executor_count: 1 } },
     estimates: null,
@@ -147,11 +146,7 @@ test("Report adapter combines report and private time drafts into one payload", 
   assert.equal(adapter.snapshot().dirty, true);
   assert.deepEqual(Object.keys(prepared.inputs), ["config"]);
   assert.equal(prepared.changes[0].field_path, "time.config.project.delivery_at");
-  adapter.commit({
-    report: prepared.report,
-    externalSave: { commit: () => { externalCommitted = true; } },
-  });
-  assert.equal(externalCommitted, true);
+  adapter.commit({ report: prepared.report });
   assert.equal(adapter.snapshot().dirty, false);
 });
 
@@ -645,6 +640,10 @@ test("formal Viewer sources use shared Svelte components and the shared core", a
   assert.match(cardText, /bind:value=\{taskStatusValue\}/u);
   assert.match(addControlText, /priority = policy\?\.creationDefaultValue \?\? 4/u);
   assert.match(dialogText, /<ManualEstimateEditor/u);
+  assert.match(dialogText, /import TimeSettingsEditor from "\.\/TimeSettingsEditor\.svelte";/u);
+  assert.match(dialogText, /<TimeSettingsEditor/u);
+  assert.match(dialogText, /<DeliveryRiskPreview preview=\{deliveryPreview\}/u);
+  assert.doesNotMatch(dialogText, /TimeCapacityEditor/u, "the local browser-only capacity override is retired");
   assert.match(manualEstimateText, /humanConfirmed:\s*estimateConfirmed/u);
   assert.match(manualEstimateText, /人工確認此工時/u);
   assert.match(manualEstimateText, /未勾選仍可儲存人工工時與依據/u);
@@ -658,7 +657,6 @@ test("formal Viewer sources use shared Svelte components and the shared core", a
   assert.ok(timeSettingsText.indexOf("spike-delivery-settings") < timeSettingsText.indexOf("spike-capacity-settings"));
   assert.match(timeSettingsText, /既有私人理由會保留但不在此顯示或修改/u);
   assert.match(timeSettingsText, /capacityExceptions/u);
-  assert.match(viewerAdapterText, /"time-settings": TimeSettingsEditor/u);
   assert.match(previewText, /capacityDelta/u);
   assert.match(confirmationText, /確認儲存/u);
   assert.match(confirmationText, /event\.key !== "Escape"/u);

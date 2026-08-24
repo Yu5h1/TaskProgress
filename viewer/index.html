@@ -77,13 +77,11 @@
         <section id="report-content" hidden>
           <div class="overview-grid" id="overview-grid" aria-label="報告摘要"></div>
 
-          <!-- Mount point only. The shared TimeSettingsEditor component renders
-               the capacity/delivery-date editor itself; only visible while
-               editing with a local edit session. -->
+          <!-- Bootstrap-only prompt: a project with no time.config.json and
+               no time.analysis.json has no delivery button to open a
+               TimeDialog through yet. Every other time setting, including
+               delivery date, is edited inside the shared TimeDialog. -->
           <div class="time-settings-dock" id="time-settings-dock" hidden></div>
-          <!-- Mount point only. The shared DeliveryRiskPreview component
-               renders the draft-risk comparison after a preview recalculation. -->
-          <div class="delivery-risk-preview-dock" id="delivery-risk-preview-dock" hidden></div>
 
           <div class="task-toolbar">
             <p class="section-kicker">工作項目</p>

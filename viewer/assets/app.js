@@ -127,7 +127,6 @@ const elements = {
   timeSummaryButton: document.querySelector("#time-summary-dock"),
   timeDialog: document.querySelector("#time-dialog-dock"),
   timeSettingsDock: document.querySelector("#time-settings-dock"),
-  deliveryRiskPreviewDock: document.querySelector("#delivery-risk-preview-dock"),
   deliverySaveConfirmationDock: document.querySelector("#delivery-save-confirmation-dock"),
 };
 
@@ -158,8 +157,6 @@ const state = {
   overviewView: null,
   projectProgressView: null,
   filtersView: null,
-  timeSettingsView: null,
-  deliveryRiskPreviewView: null,
   deliverySaveConfirmationView: null,
   statusOrder: loadCapsuleOrder(),
   moduleOrder: moduleOrderControl.order,
@@ -266,10 +263,8 @@ function renderTimeReference() {
       state.timeController.setActiveTab(name);
       renderTimeReference();
     },
-    onSubmitCapacity: (values) => {
-      state.timeController.submitCapacityForm(values);
-      renderTimeReference();
-    },
+    timeSettings: timeSettingsProps(),
+    deliveryPreview: state.editor.deliveryPreview,
   };
   if (state.timeDialogView) state.timeDialogView.update(dialogProps);
   else state.timeDialogView = createUiView("time-dialog", elements.timeDialog, dialogProps);
@@ -307,12 +302,30 @@ function refreshModeToggleDisabled() {
 // pending-change, manual estimate) stays consistent instead of drifting
 // out of sync across separate call sites.
 function renderEditorTimeExtras() {
-  renderTimeSettings();
-  renderDeliveryRiskPreview();
+  renderTimeReference();
+  renderMissingTimeConfigFallback();
   renderDeliverySaveConfirmation();
 }
 
-function renderMissingTimeConfigPanel(dock) {
+// The bootstrap prompt for a project with no time.config.json and no
+// time.analysis.json at all: `state.timeController` doesn't exist yet (there
+// is nothing on disk to build it from), so the shared TimeDialog isn't
+// mounted either and this can't route through it like every other time
+// setting now does. It is the one remaining exception to "the delivery
+// button is the only entry point" — there is no delivery button to be found
+// until a first save regenerates time.analysis.json and the page reloads.
+function renderMissingTimeConfigFallback() {
+  const dock = elements.timeSettingsDock;
+  const show = state.editor.editing
+    && state.editor.available
+    && !state.timeController
+    && !state.editor.timeDraftView?.inputs.config;
+  if (!show) {
+    dock.hidden = true;
+    dock.replaceChildren();
+    return;
+  }
+  dock.hidden = false;
   const panel = el("section", "spike-time-config-missing");
   panel.setAttribute("aria-labelledby", "missing-time-config-title");
   const copy = el("div");
@@ -337,24 +350,17 @@ function renderMissingTimeConfigPanel(dock) {
   dock.replaceChildren(panel);
 }
 
-function renderTimeSettings() {
-  const dock = elements.timeSettingsDock;
-  const config = state.editor.editing ? state.editor.timeDraftView?.inputs.config ?? null : null;
-  if (!config) {
-    state.timeSettingsView?.destroy();
-    state.timeSettingsView = null;
-    dock.replaceChildren();
-    const showMissingPanel = state.editor.editing && state.editor.available;
-    dock.hidden = !showMissingPanel;
-    if (showMissingPanel) renderMissingTimeConfigPanel(dock);
-    return;
-  }
-  dock.hidden = false;
-  // The dock may still hold the plain "missing config" panel from before
-  // initializeConfig() ran — mount() appends rather than replacing, so a
-  // first-time createUiView call needs the dock cleared or the two stack.
-  if (!state.timeSettingsView) dock.replaceChildren();
-  const props = {
+// The one project-level editing surface — delivery date, daily allocation,
+// working weekdays, capacity exceptions — passed into the shared TimeDialog
+// so it renders in the same place its read-only figures already show,
+// instead of a second form living on the main report page. `null` outside a
+// global edit session, so the dialog falls back to its ordinary read-only
+// tabs.
+function timeSettingsProps() {
+  if (!state.editor.editing) return null;
+  const config = state.editor.timeDraftView?.inputs.config ?? null;
+  return {
+    hasConfig: Boolean(config),
     config,
     onApply: (settings) => {
       const result = state.editor.timeDraft.setTimeSettings(settings);
@@ -367,26 +373,16 @@ function renderTimeSettings() {
     onPendingChange: (pending) => {
       state.editor.timeSettingsPending = pending;
       if (pending) invalidateDeliveryPreview();
-      renderDeliveryRiskPreview();
-      renderDeliverySaveConfirmation();
+      renderEditorTimeExtras();
+    },
+    onInitializeConfig: () => {
+      const result = state.editor.timeDraft.initializeConfig();
+      state.editor.timeDraftView = result.snapshot;
+      if (!result.error) invalidateDeliveryPreview();
+      if (!result.error) state.editor.persistence?.changed({ type: "initialize-time-config" });
+      renderEditorTimeExtras();
     },
   };
-  if (state.timeSettingsView) state.timeSettingsView.update(props);
-  else state.timeSettingsView = createUiView("time-settings", dock, props);
-}
-
-function renderDeliveryRiskPreview() {
-  const dock = elements.deliveryRiskPreviewDock;
-  if (!state.editor.deliveryPreview) {
-    state.deliveryRiskPreviewView?.destroy();
-    state.deliveryRiskPreviewView = null;
-    dock.hidden = true;
-    return;
-  }
-  dock.hidden = false;
-  const props = { preview: state.editor.deliveryPreview };
-  if (state.deliveryRiskPreviewView) state.deliveryRiskPreviewView.update(props);
-  else state.deliveryRiskPreviewView = createUiView("delivery-risk-preview", dock, props);
 }
 
 // The confirmation is a self-managing <dialog> (it calls showModal() on
@@ -974,8 +970,6 @@ async function startEditing() {
       onDiscard: () => {
         state.editor.externalDirty = false;
         state.editor.timeDraftView = state.editor.timeDraft.snapshot();
-        state.timeController?.setEditing(false);
-        state.timeController?.setEditing(true);
         invalidateDeliveryPreview();
       },
     });
@@ -998,7 +992,6 @@ async function startEditing() {
     invalidateDeliveryPreview();
     syncPersistenceView(state.editor.persistence.snapshot());
     rebuildMergedTasks();
-    state.timeController?.setEditing(true);
     renderReport();
     return true;
   } catch (error) {
@@ -1028,7 +1021,6 @@ async function cancelEditing() {
   invalidateDeliveryPreview();
   state.editor.externalDirty = false;
   state.editor.editing = false;
-  state.timeController?.setEditing(false);
   state.timeController?.setReportStructureStale(false);
   state.report = structuredClone(state.persistedReport);
   rebuildMergedTasks();
@@ -1132,15 +1124,7 @@ async function confirmReportSave(payload) {
 }
 
 async function saveReportDraft(payload) {
-  let timeSave = null;
-  try {
-    timeSave = state.timeController?.prepareSave() ?? null;
-    const saved = await state.editor.client.save(payload);
-    return { ...saved, externalSave: timeSave };
-  } catch (error) {
-    timeSave?.rollback();
-    throw error;
-  }
+  return await state.editor.client.save(payload);
 }
 
 async function loadScopeCatalog() {
@@ -1336,12 +1320,9 @@ async function main() {
         const projectProgress = calculateProjectProgress(state.tasks);
         state.timeController = createTimeReferenceController({
           sourceAnalysis: state.timeAnalysis,
-          report,
-          location: window.location,
           workProgressRatio: projectProgress.total
             ? projectProgress.completed / projectProgress.total
             : 0,
-          onDraftChange: (message) => markEditorDirty(message),
         });
       } catch (error) {
         state.timeAnalysis = null;

@@ -1,15 +1,16 @@
 import {
-  buildCapacityTimeline,
   calculateDeadlineRisk,
-  canUseLocalTimeOverrides,
   createTimeIndex,
-  parseCapacityExceptions,
 } from "./time-model.js";
 
 /*
  * Framework-neutral controller for the time-reference summary button and its
- * progress-report dialog (project detail, item detail, and the local
- * capacity quick-editor).
+ * progress-report dialog (project detail and item detail). Editing the
+ * project's own delivery date and capacity settings is not this module's
+ * concern — that draft lives in `time-input-draft.js` and is rendered by
+ * `TimeSettingsEditor.svelte`, mounted inside this dialog's project detail
+ * by the host while a global edit session is open. This controller only
+ * derives the read-only capacity figures shown in the 工作容量 tab.
  *
  * This is the data half of the split: every function here returns plain
  * objects, never DOM nodes, so any UI implementation can render them. A host
@@ -50,10 +51,6 @@ const CONFIDENCE_LABELS = Object.freeze({
   medium: "中等信心",
   high: "高信心",
 });
-
-export const WEEKDAY_OPTIONS = Object.freeze(
-  [...WEEKDAY_LABELS.entries()].map(([value, label]) => Object.freeze({ value, label })),
-);
 
 function cloneValue(value) {
   return JSON.parse(JSON.stringify(value));
@@ -209,10 +206,7 @@ function itemSourceBadges(item) {
 
 export function createTimeReferenceController({
   sourceAnalysis,
-  report,
-  location,
   workProgressRatio,
-  onDraftChange,
 }) {
   const analysis = cloneValue(sourceAnalysis);
   const deadlineAvailable = Boolean(analysis.summary.deadline);
@@ -225,8 +219,6 @@ export function createTimeReferenceController({
     analysis.summary.deadline.work_progress_ratio = currentWorkProgressRatio;
   }
   const index = createTimeIndex(analysis);
-  const localOverridesAllowed = canUseLocalTimeOverrides(location);
-  const storageKey = `taskprogress.time-capacity.${report.scope_id}.v1`;
 
   // Presentation state. Kept here rather than in a UI component because it
   // must survive the dialog closing and reopening (the active tab and the
@@ -235,38 +227,8 @@ export function createTimeReferenceController({
   let detailsExpanded = false;
   let activeTab = "flow";
   let reportStructureStale = false;
-  let capacityEditorOpen = false;
-  let capacityFormError = "";
-  // Bumped only when a recalculation succeeds. The capacity editor component
-  // keys its local draft state on this, so a periodic refresh (no change) or
-  // a failed submit (error only) never resets what the reader is typing —
-  // only a successful recalculation replaces the draft with the normalized,
-  // just-applied values.
-  let editorRevision = 0;
-  let pendingCapacityProfile = null;
-  let persistedCapacityProfile = null;
   let dialogKind = null; // 'project' | 'item' | null
   let activeItem = null; // { item, title } when dialogKind === 'item'
-
-  function applyCapacityProfile(profile) {
-    const safeProfile = cloneValue(profile);
-    const deadline = analysis.summary.deadline;
-    deadline.schedule.capacity_profile = safeProfile;
-    deadline.schedule.capacity_timeline = buildCapacityTimeline(deadline, safeProfile);
-    analysis.summary.nominal_daily_capacity_minutes = safeProfile.capacity_minutes_per_executor_day;
-  }
-
-  if (deadlineAvailable && localOverridesAllowed) {
-    try {
-      const stored = JSON.parse(localStorage.getItem(storageKey) ?? "null");
-      if (stored?.profile) applyCapacityProfile(stored.profile);
-    } catch {
-      // Invalid or unavailable local storage must not block the published report.
-    }
-  }
-  if (deadlineAvailable) {
-    persistedCapacityProfile = cloneValue(capacityProfileFor(analysis.summary, analysis.summary.deadline));
-  }
 
   function updateDeadline(now = new Date()) {
     if (!deadlineAvailable) return;
@@ -394,7 +356,6 @@ export function createTimeReferenceController({
   function capacityViewModel(summary, deadline) {
     const profile = capacityProfileFor(summary, deadline);
     const remainingCapacity = Math.max(0, deadline.total_capacity_minutes - deadline.elapsed_capacity_minutes);
-    const editorAllowed = capacityEditorOpen && localOverridesAllowed;
     return {
       metrics: [
         { label: "每日工作容量", value: hours(profile.capacity_minutes_per_executor_day) },
@@ -414,20 +375,6 @@ export function createTimeReferenceController({
           value: hours(item.available_minutes),
           note: item.public_label || "工作容量例外",
         }))
-        : null,
-      editorOpen: editorAllowed,
-      editor: editorAllowed
-        ? {
-          sleepHours: Math.round((profile.sleep_minutes_per_day / 60) * 10) / 10,
-          lifeHours: Math.round((profile.life_minutes_per_day / 60) * 10) / 10,
-          otherHours: Math.round((profile.other_unavailable_minutes_per_day / 60) * 10) / 10,
-          workingWeekdays: [...profile.working_weekdays],
-          exceptionsText: profile.capacity_exceptions
-            .map((item) => `${item.date} | ${Math.round((item.available_minutes / 60) * 10) / 10} | ${item.public_label ?? ""}`)
-            .join("\n"),
-          error: capacityFormError,
-          revision: editorRevision,
-        }
         : null,
     };
   }
@@ -597,84 +544,6 @@ export function createTimeReferenceController({
     }
   }
 
-  function setEditing(enabled) {
-    if (!deadlineAvailable || !localOverridesAllowed) return;
-    capacityEditorOpen = Boolean(enabled);
-    capacityFormError = "";
-    if (!capacityEditorOpen && pendingCapacityProfile && persistedCapacityProfile) {
-      applyCapacityProfile(persistedCapacityProfile);
-      pendingCapacityProfile = null;
-      updateDeadline();
-    }
-  }
-
-  // Validation stays here rather than in the UI component: the capacity rule
-  // (sleep + life + other unavailable must leave a positive work window) is
-  // domain logic, not presentation. The component reports raw draft values
-  // and displays whatever error this returns.
-  function submitCapacityForm({ sleepHours, lifeHours, otherHours, workingWeekdays, exceptionsText }) {
-    try {
-      const sleep = Math.round(Number(sleepHours) * 60);
-      const life = Math.round(Number(lifeHours) * 60);
-      const other = Math.round(Number(otherHours) * 60);
-      const capacity = 1440 - sleep - life - other;
-      if (![sleep, life, other].every((value) => Number.isFinite(value) && value >= 0) || capacity <= 0) {
-        throw new Error("睡眠、生活與其他時間合計必須小於 24 hr。");
-      }
-      const nextProfile = {
-        total_minutes_per_day: 1440,
-        sleep_minutes_per_day: sleep,
-        life_minutes_per_day: life,
-        other_unavailable_minutes_per_day: other,
-        capacity_minutes_per_executor_day: capacity,
-        working_weekdays: (workingWeekdays ?? []).map(Number),
-        capacity_exceptions: parseCapacityExceptions(String(exceptionsText ?? "")),
-      };
-      if (nextProfile.working_weekdays.length === 0) {
-        throw new Error("至少選擇一個工作日。");
-      }
-      applyCapacityProfile(nextProfile);
-      pendingCapacityProfile = cloneValue(nextProfile);
-      activeTab = "capacity";
-      capacityFormError = "";
-      editorRevision += 1;
-      updateDeadline();
-      onDraftChange?.("工作容量已重新計算，尚未全域儲存");
-      return true;
-    } catch (reason) {
-      capacityFormError = reason instanceof Error ? reason.message : String(reason);
-      return false;
-    }
-  }
-
-  function prepareSave() {
-    if (!pendingCapacityProfile || !localOverridesAllowed) return null;
-    const savingProfile = cloneValue(pendingCapacityProfile);
-    const previousValue = localStorage.getItem(storageKey);
-    localStorage.setItem(storageKey, JSON.stringify({
-      profile: savingProfile,
-      updated_at: new Date().toISOString(),
-    }));
-    let settled = false;
-    return Object.freeze({
-      commit() {
-        if (settled) return;
-        persistedCapacityProfile = cloneValue(savingProfile);
-        pendingCapacityProfile = null;
-        settled = true;
-      },
-      rollback() {
-        if (settled) return;
-        if (previousValue === null) {
-          localStorage.removeItem(storageKey);
-        } else {
-          localStorage.setItem(storageKey, previousValue);
-        }
-        settled = true;
-      },
-    });
-  }
-
   function refresh(now = new Date()) {
     if (deadlineAvailable) updateDeadline(now);
   }
@@ -689,9 +558,7 @@ export function createTimeReferenceController({
     analysis,
     deadlineAvailable,
     itemTime,
-    prepareSave,
     refresh,
-    setEditing,
     setReportStructureStale,
     showItemTime,
     taskDuration,
@@ -700,6 +567,5 @@ export function createTimeReferenceController({
     closeDialog,
     toggleDetails,
     setActiveTab,
-    submitCapacityForm,
   });
 }
