@@ -1111,10 +1111,18 @@ h1 {
   text-align: center;
 }
 
-.item-row-marker-completed {
+/*
+ * The marker takes the same colour as that row's status capsule — they are
+ * two views of one value, so they cannot disagree. Statuses without a rule
+ * (planned, archive) keep the base muted colour, matching their capsule.
+ */
+.item-row-marker-done {
   color: var(--moss);
   font-weight: 800;
 }
+
+.item-row-marker-in_progress { color: var(--blue); }
+.item-row-marker-blocked { color: var(--red); }
 
 .item-row-priority {
   flex: 0 0 var(--editor-item-priority-preview-width);

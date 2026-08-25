@@ -136,6 +136,20 @@ test("an item and a task showing the same status get the same colour", () => {
   }
 });
 
+test("a row's marker and its status capsule are never different colours", () => {
+  // The marker and the capsule are two views of one value. The class rename
+  // to status values on 2026-08-25 left the marker keyed on the old name, so
+  // a done row showed a grey tick beside a green capsule.
+  for (const [status, token] of [["done", "moss"], ["in_progress", "blue"], ["blocked", "red"]]) {
+    const marker = styles.match(
+      new RegExp(`\\.item-row-marker-${status}[^{]*\\{[^}]*\\}`, "u"),
+    )?.[0] ?? "";
+    assert.ok(marker, `no marker rule for ${status}`);
+    assert.ok(marker.includes(`var(--${token})`), `marker ${status} does not use var(--${token})`);
+  }
+  assert.doesNotMatch(styles, /\.item-row-marker-completed/u);
+});
+
 test("the card border carries priority, and finished work gets no loud edge", () => {
   // The border encodes the task's priority as of 2026-08-25 — it is what
   // decides what to pick up next, and it is no longer shown as a badge.

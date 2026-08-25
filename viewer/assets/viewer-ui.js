@@ -3279,7 +3279,7 @@ wr([
 ]);
 //#endregion
 //#region experiments/editor-svelte-spike/src/TaskCard.svelte
-var Ja = /* @__PURE__ */ K("<option> </option>"), Ya = /* @__PURE__ */ K("<select class=\"inline-status-select\"></select> <select class=\"inline-priority-select\"></select>", 1), Xa = /* @__PURE__ */ K("<input class=\"task-title-input\" aria-label=\"任務名稱\" maxlength=\"160\"/>"), Za = /* @__PURE__ */ K("<h3> </h3>"), Qa = /* @__PURE__ */ K("<span> </span>"), $a = /* @__PURE__ */ K("<div class=\"task-module-totals\"></div>"), eo = /* @__PURE__ */ K("<textarea class=\"task-summary-input\" aria-label=\"任務描述\" maxlength=\"1000\" rows=\"3\"></textarea>"), to = /* @__PURE__ */ K("<p class=\"task-summary\"> </p>"), no = /* @__PURE__ */ K("<section><h4 class=\"detail-heading\"> </h4> <ul class=\"detail-list\"></ul></section>"), ro = /* @__PURE__ */ K("<div class=\"spike-add-form\"><input aria-label=\"新增子項目描述\" placeholder=\"新增待處理項目\" maxlength=\"500\"/> <select aria-label=\"新增子項目優先級\"></select> <button type=\"button\">新增</button> <button type=\"button\">取消</button> <p class=\"spike-field-error\" role=\"alert\"> </p></div>"), io = /* @__PURE__ */ K("<button class=\"spike-add-button\" type=\"button\">＋</button>"), ao = /* @__PURE__ */ K("<div class=\"spike-add-shell\"><!></div>"), oo = /* @__PURE__ */ K("<article><header class=\"task-header\"><div class=\"task-title-group\"><div class=\"time-task-status-line\"><!></div> <div class=\"time-task-title-line\"><!></div> <!></div> <div class=\"task-header-meta\"><strong class=\"task-fraction\"> </strong> <code class=\"task-id\"> </code></div></header> <!> <!> <div class=\"work-columns\"><!> <section class=\"task-adder-section\"><!></section></div></article>");
+var Ja = /* @__PURE__ */ K("<option> </option>"), Ya = /* @__PURE__ */ K("<div class=\"time-task-status-line\"><select class=\"inline-status-select\"></select> <select class=\"inline-priority-select\"></select></div>"), Xa = /* @__PURE__ */ K("<input class=\"task-title-input\" aria-label=\"任務名稱\" maxlength=\"160\"/>"), Za = /* @__PURE__ */ K("<h3> </h3>"), Qa = /* @__PURE__ */ K("<span> </span>"), $a = /* @__PURE__ */ K("<div class=\"task-module-totals\"></div>"), eo = /* @__PURE__ */ K("<textarea class=\"task-summary-input\" aria-label=\"任務描述\" maxlength=\"1000\" rows=\"3\"></textarea>"), to = /* @__PURE__ */ K("<p class=\"task-summary\"> </p>"), no = /* @__PURE__ */ K("<section><h4 class=\"detail-heading\"> </h4> <ul class=\"detail-list\"></ul></section>"), ro = /* @__PURE__ */ K("<div class=\"spike-add-form\"><input aria-label=\"新增子項目描述\" placeholder=\"新增待處理項目\" maxlength=\"500\"/> <select aria-label=\"新增子項目優先級\"></select> <button type=\"button\">新增</button> <button type=\"button\">取消</button> <p class=\"spike-field-error\" role=\"alert\"> </p></div>"), io = /* @__PURE__ */ K("<button class=\"spike-add-button\" type=\"button\">＋</button>"), ao = /* @__PURE__ */ K("<div class=\"spike-add-shell\"><!></div>"), oo = /* @__PURE__ */ K("<article><header class=\"task-header\"><div class=\"task-title-group\"><!> <div class=\"time-task-title-line\"><!></div> <!></div> <div class=\"task-header-meta\"><strong class=\"task-fraction\"> </strong> <code class=\"task-id\"> </code></div></header> <!> <!> <div class=\"work-columns\"><!> <section class=\"task-adder-section\"><!></section></div></article>");
 function so(e, t) {
 	Ge(t, !1);
 	let n = /* @__PURE__ */ N(), r = /* @__PURE__ */ N(), i = /* @__PURE__ */ N(), a = /* @__PURE__ */ N(), o = $(t, "task", 8), s = $(t, "progress", 8), c = $(t, "editing", 8), l = $(t, "policy", 8), u = $(t, "onCommand", 8), d = $(t, "onAddItem", 8);
@@ -3351,8 +3351,8 @@ function so(e, t) {
 	}), R(() => (W(c()), H(y)), () => {
 		!c() && H(y) && T();
 	}), kn(), ki();
-	var E = oo(), te = F(E), ne = F(te), D = F(ne), re = F(D), ie = (e) => {
-		var t = Ya(), n = I(t);
+	var E = oo(), te = F(E), ne = F(te), D = F(ne), re = (e) => {
+		var t = Ya(), n = F(t);
 		X(n, 5, () => v, (e) => e.value, (e, t) => {
 			var n = Ja(), r = F(n, !0);
 			A(n);
@@ -3369,7 +3369,7 @@ function so(e, t) {
 			z((e) => {
 				J(r, e), i !== (i = (H(t), U(() => H(t).value))) && (n.value = (n.__value = (H(t), U(() => H(t).value))) ?? "");
 			}, [() => (W(l()), H(t), U(() => l().format(H(t).value)))]), q(e, n);
-		}), A(r), z(() => {
+		}), A(r), A(t), z(() => {
 			Q(n, "aria-label", (W(o()), U(() => `${o().title} 狀態`))), Q(r, "aria-label", (W(o()), U(() => `${o().title} 優先級`)));
 		}), G("change", n, () => u()({
 			type: "set-task-field",
@@ -3383,10 +3383,10 @@ function so(e, t) {
 			value: Number(H(w))
 		})), di(r, () => H(w), (e) => P(w, e)), q(e, t);
 	};
-	Y(re, (e) => {
-		c() && e(ie);
-	}), A(D);
-	var ae = L(D, 2), oe = F(ae), se = (e) => {
+	Y(D, (e) => {
+		c() && e(re);
+	});
+	var ie = L(D, 2), ae = F(ie), oe = (e) => {
 		var t = Xa();
 		_i(t), z(() => {
 			Q(t, "id", (W(o()), U(() => `task-${o().id}-title`))), vi(t, (W(o()), U(() => o().title)));
@@ -3396,16 +3396,16 @@ function so(e, t) {
 			field: "title",
 			value: e.currentTarget.value
 		})), q(e, t);
-	}, ce = (e) => {
+	}, se = (e) => {
 		var t = Za(), n = F(t, !0);
 		A(t), z(() => {
 			Q(t, "id", (W(o()), U(() => `task-${o().id}-title`))), J(n, (W(o()), U(() => o().title)));
 		}), q(e, t);
 	};
-	Y(oe, (e) => {
-		c() ? e(se) : e(ce, -1);
-	}), A(ae);
-	var le = L(ae, 2), ue = (e) => {
+	Y(ae, (e) => {
+		c() ? e(oe) : e(se, -1);
+	}), A(ie);
+	var ce = L(ie, 2), le = (e) => {
 		var t = $a();
 		X(t, 5, _, (e) => e.id, (e, t) => {
 			var n = Qa(), r = F(n, !0);
@@ -3414,14 +3414,14 @@ function so(e, t) {
 			}), q(e, n);
 		}), A(t), q(e, t);
 	};
-	Y(le, (e) => {
-		W(_()), U(() => _().length) && e(ue);
+	Y(ce, (e) => {
+		W(_()), U(() => _().length) && e(le);
 	}), A(ne);
-	var de = L(ne, 2), fe = F(de), pe = F(fe);
-	A(fe);
-	var me = L(fe, 2), he = F(me, !0);
-	A(me), A(de), A(te);
-	var ge = L(te, 2), _e = (e) => {
+	var ue = L(ne, 2), de = F(ue), fe = F(de);
+	A(de);
+	var pe = L(de, 2), me = F(pe, !0);
+	A(pe), A(ue), A(te);
+	var he = L(te, 2), ge = (e) => {
 		var t = eo();
 		st(t), z(() => vi(t, (W(o()), U(() => o().summary)))), G("input", t, (e) => u()({
 			type: "set-task-field",
@@ -3429,22 +3429,22 @@ function so(e, t) {
 			field: "summary",
 			value: e.currentTarget.value
 		})), q(e, t);
-	}, ve = (e) => {
+	}, _e = (e) => {
 		var t = to(), n = F(t, !0);
 		A(t), z(() => J(n, (W(o()), U(() => o().summary)))), q(e, t);
 	};
-	Y(ge, (e) => {
-		c() ? e(_e) : e(ve, -1);
+	Y(he, (e) => {
+		c() ? e(ge) : e(_e, -1);
 	});
-	var ye = L(ge, 2);
+	var ve = L(he, 2);
 	{
 		let e = /* @__PURE__ */ Ct(() => (W(o()), U(() => o().developer ?? null)));
-		La(ye, { get developer() {
+		La(ve, { get developer() {
 			return H(e);
 		} });
 	}
-	var be = L(ye, 2), xe = F(be);
-	X(xe, 1, () => H(r), (e) => e.status, (e, t) => {
+	var ye = L(ve, 2), be = F(ye);
+	X(be, 1, () => H(r), (e) => e.status, (e, t) => {
 		var n = Mr(), r = I(n), i = (e) => {
 			var n = no(), r = F(n), i = F(r, !0);
 			A(r);
@@ -3496,7 +3496,7 @@ function so(e, t) {
 			H(t), W(c()), U(() => H(t).items.length || c()) && e(i);
 		}), q(e, n);
 	});
-	var Se = L(xe, 2), Ce = F(Se), we = (e) => {
+	var xe = L(be, 2), Se = F(xe), Ce = (e) => {
 		var t = ao(), n = F(t), r = (e) => {
 			var t = ro(), n = F(t);
 			_i(n);
@@ -3525,10 +3525,10 @@ function so(e, t) {
 			H(y) ? e(r) : e(i, -1);
 		}), A(t), q(e, t);
 	};
-	Y(Ce, (e) => {
-		c() && e(we);
-	}), A(Se), A(be), A(E), z(() => {
-		Z(E, 1, (H(i), U(() => `task-card editor-task-card priority-${H(i)?.tone ?? "unspecified"}`))), Q(E, "aria-labelledby", (W(o()), U(() => `task-${o().id}-title`))), Q(fe, "aria-label", (W(s()), U(() => `子項目完成 ${s().completed}，共 ${s().total}`))), J(pe, `${W(s()), U(() => s().completed) ?? ""} / ${W(s()), U(() => s().total) ?? ""}`), J(he, (W(o()), U(() => o().id)));
+	Y(Se, (e) => {
+		c() && e(Ce);
+	}), A(xe), A(ye), A(E), z(() => {
+		Z(E, 1, (H(i), U(() => `task-card editor-task-card priority-${H(i)?.tone ?? "unspecified"}`))), Q(E, "aria-labelledby", (W(o()), U(() => `task-${o().id}-title`))), Q(de, "aria-label", (W(s()), U(() => `子項目完成 ${s().completed}，共 ${s().total}`))), J(fe, `${W(s()), U(() => s().completed) ?? ""} / ${W(s()), U(() => s().total) ?? ""}`), J(me, (W(o()), U(() => o().id)));
 	}), q(e, E), Ke();
 }
 wr([

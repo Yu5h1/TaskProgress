@@ -85,8 +85,8 @@
 <article class={`task-card editor-task-card priority-${taskPriority?.tone ?? "unspecified"}`} aria-labelledby={`task-${task.id}-title`}>
   <header class="task-header">
     <div class="task-title-group">
-      <div class="time-task-status-line">
-        {#if editing}
+      {#if editing}
+        <div class="time-task-status-line">
           <select
             class="inline-status-select"
             aria-label={`${task.title} 狀態`}
@@ -117,8 +117,8 @@
               <option value={level.value}>{policy.format(level.value)}</option>
             {/each}
           </select>
-        {/if}
-      </div>
+        </div>
+      {/if}
       <div class="time-task-title-line">
         {#if editing}
           <input
