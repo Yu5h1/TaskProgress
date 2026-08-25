@@ -1,6 +1,7 @@
 import { mount, unmount } from "svelte";
 
 import AddControl from "./AddControl.svelte";
+import CostDetail from "./CostDetail.svelte";
 import DeliverySaveConfirmation from "./DeliverySaveConfirmation.svelte";
 import Diagnostics from "./Diagnostics.svelte";
 import ModeToggle from "./ModeToggle.svelte";
@@ -46,6 +47,11 @@ const components = {
   "project-module-strip": ModuleCapsuleStrip,
   "time-summary-button": TimeSummaryButton,
   "time-dialog": TimeDialog,
+  // Cost's project-detail panel (v0.1, read-only). Its own region, not
+  // TimeDialog's, per the architecture plan's "one dialog per subject with
+  // modules as sections" note being about Time's own project/item split —
+  // Cost is a different subject's detail, not a section inside Time's.
+  "cost-detail": CostDetail,
   "delivery-save-confirmation": DeliverySaveConfirmation,
 };
 

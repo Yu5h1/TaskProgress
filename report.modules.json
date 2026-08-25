@@ -1,0 +1,15 @@
+{
+  "schema_version": "0.1",
+  "report_id": "task-progress-development",
+  "scope_id": "task-progress",
+  "updated_at": "2026-08-25T12:20:00+08:00",
+  "modules": [
+    {
+      "id": "time",
+      "type": "taskprogress.time",
+      "source": "time.analysis.json",
+      "optional": true,
+      "visibility": "local"
+    }
+  ]
+}

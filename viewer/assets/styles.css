@@ -471,6 +471,49 @@ code {
   gap: 8px;
 }
 
+.cost-task-breakdown {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0 0 16px;
+  padding: 0;
+  list-style: none;
+}
+
+.cost-task-breakdown > li {
+  padding: 10px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+}
+
+.cost-task-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-weight: 640;
+  font-variant-numeric: tabular-nums;
+}
+
+.cost-task-id {
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 0.78rem;
+  color: var(--color-muted-text);
+}
+
+.cost-task-method {
+  margin: 4px 0 0;
+  color: var(--color-muted-text);
+  font-size: 0.74rem;
+}
+
+.cost-breakdown-list {
+  margin: 6px 0 0;
+  padding-left: 16px;
+  color: var(--color-muted-text);
+  font-size: 0.74rem;
+  font-variant-numeric: tabular-nums;
+}
+
 .theme-dialog-action-spacer {
   flex: 1;
 }
