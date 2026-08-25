@@ -680,13 +680,16 @@ function renderOverview() {
 
 function renderProjectProgress() {
   const progress = currentProjectProgress(state.tasks);
+  // Core progress reports the report's own task progress and nothing else.
+  // It used to append Time's elapsed-window share to its accessible label,
+  // which meant this core path reached three levels into a module's data
+  // (`timeController.analysis.summary.deadline.time_progress_ratio`) and
+  // could not survive that controller moving behind the module boundary.
+  // That sentence now lives on Time's own capsule.
   const props = {
     percentage: progress.percentage,
     completed: progress.completed,
     total: progress.total,
-    timeProgressPercent: state.timeController?.deadlineAvailable
-      ? Math.round(state.timeController.analysis.summary.deadline.time_progress_ratio * 100)
-      : null,
   };
   if (state.projectProgressView) state.projectProgressView.update(props);
   else state.projectProgressView = createUiView("project-progress", elements.projectProgress, props);

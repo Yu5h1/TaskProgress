@@ -8,12 +8,12 @@
   export let percentage = 0;
   export let completed = 0;
   export let total = 0;
-  // Elapsed share of the delivery window, when a deadline exists.
-  export let timeProgressPercent = null;
 
-  $: ariaLabel = timeProgressPercent === null
-    ? `整體進度 ${percentage}%，已完成 ${completed}，共 ${total} 個進度單位`
-    : `整體進度 ${percentage}%，已完成 ${completed}，共 ${total} 個進度單位；時間已使用 ${timeProgressPercent}%`;
+  // Core progress describes the report's own task progress only. It carried a
+  // trailing 「時間已使用 X%」 until 2026-08-25; that sentence belongs to the
+  // Time module and now rides on Time's own capsule, so this component takes
+  // no module data and cannot be affected by one failing to load.
+  $: ariaLabel = `整體進度 ${percentage}%，已完成 ${completed}，共 ${total} 個進度單位`;
 </script>
 
 <div class="project-progress-label">

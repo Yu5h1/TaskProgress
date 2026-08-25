@@ -2794,16 +2794,16 @@ function aa(e, t) {
 var oa = /* @__PURE__ */ K("<div class=\"project-progress-label\"><strong id=\"project-progress-value\"> </strong></div> <!>", 1);
 function sa(e, t) {
 	Ge(t, !1);
-	let n = /* @__PURE__ */ N(), r = $(t, "percentage", 8, 0), i = $(t, "completed", 8, 0), a = $(t, "total", 8, 0), o = $(t, "timeProgressPercent", 8, null);
-	R(() => (W(o()), W(r()), W(i()), W(a())), () => {
-		P(n, o() === null ? `整體進度 ${r()}%，已完成 ${i()}，共 ${a()} 個進度單位` : `整體進度 ${r()}%，已完成 ${i()}，共 ${a()} 個進度單位；時間已使用 ${o()}%`);
+	let n = /* @__PURE__ */ N(), r = $(t, "percentage", 8, 0), i = $(t, "completed", 8, 0), a = $(t, "total", 8, 0);
+	R(() => (W(r()), W(i()), W(a())), () => {
+		P(n, `整體進度 ${r()}%，已完成 ${i()}，共 ${a()} 個進度單位`);
 	}), kn();
-	var s = oa(), c = I(s), l = F(c), u = F(l);
-	A(l), A(c);
-	var d = L(c, 2);
+	var o = oa(), s = I(o), c = F(s), l = F(c);
+	A(c), A(s);
+	var u = L(s, 2);
 	{
 		let e = /* @__PURE__ */ Ct(() => r() / 100);
-		aa(d, {
+		aa(u, {
 			form: "continuous",
 			get ratio() {
 				return H(e);
@@ -2814,7 +2814,7 @@ function sa(e, t) {
 			extraClass: "project-progress-meter"
 		});
 	}
-	z(() => J(u, `整體約 ${r() ?? ""}%`)), q(e, s), Ke();
+	z(() => J(l, `整體約 ${r() ?? ""}%`)), q(e, o), Ke();
 }
 //#endregion
 //#region experiments/editor-svelte-spike/src/ReportSummary.svelte

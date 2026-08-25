@@ -269,7 +269,12 @@ export function createTimeReferenceController({
       hidden: false,
       disabled: false,
       className: `time-summary-button ${meta.className}`,
-      ariaLabel: `工期摘要：${deliveryLabel(deadline)} 交付，${meta.lamp}`,
+      // Elapsed share of the delivery window rides here rather than being
+      // appended to the core progress bar's description. The core bar reports
+      // task progress and must not reach into a module's data to describe
+      // itself; a reader who never opens the dialog still hears this, because
+      // it is on the module's own capsule.
+      ariaLabel: `工期摘要：${deliveryLabel(deadline)} 交付，${meta.lamp}，時間已使用 ${percent(deadline.time_progress_ratio)}`,
       label: `${deliveryLabel(deadline)} 交付`,
       showDot: true,
       showChevron: true,
