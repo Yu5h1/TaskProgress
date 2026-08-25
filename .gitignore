@@ -26,3 +26,13 @@ experiments/editor-svelte-spike/dist/
 # experiments/time-reference/examples/, which the README points readers at and a
 # test reads, so the suite passed locally and failed on every clean checkout.
 /examples/
+
+# This project's own time analysis is a generated artifact, not source: the
+# analyzer derives it deterministically from report.json plus time.config.json,
+# and `task-progress.exe start` regenerates it whenever a time input exists.
+# Tracking it committed ~190 kB that re-churns its `as_of` stamp on every run.
+# The inputs stay versioned — /time.config.json and /report.modules.json are
+# authored, and losing them would lose real configuration. Anchored to the root
+# so experiments/time-reference/examples/time.analysis.json, which the test
+# suite does read, stays tracked.
+/time.analysis.json
