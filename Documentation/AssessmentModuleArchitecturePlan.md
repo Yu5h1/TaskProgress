@@ -297,6 +297,8 @@ Available money resource ───┘
 
 ## 尚未決定
 
+- **共用 shell 的元件契約。** 上面的「顯示責任」只固定了殼層*提供什麼*與*不得決定什麼*（tone 由模組給、殼層不得依數值自行判定），但沒有固定 props 形狀、草稿與已提交狀態由誰持有，以及模組如何把自己的 detail section 交給殼層。這是實作 Cost 時第一個會擋路的缺口，且**不會自行收斂**：`module-registry.js` 的生命週期迴圈當初也缺形狀，是等主面板改用共享 capsule strip、出現「一個膠囊描述陣列」這個既有形狀後才可推導；殼層目前沒有等價的既存形狀可依循，必須明確設計。先以 Time 現有的 `TimeDialog`／`ManualEstimateEditor` 為唯一真實案例抽出契約，不要在只有一個案例時就泛化成通用表單引擎。
+- **人工以外兩種 contributor 的產出路徑。** 邊界已固定且不重開：AI 與網路資料不進入 Viewer runtime，只在上游準備階段產生提案或參考快照，且 AI 提案只更新草稿、不自動提交。未決定的是機制——上游究竟是 CLI 子命令、analysis module、或完全外部的工具；由誰觸發；提案與參考以什麼格式落地成 module inputs；以及擷取到的外部資料在寫入前於何處完成隱私裁切。這一項需要產品意圖才能定案，不能只從現有程式碼推導，因此在使用者說明期望的工作流之前不應開始實作。
 - assessment record 應成為可重用 JSON Schema `$defs`，或先只作可信任 module implementation 的內部 contract；等 Time 遷移時以現有資料形狀驗證後決定。
 - Cost-local 人工的第一版計價單位與複雜度調整公式；由 Cost 領域設計在實作前以真實案例凍結。
 - `LaborCostSettlement` 與財務結算是同一個 module type 的兩個 capability，或兩個獨立投影；先以最小端到端案例決定，不能讓這項命名阻塞 Time／Cost 獨立化。
