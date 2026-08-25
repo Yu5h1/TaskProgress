@@ -897,7 +897,7 @@ function taskListProps(tasks) {
         state.attachedModules,
         "item-inline",
         { taskId: task.id, itemId: item.id, itemTitle: item.title },
-        { stale: state.moduleProjectionStale },
+        { stale: state.moduleProjectionStale, editing: state.editor.editing },
       );
       diagnostics.forEach((diagnostic) => console.warn(`[module] ${diagnostic.message}`));
       if (capsules.length) itemCapsules.set(item.id, capsules);
@@ -1428,6 +1428,9 @@ async function main() {
             return progress.total ? progress.completed / progress.total : 0;
           },
           onChanged: () => renderTimeReference(),
+          // An unset marker is only worth offering when there is somewhere
+          // to save the estimate it would create.
+          canEditEstimates: () => Boolean(state.editor.timeDraft),
         },
       }] : []),
     ]);

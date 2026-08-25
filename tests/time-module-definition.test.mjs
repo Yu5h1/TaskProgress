@@ -23,13 +23,13 @@ const analysis = JSON.parse(await readFile(
 const TASK_ID = "time-reference-prototype";
 const ITEM_ID = "define-draft-schemas";
 
-function attachTime({ data = analysis, onChanged = () => {}, workProgressRatio = 0.5 } = {}) {
+function attachTime({ data = analysis, onChanged = () => {}, workProgressRatio = 0.5, canEditEstimates = () => true } = {}) {
   const registry = createTrustedModuleRegistry([createTimeModuleDefinition()]);
   return attachModules(registry, [{
     type: TIME_MODULE_TYPE,
     schemaVersion: data.schema_version,
     data,
-    host: { getWorkProgressRatio: () => workProgressRatio, onChanged },
+    host: { getWorkProgressRatio: () => workProgressRatio, onChanged, canEditEstimates },
   }]);
 }
 
@@ -184,4 +184,86 @@ test("the definition stays off the DOM apart from the listeners it owns and remo
   // leaks one per load.
   assert.equal((source.match(/addEventListener/gu) ?? []).length, 2);
   assert.equal((source.match(/removeEventListener/gu) ?? []).length, 2);
+});
+
+// --- unset estimates ---
+
+test("an unset item shows nothing in preview and an entry point while editing", () => {
+  // Every item in this fixture that the analyzer had no estimate for carries
+  // mode "default"; the Viewer treats that as unset rather than as 8 hours.
+  const unsetAnalysis = {
+    ...analysis,
+    tasks: [{
+      ...analysis.tasks[0],
+      items: analysis.tasks[0].items.map((item) => ({ ...item, mode: "default" })),
+    }],
+  };
+  const { attached } = attachTime({ data: unsetAnalysis });
+  const subject = { taskId: TASK_ID, itemId: ITEM_ID, itemTitle: "定義 Draft Schema" };
+
+  assert.deepEqual(
+    collectCapsules(attached, "item-inline", subject).capsules,
+    [],
+    "preview must not show a value nobody set",
+  );
+
+  const editing = collectCapsules(attached, "item-inline", subject, { editing: true }).capsules;
+  assert.equal(editing.length, 1);
+  assert.equal(editing[0].label, "-hr");
+  assert.match(editing[0].className, /time-item-unset/);
+  assert.match(editing[0].ariaLabel, /尚未估算/);
+});
+
+test("no entry point is offered when there is nowhere to save the estimate", () => {
+  const unsetAnalysis = {
+    ...analysis,
+    tasks: [{
+      ...analysis.tasks[0],
+      items: analysis.tasks[0].items.map((item) => ({ ...item, mode: "default" })),
+    }],
+  };
+  const registry = createTrustedModuleRegistry([createTimeModuleDefinition()]);
+  const { attached } = attachModules(registry, [{
+    type: TIME_MODULE_TYPE,
+    schemaVersion: unsetAnalysis.schema_version,
+    data: unsetAnalysis,
+    host: { getWorkProgressRatio: () => 0, onChanged: () => {}, canEditEstimates: () => false },
+  }]);
+  assert.deepEqual(
+    collectCapsules(attached, "item-inline", {
+      taskId: TASK_ID, itemId: ITEM_ID, itemTitle: "t",
+    }, { editing: true }).capsules,
+    [],
+    "a marker that opens a panel which cannot save is worse than none",
+  );
+});
+
+test("a task whose items are all unset reports no total, and a partial one reports what is set", () => {
+  const items = analysis.tasks[0].items;
+  const allUnset = {
+    ...analysis,
+    tasks: [{ ...analysis.tasks[0], items: items.map((i) => ({ ...i, mode: "default" })) }],
+  };
+  assert.deepEqual(
+    collectCapsules(attachTime({ data: allUnset }).attached, "task-body", { taskId: TASK_ID }).capsules,
+    [],
+    "nothing estimated means nothing to show — not a placeholder",
+  );
+
+  const partial = {
+    ...analysis,
+    tasks: [{
+      ...analysis.tasks[0],
+      items: items.map((i, index) => (index === 0 ? i : { ...i, mode: "default" })),
+    }],
+  };
+  const { capsules } = collectCapsules(
+    attachTime({ data: partial }).attached,
+    "task-body",
+    { taskId: TASK_ID },
+  );
+  assert.equal(capsules.length, 1, "a partial total is real data and must still show");
+  // Only the one estimated item counts, not the projection's own total, which
+  // the analyzer computed with the substituted defaults included.
+  assert.match(capsules[0].label, new RegExp(String(items[0].display_hours)));
 });

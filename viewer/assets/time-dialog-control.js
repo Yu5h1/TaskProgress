@@ -535,10 +535,17 @@ export function createTimeReferenceController({
     activeItem = { item, title, taskId };
   }
 
+  /*
+   * No estimated items means nothing to report, and the answer is to show
+   * nothing — not「尚無估算」or any other placeholder, which would just swap
+   * one stand-in figure for another. A partially estimated task still reports
+   * the sum of what is estimated, because that part is real.
+   */
   function taskDuration(taskId) {
     if (reportStructureStale) return null;
     const task = index.tasks.get(taskId);
-    return task ? hours(task.total_likely_minutes) : null;
+    if (!task || task.coverage === "none") return null;
+    return hours(task.total_likely_minutes);
   }
 
   function setReportStructureStale(stale) {

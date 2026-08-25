@@ -84,8 +84,13 @@ export function attachModules(registry, loaded = []) {
  * is `null` for project-level slots that have no narrower subject. Modules
  * are asked per subject rather than handed the whole report, so a module
  * never sees rows it was not asked about.
+ *
+ * `editing` travels too, because a module may legitimately offer something
+ * while a value is being edited that would be noise in preview — an entry
+ * point for a value nobody has set yet is the case this exists for. It is a
+ * Core fact about the session, not something a module may set for itself.
  */
-export function collectCapsules(attached, slot, subject = null, { stale = false } = {}) {
+export function collectCapsules(attached, slot, subject = null, { stale = false, editing = false } = {}) {
   if (!VIEWER_MODULE_SLOTS.includes(slot)) {
     throw new TypeError(`未知的 Viewer slot：${slot}`);
   }
@@ -106,7 +111,7 @@ export function collectCapsules(attached, slot, subject = null, { stale = false 
   for (const entry of attached) {
     if (!entry.slots.includes(slot)) continue;
     try {
-      const descriptor = entry.instance.capsuleFor?.(slot, subject) ?? null;
+      const descriptor = entry.instance.capsuleFor?.(slot, subject, { editing }) ?? null;
       if (descriptor) capsules.push(descriptor);
     } catch (error) {
       diagnostics.push({

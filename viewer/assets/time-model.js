@@ -340,12 +340,48 @@ export function calculateDeadlineRisk(deadline, nowValue = new Date()) {
   };
 }
 
+/*
+ * An item the analyzer had no active estimate for is *unset*, not estimated
+ * at 8 hours. The analyzer still substitutes its configured default and marks
+ * the entry `mode: "default"`, so that marker is what identifies an item
+ * nobody has actually estimated.
+ *
+ * Substituting a default is worse than substituting zero: zero at least reads
+ * as visibly low, while a default produces a complete-looking figure with
+ * nothing behind it. Measured on this repository when the rule was written,
+ * every one of 113 items was `default` and the Viewer presented the result as
+ * 約需 88 hr, indistinguishable from a real estimate.
+ */
+export function isUnsetEstimate(item) {
+  return item?.mode === "default";
+}
+
+/*
+ * The index carries only estimates someone actually made. Task totals are
+ * recomputed from the surviving items rather than trusting
+ * `total_likely_minutes`, which the analyzer computed with the substituted
+ * defaults included.
+ *
+ * `coverage` is per level and not all-or-nothing: a task with some estimated
+ * items reports the sum of those and `partial`, because that is real data
+ * merely incomplete. Only when every item is unset does a task have nothing
+ * to show, and then it shows nothing at all rather than a placeholder.
+ */
 export function createTimeIndex(analysis) {
   const tasks = new Map();
   const items = new Map();
   analysis.tasks.forEach((task) => {
-    tasks.set(task.task_id, task);
-    task.items.forEach((item) => items.set(item.item_id, item));
+    const estimated = task.items.filter((item) => !isUnsetEstimate(item));
+    estimated.forEach((item) => items.set(item.item_id, item));
+    tasks.set(task.task_id, {
+      ...task,
+      total_likely_minutes: estimated.reduce((sum, item) => sum + item.likely_minutes, 0),
+      estimated_item_count: estimated.length,
+      item_count: task.items.length,
+      coverage: estimated.length === 0
+        ? "none"
+        : (estimated.length === task.items.length ? "complete" : "partial"),
+    });
   });
   return { tasks, items };
 }

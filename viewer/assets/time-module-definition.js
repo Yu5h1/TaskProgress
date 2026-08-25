@@ -71,7 +71,7 @@ export function createTimeModuleDefinition() {
       const snapshotNow = () => controller.snapshot();
 
       return {
-        capsuleFor(slot, subject) {
+        capsuleFor(slot, subject, { editing = false } = {}) {
           if (slot === "project-summary") {
             const snapshot = snapshotNow();
             if (!snapshot) return null;
@@ -108,10 +108,31 @@ export function createTimeModuleDefinition() {
             };
           }
           if (slot === "item-inline") {
-            // No estimate for this item means no capsule at all, which is
-            // also what the unset-value rule requires of preview.
             const itemTime = subject?.itemId ? controller.itemTime(subject.itemId) : null;
-            if (!itemTime) return null;
+            if (!itemTime) {
+              /*
+               * Unset. Preview shows nothing, because a value nobody has set
+               * carries no reference meaning and a placeholder would only
+               * take up the row. Edit mode shows a marker instead, and it is
+               * the only way to reach the panel that creates a first
+               * estimate — the long-standing gap where 待估 was not
+               * clickable.
+               *
+               * Only offered once there is a config to write against; without
+               * one the marker would open a panel that cannot save.
+               */
+              // Absent capability answers as "no": offering an entry point
+              // that cannot save is worse than offering none.
+              if (!editing || host.canEditEstimates?.() !== true) return null;
+              return {
+                id: TIME_ITEM_CAPSULE_ID,
+                label: "-hr",
+                className: "time-item-button time-item-unset",
+                sortable: true,
+                ariaLabel: `${subject.itemTitle}，尚未估算，設定工時`,
+                title: "尚未估算；點擊以建立第一筆估算",
+              };
+            }
             const label = formatHours(itemTime);
             return {
               id: TIME_ITEM_CAPSULE_ID,

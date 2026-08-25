@@ -2815,3 +2815,13 @@ footer {
   font-style: italic;
   white-space: nowrap;
 }
+
+/*
+ * An unset estimate's entry point, shown only while editing. Dashed and muted
+ * so it reads as an absence to fill rather than a value to trust.
+ */
+.time-item-button.time-item-unset {
+  color: var(--muted);
+  border-style: dashed;
+  font-variant-numeric: normal;
+}

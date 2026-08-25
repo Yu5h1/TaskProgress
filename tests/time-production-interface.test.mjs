@@ -135,7 +135,10 @@ test("production item time actions remain visible in global edit mode", async ()
   // shared row no longer knows Time by name, so `time-item-button`, the
   // accessible name and the open action all live in Time's definition now.
   // The row keeps only the strip and a by-id dispatch.
-  assert.equal(timeModuleDefinitionSource.split("time-item-button").length - 1, 1);
+  // Two uses, both inside the module: the estimated capsule and the unset
+  // marker that only appears while editing. What the count guards is that the
+  // class is not also emitted from the shared row, which is asserted below.
+  assert.equal(timeModuleDefinitionSource.split("time-item-button").length - 1, 2);
   assert.doesNotMatch(itemRowSource, /time-item-button|export let timeItem|onTimeClick\(/);
   assert.match(itemRowSource, /<ModuleCapsuleStrip/);
   assert.match(itemRowSource, /onModuleActivate\(id, \{ taskId, itemId: item\.id, itemTitle: item\.title \}\)/);
