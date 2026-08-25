@@ -108,10 +108,15 @@ test("supportedVersionsMap() is exactly what Phase 1's loader expects for regist
   assert.equal(result.modules[0].status, "loaded");
 });
 
-test("nothing here touches the DOM, and app.js does not import it yet", async () => {
+test("the registry stays off the DOM, and production builds exactly one", async () => {
   const source = await readFile(new URL("../viewer/assets/module-registry.js", import.meta.url), "utf8");
   assert.doesNotMatch(source, /document\.|window\.|querySelector|addEventListener/u);
 
+  // The registry went live on 2026-08-25: app.js composes it once, at module
+  // scope, from definitions this build ships. Report data can declare a
+  // module but must never be able to install one, so this must not sit
+  // inside a load path where a report could influence it.
   const appSource = await readFile(new URL("../viewer/assets/app.js", import.meta.url), "utf8");
-  assert.doesNotMatch(appSource, /from "\.\/module-registry\.js"|from "\.\/module-model\.js"/u);
+  assert.match(appSource, /^const moduleRegistry = createTrustedModuleRegistry\(\[/mu);
+  assert.equal(appSource.match(/createTrustedModuleRegistry\(/gu).length, 1);
 });

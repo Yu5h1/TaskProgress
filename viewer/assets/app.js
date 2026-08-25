@@ -43,10 +43,10 @@ import {
   withTags,
 } from "./filter-selection.js";
 import { createTimeReferenceController } from "./time-dialog-control.js";
-import {
-  buildTimeDialogProps,
-  buildTimeSummaryProps,
-} from "./time-viewer-module.js";
+import { buildTimeDialogProps } from "./time-viewer-module.js";
+import { createTrustedModuleRegistry } from "./module-registry.js";
+import { activateCapsule, attachModules, collectCapsules, disposeModules } from "./module-composition.js";
+import { TIME_MODULE_TYPE, createTimeModuleDefinition } from "./time-module-definition.js";
 import { loadLegacyTimeAnalysis } from "./time-legacy-discovery.js";
 import { loadManifestTimeAnalysis } from "./time-manifest-discovery.js";
 import { createModuleOrderControl } from "./module-order-control.js";
@@ -98,6 +98,13 @@ function loadCapsuleOrder() {
   return [DEFAULT_CAPSULE_ID, ...order.filter((id) => id !== DEFAULT_CAPSULE_ID)];
 }
 const moduleOrderControl = createModuleOrderControl({ storage: statusOrderStorage });
+
+/*
+ * The trusted module registry: which module types this build ships a
+ * Renderer for. Registering happens once, at build composition — never from
+ * report data, which can declare a module but can never install one.
+ */
+const moduleRegistry = createTrustedModuleRegistry([createTimeModuleDefinition()]);
 
 const elements = {
   title: document.querySelector("#report-title"),
@@ -152,6 +159,10 @@ const state = {
   taskListView: null,
   taskAdderView: null,
   projectModuleStripView: null,
+  // Modules attached for the currently loaded report, in registry order.
+  // Emptied and re-attached per load; `disposeModules` runs first so a
+  // previous scope's instances cannot outlive it.
+  attachedModules: [],
   timeDialogView: null,
   diagnosticsView: null,
   scopeDirectoryView: null,
@@ -286,30 +297,30 @@ function renderTimeReference() {
   };
 
   /*
-   * The main-panel module strip. Time's delivery capsule is its only
-   * occupant today, but it goes through the same shared strip the item rows
-   * use, so a second module (Cost is the planned one) joins by adding an
-   * entry here rather than by inventing a second row.
+   * The main-panel module strip, filled by the registry rather than by this
+   * function naming a module. Time contributes its capsule through its
+   * registered definition; a second module joins by registering one too, not
+   * by editing this render path.
    *
-   * The capsule keeps its own `time-summary-button` class, so the strip
-   * supplies layout, ordering and scrolling while the module keeps its
-   * appearance — exactly the split the slot contract describes.
+   * Each capsule keeps its own module's class, so the strip supplies layout,
+   * ordering and scrolling while the module keeps its appearance — exactly
+   * the split the slot contract describes.
    */
-  const summaryProps = buildTimeSummaryProps(context);
+  const { capsules, diagnostics: capsuleDiagnostics } = collectCapsules(
+    state.attachedModules,
+    "project-summary",
+  );
+  capsuleDiagnostics.forEach((diagnostic) => {
+    console.warn(`[module] ${diagnostic.message}`);
+  });
   const projectCapsuleProps = {
-    capsules: [{
-      id: "time",
-      className: summaryProps.className,
-      label: summaryProps.label,
-      ariaLabel: summaryProps.ariaLabel,
-      showDot: summaryProps.showDot,
-      showChevron: summaryProps.showChevron,
-      disabled: summaryProps.disabled,
-    }],
+    capsules,
     moduleOrder: state.moduleOrder,
     className: "project-module-strip",
     ariaLabel: "專案模組",
-    onActivate: () => summaryProps.onClick(),
+    // Dispatch by capsule id: with more than one capsule the strip must reach
+    // the module that owns the one actually clicked.
+    onActivate: (capsuleId) => activateCapsule(state.attachedModules, "project-summary", capsuleId),
     // Both strips reorder through the one control, so dragging a capsule in
     // either row moves it in both.
     onReorder: applyModuleOrder,
@@ -1370,6 +1381,39 @@ async function main() {
         });
       }
     }
+
+    /*
+     * Attach every module the registry has an implementation for. Dispose
+     * first so a previous scope's instances never outlive their report — this
+     * runs on every load, and a scope switch is just another load.
+     *
+     * Time's `host` is what stays owned here: the live controller snapshot
+     * and the action that opens its dialog. The module turns those into a
+     * capsule descriptor; it does not reach the DOM and does not own the
+     * controller (see time-module-definition.js for why that has not moved).
+     */
+    disposeModules(state.attachedModules).forEach((diagnostic) => {
+      console.warn(`[module] ${diagnostic.message}`);
+    });
+    const { attached, diagnostics: attachDiagnostics } = attachModules(moduleRegistry, [
+      ...(state.timeController ? [{
+        type: TIME_MODULE_TYPE,
+        schemaVersion: state.timeAnalysis?.schema_version,
+        data: state.timeAnalysis,
+        host: {
+          getSnapshot: () => state.timeController?.snapshot() ?? null,
+          openProjectDetail: () => {
+            state.timeController.openProjectDetail();
+            renderTimeReference();
+          },
+        },
+      }] : []),
+    ]);
+    state.attachedModules = attached;
+    attachDiagnostics.forEach((diagnostic) => {
+      state.diagnostics.push({ level: "warning", message: diagnostic.message });
+    });
+
     await discoverLocalEditor(request.scope);
     renderReport();
   } catch (error) {

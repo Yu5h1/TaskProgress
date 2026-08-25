@@ -190,18 +190,29 @@ test("time-viewer-module.js stays off the DOM", async () => {
 // old inline duplicate (including the standalone timeSettingsProps()) no
 // longer exists to drift out of sync with it. ---
 
-test("app.js's real createUiView calls mount buildTimeSummaryProps/buildTimeDialogProps output directly", async () => {
+test("app.js mounts the dialog directly but gets the capsule from the registry, not from Time by name", async () => {
   const appSource = await readFile(new URL("../viewer/assets/app.js", import.meta.url), "utf8");
   assert.match(appSource, /from "\.\/time-viewer-module\.js"/u);
-  assert.match(appSource, /const summaryProps = buildTimeSummaryProps\(context\);/u);
   assert.match(appSource, /const dialogProps = buildTimeDialogProps\(context\);/u);
   assert.match(appSource, /createUiView\("time-dialog", elements\.timeDialog, dialogProps\)/u);
-  // The summary props now feed one capsule in the shared main-panel strip
-  // rather than a standalone button; the render layer's output is still what
-  // reaches the screen, only its host changed (2026-08-25).
-  assert.match(appSource, /className: summaryProps\.className,/u);
-  assert.match(appSource, /label: summaryProps\.label,/u);
-  assert.match(appSource, /onActivate: \(\) => summaryProps\.onClick\(\),/u);
+
+  // The main-panel capsule now comes from the module lifecycle loop
+  // (2026-08-25). `buildTimeSummaryProps` moved behind Time's registered
+  // definition, so this render path must no longer call it — that is what
+  // makes a second module joinable without editing this function.
+  assert.doesNotMatch(appSource, /buildTimeSummaryProps/u);
+  assert.match(appSource, /collectCapsules\(\s*state\.attachedModules,\s*"project-summary",\s*\)/u);
+  // Activation dispatches by capsule id; ignoring it silently worked only
+  // while exactly one capsule existed.
+  assert.match(appSource, /onActivate: \(capsuleId\) => activateCapsule\(state\.attachedModules, "project-summary", capsuleId\)/u);
+});
+
+test("the Time render layer is still the one place that computes the capsule's props", async () => {
+  const definitionSource = await readFile(
+    new URL("../viewer/assets/time-module-definition.js", import.meta.url),
+    "utf8",
+  );
+  assert.match(definitionSource, /import \{ buildTimeSummaryProps \} from "\.\/time-viewer-module\.js"/u);
 });
 
 test("the stage-2 shadow scaffolding and the old inline duplicate are both gone", async () => {
