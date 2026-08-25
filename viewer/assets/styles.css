@@ -1204,10 +1204,15 @@ h1 {
   min-width: max-content;
 }
 
-.item-status-completed {
-  color: var(--moss);
-  background: var(--moss-soft);
-}
+/*
+ * Item status tones, mapped exactly as `.status-badge.status-*` maps them —
+ * an item and a task showing the same status must not be two different
+ * colours. `neutral` (待處理) and `muted` (已封存) fall through to the base
+ * muted pair, matching how the task badge already treats them.
+ */
+.item-status-capsule.status-active { color: var(--blue); background: var(--blue-soft); }
+.item-status-capsule.status-success { color: var(--moss); background: var(--moss-soft); }
+.item-status-capsule.status-danger { color: var(--red); background: var(--red-soft); }
 
 .inline-add-shell {
   display: flex;

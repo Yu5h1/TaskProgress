@@ -112,6 +112,30 @@ test("components reference roles, never a raw theme token", () => {
   }
 });
 
+test("an item and a task showing the same status get the same colour", () => {
+  // The item capsule switched from its own item-status-* classes to the
+  // shared status-<tone> names on 2026-08-25, and the tone rules were not
+  // added at the same time — 已完成 silently rendered muted grey while
+  // carrying status-success. Pin each tone to the same pair the task badge
+  // uses so the two levels cannot drift again.
+  for (const [tone, token] of [
+    ["active", "blue"],
+    ["success", "moss"],
+    ["danger", "red"],
+  ]) {
+    const ruleFor = (selector) => styles.match(
+      new RegExp(`\\${selector}\\.status-${tone} \\{[^}]*\\}`, "u"),
+    )?.[0] ?? "";
+    const badge = ruleFor(".status-badge");
+    const capsule = ruleFor(".item-status-capsule");
+    assert.ok(capsule, `item status capsule has no rule for ${tone}`);
+    for (const value of [`var(--${token})`, `var(--${token}-soft)`]) {
+      assert.ok(badge.includes(value), `task badge ${tone} lost ${value}`);
+      assert.ok(capsule.includes(value), `item capsule ${tone} does not reuse ${value}`);
+    }
+  }
+});
+
 test("the card border carries priority, and finished work gets no loud edge", () => {
   // The border encodes the task's priority as of 2026-08-25 — it is what
   // decides what to pick up next, and it is no longer shown as a badge.
