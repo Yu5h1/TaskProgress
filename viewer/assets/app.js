@@ -48,6 +48,7 @@ import {
   buildTimeSummaryProps,
 } from "./time-viewer-module.js";
 import { loadLegacyTimeAnalysis } from "./time-legacy-discovery.js";
+import { loadManifestTimeAnalysis } from "./time-manifest-discovery.js";
 import { createModuleOrderControl } from "./module-order-control.js";
 import {
   STATUS_ORDER_STORAGE_KEY,
@@ -1264,22 +1265,52 @@ async function main() {
     // independently of the rest of this report's own load.
     void loadPointerCards();
 
-    // Legacy discovery/loading (verified equivalent to the previous inline
-    // version through a live passive-shadow comparison, 2026-08-25, on both
-    // the no-sidecar and real-data branches): find and validate the bare
-    // `time.analysis.json` sidecar by its known filename. Does not route
-    // through module-model.js's envelope loader on purpose — this sidecar
-    // predates the common module envelope and isn't shaped like one.
+    /*
+     * The one place discovery is selected — the composition root the
+     * architecture plan requires, so the choice never spreads into
+     * `if manifest` branches elsewhere. Exactly one adapter runs per load,
+     * which is what keeps a single sidecar from being loaded or displayed
+     * twice.
+     *
+     * Order matters and is not arbitrary:
+     *   1. An explicit `?time=` query is a deliberate override by whoever
+     *      opened the page, so it outranks both. `none` disables Time
+     *      entirely (the migration-period alias for disabling this one
+     *      module); any other value names a sidecar to load directly, which
+     *      only the legacy path can honor.
+     *   2. Otherwise a manifest, when present, is the only discovery source.
+     *      `handled` says whether it claimed the decision — a manifest that
+     *      exists but is broken, or that declares no Time, still claims it,
+     *      because falling through to filename discovery would silently
+     *      ignore a declaration the report author made on purpose.
+     *   3. Only with no manifest at all does legacy filename discovery run.
+     */
     const explicitTimeSource = params.get("time") ?? undefined;
-    const legacyTimeResult = await loadLegacyTimeAnalysis({
-      reportSource: request.reportSource,
-      baseUrl: document.baseURI,
-      explicitTimeSource,
-      scopeId: report.scope_id,
-      fetchJson: (url) => fetchOptionalJson(url, "time.analysis.json"),
-    });
-    state.timeAnalysis = legacyTimeResult.timeAnalysis;
-    state.diagnostics.push(...legacyTimeResult.diagnostics);
+    const fetchTimeJson = (url) => fetchOptionalJson(url, "time.analysis.json");
+    let timeResult = null;
+
+    if (explicitTimeSource === undefined) {
+      const manifestResult = await loadManifestTimeAnalysis({
+        report,
+        reportSource: request.reportSource,
+        baseUrl: document.baseURI,
+        fetchJson: (url) => fetchOptionalJson(url, "report.modules.json"),
+      });
+      if (manifestResult.handled) timeResult = manifestResult;
+    }
+
+    if (!timeResult) {
+      timeResult = await loadLegacyTimeAnalysis({
+        reportSource: request.reportSource,
+        baseUrl: document.baseURI,
+        explicitTimeSource,
+        scopeId: report.scope_id,
+        fetchJson: fetchTimeJson,
+      });
+    }
+
+    state.timeAnalysis = timeResult.timeAnalysis;
+    state.diagnostics.push(...timeResult.diagnostics);
 
     if (state.timeAnalysis) {
       try {

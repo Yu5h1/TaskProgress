@@ -222,7 +222,20 @@ test("the manifest filename is fixed and this module stays off the DOM", async (
   assert.doesNotMatch(source, /document\.|window\.|querySelector\(|createUiView\(/u);
 });
 
-test("nothing in production selects between manifest and legacy discovery yet", async () => {
+// --- production selection: one composition root, one adapter per load ---
+
+test("app.js selects discovery in exactly one place, and an explicit ?time= still outranks the manifest", async () => {
   const appSource = await readFile(new URL("../viewer/assets/app.js", import.meta.url), "utf8");
-  assert.doesNotMatch(appSource, /time-manifest-discovery\.js/u);
+  assert.match(appSource, /from "\.\/time-manifest-discovery\.js"/u);
+  // The manifest is consulted only when no explicit ?time= override was
+  // given, so `?time=none` still disables Time and `?time=<path>` still
+  // names a sidecar directly.
+  assert.match(appSource, /if \(explicitTimeSource === undefined\) \{/u);
+  assert.match(appSource, /if \(manifestResult\.handled\) timeResult = manifestResult;/u);
+  // Legacy runs only when the manifest did not claim the decision.
+  assert.match(appSource, /if \(!timeResult\) \{/u);
+  // One assignment of the result, not one per path.
+  assert.equal(appSource.match(/state\.timeAnalysis = timeResult\.timeAnalysis;/gu).length, 1);
+  assert.equal(appSource.match(/loadManifestTimeAnalysis\(\{/gu).length, 1);
+  assert.equal(appSource.match(/loadLegacyTimeAnalysis\(\{/gu).length, 1);
 });

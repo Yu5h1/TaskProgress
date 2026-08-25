@@ -1,0 +1,15 @@
+{
+  "schema_version": "0.1",
+  "report_id": "example-public-demo",
+  "scope_id": "example",
+  "updated_at": "2026-08-25T11:00:00+08:00",
+  "modules": [
+    {
+      "id": "time",
+      "type": "taskprogress.time",
+      "source": "time.analysis.json",
+      "optional": true,
+      "visibility": "public"
+    }
+  ]
+}

@@ -133,16 +133,19 @@ test("time-legacy-discovery.js stays off the DOM", async () => {
   assert.doesNotMatch(source, /document\.|window\.|querySelector\(|createUiView\(/u);
 });
 
-// --- stage 3 wiring shape: app.js's real state.timeAnalysis assignment now
-// comes directly from this module's output, the stage-2 shadow scaffolding
-// and the old inline duplicate are both gone. ---
+// --- wiring shape: app.js runs this path as the fallback its composition
+// root selects, the stage-2 shadow scaffolding and the old inline duplicate
+// are both gone. ---
 
-test("app.js assigns state.timeAnalysis from loadLegacyTimeAnalysis directly", async () => {
+test("app.js runs legacy discovery only when the manifest path did not claim the load", async () => {
   const appSource = await readFile(new URL("../viewer/assets/app.js", import.meta.url), "utf8");
   assert.match(appSource, /from "\.\/time-legacy-discovery\.js"/u);
-  assert.match(appSource, /const legacyTimeResult = await loadLegacyTimeAnalysis\(\{/u);
-  assert.match(appSource, /state\.timeAnalysis = legacyTimeResult\.timeAnalysis;/u);
-  assert.match(appSource, /state\.diagnostics\.push\(\.\.\.legacyTimeResult\.diagnostics\);/u);
+  assert.match(appSource, /if \(!timeResult\) \{\s*\n\s*timeResult = await loadLegacyTimeAnalysis\(\{/u);
+  assert.match(appSource, /state\.timeAnalysis = timeResult\.timeAnalysis;/u);
+  assert.match(appSource, /state\.diagnostics\.push\(\.\.\.timeResult\.diagnostics\);/u);
+  // The explicit ?time= override still reaches this path, so ?time=none and
+  // ?time=<path> keep working exactly as before.
+  assert.match(appSource, /explicitTimeSource,/u);
 });
 
 test("the stage-2 shadow scaffolding and the old inline duplicate are both gone", async () => {

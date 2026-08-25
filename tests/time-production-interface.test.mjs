@@ -44,6 +44,10 @@ const timeLegacyDiscoverySource = await readFile(
   new URL("../viewer/assets/time-legacy-discovery.js", import.meta.url),
   "utf8",
 );
+const timeManifestDiscoverySource = await readFile(
+  new URL("../viewer/assets/time-manifest-discovery.js", import.meta.url),
+  "utf8",
+);
 
 test("unfinished work is independent from deadline data", () => {
   assert.equal(remainingWorkload({
@@ -89,11 +93,16 @@ test("delivery date and capacity are edited in one place: the shared TimeDialog"
 
 test("production loading isolates deadline diagnostics from estimate diagnostics", () => {
   // Discovery/loading moved into time-legacy-discovery.js at its 2026-08-25
-  // cutover; app.js now only assigns state.timeAnalysis from its result.
+  // cutover; app.js now only assigns state.timeAnalysis from whichever
+  // discovery path its composition root selected.
   assert.match(timeLegacyDiscoverySource, /inspectTimeAnalysis/);
   assert.match(timeLegacyDiscoverySource, /期限分析已忽略/);
   assert.match(timeLegacyDiscoverySource, /delete timeAnalysis\.summary\.deadline/);
-  assert.match(appSource, /state\.timeAnalysis = legacyTimeResult\.timeAnalysis;/);
+  assert.match(appSource, /state\.timeAnalysis = timeResult\.timeAnalysis;/);
+  // Both paths must strip an unusable deadline the same way, or the two would
+  // disagree about what is renderable.
+  assert.match(timeManifestDiscoverySource, /delete timeAnalysis\.summary\.deadline/);
+  assert.match(timeManifestDiscoverySource, /期限分析已忽略/);
 });
 
 test("each production task card has one bottom child-item add control", () => {
