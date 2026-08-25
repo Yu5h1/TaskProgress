@@ -163,6 +163,11 @@ const state = {
   // Emptied and re-attached per load; `disposeModules` runs first so a
   // previous scope's instances cannot outlive it.
   attachedModules: [],
+  // True while an unsaved draft has added or removed tasks/items, so every
+  // module projection keyed to those IDs no longer matches. Distinct from a
+  // saved report_revision mismatch: the draft has no revision to compare
+  // against yet, so this is the only way that divergence is visible.
+  moduleProjectionStale: false,
   timeDialogView: null,
   diagnosticsView: null,
   scopeDirectoryView: null,
@@ -309,10 +314,27 @@ function renderTimeReference() {
   const { capsules, diagnostics: capsuleDiagnostics } = collectCapsules(
     state.attachedModules,
     "project-summary",
+    null,
+    { stale: state.moduleProjectionStale },
   );
   capsuleDiagnostics.forEach((diagnostic) => {
     console.warn(`[module] ${diagnostic.message}`);
   });
+  /*
+   * A stale projection hides every module value, which on its own would look
+   * like the figures had simply broken. Core says why, in wording that names
+   * no module — the same "資料待重算" the stale policy already specifies —
+   * because the condition is Core's judgement, not any one module's.
+   */
+  const staleNotice = elements.timeSummaryButton.querySelector(".module-stale-notice");
+  if (state.moduleProjectionStale && !staleNotice) {
+    const notice = el("span", "module-stale-notice", "資料待重算");
+    notice.title = "任務結構已變更，模組資料需要重新計算後才會再顯示。";
+    elements.timeSummaryButton.append(notice);
+  } else if (!state.moduleProjectionStale && staleNotice) {
+    staleNotice.remove();
+  }
+
   const projectCapsuleProps = {
     capsules,
     moduleOrder: state.moduleOrder,
@@ -332,6 +354,19 @@ function renderTimeReference() {
       elements.timeSummaryButton,
       projectCapsuleProps,
     );
+  }
+
+  /*
+   * Detail follows the same rule as the inline values: a stale projection is
+   * not shown at all. Leaving an open panel up would be worse than hiding the
+   * capsules, since it presents figures the report no longer matches — and it
+   * is Core's judgement, so Core tears it down rather than asking the module
+   * to withdraw.
+   */
+  if (state.moduleProjectionStale) {
+    state.timeDialogView?.destroy();
+    state.timeDialogView = null;
+    return;
   }
 
   const dialogProps = buildTimeDialogProps(context);
@@ -485,9 +520,9 @@ function syncPersistenceView(next = state.editor.persistence?.snapshot()) {
   if (!next) return;
   state.editor.persistenceView = next;
   state.report = next.report;
-  state.timeController?.setReportStructureStale(
-    Boolean(next.derived?.timeInvalidation.stale),
-  );
+  // Core owns the stale judgement; modules are simply not asked while it
+  // holds. Nothing here reaches into a module's own API to tell it.
+  state.moduleProjectionStale = Boolean(next.derived?.timeInvalidation.stale);
   updateSaveBar({
     editing: state.editor.editing,
     cautious: next.cautious,
@@ -855,7 +890,12 @@ function taskListProps(tasks) {
       return;
     }
     progress[task.id] = currentTaskProgress(task);
-    const taskTotals = collectCapsules(state.attachedModules, "task-body", { taskId: task.id });
+    const taskTotals = collectCapsules(
+      state.attachedModules,
+      "task-body",
+      { taskId: task.id },
+      { stale: state.moduleProjectionStale },
+    );
     taskTotals.diagnostics.forEach((d) => console.warn(`[module] ${d.message}`));
     if (taskTotals.capsules.length) moduleTotals[task.id] = taskTotals.capsules;
     // Capsules per stable item come from the registry, not from this host
@@ -864,11 +904,12 @@ function taskListProps(tasks) {
     // with no capsule at all.
     [...(task.completed_items ?? []), ...(task.pending_items ?? [])].forEach((item) => {
       if (!item || typeof item !== "object") return;
-      const { capsules, diagnostics } = collectCapsules(state.attachedModules, "item-inline", {
-        taskId: task.id,
-        itemId: item.id,
-        itemTitle: item.title,
-      });
+      const { capsules, diagnostics } = collectCapsules(
+        state.attachedModules,
+        "item-inline",
+        { taskId: task.id, itemId: item.id, itemTitle: item.title },
+        { stale: state.moduleProjectionStale },
+      );
       diagnostics.forEach((diagnostic) => console.warn(`[module] ${diagnostic.message}`));
       if (capsules.length) itemCapsules.set(item.id, capsules);
     });
@@ -1069,7 +1110,7 @@ async function cancelEditing() {
   invalidateDeliveryPreview();
   state.editor.externalDirty = false;
   state.editor.editing = false;
-  state.timeController?.setReportStructureStale(false);
+  state.moduleProjectionStale = false;
   state.report = structuredClone(state.persistedReport);
   rebuildMergedTasks();
   updateSaveBar({ editing: false, dirty: false, saving: false });

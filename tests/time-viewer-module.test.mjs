@@ -201,7 +201,10 @@ test("app.js mounts the dialog directly but gets the capsule from the registry, 
   // definition, so this render path must no longer call it — that is what
   // makes a second module joinable without editing this function.
   assert.doesNotMatch(appSource, /buildTimeSummaryProps/u);
-  assert.match(appSource, /collectCapsules\(\s*state\.attachedModules,\s*"project-summary",\s*\)/u);
+  assert.match(
+    appSource,
+    /collectCapsules\(\s*state\.attachedModules,\s*"project-summary",\s*null,\s*\{ stale: state\.moduleProjectionStale \},\s*\)/u,
+  );
   // Activation dispatches by capsule id; ignoring it silently worked only
   // while exactly one capsule existed.
   assert.match(appSource, /onActivate: \(capsuleId\) => activateCapsule\(state\.attachedModules, "project-summary", capsuleId\)/u);

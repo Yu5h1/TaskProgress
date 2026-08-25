@@ -2803,3 +2803,15 @@ footer {
 .task-card.priority-normal { border-color: var(--color-active-border); }
 .task-card.priority-secondary { border-color: var(--color-border); }
 .task-card.priority-unspecified { border-color: var(--line); }
+
+/*
+ * Shown by Core, not by a module, while an unsaved draft has moved the report
+ * structure out from under every projection. Deliberately quiet: it explains
+ * an absence rather than reporting a problem.
+ */
+.module-stale-notice {
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-style: italic;
+  white-space: nowrap;
+}

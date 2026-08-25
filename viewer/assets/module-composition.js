@@ -85,10 +85,21 @@ export function attachModules(registry, loaded = []) {
  * are asked per subject rather than handed the whole report, so a module
  * never sees rows it was not asked about.
  */
-export function collectCapsules(attached, slot, subject = null) {
+export function collectCapsules(attached, slot, subject = null, { stale = false } = {}) {
   if (!VIEWER_MODULE_SLOTS.includes(slot)) {
     throw new TypeError(`未知的 Viewer slot：${slot}`);
   }
+  /*
+   * While a projection is stale the correct behaviour is to show no module
+   * value at all, so Core simply does not ask — rather than asking and then
+   * discarding, or notifying each module so it can decline for itself.
+   *
+   * That keeps the contract one-directional: Core asks, modules answer. A
+   * module never needs a stale method, never learns that an editor exists,
+   * and cannot run a side effect on being told the report moved.
+   */
+  if (stale) return { capsules: Object.freeze([]), diagnostics: Object.freeze([]) };
+
   const capsules = [];
   const diagnostics = [];
 

@@ -271,6 +271,26 @@ Phase 0 將 Descriptor identity 固定如下：
 - orphan subjects 與 stale 是不同診斷；不得因一個 orphan 丟棄其餘仍能對應的 subject。
 - Analyzer 成功重算並通過驗證後才清除 stale；Viewer 不自行改寫 revision，也不以目前時間猜測資料已恢復。
 
+#### 兩種 stale：已儲存的過期，與編輯中的偏離（2026-08-25 決策）
+
+上面的規則以 `report_revision` 比對為前提，只能偵測**已儲存**的落差。編輯中還有第二種：草稿新增或刪除了 task／item，投影因此對不上，但草稿尚未寫入，**沒有任何 revision 可比**。
+
+| | 已儲存的過期 | 編輯中的偏離 |
+|---|---|---|
+| 成因 | `report.json` 已更新，sidecar 未重算 | 草稿結構已改，尚未儲存 |
+| 偵測 | `report_revision` 不符 | Editor 的 derived state（`timeInvalidation.stale`） |
+| 何時解除 | Analyzer 重算並通過驗證 | 儲存後重算，或放棄草稿 |
+
+**兩者的呈現結果相同，因此共用同一條規則**：隱藏 inline 值、停止 action 與 runtime，只在 detail slot 保留「資料待重算」。
+
+**這不需要在模組契約新增「核心通知模組」的反向管道。** Core 每次渲染本就呼叫 `capsuleFor(slot, subject)`；既然 stale 時的正確行為是不顯示模組值，Core 直接**不去問**即可，並自行顯示通用說明。因此：
+
+- stale 判定與文案由 Core 擁有，文案是通用的「資料待重算」而非任何模組的措辭；
+- 模組不需要實作 stale 相關方法，也不需要知道編輯器存在；
+- 契約維持單向（Core 問、模組答），不引入 push，模組無法因為收到通知而在錯誤時機執行副作用。
+
+現況落差：`app.js` 目前直接呼叫 `timeController.setReportStructureStale(...)`，那是 Core 認識 Time 私有 API 的一處耦合，也是 runtime controller 尚未能移入模組的原因之一。改為上述設計後，該呼叫應消失。
+
 ## Viewer 模組接口
 
 第一版採建置時登錄的可信任 registry。以下只描述責任，實際 JavaScript API 應在 Phase 1 以測試固定：

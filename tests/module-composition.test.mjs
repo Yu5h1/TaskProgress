@@ -183,3 +183,36 @@ test("the composition loop stays off the DOM", async () => {
   const source = await readFile(new URL("../viewer/assets/module-composition.js", import.meta.url), "utf8");
   assert.doesNotMatch(source, /document\.|window\.|querySelector\(|createUiView\(|fetch\(/u);
 });
+
+// --- stale: Core stops asking rather than telling modules to withdraw ---
+
+test("a stale projection yields no capsules, and no module is even consulted", () => {
+  let asked = 0;
+  const registry = createTrustedModuleRegistry([
+    definition("taskprogress.time", {
+      attach: () => ({
+        capsuleFor: () => { asked += 1; return { id: "time", label: "8 hr" }; },
+      }),
+    }),
+  ]);
+  const { attached } = attachModules(registry, [loaded("taskprogress.time")]);
+
+  const fresh = collectCapsules(attached, "project-summary");
+  assert.equal(fresh.capsules.length, 1);
+  assert.equal(asked, 1);
+
+  const stale = collectCapsules(attached, "project-summary", null, { stale: true });
+  assert.deepEqual(stale.capsules, []);
+  assert.deepEqual(stale.diagnostics, []);
+  // Not asked at all: the contract stays one-directional, so a module needs
+  // no stale method and cannot run a side effect on being told the report
+  // moved underneath it.
+  assert.equal(asked, 1, "a stale render must not consult the module");
+});
+
+test("stale is per-call, so it never sticks to an attached module", () => {
+  const registry = createTrustedModuleRegistry([definition("taskprogress.time")]);
+  const { attached } = attachModules(registry, [loaded("taskprogress.time")]);
+  assert.deepEqual(collectCapsules(attached, "project-summary", null, { stale: true }).capsules, []);
+  assert.equal(collectCapsules(attached, "project-summary").capsules.length, 1);
+});
