@@ -40,6 +40,10 @@ const timeViewerModuleSource = await readFile(
   new URL("../viewer/assets/time-viewer-module.js", import.meta.url),
   "utf8",
 );
+const timeLegacyDiscoverySource = await readFile(
+  new URL("../viewer/assets/time-legacy-discovery.js", import.meta.url),
+  "utf8",
+);
 
 test("unfinished work is independent from deadline data", () => {
   assert.equal(remainingWorkload({
@@ -84,9 +88,12 @@ test("delivery date and capacity are edited in one place: the shared TimeDialog"
 });
 
 test("production loading isolates deadline diagnostics from estimate diagnostics", () => {
-  assert.match(appSource, /inspectTimeAnalysis/);
-  assert.match(appSource, /期限分析已忽略/);
-  assert.match(appSource, /delete state\.timeAnalysis\.summary\.deadline/);
+  // Discovery/loading moved into time-legacy-discovery.js at its 2026-08-25
+  // cutover; app.js now only assigns state.timeAnalysis from its result.
+  assert.match(timeLegacyDiscoverySource, /inspectTimeAnalysis/);
+  assert.match(timeLegacyDiscoverySource, /期限分析已忽略/);
+  assert.match(timeLegacyDiscoverySource, /delete timeAnalysis\.summary\.deadline/);
+  assert.match(appSource, /state\.timeAnalysis = legacyTimeResult\.timeAnalysis;/);
 });
 
 test("each production task card has one bottom child-item add control", () => {

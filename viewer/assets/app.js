@@ -42,10 +42,6 @@ import {
   toggleTag,
   withTags,
 } from "./filter-selection.js";
-import {
-  inspectTimeAnalysis,
-  resolveTimeAnalysisSource,
-} from "./time-model.js";
 import { createTimeReferenceController } from "./time-dialog-control.js";
 import {
   buildTimeDialogProps,
@@ -563,39 +559,6 @@ async function fetchOptionalJson(value, label) {
     return await response.json();
   } catch {
     throw new Error(`${label} 不是有效的 JSON。`);
-  }
-}
-
-/*
- * TEMPORARY — stage 2 passive-shadow verification for the legacy Time
- * discovery/loading extraction
- * (Documentation/ExtensionModuleArchitecturePlan.md#phase-2viewer-registry-與-time-遷移).
- * Recomputes the same load through `loadLegacyTimeAnalysis` and diffs it
- * against what the inline block that just ran actually produced. Every value
- * involved is plain JSON (no callbacks, unlike the render-layer shadow
- * check), so a stringified comparison is enough. Console-only — the inline
- * result is what actually gets used; this changes nothing. Delete this
- * function and its one call site once cutover replaces the inline block with
- * a direct call to `loadLegacyTimeAnalysis`.
- */
-async function shadowCheckLegacyTimeDiscovery({
-  explicitTimeSource, reportSource, scopeId, capturedTimeAnalysis, capturedDiagnostics,
-}) {
-  const shadow = await loadLegacyTimeAnalysis({
-    reportSource,
-    baseUrl: document.baseURI,
-    explicitTimeSource,
-    scopeId,
-    fetchJson: (url) => fetchOptionalJson(url, "time.analysis.json"),
-  });
-  const timeAnalysisMatches = JSON.stringify(shadow.timeAnalysis) === JSON.stringify(capturedTimeAnalysis);
-  const diagnosticsMatch = JSON.stringify(shadow.diagnostics) === JSON.stringify(capturedDiagnostics);
-  if (timeAnalysisMatches && diagnosticsMatch) {
-    console.log("[time-legacy-discovery shadow] match — inline and module loading agree");
-  } else {
-    console.warn("[time-legacy-discovery shadow] mismatch", {
-      timeAnalysisMatches, diagnosticsMatch, shadow, capturedTimeAnalysis, capturedDiagnostics,
-    });
   }
 }
 
@@ -1301,52 +1264,22 @@ async function main() {
     // independently of the rest of this report's own load.
     void loadPointerCards();
 
+    // Legacy discovery/loading (verified equivalent to the previous inline
+    // version through a live passive-shadow comparison, 2026-08-25, on both
+    // the no-sidecar and real-data branches): find and validate the bare
+    // `time.analysis.json` sidecar by its known filename. Does not route
+    // through module-model.js's envelope loader on purpose — this sidecar
+    // predates the common module envelope and isn't shaped like one.
     const explicitTimeSource = params.get("time") ?? undefined;
-    const diagnosticsBeforeTimeLoad = state.diagnostics.length;
-    try {
-      const timeSource = resolveTimeAnalysisSource(
-        request.reportSource,
-        document.baseURI,
-        explicitTimeSource,
-      );
-      if (timeSource) {
-        const timeAnalysis = await fetchOptionalJson(timeSource, "time.analysis.json");
-        if (timeAnalysis) {
-          const timeStatus = inspectTimeAnalysis(timeAnalysis, report.scope_id);
-          if (timeStatus.errors.length) {
-            state.diagnostics.push({
-              level: "warning",
-              message: `time.analysis.json 已忽略：${timeStatus.errors.join("；")}`,
-            });
-          } else {
-            state.timeAnalysis = JSON.parse(JSON.stringify(timeAnalysis));
-            if (!timeStatus.deadlineAvailable) {
-              delete state.timeAnalysis.summary.deadline;
-            }
-            if (timeStatus.deadlineErrors.length) {
-              state.diagnostics.push({
-                level: "warning",
-                message: `期限分析已忽略：${timeStatus.deadlineErrors.join("；")}`,
-              });
-            }
-          }
-        }
-      }
-    } catch (error) {
-      state.diagnostics.push({
-        level: "warning",
-        message: error instanceof Error
-          ? `時間參考已忽略：${error.message}`
-          : "時間參考無法載入。",
-      });
-    }
-    await shadowCheckLegacyTimeDiscovery({
-      explicitTimeSource,
+    const legacyTimeResult = await loadLegacyTimeAnalysis({
       reportSource: request.reportSource,
+      baseUrl: document.baseURI,
+      explicitTimeSource,
       scopeId: report.scope_id,
-      capturedTimeAnalysis: state.timeAnalysis ? JSON.parse(JSON.stringify(state.timeAnalysis)) : null,
-      capturedDiagnostics: state.diagnostics.slice(diagnosticsBeforeTimeLoad),
+      fetchJson: (url) => fetchOptionalJson(url, "time.analysis.json"),
     });
+    state.timeAnalysis = legacyTimeResult.timeAnalysis;
+    state.diagnostics.push(...legacyTimeResult.diagnostics);
 
     if (state.timeAnalysis) {
       try {

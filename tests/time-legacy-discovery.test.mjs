@@ -133,13 +133,19 @@ test("time-legacy-discovery.js stays off the DOM", async () => {
   assert.doesNotMatch(source, /document\.|window\.|querySelector\(|createUiView\(/u);
 });
 
-// --- stage 2 wiring shape: app.js may diff against this file, but the real
-// state assignment still comes from the untouched inline block — a shadow
-// that started actually driving state would no longer be a shadow. ---
+// --- stage 3 wiring shape: app.js's real state.timeAnalysis assignment now
+// comes directly from this module's output, the stage-2 shadow scaffolding
+// and the old inline duplicate are both gone. ---
 
-test("app.js's real state.timeAnalysis assignment still comes from the inline block, not this module", async () => {
+test("app.js assigns state.timeAnalysis from loadLegacyTimeAnalysis directly", async () => {
   const appSource = await readFile(new URL("../viewer/assets/app.js", import.meta.url), "utf8");
   assert.match(appSource, /from "\.\/time-legacy-discovery\.js"/u);
-  assert.match(appSource, /shadowCheckLegacyTimeDiscovery/u);
-  assert.match(appSource, /state\.timeAnalysis = JSON\.parse\(JSON\.stringify\(timeAnalysis\)\);/u);
+  assert.match(appSource, /const legacyTimeResult = await loadLegacyTimeAnalysis\(\{/u);
+  assert.match(appSource, /state\.timeAnalysis = legacyTimeResult\.timeAnalysis;/u);
+  assert.match(appSource, /state\.diagnostics\.push\(\.\.\.legacyTimeResult\.diagnostics\);/u);
+});
+
+test("the stage-2 shadow scaffolding and the old inline duplicate are both gone", async () => {
+  const appSource = await readFile(new URL("../viewer/assets/app.js", import.meta.url), "utf8");
+  assert.doesNotMatch(appSource, /shadowCheckLegacyTimeDiscovery|resolveTimeAnalysisSource|inspectTimeAnalysis/u);
 });

@@ -113,5 +113,5 @@ test("nothing here touches the DOM, and app.js does not import it yet", async ()
   assert.doesNotMatch(source, /document\.|window\.|querySelector|addEventListener/u);
 
   const appSource = await readFile(new URL("../viewer/assets/app.js", import.meta.url), "utf8");
-  assert.doesNotMatch(appSource, /module-registry\.js|module-model\.js/u);
+  assert.doesNotMatch(appSource, /from "\.\/module-registry\.js"|from "\.\/module-model\.js"/u);
 });

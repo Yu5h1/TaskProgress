@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-08-24T18:56:42Z",
+  "updated_at": "2026-08-25T02:34:09Z",
   "tasks": [
     {
       "id": "viewer-core",
@@ -188,6 +188,11 @@
         {
           "id": "item-time-reference-todo-3",
           "title": "從零建立 time.config／首次重新計算並儲存後，交付按鈕與膠囊應直接反映新的 time.analysis.json，不必整頁重新整理",
+          "priority": 2
+        },
+        {
+          "id": "item-time-reference-todo-4",
+          "title": "沒有人工／歷史依據的項目目前直接顯示低信心預設 8hr，跟真正算出來的估算在畫面上完全無法區分；需要一個視覺標記（例如 -hr 或信心度標籤）取代裸數字，避免看起來像有把握的估算",
           "priority": 2
         }
       ]
