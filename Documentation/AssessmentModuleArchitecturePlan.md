@@ -172,7 +172,17 @@ module_project_total
 - task-level estimate 若是 item 資料不足時的 fallback，不得再與已涵蓋的 item 加總；否則會 double count。
 - task／project 直接調整必須標記 coverage 與原因，例如 project-only 訂閱或 overhead，不能偽裝成子項加總。
 - 任一 leaf 缺值時，總數必須標示 `partial` 或依領域政策暫停顯示；不能把缺值補零。
-- **未設置不是零，也不是領域預設值（2026-08-25 使用者決策）。** 沒有 active result 的 leaf 一律排除於加總之外，並使該層 coverage 成為 partial；不得先代入一個領域預設值再計入總數。代入預設值比補零更難察覺：補零至少讓總數偏低而顯眼，代入預設值卻會產出一個看起來完整、實際上沒有任何依據的數字。Time 現況正是這個反例——`estimate_defaults.unplanned_item_likely_minutes` 使每個未估算 item 得到 8 小時，本專案自身報告的 54240 分鐘因此 100% 來自預設，113 個 item 全部是 `mode: "default"`，而畫面上呈現為與真實估算無異的「約需 88 hr」。改為排除後，同一份報告會誠實地顯示為尚無估算。
+- **未設置不是零，也不是領域預設值（2026-08-25 使用者決策）。** 沒有 active result 的 leaf 一律排除於加總之外，並使該層 coverage 成為 partial；不得先代入一個領域預設值再計入總數。代入預設值比補零更難察覺：補零至少讓總數偏低而顯眼，代入預設值卻會產出一個看起來完整、實際上沒有任何依據的數字。Time 現況正是這個反例——`estimate_defaults.unplanned_item_likely_minutes` 使每個未估算 item 得到 8 小時，本專案自身報告的 54240 分鐘因此 100% 來自預設，113 個 item 全部是 `mode: "default"`，而畫面上呈現為與真實估算無異的「約需 88 hr」。改為排除後，同一份報告的時間數字會直接消失，而不是換成另一個佔位文字。
+
+排除之後各層的顯示，依「有沒有真實資料可讀」判斷，不是全有全無：
+
+| 層級 | 情況 | 顯示 |
+|---|---|---|
+| leaf（子項） | 未設置 | 預覽不顯示膠囊；編輯模式才顯示未設置標記 |
+| task／project | **部分** leaf 已設置 | **顯示已設置那些的加總**，並標記 coverage 為 partial——那是真實資料，只是不完整 |
+| task／project | **全部** leaf 皆未設置 | **不顯示**該數值 |
+
+最後一列是重點：全數未設置時要做的是**不顯示**，而不是顯示「尚無估算」「待估」之類的字樣。那類字樣是把一個佔位符換成另一個佔位符，仍然違反「預覽只呈現有實際參考意義的資料」。編輯模式另有未設置標記作為入口，該顯示的地方已經顯示了。
 - risk、confidence、ratio 與 tone 不是可加總數量，由領域模組重新計算或歸納。
 
 共用 rollup 可以提供 stable subject traversal、去重、coverage 與整數加總，但由模組提供 value selector、unit compatibility、fallback policy 與 formatter。
