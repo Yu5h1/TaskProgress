@@ -13,18 +13,21 @@ TaskProgress
 ├─ Extension module system（本計畫）
 │  ├─ Discovery：report.modules.json
 │  ├─ Trusted runtime：registry、validator、subject index、slots、diagnostics
+│  ├─ Assessment family：來源互動、同單位加總與末端結算（另見 AssessmentModuleArchitecturePlan.md）
 │  ├─ First module：Time
 │  │  ├─ 私有輸入：time.config／estimates／events.json
 │  │  └─ Viewer 投影：time.analysis.json
-│  └─ Second proof：Cost
-│     └─ 只透過共同接口接入，不讓 Core 認識成本語意
+│  ├─ Second proof：Cost
+│  │  └─ 與 Time 平行，只透過共同接口接入
+│  └─ Later composite proof：time-rate settlement
+│     └─ 在依賴圖末端明示讀取已提交投影，不回灌上游
 └─ Hosts and producers
    ├─ Viewer：載入與呈現可信任模組
    ├─ Launcher／LocalWebService：驗證並註冊精確 artifact
    └─ Analyzer／外部工具：產生可發布投影
 ```
 
-依賴方向固定為 `Host → Module Contract ← Trusted Module`。Core 不依賴 Time 或 Cost；Cost 分析器可以把 Time 投影當作具版本的輸入，但 Cost Renderer 不依賴 Time Renderer。
+依賴方向固定為 `Host → Module Contract ← Trusted Module`。Core 不依賴 Time 或 Cost；Time 與 Cost 彼此獨立。若需要 `工時 × 時薪` 等跨領域換算，由另一個末端結算明示讀取兩者的已提交投影與 input revisions，不能把依賴藏進 Cost 或讓兩個 Renderer 互相呼叫。
 
 補充視覺（同一件事的圖示版，不取代上面的 text tree）：[assets/module-contract-map.svg](assets/module-contract-map.svg)，用 Time／Cost 兩個具體模組畫出 Core 只透過共同模組接口互動、彼此不直接連線的關係。
 
@@ -45,6 +48,7 @@ TaskProgress 目前以 `report.json` 表達任務、狀態、完成項目與進�
 5. 每個模組獨立驗證、載入、呈現與降級；單一模組失敗不得使基本報告失效。
 6. `time` 應遷移為第一個正式模組，再以 `cost` 作為第二個實作來驗證接口的通用性；difficulty 與 value 留待共同接口成立後擴充。
 7. 交易、付款、身份驗證及電子簽署仍屬外部系統；TaskProgress 模組只接收其可公開或可授權觀看的狀態投影。
+8. 人工／AI／歷史依據與可加總結果只形成選用的 assessment family 契約，不強迫所有擴充模組採用；跨模組計算位於獨立的末端結算，不建立 Time → Cost 依賴。
 
 ## 目標
 
@@ -605,22 +609,23 @@ Shadow 比對使用固定 `as_of`，比較 schema version、identity、subject i
 
 ## 第二個驗證模組：Cost
 
-完成 time 遷移後，以 `taskprogress.cost` 驗證 project／task／item 三層對應、商業資料隱私與跨模組分析，同時不得讓核心新增成本領域特例。
+完成 Time 遷移後，以 `taskprogress.cost` 驗證 project／task／item 三層對應、評估型模組的共用來源互動、同單位加總及商業資料隱私，同時不得讓核心新增成本領域特例。
 
-Cost 是 Time 的同級模組，不是 Time 的附屬欄位。成本分析器可以明確讀取時間估算及費率作為輸入，但產生的成本投影與 Renderer 必須能獨立驗證、載入及降級；沒有 Time 時仍可呈現外包、訂閱或其他直接成本。
+Cost 是 Time 的同級模組，不是 Time 的附屬欄位，也不讀取 Time 才能成立。第一版原生成本只由 Cost 自己的耗材、Cost-local 人工、複雜度與其他直接成本輸入產生；Time 與 Cost 都存在時仍各自驗證、載入、呈現與降級。
 
-第一版成本語意至少區分：
+第一版只固定 `estimated`：依目前 Cost 輸入預估的未來成本。後續商業語意可能再區分：
 
 - `actual`：已發生的成本；
 - `committed`：已承諾但尚未支付的成本；
-- `estimated`：依目前輸入預估的未來成本；
 - `replacement`：以指定地區、費率及基準日計算的重製估價，不得與實際成本混合。
 
-投影應保存幣別、最小貨幣單位整數、基準日、計算方法、納入範圍、來源、confidence、revision，以及可選的人力、AI 訂閱、硬體折舊、電力、外包與其他分類。所有金額都必須說明是直接現金、分攤成本或分析估值。public／developer／local 投影在產生時完成裁切；付款、發票及交易紀錄仍由外部系統保存。
+Cost 投影應保存幣別、最小貨幣單位整數、計算方法、納入範圍、contributors、confidence、revision、coverage，以及耗材、人工、複雜度調整、訂閱、硬體、電力、外包與其他分類。item leaf 的 active result 加總為 task，再加總為 project；缺估不得補零，fallback 與 project-only adjustment 不得 double count。所有金額都必須說明是直接現金、分攤成本或分析估值。public／developer／local 投影在產生時完成裁切；付款、發票及交易紀錄仍由外部系統保存。
 
-若新增 cost 時仍需在核心程式加入大量 `if cost`、固定檔名或 Time Renderer 相依，表示模組接口尚未真正成立。
+Cost 自己比較可用金錢資源與未完成預估成本，產生 Cost-native balance／risk；它不使用 Time deadline、工作容量或 progress pressure。需要 `Time 工時 × 費率` 或再把其結果與 Cost 合併評估預算時，另立末端複合結算，保存所有上游 input revisions、coverage、去重與 freshness。結算 stale 或失敗不得使 Time 或 Cost 失效。
 
-`estimated` 分類的領域設計草稿（`cost.config.json`、`cost.analysis.json` 形狀、Analyzer 邏輯、與 Time 的跨模組新鮮度處理）在 `Documentation/CostEstimationModulePlan.md`；本節只保留排程與跨領域邊界決策，避免與該文件重複維護同一份 schema。
+若新增 Cost 時仍需在核心程式加入大量 `if cost`、固定檔名或 Time Renderer 相依，表示模組接口尚未真正成立。
+
+人工／AI／歷史參考、active result、rollup 與末端結算的共用邊界在 `Documentation/AssessmentModuleArchitecturePlan.md`；Cost `estimated` 的輸入、算法、risk 與 projection 草稿在 `Documentation/CostEstimationModulePlan.md`。本節只保留排程與跨領域邊界，避免重複維護。
 
 ## 分階段實作
 
@@ -700,16 +705,18 @@ Proof                 : Schema／純模型單元測試、Node 與 .NET 整合測
 
 ### Phase 4：Cost 第二模組
 
-- 建立 cost Draft Schema，固定 actual／committed／estimated／replacement、幣別、基準日、分類、分攤與 provenance 語意。
-- 建立最小分析快照與 Renderer。
+- 建立 Cost Draft Schema，第一版只固定 estimated、幣別、原生分類、計算 basis、coverage 與 provenance 語意。
+- 建立獨立於 Time 的 item leaf 分析快照、item → task → project rollup、資源 balance／risk 與 Renderer。
 - 驗證 project/task/item 三層掛載。
-- 驗證 time 與 cost 同時存在、cost 明確讀取 time 投影、任一模組失敗及顯示順序。
+- 驗證人工／AI／歷史 contributors 形成一個 active result，而非三份重複成本。
+- 驗證 Time 與 Cost 同時存在但互不依賴、任一模組失敗及顯示順序。
+- 最後以一個 time-rate 末端結算驗證跨模組 lineage、freshness、coverage、去重與獨立降級。
 
-交付物：Cost Draft Schema、最小 analyzer／外部投影 fixture、Renderer 與跨模組 lineage 測試。
+交付物：Cost Draft Schema、最小 analyzer／外部投影 fixture、Renderer、assessment rollup 測試，以及獨立的 time-rate settlement lineage 測試。
 
-完成條件：第二模組只透過共同接口接入，Core 沒有 Cost 領域名稱、固定檔名或 Time Renderer 相依；沒有 Time 時仍能顯示直接成本，有 Time 時能以明確 input revision 重算 estimated／replacement 成本。
+完成條件：第二模組只透過共同接口接入，Core 沒有 Cost 領域名稱、固定檔名或 Time Renderer 相依；沒有 Time 時仍能從 Cost 自己的 item inputs 顯示 project／task／item estimated 成本與金錢資源 risk。time-rate 結算另存投影與 input revisions，不回灌 Cost，且失敗不影響兩個上游模組。
 
-`estimated` 切片的第一版 Schema 草案與案例見 `Documentation/CostEstimationModulePlan.md`；此 Phase 開始時以該文件為起點，`actual`／`committed`／`replacement` 與 item 層仍依本節既有範圍延伸。
+assessment family 與結算邊界見 `Documentation/AssessmentModuleArchitecturePlan.md`；Cost estimated 的第一版 Schema 草案與案例見 `Documentation/CostEstimationModulePlan.md`。`actual`／`committed`／`replacement` 仍延後到獨立 Cost 切片穩定之後。
 
 ### Phase 5：一般指標與開發套件評估
 
@@ -757,6 +764,7 @@ Proof                 : Schema／純模型單元測試、Node 與 .NET 整合測
 - `report.json` 不因新增模組而改版。
 - `time` 能透過共同接口載入，現有功能與測試保持相容。
 - cost 第二模組不修改核心載入器的領域判斷，且不依賴 Time Renderer 才能顯示。
+- Cost 沒有 Time 也能完成 item → task → project 原生估價；time-rate 結算另存 lineage 並可獨立 stale／降級。
 - 缺少、未知、過期或無效模組不使基本 Viewer 失敗。
 - Viewer 不執行 manifest 或 sidecar 指定的任意程式。
 - Launcher 不為 manifest 擴張到 report folder 之外的檔案權限。
@@ -773,7 +781,7 @@ Proof                 : Schema／純模型單元測試、Node 與 .NET 整合測
 5. 以 shadow capability tests 證明實驗路徑不能產生 DOM、timer、network／route mutation 或檔案寫入。
 6. 以未知、無效、stale 與 Renderer exception fixtures 證明錯誤只隔離單一模組。
 7. 以路徑 traversal、cross-origin、過大 payload 與重複 identity fixtures 證明資料不能擴權。
-8. 以 Cost fixture 證明三層 subject、visibility 裁切、Time 可選輸入與無 Time 降級。
+8. 以 Cost fixture 證明三層 subject、visibility 裁切及完全沒有 Time 的原生估價；另以 settlement fixture 證明 time-rate input revisions、coverage、去重與獨立降級。
 9. 以 source scan 證明 Core loader、`ReportFolder` 與 route whitelist 不含 `cost` 特例；Time UI／算法只有一份 production source，adapter 選擇只存在於 composition root。
 10. 以實際 localhost 與靜態相對路徑驗證 manifest、sidecar、query override、scope switch 與 stale route 清理。
 11. 以 390px、鍵盤與螢幕閱讀器驗證 capsule strip、detail、diagnostic 與 focus restoration。
