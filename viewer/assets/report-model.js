@@ -132,13 +132,46 @@ export function resolveDeveloperReportSource(params, request, baseUrl) {
   return new URL("report.dev.json", reportUrl);
 }
 
+/*
+ * A stable item carries the same five statuses a task does. The field is
+ * optional: a report written before it existed says nothing, and then the
+ * array the item sits in decides — `completed_items` reads as `done`,
+ * `pending_items` as `planned`. That is exactly what those arrays already
+ * meant, so no existing report changes meaning.
+ *
+ * When the field is present it is authoritative, and validation rejects an
+ * item whose status and array disagree; the array stays a projection of the
+ * status rather than a second source that could contradict it.
+ */
+export function taskItemStatus(item, field) {
+  if (item !== null && typeof item === "object" && Object.hasOwn(STATUS_META, item?.status)) {
+    return item.status;
+  }
+  return field === "completed_items" ? "done" : "planned";
+}
+
+/*
+ * `archive` means "not being worked on now", so an archived item leaves the
+ * denominator entirely rather than counting as outstanding — the same rule
+ * project progress already applies to archived tasks. `blocked` and
+ * `in_progress` are unfinished work and count exactly like `planned` did.
+ */
 export function calculateTaskProgress(task) {
-  const completedItems = task.completed_items?.length ?? 0;
-  const pendingItems = task.pending_items?.length ?? 0;
-  if (completedItems + pendingItems > 0) {
-    return { completed: completedItems, total: completedItems + pendingItems };
+  const counted = [
+    ...(task.completed_items ?? []).map((item) => taskItemStatus(item, "completed_items")),
+    ...(task.pending_items ?? []).map((item) => taskItemStatus(item, "pending_items")),
+  ].filter((status) => status !== "archive");
+
+  if (counted.length > 0) {
+    return {
+      completed: counted.filter((status) => status === "done").length,
+      total: counted.length,
+    };
   }
 
+  // Every item archived is not the same as having no items: the task has
+  // nothing outstanding to measure, so fall through to its own progress or
+  // status rather than reporting 0/0.
   if (task.progress) return { ...task.progress };
 
   return { completed: task.status === "done" ? 1 : 0, total: 1 };
@@ -314,6 +347,27 @@ function validateTaskItemList(value, path, errors, ids) {
         `${itemPath}.priority`,
         `${itemPath}.priority 必須是 0、1、2、3 或 4。`,
       ));
+    }
+    if (item.status !== undefined && !Object.hasOwn(STATUS_META, item.status)) {
+      errors.push(issue(
+        "invalid_status",
+        `${itemPath}.status`,
+        `${itemPath}.status 不是支援的狀態。`,
+      ));
+    }
+    // An item that declares `done` while sitting in pending_items — or the
+    // reverse — describes two different things at once, and every reader
+    // would have to pick one. Rejecting it keeps the array a faithful
+    // projection of the status rather than a second, competing source.
+    if (item.status !== undefined && Object.hasOwn(STATUS_META, item.status)) {
+      const expectedField = item.status === "done" ? "completed_items" : "pending_items";
+      if (!path.endsWith(expectedField)) {
+        errors.push(issue(
+          "status_field_mismatch",
+          `${itemPath}.status`,
+          `${itemPath}.status 是「${item.status}」，應位於 ${expectedField}。`,
+        ));
+      }
     }
     if (typeof item.id === "string") {
       if (ids.has(item.id)) {

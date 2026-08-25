@@ -15,7 +15,17 @@ if (
 const ITEM_FIELDS = Object.freeze(["completed_items", "pending_items"]);
 const REPORT_FIELDS = new Set(["summary"]);
 const TASK_FIELDS = new Set(["title", "summary", "status", "priority"]);
-const ITEM_PROPERTIES = new Set(["title", "priority"]);
+const ITEM_PROPERTIES = new Set(["title", "priority", "status"]);
+const ITEM_STATUSES = new Set(["planned", "in_progress", "blocked", "done", "archive"]);
+
+/*
+ * The array an item belongs in is a projection of its status, not a second
+ * place to record it: `done` lives in `completed_items`, everything else in
+ * `pending_items`.
+ */
+function fieldForItemStatus(status) {
+  return status === "done" ? "completed_items" : "pending_items";
+}
 
 function cloneValue(value) {
   if (typeof structuredClone === "function") return structuredClone(value);
@@ -355,6 +365,31 @@ function createReportEditorSession(
         }
         const task = findTask(draft, command.taskId);
         findItem(task, command.field, command.itemId)[command.property] = command.value;
+        break;
+      }
+      /*
+       * Setting a status can also require relocating the item, and the two
+       * have to happen together: a draft where the status says `done` while
+       * the item still sits in `pending_items` is exactly the contradiction
+       * validation rejects, and issuing two commands would make it reachable
+       * between them — and undoable as two separate steps.
+       */
+      case "set-item-status": {
+        if (!ITEM_STATUSES.has(command.status)) {
+          throw new Error(`不支援的子項目狀態「${command.status}」。`);
+        }
+        const task = findTask(draft, command.taskId);
+        const item = findItem(task, command.field, command.itemId);
+        item.status = command.status;
+        const toField = fieldForItemStatus(command.status);
+        if (toField !== command.field) {
+          const source = task[command.field] ?? [];
+          const sourceIndex = source.findIndex((candidate) => candidate?.id === command.itemId);
+          if (sourceIndex < 0) throw new Error(`找不到子項目「${command.itemId}」。`);
+          task[toField] ??= [];
+          const [moved] = source.splice(sourceIndex, 1);
+          task[toField].push(moved);
+        }
         break;
       }
       case "move-item": {

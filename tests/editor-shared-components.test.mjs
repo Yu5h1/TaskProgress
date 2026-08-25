@@ -627,7 +627,11 @@ test("formal Viewer sources use shared Svelte components and the shared core", a
   // what this row used to derive, and an assertion that forbids naming
   // the history would push out the explanation of why it changed.
   assert.doesNotMatch(rowText, /export let timeItem|onTimeClick\(/u);
-  assert.match(rowText, /type:\s*"move-item"/u);
+  // Item status is now the same five-state set a task card carries, and
+  // setting it is one command: the array an item lives in is derived from
+  // its status, so the row never issues a separate move (2026-08-25).
+  assert.match(rowText, /type:\s*"set-item-status"/u);
+  assert.doesNotMatch(rowText, /type:\s*"move-item"/u);
   assert.match(rowText, /<ModuleCapsuleStrip/u);
   assert.match(rowText, /editing \|\| \(metadata && \(!metadata\.hidden \|\| !policy\.labelsValid\)\)/u);
   assert.match(rowText, /class="item-row-utility-panel"/u);
@@ -638,7 +642,7 @@ test("formal Viewer sources use shared Svelte components and the shared core", a
   assert.match(viewerStylesText, /\.item-row-status \.inline-status-select\s*\{[\s\S]*min-width:\s*var\(--editor-item-status-edit-width\)/u);
   assert.match(viewerStylesText, /\.item-status-capsule\s*\{[\s\S]*width:\s*max-content/u);
   assert.match(viewerStylesText, /\.editable-work-item \.item-row-priority\s*\{[\s\S]*width:\s*var\(--editor-item-priority-edit-width\)/u);
-  assert.match(rowText, /itemStatus === "completed" \? "✓" : "○"/u);
+  assert.match(rowText, /itemStatus === "done" \? "✓" : "○"/u);
   assert.match(rowText, /bind:value=\{priorityValue\}/u);
   assert.match(rowText, /policy\.normalize\(item\.priority, policy\.fallbackValue\)/u);
   assert.match(rowText, /bind:value=\{statusValue\}/u);

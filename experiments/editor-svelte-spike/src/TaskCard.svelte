@@ -18,7 +18,10 @@
   // The Viewer lets the reader reorder status groups; the completed/pending
   // panels follow that order, so it has to reach the card.
   export let statusOrder = ["done", "planned"];
-  export let taskDuration = null;
+  // Task-level module figures, already formatted by each module. These are
+  // labels, not capsules: a task total is derived from its items, so there
+  // is nothing to act on at this level and a control would imply otherwise.
+  export let moduleTotals = [];
 
   const statuses = [
     { value: "planned", label: "待處理", tone: "neutral" },
@@ -79,11 +82,10 @@
   }
 </script>
 
-<article class={`task-card editor-task-card status-${statusEntry.tone}`} aria-labelledby={`task-${task.id}-title`}>
+<article class={`task-card editor-task-card priority-${taskPriority?.tone ?? "unspecified"}`} aria-labelledby={`task-${task.id}-title`}>
   <header class="task-header">
     <div class="task-title-group">
       <div class="time-task-status-line">
-        <span class={`status-badge status-${statusEntry.tone}`}>{statusEntry.label}</span>
         {#if editing}
           <select
             class="inline-status-select"
@@ -115,12 +117,6 @@
               <option value={level.value}>{policy.format(level.value)}</option>
             {/each}
           </select>
-        {:else if taskPriority && (!taskPriority.hidden || !policy.labelsValid)}
-          <span
-            class={`task-priority-badge priority-badge priority-${taskPriority.tone}`}
-            title={`${policy.format(task.priority)}；同一狀態內依優先級排序`}
-            aria-label={`優先級：${policy.format(task.priority)}`}
-          >{policy.format(task.priority)}</span>
         {/if}
       </div>
       <div class="time-task-title-line">
@@ -141,10 +137,14 @@
         {:else}
           <h3 id={`task-${task.id}-title`}>{task.title}</h3>
         {/if}
-        <span class="task-duration" hidden={!taskDuration}>
-          {taskDuration ? `約需 ${taskDuration}` : ""}
-        </span>
       </div>
+      {#if moduleTotals.length}
+        <div class="task-module-totals">
+          {#each moduleTotals as total (total.id)}
+            <span class={`task-module-total task-module-total-${total.id}`}>{total.label}</span>
+          {/each}
+        </div>
+      {/if}
     </div>
     <div class="task-header-meta">
       <strong
@@ -190,6 +190,7 @@
                 {policy}
                 {onCommand}
                 moduleCapsules={itemCapsules.get(item.id) ?? []}
+                {statuses}
                 {onModuleActivate}
                 {moduleOrder}
                 {onModuleReorder}

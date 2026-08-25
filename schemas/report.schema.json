@@ -170,6 +170,10 @@
           "type": "integer",
           "minimum": 0,
           "maximum": 4
+        },
+        "status": {
+          "$comment": "Optional. Absent means the array the item sits in decides: completed_items reads as done, pending_items as planned. When present it is authoritative and the arrays are derived from it — done goes to completed_items, every other status to pending_items — so an item can never be in a position its own status contradicts.",
+          "enum": ["planned", "in_progress", "blocked", "done", "archive"]
         }
       }
     }

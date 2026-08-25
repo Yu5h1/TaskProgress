@@ -44,7 +44,7 @@ export function createTimeModuleDefinition() {
   return {
     type: TIME_MODULE_TYPE,
     supportedSchemaVersions: ["0.2"],
-    slots: ["project-summary", "item-inline"],
+    slots: ["project-summary", "task-body", "item-inline"],
     attach({ host }) {
       return {
         capsuleFor(slot, subject) {
@@ -63,6 +63,22 @@ export function createTimeModuleDefinition() {
               showDot: props.showDot,
               showChevron: props.showChevron,
               disabled: props.disabled,
+            };
+          }
+          /*
+           * Task level is a label, not a capsule. A task total is the sum of
+           * its items — there is nothing editable at this level, so anything
+           * that looked pressable would promise an action that does not
+           * exist. `sortable: false` keeps it out of capsule reordering.
+           */
+          if (slot === "task-body") {
+            const duration = subject?.taskId ? host.getTaskDuration(subject.taskId) : null;
+            if (!duration) return null;
+            return {
+              id: TIME_PROJECT_CAPSULE_ID,
+              label: `約需 ${duration}`,
+              interactive: false,
+              sortable: false,
             };
           }
           if (slot === "item-inline") {

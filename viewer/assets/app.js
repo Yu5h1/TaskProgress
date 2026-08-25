@@ -839,9 +839,8 @@ function renderTaskAdder({ expanded = false, error = "" } = {}) {
 // Props for the task-list region. Only plain data and callbacks cross into the
 // UI implementation — no DOM nodes — so the implementation stays replaceable.
 function taskListProps(tasks) {
-  const time = state.timeController;
   const itemCapsules = new Map();
-  const durations = {};
+  const moduleTotals = {};
   const progress = {};
   const pointerCards = {};
   tasks.forEach((task) => {
@@ -856,8 +855,9 @@ function taskListProps(tasks) {
       return;
     }
     progress[task.id] = currentTaskProgress(task);
-    const duration = time?.taskDuration(task.id);
-    if (duration) durations[task.id] = duration;
+    const taskTotals = collectCapsules(state.attachedModules, "task-body", { taskId: task.id });
+    taskTotals.diagnostics.forEach((d) => console.warn(`[module] ${d.message}`));
+    if (taskTotals.capsules.length) moduleTotals[task.id] = taskTotals.capsules;
     // Capsules per stable item come from the registry, not from this host
     // knowing which modules exist. A module that has nothing for an item
     // contributes no capsule, which is also what leaves an unset item's row
@@ -877,7 +877,7 @@ function taskListProps(tasks) {
   return {
     tasks,
     progress,
-    durations,
+    moduleTotals,
     itemCapsules,
     pointerCards,
     editing: state.editor.editing,
@@ -1418,6 +1418,7 @@ async function main() {
             renderTimeReference();
           },
           getItemTime: (itemId) => state.timeController?.itemTime(itemId) ?? null,
+          getTaskDuration: (taskId) => state.timeController?.taskDuration(taskId) ?? null,
           // Whether the item capsule can open a detail panel decides its
           // accessible name, so the module has to be told rather than guess.
           get canOpenItemDetail() {

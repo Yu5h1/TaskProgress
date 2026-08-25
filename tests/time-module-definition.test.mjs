@@ -38,7 +38,7 @@ test("the definition satisfies the registry contract", () => {
   const definition = createTimeModuleDefinition();
   assert.equal(definition.type, "taskprogress.time");
   assert.deepEqual(definition.supportedSchemaVersions, ["0.2"]);
-  assert.deepEqual(definition.slots, ["project-summary", "item-inline"]);
+  assert.deepEqual(definition.slots, ["project-summary", "task-body", "item-inline"]);
   assert.doesNotThrow(() => createTrustedModuleRegistry([definition]));
 });
 
@@ -144,6 +144,30 @@ test("item activation carries the subject through, so the right item's panel ope
 
   assert.equal(activateCapsule(attached, "item-inline", "time", subject), true);
   assert.deepEqual(opened, [["item-a", "做一件事", "task-a"]]);
+});
+
+test("the task-level contribution is a label, not something that looks pressable", () => {
+  // A task total is the sum of its items, so there is nothing to act on at
+  // this level; a capsule would promise an action that does not exist.
+  const { attached } = attachTime({
+    getSnapshot: () => snapshot(),
+    openProjectDetail: () => {},
+    getTaskDuration: () => "128 hr",
+  });
+  const { capsules } = collectCapsules(attached, "task-body", { taskId: "task-a" });
+  assert.equal(capsules.length, 1);
+  assert.equal(capsules[0].label, "約需 128 hr");
+  assert.equal(capsules[0].interactive, false);
+  assert.equal(capsules[0].sortable, false);
+});
+
+test("a task with no estimate contributes no label rather than an empty one", () => {
+  const { attached } = attachTime({
+    getSnapshot: () => snapshot(),
+    openProjectDetail: () => {},
+    getTaskDuration: () => null,
+  });
+  assert.deepEqual(collectCapsules(attached, "task-body", { taskId: "task-a" }).capsules, []);
 });
 
 test("both slots use the same capsule id, so one saved module order applies to both strips", () => {

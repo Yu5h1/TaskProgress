@@ -112,12 +112,17 @@ test("components reference roles, never a raw theme token", () => {
   }
 });
 
-test("a completed card carries no status border", () => {
-  // The card is large; a green edge on finished work draws the eye to the one
-  // thing that needs none.
-  assert.doesNotMatch(styles, /\.task-card\.status-success \{/u);
-  assert.match(styles, /\.task-card\.status-active \{/u);
-  assert.match(styles, /\.task-card\.status-danger \{/u);
+test("the card border carries priority, and finished work gets no loud edge", () => {
+  // The border encodes the task's priority as of 2026-08-25 — it is what
+  // decides what to pick up next, and it is no longer shown as a badge.
+  // Status left this channel rather than sharing it; it stays reachable
+  // through the overview counts and the filter strip.
+  assert.doesNotMatch(styles, /\.task-card\.status-/u);
+  assert.match(styles, /\.task-card\.priority-urgent \{/u);
+  assert.match(styles, /\.task-card\.priority-important \{/u);
+  // The same reason a completed card never had a green edge: the largest
+  // surface on screen should not shout about work that needs nothing.
+  assert.doesNotMatch(styles, /\.task-card\.priority-\w+ \{[^}]*--color-success/u);
   assert.doesNotMatch(checklistStyles, /\.checklist-item\.checklist-passed \{/u);
 });
 

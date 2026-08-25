@@ -928,8 +928,6 @@ h1 {
    green edge on every finished card draws the eye to the work that needs none.
    Neutral and archived resolve to the muted status colour, which is the plain
    border, so "border matches status" still holds for them. */
-.task-card.status-active { border-color: var(--color-active-border); }
-.task-card.status-danger { border-color: var(--color-danger-border); }
 
 .task-header,
 .route-heading {
@@ -2760,3 +2758,35 @@ footer {
     align-items: flex-start;
   }
 }
+
+/*
+ * Task-level module figures. A row of their own under the title: appended to
+ * the heading they competed with it for width, and with a second module
+ * present the title would lose. Labels, not capsules — a task total is
+ * derived from its items, so there is nothing to press here.
+ */
+.task-module-totals {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 14px;
+  margin-top: 3px;
+}
+
+.task-module-total {
+  color: var(--color-muted-text);
+  font-size: 0.78rem;
+  font-variant-numeric: tabular-nums;
+}
+
+/*
+ * The card border carries the task's priority: it is what decides what to
+ * pick up next, and it is no longer shown as a badge. Status is not encoded
+ * here — it stays available through the overview counts and the filter strip,
+ * rather than fighting priority for the same channel.
+ */
+.task-card.priority-urgent { border-color: var(--color-danger-border); }
+.task-card.priority-important { border-color: var(--color-warning-border); }
+.task-card.priority-normal { border-color: var(--color-active-border); }
+.task-card.priority-secondary { border-color: var(--color-border); }
+.task-card.priority-unspecified { border-color: var(--line); }

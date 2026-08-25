@@ -20,24 +20,33 @@
   export let onModuleReorder = () => {};
 
   let priorityValue = policy.normalize(item.priority, policy.fallbackValue);
-  let statusValue = field === "completed_items" ? "completed" : "pending";
+  // Same five statuses a task card carries. `statuses` is supplied by the
+  // host so the two levels cannot drift into different sets.
+  export let statuses = [];
+  let statusValue = item.status ?? (field === "completed_items" ? "done" : "planned");
 
   $: metadata = policy.metadata(item.priority);
   $: label = policy.format(item.priority);
   $: priorityValue = policy.normalize(item.priority, policy.fallbackValue);
-  $: itemStatus = field === "completed_items" ? "completed" : "pending";
+  // Absent `status` means the array decides, which is what those arrays
+  // already meant — so a report written before the field exists reads the
+  // same as it always did.
+  $: itemStatus = item.status ?? (field === "completed_items" ? "done" : "planned");
   $: statusValue = itemStatus;
-  $: statusLabel = itemStatus === "completed" ? "已完成" : "待處理";
+  $: statusEntry = statuses.find((entry) => entry.value === itemStatus)
+    ?? { label: itemStatus, tone: "muted" };
+  $: statusLabel = statusEntry.label;
 
+  // One command: the host relocates the item when the new status requires
+  // it, so the row never has to know which array a status belongs in.
   function setStatus(value) {
-    const toField = value === "completed" ? "completed_items" : "pending_items";
-    if (toField === field) return;
+    if (value === itemStatus) return;
     onCommand({
-      type: "move-item",
+      type: "set-item-status",
       taskId,
+      field,
       itemId: item.id,
-      fromField: field,
-      toField,
+      status: value,
     });
   }
 
@@ -52,7 +61,7 @@
   <span
     class={`item-row-marker item-row-marker-${itemStatus}`}
     aria-hidden="true"
-  >{itemStatus === "completed" ? "✓" : "○"}</span>
+  >{itemStatus === "done" ? "✓" : "○"}</span>
 
   {#if editing || (metadata && (!metadata.hidden || !policy.labelsValid))}
     <span class="item-row-priority">
@@ -120,11 +129,12 @@
           bind:value={statusValue}
           onchange={() => setStatus(statusValue)}
         >
-          <option value="pending">待處理</option>
-          <option value="completed">已完成</option>
+          {#each statuses as status (status.value)}
+            <option value={status.value}>{status.label}</option>
+          {/each}
         </select>
       {:else}
-        <span class={`item-status-capsule item-status-${itemStatus}`}>{statusLabel}</span>
+        <span class={`item-status-capsule status-${statusEntry.tone}`}>{statusLabel}</span>
       {/if}
     </span>
 

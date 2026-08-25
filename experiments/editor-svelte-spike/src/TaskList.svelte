@@ -13,7 +13,7 @@
   export let onModuleActivate = () => {};
   export let moduleOrder = ["time"];
   export let onModuleReorder = () => {};
-  export let durations = {};
+  export let moduleTotals = {};
   export let statusOrder = ["done", "planned"];
   export let emptyLabel = "沒有符合目前篩選的工作項目。";
   // Keyed by pointer task id: { status: "loading"|"ready"|"error", card,
@@ -40,7 +40,7 @@
         {moduleOrder}
         {onModuleReorder}
         {statusOrder}
-        taskDuration={durations[task.id] ?? null}
+        moduleTotals={moduleTotals[task.id] ?? []}
       />
     {/if}
   {/each}
