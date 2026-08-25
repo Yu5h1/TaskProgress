@@ -509,6 +509,47 @@ External status 模組不得讓 TaskProgress 成為交易或法律事實的 cano
 
 完成公開報告、Launcher 與 tests 的遷移後，再決定何時停止 legacy discovery。停止前必須有明確版本及升級說明。
 
+### Legacy sidecar 的 envelope 轉接（2026-08-25 使用者決策）
+
+manifest 的 `source` 指向既有的 `time.analysis.json`，但那份檔案是 Draft 0.2 的扁平結構，不帶共同 envelope 的根欄位。這個落差原本沒有被本文件解決，現在的決策是：**讀取時轉接，不改磁碟上的檔案格式**。分析器維持原輸出，公開報告與既有 Viewer 不受影響；轉接只發生在記憶體中，由 Viewer 端一個純函式完成。
+
+轉接層是獨立的純轉換模組（法規上等同 Adapter：輸入 legacy 物件，輸出 envelope 物件，不做 I/O、不碰 DOM）。它服務的是 manifest 載入路徑；目前的 legacy discovery 路徑不需要 envelope 形狀，因此不強制改走轉接層。
+
+#### 欄位對應
+
+| envelope 欄位 | 來源 | 說明 |
+|---|---|---|
+| `module_type` | 固定 `taskprogress.time` | 由轉接層供給 |
+| `module_id` | manifest descriptor 的 `id`；legacy 路徑用 `time` | |
+| `schema_version` | legacy 根層 `schema_version`（如 `0.2`）直接沿用 | 兩者語意相同，都是「該 module type 的資料契約版本」 |
+| `scope_id` | legacy 根層 `scope_id` | 唯一由來源真正攜帶並可驗證的 identity |
+| `report_id` | **來源沒有** | 見下方「不得偽造的 identity」 |
+| `report_revision` | **來源沒有** | 依既有規則記 `freshness_unknown`，不得宣稱已驗證為最新 |
+| `generated_at` | 由 legacy `as_of` 供給，但標記為近似值 | 見下方「兩個不得混同的語意」 |
+| `generator` | 由轉接層自述（轉接層 id 與版本） | 見下方 |
+| `data` | **整份 legacy 文件原封放入**，包含同時被提升到 envelope 根層的 `schema_version` 與 `scope_id` | 領域內容不改寫、不裁切；重複是刻意的，見下方「`data` 必須是完整副本」 |
+
+#### `data` 必須是完整副本
+
+`schema_version` 與 `scope_id` 會同時出現在 envelope 根層與 `data` 內。這個重複是必要的：`inspectTimeAnalysis` 是既有且已驗證的 Time 領域驗證器，它正好會讀這兩個欄位；若為了避免重複而把它們從 `data` 裡拿掉，`data` 就無法再交給唯一為它而生的驗證器檢查。因此 `data` 保持與來源檔案逐欄位相同，轉接層只新增 envelope 根層欄位，不對領域內容做任何增刪。
+
+#### 不得偽造的 identity
+
+`report_id` 只存在於 `report.json`，legacy sidecar 從來沒有這個欄位。**轉接層不得從 `report.json` 複製一份填進去**：envelope 驗證的用途正是比對 sidecar 與 report 的 identity 是否相符，若值本身就是從比對對象複製來的，這項檢查會恆為真，變成一個看起來有做、實際上沒有效力的驗證。
+
+處理方式沿用本文件對 `report_revision` 既有的原則——缺少就誠實記為未驗證，不假裝有。轉接產生的 envelope 必須攜帶 provenance 標記，區分哪些欄位是來源真正攜帶的、哪些是轉接層供給的。legacy Time 的 identity 綁定實際強度只到 scope 層級（`inspectTimeAnalysis` 已經在做 `scope_id` 比對），這一點必須在診斷中可見，不得被轉接動作掩蓋。
+
+#### 兩個不得混同的語意
+
+- **`as_of` 不等於 `generated_at`**。`as_of` 是分析採用的基準時鐘，`analyze --as-of <ISO>` 可以刻意固定它以取得可重現的結果；`generated_at` 是投影產生的時間。使用 `--as-of` 時兩者確實不同。轉接層以 `as_of` 供給 `generated_at` 是不得已的近似，必須在 provenance 標記，且 `data` 內保留原本的 `as_of` 作為權威值。
+- **`method` 不等於 `generator`**。`method`（`deterministic-capacity-feasibility` v0.3）是演算法身分，`generator` 是產生工具身分。若把 `method` 直接當成 `generator`，「換工具但演算法不變」與「換演算法」在資料上將無法區分。`method` 留在 `data` 內不動；`generator` 由轉接層據實自述為轉接層本身——因為在讀取時轉接的模型下，這個 envelope 確實是轉接層產生的。
+
+#### provenance 不進入 envelope 契約
+
+轉接產生的 provenance（哪些欄位是來源攜帶、哪些由轉接層供給、identity 綁定只到 scope 層級）**不加進共同 envelope 的欄位**。轉接層回傳兩個並列的東西：一份符合現有契約、可直接送進 `validateModuleEnvelope` 的 envelope，以及一份描述這次轉接的 provenance；診斷由後者產生。
+
+理由是責任歸屬：provenance 描述的是「這份 envelope 是怎麼被轉接出來的」，屬於讀取時的一次性事實，不是模組資料契約的一部分。真正原生輸出 envelope 的模組（例如 Cost）根本沒有轉接行為，也就沒有這種欄位可填；若把它放進共同 envelope，等於為了 legacy 遷移期的暫時狀況，永久擴張每個模組都要面對的契約。共同 envelope 的欄位維持不變，轉接層不因此取得修改共同契約的權力。
+
 ### Time-first 垂直切片
 
 Time 不整包搬遷；依能力由低到高驗證同一契約：

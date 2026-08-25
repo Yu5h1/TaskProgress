@@ -91,6 +91,7 @@ internal sealed class LocalWebServiceClient : IDisposable
         var reportUrl = $"/reports/{report.Scope}/report.json";
         var developerUrl = $"/reports/{report.Scope}/report.dev.json";
         var timeAnalysisUrl = $"/reports/{report.Scope}/time.analysis.json";
+        var moduleManifestUrl = $"/reports/{report.Scope}/report.modules.json";
         await RegisterFileAsync(reportUrl, report.ReportPath, cancellationToken);
 
         if (report.DeveloperPath is not null)
@@ -109,6 +110,19 @@ internal sealed class LocalWebServiceClient : IDisposable
         else
         {
             await UnregisterUrlIfPresentAsync(timeAnalysisUrl, cancellationToken);
+        }
+
+        // Same lifecycle as the other optional sidecars: register when the
+        // file is there, and remove a stale route when it is not, so deleting
+        // a manifest actually stops it being served rather than leaving the
+        // previous one live.
+        if (report.ModuleManifestPath is not null)
+        {
+            await RegisterFileAsync(moduleManifestUrl, report.ModuleManifestPath, cancellationToken);
+        }
+        else
+        {
+            await UnregisterUrlIfPresentAsync(moduleManifestUrl, cancellationToken);
         }
     }
 
@@ -510,7 +524,8 @@ internal sealed class LocalWebServiceClient : IDisposable
             || segments[2] is not (
                 "report.json"
                 or "report.dev.json"
-                or "time.analysis.json"))
+                or "time.analysis.json"
+                or "report.modules.json"))
         {
             return false;
         }

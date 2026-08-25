@@ -161,6 +161,86 @@ internal static class Program
             var timeReport = ReportFolder.Load(Path.Combine(repositoryRoot, "reports", "example"));
             True(timeReport.TimeAnalysisPath is not null, "Example time analysis was not discovered");
 
+            // An absent module manifest is the normal case and must stay
+            // silent: every report predating the extension-module system has
+            // none.
+            True(
+                firstReport.ModuleManifestPath is null,
+                "A report with no report.modules.json reported one anyway");
+
+            var manifestFolder = Path.Combine(testHome, "ManifestReport");
+            Directory.CreateDirectory(manifestFolder);
+            await File.WriteAllTextAsync(
+                Path.Combine(manifestFolder, "report.json"),
+                reportSource,
+                cancellation.Token);
+            var manifestReportId = ReportFolder.Load(manifestFolder).ReportId;
+            var manifestSource =
+                $$"""
+                {
+                  "schema_version": "0.1",
+                  "report_id": "{{manifestReportId}}",
+                  "scope_id": "example",
+                  "modules": [
+                    {
+                      "id": "time",
+                      "type": "taskprogress.time",
+                      "source": "time.analysis.json",
+                      "optional": true,
+                      "visibility": "local"
+                    }
+                  ]
+                }
+                """;
+            await File.WriteAllTextAsync(
+                Path.Combine(manifestFolder, "report.modules.json"),
+                manifestSource,
+                cancellation.Token);
+            True(
+                ReportFolder.Load(manifestFolder).ModuleManifestPath is not null,
+                "A valid report.modules.json was not discovered");
+
+            // The manifest versions independently of report.json: its 0.1 is
+            // not one of the report's 1.0/1.1, and checking it against the
+            // report's list would reject every valid manifest.
+            await File.WriteAllTextAsync(
+                Path.Combine(manifestFolder, "report.modules.json"),
+                manifestSource.Replace(
+                    "\"schema_version\": \"0.1\"",
+                    "\"schema_version\": \"9.9\"",
+                    StringComparison.Ordinal),
+                cancellation.Token);
+            var manifestVersionRejected = false;
+            try
+            {
+                ReportFolder.Load(manifestFolder);
+            }
+            catch (CliException)
+            {
+                manifestVersionRejected = true;
+            }
+            True(manifestVersionRejected, "CLI reader accepted an unsupported manifest schema_version");
+
+            // Identity must agree with report.json, or the manifest is not
+            // describing this report.
+            await File.WriteAllTextAsync(
+                Path.Combine(manifestFolder, "report.modules.json"),
+                manifestSource.Replace(
+                    "\"scope_id\": \"example\"",
+                    "\"scope_id\": \"another-scope\"",
+                    StringComparison.Ordinal),
+                cancellation.Token);
+            var manifestScopeRejected = false;
+            try
+            {
+                ReportFolder.Load(manifestFolder);
+            }
+            catch (CliException)
+            {
+                manifestScopeRejected = true;
+            }
+            True(manifestScopeRejected, "CLI reader accepted a manifest whose scope_id disagrees with report.json");
+
             var taggedFolder = Path.Combine(testHome, "TaggedReport");
             Directory.CreateDirectory(taggedFolder);
             await File.WriteAllTextAsync(

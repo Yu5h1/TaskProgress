@@ -7,10 +7,12 @@ internal sealed record ReportFolder(
     string ReportPath,
     string? DeveloperPath,
     string? TimeAnalysisPath,
+    string? ModuleManifestPath,
     string Scope,
     string ReportId)
 {
     private static readonly string[] SupportedSchemaVersions = ["1.0", "1.1"];
+    private static readonly string[] SupportedManifestSchemaVersions = ["0.1"];
 
     public static ReportFolder Load(string pathValue)
     {
@@ -58,11 +60,35 @@ internal sealed record ReportFolder(
             ? Path.GetFullPath(timeAnalysisPath)
             : null;
 
+        // The optional extension-module manifest. Absent is the normal case
+        // and stays normal: every report that has never declared a module
+        // must keep working untouched. Identity here is validated only
+        // against report.json's own report_id/scope_id — the manifest's
+        // module descriptors are the Viewer's contract to enforce, not the
+        // Launcher's, so this deliberately does not parse them.
+        var moduleManifestPath = Path.Combine(directory, "report.modules.json");
+        string? resolvedModuleManifestPath = null;
+        if (File.Exists(moduleManifestPath))
+        {
+            var manifestSource = ReadBytes(moduleManifestPath, "report.modules.json");
+            var manifest = ReadManifestIdentity(manifestSource, "report.modules.json");
+            if (!string.Equals(manifest.ReportId, report.ReportId, StringComparison.Ordinal))
+            {
+                throw new CliException("report.modules.json 的 report_id 與 report.json 不一致。 ");
+            }
+            if (!string.Equals(manifest.Scope, report.Scope, StringComparison.Ordinal))
+            {
+                throw new CliException("report.modules.json 的 scope_id 與 report.json 不一致。 ");
+            }
+            resolvedModuleManifestPath = Path.GetFullPath(moduleManifestPath);
+        }
+
         return new ReportFolder(
             Path.GetFullPath(directory),
             Path.GetFullPath(reportPath),
             resolvedDeveloperPath,
             resolvedTimeAnalysisPath,
+            resolvedModuleManifestPath,
             scope,
             report.ReportId);
     }
@@ -108,6 +134,39 @@ internal sealed record ReportFolder(
         }
     }
 
+    // The manifest carries its own schema_version line (0.1), independent of
+    // report.json's (1.0/1.1) — a module manifest and a report version
+    // separately, per the architecture plan. Reusing ReadIdentity here would
+    // check the manifest against the report's version list and reject every
+    // valid manifest.
+    private static ManifestIdentity ReadManifestIdentity(byte[] source, string label)
+    {
+        try
+        {
+            using var document = JsonDocument.Parse(source);
+            if (document.RootElement.ValueKind != JsonValueKind.Object)
+            {
+                throw new CliException($"{label} 的根節點必須是物件。 ");
+            }
+
+            var schemaVersion = RequiredString(document.RootElement, "schema_version", label);
+            if (Array.IndexOf(SupportedManifestSchemaVersions, schemaVersion) < 0)
+            {
+                throw new CliException(
+                    $"{label} schema_version 必須是 {string.Join("、", SupportedManifestSchemaVersions)}，目前是 {schemaVersion}。");
+            }
+
+            return new ManifestIdentity(
+                schemaVersion,
+                RequiredString(document.RootElement, "report_id", label),
+                RequiredString(document.RootElement, "scope_id", label));
+        }
+        catch (JsonException error)
+        {
+            throw new CliException($"{label} 不是有效的 JSON：{error.Message}");
+        }
+    }
+
     private static string RequiredString(JsonElement root, string propertyName, string label)
     {
         if (!root.TryGetProperty(propertyName, out var property)
@@ -121,4 +180,6 @@ internal sealed record ReportFolder(
     }
 
     private sealed record ReportIdentity(string SchemaVersion, string ReportId, string? Scope);
+
+    private sealed record ManifestIdentity(string SchemaVersion, string ReportId, string Scope);
 }

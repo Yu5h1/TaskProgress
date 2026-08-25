@@ -205,12 +205,33 @@ export function validateModuleManifest(manifest, report) {
 }
 
 /*
+ * How much of an envelope's identity could actually be verified against the
+ * report.
+ *
+ * `full` is what a module that natively emits envelopes must satisfy:
+ * `report_id` is present and matches. `scope-only` exists for a legacy
+ * sidecar that predates the envelope and never carried `report_id` at all
+ * (Time's Draft 0.2 file is the case this was built for) — there, `report_id`
+ * must be *absent*, not merely unchecked, so an adapter cannot quietly supply
+ * a value the report was never compared against. Same principle the optional
+ * `report_revision` already follows: report what was verified, never claim
+ * more.
+ */
+export const IDENTITY_BINDINGS = Object.freeze(["full", "scope-only"]);
+
+/*
  * Structural and identity validation for one module sidecar's common
  * envelope. Domain validation of `data` is not this file's job — Phase 1 only
  * proves the envelope that every module shares; a domain module (Time, and
  * later Cost) validates its own `data` shape on top of a clean envelope.
  */
-export function validateModuleEnvelope(envelope, { report, descriptor, supportedDataSchemaVersions = [] }) {
+export function validateModuleEnvelope(
+  envelope,
+  { report, descriptor, supportedDataSchemaVersions = [], identityBinding = "full" },
+) {
+  if (!IDENTITY_BINDINGS.includes(identityBinding)) {
+    throw new TypeError(`未知的 identityBinding：${identityBinding}`);
+  }
   if (!isObject(envelope)) {
     return [issue("invalid_data", "$", "module envelope 必須是物件。")];
   }
@@ -225,7 +246,15 @@ export function validateModuleEnvelope(envelope, { report, descriptor, supported
   if (envelope.module_id !== descriptor.id) {
     errors.push(issue("identity_mismatch", "module_id", "envelope 的 module_id 與 manifest descriptor 不符。"));
   }
-  if (envelope.report_id !== report.report_id) {
+  if (identityBinding === "scope-only") {
+    if (envelope.report_id !== undefined) {
+      errors.push(issue(
+        "identity_mismatch",
+        "report_id",
+        "scope-only envelope 不得攜帶 report_id；來源沒有這個欄位，補上的值無法對照 report.json 驗證。",
+      ));
+    }
+  } else if (envelope.report_id !== report.report_id) {
     errors.push(issue("identity_mismatch", "report_id", "envelope 的 report_id 與 report.json 不符。"));
   }
   if (envelope.scope_id !== report.scope_id) {
