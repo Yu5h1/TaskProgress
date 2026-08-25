@@ -360,7 +360,7 @@ ItemRow
 
 主面板膠囊列與子項膠囊列不是兩套獨立機制，是同一個共用元件掛在兩個不同 slot：`HorizontalCapsuleStrip.svelte`（今天透過 `ModuleCapsuleStrip.svelte` 給 `item-inline` 使用；CSS class `.horizontal-capsule-strip`，`overflow-x: auto` 做自身範圍內的水平捲動，`justify-content: flex-end` 靠右對齊）。這是既有「One UI source」專案規則（同一個畫面元素只能有一份實作）在膠囊列這件事上的具體套用：兩個 slot 的膠囊列外觀、排序互動、捲動行為必須是同一份程式碼，不是分開維護的兩份相似邏輯。
 
-**現況落差**：`item-inline` 今天已經走這個共用元件；`project-summary` 目前還不是——`TimeSummaryButton.svelte` 是一顆掛在通用 `.project-title-line` flex row 裡的獨立按鈕（跟 `<h1>` 標題共用容器），沒有 `HorizontalCapsuleStrip` 的排序、捲動或多顆膠囊並列能力。把主面板膠囊列遷移成使用同一個元件是尚未開始的工作，Cost 之類的第二個模組要在主面板同時顯示 `(交付)(成本)…` 時就需要它，見 handoff 待辦。
+**已完成（2026-08-25）**：兩個 slot 現在都走 `ModuleCapsuleStrip` → `HorizontalCapsuleStrip`。主面板的 `project-module-strip` region 與子項的 `item-module-strip` 是同一份元件，只有呼叫端給的膠囊清單與 `aria-label` 不同；排序也共用同一個 `moduleOrderControl`，所以在任一列拖曳都會同時改變兩列。交付膠囊保留自己的 `time-summary-button` class，因此 strip 提供版面／排序／捲動，模組保有外觀——這正是 slot 契約要的分工。共用 strip 為此新增了兩個**通用**膠囊裝飾：`showDot`（狀態圓點）與 `showChevron`（此膠囊會開啟面板），兩者都不是 Time 專屬概念，Cost 同樣會用到。
 
 **空間不足時的展開／更多控件**：若要在捲動之外，額外提供一個展開／更多按鈕讓使用者看到被擠出視窗的膠囊，這個能力要做成 `HorizontalCapsuleStrip` 本身的選用功能（例如一個 overflow-affordance prop），讓兩個 slot 都能取得，而不是只在主面板另外接一個獨立元件。子項膠囊列今天不一定需要這個功能，但共用元件的原則不因此改變——要不要啟用由呼叫端決定，實作只能有一份。
 

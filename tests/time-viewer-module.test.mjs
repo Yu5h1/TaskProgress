@@ -195,8 +195,13 @@ test("app.js's real createUiView calls mount buildTimeSummaryProps/buildTimeDial
   assert.match(appSource, /from "\.\/time-viewer-module\.js"/u);
   assert.match(appSource, /const summaryProps = buildTimeSummaryProps\(context\);/u);
   assert.match(appSource, /const dialogProps = buildTimeDialogProps\(context\);/u);
-  assert.match(appSource, /createUiView\("time-summary-button", elements\.timeSummaryButton, summaryProps\)/u);
   assert.match(appSource, /createUiView\("time-dialog", elements\.timeDialog, dialogProps\)/u);
+  // The summary props now feed one capsule in the shared main-panel strip
+  // rather than a standalone button; the render layer's output is still what
+  // reaches the screen, only its host changed (2026-08-25).
+  assert.match(appSource, /className: summaryProps\.className,/u);
+  assert.match(appSource, /label: summaryProps\.label,/u);
+  assert.match(appSource, /onActivate: \(\) => summaryProps\.onClick\(\),/u);
 });
 
 test("the stage-2 shadow scaffolding and the old inline duplicate are both gone", async () => {

@@ -4,6 +4,7 @@ import AddControl from "./AddControl.svelte";
 import DeliverySaveConfirmation from "./DeliverySaveConfirmation.svelte";
 import Diagnostics from "./Diagnostics.svelte";
 import ModeToggle from "./ModeToggle.svelte";
+import ModuleCapsuleStrip from "./ModuleCapsuleStrip.svelte";
 import ProjectProgress from "./ProjectProgress.svelte";
 import ReportSummary from "./ReportSummary.svelte";
 import ScopeDirectory from "./ScopeDirectory.svelte";
@@ -38,6 +39,11 @@ const components = {
   "diagnostics": Diagnostics,
   "scope-directory": ScopeDirectory,
   "theme-control": ThemeControl,
+  // The main-panel module strip (`project-summary` slot). Renders through the
+  // same ModuleCapsuleStrip the item rows use, so both host levels share one
+  // implementation of ordering, scrolling and keyboard movement. Time's
+  // delivery capsule is currently its only occupant.
+  "project-module-strip": ModuleCapsuleStrip,
   "time-summary-button": TimeSummaryButton,
   "time-dialog": TimeDialog,
   "delivery-save-confirmation": DeliverySaveConfirmation,

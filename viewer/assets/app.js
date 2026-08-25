@@ -151,7 +151,7 @@ const state = {
   timeController: null,
   taskListView: null,
   taskAdderView: null,
-  timeSummaryView: null,
+  projectModuleStripView: null,
   timeDialogView: null,
   diagnosticsView: null,
   scopeDirectoryView: null,
@@ -285,9 +285,43 @@ function renderTimeReference() {
     },
   };
 
+  /*
+   * The main-panel module strip. Time's delivery capsule is its only
+   * occupant today, but it goes through the same shared strip the item rows
+   * use, so a second module (Cost is the planned one) joins by adding an
+   * entry here rather than by inventing a second row.
+   *
+   * The capsule keeps its own `time-summary-button` class, so the strip
+   * supplies layout, ordering and scrolling while the module keeps its
+   * appearance — exactly the split the slot contract describes.
+   */
   const summaryProps = buildTimeSummaryProps(context);
-  if (state.timeSummaryView) state.timeSummaryView.update(summaryProps);
-  else state.timeSummaryView = createUiView("time-summary-button", elements.timeSummaryButton, summaryProps);
+  const projectCapsuleProps = {
+    capsules: [{
+      id: "time",
+      className: summaryProps.className,
+      label: summaryProps.label,
+      ariaLabel: summaryProps.ariaLabel,
+      showDot: summaryProps.showDot,
+      showChevron: summaryProps.showChevron,
+      disabled: summaryProps.disabled,
+    }],
+    moduleOrder: state.moduleOrder,
+    className: "project-module-strip",
+    ariaLabel: "專案模組",
+    onActivate: () => summaryProps.onClick(),
+    // Both strips reorder through the one control, so dragging a capsule in
+    // either row moves it in both.
+    onReorder: applyModuleOrder,
+  };
+  if (state.projectModuleStripView) state.projectModuleStripView.update(projectCapsuleProps);
+  else {
+    state.projectModuleStripView = createUiView(
+      "project-module-strip",
+      elements.timeSummaryButton,
+      projectCapsuleProps,
+    );
+  }
 
   const dialogProps = buildTimeDialogProps(context);
   if (state.timeDialogView) state.timeDialogView.update(dialogProps);
@@ -673,6 +707,9 @@ function applyModuleOrder(id, targetId, placeAfter = false) {
   const result = moduleOrderControl.move(id, targetId, placeAfter);
   if (!result.changed) return;
   state.moduleOrder = result.order;
+  // One order, both strips: the main-panel row and every item row have to
+  // repaint together or they would show the same modules in different orders.
+  renderTimeReference();
   renderTasks();
 }
 

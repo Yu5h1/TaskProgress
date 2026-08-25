@@ -169,6 +169,7 @@
       aria-label={item.ariaLabel ?? item.label}
       aria-keyshortcuts={sortable ? "Alt+ArrowLeft Alt+ArrowRight" : null}
       title={item.title ?? null}
+      disabled={item.disabled ?? false}
       draggable={sortable}
       onclick={(event) => handleClick(item, event)}
       onkeydown={sortable ? (event) => handleKeydown(item, event) : null}
@@ -181,6 +182,16 @@
       onpointermove={sortable ? (event) => handlePointerMove(item, event) : null}
       onpointerup={sortable ? finishPointerDrag : null}
       onpointercancel={sortable ? finishPointerDrag : null}
-    >{item.label}</button>
+    >
+      <!--
+        A capsule is a label plus two optional affordances, both generic
+        rather than any one module's: a tone dot (this subject's state at a
+        glance) and a chevron (this capsule opens a panel). Modules supply
+        whether to show them; the strip never knows which module asked.
+      -->
+      <span>{item.label}</span>
+      {#if item.showDot}<span class={`time-risk-dot ${item.dotClass ?? ""}`}></span>{/if}
+      {#if item.showChevron}<span class="time-chevron">›</span>{/if}
+    </button>
   {/each}
 </div>

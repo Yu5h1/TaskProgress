@@ -826,6 +826,15 @@ h1 {
   justify-content: flex-end;
 }
 
+/*
+ * The main-panel module strip, beside the report title. Unlike the item-row
+ * strip it is not pushed against a status column, so it stays at its natural
+ * width and lets the title line's own flex gap place it.
+ */
+.project-module-strip {
+  flex: 0 1 auto;
+}
+
 .capsule-button {
   flex: 0 0 auto;
 }

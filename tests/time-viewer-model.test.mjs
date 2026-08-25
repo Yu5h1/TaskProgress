@@ -138,9 +138,13 @@ test("the time summary button and its dialog are registered as one shared implem
     readFile(new URL("../experiments/editor-svelte-spike/src/TimeSummaryButton.svelte", import.meta.url), "utf8"),
   ]);
 
-  assert.match(adapter, /"time-summary-button": TimeSummaryButton/);
+  // The delivery capsule now mounts through the shared module strip rather
+  // than as a lone button, so the main-panel and item-row capsule rows are
+  // one implementation (2026-08-25). TimeSummaryButton itself stays
+  // registered for hosts that still mount a standalone capsule.
+  assert.match(adapter, /"project-module-strip": ModuleCapsuleStrip/);
   assert.match(adapter, /"time-dialog": TimeDialog/);
-  assert.match(app, /createUiView\("time-summary-button", elements\.timeSummaryButton/);
+  assert.match(app, /createUiView\(\s*"project-module-strip",\s*elements\.timeSummaryButton/);
   assert.match(app, /createUiView\("time-dialog", elements\.timeDialog/);
 
   // The dialog element is structurally conditional on `open`, not toggled by
