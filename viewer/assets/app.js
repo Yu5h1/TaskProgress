@@ -840,7 +840,7 @@ function renderTaskAdder({ expanded = false, error = "" } = {}) {
 // UI implementation — no DOM nodes — so the implementation stays replaceable.
 function taskListProps(tasks) {
   const time = state.timeController;
-  const timeItems = new Map();
+  const itemCapsules = new Map();
   const durations = {};
   const progress = {};
   const pointerCards = {};
@@ -858,10 +858,19 @@ function taskListProps(tasks) {
     progress[task.id] = currentTaskProgress(task);
     const duration = time?.taskDuration(task.id);
     if (duration) durations[task.id] = duration;
+    // Capsules per stable item come from the registry, not from this host
+    // knowing which modules exist. A module that has nothing for an item
+    // contributes no capsule, which is also what leaves an unset item's row
+    // with no capsule at all.
     [...(task.completed_items ?? []), ...(task.pending_items ?? [])].forEach((item) => {
       if (!item || typeof item !== "object") return;
-      const itemTime = time?.itemTime(item.id);
-      if (itemTime) timeItems.set(item.id, itemTime);
+      const { capsules, diagnostics } = collectCapsules(state.attachedModules, "item-inline", {
+        taskId: task.id,
+        itemId: item.id,
+        itemTitle: item.title,
+      });
+      diagnostics.forEach((diagnostic) => console.warn(`[module] ${diagnostic.message}`));
+      if (capsules.length) itemCapsules.set(item.id, capsules);
     });
   });
 
@@ -869,7 +878,7 @@ function taskListProps(tasks) {
     tasks,
     progress,
     durations,
-    timeItems,
+    itemCapsules,
     pointerCards,
     editing: state.editor.editing,
     statusOrder: state.statusOrder,
@@ -887,9 +896,8 @@ function taskListProps(tasks) {
     onModuleReorder: (id, targetId, placeAfter) => {
       applyModuleOrder(id, targetId, placeAfter);
     },
-    onTimeClick: (itemId, itemTitle, taskId) => {
-      time?.showItemTime(itemId, itemTitle, taskId);
-      renderTimeReference();
+    onModuleActivate: (capsuleId, subject) => {
+      activateCapsule(state.attachedModules, "item-inline", capsuleId, subject);
     },
   };
 }
@@ -1407,6 +1415,16 @@ async function main() {
           getSnapshot: () => state.timeController?.snapshot() ?? null,
           openProjectDetail: () => {
             state.timeController.openProjectDetail();
+            renderTimeReference();
+          },
+          getItemTime: (itemId) => state.timeController?.itemTime(itemId) ?? null,
+          // Whether the item capsule can open a detail panel decides its
+          // accessible name, so the module has to be told rather than guess.
+          get canOpenItemDetail() {
+            return Boolean(state.timeController);
+          },
+          openItemDetail: (itemId, itemTitle, taskId) => {
+            state.timeController?.showItemTime(itemId, itemTitle, taskId);
             renderTimeReference();
           },
         },

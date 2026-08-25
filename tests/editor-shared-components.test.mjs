@@ -616,10 +616,17 @@ test("formal Viewer sources use shared Svelte components and the shared core", a
   assert.match(viewerAdapterText, /"save-bar": SaveBar/u);
   assert.match(viewerAdapterText, /"delivery-save-confirmation": DeliverySaveConfirmation/u);
   assert.match(cardText, /<ItemRow/u);
-  assert.match(cardText, /timeItems/u);
+  // Item capsules are collected by the host from the module registry and
+  // routed through the card by stable item id (2026-08-25); the card no
+  // longer carries a Time-specific prop.
+  assert.match(cardText, /itemCapsules/u);
   assert.match(rowText, /type:\s*"set-item-field"/u);
   assert.doesNotMatch(rowText, /<details|spike-estimate-editor|onManualEstimate/u);
-  assert.match(rowText, /if \(id === "time" && onTimeClick\) onTimeClick\(item\.id, item\.title, taskId\)/u);
+  assert.match(rowText, /onModuleActivate\(id, \{ taskId, itemId: item\.id, itemTitle: item\.title \}\)/u);
+  // Match the code forms, not the bare words: the file's comment records
+  // what this row used to derive, and an assertion that forbids naming
+  // the history would push out the explanation of why it changed.
+  assert.doesNotMatch(rowText, /export let timeItem|onTimeClick\(/u);
   assert.match(rowText, /type:\s*"move-item"/u);
   assert.match(rowText, /<ModuleCapsuleStrip/u);
   assert.match(rowText, /editing \|\| \(metadata && \(!metadata\.hidden \|\| !policy\.labelsValid\)\)/u);

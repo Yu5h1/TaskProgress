@@ -9,8 +9,8 @@
   export let onCommand = () => {};
   export let onAddItem = () => {};
   export let timeTasks = new Map();
-  export let timeItems = new Map();
-  export let onTimeClick = null;
+  export let itemCapsules = new Map();
+  export let onModuleActivate = () => {};
   export let moduleOrder = ["time"];
   export let onModuleReorder = () => {};
   export let durations = {};
@@ -35,8 +35,8 @@
         {onCommand}
         onAddItem={(title, priority) => onAddItem(task.id, title, priority)}
         timeTask={timeTasks.get(task.id) ?? null}
-        {timeItems}
-        {onTimeClick}
+        {itemCapsules}
+        {onModuleActivate}
         {moduleOrder}
         {onModuleReorder}
         {statusOrder}

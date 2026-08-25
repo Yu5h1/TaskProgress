@@ -9,8 +9,10 @@
   export let onCommand;
   export let onAddItem;
   export let timeTask = null;
-  export let timeItems = new Map();
-  export let onTimeClick = null;
+  // Capsule descriptors per stable item id, built by the host from the
+  // module registry. This card only routes them to the right row.
+  export let itemCapsules = new Map();
+  export let onModuleActivate = () => {};
   export let moduleOrder = ["time"];
   export let onModuleReorder = () => {};
   // The Viewer lets the reader reorder status groups; the completed/pending
@@ -187,8 +189,8 @@
                 {editing}
                 {policy}
                 {onCommand}
-                timeItem={timeItems.get(item.id) ?? null}
-                {onTimeClick}
+                moduleCapsules={itemCapsules.get(item.id) ?? []}
+                {onModuleActivate}
                 {moduleOrder}
                 {onModuleReorder}
               />

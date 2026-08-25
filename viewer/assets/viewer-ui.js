@@ -3134,141 +3134,134 @@ function La(e, t) {
 var Ra = /* @__PURE__ */ K("<option> </option>"), za = /* @__PURE__ */ K("<select class=\"inline-priority-select\"></select>"), Ba = /* @__PURE__ */ K("<span> </span>"), Va = /* @__PURE__ */ K("<span class=\"item-row-priority\"><!></span>"), Ha = /* @__PURE__ */ K("<input class=\"inline-edit-input\" maxlength=\"500\"/>"), Ua = /* @__PURE__ */ K("<span class=\"spike-item-title\"> </span>"), Wa = /* @__PURE__ */ K("<select class=\"inline-status-select\"><option>待處理</option><option>已完成</option></select>"), Ga = /* @__PURE__ */ K("<span class=\"item-row-action\"><button class=\"inline-delete-button\" type=\"button\">刪除</button></span>"), Ka = /* @__PURE__ */ K("<li><span aria-hidden=\"true\"> </span> <!> <span class=\"item-row-description\"><!></span> <span class=\"item-row-utility-panel\"><span class=\"item-row-modules\"><!></span> <span class=\"item-row-status\"><!></span> <!></span></li>");
 function qa(e, t) {
 	Ge(t, !1);
-	let n = /* @__PURE__ */ N(), r = /* @__PURE__ */ N(), i = /* @__PURE__ */ N(), a = /* @__PURE__ */ N(), o = /* @__PURE__ */ N(), s = /* @__PURE__ */ N(), c = $(t, "taskId", 8), l = $(t, "field", 8), u = $(t, "item", 8), d = $(t, "editing", 8), f = $(t, "policy", 8), p = $(t, "onCommand", 8), m = $(t, "timeItem", 8, null), h = $(t, "onTimeClick", 8, null), g = $(t, "moduleOrder", 24, () => ["time"]), _ = $(t, "onModuleReorder", 8, () => {}), v = /* @__PURE__ */ N(f().normalize(u().priority, f().fallbackValue)), y = /* @__PURE__ */ N(l() === "completed_items" ? "completed" : "pending");
-	function b(e) {
+	let n = /* @__PURE__ */ N(), r = /* @__PURE__ */ N(), i = /* @__PURE__ */ N(), a = /* @__PURE__ */ N(), o = $(t, "taskId", 8), s = $(t, "field", 8), c = $(t, "item", 8), l = $(t, "editing", 8), u = $(t, "policy", 8), d = $(t, "onCommand", 8), f = $(t, "moduleCapsules", 24, () => []), p = $(t, "onModuleActivate", 8, () => {}), m = $(t, "moduleOrder", 24, () => ["time"]), h = $(t, "onModuleReorder", 8, () => {}), g = /* @__PURE__ */ N(u().normalize(c().priority, u().fallbackValue)), _ = /* @__PURE__ */ N(s() === "completed_items" ? "completed" : "pending");
+	function v(e) {
 		let t = e === "completed" ? "completed_items" : "pending_items";
-		t !== l() && p()({
+		t !== s() && d()({
 			type: "move-item",
-			taskId: c(),
-			itemId: u().id,
-			fromField: l(),
+			taskId: o(),
+			itemId: c().id,
+			fromField: s(),
 			toField: t
 		});
 	}
-	function x(e) {
-		e === "time" && h() && h()(u().id, u().title, c());
+	function y(e) {
+		p()(e, {
+			taskId: o(),
+			itemId: c().id,
+			itemTitle: c().title
+		});
 	}
-	R(() => (W(f()), W(u())), () => {
-		P(n, f().metadata(u().priority));
-	}), R(() => (W(f()), W(u())), () => {
-		P(r, f().format(u().priority));
-	}), R(() => (W(f()), W(u())), () => {
-		P(v, f().normalize(u().priority, f().fallbackValue));
-	}), R(() => W(m()), () => {
-		P(i, m() ? m().label ?? `${Number(m().display_hours).toLocaleString(void 0, { maximumFractionDigits: 2 })} hr` : "");
-	}), R(() => W(l()), () => {
-		P(a, l() === "completed_items" ? "completed" : "pending");
-	}), R(() => H(a), () => {
-		P(y, H(a));
-	}), R(() => H(a), () => {
-		P(o, H(a) === "completed" ? "已完成" : "待處理");
-	}), R(() => (W(m()), H(i), W(h()), W(u())), () => {
-		P(s, m() ? [{
-			id: "time",
-			label: H(i),
-			className: "time-item-button",
-			sortable: !0,
-			ariaLabel: h() ? `${u().title}，${H(i)}，查看估算依據` : `${u().title}，目前分析 ${H(i)}`,
-			title: `目前分析：${m().likely_minutes} 分鐘；可拖曳調整模組順序`
-		}] : []);
+	R(() => (W(u()), W(c())), () => {
+		P(n, u().metadata(c().priority));
+	}), R(() => (W(u()), W(c())), () => {
+		P(r, u().format(c().priority));
+	}), R(() => (W(u()), W(c())), () => {
+		P(g, u().normalize(c().priority, u().fallbackValue));
+	}), R(() => W(s()), () => {
+		P(i, s() === "completed_items" ? "completed" : "pending");
+	}), R(() => H(i), () => {
+		P(_, H(i));
+	}), R(() => H(i), () => {
+		P(a, H(i) === "completed" ? "已完成" : "待處理");
 	}), kn(), ki();
-	var S = Ka();
-	let C;
-	var w = F(S), T = F(w, !0);
-	A(w);
-	var ee = L(w, 2), E = (e) => {
+	var b = Ka();
+	let x;
+	var S = F(b), C = F(S, !0);
+	A(S);
+	var w = L(S, 2), T = (e) => {
 		var t = Va(), i = F(t), a = (e) => {
 			var t = za();
-			X(t, 5, () => (W(f()), U(() => f().levels)), (e) => e.value, (e, t) => {
+			X(t, 5, () => (W(u()), U(() => u().levels)), (e) => e.value, (e, t) => {
 				var n = Ra(), r = F(n, !0);
 				A(n);
 				var i = {};
 				z((e) => {
 					J(r, e), i !== (i = (H(t), U(() => H(t).value))) && (n.value = (n.__value = (H(t), U(() => H(t).value))) ?? "");
-				}, [() => (W(f()), H(t), U(() => f().format(H(t).value)))]), q(e, n);
-			}), A(t), z(() => Q(t, "aria-label", (W(u()), U(() => `設定「${u().title}」的優先級`)))), G("change", t, () => p()({
+				}, [() => (W(u()), H(t), U(() => u().format(H(t).value)))]), q(e, n);
+			}), A(t), z(() => Q(t, "aria-label", (W(c()), U(() => `設定「${c().title}」的優先級`)))), G("change", t, () => d()({
 				type: "set-item-field",
-				taskId: c(),
-				field: l(),
-				itemId: u().id,
+				taskId: o(),
+				field: s(),
+				itemId: c().id,
 				property: "priority",
-				value: Number(H(v))
-			})), di(t, () => H(v), (e) => P(v, e)), q(e, t);
-		}, o = (e) => {
+				value: Number(H(g))
+			})), di(t, () => H(g), (e) => P(g, e)), q(e, t);
+		}, f = (e) => {
 			var t = Ba(), i = F(t, !0);
 			A(t), z(() => {
 				Z(t, 1, (H(n), U(() => `priority-badge priority-${H(n).tone}`))), J(i, H(r));
 			}), q(e, t);
 		};
 		Y(i, (e) => {
-			d() ? e(a) : e(o, -1);
+			l() ? e(a) : e(f, -1);
 		}), A(t), q(e, t);
 	};
-	Y(ee, (e) => {
-		W(d()), H(n), W(f()), U(() => d() || H(n) && (!H(n).hidden || !f().labelsValid)) && e(E);
+	Y(w, (e) => {
+		W(l()), H(n), W(u()), U(() => l() || H(n) && (!H(n).hidden || !u().labelsValid)) && e(T);
 	});
-	var te = L(ee, 2), ne = F(te), D = (e) => {
+	var ee = L(w, 2), E = F(ee), te = (e) => {
 		var t = Ha();
 		_i(t), z(() => {
-			Q(t, "aria-label", (W(u()), U(() => `編輯子項目：${u().title}`))), Q(t, "title", (W(u()), U(() => u().title))), vi(t, (W(u()), U(() => u().title)));
-		}), G("input", t, (e) => p()({
+			Q(t, "aria-label", (W(c()), U(() => `編輯子項目：${c().title}`))), Q(t, "title", (W(c()), U(() => c().title))), vi(t, (W(c()), U(() => c().title)));
+		}), G("input", t, (e) => d()({
 			type: "set-item-field",
-			taskId: c(),
-			field: l(),
-			itemId: u().id,
+			taskId: o(),
+			field: s(),
+			itemId: c().id,
 			property: "title",
 			value: e.currentTarget.value
 		})), q(e, t);
-	}, re = (e) => {
+	}, ne = (e) => {
 		var t = Ua(), n = F(t, !0);
 		A(t), z(() => {
-			Q(t, "title", (W(u()), U(() => u().title))), J(n, (W(u()), U(() => u().title)));
+			Q(t, "title", (W(c()), U(() => c().title))), J(n, (W(c()), U(() => c().title)));
 		}), q(e, t);
 	};
-	Y(ne, (e) => {
-		d() ? e(D) : e(re, -1);
-	}), A(te);
-	var ie = L(te, 2), ae = F(ie);
-	ta(F(ae), {
+	Y(E, (e) => {
+		l() ? e(te) : e(ne, -1);
+	}), A(ee);
+	var D = L(ee, 2), re = F(D);
+	ta(F(re), {
 		get capsules() {
-			return H(s);
+			return f();
 		},
 		get moduleOrder() {
-			return g();
+			return m();
 		},
-		onActivate: x,
+		onActivate: y,
 		get onReorder() {
-			return _();
+			return h();
 		}
-	}), A(ae);
-	var oe = L(ae, 2), se = F(oe), ce = (e) => {
+	}), A(re);
+	var ie = L(re, 2), ae = F(ie), oe = (e) => {
 		var t = Wa(), n = F(t);
 		n.value = n.__value = "pending";
 		var r = L(n);
-		r.value = r.__value = "completed", A(t), z(() => Q(t, "aria-label", (W(u()), U(() => `設定「${u().title}」的狀態`)))), G("change", t, () => b(H(y))), di(t, () => H(y), (e) => P(y, e)), q(e, t);
-	}, le = (e) => {
+		r.value = r.__value = "completed", A(t), z(() => Q(t, "aria-label", (W(c()), U(() => `設定「${c().title}」的狀態`)))), G("change", t, () => v(H(_))), di(t, () => H(_), (e) => P(_, e)), q(e, t);
+	}, se = (e) => {
 		var t = Ba(), n = F(t, !0);
 		A(t), z(() => {
-			Z(t, 1, `item-status-capsule item-status-${H(a)}`), J(n, H(o));
+			Z(t, 1, `item-status-capsule item-status-${H(i)}`), J(n, H(a));
 		}), q(e, t);
 	};
-	Y(se, (e) => {
-		d() ? e(ce) : e(le, -1);
-	}), A(oe);
-	var ue = L(oe, 2), de = (e) => {
+	Y(ae, (e) => {
+		l() ? e(oe) : e(se, -1);
+	}), A(ie);
+	var ce = L(ie, 2), le = (e) => {
 		var t = Ga(), n = F(t);
-		A(t), z(() => Q(n, "aria-label", (W(u()), U(() => `刪除子項目：${u().title}`)))), G("click", n, () => p()({
+		A(t), z(() => Q(n, "aria-label", (W(c()), U(() => `刪除子項目：${c().title}`)))), G("click", n, () => d()({
 			type: "delete-item",
-			taskId: c(),
-			field: l(),
-			itemId: u().id
+			taskId: o(),
+			field: s(),
+			itemId: c().id
 		})), q(e, t);
 	};
-	Y(ue, (e) => {
-		d() && e(de);
-	}), A(ie), A(S), z(() => {
-		C = Z(S, 1, "editor-item-row", null, C, { "editable-work-item": d() }), Z(w, 1, `item-row-marker item-row-marker-${H(a)}`), J(T, H(a) === "completed" ? "✓" : "○");
-	}), q(e, S), Ke();
+	Y(ce, (e) => {
+		l() && e(le);
+	}), A(D), A(b), z(() => {
+		x = Z(b, 1, "editor-item-row", null, x, { "editable-work-item": l() }), Z(S, 1, `item-row-marker item-row-marker-${H(i)}`), J(C, H(i) === "completed" ? "✓" : "○");
+	}), q(e, b), Ke();
 }
 wr([
 	"change",
@@ -3282,7 +3275,7 @@ function oo(e, t) {
 	Ge(t, !1);
 	let n = /* @__PURE__ */ N(), r = /* @__PURE__ */ N(), i = /* @__PURE__ */ N(), a = /* @__PURE__ */ N(), o = $(t, "task", 8), s = $(t, "progress", 8), c = $(t, "editing", 8), l = $(t, "policy", 8), u = $(t, "onCommand", 8), d = $(t, "onAddItem", 8);
 	$(t, "timeTask", 8, null);
-	let f = $(t, "timeItems", 24, () => /* @__PURE__ */ new Map()), p = $(t, "onTimeClick", 8, null), m = $(t, "moduleOrder", 24, () => ["time"]), h = $(t, "onModuleReorder", 8, () => {}), g = $(t, "statusOrder", 24, () => ["done", "planned"]), _ = $(t, "taskDuration", 8, null), v = [
+	let f = $(t, "itemCapsules", 24, () => /* @__PURE__ */ new Map()), p = $(t, "onModuleActivate", 8, () => {}), m = $(t, "moduleOrder", 24, () => ["time"]), h = $(t, "onModuleReorder", 8, () => {}), g = $(t, "statusOrder", 24, () => ["done", "planned"]), _ = $(t, "taskDuration", 8, null), v = [
 		{
 			value: "planned",
 			label: "待處理",
@@ -3450,7 +3443,7 @@ function oo(e, t) {
 			var a = L(r, 2);
 			X(a, 5, () => (H(t), U(() => H(t).items)), (e) => e.id, (e, n) => {
 				{
-					let r = /* @__PURE__ */ Ct(() => (W(f()), H(n), U(() => f().get(H(n).id) ?? null)));
+					let r = /* @__PURE__ */ Ct(() => (W(f()), H(n), U(() => f().get(H(n).id) ?? [])));
 					qa(e, {
 						get taskId() {
 							return W(o()), U(() => o().id);
@@ -3470,10 +3463,10 @@ function oo(e, t) {
 						get onCommand() {
 							return u();
 						},
-						get timeItem() {
+						get moduleCapsules() {
 							return H(r);
 						},
-						get onTimeClick() {
+						get onModuleActivate() {
 							return p();
 						},
 						get moduleOrder() {
@@ -3639,7 +3632,7 @@ function go(e, t) {
 var _o = /* @__PURE__ */ K("<p class=\"empty-state\"> </p>");
 function vo(e, t) {
 	Ge(t, !1);
-	let n = $(t, "tasks", 24, () => []), r = $(t, "progress", 24, () => ({})), i = $(t, "editing", 8, !1), a = $(t, "policy", 8), o = $(t, "onCommand", 8, () => {}), s = $(t, "onAddItem", 8, () => {}), c = $(t, "timeTasks", 24, () => /* @__PURE__ */ new Map()), l = $(t, "timeItems", 24, () => /* @__PURE__ */ new Map()), u = $(t, "onTimeClick", 8, null), d = $(t, "moduleOrder", 24, () => ["time"]), f = $(t, "onModuleReorder", 8, () => {}), p = $(t, "durations", 24, () => ({})), m = $(t, "statusOrder", 24, () => ["done", "planned"]), h = $(t, "emptyLabel", 8, "沒有符合目前篩選的工作項目。"), g = $(t, "pointerCards", 24, () => ({}));
+	let n = $(t, "tasks", 24, () => []), r = $(t, "progress", 24, () => ({})), i = $(t, "editing", 8, !1), a = $(t, "policy", 8), o = $(t, "onCommand", 8, () => {}), s = $(t, "onAddItem", 8, () => {}), c = $(t, "timeTasks", 24, () => /* @__PURE__ */ new Map()), l = $(t, "itemCapsules", 24, () => /* @__PURE__ */ new Map()), u = $(t, "onModuleActivate", 8, () => {}), d = $(t, "moduleOrder", 24, () => ["time"]), f = $(t, "onModuleReorder", 8, () => {}), p = $(t, "durations", 24, () => ({})), m = $(t, "statusOrder", 24, () => ["done", "planned"]), h = $(t, "emptyLabel", 8, "沒有符合目前篩選的工作項目。"), g = $(t, "pointerCards", 24, () => ({}));
 	ki();
 	var _ = Mr(), v = I(_), y = (e) => {
 		var t = Mr();
@@ -3679,10 +3672,10 @@ function vo(e, t) {
 						get timeTask() {
 							return H(n);
 						},
-						get timeItems() {
+						get itemCapsules() {
 							return l();
 						},
-						get onTimeClick() {
+						get onModuleActivate() {
 							return u();
 						},
 						get moduleOrder() {

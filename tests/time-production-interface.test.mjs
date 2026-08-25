@@ -44,6 +44,10 @@ const timeLegacyDiscoverySource = await readFile(
   new URL("../viewer/assets/time-legacy-discovery.js", import.meta.url),
   "utf8",
 );
+const timeModuleDefinitionSource = await readFile(
+  new URL("../viewer/assets/time-module-definition.js", import.meta.url),
+  "utf8",
+);
 const timeManifestDiscoverySource = await readFile(
   new URL("../viewer/assets/time-manifest-discovery.js", import.meta.url),
   "utf8",
@@ -127,11 +131,17 @@ test("production item time actions remain visible in global edit mode", async ()
   // The capsule is rendered by the shared row in both modes and opens the
   // shared TimeDialog component through a callback, so no DOM node crosses
   // the UI boundary.
-  assert.equal(itemRowSource.split("time-item-button").length - 1, 1);
-  assert.match(itemRowSource, /if \(id === "time" && onTimeClick\) onTimeClick\(item\.id, item\.title, taskId\)/);
+  // The item capsule moved behind the module registry on 2026-08-25: the
+  // shared row no longer knows Time by name, so `time-item-button`, the
+  // accessible name and the open action all live in Time's definition now.
+  // The row keeps only the strip and a by-id dispatch.
+  assert.equal(timeModuleDefinitionSource.split("time-item-button").length - 1, 1);
+  assert.doesNotMatch(itemRowSource, /time-item-button|export let timeItem|onTimeClick\(/);
   assert.match(itemRowSource, /<ModuleCapsuleStrip/);
-  assert.match(itemRowSource, /查看估算依據/);
-  assert.match(appSource, /onTimeClick: \(itemId, itemTitle, taskId\) => \{\s*time\?\.showItemTime\(itemId, itemTitle, taskId\);/);
+  assert.match(itemRowSource, /onModuleActivate\(id, \{ taskId, itemId: item\.id, itemTitle: item\.title \}\)/);
+  assert.match(timeModuleDefinitionSource, /查看估算依據/);
+  assert.match(appSource, /openItemDetail: \(itemId, itemTitle, taskId\) => \{\s*state\.timeController\?\.showItemTime\(itemId, itemTitle, taskId\);/);
+  assert.match(appSource, /activateCapsule\(state\.attachedModules, "item-inline", capsuleId, subject\)/);
   assert.doesNotMatch(appSource, /createItemTimeButton/);
   assert.doesNotMatch(itemRowSource, /<details|spike-estimate-editor|onManualEstimate/);
   assert.match(timeDialogSource, /<ManualEstimateEditor/);

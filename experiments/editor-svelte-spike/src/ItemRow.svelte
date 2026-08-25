@@ -7,8 +7,15 @@
   export let editing;
   export let policy;
   export let onCommand;
-  export let timeItem = null;
-  export let onTimeClick = null;
+  /*
+   * Module capsules arrive already built. This row used to derive Time's
+   * capsule itself from a `timeItem` prop, which meant the shared row knew
+   * one module by name and a second module could not appear without editing
+   * it. The host now collects descriptors from the module registry, exactly
+   * as the main-panel strip does.
+   */
+  export let moduleCapsules = [];
+  export let onModuleActivate = () => {};
   export let moduleOrder = ["time"];
   export let onModuleReorder = () => {};
 
@@ -18,23 +25,9 @@
   $: metadata = policy.metadata(item.priority);
   $: label = policy.format(item.priority);
   $: priorityValue = policy.normalize(item.priority, policy.fallbackValue);
-  $: timeLabel = timeItem
-    ? timeItem.label
-      ?? `${Number(timeItem.display_hours).toLocaleString(undefined, { maximumFractionDigits: 2 })} hr`
-    : "";
   $: itemStatus = field === "completed_items" ? "completed" : "pending";
   $: statusValue = itemStatus;
   $: statusLabel = itemStatus === "completed" ? "已完成" : "待處理";
-  $: moduleCapsules = timeItem ? [{
-    id: "time",
-    label: timeLabel,
-    className: "time-item-button",
-    sortable: true,
-    ariaLabel: onTimeClick
-      ? `${item.title}，${timeLabel}，查看估算依據`
-      : `${item.title}，目前分析 ${timeLabel}`,
-    title: `目前分析：${timeItem.likely_minutes} 分鐘；可拖曳調整模組順序`,
-  }] : [];
 
   function setStatus(value) {
     const toField = value === "completed" ? "completed_items" : "pending_items";
@@ -48,8 +41,10 @@
     });
   }
 
+  // The row does not know which module a capsule belongs to; the host
+  // dispatches by id back to whichever module claims it.
   function activateModule(id) {
-    if (id === "time" && onTimeClick) onTimeClick(item.id, item.title, taskId);
+    onModuleActivate(id, { taskId, itemId: item.id, itemTitle: item.title });
   }
 </script>
 

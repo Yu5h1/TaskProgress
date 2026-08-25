@@ -79,8 +79,13 @@ export function attachModules(registry, loaded = []) {
  * A descriptor's `id` must be the module type's capsule id; the host
  * dispatches activation back by that id, so it is the only link between a
  * rendered capsule and the module that owns it.
+ *
+ * `subject` names which task or stable item the caller is asking about, and
+ * is `null` for project-level slots that have no narrower subject. Modules
+ * are asked per subject rather than handed the whole report, so a module
+ * never sees rows it was not asked about.
  */
-export function collectCapsules(attached, slot) {
+export function collectCapsules(attached, slot, subject = null) {
   if (!VIEWER_MODULE_SLOTS.includes(slot)) {
     throw new TypeError(`未知的 Viewer slot：${slot}`);
   }
@@ -90,7 +95,7 @@ export function collectCapsules(attached, slot) {
   for (const entry of attached) {
     if (!entry.slots.includes(slot)) continue;
     try {
-      const descriptor = entry.instance.capsuleFor?.(slot) ?? null;
+      const descriptor = entry.instance.capsuleFor?.(slot, subject) ?? null;
       if (descriptor) capsules.push(descriptor);
     } catch (error) {
       diagnostics.push({
@@ -111,13 +116,13 @@ export function collectCapsules(attached, slot) {
  * not know what activation means for any module — Time opens its dialog, a
  * future module may do something else entirely.
  */
-export function activateCapsule(attached, slot, capsuleId) {
+export function activateCapsule(attached, slot, capsuleId, subject = null) {
   const entry = attached.find(
     (candidate) => candidate.slots.includes(slot)
       && candidate.instance.ownsCapsule?.(slot, capsuleId),
   );
   if (!entry) return false;
-  entry.instance.activate?.(slot, capsuleId);
+  entry.instance.activate?.(slot, capsuleId, subject);
   return true;
 }
 

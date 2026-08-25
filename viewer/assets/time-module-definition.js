@@ -21,6 +21,17 @@ import { buildTimeSummaryProps } from "./time-viewer-module.js";
 
 export const TIME_MODULE_TYPE = "taskprogress.time";
 export const TIME_PROJECT_CAPSULE_ID = "time";
+/*
+ * The item capsule keeps the id `time` because that id is also what the
+ * browser-local module ordering preference is keyed on — the reader's chosen
+ * left-to-right order has to mean the same thing in both strips.
+ */
+export const TIME_ITEM_CAPSULE_ID = "time";
+
+function formatHours(itemTime) {
+  return itemTime.label
+    ?? `${Number(itemTime.display_hours).toLocaleString(undefined, { maximumFractionDigits: 2 })} hr`;
+}
 
 /*
  * `host` supplies what the Viewer owns: the current controller snapshot (or
@@ -33,32 +44,57 @@ export function createTimeModuleDefinition() {
   return {
     type: TIME_MODULE_TYPE,
     supportedSchemaVersions: ["0.2"],
-    slots: ["project-summary"],
+    slots: ["project-summary", "item-inline"],
     attach({ host }) {
       return {
-        capsuleFor(slot) {
-          if (slot !== "project-summary") return null;
-          const snapshot = host.getSnapshot();
-          if (!snapshot) return null;
-          const props = buildTimeSummaryProps({
-            snapshot,
-            callbacks: { onOpenProjectDetail: host.openProjectDetail },
-          });
-          return {
-            id: TIME_PROJECT_CAPSULE_ID,
-            className: props.className,
-            label: props.label,
-            ariaLabel: props.ariaLabel,
-            showDot: props.showDot,
-            showChevron: props.showChevron,
-            disabled: props.disabled,
-          };
+        capsuleFor(slot, subject) {
+          if (slot === "project-summary") {
+            const snapshot = host.getSnapshot();
+            if (!snapshot) return null;
+            const props = buildTimeSummaryProps({
+              snapshot,
+              callbacks: { onOpenProjectDetail: host.openProjectDetail },
+            });
+            return {
+              id: TIME_PROJECT_CAPSULE_ID,
+              className: props.className,
+              label: props.label,
+              ariaLabel: props.ariaLabel,
+              showDot: props.showDot,
+              showChevron: props.showChevron,
+              disabled: props.disabled,
+            };
+          }
+          if (slot === "item-inline") {
+            // No estimate for this item means no capsule at all, which is
+            // also what the unset-value rule requires of preview.
+            const itemTime = subject?.itemId ? host.getItemTime(subject.itemId) : null;
+            if (!itemTime) return null;
+            const label = formatHours(itemTime);
+            return {
+              id: TIME_ITEM_CAPSULE_ID,
+              label,
+              className: "time-item-button",
+              sortable: true,
+              ariaLabel: host.canOpenItemDetail
+                ? `${subject.itemTitle}，${label}，查看估算依據`
+                : `${subject.itemTitle}，目前分析 ${label}`,
+              title: `目前分析：${itemTime.likely_minutes} 分鐘；可拖曳調整模組順序`,
+            };
+          }
+          return null;
         },
         ownsCapsule(slot, capsuleId) {
-          return slot === "project-summary" && capsuleId === TIME_PROJECT_CAPSULE_ID;
+          if (slot === "project-summary") return capsuleId === TIME_PROJECT_CAPSULE_ID;
+          if (slot === "item-inline") return capsuleId === TIME_ITEM_CAPSULE_ID;
+          return false;
         },
-        activate(slot, capsuleId) {
-          if (this.ownsCapsule(slot, capsuleId)) host.openProjectDetail();
+        activate(slot, capsuleId, subject) {
+          if (!this.ownsCapsule(slot, capsuleId)) return;
+          if (slot === "project-summary") host.openProjectDetail();
+          if (slot === "item-inline" && subject) {
+            host.openItemDetail(subject.itemId, subject.itemTitle, subject.taskId);
+          }
         },
         dispose() {
           // Nothing to release yet: the controller and its timers are still
