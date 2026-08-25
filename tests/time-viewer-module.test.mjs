@@ -192,9 +192,11 @@ test("time-viewer-module.js stays off the DOM", async () => {
 
 test("app.js mounts the dialog directly but gets the capsule from the registry, not from Time by name", async () => {
   const appSource = await readFile(new URL("../viewer/assets/app.js", import.meta.url), "utf8");
-  assert.match(appSource, /from "\.\/time-viewer-module\.js"/u);
-  assert.match(appSource, /const dialogProps = buildTimeDialogProps\(context\);/u);
-  assert.match(appSource, /createUiView\("time-dialog", elements\.timeDialog, dialogProps\)/u);
+  // app.js no longer imports the render layer at all — the module does,
+  // and hands back finished props.
+  assert.doesNotMatch(appSource, /from "\.\/time-viewer-module\.js"/u);
+  assert.match(appSource, /state\.attachedModules\[0\]\?\.instance\.detailProps\?\.\(editingContext\)/u);
+  assert.match(appSource, /createUiView\("time-dialog", elements\.timeDialog, detail\)/u);
 
   // The main-panel capsule now comes from the module lifecycle loop
   // (2026-08-25). `buildTimeSummaryProps` moved behind Time's registered
@@ -215,7 +217,7 @@ test("the Time render layer is still the one place that computes the capsule's p
     new URL("../viewer/assets/time-module-definition.js", import.meta.url),
     "utf8",
   );
-  assert.match(definitionSource, /import \{ buildTimeSummaryProps \} from "\.\/time-viewer-module\.js"/u);
+  assert.match(definitionSource, /import \{ buildTimeDialogProps, buildTimeSummaryProps \} from "\.\/time-viewer-module\.js"/u);
 });
 
 test("the stage-2 shadow scaffolding and the old inline duplicate are both gone", async () => {

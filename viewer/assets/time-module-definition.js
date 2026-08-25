@@ -3,21 +3,31 @@
  * `module-registry.js`, which until now was built and tested but unused by
  * production.
  *
- * Scope of this step, stated plainly so the next reader does not assume more
- * moved than did: this definition owns **producing Time's main-panel capsule
- * descriptor and dispatching its activation**. It does not own the time
- * controller, the dialog, the 60-second refresh, or the editing session —
- * those stay in `app.js`, reached through the `host` callbacks below. Moving
- * the runtime controller behind `attach()`/`dispose()` (where the
- * architecture plan's component table ultimately puts it) is a later step and
- * needs its own verification, because it changes who owns live state rather
- * than only who computes props.
+ * What this owns: the time runtime controller, constructed in `attach()` and
+ * stopped in `dispose()`; the capsule descriptors for all three slots it
+ * declares; the commands that drive its own dialog; and the clock-driven
+ * refresh. That is the Runtime Controller responsibility the architecture
+ * plan's component table assigns to a module rather than to Core.
  *
- * What this does prove: `app.js` no longer names Time when building the
- * main-panel strip. A second module joins by registering a definition, not by
- * editing the render path.
+ * What it deliberately does not own: the editing session. Drafts, delivery
+ * previews and save confirmation stay in `app.js` and arrive through
+ * `detailProps(editing)`, because moving them is the separate — and still
+ * open — shared assessment shell question.
+ *
+ * The host is reached only through callbacks it supplied: `getWorkProgressRatio`
+ * for a figure derived from the report, and `onChanged` to say "something I
+ * own moved, re-render". Nothing here touches the DOM.
  */
-import { buildTimeSummaryProps } from "./time-viewer-module.js";
+import { buildTimeDialogProps, buildTimeSummaryProps } from "./time-viewer-module.js";
+import { createTimeReferenceController } from "./time-dialog-control.js";
+
+/*
+ * Deadline urgency is a function of the current clock, so the projection has
+ * to be recomputed as time passes and whenever the page comes back to the
+ * foreground after being hidden — otherwise a tab left open overnight shows
+ * yesterday's lamp.
+ */
+const REFRESH_INTERVAL_MS = 60_000;
 
 export const TIME_MODULE_TYPE = "taskprogress.time";
 export const TIME_PROJECT_CAPSULE_ID = "time";
@@ -34,26 +44,42 @@ function formatHours(itemTime) {
 }
 
 /*
- * `host` supplies what the Viewer owns: the current controller snapshot (or
- * `null` when there is no time data) and the action that opens the project
- * detail. Keeping both as callbacks rather than values matters — the snapshot
- * changes on every refresh tick, so capturing it at attach time would freeze
- * the capsule at whatever urgency it had when the page loaded.
+ * The snapshot is read at capsule-build time rather than captured at attach,
+ * because urgency changes with the clock — capturing it once would freeze the
+ * capsule at whatever the page loaded with and make the refresh pointless.
  */
 export function createTimeModuleDefinition() {
   return {
     type: TIME_MODULE_TYPE,
     supportedSchemaVersions: ["0.2"],
     slots: ["project-summary", "task-body", "item-inline"],
-    attach({ host }) {
+    attach({ data, host }) {
+      /*
+       * The module owns its runtime controller: it is constructed here from
+       * the projection it was attached with, and `dispose()` is what stops
+       * it. A throw during construction is caught by `attachModules` and
+       * isolated as a per-module diagnostic, so a malformed projection no
+       * longer needs the host to guard it.
+       */
+      const controller = createTimeReferenceController({
+        sourceAnalysis: data,
+        workProgressRatio: host.getWorkProgressRatio(),
+      });
+      let timer = null;
+      let onForeground = null;
+
+      const snapshotNow = () => controller.snapshot();
+
       return {
         capsuleFor(slot, subject) {
           if (slot === "project-summary") {
-            const snapshot = host.getSnapshot();
+            const snapshot = snapshotNow();
             if (!snapshot) return null;
             const props = buildTimeSummaryProps({
               snapshot,
-              callbacks: { onOpenProjectDetail: host.openProjectDetail },
+              callbacks: {
+                onOpenProjectDetail: () => { controller.openProjectDetail(); host.onChanged(); },
+              },
             });
             return {
               id: TIME_PROJECT_CAPSULE_ID,
@@ -72,7 +98,7 @@ export function createTimeModuleDefinition() {
            * exist. `sortable: false` keeps it out of capsule reordering.
            */
           if (slot === "task-body") {
-            const duration = subject?.taskId ? host.getTaskDuration(subject.taskId) : null;
+            const duration = subject?.taskId ? controller.taskDuration(subject.taskId) : null;
             if (!duration) return null;
             return {
               id: TIME_PROJECT_CAPSULE_ID,
@@ -84,7 +110,7 @@ export function createTimeModuleDefinition() {
           if (slot === "item-inline") {
             // No estimate for this item means no capsule at all, which is
             // also what the unset-value rule requires of preview.
-            const itemTime = subject?.itemId ? host.getItemTime(subject.itemId) : null;
+            const itemTime = subject?.itemId ? controller.itemTime(subject.itemId) : null;
             if (!itemTime) return null;
             const label = formatHours(itemTime);
             return {
@@ -92,9 +118,7 @@ export function createTimeModuleDefinition() {
               label,
               className: "time-item-button",
               sortable: true,
-              ariaLabel: host.canOpenItemDetail
-                ? `${subject.itemTitle}，${label}，查看估算依據`
-                : `${subject.itemTitle}，目前分析 ${label}`,
+              ariaLabel: `${subject.itemTitle}，${label}，查看估算依據`,
               title: `目前分析：${itemTime.likely_minutes} 分鐘；可拖曳調整模組順序`,
             };
           }
@@ -107,14 +131,58 @@ export function createTimeModuleDefinition() {
         },
         activate(slot, capsuleId, subject) {
           if (!this.ownsCapsule(slot, capsuleId)) return;
-          if (slot === "project-summary") host.openProjectDetail();
+          if (slot === "project-summary") controller.openProjectDetail();
           if (slot === "item-inline" && subject) {
-            host.openItemDetail(subject.itemId, subject.itemTitle, subject.taskId);
+            controller.showItemTime(subject.itemId, subject.itemTitle, subject.taskId);
           }
+          host.onChanged();
+        },
+
+        /*
+         * Detail props for the panel the host still mounts. Everything the
+         * editing session owns arrives in `editing`; this module contributes
+         * only what it knows — the current snapshot and the four commands
+         * that drive its own dialog.
+         */
+        detailProps(editing) {
+          return buildTimeDialogProps({
+            ...editing,
+            snapshot: snapshotNow(),
+            callbacks: {
+              ...editing.callbacks,
+              onClose: () => { controller.closeDialog(); host.onChanged(); },
+              onToggleDetails: () => { controller.toggleDetails(); host.onChanged(); },
+              onSetTab: (name) => { controller.setActiveTab(name); host.onChanged(); },
+            },
+          });
+        },
+
+        /*
+         * Urgency depends on the clock, so the projection is recomputed on a
+         * timer and whenever the page returns to the foreground. Owning this
+         * here is what makes `dispose()` able to stop it — the host's own
+         * interval used to outlive every scope switch.
+         */
+        start() {
+          const recompute = () => { controller.refresh(); host.onChanged(); };
+          timer = setInterval(recompute, REFRESH_INTERVAL_MS);
+          // Only a return *to* the foreground is worth recomputing for;
+          // firing on the hide half would do work nobody can see.
+          onForeground = () => {
+            if (globalThis.document?.visibilityState === "hidden") return;
+            recompute();
+          };
+          globalThis.addEventListener?.("pageshow", onForeground);
+          globalThis.document?.addEventListener("visibilitychange", onForeground);
         },
         dispose() {
-          // Nothing to release yet: the controller and its timers are still
-          // owned by app.js. When they move here, this is where they stop.
+          if (timer !== null) clearInterval(timer);
+          timer = null;
+          if (onForeground) {
+            globalThis.removeEventListener?.("pageshow", onForeground);
+            globalThis.document?.removeEventListener("visibilitychange", onForeground);
+            onForeground = null;
+          }
         },
       };
     },

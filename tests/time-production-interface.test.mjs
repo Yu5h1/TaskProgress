@@ -92,7 +92,7 @@ test("delivery date and capacity are edited in one place: the shared TimeDialog"
   // Only shown outside the dialog while there is truly nothing to build a
   // dialog from yet — no time.analysis.json means no TimeSummaryButton to
   // open one through.
-  assert.match(appSource, /!state\.timeController\s*\n\s*&& !state\.editor\.timeDraftView\?\.inputs\.config/);
+  assert.match(appSource, /!state\.attachedModules\.length\s*\n\s*&& !state\.editor\.timeDraftView\?\.inputs\.config/);
 });
 
 test("production loading isolates deadline diagnostics from estimate diagnostics", () => {
@@ -140,7 +140,10 @@ test("production item time actions remain visible in global edit mode", async ()
   assert.match(itemRowSource, /<ModuleCapsuleStrip/);
   assert.match(itemRowSource, /onModuleActivate\(id, \{ taskId, itemId: item\.id, itemTitle: item\.title \}\)/);
   assert.match(timeModuleDefinitionSource, /查看估算依據/);
-  assert.match(appSource, /openItemDetail: \(itemId, itemTitle, taskId\) => \{\s*state\.timeController\?\.showItemTime\(itemId, itemTitle, taskId\);/);
+  // Opening an item's detail is the module's own business now: it holds the
+  // controller, so the host neither calls showItemTime nor knows it exists.
+  assert.match(timeModuleDefinitionSource, /controller\.showItemTime\(subject\.itemId, subject\.itemTitle, subject\.taskId\)/);
+  assert.doesNotMatch(appSource, /showItemTime|timeController/);
   assert.match(appSource, /activateCapsule\(state\.attachedModules, "item-inline", capsuleId, subject\)/);
   assert.doesNotMatch(appSource, /createItemTimeButton/);
   assert.doesNotMatch(itemRowSource, /<details|spike-estimate-editor|onManualEstimate/);

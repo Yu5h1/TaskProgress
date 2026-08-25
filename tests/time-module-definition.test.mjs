@@ -1,37 +1,36 @@
-// Time registered as a trusted module. The point of these assertions is the
-// boundary: the definition produces a descriptor and dispatches activation,
-// and it reads the snapshot *at capsule time* rather than capturing it, so a
-// refresh tick actually changes what the capsule says.
+// Time registered as a trusted module. Since the module now builds its own
+// runtime controller in attach(), these tests hand it the real example
+// projection rather than a stubbed host — which means they exercise the
+// actual controller, not a mock of it.
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 
-import { activateCapsule, attachModules, collectCapsules } from "../viewer/assets/module-composition.js";
+import { activateCapsule, attachModules, collectCapsules, disposeModules } from "../viewer/assets/module-composition.js";
 import { createTrustedModuleRegistry } from "../viewer/assets/module-registry.js";
 import {
+  TIME_ITEM_CAPSULE_ID,
   TIME_MODULE_TYPE,
   TIME_PROJECT_CAPSULE_ID,
   createTimeModuleDefinition,
 } from "../viewer/assets/time-module-definition.js";
 
-function snapshot(overrides = {}) {
-  return {
-    summary: {
-      hidden: false,
-      disabled: false,
-      className: "time-summary-button no-deadline",
-      ariaLabel: "時間參考：交付日未定，查看工程估算",
-      label: "交付日未定",
-      showDot: false,
-      showChevron: true,
-      ...overrides,
-    },
-  };
-}
+const analysis = JSON.parse(await readFile(
+  new URL("../experiments/time-reference/examples/time.analysis.json", import.meta.url),
+  "utf8",
+));
 
-function attachTime(host) {
+const TASK_ID = "time-reference-prototype";
+const ITEM_ID = "define-draft-schemas";
+
+function attachTime({ data = analysis, onChanged = () => {}, workProgressRatio = 0.5 } = {}) {
   const registry = createTrustedModuleRegistry([createTimeModuleDefinition()]);
-  return attachModules(registry, [{ type: TIME_MODULE_TYPE, schemaVersion: "0.2", data: {}, host }]);
+  return attachModules(registry, [{
+    type: TIME_MODULE_TYPE,
+    schemaVersion: data.schema_version,
+    data,
+    host: { getWorkProgressRatio: () => workProgressRatio, onChanged },
+  }]);
 }
 
 test("the definition satisfies the registry contract", () => {
@@ -42,147 +41,147 @@ test("the definition satisfies the registry contract", () => {
   assert.doesNotThrow(() => createTrustedModuleRegistry([definition]));
 });
 
-test("the capsule carries the render layer's props under the module's own id", () => {
-  const { attached } = attachTime({ getSnapshot: () => snapshot(), openProjectDetail: () => {} });
+// --- the module owns its controller ---
+
+test("attach builds the controller from the projection it was given", () => {
+  const { attached, diagnostics } = attachTime();
+  assert.equal(attached.length, 1);
+  assert.deepEqual(diagnostics, []);
+
   const { capsules } = collectCapsules(attached, "project-summary");
-  assert.equal(capsules.length, 1);
   assert.equal(capsules[0].id, TIME_PROJECT_CAPSULE_ID);
-  assert.equal(capsules[0].label, "交付日未定");
+  // The example projection carries a real deadline, so the capsule shows a
+  // delivery date and a risk dot rather than the undated fallback.
+  assert.match(capsules[0].label, /交付/);
+  assert.equal(capsules[0].showDot, true);
   assert.equal(capsules[0].showChevron, true);
-  assert.equal(capsules[0].showDot, false);
-  assert.match(capsules[0].className, /time-summary-button/);
 });
 
-test("no time data means no capsule at all, not a placeholder one", () => {
-  const { attached } = attachTime({ getSnapshot: () => null, openProjectDetail: () => {} });
-  assert.deepEqual(collectCapsules(attached, "project-summary").capsules, []);
+test("a malformed projection is isolated as a module diagnostic, not thrown at the host", () => {
+  // Construction happens inside attach(), so a projection the controller
+  // cannot read must degrade the module alone.
+  const { attached, diagnostics } = attachTime({ data: { ...analysis, tasks: null } });
+  assert.equal(attached.length, 0);
+  assert.equal(diagnostics[0].code, "attach_failed");
 });
 
-test("the snapshot is read when the capsule is built, so a refresh changes what it says", () => {
-  // Capturing the snapshot at attach time would freeze the capsule at
-  // whatever urgency the page loaded with — the 60-second refresh would then
-  // update nothing.
-  let current = snapshot({ label: "交付日未定" });
-  const { attached } = attachTime({ getSnapshot: () => current, openProjectDetail: () => {} });
+// --- slots ---
 
-  assert.equal(collectCapsules(attached, "project-summary").capsules[0].label, "交付日未定");
-  current = snapshot({ label: "8/1 交付", showDot: true, className: "time-summary-button critical" });
-  const after = collectCapsules(attached, "project-summary").capsules[0];
-  assert.equal(after.label, "8/1 交付");
-  assert.equal(after.showDot, true);
-  assert.match(after.className, /critical/);
-});
-
-test("activation reaches the host's open-detail action, and only for its own capsule", () => {
-  let opened = 0;
-  const { attached } = attachTime({ getSnapshot: () => snapshot(), openProjectDetail: () => { opened += 1; } });
-  const [entry] = attached;
-
-  assert.equal(entry.instance.ownsCapsule("project-summary", TIME_PROJECT_CAPSULE_ID), true);
-  assert.equal(entry.instance.ownsCapsule("project-summary", "cost"), false);
-  assert.equal(entry.instance.ownsCapsule("task-header", TIME_PROJECT_CAPSULE_ID), false);
-
-  entry.instance.activate("project-summary", TIME_PROJECT_CAPSULE_ID);
-  assert.equal(opened, 1);
-  entry.instance.activate("project-summary", "cost");
-  assert.equal(opened, 1, "a capsule this module does not own must not trigger its action");
-});
-
-// --- item-inline slot ---
-
-function itemTime(overrides = {}) {
-  return { display_hours: 8, likely_minutes: 480, ...overrides };
-}
-
-function attachTimeWithItems(items, extra = {}) {
-  return attachTime({
-    getSnapshot: () => snapshot(),
-    openProjectDetail: () => {},
-    getItemTime: (itemId) => items[itemId] ?? null,
-    canOpenItemDetail: true,
-    openItemDetail: () => {},
-    ...extra,
-  });
-}
-
-test("an item with an estimate gets a capsule carrying its formatted hours", () => {
-  const { attached } = attachTimeWithItems({ "item-a": itemTime() });
-  const { capsules } = collectCapsules(attached, "item-inline", {
-    taskId: "task-a", itemId: "item-a", itemTitle: "做一件事",
-  });
+test("the task label is the sum the projection already carries", () => {
+  const { attached } = attachTime();
+  const { capsules } = collectCapsules(attached, "task-body", { taskId: TASK_ID });
   assert.equal(capsules.length, 1);
-  assert.equal(capsules[0].label, "8 hr");
-  assert.equal(capsules[0].className, "time-item-button");
-  assert.equal(capsules[0].sortable, true);
-  assert.match(capsules[0].ariaLabel, /做一件事，8 hr，查看估算依據/);
-});
-
-test("an item with no estimate gets no capsule — which is what leaves an unset row empty", () => {
-  const { attached } = attachTimeWithItems({ "item-a": itemTime() });
-  const { capsules } = collectCapsules(attached, "item-inline", {
-    taskId: "task-a", itemId: "item-without-estimate", itemTitle: "未估算",
-  });
-  assert.deepEqual(capsules, []);
-});
-
-test("the accessible name says 'view basis' only when a detail panel can actually open", () => {
-  const { attached } = attachTimeWithItems({ "item-a": itemTime() }, { canOpenItemDetail: false });
-  const { capsules } = collectCapsules(attached, "item-inline", {
-    taskId: "task-a", itemId: "item-a", itemTitle: "做一件事",
-  });
-  assert.match(capsules[0].ariaLabel, /目前分析 8 hr/);
-  assert.doesNotMatch(capsules[0].ariaLabel, /查看估算依據/);
-});
-
-test("item activation carries the subject through, so the right item's panel opens", () => {
-  const opened = [];
-  const { attached } = attachTimeWithItems(
-    { "item-a": itemTime() },
-    { openItemDetail: (itemId, itemTitle, taskId) => opened.push([itemId, itemTitle, taskId]) },
-  );
-  const subject = { taskId: "task-a", itemId: "item-a", itemTitle: "做一件事" };
-
-  assert.equal(activateCapsule(attached, "item-inline", "time", subject), true);
-  assert.deepEqual(opened, [["item-a", "做一件事", "task-a"]]);
-});
-
-test("the task-level contribution is a label, not something that looks pressable", () => {
-  // A task total is the sum of its items, so there is nothing to act on at
-  // this level; a capsule would promise an action that does not exist.
-  const { attached } = attachTime({
-    getSnapshot: () => snapshot(),
-    openProjectDetail: () => {},
-    getTaskDuration: () => "128 hr",
-  });
-  const { capsules } = collectCapsules(attached, "task-body", { taskId: "task-a" });
-  assert.equal(capsules.length, 1);
-  assert.equal(capsules[0].label, "約需 128 hr");
-  assert.equal(capsules[0].interactive, false);
+  assert.match(capsules[0].label, /^約需 /);
+  assert.equal(capsules[0].interactive, false, "a derived total must not look pressable");
   assert.equal(capsules[0].sortable, false);
 });
 
-test("a task with no estimate contributes no label rather than an empty one", () => {
-  const { attached } = attachTime({
-    getSnapshot: () => snapshot(),
-    openProjectDetail: () => {},
-    getTaskDuration: () => null,
-  });
-  assert.deepEqual(collectCapsules(attached, "task-body", { taskId: "task-a" }).capsules, []);
+test("a task the projection does not cover contributes no label", () => {
+  const { attached } = attachTime();
+  assert.deepEqual(collectCapsules(attached, "task-body", { taskId: "no-such-task" }).capsules, []);
 });
 
-test("both slots use the same capsule id, so one saved module order applies to both strips", () => {
-  const { attached } = attachTimeWithItems({ "item-a": itemTime() });
+test("an item with an estimate gets a capsule carrying its hours", () => {
+  const { attached } = attachTime();
+  const { capsules } = collectCapsules(attached, "item-inline", {
+    taskId: TASK_ID, itemId: ITEM_ID, itemTitle: "定義 Draft Schema",
+  });
+  assert.equal(capsules.length, 1);
+  assert.equal(capsules[0].id, TIME_ITEM_CAPSULE_ID);
+  assert.match(capsules[0].label, /hr$/);
+  assert.equal(capsules[0].className, "time-item-button");
+  assert.match(capsules[0].ariaLabel, /定義 Draft Schema，.*，查看估算依據/);
+});
+
+test("an item with no estimate gets no capsule — what leaves an unset row empty", () => {
+  const { attached } = attachTime();
+  assert.deepEqual(collectCapsules(attached, "item-inline", {
+    taskId: TASK_ID, itemId: "not-estimated", itemTitle: "未估算",
+  }).capsules, []);
+});
+
+test("both slots use the same capsule id, so one saved order applies to both strips", () => {
+  const { attached } = attachTime();
   const project = collectCapsules(attached, "project-summary").capsules[0];
   const item = collectCapsules(attached, "item-inline", {
-    taskId: "task-a", itemId: "item-a", itemTitle: "做一件事",
+    taskId: TASK_ID, itemId: ITEM_ID, itemTitle: "t",
   }).capsules[0];
   assert.equal(project.id, item.id);
 });
 
-test("the definition stays off the DOM and owns no timer yet", async () => {
+// --- activation drives the module's own dialog ---
+
+test("activating a capsule opens that subject's detail and tells the host to repaint", () => {
+  let repaints = 0;
+  const { attached } = attachTime({ onChanged: () => { repaints += 1; } });
+  const editing = { editing: false, timeDraftView: null, hasTimeDraft: false, deliveryPreview: null, callbacks: {} };
+
+  assert.equal(attached[0].instance.detailProps(editing).open ?? false, false);
+
+  activateCapsule(attached, "project-summary", TIME_PROJECT_CAPSULE_ID);
+  assert.equal(repaints, 1, "the host has to be told, since it holds the mount");
+  assert.equal(attached[0].instance.detailProps(editing).kind, "project");
+
+  activateCapsule(attached, "item-inline", TIME_ITEM_CAPSULE_ID, {
+    taskId: TASK_ID, itemId: ITEM_ID, itemTitle: "定義 Draft Schema",
+  });
+  assert.equal(attached[0].instance.detailProps(editing).kind, "item");
+});
+
+test("detail props carry the editing session through untouched", () => {
+  const { attached } = attachTime();
+  const onManualEstimate = () => {};
+  const props = attached[0].instance.detailProps({
+    editing: true,
+    timeDraftView: null,
+    hasTimeDraft: true,
+    deliveryPreview: { next: { available: true } },
+    callbacks: { onManualEstimate },
+  });
+  assert.equal(props.editing, true);
+  assert.deepEqual(props.deliveryPreview, { next: { available: true } });
+  assert.equal(props.onManualEstimate, onManualEstimate);
+  // The module supplies its own dialog commands rather than taking them from
+  // the host, which no longer holds a controller to build them from.
+  assert.equal(typeof props.onClose, "function");
+  assert.equal(typeof props.onSetTab, "function");
+});
+
+// --- lifecycle ---
+
+test("start schedules the clock refresh and dispose stops it", () => {
+  const originalSetInterval = globalThis.setInterval;
+  const originalClearInterval = globalThis.clearInterval;
+  const scheduled = [];
+  const cleared = [];
+  globalThis.setInterval = (fn, ms) => { scheduled.push(ms); return `timer-${scheduled.length}`; };
+  globalThis.clearInterval = (id) => cleared.push(id);
+
+  try {
+    const { attached } = attachTime();
+    attached[0].instance.start();
+    assert.deepEqual(scheduled, [60_000], "urgency depends on the clock, so it re-runs每分鐘");
+
+    disposeModules(attached);
+    assert.deepEqual(cleared, ["timer-1"], "a scope switch must actually stop the timer");
+  } finally {
+    globalThis.setInterval = originalSetInterval;
+    globalThis.clearInterval = originalClearInterval;
+  }
+});
+
+test("dispose is safe without start, so a module that never ran can still be torn down", () => {
+  const { attached } = attachTime();
+  assert.deepEqual(disposeModules(attached), []);
+});
+
+// --- isolation ---
+
+test("the definition stays off the DOM apart from the listeners it owns and removes", async () => {
   const source = await readFile(new URL("../viewer/assets/time-module-definition.js", import.meta.url), "utf8");
-  assert.doesNotMatch(source, /document\.|window\.|querySelector\(|createUiView\(/u);
-  // Controller/timer ownership has deliberately not moved in this step; the
-  // comment in the file says so, and this keeps that honest.
-  assert.doesNotMatch(source, /setInterval|createTimeReferenceController/u);
+  assert.doesNotMatch(source, /document\.querySelector|createUiView\(/u);
+  // Every listener it adds must be removed by dispose, or a scope switch
+  // leaks one per load.
+  assert.equal((source.match(/addEventListener/gu) ?? []).length, 2);
+  assert.equal((source.match(/removeEventListener/gu) ?? []).length, 2);
 });

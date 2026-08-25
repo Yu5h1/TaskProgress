@@ -42,8 +42,6 @@ import {
   toggleTag,
   withTags,
 } from "./filter-selection.js";
-import { createTimeReferenceController } from "./time-dialog-control.js";
-import { buildTimeDialogProps } from "./time-viewer-module.js";
 import { createTrustedModuleRegistry } from "./module-registry.js";
 import { activateCapsule, attachModules, collectCapsules, disposeModules } from "./module-composition.js";
 import { TIME_MODULE_TYPE, createTimeModuleDefinition } from "./time-module-definition.js";
@@ -155,7 +153,6 @@ const state = {
   diagnostics: [],
   developerAvailable: false,
   timeAnalysis: null,
-  timeController: null,
   taskListView: null,
   taskAdderView: null,
   projectModuleStripView: null,
@@ -250,34 +247,21 @@ function renderThemeControl() {
 // since that state stays owned here, not by the render module — and mounts
 // the result.
 function renderTimeReference() {
-  if (!state.timeController) return;
-  const snap = state.timeController.snapshot();
+  if (!state.attachedModules.length) return;
   elements.timeSummaryButton.hidden = false;
 
-  const context = {
-    snapshot: snap,
+  /*
+   * Only the editing session travels from here into a module's detail panel.
+   * The module supplies its own snapshot and the commands that drive its
+   * dialog; this host no longer holds a controller to call.
+   */
+  const editingContext = {
     editing: state.editor.editing,
     timeDraftView: state.editor.timeDraftView,
     hasTimeDraft: Boolean(state.editor.timeDraft),
     deliveryPreview: state.editor.deliveryPreview,
     callbacks: {
-      onOpenProjectDetail: () => {
-        state.timeController.openProjectDetail();
-        renderTimeReference();
-      },
       onManualEstimate: applyManualEstimateDraft,
-      onClose: () => {
-        state.timeController.closeDialog();
-        renderTimeReference();
-      },
-      onToggleDetails: () => {
-        state.timeController.toggleDetails();
-        renderTimeReference();
-      },
-      onSetTab: (name) => {
-        state.timeController.setActiveTab(name);
-        renderTimeReference();
-      },
       onApplyTimeSettings: (settings) => {
         const result = state.editor.timeDraft.setTimeSettings(settings);
         state.editor.timeDraftView = result.snapshot;
@@ -369,9 +353,13 @@ function renderTimeReference() {
     return;
   }
 
-  const dialogProps = buildTimeDialogProps(context);
-  if (state.timeDialogView) state.timeDialogView.update(dialogProps);
-  else state.timeDialogView = createUiView("time-dialog", elements.timeDialog, dialogProps);
+  // The panel itself is not a registry slot yet — that waits on the shared
+  // assessment shell contract — so the host still mounts it, but the props
+  // come from the module rather than from a controller held here.
+  const detail = state.attachedModules[0]?.instance.detailProps?.(editingContext);
+  if (!detail) return;
+  if (state.timeDialogView) state.timeDialogView.update(detail);
+  else state.timeDialogView = createUiView("time-dialog", elements.timeDialog, detail);
 }
 
 function applyManualEstimateDraft(change) {
@@ -412,7 +400,7 @@ function renderEditorTimeExtras() {
 }
 
 // The bootstrap prompt for a project with no time.config.json and no
-// time.analysis.json at all: `state.timeController` doesn't exist yet (there
+// time.analysis.json at all: no module has attached yet (there
 // is nothing on disk to build it from), so the shared TimeDialog isn't
 // mounted either and this can't route through it like every other time
 // setting now does. It is the one remaining exception to "the delivery
@@ -422,7 +410,7 @@ function renderMissingTimeConfigFallback() {
   const dock = elements.timeSettingsDock;
   const show = state.editor.editing
     && state.editor.available
-    && !state.timeController
+    && !state.attachedModules.length
     && !state.editor.timeDraftView?.inputs.config;
   if (!show) {
     dock.hidden = true;
@@ -718,7 +706,8 @@ function renderProjectProgress() {
   // Core progress reports the report's own task progress and nothing else.
   // It used to append Time's elapsed-window share to its accessible label,
   // which meant this core path reached three levels into a module's data
-  // (`timeController.analysis.summary.deadline.time_progress_ratio`) and
+  // (`analysis.summary.deadline.time_progress_ratio`, three levels into a
+  // module's own shape) and
   // could not survive that controller moving behind the module boundary.
   // That sentence now lives on Time's own capsule.
   const props = {
@@ -1412,28 +1401,6 @@ async function main() {
     state.timeAnalysis = timeResult.timeAnalysis;
     state.diagnostics.push(...timeResult.diagnostics);
 
-    if (state.timeAnalysis) {
-      try {
-        const projectProgress = calculateProjectProgress(state.tasks);
-        state.timeController = createTimeReferenceController({
-          sourceAnalysis: state.timeAnalysis,
-          workProgressRatio: projectProgress.total
-            ? projectProgress.completed / projectProgress.total
-            : 0,
-        });
-      } catch (error) {
-        state.timeAnalysis = null;
-        state.timeController = null;
-        elements.timeSummaryButton.hidden = true;
-        state.diagnostics.push({
-          level: "warning",
-          message: error instanceof Error
-            ? `時間參考已忽略：${error.message}`
-            : "時間參考無法初始化。",
-        });
-      }
-    }
-
     /*
      * Attach every module the registry has an implementation for. Dispose
      * first so a previous scope's instances never outlive their report — this
@@ -1448,31 +1415,32 @@ async function main() {
       console.warn(`[module] ${diagnostic.message}`);
     });
     const { attached, diagnostics: attachDiagnostics } = attachModules(moduleRegistry, [
-      ...(state.timeController ? [{
+      ...(state.timeAnalysis ? [{
         type: TIME_MODULE_TYPE,
-        schemaVersion: state.timeAnalysis?.schema_version,
+        schemaVersion: state.timeAnalysis.schema_version,
         data: state.timeAnalysis,
         host: {
-          getSnapshot: () => state.timeController?.snapshot() ?? null,
-          openProjectDetail: () => {
-            state.timeController.openProjectDetail();
-            renderTimeReference();
+          // Two callbacks are the whole surface: one report-derived figure
+          // the module cannot compute, and one "re-render, something I own
+          // moved". Everything else is now the module's own business.
+          getWorkProgressRatio: () => {
+            const progress = calculateProjectProgress(state.tasks);
+            return progress.total ? progress.completed / progress.total : 0;
           },
-          getItemTime: (itemId) => state.timeController?.itemTime(itemId) ?? null,
-          getTaskDuration: (taskId) => state.timeController?.taskDuration(taskId) ?? null,
-          // Whether the item capsule can open a detail panel decides its
-          // accessible name, so the module has to be told rather than guess.
-          get canOpenItemDetail() {
-            return Boolean(state.timeController);
-          },
-          openItemDetail: (itemId, itemTitle, taskId) => {
-            state.timeController?.showItemTime(itemId, itemTitle, taskId);
-            renderTimeReference();
-          },
+          onChanged: () => renderTimeReference(),
         },
       }] : []),
     ]);
     state.attachedModules = attached;
+    // A module with clock- or event-driven behaviour opts into it here; the
+    // matching stop is `disposeModules`, which runs before the next attach.
+    attached.forEach((entry) => {
+      try {
+        entry.instance.start?.();
+      } catch (error) {
+        console.warn(`[module] ${entry.type} 啟動失敗：${error?.message ?? error}`);
+      }
+    });
     attachDiagnostics.forEach((diagnostic) => {
       state.diagnostics.push({ level: "warning", message: diagnostic.message });
     });
@@ -1522,15 +1490,10 @@ bindHistoryShortcuts(document, {
   onUndo: () => applyEditorHistory("undo"),
   onRedo: () => applyEditorHistory("redo"),
 });
-function refreshTimeReference() {
-  state.timeController?.refresh();
-  renderTimeReference();
-}
-window.setInterval(refreshTimeReference, 60_000);
-window.addEventListener("pageshow", refreshTimeReference);
-document.addEventListener("visibilitychange", () => {
-  if (document.visibilityState === "visible") refreshTimeReference();
-});
+// The clock-driven refresh moved into the module's start()/dispose(): a
+// module knows whether its own projection depends on the current time, and
+// owning the timer there is what lets a scope switch actually stop it. This
+// host's interval was created once at load and never cleared.
 window.addEventListener("beforeunload", (event) => {
   if (!state.editor.persistenceView?.dirty) return;
   event.preventDefault();
