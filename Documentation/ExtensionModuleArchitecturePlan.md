@@ -26,6 +26,8 @@ TaskProgress
 
 依賴方向固定為 `Host → Module Contract ← Trusted Module`。Core 不依賴 Time 或 Cost；Cost 分析器可以把 Time 投影當作具版本的輸入，但 Cost Renderer 不依賴 Time Renderer。
 
+補充視覺（同一件事的圖示版，不取代上面的 text tree）：[assets/module-contract-map.svg](assets/module-contract-map.svg)，用 Time／Cost 兩個具體模組畫出 Core 只透過共同模組接口互動、彼此不直接連線的關係。
+
 ## 背景
 
 TaskProgress 目前以 `report.json` 表達任務、狀態、完成項目與進度，並以選用的 `report.dev.json` 補充開發資訊。時間功能進一步使用獨立的 `time.analysis.json` sidecar，在不改變基本報告契約的情況下加入工程估算、工作容量與期限風險。
@@ -353,6 +355,14 @@ ItemRow
 - 排序互動直接沿用 `StatusFilters` 契約：滑鼠拖曳、超過 8px 且鎖定水平軸後才成立的 Pointer Events 觸控拖曳，以及 `Alt + ←／→` 鍵盤移動；三種入口共用同一套純資料 reorder model。短點擊仍啟動 capsule action，排序後立即保存並恢復 focus，不加入 Editor transaction。
 - Priority 與 status 是報告核心欄位，不屬於 module strip。單一 module 載入、驗證或 render 失敗時，描述、priority 與 status 必須照常顯示。
 - 沒有任何 module capsule 時不保留空 strip。Preview／Edit 共用同一個靠右 utility panel 與 `module → status → delete` 順序，只有核心欄位是否可編輯與 module action 是否取得本機 capability 的差異。刪除只在 Edit 插入 status 右側，不在 Preview 預留空欄；左側未指定 priority 也不保留空容器，描述取得釋放的空間。
+
+### 主面板與子項共用同一個 Strip 元件（2026-08-25 使用者決策）
+
+主面板膠囊列與子項膠囊列不是兩套獨立機制，是同一個共用元件掛在兩個不同 slot：`HorizontalCapsuleStrip.svelte`（今天透過 `ModuleCapsuleStrip.svelte` 給 `item-inline` 使用；CSS class `.horizontal-capsule-strip`，`overflow-x: auto` 做自身範圍內的水平捲動，`justify-content: flex-end` 靠右對齊）。這是既有「One UI source」專案規則（同一個畫面元素只能有一份實作）在膠囊列這件事上的具體套用：兩個 slot 的膠囊列外觀、排序互動、捲動行為必須是同一份程式碼，不是分開維護的兩份相似邏輯。
+
+**現況落差**：`item-inline` 今天已經走這個共用元件；`project-summary` 目前還不是——`TimeSummaryButton.svelte` 是一顆掛在通用 `.project-title-line` flex row 裡的獨立按鈕（跟 `<h1>` 標題共用容器），沒有 `HorizontalCapsuleStrip` 的排序、捲動或多顆膠囊並列能力。把主面板膠囊列遷移成使用同一個元件是尚未開始的工作，Cost 之類的第二個模組要在主面板同時顯示 `(交付)(成本)…` 時就需要它，見 handoff 待辦。
+
+**空間不足時的展開／更多控件**：若要在捲動之外，額外提供一個展開／更多按鈕讓使用者看到被擠出視窗的膠囊，這個能力要做成 `HorizontalCapsuleStrip` 本身的選用功能（例如一個 overflow-affordance prop），讓兩個 slot 都能取得，而不是只在主面板另外接一個獨立元件。子項膠囊列今天不一定需要這個功能，但共用元件的原則不因此改變——要不要啟用由呼叫端決定，實作只能有一份。
 
 ### 一般資訊模組
 

@@ -1,0 +1,99 @@
+<svg viewBox="0 0 920 620" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="mcm-title mcm-desc">
+  <title id="mcm-title">Module Contract Map</title>
+  <desc id="mcm-desc">
+    Core only talks to a shared module contract; Time and Cost each implement
+    that same contract and never talk to Core or each other directly. The one
+    exception is a dashed, optional line where Cost's analyzer may read
+    Time's published projection as an input — that path skips the Renderer
+    and skips Core entirely.
+  </desc>
+  <style>
+    :root {
+      --ink: #1b2430;
+      --muted: #5b6675;
+      --surface: #ffffff;
+      --line: #c7ccd6;
+      --accent: #2f6fed;
+      --accent-ink: #1c3f94;
+      --accent-soft: #e8effe;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --ink: #e7eaf1;
+        --muted: #93a0b3;
+        --surface: #191d26;
+        --line: #38414f;
+        --accent: #7aabff;
+        --accent-ink: #cfe0ff;
+        --accent-soft: #1f2c47;
+      }
+    }
+    text { font-family: "Segoe UI", "Noto Sans TC", system-ui, sans-serif; }
+    .mono { font-family: "Cascadia Code", "Consolas", ui-monospace, monospace; }
+    .title { font-weight: 700; fill: var(--ink); }
+    .sub { fill: var(--muted); }
+    .arrow-label { fill: var(--muted); }
+    .hub-fill { fill: var(--accent-soft); }
+    .hub-stroke { stroke: var(--accent); }
+    .hub-text { fill: var(--accent-ink); font-weight: 700; }
+    .node-fill { fill: var(--surface); }
+    .node-stroke { stroke: var(--line); }
+    .wire { stroke: var(--ink); }
+    .wire-muted { stroke: var(--line); }
+  </style>
+  <defs>
+    <marker id="mcm-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" class="wire" style="fill:var(--ink)" />
+    </marker>
+    <marker id="mcm-arrow-muted" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" style="fill:var(--muted)" />
+    </marker>
+  </defs>
+
+  <rect x="0" y="0" width="920" height="620" fill="none" />
+
+  <!-- connecting lines -->
+  <line x1="260" y1="300" x2="350" y2="300" class="wire" stroke-width="1.6" marker-end="url(#mcm-arrow)" />
+  <text x="305" y="290" text-anchor="middle" class="mono arrow-label" font-size="12">registry → slots</text>
+
+  <line x1="560" y1="260" x2="700" y2="160" class="wire" stroke-width="1.6" marker-end="url(#mcm-arrow)" />
+  <line x1="560" y1="340" x2="700" y2="440" class="wire" stroke-width="1.6" marker-end="url(#mcm-arrow)" />
+
+  <line x1="820" y1="150" x2="820" y2="450" class="wire-muted" stroke-width="1.4" stroke-dasharray="5 5" marker-end="url(#mcm-arrow-muted)" />
+
+  <!-- Core -->
+  <rect x="40" y="250" width="220" height="100" rx="14" class="node-fill node-stroke" stroke-width="1.6" />
+  <text x="150" y="290" text-anchor="middle" class="title" font-size="17">Core</text>
+  <text x="150" y="312" text-anchor="middle" class="mono sub" font-size="12">report.json</text>
+  <text x="150" y="328" text-anchor="middle" class="mono sub" font-size="12">task ‧ status ‧ progress</text>
+  <text x="150" y="380" text-anchor="middle" class="sub" font-size="11.5" font-style="italic">不直接指向 Time／Cost</text>
+
+  <!-- Hub -->
+  <rect x="350" y="250" width="220" height="100" rx="14" class="hub-fill hub-stroke" stroke-width="1.8" />
+  <text x="460" y="288" text-anchor="middle" class="title hub-text" font-size="16">共同模組接口</text>
+  <text x="460" y="308" text-anchor="middle" class="mono arrow-label" font-size="11.5">manifest descriptor</text>
+  <text x="460" y="324" text-anchor="middle" class="mono arrow-label" font-size="11.5">common envelope ‧ slots</text>
+
+  <!-- Time -->
+  <rect x="700" y="70" width="220" height="100" rx="14" class="node-fill node-stroke" stroke-width="1.6" />
+  <text x="810" y="106" text-anchor="middle" class="title" font-size="16">Time 模組（估時）</text>
+  <text x="810" y="128" text-anchor="middle" class="mono sub" font-size="11.5">time.config / estimates</text>
+  <text x="810" y="144" text-anchor="middle" class="mono sub" font-size="11.5">→ time.analysis.json</text>
+
+  <!-- Cost -->
+  <rect x="700" y="430" width="220" height="100" rx="14" class="node-fill node-stroke" stroke-width="1.6" />
+  <text x="810" y="466" text-anchor="middle" class="title" font-size="16">Cost 模組（估價，草案）</text>
+  <text x="810" y="488" text-anchor="middle" class="mono sub" font-size="11.5">cost.config</text>
+  <text x="810" y="504" text-anchor="middle" class="mono sub" font-size="11.5">→ cost.analysis.json</text>
+
+  <text x="655" y="185" text-anchor="middle" class="mono arrow-label" font-size="11.5">descriptor + envelope</text>
+  <text x="655" y="428" text-anchor="middle" class="mono arrow-label" font-size="11.5">descriptor + envelope</text>
+
+  <text x="838" y="300" text-anchor="start" class="mono arrow-label" font-size="11.5">Analyzer 選讀</text>
+  <text x="838" y="316" text-anchor="start" class="mono arrow-label" font-size="11.5">Time 投影</text>
+  <text x="838" y="332" text-anchor="start" class="mono arrow-label" font-size="11.5">（非 Renderer 依賴）</text>
+
+  <text x="20" y="600" class="sub" font-size="12">
+    Core 與兩個模組只透過中間的共同接口互動；模組之間、模組與 Core 之間沒有直接連線。
+  </text>
+</svg>
