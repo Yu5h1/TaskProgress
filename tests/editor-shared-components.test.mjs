@@ -633,7 +633,14 @@ test("formal Viewer sources use shared Svelte components and the shared core", a
   assert.match(rowText, /type:\s*"set-item-status"/u);
   assert.doesNotMatch(rowText, /type:\s*"move-item"/u);
   assert.match(rowText, /<ModuleCapsuleStrip/u);
-  assert.match(rowText, /editing \|\| \(metadata && \(!metadata\.hidden \|\| !policy\.labelsValid\)\)/u);
+  // Preview shows a priority badge only while the priority still means
+  // something: not for an unset level, and not for a finished item, which has
+  // nothing left to rank (2026-08-26). Edit mode keeps the select in both
+  // cases, because that is the only entry point for changing them back.
+  assert.match(
+    rowText,
+    /editing \|\| \(itemStatus !== "done" && metadata && \(!metadata\.hidden \|\| !policy\.labelsValid\)\)/u,
+  );
   assert.match(rowText, /class="item-row-utility-panel"/u);
   assert.ok(
     rowText.indexOf("item-row-modules") < rowText.indexOf("item-row-status")

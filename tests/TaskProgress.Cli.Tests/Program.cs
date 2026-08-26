@@ -6,6 +6,8 @@ internal static class Program
 {
     public static async Task<int> Main()
     {
+        ReportModuleTests.Run();
+
         var originalHome = Environment.GetEnvironmentVariable("TASK_PROGRESS_HOME");
         var testHome = Path.Combine(
             Path.GetTempPath(),

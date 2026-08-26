@@ -1,16 +1,22 @@
 <script>
   import { tick } from "svelte";
+  import DialogShell from "./DialogShell.svelte";
   import ManualEstimateEditor from "./ManualEstimateEditor.svelte";
   import TimeSettingsEditor from "./TimeSettingsEditor.svelte";
   import DeliveryRiskPreview from "./DeliveryRiskPreview.svelte";
 
   /*
-   * The shared progress-report dialog: project detail (evaluation flow,
-   * engineering estimate, work capacity tabs) and item detail (estimate
-   * rationale plus technical detail), driven entirely by
+   * Time's dialog content: project detail (evaluation flow, engineering
+   * estimate, work capacity tabs) and item detail (estimate rationale plus
+   * technical detail), driven entirely by
    * `viewer/assets/time-dialog-control.js`. One dialog element serves both
    * subjects — only the content inside changes — matching the Viewer's
    * original single-dialog contract.
+   *
+   * The `<dialog>` element, its heading and every close path live in
+   * `DialogShell.svelte`, which knows nothing about time. What stays here is
+   * only what is about time: which subject is shown, the tabs, the estimate
+   * editor and the capacity settings.
    *
    * `timeSettings` is the one project-level editing surface: the delivery
    * date, daily allocation, working weekdays and capacity exceptions. It
@@ -36,60 +42,11 @@
   export let timeSettings = null;
   export let deliveryPreview = null;
 
-  let dialogEl;
   let tabRefs = [];
-  let returnFocusEl = null;
-  let closeNotified = false;
 
-  // The dialog element itself is structurally conditional on `open` (see the
-  // `{#if open}` below) rather than a permanently-mounted element toggled via
-  // an imperative `showModal()`/`close()` call reacting to a prop change.
-  //
-  // That is deliberate, not a style choice. This component is mounted
-  // imperatively (see `viewer-adapter.svelte.js`) with props coming from an
-  // externally mutated `$state` object, and in that setup a `$:` block or an
-  // action's `update(open)` parameter reading the `open` prop only
-  // re-evaluates once after mount — later changes are silently missed, even
-  // though the same prop correctly drives ordinary template bindings
-  // elsewhere in this file (confirmed by comparing against a `data-open`
-  // attribute, which kept updating correctly every time). Structural `{#if}`
-  // toggling does not have that gap: Svelte's own block (dis)connection is
-  // what fires the action's `mount`, so this always gets a fresh call.
-  function openOnMount(node) {
-    returnFocusEl = node.ownerDocument.activeElement;
-    closeNotified = false;
-    node.showModal();
-  }
-
-  function notifyClose() {
-    if (closeNotified) return;
-    closeNotified = true;
-    const focusTarget = returnFocusEl;
-    returnFocusEl = null;
-    onClose();
-    queueMicrotask(() => {
-      if (focusTarget?.isConnected) focusTarget.focus();
-    });
-  }
-
-  // The close button and the backdrop click call `onClose` directly rather
-  // than relying solely on the native `close` event that `dialogEl.close()`
-  // fires. Both still call `.close()` too, for the native visual dismissal,
-  // but the direct call is what actually notifies the host — these are
-  // user-initiated actions we already have a synchronous JS hook for, so
-  // routing them exclusively through an event round-trip is unnecessary
-  // indirection. `onclose={onClose}` below stays wired as a fallback for a
-  // close this component didn't initiate itself (ESC, a `<form
-  // method="dialog">` submit).
-  function requestClose() {
-    dialogEl?.close();
-    notifyClose();
-  }
-
-  function handleBackdropClick(event) {
-    if (event.target === event.currentTarget) requestClose();
-  }
-
+  // Roving-tabindex arrow movement for the project tabs. It reads generic,
+  // but Time is the only panel with tabs today, so it stays with the panel
+  // that has them rather than being promoted into the shell on one case.
   async function handleTabKeydown(event, index, tabs) {
     if (!["ArrowLeft", "ArrowRight"].includes(event.key)) return;
     event.preventDefault();
@@ -241,25 +198,16 @@
   </section>
 {/snippet}
 
-{#if open}
-<dialog
-  class="theme-dialog time-dialog"
+<DialogShell
+  {open}
+  {kicker}
+  {title}
   id="time-dialog"
-  aria-labelledby="time-dialog-title"
-  bind:this={dialogEl}
-  use:openOnMount
-  onclose={notifyClose}
-  onclick={handleBackdropClick}
+  dialogClass="time-dialog"
+  titleId="time-dialog-title"
+  closeLabel={`關閉${kicker}`}
+  {onClose}
 >
-  <div class="theme-dialog-heading">
-    <div>
-      <p class="section-kicker">{kicker}</p>
-      <h2 id="time-dialog-title">{title}</h2>
-    </div>
-    <button class="theme-close" type="button" aria-label={`關閉${kicker}`} onclick={requestClose}>
-      <span aria-hidden="true">×</span>
-    </button>
-  </div>
   <div class="time-dialog-content">
     {#if kind === "item" && item}
       <div>
@@ -381,5 +329,4 @@
       </div>
     {/if}
   </div>
-</dialog>
-{/if}
+</DialogShell>

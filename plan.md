@@ -65,6 +65,8 @@ TaskProgress 未來需要接入專案難度、價值、成本、估價及其他�
 
 完整 Draft 0.1、概念接口、遷移階段、安全政策及驗證矩陣見 `Documentation/ExtensionModuleArchitecturePlan.md`。實作狀態與下一步由 `report.json`／`report.dev.json` 的 `extension-modules` task 記錄。
 
+排程資料不加入 `report.json`。前置依賴、資源占用、日期限制、固定里程碑與可重算的開始／結束時間由獨立 Schedule 模組擁有；資料契約、確定性排程、降級與甘特圖投影見 `Documentation/ScheduleProjectionModulePlan.md`。
+
 ### GitHub Pages 模式
 
 ```text
@@ -1033,6 +1035,8 @@ TaskProgress 仍是唯讀報告與分析介面，不直接成為行事曆或計�
 任務的數量進度不能直接換算時間進度。現有子項目可能大小不同，因此不使用「已花時間除以完成百分比」來推算完工時間。
 
 ### Viewer 極簡呈現規格
+
+新的圖像優先總覽、向下漸進展開、view tabs 與模組化 detail shell 需求由 `Documentation/ViewerProgressiveDisclosurePlan.md` 擁有。現行任務卡與本節時間介面不被棄用，而是作為展開後 detail 的既有內容；未決的風險圖像、圖層預設與甘特圖視覺保留在 `handoff.md#open-decisions`。
 
 Viewer 表面只呈現使用者立即需要的結果；公式、分配與期限比較藏在點擊後的說明中，原始 session 與逐筆事件不進入一般 Viewer。
 

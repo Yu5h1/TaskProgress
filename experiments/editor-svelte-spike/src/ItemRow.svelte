@@ -63,7 +63,13 @@
     aria-hidden="true"
   >{itemStatus === "done" ? "✓" : "○"}</span>
 
-  {#if editing || (metadata && (!metadata.hidden || !policy.labelsValid))}
+  <!-- A finished item has no priority worth reading: priority ranks what to do
+       next, and there is nothing left to schedule here. Preview therefore drops
+       the badge, the same way it drops an unset value — see
+       `Documentation/AssessmentModuleArchitecturePlan.md` 未設置的值. Edit mode
+       still shows the select, because that is the entry point for changing it,
+       and because a status set by mistake has to be recoverable. -->
+  {#if editing || (itemStatus !== "done" && metadata && (!metadata.hidden || !policy.labelsValid))}
     <span class="item-row-priority">
       {#if editing}
       <select

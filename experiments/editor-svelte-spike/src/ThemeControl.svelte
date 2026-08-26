@@ -1,4 +1,5 @@
 <script>
+  import DialogShell from "./DialogShell.svelte";
   import {
     CUSTOM_COLOR_FIELDS,
     createCustomPalette,
@@ -32,7 +33,10 @@
   const HEX_COLOR = /^#[0-9a-f]{6}$/i;
   const HEX_PATTERN = "#[0-9a-fA-F]{6}";
 
-  let dialog;
+  // `DialogShell` owns the `<dialog>` element and every close path; this flag
+  // is the only thing the picker still holds, because `自訂…` is the dialog's
+  // only entry point and cancelling has to put the select back.
+  let dialogOpen = false;
   let textInputs = [];
   let selectValue = mode;
   let base = custom?.base ?? systemScheme;
@@ -74,12 +78,11 @@
 
   function openDialog() {
     resetValues(custom ? createCustomPalette(custom.base, custom) : createCustomPalette(systemScheme));
-    if (typeof dialog.showModal === "function") dialog.showModal();
-    else dialog.setAttribute("open", "");
+    dialogOpen = true;
   }
 
   function closeDialog() {
-    if (dialog.open) dialog.close();
+    dialogOpen = false;
   }
 
   function changeBase(event) {
@@ -101,14 +104,11 @@
     if (valid) colors = { ...colors, [field.key]: input.value.toLowerCase() };
   }
 
+  // Every dismissal route — the shell's close button, the backdrop, Escape —
+  // arrives here through `onClose`, so restoring the select happens once.
   function cancel() {
     selectValue = mode;
     closeDialog();
-  }
-
-  function handleCancelEvent(event) {
-    event.preventDefault();
-    cancel();
   }
 
   function apply() {
@@ -136,22 +136,15 @@
   </select>
 </label>
 
-<dialog
-  class="theme-dialog"
+<DialogShell
+  open={dialogOpen}
   id="theme-dialog"
-  aria-labelledby="theme-dialog-title"
-  bind:this={dialog}
-  oncancel={handleCancelEvent}
+  titleId="theme-dialog-title"
+  kicker="Custom theme"
+  title="自訂 Viewer 顏色"
+  closeLabel="關閉自訂主題"
+  onClose={cancel}
 >
-  <div class="theme-dialog-heading">
-    <div>
-      <p class="section-kicker">Custom theme</p>
-      <h2 id="theme-dialog-title">自訂 Viewer 顏色</h2>
-    </div>
-    <button class="theme-close" id="theme-close" type="button" aria-label="關閉自訂主題" onclick={cancel}>
-      <span aria-hidden="true">×</span>
-    </button>
-  </div>
   <p class="theme-dialog-description">
     選擇基底後調整主要介面顏色；任務狀態色會沿用基底，保持完成、進行中與受阻容易辨識。
   </p>
@@ -204,4 +197,4 @@
     <button class="secondary-button" id="theme-cancel" type="button" onclick={cancel}>取消</button>
     <button class="primary-button" id="theme-apply" type="button" onclick={apply}>套用自訂主題</button>
   </div>
-</dialog>
+</DialogShell>

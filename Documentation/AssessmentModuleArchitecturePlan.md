@@ -358,7 +358,8 @@ Available money resource ───┘
 
 ## 尚未決定
 
-- 共用 shell 剩下的是 props 的**確切形狀**，不是責任歸屬——後者已於 2026-08-25 定案，見「狀態歸屬」。形狀要等實作時以 Time 的 `TimeDialog`／`ManualEstimateEditor` 抽出，不預先擬定。
+- 共用 shell 的**對話框層**已於 2026-08-26 抽出為 `DialogShell.svelte`，形狀來自 `TimeDialog` 與 `ThemeControl` 兩個真實 host：`open`／`id`／`dialogClass`／`kicker`／`title`／`titleId`／`closeLabel`／`onClose` 加一個 slot。剩下未定的是**評估專屬層**——膠囊列與 detail panel 容器、contributor／reference 清單、confidence／coverage／freshness 區塊要以什麼 props 接。它仍然只有 Time 一個真實案例，等 Cost 的 estimated 切片出現後一起定，不預先擬定。
+- 上述狀態機（`idle`／`analyzing`／`saving`／`error`／`dirty`）刻意**還沒**進 `DialogShell`。Time 的對話框沒有自己的儲存，草稿套進全域 edit session 由 SaveBar 負責，所以這組狀態目前只有 `DeliverySaveConfirmation.svelte` 的 `busy` 一個真實案例。責任歸屬照「狀態歸屬」一節不變，落點等第二個真實案例。
 - assessment record 應成為可重用 JSON Schema `$defs`，或先只作可信任 module implementation 的內部 contract；等 Time 遷移時以現有資料形狀驗證後決定。
 - Cost-local 人工的第一版計價單位與複雜度調整公式；由 Cost 領域設計在實作前以真實案例凍結。
 - `LaborCostSettlement` 與財務結算是同一個 module type 的兩個 capability，或兩個獨立投影；先以最小端到端案例決定，不能讓這項命名阻塞 Time／Cost 獨立化。

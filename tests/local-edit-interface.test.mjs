@@ -100,13 +100,21 @@ test("editing exposes global task and child controls with a panel-aligned save b
   assert.match(app, /contractText: "預設狀態：待處理；預設優先級：未指定；ID 會獨立產生"/);
   assert.doesNotMatch(app, /inline-delete-button", "×"/);
   // Both dialogs now render through shared components; the Viewer keeps only
-  // their mount points.
-  const [themeControl, timeDialog] = await Promise.all([
+  // their mount points. The heading and its close affordance are written once,
+  // in DialogShell — neither host may carry a second copy, which is what they
+  // each did until the shell was extracted.
+  const [themeControl, timeDialog, dialogShell] = await Promise.all([
     readFile(new URL("../experiments/editor-svelte-spike/src/ThemeControl.svelte", import.meta.url), "utf8"),
     readFile(new URL("../experiments/editor-svelte-spike/src/TimeDialog.svelte", import.meta.url), "utf8"),
+    readFile(new URL("../experiments/editor-svelte-spike/src/DialogShell.svelte", import.meta.url), "utf8"),
   ]);
-  assert.match(themeControl, /class="theme-close"[\s\S]*?<span aria-hidden="true">×<\/span>/);
-  assert.match(timeDialog, /class="theme-close"[\s\S]*?<span aria-hidden="true">×<\/span>/);
+  assert.match(dialogShell, /class="theme-close"[\s\S]*?<span aria-hidden="true">×<\/span>/);
+  assert.match(dialogShell, /class="theme-dialog-heading"/);
+  for (const [name, source] of [["ThemeControl", themeControl], ["TimeDialog", timeDialog]]) {
+    assert.doesNotMatch(source, /class="theme-close"/, `${name} must not re-implement the close button`);
+    assert.doesNotMatch(source, /class="theme-dialog-heading"/, `${name} must not re-implement the heading`);
+    assert.match(source, /<DialogShell/, `${name} must render through DialogShell`);
+  }
   assert.match(styles, /\.theme-close\s*\{[\s\S]*display:\s*grid[\s\S]*place-items:\s*center/);
 });
 

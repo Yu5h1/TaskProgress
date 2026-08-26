@@ -147,18 +147,30 @@ test("the time summary button and its dialog are registered as one shared implem
   assert.match(app, /createUiView\(\s*"project-module-strip",\s*elements\.timeSummaryButton/);
   assert.match(app, /createUiView\("time-dialog", elements\.timeDialog/);
 
+  // Modal mechanics live in DialogShell, not in Time's panel. Time passes
+  // `open` through and renders its content into the shell's slot.
+  assert.match(timeDialog, /<DialogShell[\s\S]*?\{open\}/);
+  assert.doesNotMatch(timeDialog, /showModal\(|use:openOnMount/);
+
+  const dialogShell = await readFile(
+    new URL("../experiments/editor-svelte-spike/src/DialogShell.svelte", import.meta.url),
+    "utf8",
+  );
   // The dialog element is structurally conditional on `open`, not toggled by
   // an imperative call reacting to a prop change — see the comment in
-  // TimeDialog.svelte for why a bare `$:`/action-update on that prop is
+  // DialogShell.svelte for why a bare `$:`/action-update on that prop is
   // unreliable in this project's imperative-mount setup.
-  assert.match(timeDialog, /\{#if open\}/);
-  assert.match(timeDialog, /use:openOnMount/);
+  assert.match(dialogShell, /\{#if open\}/);
+  assert.match(dialogShell, /use:openOnMount/);
   // Closing is host-notified directly by the button/backdrop, not solely
   // through the native `close` event.
-  assert.match(timeDialog, /function requestClose\(\)/);
-  assert.match(timeDialog, /dialogEl\?\.close\(\);\s*notifyClose\(\);/);
+  assert.match(dialogShell, /function requestClose\(\)/);
+  assert.match(dialogShell, /dialogEl\?\.close\(\);\s*notifyClose\(\);/);
   // `notifyClose` is that direct notification plus focus restoration.
-  assert.match(timeDialog, /function notifyClose\(\)[\s\S]*?onClose\(\);/);
+  assert.match(dialogShell, /function notifyClose\(\)[\s\S]*?onClose\(\);/);
+  // The shell stays domain-neutral: it imports nothing, so no domain
+  // component, model or formatter can be reached from inside it.
+  assert.doesNotMatch(dialogShell, /^\s*import\s/mu);
 
   assert.doesNotMatch(timeSummaryButton, /localStorage/);
   assert.doesNotMatch(timeDialog, /localStorage/);
