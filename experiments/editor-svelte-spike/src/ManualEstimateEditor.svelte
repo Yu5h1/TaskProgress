@@ -1,9 +1,20 @@
 <script>
+  import AssessmentNote from "./AssessmentNote.svelte";
+
   export let item;
   export let activeEstimate = null;
   export let onApply = () => ({ error: "" });
 
-  let estimateHours = String((activeEstimate?.likely_minutes ?? item.likelyMinutes) / 60);
+  /*
+   * An unset item starts empty rather than pre-filled. The analyzer
+   * substitutes a default into `likely_minutes` for items nobody estimated,
+   * and offering that as the starting value would hand the reader a number
+   * they never chose and invite them to confirm it — which is how a default
+   * becomes an "estimate" without anyone deciding anything.
+   */
+  let estimateHours = activeEstimate?.likely_minutes
+    ? String(activeEstimate.likely_minutes / 60)
+    : (item.unset ? "" : String(item.likelyMinutes / 60));
   let estimateNote = activeEstimate?.human_note ?? "";
   let estimateConfirmed = Boolean(activeEstimate?.human_confirmed ?? item.humanConfirmed);
   let estimateError = "";
@@ -45,8 +56,8 @@
     </label>
   </section>
 
-  <section class="time-explanation-card time-item-rationale">
-    <h3>估算依據</h3>
+  <div class="time-item-rationale">
+    <AssessmentNote heading="估算依據">
     <label class="spike-estimate-note">
       <span>人工依據</span>
       <input
@@ -56,7 +67,8 @@
         placeholder="例如：已拆解三個步驟"
       >
     </label>
-  </section>
+    </AssessmentNote>
+  </div>
 
   <label class="spike-estimate-confirmation">
     <input

@@ -370,7 +370,15 @@ export function isUnsetEstimate(item) {
 export function createTimeIndex(analysis) {
   const tasks = new Map();
   const items = new Map();
+  /*
+   * Every item, estimated or not. `items` drives display and rollup and must
+   * stay estimated-only; this map exists so an unset item can still be opened
+   * — the `-hr` marker is an entry point, and an entry point whose subject
+   * cannot be looked up leads nowhere.
+   */
+  const allItems = new Map();
   analysis.tasks.forEach((task) => {
+    task.items.forEach((item) => allItems.set(item.item_id, item));
     const estimated = task.items.filter((item) => !isUnsetEstimate(item));
     estimated.forEach((item) => items.set(item.item_id, item));
     tasks.set(task.task_id, {
@@ -383,5 +391,5 @@ export function createTimeIndex(analysis) {
         : (estimated.length === task.items.length ? "complete" : "partial"),
     });
   });
-  return { tasks, items };
+  return { tasks, items, allItems };
 }

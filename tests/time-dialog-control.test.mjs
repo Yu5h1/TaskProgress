@@ -125,3 +125,49 @@ test("the capacity tab stays read-only figures — editing lives in TimeSettings
   assert.equal(typeof controller.submitCapacityForm, "undefined");
   assert.equal(typeof controller.prepareSave, "undefined");
 });
+
+/*
+ * The `-hr` marker exists to be the entry point for a first estimate, and the
+ * change that introduced it also filtered unset items out of the index the
+ * panel reads — so the button rendered, dispatched, and silently opened
+ * nothing. Nothing else fails when this breaks: the marker still looks
+ * correct, which is why the behaviour is asserted rather than left to a
+ * visual check.
+ */
+test("an unset item still opens its panel, and says it is unset", () => {
+  const controller = makeController();
+
+  // `preserve-report-mode` is the fixture's one `mode: "default"` item, i.e.
+  // nobody estimated it and the analyzer substituted a value.
+  assert.equal(controller.itemTime("preserve-report-mode"), null);
+
+  controller.showItemTime("preserve-report-mode", "保留 ?report= 的明確模式", "scope-link");
+  const dialog = controller.snapshot().dialog;
+
+  assert.equal(dialog.open, true, "the unset marker must reach a panel, not return silently");
+  assert.equal(dialog.kind, "item");
+  assert.equal(dialog.item.itemId, "preserve-report-mode");
+  assert.equal(dialog.item.unset, true, "the panel must know the value is unset");
+
+  // An estimated item is unaffected and does not claim to be unset.
+  controller.showItemTime("build-deployment-artifact", "建立部署產物", "pages-deployment");
+  assert.equal(controller.snapshot().dialog.item.unset, false);
+});
+
+/*
+ * The editor starts empty for an unset item. Pre-filling it with the
+ * analyzer's substituted default would put a number nobody chose in front of
+ * the reader beside a confirm checkbox, which is exactly how a default turns
+ * into an "estimate" without anyone deciding anything.
+ */
+test("the manual estimate editor starts empty for an unset item", async () => {
+  const source = await readFile(
+    new URL("../experiments/editor-svelte-spike/src/ManualEstimateEditor.svelte", import.meta.url),
+    "utf8",
+  );
+  assert.match(source, /item\.unset \? "" : String\(item\.likelyMinutes \/ 60\)/u);
+  // The card class this block used was folded into AssessmentNote; leaving the
+  // old name here silently drops its styling, which no other test would catch.
+  assert.doesNotMatch(source, /time-explanation-card/u);
+  assert.match(source, /<AssessmentNote heading="估算依據">/u);
+});

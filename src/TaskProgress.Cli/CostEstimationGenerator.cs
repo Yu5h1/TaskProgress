@@ -264,8 +264,8 @@ internal static class CostEstimationGenerator
         string coverage,
         JsonDocument? config)
     {
-        if (available is null || coverage is "none" or "partial") return "unknown";
-        if (balance < 0) return "critical";
+        if (available is null || balance is null || coverage is "none" or "partial") return "unknown";
+        if (balance.Value < 0) return "critical";
         if (available.Value == 0) return remaining == 0 ? "on_track" : "critical";
 
         var threshold = ReadOptionalDouble(config, "risk_thresholds", "at_risk_remaining_ratio") ?? 0.2;

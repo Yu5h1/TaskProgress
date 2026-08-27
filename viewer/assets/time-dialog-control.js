@@ -1,6 +1,7 @@
 import {
   calculateDeadlineRisk,
   createTimeIndex,
+  isUnsetEstimate,
 } from "./time-model.js";
 
 /*
@@ -435,6 +436,14 @@ export function createTimeReferenceController({
     return {
       taskId,
       itemId: item.item_id,
+      /*
+       * `unset` travels so the editor can start empty. The analyzer still
+       * substitutes a default into `likely_minutes`, and pre-filling the form
+       * with it would put a number nobody chose in front of the reader as
+       * though it were their estimate — the exact substitution this project
+       * decided to stop trusting.
+       */
+      unset: isUnsetEstimate(item),
       likelyMinutes: item.likely_minutes,
       humanConfirmed: Boolean(item.human_confirmed),
       detailsExpanded,
@@ -528,8 +537,14 @@ export function createTimeReferenceController({
     });
   }
 
+  /*
+   * Looks in `allItems`, not `items`. An unset item is deliberately absent
+   * from the estimated-only map, and reading that map here is what made the
+   * `-hr` marker a dead entry point: the button rendered, dispatched, and
+   * silently returned because its subject had been filtered out.
+   */
   function showItemTime(itemId, title, taskId = "") {
-    const item = index.items.get(itemId);
+    const item = index.allItems.get(itemId);
     if (!item) return;
     dialogKind = "item";
     activeItem = { item, title, taskId };
