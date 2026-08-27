@@ -149,7 +149,7 @@ test("the Svelte adapter implements the contract and keeps framework detail insi
   for (const region of [
     "task-list", "status-overview", "status-filters", "project-progress",
     "mode-toggle", "save-bar", "add-control", "diagnostics", "scope-directory",
-    "theme-control", "time-summary-button", "time-dialog", "report-summary",
+    "theme-control", "time-summary-button", "time-dialog", "cost-dialog", "report-summary",
     "delivery-save-confirmation",
   ]) {
     assert.match(source, new RegExp(`"${region}":`, "u"));

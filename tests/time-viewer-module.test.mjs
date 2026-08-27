@@ -195,7 +195,11 @@ test("app.js mounts the dialog directly but gets the capsule from the registry, 
   // app.js no longer imports the render layer at all — the module does,
   // and hands back finished props.
   assert.doesNotMatch(appSource, /from "\.\/time-viewer-module\.js"/u);
-  assert.match(appSource, /state\.attachedModules\[0\]\?\.instance\.detailProps\?\.\(editingContext\)/u);
+  // Addressed by type, never by position. `attachedModules[0]` was correct
+  // only while exactly one module could attach; Cost joining in 2026-08-27 is
+  // what made the difference observable, so the lookup must stay by type.
+  assert.match(appSource, /attachedModule\(TIME_MODULE_TYPE\)\?\.detailProps\?\.\(editingContext\)/u);
+  assert.doesNotMatch(appSource, /attachedModules\[0\]/u);
   assert.match(appSource, /createUiView\("time-dialog", elements\.timeDialog, detail\)/u);
 
   // The main-panel capsule now comes from the module lifecycle loop

@@ -20,7 +20,7 @@ internal static class ScopeCatalog
                 .OrderBy(report => report.Scope, StringComparer.Ordinal)
                 .Select(report => new CatalogScope(
                     report.Scope,
-                    report.DeveloperPath is not null))
+                    report.HasArtifact(CoreReportModuleProvider.DeveloperFileName)))
                 .ToArray());
 
         try

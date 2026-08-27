@@ -27,14 +27,16 @@ internal static class ReportModuleTests
         {
             ResolvesExactlyTodaysRoutes(root);
             RetiresRoutesForFilesThatWentAway(root);
-            DerivesTheAllowlistInsteadOfMaintainingIt(root);
+            DerivesTheAllowlistInsteadOfMaintainingIt();
             RejectsNamesThatLeaveTheReportFolder(root);
             RejectsTwoOwnersForOneFile(root);
             RejectsADuplicateModuleType(root);
             RejectsAnArtifactBelongingToAnotherModule(root);
             RejectsALinkPointingOutOfTheReportFolder(root);
             TimeAnalysisModuleDelegatesToTheGenerator(root);
-            StaysOutOfTheProductionPathUntilCutover();
+            CoreProviderStillRejectsAMismatchedSidecar(root);
+            AnalysisModulesSkipFoldersWithNoInputs(root);
+            NoSidecarNameSurvivesInTheRoutingPath();
         }
         finally
         {
@@ -52,9 +54,9 @@ internal static class ReportModuleTests
     {
         var folder = NewFolder(root, "full");
         Touch(folder, "report.json");
-        Touch(folder, "report.dev.json");
-        Touch(folder, "report.modules.json");
         Touch(folder, "time.analysis.json");
+        WriteValidDeveloper(folder);
+        WriteValidManifest(folder);
 
         var routes = ReportModuleRegistry.Resolve(Context(folder), Production);
         var urls = routes.Present.Select(route => route.UrlPath).ToArray();
@@ -85,10 +87,9 @@ internal static class ReportModuleTests
         Contains(routes.Absent, "/reports/demo-scope/time.analysis.json");
     }
 
-    private static void DerivesTheAllowlistInsteadOfMaintainingIt(string root)
+    private static void DerivesTheAllowlistInsteadOfMaintainingIt()
     {
-        var folder = NewFolder(root, "allowlist");
-        var names = ReportModuleRegistry.DeclaredFileNames(Context(folder), Production);
+        var names = ReportModuleRegistry.DeclaredFileNames(Production);
 
         Equal(4, names.Count, "The derived allowlist did not cover every declared file");
         Contains(names, "time.analysis.json");
@@ -172,28 +173,130 @@ internal static class ReportModuleTests
     }
 
     /// <summary>
-    ///   The boundary is declared but not adopted: ReportFolder still carries a
-    ///   field per sidecar and LocalWebServiceClient still builds each URL by
-    ///   hand. Until the cutover replaces those, nothing in the production path
-    ///   may reference the new types — otherwise "this slice cannot change
-    ///   behaviour" stops being true without anything saying so.
+    ///   The point of the cutover: no sidecar file name may be written into
+    ///   the routing path any more. A regression here does not break a test
+    ///   elsewhere — it quietly restores the hand-maintained allowlist Phase 3
+    ///   exists to delete — so it is asserted against the source directly.
     /// </summary>
-    private static void StaysOutOfTheProductionPathUntilCutover()
+    private static void NoSidecarNameSurvivesInTheRoutingPath()
     {
         var cli = Path.Combine(RepositoryRoot(), "src", "TaskProgress.Cli");
-        foreach (var name in new[] { "ReportFolder.cs", "LocalWebServiceClient.cs", "Program.cs" })
+        var routing = File.ReadAllText(Path.Combine(cli, "LocalWebServiceClient.cs"));
+        foreach (var name in new[] { "report.dev.json", "time.analysis.json", "report.modules.json" })
         {
-            var source = File.ReadAllText(Path.Combine(cli, name));
-            foreach (var symbol in new[] { "ReportModuleRegistry", "IReportModuleProvider", "IAnalysisModule" })
+            if (routing.Contains(name, StringComparison.Ordinal))
             {
-                if (source.Contains(symbol, StringComparison.Ordinal))
-                {
-                    throw new InvalidOperationException(
-                        $"{name} references {symbol}; the module boundary is wired in, "
-                            + "so this test must be replaced by real cutover coverage.");
-                }
+                throw new InvalidOperationException(
+                    $"LocalWebServiceClient.cs names {name}; routing must come from the provider registry.");
             }
         }
+
+        var folder = File.ReadAllText(Path.Combine(cli, "ReportFolder.cs"));
+        foreach (var field in new[] { "DeveloperPath", "TimeAnalysisPath", "ModuleManifestPath" })
+        {
+            if (folder.Contains(field, StringComparison.Ordinal))
+            {
+                throw new InvalidOperationException(
+                    $"ReportFolder.cs still carries {field}; a module must not own a field on the core report type.");
+            }
+        }
+
+        var autoRefresh = MethodBody(
+            File.ReadAllText(Path.Combine(cli, "Program.cs")),
+            "private static bool TryAutoGenerate");
+        if (autoRefresh.Contains("TimeAnalysisGenerator", StringComparison.Ordinal))
+        {
+            throw new InvalidOperationException(
+                "TryAutoGenerate names TimeAnalysisGenerator; automatic refresh must go through AnalysisModules.");
+        }
+
+        if (!autoRefresh.Contains("AnalysisModules.Production", StringComparison.Ordinal))
+        {
+            throw new InvalidOperationException(
+                "TryAutoGenerate no longer drives refresh from the analysis module list.");
+        }
+    }
+
+    /// <summary>
+    ///   Text of one method, from its signature to the next member. Crude, but
+    ///   enough to assert about one method without pinning the whole file:
+    ///   `analyze` deliberately still calls TimeAnalysisGenerator directly, so
+    ///   a file-wide check would forbid the wrong thing.
+    /// </summary>
+    private static string MethodBody(string source, string signature)
+    {
+        var start = source.IndexOf(signature, StringComparison.Ordinal);
+        if (start < 0)
+        {
+            throw new InvalidOperationException($"{signature} was not found");
+        }
+
+        var next = source.IndexOf("\n    private ", start + signature.Length, StringComparison.Ordinal);
+        return next < 0 ? source[start..] : source[start..next];
+    }
+
+    /// <summary>
+    ///   A module that has no inputs in a folder is skipped rather than run,
+    ///   which is what stops a report that never used a domain from having one
+    ///   created for it.
+    /// </summary>
+    private static void AnalysisModulesSkipFoldersWithNoInputs(string root)
+    {
+        var folder = NewFolder(root, "no-inputs");
+        Touch(folder, "report.json");
+
+        foreach (var module in AnalysisModules.Production)
+        {
+            False(
+                module.HasInputs(folder),
+                $"{module.DisplayName} claimed inputs in a folder that has none");
+        }
+
+        Equal(
+            AnalysisModules.Production.Select(module => module.Type).Distinct().Count(),
+            AnalysisModules.Production.Count,
+            "Two analysis modules registered for the same module type");
+    }
+
+    /// <summary>
+    ///   Identity validation moved from ReportFolder.Load into the core
+    ///   provider, and must still reject exactly what it rejected before:
+    ///   an overlay or manifest belonging to another report.
+    /// </summary>
+    private static void CoreProviderStillRejectsAMismatchedSidecar(string root)
+    {
+        var folder = NewFolder(root, "identity");
+        Touch(folder, "report.json");
+        var provider = new CoreReportModuleProvider();
+        var context = Context(folder);
+
+        File.WriteAllText(
+            Path.Combine(folder, CoreReportModuleProvider.DeveloperFileName),
+            """{"schema_version":"1.1","report_id":"someone-elses-report"}""");
+        Throws(
+            () => provider.Validate(
+                context,
+                new(CoreReportModuleProvider.ModuleType, CoreReportModuleProvider.DeveloperFileName),
+                Path.Combine(folder, CoreReportModuleProvider.DeveloperFileName)),
+            "An overlay belonging to another report was accepted");
+
+        File.WriteAllText(
+            Path.Combine(folder, CoreReportModuleProvider.ManifestFileName),
+            """{"schema_version":"0.1","report_id":"demo-report","scope_id":"another-scope"}""");
+        Throws(
+            () => provider.Validate(
+                context,
+                new(CoreReportModuleProvider.ModuleType, CoreReportModuleProvider.ManifestFileName),
+                Path.Combine(folder, CoreReportModuleProvider.ManifestFileName)),
+            "A manifest belonging to another scope was accepted");
+
+        File.WriteAllText(
+            Path.Combine(folder, CoreReportModuleProvider.ManifestFileName),
+            """{"schema_version":"0.1","report_id":"demo-report","scope_id":"demo-scope"}""");
+        provider.Validate(
+            context,
+            new(CoreReportModuleProvider.ModuleType, CoreReportModuleProvider.ManifestFileName),
+            Path.Combine(folder, CoreReportModuleProvider.ManifestFileName));
     }
 
     private static string RepositoryRoot()
@@ -213,7 +316,7 @@ internal static class ReportModuleTests
     }
 
     private static ReportModuleContext Context(string folder) =>
-        new(folder, "demo-scope", "demo-report");
+        new(folder, "demo-scope", "demo-report", "1.1");
 
     private static string NewFolder(string root, string name)
     {
@@ -224,6 +327,16 @@ internal static class ReportModuleTests
 
     private static void Touch(string folder, string name) =>
         File.WriteAllText(Path.Combine(folder, name), "{}");
+
+    private static void WriteValidDeveloper(string folder) =>
+        File.WriteAllText(
+            Path.Combine(folder, CoreReportModuleProvider.DeveloperFileName),
+            """{"schema_version":"1.1","report_id":"demo-report"}""");
+
+    private static void WriteValidManifest(string folder) =>
+        File.WriteAllText(
+            Path.Combine(folder, CoreReportModuleProvider.ManifestFileName),
+            """{"schema_version":"0.1","report_id":"demo-report","scope_id":"demo-scope"}""");
 
     private static void Contains(IReadOnlyList<string> values, string expected)
     {
@@ -277,7 +390,7 @@ internal static class ReportModuleTests
     {
         public string Type => type;
 
-        public IReadOnlyList<ReportModuleArtifact> Declare(ReportModuleContext context) =>
+        public IReadOnlyList<ReportModuleArtifact> Declare() =>
             [new(artifactType ?? type, fileName)];
     }
 }

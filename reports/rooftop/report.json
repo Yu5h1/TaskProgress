@@ -1,0 +1,29 @@
+{
+  "schema_version": "1.1",
+  "report_id": "rooftop-waterproof",
+  "scope_id": "rooftop",
+  "title": "天臺防水漆重刷",
+  "updated_at": "2026-08-27T09:00:00+08:00",
+  "tasks": [
+    { "id": "plan", "title": "企劃", "status": "done", "priority": 1,
+      "summary": "整理計畫並拆解為可執行的任務，主要成本是人工。",
+      "completed_items": [ { "id": "breakdown", "title": "整理計畫拆解任務" } ],
+      "progress": { "completed": 1, "total": 1 } },
+    { "id": "clean", "title": "清潔", "status": "in_progress", "priority": 0,
+      "summary": "清除落葉與積塵；人力難以直接估價，工具材料需添購才填。",
+      "pending_items": [
+        { "id": "sweep", "title": "打掃落葉" },
+        { "id": "clean-tools", "title": "工具／材料添購" } ],
+      "progress": { "completed": 0, "total": 2 } },
+    { "id": "filler", "title": "補土", "status": "planned", "priority": 2,
+      "summary": "裂縫與孔洞補平，成本以材料與工具為主。",
+      "pending_items": [ { "id": "filler-material", "title": "補土材料" } ],
+      "progress": { "completed": 0, "total": 1 } },
+    { "id": "paint", "title": "上透明防水漆", "status": "planned", "priority": 2,
+      "summary": "整面塗佈透明防水漆，成本以材料與施工工具為主。",
+      "pending_items": [
+        { "id": "paint-material", "title": "防水漆材料" },
+        { "id": "paint-tools", "title": "施工工具" } ],
+      "progress": { "completed": 0, "total": 2 } }
+  ]
+}

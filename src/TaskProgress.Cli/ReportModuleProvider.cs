@@ -6,27 +6,24 @@
 // which file names it owns inside one authorized report folder, and the
 // registry turns that declaration into routes.
 //
-// Two deliberate departures from the sketch in
-// Documentation/ExtensionModuleArchitecturePlan.md:
-//
-//   - Providers do not build routes. `/reports/{scope}/{file}` is one URL
-//     policy, and a provider that built its own would be a second copy of it.
-//     The registry owns route construction; providers name files.
-//   - Identity validation is not on this interface yet. The only identity
-//     rules that exist belong to report.dev.json and report.modules.json,
-//     which ReportFolder still enforces. Folding those in is part of the
-//     production cutover, not of declaring the boundary.
+// One deliberate departure from the sketch in
+// Documentation/ExtensionModuleArchitecturePlan.md: providers do not build
+// routes. `/reports/{scope}/{file}` is one URL policy, and a provider that
+// built its own would be a second copy of it. The registry owns route
+// construction; providers name files and vouch for their contents.
 
 namespace TaskProgress;
 
 /// <summary>
 ///   The one authorized report folder a provider may look inside, with the
-///   identity every artifact in it must belong to.
+///   identity every artifact in it must belong to. The identity comes from
+///   report.json, which is read and validated before this exists.
 /// </summary>
 internal sealed record ReportModuleContext(
     string DirectoryPath,
     string Scope,
-    string ReportId);
+    string ReportId,
+    string SchemaVersion);
 
 /// <summary>
 ///   One file a provider claims. <paramref name="FileName"/> must be a plain
@@ -50,6 +47,22 @@ internal interface IReportModuleProvider
     ///   Every file name this provider may contribute, whether or not it is
     ///   present. Naming an absent file is what lets the registry retire a
     ///   route after the file is deleted.
+    ///
+    ///   Context-free on purpose: this is also the answer to "could this URL
+    ///   ever have been ours?", which route cleanup asks without a report in
+    ///   hand. A provider whose file names really depend on the report can
+    ///   take a context when one exists.
     /// </summary>
-    IReadOnlyList<ReportModuleArtifact> Declare(ReportModuleContext context);
+    IReadOnlyList<ReportModuleArtifact> Declare();
+
+    /// <summary>
+    ///   Confirms a present file really belongs to this report, throwing
+    ///   <see cref="CliException"/> when it does not. The default does
+    ///   nothing, which is the honest answer for most modules: an analysis
+    ///   projection carries no identity contract of its own yet, so there is
+    ///   nothing to check and inventing one here would reject valid files.
+    /// </summary>
+    void Validate(ReportModuleContext context, ReportModuleArtifact artifact, string filePath)
+    {
+    }
 }

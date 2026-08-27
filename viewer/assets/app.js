@@ -45,6 +45,8 @@ import {
 import { createTrustedModuleRegistry } from "./module-registry.js";
 import { activateCapsule, attachModules, collectCapsules, disposeModules } from "./module-composition.js";
 import { TIME_MODULE_TYPE, createTimeModuleDefinition } from "./time-module-definition.js";
+import { COST_MODULE_TYPE, createCostModuleDefinition } from "./cost-module-definition.js";
+import { inspectCostAnalysis } from "./cost-model.js";
 import { loadLegacyTimeAnalysis } from "./time-legacy-discovery.js";
 import { loadManifestTimeAnalysis } from "./time-manifest-discovery.js";
 import { createModuleOrderControl } from "./module-order-control.js";
@@ -102,7 +104,20 @@ const moduleOrderControl = createModuleOrderControl({ storage: statusOrderStorag
  * Renderer for. Registering happens once, at build composition — never from
  * report data, which can declare a module but can never install one.
  */
-const moduleRegistry = createTrustedModuleRegistry([createTimeModuleDefinition()]);
+const moduleRegistry = createTrustedModuleRegistry([
+  createTimeModuleDefinition(),
+  createCostModuleDefinition(),
+]);
+
+/*
+ * Modules are addressed by type, never by position. Indexing into the
+ * attached list reads correctly while one module is registered and silently
+ * returns the wrong module once a second one is, because attach order is not
+ * a contract.
+ */
+function attachedModule(type) {
+  return state.attachedModules.find((entry) => entry.type === type)?.instance ?? null;
+}
 
 const elements = {
   title: document.querySelector("#report-title"),
@@ -132,6 +147,7 @@ const elements = {
   taskAddShell: document.querySelector("#task-add-shell"),
   timeSummaryButton: document.querySelector("#time-summary-dock"),
   timeDialog: document.querySelector("#time-dialog-dock"),
+  costDialog: document.querySelector("#cost-dialog-dock"),
   timeSettingsDock: document.querySelector("#time-settings-dock"),
   deliverySaveConfirmationDock: document.querySelector("#delivery-save-confirmation-dock"),
 };
@@ -356,10 +372,29 @@ function renderTimeReference() {
   // The panel itself is not a registry slot yet — that waits on the shared
   // assessment shell contract — so the host still mounts it, but the props
   // come from the module rather than from a controller held here.
-  const detail = state.attachedModules[0]?.instance.detailProps?.(editingContext);
-  if (!detail) return;
-  if (state.timeDialogView) state.timeDialogView.update(detail);
-  else state.timeDialogView = createUiView("time-dialog", elements.timeDialog, detail);
+  const detail = attachedModule(TIME_MODULE_TYPE)?.detailProps?.(editingContext);
+  if (detail) {
+    if (state.timeDialogView) state.timeDialogView.update(detail);
+    else state.timeDialogView = createUiView("time-dialog", elements.timeDialog, detail);
+  }
+
+  renderCostDetail();
+}
+
+/*
+ * Cost's panel mounts beside Time's rather than through a shared slot,
+ * because the detail surface is still host-mounted. Two docks is the visible
+ * cost of that, and the reason a shared detail slot is worth settling.
+ */
+function renderCostDetail() {
+  const detail = attachedModule(COST_MODULE_TYPE)?.detailProps?.();
+  if (!detail) {
+    state.costDialogView?.destroy();
+    state.costDialogView = null;
+    return;
+  }
+  if (state.costDialogView) state.costDialogView.update(detail);
+  else state.costDialogView = createUiView("cost-dialog", elements.costDialog, detail);
 }
 
 function applyManualEstimateDraft(change) {
@@ -613,6 +648,34 @@ async function fetchJson(value, label) {
     return await response.json();
   } catch {
     throw new Error(`${label} 不是有效的 JSON。`);
+  }
+}
+
+/*
+ * Cost's sidecar, beside report.json. A missing file is the normal case and
+ * stays silent; an invalid one is a diagnostic and the module simply does not
+ * attach, so a broken Cost projection can never take the report down with it.
+ */
+async function loadCostAnalysis(reportSource, scopeId) {
+  try {
+    const url = new URL("cost.analysis.json", new URL(reportSource, document.baseURI));
+    const raw = await fetchOptionalJson(url, "cost.analysis.json");
+    if (!raw) return null;
+    const status = inspectCostAnalysis(raw, scopeId);
+    if (status.errors.length) {
+      state.diagnostics.push({
+        level: "warning",
+        message: `cost.analysis.json 已忽略：${status.errors.join("；")}`,
+      });
+      return null;
+    }
+    return raw;
+  } catch (error) {
+    state.diagnostics.push({
+      level: "warning",
+      message: `cost.analysis.json 已忽略：${error?.message ?? error}`,
+    });
+    return null;
   }
 }
 
@@ -1402,6 +1465,14 @@ async function main() {
     state.diagnostics.push(...timeResult.diagnostics);
 
     /*
+     * Cost is discovered by its filename beside report.json, not through the
+     * manifest. Time carries both paths because it predates manifests; Cost
+     * has only ever had one, and giving it a second before a report actually
+     * declares it would be two discovery routes with one caller.
+     */
+    state.costAnalysis = await loadCostAnalysis(request.reportSource, report.scope_id);
+
+    /*
      * Attach every module the registry has an implementation for. Dispose
      * first so a previous scope's instances never outlive their report — this
      * runs on every load, and a scope switch is just another load.
@@ -1415,6 +1486,12 @@ async function main() {
       console.warn(`[module] ${diagnostic.message}`);
     });
     const { attached, diagnostics: attachDiagnostics } = attachModules(moduleRegistry, [
+      ...(state.costAnalysis ? [{
+        type: COST_MODULE_TYPE,
+        schemaVersion: state.costAnalysis.schema_version,
+        data: state.costAnalysis,
+        host: { onChanged: () => renderTimeReference() },
+      }] : []),
       ...(state.timeAnalysis ? [{
         type: TIME_MODULE_TYPE,
         schemaVersion: state.timeAnalysis.schema_version,

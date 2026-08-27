@@ -1,5 +1,7 @@
 <script>
   import { tick } from "svelte";
+  import AssessmentMetricGrid from "./AssessmentMetricGrid.svelte";
+  import AssessmentNote from "./AssessmentNote.svelte";
   import DialogShell from "./DialogShell.svelte";
   import ManualEstimateEditor from "./ManualEstimateEditor.svelte";
   import TimeSettingsEditor from "./TimeSettingsEditor.svelte";
@@ -66,14 +68,6 @@
   </div>
 {/snippet}
 
-{#snippet metricGrid(metrics)}
-  <div class="time-metric-grid">
-    {#each metrics as m}
-      <div class="time-metric"><span>{m.label}</span><strong>{m.value}</strong></div>
-    {/each}
-  </div>
-{/snippet}
-
 {#snippet sourceList(rows)}
   <div class="time-source-list">
     {#each rows as row}
@@ -134,19 +128,12 @@
     aria-labelledby="time-engineering-tab"
     hidden={!active}
   >
-    {@render metricGrid(eng.metrics)}
-    <section class="time-explanation-card">
-      <h3 class="time-formula-heading">
-        <span class="time-risk-dot {eng.explanation.className}" aria-hidden="true"></span>
-        風險評估公式
-      </h3>
+    <AssessmentMetricGrid metrics={eng.metrics} />
+    <AssessmentNote heading="風險評估公式" tone={eng.explanation.className}>
       <p>{eng.explanation.text}</p>
       <code class="time-formula">{eng.explanation.formula}</code>
-    </section>
-    <section class="time-explanation-card">
-      <h3>執行校準</h3>
-      <p>{eng.calibrationText}</p>
-    </section>
+    </AssessmentNote>
+    <AssessmentNote heading="執行校準"><p>{eng.calibrationText}</p></AssessmentNote>
     {@render compositionSection(eng.composition)}
   </section>
 {/snippet}
@@ -162,12 +149,11 @@
     <div class="time-capacity-toolbar">
       <p>工作容量由每日分配、工作日及休假例外共同產生。</p>
     </div>
-    {@render metricGrid(cap.metrics)}
-    <section class="time-explanation-card">
-      <h3>每日容量公式</h3>
+    <AssessmentMetricGrid metrics={cap.metrics} />
+    <AssessmentNote heading="每日容量公式">
       <p>固定不可工作時間只在產生容量時間線時扣除一次；週末依工作日設定排除。</p>
       <code class="time-formula">{cap.formulaCode}</code>
-    </section>
+    </AssessmentNote>
     <section class="time-composition">
       <h3>{cap.exceptionsHeading}</h3>
       <div class="time-source-list">
@@ -189,11 +175,8 @@
 {#snippet estimateOnlyPanel(estimateOnly)}
   <section class="time-tab-panel time-estimate-only-panel">
     <p class="time-flow-intro">{estimateOnly.intro}</p>
-    {@render metricGrid(estimateOnly.metrics)}
-    <section class="time-explanation-card">
-      <h3>執行校準</h3>
-      <p>{estimateOnly.calibrationText}</p>
-    </section>
+    <AssessmentMetricGrid metrics={estimateOnly.metrics} />
+    <AssessmentNote heading="執行校準"><p>{estimateOnly.calibrationText}</p></AssessmentNote>
     {@render compositionSection(estimateOnly.composition)}
   </section>
 {/snippet}
@@ -224,18 +207,17 @@
             <div class="time-estimate-meta">
               <span>預估工時</span>
               {#each item.sourceBadges as badge (badge.kind)}
-                <span class="time-source-badge source-{badge.kind}">{badge.label}</span>
+                <span class="assessment-source-badge source-{badge.kind}">{badge.label}</span>
               {/each}
             </div>
             <strong>{item.likelyHoursLabel}</strong>
           </section>
-          <section class="time-explanation-card time-item-rationale">
-            <h3>估算依據</h3>
-            <p>{item.rationale}</p>
-          </section>
+          <div class="time-item-rationale">
+            <AssessmentNote heading="估算依據"><p>{item.rationale}</p></AssessmentNote>
+          </div>
         {/if}
         <section class="time-item-technical" hidden={!item.detailsExpanded}>
-          {@render metricGrid(item.technical.metrics)}
+          <AssessmentMetricGrid metrics={item.technical.metrics} />
           {#if item.technical.analysisMethod}
             <div class="time-source-row">
               <div>
@@ -246,10 +228,9 @@
             </div>
           {/if}
           {#if item.technical.formula}
-            <section class="time-explanation-card">
-              <h3>固定公式</h3>
+            <AssessmentNote heading="固定公式">
               <code class="time-formula">{item.technical.formula}</code>
-            </section>
+            </AssessmentNote>
           {/if}
           {#if item.technical.reference}
             <code class="time-reference">{item.technical.reference}</code>

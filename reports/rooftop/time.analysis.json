@@ -1,0 +1,390 @@
+{
+  "schema_version": "0.2",
+  "scope_id": "rooftop",
+  "analysis_id": "analysis-20260827-010000",
+  "as_of": "2026-08-27T11:53:08.0858535\u002B08:00",
+  "method": {
+    "name": "deterministic-capacity-feasibility",
+    "version": "0.3"
+  },
+  "inputs": {
+    "config_updated_at": "2026-08-27T09:00:00\u002B08:00",
+    "estimates_updated_at": "2026-08-27T11:53:08.0858535\u002B08:00",
+    "events_updated_at": "2026-08-27T11:53:08.0858535\u002B08:00",
+    "task_state_updated_at": "2026-08-27T09:00:00\u002B08:00"
+  },
+  "summary": {
+    "executor_count": 1,
+    "nominal_daily_capacity_minutes": 480,
+    "execution_calibration": {
+      "factor": 1,
+      "prior_factor": 1,
+      "prior_equivalent_samples": 10,
+      "raw_sample_count": 0,
+      "effective_sample_count": 0,
+      "data_weight": 0,
+      "confidence": "low",
+      "automatic_applied": false
+    },
+    "total_estimated_minutes": 2880,
+    "calibrated_total_minutes": 2880,
+    "remaining_estimated_minutes": 2400,
+    "actual_recorded_minutes": 0,
+    "estimated_total_days": 6,
+    "display_total_days": 6,
+    "overall_confidence": "low",
+    "estimate_composition": {
+      "ai_minutes": 0,
+      "mixed_minutes": 0,
+      "manual_minutes": 0,
+      "default_minutes": 2880
+    },
+    "deadline": {
+      "started_at": "2026-08-27T09:00:00.0000000\u002B08:00",
+      "delivery_at": "2026-09-05T00:00:00.0000000\u002B08:00",
+      "evaluated_at": "2026-08-27T11:53:08.0858535\u002B08:00",
+      "schedule": {
+        "timezone": "Asia/Taipei",
+        "workday_start_local": "09:00",
+        "workday_end_local": "17:00",
+        "risk_thresholds": {
+          "on_track_max": 1.1,
+          "at_risk_max": 1.5,
+          "capacity_at_risk_ratio": 0.8
+        },
+        "capacity_profile": {
+          "total_minutes_per_day": 1440,
+          "sleep_minutes_per_day": 480,
+          "life_minutes_per_day": 480,
+          "other_unavailable_minutes_per_day": 0,
+          "capacity_minutes_per_executor_day": 480,
+          "working_weekdays": [
+            1,
+            2,
+            3,
+            4,
+            5
+          ],
+          "capacity_exceptions": []
+        },
+        "capacity_timeline": [
+          {
+            "date": "2026-08-27",
+            "capacity_minutes": 480
+          },
+          {
+            "date": "2026-08-28",
+            "capacity_minutes": 480
+          },
+          {
+            "date": "2026-08-31",
+            "capacity_minutes": 480
+          },
+          {
+            "date": "2026-09-01",
+            "capacity_minutes": 480
+          },
+          {
+            "date": "2026-09-02",
+            "capacity_minutes": 480
+          },
+          {
+            "date": "2026-09-03",
+            "capacity_minutes": 480
+          },
+          {
+            "date": "2026-09-04",
+            "capacity_minutes": 480
+          }
+        ]
+      },
+      "elapsed_capacity_minutes": 173,
+      "total_capacity_minutes": 3360,
+      "remaining_capacity_minutes": 3187,
+      "remaining_estimated_minutes": 2400,
+      "capacity_balance_minutes": 787,
+      "time_progress_ratio": 0.051488,
+      "work_progress_ratio": 0.166667,
+      "boundary_state": "active",
+      "urgency": "on_track",
+      "risk_basis": "progress_pressure",
+      "progress_pressure_ratio": 0.878569,
+      "feasibility_ratio": 0.753059
+    }
+  },
+  "tasks": [
+    {
+      "task_id": "plan",
+      "total_likely_minutes": 480,
+      "estimated_days": 1,
+      "display_days": 1,
+      "items": [
+        {
+          "estimate_id": "estimate-default-plan-breakdown-v1",
+          "item_id": "breakdown",
+          "likely_minutes": 480,
+          "display_hours": 8,
+          "mode": "default",
+          "contributors": [
+            {
+              "kind": "system_default",
+              "summary": "\u6C92\u6709 active estimate\uFF0C\u63A1\u7528\u8A2D\u5B9A\u6A94\u7684\u9810\u8A2D\u9805\u76EE\u5DE5\u6642\u3002"
+            },
+            {
+              "kind": "deterministic_formula",
+              "summary": "\u56FA\u5B9A\u516C\u5F0F\u76F4\u63A5\u4F7F\u7528\u9810\u8A2D\u5206\u9418\u6578\u3002"
+            }
+          ],
+          "human_confirmed": false,
+          "confidence": "low",
+          "explanation": "\u5C1A\u7121\u8DB3\u5920\u5DE5\u7A0B\u4F30\u7B97\u8CC7\u6599\uFF0C\u4F7F\u7528\u4F4E\u4FE1\u5FC3\u9810\u8A2D\u503C\uFF1B\u672A\u865B\u69CB\u4F30\u7B97\u7BC4\u570D\u3002",
+          "inputs": [
+            {
+              "name": "default_item_minutes",
+              "value": 480,
+              "unit": "min",
+              "origin": "default"
+            }
+          ],
+          "calculation": {
+            "algorithm_id": "default-workday",
+            "formula": "unplanned_item_likely_minutes",
+            "version": "0.2",
+            "explanation": "\u4F7F\u7528\u8A2D\u5B9A\u503C 480 \u5206\u9418\u3002"
+          }
+        }
+      ]
+    },
+    {
+      "task_id": "clean",
+      "total_likely_minutes": 960,
+      "estimated_days": 2,
+      "display_days": 2,
+      "items": [
+        {
+          "estimate_id": "estimate-default-clean-sweep-v1",
+          "item_id": "sweep",
+          "likely_minutes": 480,
+          "display_hours": 8,
+          "mode": "default",
+          "contributors": [
+            {
+              "kind": "system_default",
+              "summary": "\u6C92\u6709 active estimate\uFF0C\u63A1\u7528\u8A2D\u5B9A\u6A94\u7684\u9810\u8A2D\u9805\u76EE\u5DE5\u6642\u3002"
+            },
+            {
+              "kind": "deterministic_formula",
+              "summary": "\u56FA\u5B9A\u516C\u5F0F\u76F4\u63A5\u4F7F\u7528\u9810\u8A2D\u5206\u9418\u6578\u3002"
+            }
+          ],
+          "human_confirmed": false,
+          "confidence": "low",
+          "explanation": "\u5C1A\u7121\u8DB3\u5920\u5DE5\u7A0B\u4F30\u7B97\u8CC7\u6599\uFF0C\u4F7F\u7528\u4F4E\u4FE1\u5FC3\u9810\u8A2D\u503C\uFF1B\u672A\u865B\u69CB\u4F30\u7B97\u7BC4\u570D\u3002",
+          "inputs": [
+            {
+              "name": "default_item_minutes",
+              "value": 480,
+              "unit": "min",
+              "origin": "default"
+            }
+          ],
+          "calculation": {
+            "algorithm_id": "default-workday",
+            "formula": "unplanned_item_likely_minutes",
+            "version": "0.2",
+            "explanation": "\u4F7F\u7528\u8A2D\u5B9A\u503C 480 \u5206\u9418\u3002"
+          }
+        },
+        {
+          "estimate_id": "estimate-default-clean-clean-tools-v1",
+          "item_id": "clean-tools",
+          "likely_minutes": 480,
+          "display_hours": 8,
+          "mode": "default",
+          "contributors": [
+            {
+              "kind": "system_default",
+              "summary": "\u6C92\u6709 active estimate\uFF0C\u63A1\u7528\u8A2D\u5B9A\u6A94\u7684\u9810\u8A2D\u9805\u76EE\u5DE5\u6642\u3002"
+            },
+            {
+              "kind": "deterministic_formula",
+              "summary": "\u56FA\u5B9A\u516C\u5F0F\u76F4\u63A5\u4F7F\u7528\u9810\u8A2D\u5206\u9418\u6578\u3002"
+            }
+          ],
+          "human_confirmed": false,
+          "confidence": "low",
+          "explanation": "\u5C1A\u7121\u8DB3\u5920\u5DE5\u7A0B\u4F30\u7B97\u8CC7\u6599\uFF0C\u4F7F\u7528\u4F4E\u4FE1\u5FC3\u9810\u8A2D\u503C\uFF1B\u672A\u865B\u69CB\u4F30\u7B97\u7BC4\u570D\u3002",
+          "inputs": [
+            {
+              "name": "default_item_minutes",
+              "value": 480,
+              "unit": "min",
+              "origin": "default"
+            }
+          ],
+          "calculation": {
+            "algorithm_id": "default-workday",
+            "formula": "unplanned_item_likely_minutes",
+            "version": "0.2",
+            "explanation": "\u4F7F\u7528\u8A2D\u5B9A\u503C 480 \u5206\u9418\u3002"
+          }
+        }
+      ]
+    },
+    {
+      "task_id": "filler",
+      "total_likely_minutes": 480,
+      "estimated_days": 1,
+      "display_days": 1,
+      "items": [
+        {
+          "estimate_id": "estimate-default-filler-filler-material-v1",
+          "item_id": "filler-material",
+          "likely_minutes": 480,
+          "display_hours": 8,
+          "mode": "default",
+          "contributors": [
+            {
+              "kind": "system_default",
+              "summary": "\u6C92\u6709 active estimate\uFF0C\u63A1\u7528\u8A2D\u5B9A\u6A94\u7684\u9810\u8A2D\u9805\u76EE\u5DE5\u6642\u3002"
+            },
+            {
+              "kind": "deterministic_formula",
+              "summary": "\u56FA\u5B9A\u516C\u5F0F\u76F4\u63A5\u4F7F\u7528\u9810\u8A2D\u5206\u9418\u6578\u3002"
+            }
+          ],
+          "human_confirmed": false,
+          "confidence": "low",
+          "explanation": "\u5C1A\u7121\u8DB3\u5920\u5DE5\u7A0B\u4F30\u7B97\u8CC7\u6599\uFF0C\u4F7F\u7528\u4F4E\u4FE1\u5FC3\u9810\u8A2D\u503C\uFF1B\u672A\u865B\u69CB\u4F30\u7B97\u7BC4\u570D\u3002",
+          "inputs": [
+            {
+              "name": "default_item_minutes",
+              "value": 480,
+              "unit": "min",
+              "origin": "default"
+            }
+          ],
+          "calculation": {
+            "algorithm_id": "default-workday",
+            "formula": "unplanned_item_likely_minutes",
+            "version": "0.2",
+            "explanation": "\u4F7F\u7528\u8A2D\u5B9A\u503C 480 \u5206\u9418\u3002"
+          }
+        }
+      ]
+    },
+    {
+      "task_id": "paint",
+      "total_likely_minutes": 960,
+      "estimated_days": 2,
+      "display_days": 2,
+      "items": [
+        {
+          "estimate_id": "estimate-default-paint-paint-material-v1",
+          "item_id": "paint-material",
+          "likely_minutes": 480,
+          "display_hours": 8,
+          "mode": "default",
+          "contributors": [
+            {
+              "kind": "system_default",
+              "summary": "\u6C92\u6709 active estimate\uFF0C\u63A1\u7528\u8A2D\u5B9A\u6A94\u7684\u9810\u8A2D\u9805\u76EE\u5DE5\u6642\u3002"
+            },
+            {
+              "kind": "deterministic_formula",
+              "summary": "\u56FA\u5B9A\u516C\u5F0F\u76F4\u63A5\u4F7F\u7528\u9810\u8A2D\u5206\u9418\u6578\u3002"
+            }
+          ],
+          "human_confirmed": false,
+          "confidence": "low",
+          "explanation": "\u5C1A\u7121\u8DB3\u5920\u5DE5\u7A0B\u4F30\u7B97\u8CC7\u6599\uFF0C\u4F7F\u7528\u4F4E\u4FE1\u5FC3\u9810\u8A2D\u503C\uFF1B\u672A\u865B\u69CB\u4F30\u7B97\u7BC4\u570D\u3002",
+          "inputs": [
+            {
+              "name": "default_item_minutes",
+              "value": 480,
+              "unit": "min",
+              "origin": "default"
+            }
+          ],
+          "calculation": {
+            "algorithm_id": "default-workday",
+            "formula": "unplanned_item_likely_minutes",
+            "version": "0.2",
+            "explanation": "\u4F7F\u7528\u8A2D\u5B9A\u503C 480 \u5206\u9418\u3002"
+          }
+        },
+        {
+          "estimate_id": "estimate-default-paint-paint-tools-v1",
+          "item_id": "paint-tools",
+          "likely_minutes": 480,
+          "display_hours": 8,
+          "mode": "default",
+          "contributors": [
+            {
+              "kind": "system_default",
+              "summary": "\u6C92\u6709 active estimate\uFF0C\u63A1\u7528\u8A2D\u5B9A\u6A94\u7684\u9810\u8A2D\u9805\u76EE\u5DE5\u6642\u3002"
+            },
+            {
+              "kind": "deterministic_formula",
+              "summary": "\u56FA\u5B9A\u516C\u5F0F\u76F4\u63A5\u4F7F\u7528\u9810\u8A2D\u5206\u9418\u6578\u3002"
+            }
+          ],
+          "human_confirmed": false,
+          "confidence": "low",
+          "explanation": "\u5C1A\u7121\u8DB3\u5920\u5DE5\u7A0B\u4F30\u7B97\u8CC7\u6599\uFF0C\u4F7F\u7528\u4F4E\u4FE1\u5FC3\u9810\u8A2D\u503C\uFF1B\u672A\u865B\u69CB\u4F30\u7B97\u7BC4\u570D\u3002",
+          "inputs": [
+            {
+              "name": "default_item_minutes",
+              "value": 480,
+              "unit": "min",
+              "origin": "default"
+            }
+          ],
+          "calculation": {
+            "algorithm_id": "default-workday",
+            "formula": "unplanned_item_likely_minutes",
+            "version": "0.2",
+            "explanation": "\u4F7F\u7528\u8A2D\u5B9A\u503C 480 \u5206\u9418\u3002"
+          }
+        }
+      ]
+    }
+  ],
+  "diagnostics": [
+    {
+      "level": "info",
+      "code": "default-estimate-used",
+      "message": "breakdown \u6C92\u6709 active estimate\uFF0C\u5DF2\u4F7F\u7528\u9810\u8A2D 480 \u5206\u9418\u3002"
+    },
+    {
+      "level": "info",
+      "code": "default-estimate-used",
+      "message": "sweep \u6C92\u6709 active estimate\uFF0C\u5DF2\u4F7F\u7528\u9810\u8A2D 480 \u5206\u9418\u3002"
+    },
+    {
+      "level": "info",
+      "code": "default-estimate-used",
+      "message": "clean-tools \u6C92\u6709 active estimate\uFF0C\u5DF2\u4F7F\u7528\u9810\u8A2D 480 \u5206\u9418\u3002"
+    },
+    {
+      "level": "info",
+      "code": "default-estimate-used",
+      "message": "filler-material \u6C92\u6709 active estimate\uFF0C\u5DF2\u4F7F\u7528\u9810\u8A2D 480 \u5206\u9418\u3002"
+    },
+    {
+      "level": "info",
+      "code": "default-estimate-used",
+      "message": "paint-material \u6C92\u6709 active estimate\uFF0C\u5DF2\u4F7F\u7528\u9810\u8A2D 480 \u5206\u9418\u3002"
+    },
+    {
+      "level": "info",
+      "code": "default-estimate-used",
+      "message": "paint-tools \u6C92\u6709 active estimate\uFF0C\u5DF2\u4F7F\u7528\u9810\u8A2D 480 \u5206\u9418\u3002"
+    },
+    {
+      "level": "warning",
+      "code": "calibration-has-no-samples",
+      "message": "\u76EE\u524D\u5206\u6790\u5668\u5C1A\u672A\u5EFA\u7ACB\u53EF\u6BD4\u8F03\u7684\u5B8C\u6210\u6A23\u672C\uFF1B\u6821\u6E96\u4F7F\u7528\u8A2D\u5B9A\u7684\u5148\u9A57\u56E0\u5B50\u3002"
+    }
+  ]
+}

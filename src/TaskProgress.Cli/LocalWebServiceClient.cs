@@ -21,6 +21,10 @@ internal sealed class LocalWebServiceClient : IDisposable
     private const string FilesPath = "/__localwebservice/v1/files";
     private const string ShutdownPath = "/__localwebservice/v1/shutdown";
     private const string EditHealthPath = "/__taskprogress/v1/health";
+    private static readonly HashSet<string> RoutableFileNames = new(
+        ReportModuleRegistry.DeclaredFileNames(ReportModuleProviders.Production),
+        StringComparer.OrdinalIgnoreCase);
+
     private static readonly TimeSpan ProbeTimeout = TimeSpan.FromSeconds(1);
     private static readonly TimeSpan StartupTimeout = TimeSpan.FromSeconds(10);
     private readonly HttpClient _http;
@@ -84,45 +88,25 @@ internal sealed class LocalWebServiceClient : IDisposable
             : await ConnectAsync(settings, health, false, cancellationToken);
     }
 
+    /// <summary>
+    ///   Serves whatever the report's registered providers found, and retires
+    ///   the route of anything they declared but did not find — so deleting a
+    ///   sidecar actually stops it being served rather than leaving the
+    ///   previous one live. No file name appears here: adding a module is a
+    ///   provider, not another pair of branches.
+    /// </summary>
     public async Task RegisterReportAsync(
         ReportFolder report,
         CancellationToken cancellationToken)
     {
-        var reportUrl = $"/reports/{report.Scope}/report.json";
-        var developerUrl = $"/reports/{report.Scope}/report.dev.json";
-        var timeAnalysisUrl = $"/reports/{report.Scope}/time.analysis.json";
-        var moduleManifestUrl = $"/reports/{report.Scope}/report.modules.json";
-        await RegisterFileAsync(reportUrl, report.ReportPath, cancellationToken);
-
-        if (report.DeveloperPath is not null)
+        foreach (var route in report.Routes.Present)
         {
-            await RegisterFileAsync(developerUrl, report.DeveloperPath, cancellationToken);
-        }
-        else
-        {
-            await UnregisterUrlIfPresentAsync(developerUrl, cancellationToken);
+            await RegisterFileAsync(route.UrlPath, route.FilePath, cancellationToken);
         }
 
-        if (report.TimeAnalysisPath is not null)
+        foreach (var urlPath in report.Routes.Absent)
         {
-            await RegisterFileAsync(timeAnalysisUrl, report.TimeAnalysisPath, cancellationToken);
-        }
-        else
-        {
-            await UnregisterUrlIfPresentAsync(timeAnalysisUrl, cancellationToken);
-        }
-
-        // Same lifecycle as the other optional sidecars: register when the
-        // file is there, and remove a stale route when it is not, so deleting
-        // a manifest actually stops it being served rather than leaving the
-        // previous one live.
-        if (report.ModuleManifestPath is not null)
-        {
-            await RegisterFileAsync(moduleManifestUrl, report.ModuleManifestPath, cancellationToken);
-        }
-        else
-        {
-            await UnregisterUrlIfPresentAsync(moduleManifestUrl, cancellationToken);
+            await UnregisterUrlIfPresentAsync(urlPath, cancellationToken);
         }
     }
 
@@ -515,17 +499,19 @@ internal sealed class LocalWebServiceClient : IDisposable
         }
     }
 
+    /// <summary>
+    ///   Recognises a route this Launcher could have registered, so retiring a
+    ///   scope retires everything under it. The file names come from the
+    ///   providers rather than a list kept here: a module whose file this did
+    ///   not recognise would leave its route behind after its scope was gone.
+    /// </summary>
     private static bool TryReadReportRouteScope(string urlPath, out string scope)
     {
         scope = string.Empty;
         var segments = urlPath.Trim('/').Split('/');
         if (segments.Length != 3
             || !string.Equals(segments[0], "reports", StringComparison.Ordinal)
-            || segments[2] is not (
-                "report.json"
-                or "report.dev.json"
-                or "time.analysis.json"
-                or "report.modules.json"))
+            || !RoutableFileNames.Contains(segments[2]))
         {
             return false;
         }

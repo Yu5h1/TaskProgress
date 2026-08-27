@@ -2143,7 +2143,7 @@ footer {
 .time-item-button,
 .time-small-button,
 .time-tab,
-.time-source-badge,
+.assessment-source-badge,
 .time-confidence {
   border-radius: 999px;
 }
@@ -2397,6 +2397,7 @@ footer {
 }
 
 .time-report-grid,
+.assessment-metric-grid,
 .time-metric-grid {
   display: grid;
   gap: 10px;
@@ -2407,11 +2408,13 @@ footer {
 }
 
 .time-report-field,
+.assessment-metric,
 .time-metric {
   min-width: 0;
 }
 
 .time-report-field > span,
+.assessment-metric > span,
 .time-metric > span {
   display: block;
   margin-bottom: 4px;
@@ -2568,7 +2571,7 @@ footer {
   overflow-wrap: anywhere;
 }
 
-.time-explanation-card,
+.assessment-note,
 .time-composition,
 .time-missing-config {
   padding: 13px 14px;
@@ -2577,7 +2580,7 @@ footer {
   background: var(--color-panel-translucent);
 }
 
-.time-explanation-card h3,
+.assessment-note h3,
 .time-composition h3,
 .time-missing-config h3 {
   margin: 0 0 7px;
@@ -2602,7 +2605,7 @@ footer {
   font-weight: 700;
 }
 
-.time-explanation-card p,
+.assessment-note p,
 .time-source-row p {
   margin: 0;
   color: var(--color-secondary-text);
@@ -2669,7 +2672,7 @@ footer {
 }
 
 .time-confidence,
-.time-source-badge {
+.assessment-source-badge {
   display: inline-flex;
   align-items: center;
   border: 1px solid var(--color-border);
@@ -2719,7 +2722,12 @@ footer {
   font-weight: 760;
 }
 
-.time-source-badge {
+/*
+ * The contributor badge — human, AI, historical reference. One implementation
+ * because the three kinds mean the same thing in every assessment module, and
+ * a reader should not have to learn a second visual language per domain.
+ */
+.assessment-source-badge {
   padding: 4px 7px;
   color: var(--color-active-text);
   border-color: var(--color-active-border);
@@ -2825,3 +2833,67 @@ footer {
   border-style: dashed;
   font-variant-numeric: normal;
 }
+
+/*
+ * Cost. Layout, spacing and radius are the shared capsule/dialog contract's;
+ * what belongs to Cost is only the tone its balance carries, which is why
+ * this block defines colour roles and nothing about geometry.
+ */
+.cost-item-button {
+  flex: 0 0 auto;
+  padding: 3px 9px;
+  white-space: nowrap;
+}
+
+.cost-dialog-content {
+  display: grid;
+  gap: 14px;
+}
+
+.cost-readout {
+  display: grid;
+  gap: 4px;
+}
+
+.cost-readout strong {
+  font-size: 1.5rem;
+  color: var(--color-panel-heading);
+}
+
+.cost-readout-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--color-secondary-text);
+  font-size: 0.85rem;
+}
+
+.cost-coverage {
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--color-muted-status-bg);
+  color: var(--color-muted-status-text);
+}
+
+.cost-coverage-full {
+  background: var(--color-success-bg);
+  color: var(--color-success-text);
+}
+
+/*
+ * The tone dot both assessment modules mark a figure with. One implementation,
+ * because Time and Cost use the same three tokens and a second copy would let
+ * "at risk" mean two different colours in one page.
+ */
+.assessment-tone-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-inline-end: 4px;
+  background: var(--color-muted-status-text);
+}
+
+.assessment-tone-on-track { background: var(--color-success-text); }
+.assessment-tone-at-risk { background: var(--color-warning-text); }
+.assessment-tone-critical { background: var(--color-danger-text); }

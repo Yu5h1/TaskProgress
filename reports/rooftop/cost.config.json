@@ -1,0 +1,9 @@
+{
+  "schema_version": "0.1",
+  "scope_id": "rooftop",
+  "updated_at": "2026-08-26T12:00:00+08:00",
+  "currency": "TWD",
+  "currency_symbol": "$",
+  "available_resource_minor_units": 2000000,
+  "risk_thresholds": { "at_risk_remaining_ratio": 0.2 }
+}

@@ -30,7 +30,7 @@
     <div class="time-estimate-meta">
       <span>預估工時</span>
       {#each item.sourceBadges as badge (badge.kind)}
-        <span class="time-source-badge source-{badge.kind}">{badge.label}</span>
+        <span class="assessment-source-badge source-{badge.kind}">{badge.label}</span>
       {/each}
     </div>
     <label class="spike-estimate-hours">

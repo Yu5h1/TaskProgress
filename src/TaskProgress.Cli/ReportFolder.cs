@@ -1,3 +1,15 @@
+// One authorized report folder, resolved: the report's identity, plus
+// whatever the registered providers found beside it.
+//
+// No module may have a field on this record. A module contributes files by
+// being a provider, and a per-sidecar field here would put that module's name
+// on the core report type and make every new module an edit to this file.
+//
+// Resolution — and therefore identity validation — belongs in Load, not at
+// route registration. Commands that never start a service, `analyze` above
+// all, rely on a mismatched overlay failing the load; checking only when a
+// route is registered would quietly stop them noticing.
+
 using System.Text.Json;
 
 namespace TaskProgress;
@@ -5,14 +17,20 @@ namespace TaskProgress;
 internal sealed record ReportFolder(
     string DirectoryPath,
     string ReportPath,
-    string? DeveloperPath,
-    string? TimeAnalysisPath,
-    string? ModuleManifestPath,
     string Scope,
-    string ReportId)
+    string ReportId,
+    ReportModuleRouteSet Routes)
 {
     private static readonly string[] SupportedSchemaVersions = ["1.0", "1.1"];
-    private static readonly string[] SupportedManifestSchemaVersions = ["0.1"];
+
+    /// <summary>
+    ///   Whether a named file was found and validated in this folder. Callers
+    ///   name the file through its owning provider's constant so the name has
+    ///   one source.
+    /// </summary>
+    public bool HasArtifact(string fileName) =>
+        Routes.Present.Any(route =>
+            string.Equals(route.FileName, fileName, StringComparison.OrdinalIgnoreCase));
 
     public static ReportFolder Load(string pathValue)
     {
@@ -27,86 +45,42 @@ internal sealed record ReportFolder(
             : fullPath;
         var reportPath = File.Exists(fullPath)
             ? fullPath
-            : Path.Combine(directory, "report.json");
+            : Path.Combine(directory, CoreReportModuleProvider.ReportFileName);
 
         if (!File.Exists(reportPath))
         {
             throw new CliException($"找不到 report.json：{reportPath}");
         }
 
-        var reportSource = ReadBytes(reportPath, "report.json");
-        var report = ReadIdentity(reportSource, "report.json", requireScope: true);
-        var scope = ScopeId.Validate(report.Scope);
-
-        var developerPath = Path.Combine(directory, "report.dev.json");
-        string? resolvedDeveloperPath = null;
-        if (File.Exists(developerPath))
-        {
-            var developerSource = ReadBytes(developerPath, "report.dev.json");
-            var developer = ReadIdentity(developerSource, "report.dev.json", requireScope: false);
-            if (!string.Equals(developer.SchemaVersion, report.SchemaVersion, StringComparison.Ordinal))
-            {
-                throw new CliException("report.dev.json 的 schema_version 與 report.json 不相容。 ");
-            }
-            if (!string.Equals(developer.ReportId, report.ReportId, StringComparison.Ordinal))
-            {
-                throw new CliException("report.dev.json 的 report_id 與 report.json 不一致。 ");
-            }
-            resolvedDeveloperPath = Path.GetFullPath(developerPath);
-        }
-
-        var timeAnalysisPath = Path.Combine(directory, "time.analysis.json");
-        var resolvedTimeAnalysisPath = File.Exists(timeAnalysisPath)
-            ? Path.GetFullPath(timeAnalysisPath)
-            : null;
-
-        // The optional extension-module manifest. Absent is the normal case
-        // and stays normal: every report that has never declared a module
-        // must keep working untouched. Identity here is validated only
-        // against report.json's own report_id/scope_id — the manifest's
-        // module descriptors are the Viewer's contract to enforce, not the
-        // Launcher's, so this deliberately does not parse them.
-        var moduleManifestPath = Path.Combine(directory, "report.modules.json");
-        string? resolvedModuleManifestPath = null;
-        if (File.Exists(moduleManifestPath))
-        {
-            var manifestSource = ReadBytes(moduleManifestPath, "report.modules.json");
-            var manifest = ReadManifestIdentity(manifestSource, "report.modules.json");
-            if (!string.Equals(manifest.ReportId, report.ReportId, StringComparison.Ordinal))
-            {
-                throw new CliException("report.modules.json 的 report_id 與 report.json 不一致。 ");
-            }
-            if (!string.Equals(manifest.Scope, report.Scope, StringComparison.Ordinal))
-            {
-                throw new CliException("report.modules.json 的 scope_id 與 report.json 不一致。 ");
-            }
-            resolvedModuleManifestPath = Path.GetFullPath(moduleManifestPath);
-        }
+        var report = ReadIdentity(reportPath);
+        var scope = ScopeId.Validate(report.Scope!);
+        var context = new ReportModuleContext(
+            Path.GetFullPath(directory),
+            scope,
+            report.ReportId,
+            report.SchemaVersion);
 
         return new ReportFolder(
-            Path.GetFullPath(directory),
+            context.DirectoryPath,
             Path.GetFullPath(reportPath),
-            resolvedDeveloperPath,
-            resolvedTimeAnalysisPath,
-            resolvedModuleManifestPath,
             scope,
-            report.ReportId);
+            report.ReportId,
+            ReportModuleRegistry.Resolve(context, ReportModuleProviders.Production));
     }
 
-    private static byte[] ReadBytes(string path, string label)
+    private static ReportIdentity ReadIdentity(string path)
     {
+        const string label = CoreReportModuleProvider.ReportFileName;
+        byte[] source;
         try
         {
-            return File.ReadAllBytes(path);
+            source = File.ReadAllBytes(path);
         }
         catch (Exception error) when (error is IOException or UnauthorizedAccessException)
         {
             throw new CliException($"無法讀取 {label}：{error.Message}");
         }
-    }
 
-    private static ReportIdentity ReadIdentity(byte[] source, string label, bool requireScope)
-    {
         try
         {
             using var document = JsonDocument.Parse(source);
@@ -122,41 +96,7 @@ internal sealed record ReportFolder(
                     $"{label} schema_version 必須是 {string.Join("、", SupportedSchemaVersions)}，目前是 {schemaVersion}。");
             }
 
-            var reportId = RequiredString(document.RootElement, "report_id", label);
-            var scope = requireScope
-                ? RequiredString(document.RootElement, "scope_id", label)
-                : null;
-            return new ReportIdentity(schemaVersion, reportId, scope);
-        }
-        catch (JsonException error)
-        {
-            throw new CliException($"{label} 不是有效的 JSON：{error.Message}");
-        }
-    }
-
-    // The manifest carries its own schema_version line (0.1), independent of
-    // report.json's (1.0/1.1) — a module manifest and a report version
-    // separately, per the architecture plan. Reusing ReadIdentity here would
-    // check the manifest against the report's version list and reject every
-    // valid manifest.
-    private static ManifestIdentity ReadManifestIdentity(byte[] source, string label)
-    {
-        try
-        {
-            using var document = JsonDocument.Parse(source);
-            if (document.RootElement.ValueKind != JsonValueKind.Object)
-            {
-                throw new CliException($"{label} 的根節點必須是物件。 ");
-            }
-
-            var schemaVersion = RequiredString(document.RootElement, "schema_version", label);
-            if (Array.IndexOf(SupportedManifestSchemaVersions, schemaVersion) < 0)
-            {
-                throw new CliException(
-                    $"{label} schema_version 必須是 {string.Join("、", SupportedManifestSchemaVersions)}，目前是 {schemaVersion}。");
-            }
-
-            return new ManifestIdentity(
+            return new ReportIdentity(
                 schemaVersion,
                 RequiredString(document.RootElement, "report_id", label),
                 RequiredString(document.RootElement, "scope_id", label));
@@ -180,6 +120,4 @@ internal sealed record ReportFolder(
     }
 
     private sealed record ReportIdentity(string SchemaVersion, string ReportId, string? Scope);
-
-    private sealed record ManifestIdentity(string SchemaVersion, string ReportId, string Scope);
 }

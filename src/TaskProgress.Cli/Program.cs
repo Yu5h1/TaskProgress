@@ -264,6 +264,7 @@ internal static class Program
         string? folder = null;
         string? scope = null;
         string? output = null;
+        string? module = null;
         DateTimeOffset? asOf = null;
         for (var index = 0; index < args.Length; index++)
         {
@@ -275,6 +276,9 @@ internal static class Program
                     break;
                 case "--output":
                     output = ReadOptionValue(args, ref index, value);
+                    break;
+                case "--module":
+                    module = ReadOptionValue(args, ref index, value);
                     break;
                 case "--as-of":
                     var timestamp = ReadOptionValue(args, ref index, value);
@@ -307,22 +311,57 @@ internal static class Program
         }
         if (scope is not null) folder = store.Resolve(scope);
         folder ??= ".";
-        return new AnalyzeRequest(folder, output, asOf);
+        return new AnalyzeRequest(folder, output, module, asOf);
     }
 
+    /// <summary>
+    ///   Explicit regeneration. Unlike the automatic refresh this does not
+    ///   gate on <see cref="IAnalysisModule.HasInputs"/> — the reader asked
+    ///   for it, so each module is given the chance to answer and returns null
+    ///   only when it genuinely has nothing to produce.
+    /// </summary>
     private static void Analyze(AnalyzeRequest request)
     {
-        var result = TimeAnalysisGenerator.Generate(
-            request.Folder,
-            request.AsOf,
-            request.Output);
-        Console.WriteLine($"已產生：{result.OutputPath}");
-        Console.WriteLine($"工程估算：{result.TotalEstimatedMinutes} 分鐘");
-        Console.WriteLine($"分析範圍：{result.TaskCount} 個 task，{result.ItemCount} 個穩定 item");
-        Console.WriteLine(result.DeadlineIncluded
-            ? "期限分析：已產生"
-            : "期限分析：交付日未定");
-        Console.WriteLine($"診斷：{result.DiagnosticCount} 項");
+        var modules = SelectAnalysisModules(request.Module);
+        if (request.Output is not null && modules.Count != 1)
+        {
+            throw new CliException("--output 需要以 --module 指定單一模組。");
+        }
+
+        var produced = new List<(string Name, IReadOnlyList<string> Details)>();
+        foreach (var module in modules)
+        {
+            var result = module.Generate(request.Folder, request.AsOf, request.Output);
+            if (result is not null) produced.Add((module.DisplayName, result.Details));
+        }
+
+        if (produced.Count == 0)
+        {
+            Console.WriteLine("沒有模組可分析此報告。");
+            return;
+        }
+
+        foreach (var (name, details) in produced)
+        {
+            if (produced.Count > 1) Console.WriteLine($"[{name}]");
+            foreach (var line in details) Console.WriteLine(line);
+        }
+    }
+
+    private static IReadOnlyList<IAnalysisModule> SelectAnalysisModules(string? module)
+    {
+        if (module is null) return AnalysisModules.Production;
+        var selected = AnalysisModules.Production
+            .Where(candidate => string.Equals(candidate.Type, module, StringComparison.OrdinalIgnoreCase)
+                || candidate.Type.EndsWith($".{module}", StringComparison.OrdinalIgnoreCase))
+            .ToArray();
+        if (selected.Length == 0)
+        {
+            var names = string.Join("、", AnalysisModules.Production.Select(candidate => candidate.Type));
+            throw new CliException($"找不到分析模組「{module}」。可用：{names}");
+        }
+
+        return selected;
     }
 
     private static async Task StartAsync(
@@ -414,22 +453,33 @@ internal static class Program
         }
     }
 
+    /// <summary>
+    ///   Refreshes every analysis module that has inputs in this folder, and
+    ///   reports whether any produced something, which is what tells the
+    ///   caller to reload the report. One module failing is isolated: it warns
+    ///   and the rest still run, because a broken analyzer must not stop a
+    ///   report being served.
+    /// </summary>
     private static bool TryAutoGenerate(string folder)
     {
-        if (!TimeAnalysisGenerator.HasInputs(folder)) return false;
-        try
+        var generated = false;
+        foreach (var module in AnalysisModules.Production)
         {
-            var result = TimeAnalysisGenerator.Generate(folder);
-            Console.WriteLine(
-                $"時間分析已更新：{result.TotalEstimatedMinutes} 分鐘，"
-                + (result.DeadlineIncluded ? "含期限風險" : "交付日未定"));
-            return true;
+            if (!module.HasInputs(folder)) continue;
+            try
+            {
+                var result = module.Generate(folder);
+                if (result is null) continue;
+                Console.WriteLine(result.Summary);
+                generated = true;
+            }
+            catch (CliException error)
+            {
+                Console.Error.WriteLine($"警告：{module.DisplayName}自動更新失敗：{error.Message}");
+            }
         }
-        catch (CliException error)
-        {
-            Console.Error.WriteLine($"警告：時間分析自動更新失敗：{error.Message}");
-            return false;
-        }
+
+        return generated;
     }
 
     private static async Task<int> RunServiceCommandAsync(
@@ -516,7 +566,8 @@ internal static class Program
         Console.WriteLine();
         Console.WriteLine("命令：");
         Console.WriteLine("  start                            啟動服務並載入所有已登記 scope");
-        Console.WriteLine("  analyze <report-folder>          產生或更新 time.analysis.json");
+        Console.WriteLine("  analyze <report-folder>          執行所有分析模組");
+        Console.WriteLine("  analyze --module <名稱>          只執行指定模組，例如 time、cost");
         Console.WriteLine("  analyze --scope <scope-id>       分析已登記的 scope");
         Console.WriteLine("  checklist <task.checklist>       開啟本機 WPF Checklist 編輯器");
         Console.WriteLine("  checklist install                註冊目前使用者的 .checklist 檔案關聯");
@@ -535,7 +586,8 @@ internal static class Program
         Console.WriteLine("選項：");
         Console.WriteLine("  --scope <scope-id>               使用已登記的 scope");
         Console.WriteLine("  --as-of <ISO timestamp>          固定分析時間，便於重現與測試");
-        Console.WriteLine("  --output <path>                  指定分析輸出，預設 time.analysis.json");
+        Console.WriteLine("  --module <名稱>                  選擇單一分析模組（time、cost）");
+        Console.WriteLine("  --output <path>                  指定分析輸出，需搭配 --module");
         Console.WriteLine("  --port <port>                    指定連接埠，預設 8001");
         Console.WriteLine("  --no-browser                     不自動開啟瀏覽器");
         Console.WriteLine("  -h, -help, --help                顯示本說明");
@@ -562,5 +614,6 @@ internal static class Program
     private sealed record AnalyzeRequest(
         string Folder,
         string? Output,
+        string? Module,
         DateTimeOffset? AsOf);
 }

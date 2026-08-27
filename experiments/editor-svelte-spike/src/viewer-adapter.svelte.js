@@ -1,6 +1,7 @@
 import { mount, unmount } from "svelte";
 
 import AddControl from "./AddControl.svelte";
+import CostDialog from "./CostDialog.svelte";
 import DeliverySaveConfirmation from "./DeliverySaveConfirmation.svelte";
 import Diagnostics from "./Diagnostics.svelte";
 import ModeToggle from "./ModeToggle.svelte";
@@ -46,6 +47,7 @@ const components = {
   "project-module-strip": ModuleCapsuleStrip,
   "time-summary-button": TimeSummaryButton,
   "time-dialog": TimeDialog,
+  "cost-dialog": CostDialog,
   "delivery-save-confirmation": DeliverySaveConfirmation,
 };
 

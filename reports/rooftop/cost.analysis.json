@@ -1,0 +1,112 @@
+{
+  "schema_version": "0.1",
+  "scope_id": "rooftop",
+  "as_of": "2026-08-27T11:53:08.1283673\u002B08:00",
+  "method": {
+    "name": "deterministic-cost-rollup",
+    "version": "0.1"
+  },
+  "inputs": {
+    "config_updated_at": "2026-08-26T12:00:00\u002B08:00",
+    "estimates_updated_at": "2026-08-26T12:00:00\u002B08:00"
+  },
+  "summary": {
+    "currency": "TWD",
+    "currency_symbol": "$",
+    "total_estimated_minor_units": 1170000,
+    "remaining_estimated_minor_units": 870000,
+    "estimated_item_count": 4,
+    "item_count": 6,
+    "coverage": "partial",
+    "resource": {
+      "available_minor_units": 2000000,
+      "balance_minor_units": 1130000,
+      "urgency": "unknown"
+    }
+  },
+  "tasks": [
+    {
+      "id": "plan",
+      "estimated_minor_units": 300000,
+      "remaining_minor_units": 0,
+      "estimated_item_count": 1,
+      "item_count": 1,
+      "coverage": "full",
+      "items": [
+        {
+          "id": "breakdown",
+          "estimated_minor_units": 300000,
+          "done": true,
+          "contributors": [
+            "human"
+          ],
+          "confidence": "high",
+          "human_confirmed": true
+        }
+      ]
+    },
+    {
+      "id": "clean",
+      "estimated_minor_units": 80000,
+      "remaining_minor_units": 80000,
+      "estimated_item_count": 1,
+      "item_count": 2,
+      "coverage": "partial",
+      "items": [
+        {
+          "id": "clean-tools",
+          "estimated_minor_units": 80000,
+          "done": false,
+          "contributors": [
+            "human",
+            "historical-reference"
+          ],
+          "confidence": "medium",
+          "human_confirmed": true
+        }
+      ]
+    },
+    {
+      "id": "filler",
+      "estimated_minor_units": 150000,
+      "remaining_minor_units": 150000,
+      "estimated_item_count": 1,
+      "item_count": 1,
+      "coverage": "full",
+      "items": [
+        {
+          "id": "filler-material",
+          "estimated_minor_units": 150000,
+          "done": false,
+          "contributors": [
+            "ai",
+            "historical-reference"
+          ],
+          "confidence": "low",
+          "human_confirmed": false
+        }
+      ]
+    },
+    {
+      "id": "paint",
+      "estimated_minor_units": 640000,
+      "remaining_minor_units": 640000,
+      "estimated_item_count": 1,
+      "item_count": 2,
+      "coverage": "partial",
+      "items": [
+        {
+          "id": "paint-material",
+          "estimated_minor_units": 640000,
+          "done": false,
+          "contributors": [
+            "human"
+          ],
+          "confidence": "medium",
+          "human_confirmed": true
+        }
+      ]
+    }
+  ],
+  "diagnostics": []
+}

@@ -1,0 +1,27 @@
+{
+  "schema_version": "0.2",
+  "scope_id": "rooftop",
+  "updated_at": "2026-08-27T09:00:00+08:00",
+  "timezone": "Asia/Taipei",
+  "standard_allocation": {
+    "total_minutes_per_day": 1440,
+    "sleep_minutes_per_day": 480,
+    "life_minutes_per_day": 480,
+    "other_unavailable_minutes_per_day": 0,
+    "capacity_minutes_per_executor_day": 480,
+    "working_weekdays": [1, 2, 3, 4, 5],
+    "workday_start_local": "09:00",
+    "workday_end_local": "17:00"
+  },
+  "project": {
+    "executor_count": 1,
+    "not_before": "2026-08-27",
+    "delivery_at": "2026-09-05T00:00:00+08:00",
+    "capacity_exceptions": []
+  },
+  "estimate_defaults": { "unplanned_item_likely_minutes": 480, "unplanned_item_confidence": "low", "allow_range": true },
+  "estimate_resolution": { "automatic_source_order": ["historical", "ai", "default"], "manual_resolution": "final_override", "preserve_history": true },
+  "execution_calibration": { "initial_factor": 1.0, "prior_equivalent_samples": 10, "automatic_adjustment": false },
+  "urgency_thresholds": { "on_track_max_pressure_ratio": 1.1, "at_risk_max_pressure_ratio": 1.5 },
+  "display": { "project_day_rounding": "ceiling", "item_unit": "hour" }
+}

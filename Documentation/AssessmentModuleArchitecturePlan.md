@@ -358,7 +358,17 @@ Available money resource ───┘
 
 ## 尚未決定
 
-- 共用 shell 的**對話框層**已於 2026-08-26 抽出為 `DialogShell.svelte`，形狀來自 `TimeDialog` 與 `ThemeControl` 兩個真實 host：`open`／`id`／`dialogClass`／`kicker`／`title`／`titleId`／`closeLabel`／`onClose` 加一個 slot。剩下未定的是**評估專屬層**——膠囊列與 detail panel 容器、contributor／reference 清單、confidence／coverage／freshness 區塊要以什麼 props 接。它仍然只有 Time 一個真實案例，等 Cost 的 estimated 切片出現後一起定，不預先擬定。
+- 共用 shell 的**對話框層**已於 2026-08-26 抽出為 `DialogShell.svelte`，形狀來自 `TimeDialog` 與 `ThemeControl` 兩個真實 host：`open`／`id`／`dialogClass`／`kicker`／`title`／`titleId`／`closeLabel`／`onClose` 加一個 slot。
+- **評估專屬層的前兩個元件已於 2026-08-27 由 Time 與 Cost 兩個真實面板抽出**，不是預擬：
+  - `AssessmentMetricGrid`：`metrics: [{ label, value, tone? }]`。Time 從四處接入（子項技術細節、工程估算、工作容量、僅估算），Cost 從一處。
+  - `AssessmentNote`：`heading` 加 `tone?`，內文走 slot。slot 而非 `text` prop，是因為兩個真實 caller 放的東西不同——Time 放 `<code>` 公式，Cost 放段落——字串 prop 會逼其中一方把 markup 藏進字串。
+  - `tone` 的詞彙是 `on-track`／`at-risk`／`critical`。兩個領域各自長出同一套，這是它該是共用 token 而非各自 class 名稱的證據。共用元件接收 tone 上色，但不得依數值自行判斷 tone。
+- **contributor 徽章已收斂為 `.assessment-source-badge`（2026-08-27）**，Time 兩處（`TimeDialog`、`ManualEstimateEditor`）與 Cost 子項面板共用一份。human／ai／historical-reference 三種 kind 在每個評估模組都是同一件事，讀者不該為每個領域學一套視覺語言。標籤文字仍由模組提供（Cost 用「人工／AI 分析／歷史參考」）。
+- **仍未決定：readout 的版面。** 兩個模組現在都有子項與專案兩層面板，可以同層比較：
+  - Time 子項：flex `space-between`；標籤與 contributor 徽章在左，數值在右，下方有分隔線。
+  - Cost 子項／專案：grid `gap: 4px`；meta 列（標籤 + 徽章或 coverage）在上，數值在下且字級較大。
+  - 兩者都是「一列說明加一個大數字」，排列方向相反。One UI Source 規則禁止以開關讓兩個 host 把同一元素畫成不同樣子——所以答案必須是**選一種對齊，不是加參數**。這需要視覺判斷，不能由結構推導。
+- **仍未抽：膠囊列與 freshness 區塊。** Cost v1 沒有 freshness 區塊，膠囊列則由既有 `ModuleCapsuleStrip` 擁有而非評估專屬層，因此這兩項目前仍只有 Time 一個案例。
 - 上述狀態機（`idle`／`analyzing`／`saving`／`error`／`dirty`）刻意**還沒**進 `DialogShell`。Time 的對話框沒有自己的儲存，草稿套進全域 edit session 由 SaveBar 負責，所以這組狀態目前只有 `DeliverySaveConfirmation.svelte` 的 `busy` 一個真實案例。責任歸屬照「狀態歸屬」一節不變，落點等第二個真實案例。
 - assessment record 應成為可重用 JSON Schema `$defs`，或先只作可信任 module implementation 的內部 contract；等 Time 遷移時以現有資料形狀驗證後決定。
 - Cost-local 人工的第一版計價單位與複雜度調整公式；由 Cost 領域設計在實作前以真實案例凍結。

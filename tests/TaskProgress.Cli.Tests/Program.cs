@@ -7,6 +7,7 @@ internal static class Program
     public static async Task<int> Main()
     {
         ReportModuleTests.Run();
+        CostEstimationTests.Run();
 
         var originalHome = Environment.GetEnvironmentVariable("TASK_PROGRESS_HOME");
         var testHome = Path.Combine(
@@ -161,13 +162,15 @@ internal static class Program
             var firstReport = ReportFolder.Load(derivedFolder);
             var secondReport = ReportFolder.Load(secondFolder);
             var timeReport = ReportFolder.Load(Path.Combine(repositoryRoot, "reports", "example"));
-            True(timeReport.TimeAnalysisPath is not null, "Example time analysis was not discovered");
+            True(
+                timeReport.HasArtifact(TimeReportModuleProvider.AnalysisFileName),
+                "Example time analysis was not discovered");
 
             // An absent module manifest is the normal case and must stay
             // silent: every report predating the extension-module system has
             // none.
             True(
-                firstReport.ModuleManifestPath is null,
+                !firstReport.HasArtifact(CoreReportModuleProvider.ManifestFileName),
                 "A report with no report.modules.json reported one anyway");
 
             var manifestFolder = Path.Combine(testHome, "ManifestReport");
@@ -199,7 +202,7 @@ internal static class Program
                 manifestSource,
                 cancellation.Token);
             True(
-                ReportFolder.Load(manifestFolder).ModuleManifestPath is not null,
+                ReportFolder.Load(manifestFolder).HasArtifact(CoreReportModuleProvider.ManifestFileName),
                 "A valid report.modules.json was not discovered");
 
             // The manifest versions independently of report.json: its 0.1 is

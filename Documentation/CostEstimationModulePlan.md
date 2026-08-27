@@ -73,65 +73,43 @@ Core 不新增 Cost 欄位、固定 sidecar 名稱或領域分支。Cost 只透�
 
 ### 私有輸入
 
-第一版將 policy／resource 與逐項 estimate 分開，避免每次估計版本更新都重寫整份設定。
+#### v1 已凍結（2026-08-26 使用者決策）
 
-`cost.config.json` 概念形狀：
+Cost 的葉節點就是**一個金額**，與 Time 的葉節點是一個分鐘數同形。它由人工填寫，日後也可由 AI 或歷史參考產生，但那是 contributors 的差別，不是形狀的差別。
 
-```json
-{
-  "schema_version": "0.1",
-  "currency": "TWD",
-  "available_resource_minor_units": 2000000,
-  "risk_thresholds": {
-    "at_risk_remaining_ratio": 0.2
-  },
-  "rate_cards": [
-    {
-      "id": "material-standard",
-      "kind": "material",
-      "unit": "piece",
-      "minor_units_per_unit": 15000
-    },
-    {
-      "id": "labor-deliverable-standard",
-      "kind": "labor",
-      "unit": "deliverable",
-      "minor_units_per_unit": 60000
-    }
-  ]
-}
-```
+v1 刻意**沒有** rate card、沒有 `quantity × 單價`、沒有 complexity 倍率。理由是 Cost 在此階段的任務是當第二個真實模組，驗證共用的 assessment 加總、未設置排除、partial coverage 與膠囊／面板契約；若一開始就給它一套 Time 沒有的計價機制，兩個模組長得不像，反而測不出共用層是否正確。
 
-`cost.estimates.json` 概念形狀：
+`cost.config.json`：
 
 ```json
 {
   "schema_version": "0.1",
   "scope_id": "task-progress",
+  "updated_at": "2026-08-26T12:00:00+08:00",
+  "currency": "TWD",
+  "currency_symbol": "$",
+  "available_resource_minor_units": 20000000,
+  "risk_thresholds": {
+    "at_risk_remaining_ratio": 0.2
+  }
+}
+```
+
+`cost.estimates.json`：
+
+```json
+{
+  "schema_version": "0.1",
+  "scope_id": "task-progress",
+  "updated_at": "2026-08-26T12:00:00+08:00",
   "estimates": [
     {
       "estimate_id": "cost-item-a-v1",
       "task_id": "task-a",
       "item_id": "item-a",
       "active": true,
-      "contributors": ["human", "historical-reference"],
-      "inputs": [
-        {
-          "kind": "material",
-          "quantity": 3,
-          "rate_card_id": "material-standard"
-        },
-        {
-          "kind": "labor",
-          "quantity": 2,
-          "rate_card_id": "labor-deliverable-standard"
-        },
-        {
-          "kind": "complexity",
-          "basis": "labor-subtotal",
-          "factor_millis": 1250
-        }
-      ],
+      "contributors": ["human"],
+      "amount_minor_units": 150000,
       "confidence": "medium",
       "human_confirmed": true
     }
@@ -139,15 +117,24 @@ Core 不新增 Cost 欄位、固定 sidecar 名稱或領域分支。Cost 只透�
 }
 ```
 
-這只是 Phase 4 起點，不是已凍結 Schema。正式設計需補齊 reference、revision、supersedes、notes、範圍與整數上限。
-
 輸入規則：
 
-- money 使用最小貨幣單位整數。
-- quantity 與 rate 的單位必須相容；換算由具版本 calculator 執行。
-- Cost-local labor 可以是工件、班次、角色單位、固定人工金額或其他 Cost 定義的計價量，但不能暗中讀取 Time 的工程分鐘。
-- complexity 是具名 calculator 的參數或明示 adjustment。它必須指出套用基準，例如只套用 labor subtotal；不能一面列為成本項、一面又乘進總額。
-- 歷史／網路參考遵守 `AssessmentModuleArchitecturePlan.md` 的可比性與 provenance 規則。
+- 金額一律以**最小貨幣單位整數**保存，顯示時才換回主單位。世界上的幣別小數位不一，資料存細節、膠囊顯示粗略，是這兩件事各自的職責。
+- 沒有 active estimate 的 item **排除於加總之外**並使該層 coverage 成為 partial。不得補零，也不得代入任何領域預設值——見 `AssessmentModuleArchitecturePlan.md#可加總數量的逐層彙總`。
+- 同一 item 只能有一筆 `active` estimate。
+- 幣別符號預設 `$`，可代表 NT$；正式幣別代碼另存於 `currency`。
+
+#### 縮寫與顯示（2026-08-26 使用者決策）
+
+顯示採國際通用縮寫，與 YouTube 觀看次數同一套：`K` = 1,000、`M` = 1,000,000、`B` = 1,000,000,000。**不使用「萬」**，因為它只在中文圈成立，而幣別本身就是跨區域的。
+
+#### 記錄但不實作
+
+以下三項已有方向，v1 不做，等 v1 證明共用抽象成立後再各自以真實案例決定：
+
+1. **父層定義分類、葉節點填值。** 由 Cost 在專案層定義一組具名成本分類（材料、工程、⋯，可增列），子項面板則顯示這些分類讓人逐項填值。好處是分類只定義一次，子項不各自發明名稱。這個模式也可能適合處理特殊開銷——直接填「理由 + 數值」，不需要複雜系統。使用者認為它甚至可能屬於模組核心而非 Cost 專屬；但那需要第二個模組也真的需要它才能判斷，因此先記不做。
+2. **complexity 以倍率表達，不以獨立成本項表達。** 中文語境慣用「漲幾成」，倍率是自然的形式。落地時必須指明 basis（只乘人工小計、只乘材料小計，或乘總額），且同一個加成不得既列為成本項又乘進總額。
+3. **可用金錢資源先只做 project 層預算**，不拆到 task；等真實需求出現再決定是否拆分。
 
 ### `CostEstimationGenerator`
 

@@ -16,9 +16,14 @@
 namespace TaskProgress;
 
 /// <summary>
-///   A file that is present and should be served.
+///   A file that is present, validated by its owning module, and should be
+///   served.
 /// </summary>
-internal sealed record ReportModuleRoute(string ModuleType, string UrlPath, string FilePath);
+internal sealed record ReportModuleRoute(
+    string ModuleType,
+    string FileName,
+    string UrlPath,
+    string FilePath);
 
 /// <summary>
 ///   What the local service should hold for one scope: routes to register,
@@ -43,10 +48,12 @@ internal static class ReportModuleRegistry
         $"/reports/{scope}/{fileName}";
 
     /// <summary>
-    ///   Resolves every provider's declaration into routes.
-    ///   Throws <see cref="CliException"/> when two providers share a type or
-    ///   claim the same file, or when a declared name escapes the report
-    ///   folder by separator, root, traversal or link.
+    ///   Resolves every provider's declaration into routes, asking each
+    ///   provider to vouch for the files it owns. Throws
+    ///   <see cref="CliException"/> when two providers share a type or claim
+    ///   the same file, when a declared name escapes the report folder by
+    ///   separator, root, traversal or link, or when a present file fails its
+    ///   owner's identity check.
     /// </summary>
     public static ReportModuleRouteSet Resolve(
         ReportModuleContext context,
@@ -65,7 +72,7 @@ internal static class ReportModuleRegistry
                 throw new CliException($"模組 type 重複註冊：{provider.Type}");
             }
 
-            foreach (var artifact in provider.Declare(context))
+            foreach (var artifact in provider.Declare())
             {
                 if (!string.Equals(artifact.ModuleType, provider.Type, StringComparison.Ordinal))
                 {
@@ -89,10 +96,9 @@ internal static class ReportModuleRegistry
                     continue;
                 }
 
-                present.Add(new ReportModuleRoute(
-                    provider.Type,
-                    urlPath,
-                    RequireInside(provider.Type, root, candidate)));
+                var filePath = RequireInside(provider.Type, root, candidate);
+                provider.Validate(context, artifact, filePath);
+                present.Add(new ReportModuleRoute(provider.Type, fileName, urlPath, filePath));
             }
         }
 
@@ -105,10 +111,9 @@ internal static class ReportModuleRegistry
     ///   a new pure data module does not mean editing a fixed list.
     /// </summary>
     public static IReadOnlyList<string> DeclaredFileNames(
-        ReportModuleContext context,
         IReadOnlyList<IReportModuleProvider> providers) =>
         providers
-            .SelectMany(provider => provider.Declare(context))
+            .SelectMany(provider => provider.Declare())
             .Select(artifact => artifact.FileName)
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .ToArray();

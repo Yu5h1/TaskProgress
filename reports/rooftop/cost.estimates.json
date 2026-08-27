@@ -1,0 +1,57 @@
+{
+  "schema_version": "0.1",
+  "scope_id": "rooftop",
+  "updated_at": "2026-08-26T12:00:00+08:00",
+  "estimates": [
+    {
+      "estimate_id": "e1",
+      "task_id": "plan",
+      "item_id": "breakdown",
+      "active": true,
+      "contributors": [
+        "human"
+      ],
+      "amount_minor_units": 300000,
+      "human_confirmed": true,
+      "confidence": "high"
+    },
+    {
+      "estimate_id": "e2",
+      "task_id": "clean",
+      "item_id": "clean-tools",
+      "active": true,
+      "contributors": [
+        "human",
+        "historical-reference"
+      ],
+      "amount_minor_units": 80000,
+      "human_confirmed": true,
+      "confidence": "medium"
+    },
+    {
+      "estimate_id": "e3",
+      "task_id": "filler",
+      "item_id": "filler-material",
+      "active": true,
+      "contributors": [
+        "ai",
+        "historical-reference"
+      ],
+      "amount_minor_units": 150000,
+      "human_confirmed": false,
+      "confidence": "low"
+    },
+    {
+      "estimate_id": "e4",
+      "task_id": "paint",
+      "item_id": "paint-material",
+      "active": true,
+      "contributors": [
+        "human"
+      ],
+      "amount_minor_units": 640000,
+      "human_confirmed": true,
+      "confidence": "medium"
+    }
+  ]
+}
