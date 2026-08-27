@@ -288,6 +288,43 @@ Available money resource ───┘
 
 共用元件可以接收 tone，但不能根據數值替 Time 或 Cost 決定 tone。
 
+### 共用元件契約（2026-08-26／27，由 Time 與 Cost 兩個真實面板抽出）
+
+以下形狀不是預擬的，每一個都有兩個真實 caller 支撐。只有一個 caller 的東西不列在這裡。
+
+- 共用 shell 的**對話框層**已於 2026-08-26 抽出為 `DialogShell.svelte`，形狀來自 `TimeDialog` 與 `ThemeControl` 兩個真實 host：`open`／`id`／`dialogClass`／`kicker`／`title`／`titleId`／`closeLabel`／`onClose` 加一個 slot。
+- **評估專屬層的前兩個元件已於 2026-08-27 由 Time 與 Cost 兩個真實面板抽出**，不是預擬：
+  - `AssessmentMetricGrid`：`metrics: [{ label, value, tone? }]`。Time 從四處接入（子項技術細節、工程估算、工作容量、僅估算），Cost 從一處。
+  - `AssessmentNote`：`heading` 加 `tone?`，內文走 slot。slot 而非 `text` prop，是因為兩個真實 caller 放的東西不同——Time 放 `<code>` 公式，Cost 放段落——字串 prop 會逼其中一方把 markup 藏進字串。
+  - `tone` 的詞彙是 `on-track`／`at-risk`／`critical`。兩個領域各自長出同一套，這是它該是共用 token 而非各自 class 名稱的證據。共用元件接收 tone 上色，但不得依數值自行判斷 tone。
+- **contributor 徽章已收斂為 `.assessment-source-badge`（2026-08-27）**，Time 兩處（`TimeDialog`、`ManualEstimateEditor`）與 Cost 子項面板共用一份。human／ai／historical-reference 三種 kind 在每個評估模組都是同一件事，讀者不該為每個領域學一套視覺語言。標籤文字仍由模組提供（Cost 用「人工／AI 分析／歷史參考」）。
+### Readout 的版面（2026-08-27 使用者決策）
+
+評估面板的每一列是屬性編輯器，不是統計卡。**標籤與值永遠在同一列，任何寬度都不得改成標籤在上、值在下。** Unity Inspector、WPF property grid 與一般帳號密碼表單都是這個讀法：標籤靠左對齊、值靠右，掃視一整欄最快。把標籤堆到值上面會放棄這個對齊，換不到任何東西。
+
+一列有四個區塊，後兩者可選：
+
+```text
+標籤   徽章        摘要……………………………   值／欄位
+```
+
+窄到放不下時，**移走的是裝飾，不是核心那一對**：
+
+```text
+寬：   工時 (人工) 摘要…………………………… [欄位]
+
+窄：   (人工) (膠囊)
+       估價 [________________________欄位]
+       摘要……………………………………………
+```
+
+徽章升到上方自成一列，摘要降到下方完整呈現，而「標籤 + 值」始終是同一列。寬版時摘要以 ellipsis 截斷並以 tooltip 提供全文。
+
+**斷點由 container query 決定，不是 viewport media query。** 這個元件目前在對話框裡，未來會進共用 detail slot，兩者寬度不同；用 viewport 判斷會在對話框變窄時完全不反應。這是本專案第一次使用 container query，理由僅此一項。
+
+摘要是可選的：Time 的子項用 `explanation`（估算依據），Cost v1 沒有對應欄位，該區塊留空即可，不得以佔位文字填補。
+
+
 ### 未設置的值：預覽不顯示，編輯才顯示（2026-08-25 使用者決策）
 
 一般原則：**預覽模式只呈現有實際參考意義的資料。未設置的值沒有參考意義，因此不顯示**；編輯模式顯示它，是因為需要一條進入編輯的路。
@@ -358,16 +395,6 @@ Available money resource ───┘
 
 ## 尚未決定
 
-- 共用 shell 的**對話框層**已於 2026-08-26 抽出為 `DialogShell.svelte`，形狀來自 `TimeDialog` 與 `ThemeControl` 兩個真實 host：`open`／`id`／`dialogClass`／`kicker`／`title`／`titleId`／`closeLabel`／`onClose` 加一個 slot。
-- **評估專屬層的前兩個元件已於 2026-08-27 由 Time 與 Cost 兩個真實面板抽出**，不是預擬：
-  - `AssessmentMetricGrid`：`metrics: [{ label, value, tone? }]`。Time 從四處接入（子項技術細節、工程估算、工作容量、僅估算），Cost 從一處。
-  - `AssessmentNote`：`heading` 加 `tone?`，內文走 slot。slot 而非 `text` prop，是因為兩個真實 caller 放的東西不同——Time 放 `<code>` 公式，Cost 放段落——字串 prop 會逼其中一方把 markup 藏進字串。
-  - `tone` 的詞彙是 `on-track`／`at-risk`／`critical`。兩個領域各自長出同一套，這是它該是共用 token 而非各自 class 名稱的證據。共用元件接收 tone 上色，但不得依數值自行判斷 tone。
-- **contributor 徽章已收斂為 `.assessment-source-badge`（2026-08-27）**，Time 兩處（`TimeDialog`、`ManualEstimateEditor`）與 Cost 子項面板共用一份。human／ai／historical-reference 三種 kind 在每個評估模組都是同一件事，讀者不該為每個領域學一套視覺語言。標籤文字仍由模組提供（Cost 用「人工／AI 分析／歷史參考」）。
-- **仍未決定：readout 的版面。** 兩個模組現在都有子項與專案兩層面板，可以同層比較：
-  - Time 子項：flex `space-between`；標籤與 contributor 徽章在左，數值在右，下方有分隔線。
-  - Cost 子項／專案：grid `gap: 4px`；meta 列（標籤 + 徽章或 coverage）在上，數值在下且字級較大。
-  - 兩者都是「一列說明加一個大數字」，排列方向相反。One UI Source 規則禁止以開關讓兩個 host 把同一元素畫成不同樣子——所以答案必須是**選一種對齊，不是加參數**。這需要視覺判斷，不能由結構推導。
 - **仍未抽：膠囊列與 freshness 區塊。** Cost v1 沒有 freshness 區塊，膠囊列則由既有 `ModuleCapsuleStrip` 擁有而非評估專屬層，因此這兩項目前仍只有 Time 一個案例。
 - 上述狀態機（`idle`／`analyzing`／`saving`／`error`／`dirty`）刻意**還沒**進 `DialogShell`。Time 的對話框沒有自己的儲存，草稿套進全域 edit session 由 SaveBar 負責，所以這組狀態目前只有 `DeliverySaveConfirmation.svelte` 的 `busy` 一個真實案例。責任歸屬照「狀態歸屬」一節不變，落點等第二個真實案例。
 - assessment record 應成為可重用 JSON Schema `$defs`，或先只作可信任 module implementation 的內部 contract；等 Time 遷移時以現有資料形狀驗證後決定。
