@@ -685,4 +685,33 @@ test("formal Viewer sources use shared Svelte components and the shared core", a
   assert.match(cardText, /task-card editor-task-card/u);
   assert.match(rowText, /class="editor-item-row"/u);
   assert.doesNotMatch(cardText + rowText, /localStorage/u);
+  // The readout row (Documentation/AssessmentModuleArchitecturePlan.md#readout-的版面,
+  // 2026-08-27): label and value stay on one line at every width, so the two
+  // module-specific classes that used to draw it — one flex, one stacking
+  // grid — are retired in favour of one shared component.
+  assert.match(dialogText, /<AssessmentReadout label="預估工時" value=\{item\.likelyHoursLabel\}>/u);
+  assert.doesNotMatch(viewerStylesText, /\.time-estimate-readout|\.cost-readout\b/u);
+  // The manual-estimate form's own badges-above-an-editable-field row looks
+  // similar but is not this component — its value is a live input, not a
+  // fixed string — so it was named apart rather than folded in, and must not
+  // drift back onto the retired class it used to share by coincidence.
+  assert.match(manualEstimateText, /class="spike-estimate-row"/u);
+  assert.doesNotMatch(manualEstimateText, /time-estimate-readout|time-estimate-meta/u);
+  // The narrow rearrangement is sized against the dialog, not the viewport:
+  // this row lives in a dialog today and a shared detail slot later, and a
+  // viewport query would not react when the dialog itself narrows rather than
+  // the window. This is the project's first use of a container query.
+  assert.match(viewerStylesText, /\.theme-dialog\s*\{[\s\S]*?container-type:\s*inline-size/u);
+  assert.match(viewerStylesText, /@container \(max-width: 460px\) \{\s*\.assessment-readout/u);
+});
+
+test("Cost's dialog draws its readout through the same shared component as Time's", async () => {
+  const costDialogText = await readFile(
+    new URL("../experiments/editor-svelte-spike/src/CostDialog.svelte", import.meta.url),
+    "utf8",
+  );
+  assert.match(costDialogText, /import AssessmentReadout from "\.\/AssessmentReadout\.svelte";/u);
+  assert.match(costDialogText, /<AssessmentReadout label="估算成本" value=\{item\.exact\}>/u);
+  assert.match(costDialogText, /<AssessmentReadout label="估算總額" value=\{total\.exact\}>/u);
+  assert.doesNotMatch(costDialogText, /cost-readout\b/u);
 });

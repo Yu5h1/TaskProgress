@@ -309,6 +309,7 @@ code {
 }
 
 .theme-dialog {
+  container-type: inline-size;
   width: min(620px, calc(100% - 28px));
   max-height: min(760px, calc(100vh - 32px));
   padding: 22px;
@@ -2696,32 +2697,6 @@ footer {
   color: var(--color-warning-text);
 }
 
-.time-estimate-readout {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 12px;
-  padding: 12px 14px;
-  border-bottom: 1px solid var(--color-border);
-}
-
-.time-estimate-readout > strong {
-  flex: 0 0 auto;
-  color: var(--color-heading);
-  font-size: 1rem;
-}
-
-.time-estimate-meta {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 6px;
-  color: var(--color-heading);
-  font-size: 0.76rem;
-  font-weight: 760;
-}
-
 /*
  * The contributor badge — human, AI, historical reference. One implementation
  * because the three kinds mean the same thing in every assessment module, and
@@ -2774,8 +2749,7 @@ footer {
     transform: rotate(90deg);
   }
 
-  .time-source-row,
-  .time-estimate-readout {
+  .time-source-row {
     align-items: flex-start;
   }
 }
@@ -2850,24 +2824,6 @@ footer {
   gap: 14px;
 }
 
-.cost-readout {
-  display: grid;
-  gap: 4px;
-}
-
-.cost-readout strong {
-  font-size: 1.5rem;
-  color: var(--color-panel-heading);
-}
-
-.cost-readout-meta {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: var(--color-secondary-text);
-  font-size: 0.85rem;
-}
-
 .cost-coverage {
   padding: 1px 8px;
   border-radius: 999px;
@@ -2897,3 +2853,82 @@ footer {
 .assessment-tone-on-track { background: var(--color-success-text); }
 .assessment-tone-at-risk { background: var(--color-warning-text); }
 .assessment-tone-critical { background: var(--color-danger-text); }
+
+/*
+ * The headline row: label left, value right, one line to scan — the property
+ * row reading Documentation/AssessmentModuleArchitecturePlan.md#readout-的版面
+ * settles on. Grid areas rather than flex because the narrow rearrangement
+ * moves badges and the summary independently of the label/value pair, which a
+ * single flex axis cannot express.
+ *
+ * The container query is sized against `.theme-dialog` (see its
+ * `container-type` above), not the viewport: this row lives in a dialog today
+ * and moves into the shared detail slot later, and those two are different
+ * widths. A viewport query would not react when the dialog itself narrows.
+ */
+.assessment-readout {
+  display: grid;
+  grid-template-columns: auto auto minmax(0, 1fr) auto;
+  grid-template-areas: "label badges summary value";
+  align-items: baseline;
+  column-gap: 10px;
+  row-gap: 4px;
+  margin-bottom: 12px;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.assessment-readout-label {
+  grid-area: label;
+  color: var(--color-heading);
+  font-size: 0.76rem;
+  font-weight: 760;
+  white-space: nowrap;
+}
+
+.assessment-readout-badges {
+  grid-area: badges;
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.assessment-readout-badges:empty {
+  display: none;
+}
+
+.assessment-readout-summary {
+  grid-area: summary;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--color-secondary-text);
+  font-size: 0.8rem;
+}
+
+.assessment-readout-value {
+  grid-area: value;
+  justify-self: end;
+  color: var(--color-heading);
+  font-size: 1rem;
+  white-space: nowrap;
+}
+
+@container (max-width: 460px) {
+  .assessment-readout {
+    grid-template-columns: 1fr auto;
+    grid-template-areas:
+      "badges badges"
+      "label value"
+      "summary summary";
+    align-items: center;
+  }
+
+  .assessment-readout-summary {
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+  }
+}

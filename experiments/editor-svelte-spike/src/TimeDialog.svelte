@@ -2,6 +2,7 @@
   import { tick } from "svelte";
   import AssessmentMetricGrid from "./AssessmentMetricGrid.svelte";
   import AssessmentNote from "./AssessmentNote.svelte";
+  import AssessmentReadout from "./AssessmentReadout.svelte";
   import DialogShell from "./DialogShell.svelte";
   import ManualEstimateEditor from "./ManualEstimateEditor.svelte";
   import TimeSettingsEditor from "./TimeSettingsEditor.svelte";
@@ -203,15 +204,13 @@
             <ManualEstimateEditor item={{ ...item, title }} {activeEstimate} onApply={onManualEstimate} />
           {/key}
         {:else}
-          <section class="time-estimate-readout">
-            <div class="time-estimate-meta">
-              <span>預估工時</span>
+          <AssessmentReadout label="預估工時" value={item.likelyHoursLabel}>
+            <svelte:fragment slot="badges">
               {#each item.sourceBadges as badge (badge.kind)}
                 <span class="assessment-source-badge source-{badge.kind}">{badge.label}</span>
               {/each}
-            </div>
-            <strong>{item.likelyHoursLabel}</strong>
-          </section>
+            </svelte:fragment>
+          </AssessmentReadout>
           <div class="time-item-rationale">
             <AssessmentNote heading="估算依據"><p>{item.rationale}</p></AssessmentNote>
           </div>

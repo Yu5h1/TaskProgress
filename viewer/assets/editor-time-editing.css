@@ -296,6 +296,34 @@
   gap: 12px;
 }
 
+/*
+ * The manual-estimate editor's own headline row: badges left, the editable
+ * hours field right. It is not `.assessment-readout` — that component's value
+ * is a fixed string, and this row's value is a live input — but the two used
+ * to share a class name by coincidence, which is what silently broke this row
+ * when the shared one was scoped to the static case. Named apart on purpose so
+ * the next rename of one does not repeat that.
+ */
+.spike-estimate-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--line);
+}
+
+.spike-estimate-badges {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  color: var(--ink);
+  font-size: 0.76rem;
+  font-weight: 760;
+}
+
 .spike-estimate-hours,
 .spike-estimate-note {
   display: grid;

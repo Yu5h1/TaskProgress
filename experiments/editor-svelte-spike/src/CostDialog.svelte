@@ -1,6 +1,7 @@
 <script>
   import AssessmentMetricGrid from "./AssessmentMetricGrid.svelte";
   import AssessmentNote from "./AssessmentNote.svelte";
+  import AssessmentReadout from "./AssessmentReadout.svelte";
   import DialogShell from "./DialogShell.svelte";
 
   /*
@@ -37,15 +38,13 @@
 >
   <div class="cost-dialog-content">
     {#if kind === "item" && item}
-      <section class="cost-readout">
-        <div class="cost-readout-meta">
-          <span>估算成本</span>
+      <AssessmentReadout label="估算成本" value={item.exact}>
+        <svelte:fragment slot="badges">
           {#each item.contributors as contributor (contributor.kind)}
             <span class="assessment-source-badge source-{contributor.kind}">{contributor.label}</span>
           {/each}
-        </div>
-        <strong>{item.exact}</strong>
-      </section>
+        </svelte:fragment>
+      </AssessmentReadout>
 
       <AssessmentMetricGrid metrics={[
         ...(item.confidenceLabel ? [{ label: "信心", value: item.confidenceLabel }] : []),
@@ -61,13 +60,9 @@
         </AssessmentNote>
       {/if}
     {:else if total}
-      <section class="cost-readout">
-        <div class="cost-readout-meta">
-          <span>估算總額</span>
-          <span class="cost-coverage cost-coverage-{total.coverage}">{total.coverageLabel}</span>
-        </div>
-        <strong>{total.exact}</strong>
-      </section>
+      <AssessmentReadout label="估算總額" value={total.exact}>
+        <span slot="badges" class="cost-coverage cost-coverage-{total.coverage}">{total.coverageLabel}</span>
+      </AssessmentReadout>
 
       <AssessmentMetricGrid metrics={[
         { label: "未完成成本", value: total.remaining },

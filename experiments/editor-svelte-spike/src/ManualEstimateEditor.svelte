@@ -37,8 +37,8 @@
 </script>
 
 <form class="spike-estimate-form" onsubmit={(event) => { event.preventDefault(); applyManualEstimate(); }}>
-  <section class="time-estimate-readout">
-    <div class="time-estimate-meta">
+  <section class="spike-estimate-row">
+    <div class="spike-estimate-badges">
       <span>預估工時</span>
       {#each item.sourceBadges as badge (badge.kind)}
         <span class="assessment-source-badge source-{badge.kind}">{badge.label}</span>
