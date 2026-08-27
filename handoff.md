@@ -169,8 +169,7 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
   - The user reduced the host model to Browser／HTTP and `task-progress.exe` Desktop／WebView2 on 2026-08-22. Viewer currently has the Browser entrance and Checklist the Desktop entrance; future work may fill Checklist Browser and Viewer Desktop. Design the shared Edit Application Service before either missing entrance so both reuse the existing UI and contracts.
   - If tablet editing is later promoted from priority 3, first define opt-in restricted-LAN binding, identity/capability boundaries, and firewall guidance; only then schedule real-device touch verification. Current supported editing remains PC exact-loopback.
 - **Local edit host must be started manually each session:** `Build/win-x64/task-progress.exe start --no-browser`. `/__taskprogress/v1/capabilities/task-progress` then returns 200 with `editable: true`. Entry is `http://127.0.0.1:8001/?scope=task-progress`.
-  - **本機 host 的可用性已被使用者列為先決條件（2026-08-27）。** 在它被處理之前，任何改動都無法用正式 Viewer 驗證。**使用者將在另一個 session 處理這項應用**——不要在本專案的工作中順手改動 host 行為或 scope 註冊機制，會與那個 session 衝突。
-  - 本輪踩到的兩個具體事實，供那個 session 參考：(1) 服務**不會跨 session 存活**，每次都要重新啟動；(2) `open <folder>` 是**加上去**，`start` 會**清掉未登記 scope 的路由**。本輪誤用 `open` 重啟後，四個 scope 與 scope catalog 全部 404，畫面因此開不起來——那不是程式碼問題，是啟動方式選錯。
+  - `open <folder>` 是**加上去**，`start` 會**清掉未登記 scope 的路由**。`reports/example` 與 `reports/rooftop` 都刻意不登記，所以每次 `start` 後要用 `open` 掛回來。
 
 ## Open decisions
 
