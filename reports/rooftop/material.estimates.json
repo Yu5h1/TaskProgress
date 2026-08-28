@@ -1,0 +1,80 @@
+{
+  "schema_version": "0.1",
+  "module_type": "taskprogress.material",
+  "scope_id": "rooftop",
+  "updated_at": "2026-08-28T10:00:00+08:00",
+  "currency": "TWD",
+  "lines": [
+    {
+      "line_id": "m-clean-broom",
+      "task_id": "clean",
+      "item_id": "clean-tools",
+      "name": "掃把",
+      "unit": "支",
+      "quantity": 1,
+      "unit_price_minor_units": 35000,
+      "price_basis": "market_quote"
+    },
+    {
+      "line_id": "m-clean-dustpan",
+      "task_id": "clean",
+      "item_id": "clean-tools",
+      "name": "畚箕",
+      "unit": "個",
+      "quantity": 1,
+      "unit_price_minor_units": 15000,
+      "price_basis": "market_quote"
+    },
+    {
+      "line_id": "m-clean-bags",
+      "task_id": "clean",
+      "item_id": "clean-tools",
+      "name": "大型垃圾袋",
+      "unit": "捲",
+      "quantity": 6,
+      "unit_price_minor_units": 5000,
+      "price_basis": "market_quote"
+    },
+    {
+      "line_id": "m-filler-cement",
+      "task_id": "filler",
+      "item_id": "filler-material",
+      "name": "彈性水泥補土",
+      "unit": "包",
+      "quantity": 6,
+      "unit_price_minor_units": 25000,
+      "price_basis": "market_quote"
+    },
+    {
+      "line_id": "m-paint-coating",
+      "task_id": "paint",
+      "item_id": "paint-material",
+      "name": "透明防水漆",
+      "unit": "桶",
+      "quantity": 4,
+      "unit_price_minor_units": 160000,
+      "price_basis": "market_quote"
+    },
+    {
+      "line_id": "m-paint-roller",
+      "task_id": "paint",
+      "item_id": "paint-tools",
+      "name": "滾筒刷",
+      "unit": "支",
+      "quantity": 2,
+      "unit_price_minor_units": 12000,
+      "price_basis": "inventory",
+      "note": "從庫存取用，因此比市面價格低廉（市價約 200/支）"
+    },
+    {
+      "line_id": "m-paint-brush",
+      "task_id": "paint",
+      "item_id": "paint-tools",
+      "name": "邊角油漆刷",
+      "unit": "支",
+      "quantity": 1,
+      "unit_price_minor_units": 15000,
+      "price_basis": "market_quote"
+    }
+  ]
+}

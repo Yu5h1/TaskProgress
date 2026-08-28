@@ -1,0 +1,19 @@
+{
+  "schema_version": "0.1",
+  "module_type": "taskprogress.labor",
+  "scope_id": "rooftop",
+  "updated_at": "2026-08-28T10:00:00+08:00",
+  "currency": "TWD",
+  "rates": [
+    {
+      "rate_id": "self",
+      "name": "自行施作",
+      "pricing_model": "hourly",
+      "parameters": {
+        "amount_minor_units": 30000
+      },
+      "basis": "以一般臨時工日薪 2400 除以 8 小時推算，未計年資與額外契約"
+    }
+  ],
+  "default_rate_id": "self"
+}

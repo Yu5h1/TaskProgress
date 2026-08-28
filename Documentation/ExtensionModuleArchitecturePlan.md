@@ -206,6 +206,7 @@ Viewer Slots
 | `source` | 相對於 manifest 的同源 JSON 路徑 |
 | `optional` | 載入失敗是否只產生模組診斷；第一版只接受 `true` |
 | `visibility` | `public`、`developer` 或 `local` 發布分類，不是授權機制 |
+| `depends_on` | 選用；本模組讀取的上游 module **type** 清單。軟依賴——缺席即忽略，不是錯誤。規則見〈模組依賴與重算〉 |
 
 Phase 0 將 Descriptor identity 固定如下：
 
@@ -243,6 +244,13 @@ Phase 0 將 Descriptor identity 固定如下：
     "id": "taskprogress-difficulty-analyzer",
     "version": "0.1"
   },
+  "content_revision": "sha256:fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210",
+  "input_modules": [
+    {
+      "module_type": "taskprogress.time",
+      "content_revision": "sha256:89abcdef0123456789abcdef0123456789abcdef0123456789abcdef01234567"
+    }
+  ],
   "data": {
     "summary": {},
     "tasks": []
@@ -250,7 +258,7 @@ Phase 0 將 Descriptor identity 固定如下：
 }
 ```
 
-共同欄位負責配對及追溯，`data` 由模組自己的 Schema 定義。模組不得假設其他模組的欄位存在；跨模組分析應由上游分析器明確讀取多個來源並產生新的獨立投影。
+共同欄位負責配對及追溯，`data` 由模組自己的 Schema 定義。模組不得假設其他模組的欄位存在；跨模組分析應由上游分析器明確讀取多個來源並產生新的獨立投影。`content_revision` 與 `input_modules` 屬於依賴契約，由〈模組依賴與重算〉擁有，此處只列出它們在 envelope 中的位置。
 
 `report_revision` 是產生投影時所讀取之 `report.json` 原始 bytes 的 SHA-256，格式固定為 `sha256:<64 lowercase hex>`。它用來判斷投影是否對應目前報告，不取代 sidecar 自己的 `schema_version`、`generated_at` 或來源 revision。legacy Time adapter 在遷移期可缺少此欄位；缺少時只記錄 `freshness_unknown`，不得宣稱投影已驗證為最新。
 
@@ -290,6 +298,65 @@ Phase 0 將 Descriptor identity 固定如下：
 - 契約維持單向（Core 問、模組答），不引入 push，模組無法因為收到通知而在錯誤時機執行副作用。
 
 現況落差：`app.js` 目前直接呼叫 `timeController.setReportStructureStale(...)`，那是 Core 認識 Time 私有 API 的一處耦合，也是 runtime controller 尚未能移入模組的原因之一。改為上述設計後，該呼叫應消失。
+
+## 模組依賴與重算（2026-08-28 使用者決策）
+
+在此之前 descriptor 只表達「我是誰、我的資料在哪」，沒有任何欄位表達「我讀誰」。缺口具體造成三件事：新鮮度算不出來（上游改了下游不知道自己過期）、失敗隔離是猜的（下游在上游缺席時該顯示什麼未定義）、重算順序沒有依據（純粹是清單順序）。本節是所有擴充模組共同遵守的依賴契約；`AssessmentModuleArchitecturePlan.md` 與 `CostEstimationModulePlan.md` 引用它，不另行定義。
+
+### 依賴由模組自己宣告，而且是軟的
+
+- 依賴寫在 descriptor 的 `depends_on`，manifest 只做發現，不做語意判斷。理由是模組的定義就是能分離；由 manifest 擁有依賴圖等於把耦合搬到模組外面，模組就不再自足。
+- `depends_on` 的元素是 **module type**，不是實例 `id`。
+- 依賴是**軟的**：上游在就讀，不在就忽略，不是錯誤。這同時定義了失敗隔離——上游缺席或失效時，下游照算並聲明覆蓋率，不整個停掉。
+
+選 type 而不是 `id`，決定性的理由是失敗模式。軟依賴的斷裂是靜默的（找不到就忽略），所以 `id` 一旦被改名或打錯字，那條依賴會無聲消失：畫面上沒有任何症狀，只有數字少算。`type` 是契約的一部分，不隨報告作者改名而變。而且相依的本來就是**資料形狀**，不是實例名稱——讀 Time 的模組讀得懂的是「時間模組的分析輸出長什麼樣」。〈Descriptor 欄位〉的「同一 scope 內同一 type 只允許一個 instance」也讓 type 的解析在今天完全無歧義。
+
+多 instance 仍是〈延後但不阻塞的決策〉第 1 項。真的升級時，預設語意是「該 type 的實例全部讀入」而不是挑一個；要挑再另加明確的 pin 欄位，現在不為它設計。
+
+### 依賴變動只標記 dirty，不直接觸發重算
+
+- 上游變動**不直接觸發重算**，只把下游標記為 dirty。標記是冪等的：同一輪內上游改一次或十次，結果都是一次 dirty。
+- 重算在一個明確的統一時機發生，依拓樸順序，一個 dirty 模組只跑一次。
+- 直接觸發重算的話，N 個上游在同一輪內會各自引發一次下游重算，前 N−1 次的結果立刻作廢。這與 WPF `InvalidateMeasure()` 只弄髒、由 layout pass 統一重排是同一個形狀。
+
+### dirty 有兩個來源，磁碟上不保存 dirty
+
+| 來源 | 何時有效 | 代價 |
+|---|---|---|
+| 執行中的事件通知 | 只在有程序活著時 | 便宜、即時 |
+| 程序啟動時的輸入比對 | 一律有效 | 每次啟動一次全面比對 |
+
+兩者寫進同一個記憶體中的 dirty 位元，下游不需要知道自己是被哪一種弄髒的。**第一版只實作啟動時比對**；事件只是省掉一次全面比對，之後再加不會推翻已寫好的部分。沒有常駐程序不代表 dirty 無效，只代表事件不能是唯一來源——MSBuild 的增量編譯同樣沒有 daemon，靠的就是啟動時比對。
+
+磁碟上**不保存** dirty 欄位。dirty 由「我實際讀了誰、當時的 revision 是什麼」推導出來。持久化的 dirty 會有跟事實不同步的可能：有人手改了輸入卻沒有人更新那個欄位，dirty 就在說謊——而「手改檔案」正是啟動時比對要補的那個情境。
+
+### revision 用內容雜湊，由上游自己算
+
+- 每個模組在自己的 envelope 寫出 `content_revision`，格式與 `report_revision` 相同（`sha256:<64 lowercase hex>`）。
+- 下游在自己的 envelope 以 `input_modules` 記錄它**實際讀到**的每個上游 type 與當時的 `content_revision`。
+- 比對就是字串比對。下游不需要知道上游哪些欄位算數——**什麼叫「我變了」由模組自己定義**，與依賴自己宣告是同一個原則。
+
+**`content_revision` 的計算範圍必須排除 `generated_at`／`as_of` 這類每次產出都會變動的欄位。** 否則上游每跑一次就算「變了」，下游永遠 dirty，cascade 會無限自我觸發。這不是假設：`time.analysis.json` 的 `as_of` 每次執行都 churn，正是它被 gitignore 的原因之一。
+
+不採用作者手寫的 `updated_at`，因為忘了更新那個欄位的手，跟手改檔案的是同一隻。不採用檔案 mtime，因為 `git checkout`、複製甚至只是 touch 都會讓它跳動，導致整條鏈無謂重算。
+
+`input_modules` 有第二個、獨立於新鮮度的存在理由：軟依賴讓同一個結果的**意義**隨當時有什麼而不同。上游缺席時算出來的是一個少算的數字，若沒有這份記錄，畫面上沒有任何方式能分辨它少算了什麼。
+
+### 遞迴不需要另外設計
+
+拓樸順序保證上游先重算；上游一被重算就是一次新的改動，下游因此被弄髒。遞迴是 cascade 的副作用，不是額外邏輯，新鮮度檢查也因此只需要看直接輸入一層。
+
+### 循環
+
+- 拓樸排序偵測到循環時，**停用涉入循環的全部模組，其餘照跑**。循環不得讓整份報告開不起來，這與既有的「一個模組失效不擋其他模組」一致。
+- **不得以忽略其中一條邊來打破循環。** 軟依賴讓這件事在技術上做得到，而那正是它危險的地方：丟掉 A→B 還是 B→A 會算出不同的數字，而畫面上完全看不出丟了哪一條。
+- 循環是**設定寫錯**，不是執行時意外，因此診斷必須印出完整循環路徑（例如 `估價 → 材料 → 估價`），不能只說「載入失敗」。
+
+### 被忽略的依賴必須在畫面上說出來
+
+只要有依賴被忽略——上游缺席、上游失效、或涉入循環被停用——使用者可見的層級必須明說**哪一個模組失效、它的數值未計入**，不能只給一句通用的失效訊息。
+
+這是對〈錯誤與降級政策〉診斷分級的一處**刻意收斂**：原本規定公開 Viewer 只顯示低干擾的「部分擴充資訊無法使用」。模組名稱與「未計入」不是技術細節，而是讓畫面上那個數字可被正確解讀的必要資訊——少了它，使用者會把一個少算的數字當成完整結果。錯誤碼、路徑與 payload 仍然只在 localhost／Developer 模式出現。
 
 ## Viewer 模組接口
 
@@ -479,10 +546,13 @@ External status 模組不得讓 TaskProgress 成為交易或法律事實的 cano
 | 投影落後於 report revision | 標示 stale 或依模組政策暫停顯示 |
 | Renderer 發生例外 | 捕捉於模組邊界，清理該模組 UI |
 | Runtime controller 失敗 | 停止動態更新，保留仍可信的靜態資料或隔離模組 |
+| 軟依賴的上游缺席或失效 | 下游照算，於 `input_modules` 記錄實際讀到誰；畫面明說該模組失效且未計入 |
+| `depends_on` 形成循環 | 停用涉入循環的全部模組，其餘照跑；診斷列出完整循環路徑，不得自行丟棄一條邊 |
 
 診斷分級固定為：
 
 - 公開 Viewer 的主報告不顯示技術細節；只有當使用者已看見模組入口但該模組之後失效時，顯示低干擾的「部分擴充資訊無法使用」。
+- 但若失效的模組是某個顯示中數值的依賴，訊息必須指名該模組並說明其值未計入——見〈模組依賴與重算〉的收斂規則。
 - localhost／Developer 模式提供結構化 module diagnostics，包括 module ID、階段、錯誤碼與安全裁切後的訊息。
 - Console 可以記錄相同錯誤碼，但不得輸出 local path、private source 或未裁切 payload。
 - unknown type 在公開模式靜默跳過，在 localhost／Developer 模式記錄 `unsupported_module_type`。
@@ -811,7 +881,7 @@ assessment family 與結算邊界見 `Documentation/AssessmentModuleArchitecture
 
 ## 延後但不阻塞的決策
 
-1. 同一 module type 的多 instance 支援：等出現真實命名與比較需求後另行升級 manifest major version。
+1. 同一 module type 的多 instance 支援：等出現真實命名與比較需求後另行升級 manifest major version。升級時同時要決定 `depends_on` 的解析語意，預設方向是「該 type 全部讀入」——見〈模組依賴與重算〉。
 2. `taskprogress.metrics` 的元件白名單與無障礙限制：在 Phase 5 由第三個真實模組案例決定。
 3. 外部開發 SDK 與動態 Renderer：Time／Cost 只驗證內建可信任 registry，不因此承諾套件安裝系統。
 4. 對外穩定 Schema：manifest 與 common envelope 在 Time 遷移及 Cost 驗證期間維持 repository-internal Draft；Phase 4 通過並有升級／相容指南後才評估 1.0。
