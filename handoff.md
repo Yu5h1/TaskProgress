@@ -23,6 +23,8 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
   - **材料模組是一份清單**：每項填材料名稱、單價、數量，金額為單價 × 數量。這與 Cost v1「刻意沒有 `quantity × 單價`」相反，但當時的理由只約束 Cost 自己的葉節點。使用者判斷庫存不是材料的計價方式，即使要處理也仍是單價 × 數量，所以天臺案例的「工具壞掉可以加入重新計算」是清單多一項，不是庫存／採購追蹤。
   - **兩個模組落地時各自獨立文件**；現在暫記在 Cost 計畫裡只因為它們是 Cost 的上游。
 
+- **Tray worker：TaskProgress 這一側完成並實機驗證（2026-08-31）。** 使用者確認的項目：已發布路徑 `Build/win-x64/task-progress.exe start --tray` 正常、首次啟動由 `--buildIcon` 自動生成 `light.ico`／`dark.ico` 並把 manifest 升級為 schema 2、tray 圖示正確顯示、Exit 會停掉服務。icon 不再簽入原始碼——它是部署產物。`TrayHostLauncher` 的探索**只搜尋 Release**，不再退回 Debug。
+  - **使用者在 Settings 看到的 `Starting → Ready` 是 worker process 的狀態，不是服務的狀態**，也看不到服務 PID。這是「對 Winform 的需求」第 2 項存在的直接證據，不是本專案的缺陷。
 - **Tray worker Phase 2 完成，tray 已能實際叫起來（2026-08-27）。** 新增 `taskprogress.trayapp.json`（schema 2）、`light.ico`／`dark.ico`（TrayHost `--BuildIcon` 由 `displayName` 首字 `T` 產生）、`TrayHostLauncher.cs`，`Program.cs` 加上 `start --tray`（與 `--port` 互斥）。manifest 與 icon 以 csproj `Content` 複製到輸出與發布目錄，因此 `Publish.cmd` **不需要改**。只呼叫 TrayHost 的 `invoke`，不呼叫 `host`——單一實例由 TrayHost identity 保證。
   - **實機驗證通過（使用者授權後執行）**：`start --tray --no-browser` 讓 tray 出現，worker 起了服務並回報 `Ready ... PID 44436 ... 5 scopes`；**再跑一次 PID 完全相同**，process 清點為 TrayHost 28600／worker 45780／python 44436 各一個，冪等性成立。
   - **發現 Winform 端的編碼 bug**：TrayHost `invoke` 以系統 ANSI codepage 輸出 `payload.stdout`，實測 `—` 是 CP950 的 `a1 58`，被 UTF-8 讀取端解成亂碼。影響所有 worker，不只本專案。已把 status 行的分隔符改成 ASCII `|` 作為本側的確定性修法；根治要在 TrayHost 進入點設 `Console.OutputEncoding = Encoding.UTF8`，列在 `Documentation/TrayWorkerPlan.md#phase-3-之前要修的-winform-問題`。
@@ -187,8 +189,8 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
 - **Single-writer artifacts and shared resources in this project (2026-08-22).** The general rule is in `../.agents/skills/agent-work-route/SKILL.md`; these are the instances here. One writer at a time: `viewer/assets/viewer-ui.js` (a 155 kB build product under version control, so two agents rebuilding it after separate `.svelte` edits produce a conflict no merge can resolve — and `verify-bundle` fails on the result), `src/TaskProgress.Cli/packages.lock.json` (see the `dotnet run` gotcha below), each individual `checklists/<task-id>.checklist`, and `handoff.md`／`plan.md`／`report.json`／`report.dev.json`. Different Checklist files may have different owners, but that does not grant source-file ownership. Not partitioned by worktree: the edit host on `127.0.0.1:8001` is a single process that `LocalWebServiceClient.EnsureAsync` reuses rather than duplicates, so restarting it invalidates every other session's token, and `src/TaskProgress.Cli/bin/Release/**` is one output directory. Because `.svelte` sources produce the committed bundle, an agent editing any of them holds the bundle too.
 - Active claim: none.
 - **Next steps:**
-  - **重建並重驗 ASCII status 行。** 需要先 Exit 目前執行中的 tray（`task-progress.exe` 被 worker 佔用，否則 build 會因檔案鎖失敗），再 `start --tray` 確認 `Ready | 127.0.0.1:8001 | ...` 顯示正常。
-  - **Tray worker Phase 3（未開始，Winform）。** TrayHost 進入點設 `Console.OutputEncoding = Encoding.UTF8`（見上）、Core `SetStatusText` seam、App 端 status 查詢與 tooltip／Settings 顯示。Phase 4 是 `activate` broker request，Phase 5 是手動 gate。
+  - **Tray worker 的手動 gate 還剩一項。** tray 圖示、`start --tray`（Debug 與已發布路徑皆可）、icon 自動生成、Exit 停止服務都已由使用者確認。未確認：右鍵 `Restart` 是否讓服務整個重來（PID 應換新）。
+  - **Tray 顯示服務狀態等四項已轉為需求，不是本專案的工作**，見 `Documentation/TrayWorkerPlan.md#對-winform-的需求`。
   - **評估模組下一步的優先序（2026-08-27，使用者定案原則）：系統耦合嚴重程度 > bug > 新功能設計討論。** 排第一的「擴充模組契約要不要有依賴宣告」已於 2026-08-28 全部定案（見 Current state），**設計完成、實作未開始**——落地範圍是 descriptor 的 `depends_on`、envelope 的 `content_revision`／`input_modules`、把 `Program.cs` 的 `TryAutoGenerate` 從平坦迴圈改成依拓樸順序只重算 dirty 模組，以及循環偵測與「未計入」提示。其餘順位不變：共用 detail slot（消掉 `#time-dialog-dock`／`#cost-dialog-dock` 並存）排第二，兩個 dock 並存目前能動、只是不乾淨；`LaborCostSettlement` 排第三，且現在還多卡一題「`工時 × 時薪` 歸誰」；assessment record 收斂 Schema 排最後。目前沒有已知未修 bug。
   - **Module architecture — Time's render layer and discovery/loading layer are both done and live-verified (see Current state); two pieces of Phase 2's Time migration remain, neither started, each its own scope to confirm before starting:**
     1. ~~**Legacy→envelope adapter**~~ — **done 2026-08-25, see Current state.**
@@ -224,6 +226,7 @@ Each needs the user's answer before the work it blocks can be specced. Nothing h
 
 ## Standing project rule
 
+- **本專案不修改 Winform（2026-08-31，使用者決策）。** TrayHost 只以 `Winform/bin/TrayHost/Release/` 的**已發布 binary** 使用：不編輯、不建置、不綁 Debug 輸出。需要 TrayHost 改變行為時，只在 `Documentation/TrayWorkerPlan.md#對-winform-的需求` 列需求（含證據與驗收條件），由該專案自行決定。這條界線在 2026-08-31 被實際觸發過一次：Phase 3 原本要改的 `Core/Source/Control/TrayHost.cs` 與 `TrayHostOptions.cs`，當時正有另一個 agent 的未提交工作（`TrayHostApplicationCommand`，供 Dandelion 使用），沒有動它們。
 - **One UI source (2026-08-05, user decision).** A screen element visible in more than one place may have only one implementation. Outranks feature work, parity patching, and further migration. A configuration knob that lets two hosts render the same element differently is a drift source — consolidation deletes the knob rather than aligning its value. When a shared element and a host-specific need collide, the host supplies data and callbacks and the shared component keeps the markup.
 
 ## Ruled-out directions

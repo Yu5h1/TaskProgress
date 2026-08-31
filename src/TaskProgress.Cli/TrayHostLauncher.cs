@@ -77,8 +77,11 @@ internal static class TrayHostLauncher
     }
 
     /// <summary>
-    ///   Finds the TrayHost build the same way the Launcher finds its sibling
-    ///   LocalWebService: an explicit override first, then an upward search.
+    ///   Finds the released TrayHost the same way the Launcher finds its
+    ///   sibling LocalWebService: an explicit override first, then an upward
+    ///   search. Only Release is searched — TrayHost is consumed here as a
+    ///   published binary, and binding to a Debug output would make this
+    ///   project depend on someone else's work in progress.
     /// </summary>
     internal static string ResolveExecutable()
     {
@@ -101,7 +104,7 @@ internal static class TrayHostLauncher
         }
 
         throw new CliException(
-            $"找不到 {ExecutableName}。請先建置 Winform 的 TrayHost，或設定 TASK_PROGRESS_TRAY_HOST。 ");
+            $"找不到已發布的 {ExecutableName}（只搜尋 Winform/bin/TrayHost/Release）。請取得 TrayHost 的 Release 建置，或設定 TASK_PROGRESS_TRAY_HOST。 ");
     }
 
     /// <summary>
@@ -123,17 +126,14 @@ internal static class TrayHostLauncher
         var directory = new DirectoryInfo(Path.GetFullPath(start));
         while (directory is not null)
         {
-            foreach (var configuration in new[] { "Release", "Debug" })
-            {
-                var candidate = Path.Combine(
-                    directory.FullName,
-                    "Winform",
-                    "bin",
-                    "TrayHost",
-                    configuration,
-                    ExecutableName);
-                if (File.Exists(candidate)) return candidate;
-            }
+            var candidate = Path.Combine(
+                directory.FullName,
+                "Winform",
+                "bin",
+                "TrayHost",
+                "Release",
+                ExecutableName);
+            if (File.Exists(candidate)) return candidate;
             directory = directory.Parent;
         }
         return null;

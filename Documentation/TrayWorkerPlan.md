@@ -1,6 +1,6 @@
 # TaskProgress Tray Worker 計畫
 
-> 狀態：設計已於 2026-08-27 定案；Phase 1（`worker` role）已實作並通過不啟動服務的測試，Phase 2–5 未開始。
+> 狀態：TaskProgress 這一側已完成並實機驗證（`worker` role 與 `start --tray`）。tray 顯示服務狀態等能力取決於「對 Winform 的需求」，本專案不實作它們。
 >
 > 與其他文件的關係：Launcher 與 LocalWebService 控制契約見 [LauncherPlan.md](LauncherPlan.md)；TrayHost 元件與 App 責任邊界見 Winform 的 `Documentation/TrayHost.md`；manifest、`host`／`invoke` 與 standalone identity 契約見 Winform 的 `Documentation/TrayApp.md`。已建置與待驗證狀態見 [../handoff.md](../handoff.md)。
 
@@ -19,6 +19,8 @@ Yu5h1Lib.TrayHost.exe（Winform 專案擁有）
          └─ LocalWebService（python localHost.py）── 由 worker 擁有，TrayHost 不直接接觸
 ```
 
+**專案邊界：本專案不修改 Winform。** TrayHost 一律以**已發布的 Release binary** 使用，需要它改變的行為列在「對 Winform 的需求」，由該專案自行決定是否與何時實作。本文件的實作階段只涵蓋 TaskProgress 這一側。
+
 TrayHost 擁有的 process 只有 `task-progress.exe worker` 一個。LocalWebService 是 worker 的子孫 process，TrayHost 既不啟動也不終止它；tray 看到的伺服器狀態，全部是 worker 回報的觀測結果。依賴方向固定為 TrayHost → worker → LocalWebService，反向沒有依賴。
 
 ## 摘要
@@ -29,7 +31,7 @@ TaskProgress 現在只有一次性 CLI：使用者執行 `task-progress start`�
 
 ## 目標流程
 
-以下是五個階段全部完成後的樣子，不是目前狀態。
+以下是完整可用時的樣子。標示「需要 Winform」的部分尚未具備，其餘皆已實作並驗證。
 
 ### 啟用（第一次）
 
@@ -79,7 +81,7 @@ Yu5h1Lib.TrayHost.exe          常駐   系統匣圖示
 
 ### 觀測
 
-hover 圖示、開啟 tray 選單、Settings 的 Refresh，以及 60 秒的背景保險，各自觸發一次 `status`。畫面先顯示上一次結果，再以回應更新。
+hover 圖示、開啟 tray 選單、Settings 的 Refresh，以及低頻背景保險，各自觸發一次 `status`。畫面先顯示上一次結果，再以回應更新。**（需要 Winform：第 2 項。目前服務狀態只出現在 `start --tray` 的 Console 輸出。）**
 
 ### 日常使用
 
@@ -102,10 +104,12 @@ hover 圖示、開啟 tray 選單、Settings 的 Refresh，以及 60 秒的背�
 ```text
 再啟動一個 host（不是走 start --tray）
 ├─ 取不到 mutex
-├─ 送 activate 到既有 instance pipe
+├─ 送 activate 到既有 instance pipe      ← 需要 Winform：第 3 項
 ├─ 既有 instance 浮出 Settings 視窗
 └─ 第二個 process 結束
 ```
+
+走 `start --tray` 的路徑不受影響：它用 `invoke`，重複執行本來就是跟既有 tray 講話。
 
 ### 結束
 
@@ -281,7 +285,7 @@ TrayHost App 端向 worker 送 `status` request，把回傳的整行字串當成
 
 **原本規劃以 `Process.Exited` 作為主訊號，Phase 1 沒有採用。** 服務確實是 worker 的子 process，worker 也拿得到 `Process`，但 `trayhost-jsonlines-v1` 只有 ready、response 與 fatal，**沒有 worker 主動推送的通道**。worker 提早知道服務掛了，並不會讓 tray 提早看到——tray 仍然要等到自己來問。因此那個訂閱在有推送路徑之前不會產生任何可見效果，Phase 1 不實作，`LocalWebServiceClient` 也因此完全沒有被改動。真正決定偵測延遲的是 App 端的查詢時機。
 
-**這裡需要 Winform 端的改動**：目前 `TrayHostOptions` 只允許 App 提供 icon 與命令文字，Core 沒有讓 App 設定 tooltip 的入口。計畫是加一個與既有 `SetIcon` 對稱的 `SetStatusText`，內容完全由 App 決定。Core 因此仍然不認識任何產品 schema。
+**這一段依賴 Winform 提供能力，本專案不實作它**：目前 `TrayHostOptions` 只允許 App 提供 icon 與命令文字，Core 沒有讓 App 設定 tooltip 的入口。需求與理由見「對 Winform 的需求」。在那之前，服務狀態只能由 `task-progress start --tray` 印在 Console，tray 本身顯示不出來。
 
 ### 單一實例
 
@@ -350,10 +354,6 @@ TrayHost 已有 standalone 的互斥機制：identity 由 manifest 的 `id` 與 
 
 **已排除：讓 TrayHost 直接以 service profile 託管 python（2026-08-27 使用者決策）。** Winform 的 `Documentation/TrayHost.md` 有一份 `task-progress` service profile 草圖（HTTP health probe + `localwebservice-control` shutdown adapter），由 TrayHost App 直接啟動 `localHost.py`。它需要在 C# 的 TrayHost App 內重建 health identity 驗證、ownership 證據比對與授權 shutdown —— 全部是 `LocalWebServiceClient` 已經有的東西，而且 trayhost skill 明確要求把服務專屬的 launch、health、identity、ownership 與 shutdown 留在擁有該服務的 client adapter。
 
-## 驗收與遷移
-
-分階段，前兩階段完全在 TaskProgress 內，不需要 Winform 有任何改動即可驗證：
-
 ### Phase 1：worker role（純新增）—— 已實作，待實機驗證
 
 - `WorkerProtocol.cs`：ready、request 解析、success／failure 序列化。
@@ -371,25 +371,47 @@ TrayHost 已有 standalone 的互斥機制：identity 由 manifest 的 `id` 與 
 - `Program.cs`：`--tray` 選項、與 `--port` 互斥、`StartTrayAsync`。
 - **只呼叫 `invoke`，不呼叫 `host`。** 單一實例由 TrayHost identity 保證，本專案不寫第二套。
 
-### Phase 3 之前要修的 Winform 問題
+## 對 Winform 的需求
 
-TrayHost 的 `invoke` 以系統 ANSI codepage 輸出 `payload.stdout`（實測 CP950），任何非 ASCII 字元對 UTF-8 讀取端都會變成亂碼。這不只影響本專案——任何 worker 回傳非 ASCII 都會被 mangle。修法是在 TrayHost 的進入點設定 `Console.OutputEncoding = Encoding.UTF8`，與 `task-progress` 自己的 `Main` 一致。屬於 Winform 的共用行為，隨 Phase 3 一起處理。
+本專案不修改 Winform，也不建置它——TrayHost 以 `Winform/bin/TrayHost/Release/` 的已發布 binary 使用。下列是 tray 要完整可用所缺的能力，附上量到的證據與可驗收條件，交由 Winform 決定是否實作。每一項在實作前，本專案都以註明的方式繞過或直接缺著。
 
-### Phase 3：Winform 端觀測
+### 1. `invoke` 的輸出要用 UTF-8
 
-- Core 新增 `SetStatusText` seam；App 在選單開啟、Settings Refresh 與低頻保險時查詢 `status`，顯示於 tooltip 與 Settings。
-- 驗收：worker `Ready` 但服務 `Stopped` 時，兩個狀態分別正確顯示。
+`invoke` 以系統 ANSI codepage 輸出 `payload.stdout`。實測 `—` 出來是 CP950 的 `a1 58`，UTF-8 讀取端解成亂碼。這影響**所有** worker，不只本專案——任何 worker 回傳非 ASCII 都會被破壞。
 
-### Phase 4：Winform 端重複啟動
+修法是在 TrayHost 進入點設 `Console.OutputEncoding = Encoding.UTF8`，與 `task-progress` 自己的 `Main` 一致。驗收：worker 回傳含中日文的 `payload.stdout`，呼叫端逐字取得。
 
-- `activate` broker request；第二次啟動浮出既有 Settings 視窗後結束。
-- 驗收：重複執行 `host --standalone` 只留下一個 tray、一個 worker。
+**本專案的繞法**：status 行只用 ASCII 分隔符。錯誤訊息裡的中文仍會亂碼。
+
+### 2. 一個由 App 設定的 tray 狀態文字
+
+Core 目前沒有讓 App 設定 `NotifyIcon` tooltip 的入口，`TrayHostOptions` 只收 icon 與命令文字。需要一個與既有 `SetIcon` 對稱的設定點（例如 `SetStatusText`），內容是 App 給的不透明字串，Core 不解讀。
+
+理由是 tray 現在顯示的是 **worker process 的狀態**（`Starting`／`Ready`／`Faulted`），那和**服務的狀態**是兩回事：worker 好端端活著，LocalWebService 仍然可能已經停了。實測使用者在 Settings 只看得到 worker 的 `Starting → Ready`，看不到服務的 PID 或端點。
+
+驗收：worker 為 `Ready`、服務為 `Stopped` 時，兩者分別顯示且不互相冒充。
+
+**本專案的繞法**：無。服務狀態目前只能由 `task-progress start --tray` 印在 Console。
+
+### 3. 重複啟動要浮出既有 instance
+
+第二個 `host --standalone` 取不到 mutex 時直接 `return 0`，畫面上毫無反應，使用者會以為沒啟動而再點一次。需要它通知既有 instance 顯示 Settings 視窗後再結束。
+
+驗收：連續執行兩次 `host --standalone`，只留下一個 tray，且第二次會讓既有視窗浮出。
+
+**本專案的繞法**：入口 `start --tray` 走 `invoke` 而非 `host`，所以我們這條路徑不會踩到；直接執行 `host` 的人才會遇到。
+
+### 4. 以小圖示尺寸載入 tray icon
+
+`new Icon(stream)` 取到的是 32×32，再由 Windows 縮到 16×16，略糊。改以 `SystemInformation.SmallIconSize` 載入會直接命中 16×16 frame。次要項目，不影響功能。
+
+## 驗收與遷移（TaskProgress 這一側）
 
 ### Phase 5：手動 gate
 
 依 trayhost skill，tray 互動與 no-window process 屬於手動驗證，不能以 build 或 headless 檢查代替：
 
-- tray 出現時服務已經起來；tooltip 隨服務起停更新。
+- tray 出現時服務已經起來。（tooltip 隨服務起停更新要等「對 Winform 的需求」第 2 項。）
 - 重複啟動的實際行為。
 - 手動終止 python process 後，tooltip 在下一次查詢內變成 `Stopped`；`Restart` 能復原。
 - Exit 時服務被停止，兩種來源都要各驗一次：worker 自己啟動的，以及先用 `task-progress start` 開好、由 worker 捕捉的。
