@@ -58,7 +58,7 @@ TaskProgress 現在只有一次性 CLI：使用者執行 `task-progress start`�
 worker 進入迴圈後，最初那個 status request 才被回應：
 
 ```text
-invoke ──status──► TrayHost ──► worker ──► "Ready — 127.0.0.1:8001 — PID 1234 — 4 scopes"
+invoke ──status──► TrayHost ──► worker ──► "Ready | 127.0.0.1:8001 | PID 1234 | 4 scopes"
 │
 ├─ 把該行印到 Console
 ├─ 開啟 http://127.0.0.1:8001/（除非 --no-browser）
@@ -252,12 +252,14 @@ request 的 `payload.arguments` 就是既有的 CLI 參數向量，worker 不發
 `status` 走 `LocalWebServiceClient.TryConnectAsync`，它已經包含 health identity 與 instance／root 驗證，所以「port 上有東西」與「那是我們的服務」是分開的。回傳一行摘要，例如：
 
 ```text
-Ready — 127.0.0.1:8001 — PID 12345 — 4 scopes
-Stopped — 127.0.0.1:8001
-Conflict — 127.0.0.1:8001 has a foreign listener
+Ready | 127.0.0.1:8001 | PID 12345 | 4 scopes
+Stopped | 127.0.0.1:8001
+Conflict | 127.0.0.1:8001 | <診斷>
 ```
 
-前綴是固定字彙（`Ready`／`Stopped`／`Conflict`／`Error`），後面是人看的細節。TrayHost App 只需要能顯示整行；若之後要依狀態換 icon，再讀前綴即可，這是刻意留的最小結構。
+前綴是固定字彙（`Ready`／`Stopped`／`Conflict`／`Error`），後面是人看的細節。
+
+**分隔符刻意用 ASCII。** 這一行會經過 TrayHost 的 `invoke` 轉手，而它以系統 ANSI codepage 輸出——實測 `—` 變成 CP950 的 `a1 58`，被 UTF-8 讀取端解成亂碼。ASCII 不受任何 codepage 影響。TrayHost App 只需要能顯示整行；若之後要依狀態換 icon，再讀前綴即可，這是刻意留的最小結構。
 
 ### 結束與擁有權
 
@@ -324,7 +326,7 @@ TrayHost 已有 standalone 的互斥機制：identity 由 manifest 的 `id` 與 
 
 ## 案例
 
-**看一眼服務還在不在。** 使用者把游標移到 tray icon，tooltip 顯示 `Ready — 127.0.0.1:8001 — PID 12345 — 4 scopes`。沒有任何視窗被開啟，沒有 process 被啟動。
+**看一眼服務還在不在。** 使用者把游標移到 tray icon，tooltip 顯示 `Ready | 127.0.0.1:8001 | PID 12345 | 4 scopes`。沒有任何視窗被開啟，沒有 process 被啟動。
 
 **服務背景 crash。** python process 結束的瞬間 `Process.Exited` 觸發，worker 狀態改為 `Stopped`，tooltip 隨下一次查詢更新。worker 本身仍是 `Ready`，因為 worker 沒有掛 —— 這正是 worker 狀態與服務狀態必須分開顯示的理由。使用者要復原就按 tray 的 `Restart`。
 
@@ -362,11 +364,16 @@ TrayHost 已有 standalone 的互斥機制：identity 由 manifest 的 `id` 與 
 - 測試 harness 新增 `--pure`，只跑不啟動服務的套件。
 - **待驗證**：實際以管道灌 JSON lines 跑一次 `task-progress worker`。它會以 no-window 方式啟動 Python，屬於需要使用者授權的執行，未由 agent 執行。
 
-### Phase 2：manifest 與發布
+### Phase 2：manifest 與發布 —— 已實作
 
-- `taskprogress.trayapp.json` 與 `light.ico`／`dark.ico` 加入 `Build/win-x64/`，`Publish.cmd` 一併輸出。
-- `start --tray`：TrayHost executable 探索、轉呼叫 `invoke`、印出 status、開啟 Viewer、`--port` 互斥檢查。
-- 驗收：`start --tray` 連跑兩次只留下一個 tray 與一個 worker；`--tray --port` 以錯誤拒絕；找不到 TrayHost 時的訊息可讀。
+- `src/TaskProgress.Cli/taskprogress.trayapp.json`（schema 2）與 `light.ico`／`dark.ico` 為簽入來源，csproj 以 `Content` 複製到輸出與發布目錄，因此 `Build/win-x64/` 由既有的 `Publish.cmd` 自動帶出，不需要改它。icon 由 TrayHost 的 `--BuildIcon` 產生，取 `displayName` 首字 `T`。
+- `TrayHostLauncher.cs`：executable 探索（`TASK_PROGRESS_TRAY_HOST` → 向上找 `Winform/bin/TrayHost/{Release,Debug}/`）、manifest 解析（與自己的 executable 同目錄）、轉呼叫 `invoke ... --standalone -- <args>`。
+- `Program.cs`：`--tray` 選項、與 `--port` 互斥、`StartTrayAsync`。
+- **只呼叫 `invoke`，不呼叫 `host`。** 單一實例由 TrayHost identity 保證，本專案不寫第二套。
+
+### Phase 3 之前要修的 Winform 問題
+
+TrayHost 的 `invoke` 以系統 ANSI codepage 輸出 `payload.stdout`（實測 CP950），任何非 ASCII 字元對 UTF-8 讀取端都會變成亂碼。這不只影響本專案——任何 worker 回傳非 ASCII 都會被 mangle。修法是在 TrayHost 的進入點設定 `Console.OutputEncoding = Encoding.UTF8`，與 `task-progress` 自己的 `Main` 一致。屬於 Winform 的共用行為，隨 Phase 3 一起處理。
 
 ### Phase 3：Winform 端觀測
 

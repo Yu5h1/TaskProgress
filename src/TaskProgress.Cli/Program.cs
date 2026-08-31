@@ -241,7 +241,9 @@ internal static class Program
     private static StartRequest ParseStartRequest(string[] args)
     {
         var port = LauncherSettings.DefaultPort;
+        var portSpecified = false;
         var openBrowser = true;
+        var tray = false;
         for (var index = 0; index < args.Length; index++)
         {
             var value = args[index];
@@ -249,16 +251,28 @@ internal static class Program
             {
                 case "--port":
                     port = ParseInteger(ReadOptionValue(args, ref index, value), value, 1, 65535);
+                    portSpecified = true;
                     break;
                 case "--no-browser":
                 case "--no-open":
                     openBrowser = false;
                     break;
+                case "--tray":
+                    tray = true;
+                    break;
                 default:
                     throw new CliException($"不支援的 start 選項：{value}");
             }
         }
-        return new StartRequest(port, openBrowser);
+
+        if (tray && portSpecified)
+        {
+            throw new CliException(
+                "--tray 不能與 --port 併用。tray 的 port 由 TrayApp manifest 決定，"
+                + "命令列的值傳不進 worker，所以這裡拒絕而不是安靜忽略。 ");
+        }
+
+        return new StartRequest(port, openBrowser, tray);
     }
 
     private static AnalyzeRequest ParseAnalyzeRequest(string[] args, ScopeStore store)
@@ -371,6 +385,12 @@ internal static class Program
         ScopeStore store,
         CancellationToken cancellationToken)
     {
+        if (request.Tray)
+        {
+            await StartTrayAsync(request, cancellationToken);
+            return;
+        }
+
         if (store.List().Count == 0)
         {
             throw new CliException(
@@ -399,6 +419,31 @@ internal static class Program
         if (request.OpenBrowser)
         {
             Process.Start(new ProcessStartInfo(settings.BaseUri.AbsoluteUri) { UseShellExecute = true });
+        }
+    }
+
+    /// <summary>
+    ///   Hands startup to the tray. Nothing is confirmed or launched here:
+    ///   TrayHost's own invoke starts the Host only when it is not already
+    ///   running, and the resident worker is what brings the service up, so
+    ///   running this twice reuses one tray instead of racing itself.
+    /// </summary>
+    private static async Task StartTrayAsync(
+        StartRequest request,
+        CancellationToken cancellationToken)
+    {
+        var status = await TrayHostLauncher.InvokeAsync(["status"], cancellationToken);
+        if (status.Length > 0)
+        {
+            Console.WriteLine(status);
+        }
+        Console.WriteLine("TaskProgress 系統匣已就緒；結束請使用 tray 選單的 Exit。");
+
+        if (request.OpenBrowser)
+        {
+            var viewer = LauncherSettings.Create(LauncherSettings.DefaultPort).BaseUri;
+            Console.WriteLine($"TaskProgress Viewer：{viewer}");
+            Process.Start(new ProcessStartInfo(viewer.AbsoluteUri) { UseShellExecute = true });
         }
     }
 
@@ -607,6 +652,7 @@ internal static class Program
         Console.WriteLine();
         Console.WriteLine("命令：");
         Console.WriteLine("  start                            啟動服務並載入所有已登記 scope");
+        Console.WriteLine("  start --tray                     改以系統匣常駐啟動；重複執行會重用同一個 tray");
         Console.WriteLine("  worker                           以 TrayHost owned worker 常駐（由 tray 啟動，非人工執行）");
         Console.WriteLine("  analyze <report-folder>          執行所有分析模組");
         Console.WriteLine("  analyze --module <名稱>          只執行指定模組，例如 time、cost");
@@ -632,6 +678,7 @@ internal static class Program
         Console.WriteLine("  --output <path>                  指定分析輸出，需搭配 --module");
         Console.WriteLine("  --port <port>                    指定連接埠，預設 8001");
         Console.WriteLine("  --no-browser                     不自動開啟瀏覽器");
+        Console.WriteLine("  --tray                           搭配 start，改用系統匣常駐（不可與 --port 併用）");
         Console.WriteLine("  -h, -help, --help                顯示本說明");
         Console.WriteLine();
         Console.WriteLine("範例：");
@@ -651,7 +698,7 @@ internal static class Program
         int Port,
         bool OpenBrowser);
 
-    private sealed record StartRequest(int Port, bool OpenBrowser);
+    private sealed record StartRequest(int Port, bool OpenBrowser, bool Tray);
 
     private sealed record AnalyzeRequest(
         string Folder,

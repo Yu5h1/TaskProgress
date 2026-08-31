@@ -28,6 +28,23 @@
     </Content>
   </ItemGroup>
 
+  <!-- TrayHost derives standalone identity from the manifest's canonical path,
+       so this must land beside task-progress.exe and nowhere else. -->
+  <ItemGroup>
+    <Content Include="taskprogress.trayapp.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="light.ico" Condition="Exists('light.ico')">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="dark.ico" Condition="Exists('dark.ico')">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+  </ItemGroup>
+
   <ItemGroup>
     <InternalsVisibleTo Include="TaskProgress.Cli.Tests" />
     <InternalsVisibleTo Include="TaskProgress.Checklist.Tests" />

@@ -208,11 +208,14 @@ internal sealed class WorkerSession
     /// <summary>
     ///   Observes the server without starting anything. The prefix is a fixed
     ///   vocabulary so a caller can act on it without parsing the rest.
+    ///   Separators are ASCII on purpose: this line is relayed through
+    ///   TrayHost's invoke, which encodes its output in the system ANSI code
+    ///   page, so anything outside ASCII arrives corrupted.
     /// </summary>
     internal async Task<string> BuildStatusLineAsync(CancellationToken cancellationToken)
     {
         if (_settings is null)
-            return $"Error — 無法解析 Launcher 設定：{_startupError}";
+            return $"Error | 無法解析 Launcher 設定：{_startupError}";
 
         var endpoint = $"{LauncherSettings.LoopbackHost}:{_settings.Port}";
         try
@@ -221,19 +224,19 @@ internal sealed class WorkerSession
             if (service is null)
             {
                 return _startupError is null
-                    ? $"Stopped — {endpoint}"
-                    : $"Stopped — {endpoint} — 啟動失敗：{_startupError}";
+                    ? $"Stopped | {endpoint}"
+                    : $"Stopped | {endpoint} | 啟動失敗：{_startupError}";
             }
 
-            return $"Ready — {endpoint} — PID {service.State.ProcessId} — {Store.List().Count} scopes";
+            return $"Ready | {endpoint} | PID {service.State.ProcessId} | {Store.List().Count} scopes";
         }
         catch (CliException error)
         {
-            return $"Conflict — {endpoint} — {error.Message}";
+            return $"Conflict | {endpoint} | {error.Message}";
         }
         catch (Exception error) when (error is not OperationCanceledException)
         {
-            return $"Error — {endpoint} — {error.Message}";
+            return $"Error | {endpoint} | {error.Message}";
         }
     }
 }
