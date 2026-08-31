@@ -69,6 +69,8 @@ internal static class Program
             case "start":
                 await StartAsync(ParseStartRequest(args[1..]), store, cancellationToken);
                 return 0;
+            case "worker":
+                return await WorkerCommand.RunAsync(store, cancellationToken);
             case "analyze":
                 Analyze(ParseAnalyzeRequest(args[1..], store));
                 return 0;
@@ -107,7 +109,7 @@ internal static class Program
         }
     }
 
-    private static int RunScopeCommand(string[] args, ScopeStore store)
+    internal static int RunScopeCommand(string[] args, ScopeStore store)
     {
         if (args.Length == 1 && string.Equals(args[0], "list", StringComparison.OrdinalIgnoreCase))
         {
@@ -183,7 +185,7 @@ internal static class Program
         return result;
     }
 
-    private static OpenRequest ParseOpenRequest(string[] args, ScopeStore store)
+    internal static OpenRequest ParseOpenRequest(string[] args, ScopeStore store)
     {
         string? folder = null;
         string? scope = null;
@@ -369,44 +371,19 @@ internal static class Program
         ScopeStore store,
         CancellationToken cancellationToken)
     {
-        var registeredScopes = store.List();
-        if (registeredScopes.Count == 0)
+        if (store.List().Count == 0)
         {
             throw new CliException(
                 $"尚未登記本機 scope。請先執行 scope add <report-folder>。設定檔：{store.ConfigPath}");
         }
 
-        var reports = new List<ReportFolder>(registeredScopes.Count);
-        foreach (var item in registeredScopes.OrderBy(item => item.Key, StringComparer.Ordinal))
-        {
-            var expectedScope = ScopeId.Validate(item.Key);
-            var report = ReportFolder.Load(item.Value);
-            if (!string.Equals(expectedScope, report.Scope, StringComparison.Ordinal))
-            {
-                throw new CliException(
-                    $"scope「{expectedScope}」與 {report.ReportPath} 的 scope_id「{report.Scope}」不一致。 ");
-            }
-            if (TryAutoGenerate(item.Value))
-            {
-                report = ReportFolder.Load(item.Value);
-            }
-            reports.Add(report);
-        }
-
+        var reports = LoadRegisteredReports(store);
         var settings = LauncherSettings.Create(request.Port);
-        ScopeCatalog.Write(settings.ScopeCatalogFile, reports);
-        using var service = await LocalWebServiceClient.EnsureAsync(
+        using var service = await EnsureServiceAsync(
             settings,
-            cancellationToken,
-            ServiceLaunchMode.VisibleConsole);
-        foreach (var report in reports)
-        {
-            await service.RegisterReportAsync(report, cancellationToken);
-        }
-        await service.RemoveUnregisteredReportRoutesAsync(
-            reports.Select(report => report.Scope).ToHashSet(StringComparer.Ordinal),
+            reports,
+            ServiceLaunchMode.VisibleConsole,
             cancellationToken);
-        await service.RegisterScopeCatalogAsync(settings.ScopeCatalogFile, cancellationToken);
 
         Console.WriteLine($"TaskProgress Viewer：{settings.BaseUri}");
         Console.WriteLine($"LocalWebService：PID {service.State.ProcessId}，port {settings.Port}");
@@ -425,7 +402,71 @@ internal static class Program
         }
     }
 
-    private static async Task OpenAsync(OpenRequest request, CancellationToken cancellationToken)
+    /// <summary>
+    ///   Loads and validates every registered scope, refreshing whatever
+    ///   analysis modules have inputs. An empty store is a valid result here;
+    ///   only callers that cannot proceed without a scope reject it.
+    /// </summary>
+    internal static IReadOnlyList<ReportFolder> LoadRegisteredReports(ScopeStore store)
+    {
+        var registeredScopes = store.List();
+        var reports = new List<ReportFolder>(registeredScopes.Count);
+        foreach (var item in registeredScopes.OrderBy(item => item.Key, StringComparer.Ordinal))
+        {
+            var expectedScope = ScopeId.Validate(item.Key);
+            var report = ReportFolder.Load(item.Value);
+            if (!string.Equals(expectedScope, report.Scope, StringComparison.Ordinal))
+            {
+                throw new CliException(
+                    $"scope「{expectedScope}」與 {report.ReportPath} 的 scope_id「{report.Scope}」不一致。 ");
+            }
+            if (TryAutoGenerate(item.Value))
+            {
+                report = ReportFolder.Load(item.Value);
+            }
+            reports.Add(report);
+        }
+
+        return reports;
+    }
+
+    /// <summary>
+    ///   Brings the service up and makes it serve exactly these reports:
+    ///   registers each one, retires routes for scopes that are gone, and
+    ///   publishes the path-free catalog. The launch mode is the caller's
+    ///   because a console is right for a one-shot run and wrong for a worker.
+    /// </summary>
+    internal static async Task<LocalWebServiceClient> EnsureServiceAsync(
+        LauncherSettings settings,
+        IReadOnlyList<ReportFolder> reports,
+        ServiceLaunchMode launchMode,
+        CancellationToken cancellationToken)
+    {
+        ScopeCatalog.Write(settings.ScopeCatalogFile, reports);
+        var service = await LocalWebServiceClient.EnsureAsync(
+            settings,
+            cancellationToken,
+            launchMode);
+        try
+        {
+            foreach (var report in reports)
+            {
+                await service.RegisterReportAsync(report, cancellationToken);
+            }
+            await service.RemoveUnregisteredReportRoutesAsync(
+                reports.Select(report => report.Scope).ToHashSet(StringComparer.Ordinal),
+                cancellationToken);
+            await service.RegisterScopeCatalogAsync(settings.ScopeCatalogFile, cancellationToken);
+            return service;
+        }
+        catch
+        {
+            service.Dispose();
+            throw;
+        }
+    }
+
+    internal static async Task OpenAsync(OpenRequest request, CancellationToken cancellationToken)
     {
         var report = ReportFolder.Load(request.Folder);
         if (request.ExpectedScope is not null
@@ -566,6 +607,7 @@ internal static class Program
         Console.WriteLine();
         Console.WriteLine("命令：");
         Console.WriteLine("  start                            啟動服務並載入所有已登記 scope");
+        Console.WriteLine("  worker                           以 TrayHost owned worker 常駐（由 tray 啟動，非人工執行）");
         Console.WriteLine("  analyze <report-folder>          執行所有分析模組");
         Console.WriteLine("  analyze --module <名稱>          只執行指定模組，例如 time、cost");
         Console.WriteLine("  analyze --scope <scope-id>       分析已登記的 scope");
@@ -603,7 +645,7 @@ internal static class Program
         Console.WriteLine("資料夾名稱範例：BonghuoVR -> bonghuo-vr");
     }
 
-    private sealed record OpenRequest(
+    internal sealed record OpenRequest(
         string Folder,
         string? ExpectedScope,
         int Port,

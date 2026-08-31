@@ -4,10 +4,17 @@ using TaskProgress;
 
 internal static class Program
 {
-    public static async Task<int> Main()
+    public static async Task<int> Main(string[] args)
     {
         ReportModuleTests.Run();
         CostEstimationTests.Run();
+        WorkerTests.Run();
+
+        if (args.Contains("--pure"))
+        {
+            Console.WriteLine("Pure suites passed. Skipped the launcher scenario, which starts a real service.");
+            return 0;
+        }
 
         var originalHome = Environment.GetEnvironmentVariable("TASK_PROGRESS_HOME");
         var testHome = Path.Combine(
