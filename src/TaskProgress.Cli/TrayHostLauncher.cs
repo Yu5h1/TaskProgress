@@ -10,6 +10,12 @@
 // deployment to one tray: TrayHost derives standalone identity from the
 // manifest's canonical path, so a second copy of the file would be a second
 // tray competing for the same port.
+//
+// `--buildIcon` is passed on every call rather than being a separate setup
+// step. It creates only the icon files that are missing and writes nothing
+// once they exist, so it costs an existence check and removes the class of
+// bug where a fresh deployment has a manifest but no artwork. The icons are
+// therefore generated beside the executable and never live in the sources.
 
 using System.Diagnostics;
 
@@ -45,6 +51,7 @@ internal static class TrayHostLauncher
         startInfo.ArgumentList.Add("invoke");
         startInfo.ArgumentList.Add(manifest);
         startInfo.ArgumentList.Add("--standalone");
+        startInfo.ArgumentList.Add("--buildIcon");
         startInfo.ArgumentList.Add("--");
         foreach (var argument in arguments)
         {

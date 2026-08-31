@@ -1,22 +1,16 @@
 {
-  "schema": 2,
+  "schema": 1,
   "id": "task-progress",
   "displayName": "TaskProgress Local Server",
   "protocol": "trayhost-jsonlines-v1",
   "process": {
     "executable": "task-progress.exe",
-    "arguments": [
-      "worker"
-    ],
+    "arguments": ["worker"],
     "workingDirectory": "."
   },
   "timeouts": {
     "startupSeconds": 60,
     "requestSeconds": 60,
     "shutdownSeconds": 15
-  },
-  "icon": {
-    "light": "light.ico",
-    "dark": "dark.ico"
   }
 }

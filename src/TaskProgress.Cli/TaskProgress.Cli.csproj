@@ -29,17 +29,11 @@
   </ItemGroup>
 
   <!-- TrayHost derives standalone identity from the manifest's canonical path,
-       so this must land beside task-progress.exe and nowhere else. -->
+       so this must land beside task-progress.exe and nowhere else. The icons
+       are not here on purpose: they are generated next to this manifest on
+       first launch, so they belong to the deployment rather than the sources. -->
   <ItemGroup>
     <Content Include="taskprogress.trayapp.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-    </Content>
-    <Content Include="light.ico" Condition="Exists('light.ico')">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-    </Content>
-    <Content Include="dark.ico" Condition="Exists('dark.ico')">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </Content>
