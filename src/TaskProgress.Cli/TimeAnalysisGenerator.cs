@@ -11,7 +11,10 @@ internal sealed record TimeAnalysisGenerationResult(
     int ItemCount,
     int TotalEstimatedMinutes,
     bool DeadlineIncluded,
-    int DiagnosticCount);
+    int DiagnosticCount,
+    int EstimatedLeafCount,
+    int LeafCount,
+    string EstimateCoverage);
 
 internal static class TimeAnalysisGenerator
 {
@@ -82,6 +85,12 @@ internal static class TimeAnalysisGenerator
         var totalEstimatedMinutes = 0;
         double remainingBaseMinutes = 0;
         var itemCount = 0;
+        // Leaves nobody estimated are excluded from every total. Their minutes
+        // are still reported separately so the size of what was left out stays
+        // visible; they are not part of any sum.
+        var excludedDefaultMinutes = 0;
+        var estimatedLeafCount = 0;
+        var leafCount = 0;
 
         foreach (var task in reportTasks.Where(task => task.Status != "archive"))
         {
@@ -107,6 +116,8 @@ internal static class TimeAnalysisGenerator
                 totalEstimatedMinutes += likely;
                 remainingBaseMinutes += likely * CalculateTaskRemainingRatio(task);
                 composition[mode] += likely;
+                estimatedLeafCount++;
+                leafCount++;
                 confidences.Add(RequiredConfidence(taskLevel));
                 diagnostics.Add(new Diagnostic(
                     "info",
@@ -123,19 +134,28 @@ internal static class TimeAnalysisGenerator
                     var itemAnalysis = CreateItemAnalysis(source, item.Id, mode);
                     var likely = itemAnalysis["likely_minutes"]!.GetValue<int>();
                     items.Add(itemAnalysis);
+                    itemCount++;
+                    leafCount++;
+                    // The entry is still written so the Viewer can offer the
+                    // unset marker as the entry point for making a first
+                    // estimate, but an unset leaf contributes to no total.
+                    // `mode == "default"` is the same predicate the Viewer uses
+                    // in `isUnsetEstimate`, so both sides exclude the same set.
+                    if (mode == "default")
+                    {
+                        excludedDefaultMinutes += likely;
+                        diagnostics.Add(new Diagnostic(
+                            "info",
+                            "unset-estimate-excluded",
+                            $"{item.Id} 沒有 active estimate，未計入任何總和。"));
+                        continue;
+                    }
+                    estimatedLeafCount++;
                     taskMinutes += likely;
                     totalEstimatedMinutes += likely;
                     if (!item.Completed) remainingBaseMinutes += likely;
                     composition[mode] += likely;
                     confidences.Add(itemAnalysis["confidence"]!.GetValue<string>());
-                    itemCount++;
-                    if (mode == "default")
-                    {
-                        diagnostics.Add(new Diagnostic(
-                            "info",
-                            "default-estimate-used",
-                            $"{item.Id} 沒有 active estimate，已使用預設 {likely} 分鐘。"));
-                    }
                 }
             }
 
@@ -147,7 +167,14 @@ internal static class TimeAnalysisGenerator
                     $"{task.Id} 有 {task.LegacyItemCount} 個舊字串項目；沒有穩定 item ID，因此無法產生項目工時。"));
             }
 
-            if (taskMinutes <= 0) continue;
+            // A task whose leaves are all unset is still emitted. Dropping it
+            // would drop its item entries too, and the unset marker is an entry
+            // point — one whose subject cannot be looked up leads nowhere.
+            var taskLeafCount = taskLevel is not null ? 1 : task.Items.Count;
+            var taskEstimatedLeafCount = taskLevel is not null
+                ? 1
+                : items.Count(node => node?["mode"]?.GetValue<string>() != "default");
+            if (taskLeafCount == 0 && task.LegacyItemCount == 0) continue;
             var estimatedDays = DivideDays(taskMinutes, config);
             analysisTasks.Add(new JsonObject
             {
@@ -155,6 +182,9 @@ internal static class TimeAnalysisGenerator
                 ["total_likely_minutes"] = taskMinutes,
                 ["estimated_days"] = estimatedDays,
                 ["display_days"] = DisplayDays(estimatedDays, config.RoundDays),
+                ["estimated_leaf_count"] = taskEstimatedLeafCount,
+                ["leaf_count"] = taskLeafCount,
+                ["estimate_coverage"] = Coverage(taskEstimatedLeafCount, taskLeafCount),
                 ["items"] = items
             });
         }
@@ -197,12 +227,32 @@ internal static class TimeAnalysisGenerator
                 ["ai_minutes"] = composition["ai"],
                 ["mixed_minutes"] = composition["mixed"],
                 ["manual_minutes"] = composition["manual"],
-                ["default_minutes"] = composition["default"]
-            }
+                ["default_minutes"] = excludedDefaultMinutes
+            },
+            // Coverage travels with the totals so a consumer never has to guess
+            // whether a small number means little work or little data. `none`
+            // means the figures above are zero for lack of input, and the rule
+            // is to show nothing rather than a zero or a placeholder label.
+            ["estimated_leaf_count"] = estimatedLeafCount,
+            ["leaf_count"] = leafCount,
+            ["estimate_coverage"] = Coverage(estimatedLeafCount, leafCount)
         };
 
         var workProgress = CalculateProjectProgress(reportTasks);
-        var deadline = CreateDeadline(
+        // With no real estimate anywhere there is no demand to compare capacity
+        // against. Emitting the block regardless would take the
+        // `remainingEstimatedMinutes <= 0` branch and report the project as
+        // `complete`, which is a worse falsehood than the defaults this change
+        // removed. The block is optional, so its absence is an already-supported
+        // state meaning "not assessable".
+        if (estimatedLeafCount == 0)
+        {
+            diagnostics.Add(new Diagnostic(
+                "info",
+                "deadline-not-assessable",
+                "沒有任何 active estimate，因此不產生期限可行性判斷。"));
+        }
+        var deadline = estimatedLeafCount == 0 ? null : CreateDeadline(
             config,
             eventsSource,
             report,
@@ -244,7 +294,10 @@ internal static class TimeAnalysisGenerator
             itemCount,
             totalEstimatedMinutes,
             deadline is not null,
-            diagnostics.Count);
+            diagnostics.Count,
+            estimatedLeafCount,
+            leafCount,
+            Coverage(estimatedLeafCount, leafCount));
     }
 
     private static JsonObject ReadObject(string path, string label)
@@ -600,6 +653,17 @@ internal static class TimeAnalysisGenerator
         CopyOptional(source, result, "human_note");
         CopyOptional(source, result, "reference");
         return result;
+    }
+
+    /*
+     * Coverage is per level and not all-or-nothing: some estimated leaves still
+     * report a real, merely incomplete sum. Only `none` means there is nothing
+     * to show.
+     */
+    private static string Coverage(int estimated, int total)
+    {
+        if (total <= 0 || estimated == 0) return "none";
+        return estimated == total ? "complete" : "partial";
     }
 
     private static string ResolveMode(JsonObject estimate)

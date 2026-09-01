@@ -189,7 +189,10 @@ function compositionRows(summary) {
   const rows = [
     { label: "混合估算", value: hours(values.mixed_minutes ?? 0), note: "人工參數＋AI 分析＋固定公式" },
     { label: "人工直接估算", value: hours(values.manual_minutes ?? 0), note: "由使用者輸入最後估值" },
-    { label: "預設", value: hours(values.default_minutes ?? 0), note: "缺少足夠工程資料" },
+    // Reads as a sibling of the other rows, so it has to say outright that it
+    // is not one. These minutes were excluded from the total; leaving the old
+    // "缺少足夠工程資料" note would let the row be read as part of the sum.
+    { label: "未設置（未計入）", value: hours(values.default_minutes ?? 0), note: "沒有 active estimate，已排除於總和之外" },
   ];
   if ((values.ai_minutes ?? 0) > 0) {
     rows.push({ label: "AI 估算", value: hours(values.ai_minutes), note: "沒有人工參數的 AI 分析" });
@@ -220,6 +223,17 @@ export function createTimeReferenceController({
     analysis.summary.deadline.work_progress_ratio = currentWorkProgressRatio;
   }
   const index = createTimeIndex(analysis);
+  /*
+   * Derived from the index rather than read from `summary.estimate_coverage`,
+   * for the same reason task totals are recomputed here: an analysis file
+   * written before the field existed must not silently read as covered.
+   */
+  const projectCoverage = (() => {
+    const tasks = [...index.tasks.values()];
+    if (tasks.length === 0) return "none";
+    if (tasks.every((task) => task.coverage === "none")) return "none";
+    return tasks.every((task) => task.coverage === "complete") ? "complete" : "partial";
+  })();
 
   // Presentation state. Kept here rather than in a UI component because it
   // must survive the dialog closing and reopening (the active tab and the
@@ -251,6 +265,27 @@ export function createTimeReferenceController({
         label: "時間待重新分析",
         showDot: false,
         showChevron: false,
+      };
+    }
+    /*
+     * Nothing carries a real estimate, so there is no total to state and no
+     * demand to weigh capacity against. This case has to come before the
+     * no-deadline one: the analyzer now withholds the deadline block when
+     * coverage is none, so falling through would blame a missing delivery date
+     * that is very likely set, and send a reader to fix the wrong thing.
+     *
+     * `hidden` follows the item-level rule — preview shows nothing at all
+     * rather than a placeholder, while edit mode keeps the entry point.
+     */
+    if (projectCoverage === "none") {
+      return {
+        hidden: true,
+        disabled: false,
+        className: "time-summary-button time-summary-unset",
+        ariaLabel: "尚未設定任何工時估算，開啟時間詳情",
+        label: "-hr",
+        showDot: false,
+        showChevron: true,
       };
     }
     if (!deadlineAvailable) {
@@ -584,6 +619,7 @@ export function createTimeReferenceController({
   return Object.freeze({
     analysis,
     deadlineAvailable,
+    projectCoverage,
     itemTime,
     refresh,
     setReportStructureStale,

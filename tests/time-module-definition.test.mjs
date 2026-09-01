@@ -267,3 +267,29 @@ test("a task whose items are all unset reports no total, and a partial one repor
   // the analyzer computed with the substituted defaults included.
   assert.match(capsules[0].label, new RegExp(String(items[0].display_hours)));
 });
+
+test("a project with nothing estimated shows no summary capsule in preview, and an entry point while editing", () => {
+  // The analyzer now withholds the deadline block in this case, so the
+  // capsule must not fall through to 交付日未定 — that names a cause the
+  // reader would then go and "fix" on a delivery date that is already set.
+  const allUnset = {
+    ...analysis,
+    tasks: analysis.tasks.map((task) => ({
+      ...task,
+      items: task.items.map((item) => ({ ...item, mode: "default" })),
+    })),
+    summary: { ...analysis.summary, deadline: undefined },
+  };
+  const { attached } = attachTime({ data: allUnset });
+
+  assert.deepEqual(
+    collectCapsules(attached, "project-summary", {}).capsules,
+    [],
+    "a project total nobody set must not occupy the row",
+  );
+
+  const editing = collectCapsules(attached, "project-summary", {}, { editing: true }).capsules;
+  assert.equal(editing.length, 1, "edit mode keeps the way into the panel");
+  assert.equal(editing[0].label, "-hr");
+  assert.doesNotMatch(editing[0].label, /交付日未定/u);
+});

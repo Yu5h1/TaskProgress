@@ -2,15 +2,15 @@
   "schema_version": "0.2",
   "scope_id": "rooftop",
   "analysis_id": "analysis-20260827-010000",
-  "as_of": "2026-08-27T11:53:08.0858535\u002B08:00",
+  "as_of": "2026-09-01T18:50:03.6880053\u002B08:00",
   "method": {
     "name": "deterministic-capacity-feasibility",
     "version": "0.3"
   },
   "inputs": {
     "config_updated_at": "2026-08-27T09:00:00\u002B08:00",
-    "estimates_updated_at": "2026-08-27T11:53:08.0858535\u002B08:00",
-    "events_updated_at": "2026-08-27T11:53:08.0858535\u002B08:00",
+    "estimates_updated_at": "2026-09-01T18:50:03.6880053\u002B08:00",
+    "events_updated_at": "2026-09-01T18:50:03.6880053\u002B08:00",
     "task_state_updated_at": "2026-08-27T09:00:00\u002B08:00"
   },
   "summary": {
@@ -26,12 +26,12 @@
       "confidence": "low",
       "automatic_applied": false
     },
-    "total_estimated_minutes": 2880,
-    "calibrated_total_minutes": 2880,
-    "remaining_estimated_minutes": 2400,
+    "total_estimated_minutes": 0,
+    "calibrated_total_minutes": 0,
+    "remaining_estimated_minutes": 0,
     "actual_recorded_minutes": 0,
-    "estimated_total_days": 6,
-    "display_total_days": 6,
+    "estimated_total_days": 0,
+    "display_total_days": 0,
     "overall_confidence": "low",
     "estimate_composition": {
       "ai_minutes": 0,
@@ -39,85 +39,19 @@
       "manual_minutes": 0,
       "default_minutes": 2880
     },
-    "deadline": {
-      "started_at": "2026-08-27T09:00:00.0000000\u002B08:00",
-      "delivery_at": "2026-09-05T00:00:00.0000000\u002B08:00",
-      "evaluated_at": "2026-08-27T11:53:08.0858535\u002B08:00",
-      "schedule": {
-        "timezone": "Asia/Taipei",
-        "workday_start_local": "09:00",
-        "workday_end_local": "17:00",
-        "risk_thresholds": {
-          "on_track_max": 1.1,
-          "at_risk_max": 1.5,
-          "capacity_at_risk_ratio": 0.8
-        },
-        "capacity_profile": {
-          "total_minutes_per_day": 1440,
-          "sleep_minutes_per_day": 480,
-          "life_minutes_per_day": 480,
-          "other_unavailable_minutes_per_day": 0,
-          "capacity_minutes_per_executor_day": 480,
-          "working_weekdays": [
-            1,
-            2,
-            3,
-            4,
-            5
-          ],
-          "capacity_exceptions": []
-        },
-        "capacity_timeline": [
-          {
-            "date": "2026-08-27",
-            "capacity_minutes": 480
-          },
-          {
-            "date": "2026-08-28",
-            "capacity_minutes": 480
-          },
-          {
-            "date": "2026-08-31",
-            "capacity_minutes": 480
-          },
-          {
-            "date": "2026-09-01",
-            "capacity_minutes": 480
-          },
-          {
-            "date": "2026-09-02",
-            "capacity_minutes": 480
-          },
-          {
-            "date": "2026-09-03",
-            "capacity_minutes": 480
-          },
-          {
-            "date": "2026-09-04",
-            "capacity_minutes": 480
-          }
-        ]
-      },
-      "elapsed_capacity_minutes": 173,
-      "total_capacity_minutes": 3360,
-      "remaining_capacity_minutes": 3187,
-      "remaining_estimated_minutes": 2400,
-      "capacity_balance_minutes": 787,
-      "time_progress_ratio": 0.051488,
-      "work_progress_ratio": 0.166667,
-      "boundary_state": "active",
-      "urgency": "on_track",
-      "risk_basis": "progress_pressure",
-      "progress_pressure_ratio": 0.878569,
-      "feasibility_ratio": 0.753059
-    }
+    "estimated_leaf_count": 0,
+    "leaf_count": 6,
+    "estimate_coverage": "none"
   },
   "tasks": [
     {
       "task_id": "plan",
-      "total_likely_minutes": 480,
-      "estimated_days": 1,
-      "display_days": 1,
+      "total_likely_minutes": 0,
+      "estimated_days": 0,
+      "display_days": 0,
+      "estimated_leaf_count": 0,
+      "leaf_count": 1,
+      "estimate_coverage": "none",
       "items": [
         {
           "estimate_id": "estimate-default-plan-breakdown-v1",
@@ -157,9 +91,12 @@
     },
     {
       "task_id": "clean",
-      "total_likely_minutes": 960,
-      "estimated_days": 2,
-      "display_days": 2,
+      "total_likely_minutes": 0,
+      "estimated_days": 0,
+      "display_days": 0,
+      "estimated_leaf_count": 0,
+      "leaf_count": 2,
+      "estimate_coverage": "none",
       "items": [
         {
           "estimate_id": "estimate-default-clean-sweep-v1",
@@ -233,9 +170,12 @@
     },
     {
       "task_id": "filler",
-      "total_likely_minutes": 480,
-      "estimated_days": 1,
-      "display_days": 1,
+      "total_likely_minutes": 0,
+      "estimated_days": 0,
+      "display_days": 0,
+      "estimated_leaf_count": 0,
+      "leaf_count": 1,
+      "estimate_coverage": "none",
       "items": [
         {
           "estimate_id": "estimate-default-filler-filler-material-v1",
@@ -275,9 +215,12 @@
     },
     {
       "task_id": "paint",
-      "total_likely_minutes": 960,
-      "estimated_days": 2,
-      "display_days": 2,
+      "total_likely_minutes": 0,
+      "estimated_days": 0,
+      "display_days": 0,
+      "estimated_leaf_count": 0,
+      "leaf_count": 2,
+      "estimate_coverage": "none",
       "items": [
         {
           "estimate_id": "estimate-default-paint-paint-material-v1",
@@ -353,38 +296,43 @@
   "diagnostics": [
     {
       "level": "info",
-      "code": "default-estimate-used",
-      "message": "breakdown \u6C92\u6709 active estimate\uFF0C\u5DF2\u4F7F\u7528\u9810\u8A2D 480 \u5206\u9418\u3002"
+      "code": "unset-estimate-excluded",
+      "message": "breakdown \u6C92\u6709 active estimate\uFF0C\u672A\u8A08\u5165\u4EFB\u4F55\u7E3D\u548C\u3002"
     },
     {
       "level": "info",
-      "code": "default-estimate-used",
-      "message": "sweep \u6C92\u6709 active estimate\uFF0C\u5DF2\u4F7F\u7528\u9810\u8A2D 480 \u5206\u9418\u3002"
+      "code": "unset-estimate-excluded",
+      "message": "sweep \u6C92\u6709 active estimate\uFF0C\u672A\u8A08\u5165\u4EFB\u4F55\u7E3D\u548C\u3002"
     },
     {
       "level": "info",
-      "code": "default-estimate-used",
-      "message": "clean-tools \u6C92\u6709 active estimate\uFF0C\u5DF2\u4F7F\u7528\u9810\u8A2D 480 \u5206\u9418\u3002"
+      "code": "unset-estimate-excluded",
+      "message": "clean-tools \u6C92\u6709 active estimate\uFF0C\u672A\u8A08\u5165\u4EFB\u4F55\u7E3D\u548C\u3002"
     },
     {
       "level": "info",
-      "code": "default-estimate-used",
-      "message": "filler-material \u6C92\u6709 active estimate\uFF0C\u5DF2\u4F7F\u7528\u9810\u8A2D 480 \u5206\u9418\u3002"
+      "code": "unset-estimate-excluded",
+      "message": "filler-material \u6C92\u6709 active estimate\uFF0C\u672A\u8A08\u5165\u4EFB\u4F55\u7E3D\u548C\u3002"
     },
     {
       "level": "info",
-      "code": "default-estimate-used",
-      "message": "paint-material \u6C92\u6709 active estimate\uFF0C\u5DF2\u4F7F\u7528\u9810\u8A2D 480 \u5206\u9418\u3002"
+      "code": "unset-estimate-excluded",
+      "message": "paint-material \u6C92\u6709 active estimate\uFF0C\u672A\u8A08\u5165\u4EFB\u4F55\u7E3D\u548C\u3002"
     },
     {
       "level": "info",
-      "code": "default-estimate-used",
-      "message": "paint-tools \u6C92\u6709 active estimate\uFF0C\u5DF2\u4F7F\u7528\u9810\u8A2D 480 \u5206\u9418\u3002"
+      "code": "unset-estimate-excluded",
+      "message": "paint-tools \u6C92\u6709 active estimate\uFF0C\u672A\u8A08\u5165\u4EFB\u4F55\u7E3D\u548C\u3002"
     },
     {
       "level": "warning",
       "code": "calibration-has-no-samples",
       "message": "\u76EE\u524D\u5206\u6790\u5668\u5C1A\u672A\u5EFA\u7ACB\u53EF\u6BD4\u8F03\u7684\u5B8C\u6210\u6A23\u672C\uFF1B\u6821\u6E96\u4F7F\u7528\u8A2D\u5B9A\u7684\u5148\u9A57\u56E0\u5B50\u3002"
+    },
+    {
+      "level": "info",
+      "code": "deadline-not-assessable",
+      "message": "\u6C92\u6709\u4EFB\u4F55 active estimate\uFF0C\u56E0\u6B64\u4E0D\u7522\u751F\u671F\u9650\u53EF\u884C\u6027\u5224\u65B7\u3002"
     }
   ]
 }

@@ -81,6 +81,13 @@ export function createTimeModuleDefinition() {
                 onOpenProjectDetail: () => { controller.openProjectDetail(); host.onChanged(); },
               },
             });
+            /*
+             * A hidden summary means there is no estimate anywhere. Preview
+             * renders no capsule at all — a placeholder would occupy the row
+             * while carrying no reference meaning. Edit mode keeps it, because
+             * there it is the way into the panel where a first estimate is made.
+             */
+            if (props.hidden && !editing) return null;
             return {
               id: TIME_PROJECT_CAPSULE_ID,
               className: props.className,

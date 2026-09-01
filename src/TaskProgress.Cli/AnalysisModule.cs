@@ -113,16 +113,27 @@ internal sealed class TimeAnalysisModule : IAnalysisModule
         string? outputPath = null)
     {
         var result = TimeAnalysisGenerator.Generate(folderPath, asOf, outputPath);
+        // "交付日未定" used to be the only reason a deadline could be absent.
+        // Since unset leaves stopped being counted there is a second one, and
+        // reporting the wrong reason would send a reader to fix a delivery date
+        // that is already set.
+        var deadlineLine = result.DeadlineIncluded
+            ? "期限分析：已產生"
+            : result.EstimateCoverage == "none"
+                ? "期限分析：沒有任何估算，未判定"
+                : "期限分析：交付日未定";
         return new AnalysisRunResult(
             Type,
             result.OutputPath,
             $"時間分析已更新：{result.TotalEstimatedMinutes} 分鐘，"
-                + (result.DeadlineIncluded ? "含期限風險" : "交付日未定"),
+                + (result.DeadlineIncluded ? "含期限風險" : "未含期限風險"),
             [
                 $"已產生：{result.OutputPath}",
                 $"工程估算：{result.TotalEstimatedMinutes} 分鐘",
                 $"分析範圍：{result.TaskCount} 個 task，{result.ItemCount} 個穩定 item",
-                result.DeadlineIncluded ? "期限分析：已產生" : "期限分析：交付日未定",
+                $"估算覆蓋：{result.EstimatedLeafCount}/{result.LeafCount} 個葉節點"
+                    + $"（{result.EstimateCoverage}）",
+                deadlineLine,
                 $"診斷：{result.DiagnosticCount} 項",
             ]);
     }

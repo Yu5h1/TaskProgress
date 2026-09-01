@@ -6,6 +6,15 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
 
 ## Current state (2026-08-25)
 
+- **未設置估算不再代入預設值，已實作（2026-09-01）。** 這是 2026-08-25 就定案、記在本檔的規則，一直沒有落地；材料／人工初版試跑把它的後果變成金額後才排上來。`Documentation/AssessmentModuleArchitecturePlan.md#可加總數量的逐層彙總` 是規則的擁有者，本輪只是讓 Time 遵守它。
+  - **`TimeAnalysisGenerator` 不再把預設值計入任何總和。** 判斷用 `mode == "default"`，與 Viewer 的 `isUnsetEstimate` 是同一個述詞，兩邊排除的是同一組。項目 entry **仍然寫出**——它是 `-hr` 入口的對象，排除於總和不等於從檔案消失；連帶地葉節點全未設置的 task 也不再被丟掉，否則入口會指向不存在的東西。
+  - **新增 `estimate_coverage`／`estimated_leaf_count`／`leaf_count`**，summary 與每個 task 各一份。逐層判定：部分設置就顯示已設置那些的加總並標 `partial`，全部未設置才是 `none`。`estimate_composition.default_minutes` 改成回報**被排除**的分鐘數，因此它不再是總和的一部分。
+  - **沒有任何估算時不產生 `deadline` 區塊。** 這是實作時才發現的坑：`remainingEstimatedMinutes <= 0` 會走進 `boundary = "complete"`，把一個 113 項全未估的專案報成「已完成」——比原本的預設值更糟。deadline 本來就是選用的，缺席即「無法判定」。CLI 與 Viewer 的文案也一起改：原本兩邊都只會說「交付日未定」，那會在交付日明明已設定時指錯原因。
+  - **Viewer 端**：item 與 task 層的排除早就實作了（`createTimeIndex`、`taskDuration`），本輪補的是專案層——`projectCoverage` 由 index 推導而非讀新欄位（舊分析檔不得被當成已覆蓋），`none` 時預覽不顯示膠囊、編輯模式保留 `-hr` 入口。
+  - **本專案自己的數字如預期消失**：`analyze .` 現在是「工程估算 0 分鐘、估算覆蓋 0/113（none）、期限分析：沒有任何估算，未判定」，而不是先前的「約需 88 hr」。那 88 小時 100% 來自預設值。
+  - **驗證**：JS 455/455、C# pure 套件全過。新增 `tests/TaskProgress.Cli.Tests/TimeAnalysisTests.cs`（5 條：排除、entry 存活、partial、deadline withheld 且有估算時會回來、被排除的分鐘數仍可見）與一條 `tests/time-module-definition.test.mjs` 的專案層測試。**Viewer bundle 不需要重建**——動到的是 `viewer/assets/*.js`，不是 `.svelte`，`viewer-ui.js` 不含這些檔。
+  - **尚未處理**：試跑的問題二（`report.json` 的 item 混了工作項與採購項）沒有動。現在採購項不再自動獲得工時，但只要有人替採購項填了估算，仍然會算出人工費。
+
 - **模組依賴排序已接生產線，兩個 dialog dock 收斂為一個（2026-08-31）。**
   - **A：`TryAutoGenerate` 與 `Analyze` 改走 `ModuleDependencyGraph.Plan`。** 兩條路徑共用新的 `PlanAnalysisModules`，它同時把環與被忽略的依賴寫到 stderr（環印完整路徑、忽略依賴指名「哪個模組的值未計入」，兩者今天都不會觸發）。行為未變有兩層證據：測試釘住「沒有依賴時排序與註冊順序逐字相同」，以及實跑 `analyze --scope task-progress` 得到與改前相同的 54240 分鐘。
   - **B：`#time-dialog-dock`／`#cost-dialog-dock` 收斂為單一 `#module-detail-dock`。** `app.js` 新增 `renderModuleDetails()`，走訪 `state.attachedModules`，由模組自己的 `detailView` 決定用哪個共用 view；`renderCostDetail()` 與兩個具名 dock 刪除。加第三個模組不再需要動 `index.html` 或 `app.js`——這與 A 是同一種病（宿主寫死每個模組）。
