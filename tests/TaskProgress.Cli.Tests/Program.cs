@@ -9,6 +9,7 @@ internal static class Program
         ReportModuleTests.Run();
         CostEstimationTests.Run();
         WorkerTests.Run();
+        ModuleDependencyTests.Run();
 
         if (args.Contains("--pure"))
         {

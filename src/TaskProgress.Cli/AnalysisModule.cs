@@ -51,6 +51,20 @@ internal interface IAnalysisModule
     string Type { get; }
 
     /// <summary>
+    ///   Module types whose published output this module reads, declared by
+    ///   the module itself rather than by any manifest: a module that cannot
+    ///   state its own inputs is not separable.
+    ///
+    ///   These are types, never instance ids. A soft dependency breaks
+    ///   silently, so an id that gets renamed would take the edge with it and
+    ///   leave no symptom beyond a number that is quietly short.
+    ///
+    ///   Empty by default, which is the honest answer for every module that
+    ///   reads only its own private inputs.
+    /// </summary>
+    IReadOnlyList<string> DependsOn => [];
+
+    /// <summary>
     ///   What to call this module when reporting that its run failed. The
     ///   module owns the wording because it also owns the wording of its
     ///   success line.

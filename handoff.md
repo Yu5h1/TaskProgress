@@ -6,6 +6,11 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
 
 ## Current state (2026-08-25)
 
+- **模組依賴契約，第 1 刀（純新增，未接生產線）完成（2026-08-31）。** 照 Phase 2／3 的先例只加不改：新增 `src/TaskProgress.Cli/ModuleDependency.cs`（`ModuleDependencyGraph.Plan`、`ModuleDependencyPlan`、`ModuleCycle`、`IgnoredDependency`）與 `tests/TaskProgress.Cli.Tests/ModuleDependencyTests.cs`（7 條，全部不碰檔案系統）；`IAnalysisModule` 加上預設為空的 `DependsOn`。**`Program.cs` 的 `TryAutoGenerate` 一行未改**——它仍照 `AnalysisModules.Production` 的陣列順序跑。CLI 與測試專案各自 build 0 warning 0 error，pure 套件全過。
+  - **實作前先確認的事實：`depends_on`／`content_revision`／`input_modules` 在程式碼、schema 與 Viewer 中都不存在，而且今天沒有任何模組真的依賴另一個**（Cost 讀 `time.analysis.json` 已於 2026-08-25 排除，`LaborCostSettlement` 未建）。所以這一刀解的是**潛伏**耦合而非現行 bug：`TryAutoGenerate` 的陣列順序目前沒有意義，但第一個讀上游輸出的模組會讓「清單位置」無聲變成契約。有一條測試釘住「今天沒有依賴時排序結果與現行逐字相同」，接線時它就是行為未變的證據。
+  - **循環處理只停用循環成員本身**，下游照跑並收到 `DisabledByCycle` 的 ignored 記錄——這是設計「軟依賴＝下游照算並聲明覆蓋率」的直接後果，用 Tarjan SCC 判定成員而不是取拓樸排序的剩餘者（剩餘者會把下游一起誤殺）。循環以可走訪路徑回報（`cost → material → cost`），因為設計要求診斷指名邊而不只說「載入失敗」。
+  - **未做，且需要先確認才能接生產線**：(1) `TryAutoGenerate` 改為依 `Plan` 的順序、只重算 dirty 模組；(2) envelope 的 `content_revision`（內容雜湊，須排除 `generated_at`／`as_of` 這類每次都變的欄位，否則 cascade 會無限自我觸發）與 `input_modules`；(3) 被忽略依賴的使用者可見提示。第 2 項在出現第一個真正的跨模組邊之前沒有消費者。
+
 - **材料／人工初版試跑，炸出兩個真問題（2026-08-28）。** 使用者要求「實際跑一輪就知道缺什麼」，因此以 `reports/rooftop` 天臺案例為 fixture 填出 `material.estimates.json` 與 `labor.rates.json` 兩份草稿輸入，再依新邊界手算一次合成。細節與完整數字見 `Documentation/CostEstimationModulePlan.md#初版試跑天臺案例2026-08-28`。**沒有寫任何程式**，兩份草稿也沒有任何 manifest 指向，產品不會載入。
   - **問題一（真 bug，會算出假錢）：Time 為每個 item 一律代入 480 分鐘預設值**（`time.config.json` 的 `estimate_defaults.unplanned_item_likely_minutes`）。天臺六個 item 全部因此拿到 8 小時、每項 2,400 元人工，含三項純採購項；共 9,600 元、佔總額 41% 是編造的。扣掉後 13,490 在預算內，不扣則 23,490 超出 20,000 預算——**報告會宣告一個假的超支**。這與 `AssessmentModuleArchitecturePlan.md#可加總數量的逐層彙總`「不得代入任何領域預設值」明文衝突：Cost 遵守、Time 不遵守。舊邊界下兩者不相乘所以無害，新邊界下直接變成錢。
   - **問題二（結構性，是問題一產生金額的原因）：`report.json` 的 item 同時放了工作項與採購項。**「防水漆材料」「施工工具」「補土材料」是買東西不是做事，卻都被指派工時。即使 Time 改成不補預設值，只要有人替採購項填了工時，一樣會算出人工費。
