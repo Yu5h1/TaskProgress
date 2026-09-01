@@ -6,6 +6,12 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
 
 ## Current state (2026-08-25)
 
+- **模組依賴排序已接生產線，兩個 dialog dock 收斂為一個（2026-08-31）。**
+  - **A：`TryAutoGenerate` 與 `Analyze` 改走 `ModuleDependencyGraph.Plan`。** 兩條路徑共用新的 `PlanAnalysisModules`，它同時把環與被忽略的依賴寫到 stderr（環印完整路徑、忽略依賴指名「哪個模組的值未計入」，兩者今天都不會觸發）。行為未變有兩層證據：測試釘住「沒有依賴時排序與註冊順序逐字相同」，以及實跑 `analyze --scope task-progress` 得到與改前相同的 54240 分鐘。
+  - **B：`#time-dialog-dock`／`#cost-dialog-dock` 收斂為單一 `#module-detail-dock`。** `app.js` 新增 `renderModuleDetails()`，走訪 `state.attachedModules`，由模組自己的 `detailView` 決定用哪個共用 view；`renderCostDetail()` 與兩個具名 dock 刪除。加第三個模組不再需要動 `index.html` 或 `app.js`——這與 A 是同一種病（宿主寫死每個模組）。
+  - **順手修掉一個真 bug**：舊碼在 `moduleProjectionStale` 時 `return`，因此只拆掉 Time 的面板，Cost 的面板會**繼續顯示報告已不再吻合的數字**。統一迴圈讓 stale 規則對所有模組一致成立。
+  - **驗證**：C# pure 套件全過；讀 `app.js` 原始碼的 17 個 JS 測試全跑，177/177 通過（其中兩條 source-text 斷言原本釘住舊寫法，已改為斷言宿主**不再指名任何模組**）。`app.js` 與模組定義都不在 Vite bundle 的來源圖裡，**不需要重建 bundle**。真實瀏覽器驗證（port 8001，`task-progress` scope）：舊的兩個 dock 已消失、共用 dock 存在、Time 面板以 `data-module-type` 掛入其中並可正常開啟渲染；唯一 404 是 `cost.analysis.json`，該報告本來就沒有成本資料。
+
 - **模組依賴契約，第 1 刀（純新增，未接生產線）完成（2026-08-31）。** 照 Phase 2／3 的先例只加不改：新增 `src/TaskProgress.Cli/ModuleDependency.cs`（`ModuleDependencyGraph.Plan`、`ModuleDependencyPlan`、`ModuleCycle`、`IgnoredDependency`）與 `tests/TaskProgress.Cli.Tests/ModuleDependencyTests.cs`（7 條，全部不碰檔案系統）；`IAnalysisModule` 加上預設為空的 `DependsOn`。**`Program.cs` 的 `TryAutoGenerate` 一行未改**——它仍照 `AnalysisModules.Production` 的陣列順序跑。CLI 與測試專案各自 build 0 warning 0 error，pure 套件全過。
   - **實作前先確認的事實：`depends_on`／`content_revision`／`input_modules` 在程式碼、schema 與 Viewer 中都不存在，而且今天沒有任何模組真的依賴另一個**（Cost 讀 `time.analysis.json` 已於 2026-08-25 排除，`LaborCostSettlement` 未建）。所以這一刀解的是**潛伏**耦合而非現行 bug：`TryAutoGenerate` 的陣列順序目前沒有意義，但第一個讀上游輸出的模組會讓「清單位置」無聲變成契約。有一條測試釘住「今天沒有依賴時排序結果與現行逐字相同」，接線時它就是行為未變的證據。
   - **循環處理只停用循環成員本身**，下游照跑並收到 `DisabledByCycle` 的 ignored 記錄——這是設計「軟依賴＝下游照算並聲明覆蓋率」的直接後果，用 Tarjan SCC 判定成員而不是取拓樸排序的剩餘者（剩餘者會把下游一起誤殺）。循環以可走訪路徑回報（`cost → material → cost`），因為設計要求診斷指名邊而不只說「載入失敗」。

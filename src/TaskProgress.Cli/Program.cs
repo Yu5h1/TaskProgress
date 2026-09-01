@@ -345,7 +345,7 @@ internal static class Program
         }
 
         var produced = new List<(string Name, IReadOnlyList<string> Details)>();
-        foreach (var module in modules)
+        foreach (var module in PlanAnalysisModules(modules).Order)
         {
             var result = module.Generate(request.Folder, request.AsOf, request.Output);
             if (result is not null) produced.Add((module.DisplayName, result.Details));
@@ -548,8 +548,9 @@ internal static class Program
     /// </summary>
     private static bool TryAutoGenerate(string folder)
     {
+        var plan = PlanAnalysisModules(AnalysisModules.Production);
         var generated = false;
-        foreach (var module in AnalysisModules.Production)
+        foreach (var module in plan.Order)
         {
             if (!module.HasInputs(folder)) continue;
             try
@@ -566,6 +567,42 @@ internal static class Program
         }
 
         return generated;
+    }
+
+    /// <summary>
+    ///   Orders the modules by what they declare they read, and reports what
+    ///   that left out. Diagnostics go to stderr: a cycle is a configuration
+    ///   mistake, and an ignored dependency means the numbers that follow were
+    ///   computed on less input than they claim to describe.
+    /// </summary>
+    private static ModuleDependencyPlan PlanAnalysisModules(
+        IReadOnlyList<IAnalysisModule> modules)
+    {
+        var plan = ModuleDependencyGraph.Plan(modules);
+        var names = modules.ToDictionary(
+            module => module.Type,
+            module => module.DisplayName,
+            StringComparer.Ordinal);
+
+        foreach (var cycle in plan.Cycles)
+        {
+            Console.Error.WriteLine(
+                $"警告：分析模組相依成環，已停用環上全部模組：{cycle}");
+        }
+
+        foreach (var ignored in plan.IgnoredDependencies)
+        {
+            var reason = ignored.Reason == IgnoredDependencyReason.DisabledByCycle
+                ? "因相依成環被停用"
+                : "未註冊";
+            var self = names.TryGetValue(ignored.ModuleType, out var name)
+                ? name
+                : ignored.ModuleType;
+            Console.Error.WriteLine(
+                $"警告：{self} 的相依模組「{ignored.DependsOnType}」{reason}，其數值未計入。");
+        }
+
+        return plan;
     }
 
     private static async Task<int> RunServiceCommandAsync(

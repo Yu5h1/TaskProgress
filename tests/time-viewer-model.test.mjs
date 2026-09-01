@@ -121,7 +121,9 @@ test("Viewer markup exposes one shared dialog mount and all three detail tabs", 
     "utf8",
   );
 
-  assert.match(html, /id="time-dialog-dock"/);
+  assert.match(html, /id="module-detail-dock"/);
+  assert.doesNotMatch(html, /id="time-dialog-dock"/);
+  assert.doesNotMatch(html, /id="cost-dialog-dock"/);
   assert.match(html, /id="time-summary-dock"/);
   assert.doesNotMatch(html, /id="time-dialog"/);
   assert.doesNotMatch(html, /id="time-summary-button"/);
@@ -131,11 +133,12 @@ test("Viewer markup exposes one shared dialog mount and all three detail tabs", 
 });
 
 test("the time summary button and its dialog are registered as one shared implementation", async () => {
-  const [adapter, app, timeDialog, timeSummaryButton] = await Promise.all([
+  const [adapter, app, timeDialog, timeSummaryButton, timeModule] = await Promise.all([
     readFile(new URL("../experiments/editor-svelte-spike/src/viewer-adapter.svelte.js", import.meta.url), "utf8"),
     readFile(new URL("../viewer/assets/app.js", import.meta.url), "utf8"),
     readFile(new URL("../experiments/editor-svelte-spike/src/TimeDialog.svelte", import.meta.url), "utf8"),
     readFile(new URL("../experiments/editor-svelte-spike/src/TimeSummaryButton.svelte", import.meta.url), "utf8"),
+    readFile(new URL("../viewer/assets/time-module-definition.js", import.meta.url), "utf8"),
   ]);
 
   // The delivery capsule now mounts through the shared module strip rather
@@ -145,7 +148,13 @@ test("the time summary button and its dialog are registered as one shared implem
   assert.match(adapter, /"project-module-strip": ModuleCapsuleStrip/);
   assert.match(adapter, /"time-dialog": TimeDialog/);
   assert.match(app, /createUiView\(\s*"project-module-strip",\s*elements\.timeSummaryButton/);
-  assert.match(app, /createUiView\("time-dialog", elements\.timeDialog/);
+
+  // The host no longer names Time's panel. Every module's detail mounts
+  // through one dock, and the module says which shared view renders it, so
+  // adding a module touches neither the markup nor the host.
+  assert.match(timeModule, /detailView: "time-dialog"/);
+  assert.match(app, /createUiView\(instance\.detailView, element, detail\)/);
+  assert.doesNotMatch(app, /"time-dialog"|"cost-dialog"/);
 
   // Modal mechanics live in DialogShell, not in Time's panel. Time passes
   // `open` through and renders its content into the shell's slot.

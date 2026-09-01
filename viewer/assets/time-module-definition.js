@@ -165,6 +165,13 @@ export function createTimeModuleDefinition() {
          * only what it knows — the current snapshot and the four commands
          * that drive its own dialog.
          */
+        /*
+         * Which shared view renders this module's detail panel. The host
+         * mounts it into one dock shared by every module, so naming the
+         * view here is what keeps the host from naming this module.
+         */
+        detailView: "time-dialog",
+
         detailProps(editing) {
           return buildTimeDialogProps({
             ...editing,

@@ -101,6 +101,13 @@ export function createCostModuleDefinition() {
          * Detail props for the panel the host mounts. Cost contributes only
          * what it knows; it holds no draft, because it has no editing.
          */
+        /*
+         * Which shared view renders this module's detail panel. The host
+         * mounts it into one dock shared by every module, so naming the
+         * view here is what keeps the host from naming this module.
+         */
+        detailView: "cost-dialog",
+
         detailProps() {
           const onClose = () => { openSubject = null; host.onChanged(); };
           if (openSubject?.kind === "item") {

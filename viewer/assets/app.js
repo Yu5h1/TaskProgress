@@ -146,8 +146,7 @@ const elements = {
   editSaveBar: document.querySelector("#edit-save-bar"),
   taskAddShell: document.querySelector("#task-add-shell"),
   timeSummaryButton: document.querySelector("#time-summary-dock"),
-  timeDialog: document.querySelector("#time-dialog-dock"),
-  costDialog: document.querySelector("#cost-dialog-dock"),
+  moduleDetailDock: document.querySelector("#module-detail-dock"),
   timeSettingsDock: document.querySelector("#time-settings-dock"),
   deliverySaveConfirmationDock: document.querySelector("#delivery-save-confirmation-dock"),
 };
@@ -181,7 +180,7 @@ const state = {
   // saved report_revision mismatch: the draft has no revision to compare
   // against yet, so this is the only way that divergence is visible.
   moduleProjectionStale: false,
-  timeDialogView: null,
+  moduleDetailViews: new Map(),
   diagnosticsView: null,
   scopeDirectoryView: null,
   overviewView: null,
@@ -363,38 +362,49 @@ function renderTimeReference() {
    * is Core's judgement, so Core tears it down rather than asking the module
    * to withdraw.
    */
-  if (state.moduleProjectionStale) {
-    state.timeDialogView?.destroy();
-    state.timeDialogView = null;
-    return;
-  }
-
-  // The panel itself is not a registry slot yet — that waits on the shared
-  // assessment shell contract — so the host still mounts it, but the props
-  // come from the module rather than from a controller held here.
-  const detail = attachedModule(TIME_MODULE_TYPE)?.detailProps?.(editingContext);
-  if (detail) {
-    if (state.timeDialogView) state.timeDialogView.update(detail);
-    else state.timeDialogView = createUiView("time-dialog", elements.timeDialog, detail);
-  }
-
-  renderCostDetail();
+  renderModuleDetails(editingContext);
 }
 
 /*
- * Cost's panel mounts beside Time's rather than through a shared slot,
- * because the detail surface is still host-mounted. Two docks is the visible
- * cost of that, and the reason a shared detail slot is worth settling.
+ * Every module's detail panel through one dock and one rule.
+ *
+ * The host used to hold a dock, a selector and a mount block per module, so a
+ * third module meant editing markup and this file. Now it iterates whatever is
+ * attached and asks each module which view renders it, which is the same shape
+ * the capsule strips already use — modules are addressed by type, never by
+ * position, and the host names none of them.
+ *
+ * The stale rule applies to all of them, not just the first. It used to return
+ * before Cost was reached, which left Cost's panel showing figures the report
+ * no longer matched while Time's was correctly torn down.
  */
-function renderCostDetail() {
-  const detail = attachedModule(COST_MODULE_TYPE)?.detailProps?.();
-  if (!detail) {
-    state.costDialogView?.destroy();
-    state.costDialogView = null;
-    return;
+function renderModuleDetails(editingContext) {
+  for (const { type, instance } of state.attachedModules) {
+    const detail = state.moduleProjectionStale
+      ? null
+      : instance.detailProps?.(editingContext);
+    const mounted = state.moduleDetailViews.get(type);
+
+    if (!detail) {
+      mounted?.view.destroy();
+      mounted?.element.remove();
+      state.moduleDetailViews.delete(type);
+      continue;
+    }
+
+    if (mounted) {
+      mounted.view.update(detail);
+      continue;
+    }
+
+    const element = el("div", "module-detail");
+    element.dataset.moduleType = type;
+    elements.moduleDetailDock.append(element);
+    state.moduleDetailViews.set(type, {
+      element,
+      view: createUiView(instance.detailView, element, detail),
+    });
   }
-  if (state.costDialogView) state.costDialogView.update(detail);
-  else state.costDialogView = createUiView("cost-dialog", elements.costDialog, detail);
 }
 
 function applyManualEstimateDraft(change) {

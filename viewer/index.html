@@ -41,10 +41,10 @@
         </div>
       </header>
 
-      <!-- Mount point only. The shared TimeDialog component renders the
-           dialog, project/item detail and capacity editor itself. -->
-      <div class="time-dialog-dock" id="time-dialog-dock"></div>
-      <div class="cost-dialog-dock" id="cost-dialog-dock"></div>
+      <!-- Mount point only, shared by every module. Each attached module's
+           detail panel is created inside this one dock in attach order; no
+           module gets a dock of its own, so adding one touches no markup. -->
+      <div class="module-detail-dock" id="module-detail-dock"></div>
 
       <main id="main-content">
         <section class="hero" aria-labelledby="report-title">

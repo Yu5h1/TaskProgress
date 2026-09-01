@@ -190,17 +190,22 @@ test("time-viewer-module.js stays off the DOM", async () => {
 // old inline duplicate (including the standalone timeSettingsProps()) no
 // longer exists to drift out of sync with it. ---
 
-test("app.js mounts the dialog directly but gets the capsule from the registry, not from Time by name", async () => {
+test("app.js mounts every module's dialog through one dock and names none of them", async () => {
   const appSource = await readFile(new URL("../viewer/assets/app.js", import.meta.url), "utf8");
   // app.js no longer imports the render layer at all — the module does,
   // and hands back finished props.
   assert.doesNotMatch(appSource, /from "\.\/time-viewer-module\.js"/u);
+  // The detail surface stopped being per-module on 2026-08-31: one dock, one
+  // loop over whatever attached, and the module says which view renders it.
+  // Naming Time here was the thing that made a third module cost markup.
+  assert.match(appSource, /for \(const \{ type, instance \} of state\.attachedModules\)/u);
+  assert.match(appSource, /createUiView\(instance\.detailView, element, detail\)/u);
+  assert.doesNotMatch(appSource, /TIME_MODULE_TYPE\)\?\.detailProps/u);
+  assert.doesNotMatch(appSource, /renderCostDetail/u);
   // Addressed by type, never by position. `attachedModules[0]` was correct
   // only while exactly one module could attach; Cost joining in 2026-08-27 is
-  // what made the difference observable, so the lookup must stay by type.
-  assert.match(appSource, /attachedModule\(TIME_MODULE_TYPE\)\?\.detailProps\?\.\(editingContext\)/u);
+  // what made the difference observable.
   assert.doesNotMatch(appSource, /attachedModules\[0\]/u);
-  assert.match(appSource, /createUiView\("time-dialog", elements\.timeDialog, detail\)/u);
 
   // The main-panel capsule now comes from the module lifecycle loop
   // (2026-08-25). `buildTimeSummaryProps` moved behind Time's registered
