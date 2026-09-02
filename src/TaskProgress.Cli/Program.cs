@@ -695,6 +695,7 @@ internal static class Program
         Console.WriteLine("  analyze --module <名稱>          只執行指定模組，例如 time、cost");
         Console.WriteLine("  analyze --scope <scope-id>       分析已登記的 scope");
         Console.WriteLine("  checklist <task.checklist>       開啟本機 WPF Checklist 編輯器");
+        Console.WriteLine("  checklist validate <file>        僅驗證文件格式並輸出到 stdout，不開視窗");
         Console.WriteLine("  checklist install                註冊目前使用者的 .checklist 檔案關聯");
         Console.WriteLine("  checklist uninstall              移除 TaskProgress .checklist 檔案關聯");
         Console.WriteLine("  open <report-folder>             開啟指定資料夾的報告");
@@ -722,6 +723,7 @@ internal static class Program
         Console.WriteLine("  scope add \"W:\\UnityProject\\BonghuoVR\"");
         Console.WriteLine("  analyze --scope bonghuo-vr");
         Console.WriteLine("  checklist checklists\\task-a.checklist");
+        Console.WriteLine("  checklist validate checklists\\task-a.checklist");
         Console.WriteLine("  start");
         Console.WriteLine("  open --scope bonghuo-vr --no-browser");
         Console.WriteLine("  http://127.0.0.1:8001/?scope=bonghuo-vr");

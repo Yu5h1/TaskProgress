@@ -126,6 +126,61 @@ internal static class Program
             var textPath = Path.Combine(root, "task-a.txt");
             File.WriteAllBytes(textPath, source);
             Throws(() => ChecklistCommand.Run([textPath], _ => { }), "Checklist command unrelated extension");
+
+            // The Winform report: a round line that is present but malformed used
+            // to be reported as absent, sending the reader hunting for a line
+            // sitting on screen. The two cases must stay distinguishable.
+            var malformedRound = source.ReplaceUtf8(
+                "Current round: `plan.md#round`.",
+                "Current round: `a.md` 與 `b.md`。");
+            True(
+                ParseError(malformedRound).Contains("第 3 行", StringComparison.Ordinal),
+                "malformed round identity names its own line");
+            True(
+                ParseError(Encoding.UTF8.GetBytes(
+                    """
+                    # Implementation Checklist
+
+                    - [ ] **1. Missing round**
+
+                    """))
+                    .Contains("缺少", StringComparison.Ordinal),
+                "absent round identity is still reported as missing");
+
+            var malformedRoundPath = Path.Combine(root, "malformed-round.checklist");
+            File.WriteAllBytes(malformedRoundPath, malformedRound);
+            var validateOut = new StringWriter();
+            var validateError = new StringWriter();
+            var previousOut = Console.Out;
+            var previousError = Console.Error;
+            int validateConforming;
+            int validateMalformed;
+            int validateMissingTarget;
+            int validateExtraTarget;
+            Console.SetOut(validateOut);
+            Console.SetError(validateError);
+            try
+            {
+                validateConforming = ChecklistCommand.Validate([path]);
+                validateMalformed = ChecklistCommand.Validate([malformedRoundPath]);
+                validateMissingTarget = ChecklistCommand.Validate([]);
+                validateExtraTarget = ChecklistCommand.Validate([path, path]);
+            }
+            finally
+            {
+                Console.SetOut(previousOut);
+                Console.SetError(previousError);
+            }
+            Equal(0, validateConforming, "Checklist validate accepts a conforming file");
+            Equal(1, validateMalformed, "Checklist validate rejects a malformed round identity");
+            Equal(1, validateMissingTarget, "Checklist validate requires a target");
+            Equal(1, validateExtraTarget, "Checklist validate rejects extra targets");
+            True(
+                validateOut.ToString().Contains("plan.md#round", StringComparison.Ordinal),
+                "Checklist validate reports the round identity on stdout");
+            True(
+                validateError.ToString().Contains("第 3 行", StringComparison.Ordinal),
+                "Checklist validate reports the offending line on stderr");
             True(
                 TaskProgress.Program.IsDirectChecklistActivation([path]),
                 "direct .checklist activation");
@@ -475,6 +530,21 @@ internal static class Program
     {
         if (!expected.AsSpan().SequenceEqual(actual)) throw new InvalidOperationException(message);
         assertionCount++;
+    }
+
+    // Returns the parser's message so a test can assert which failure was
+    // reported, not merely that one was.
+    private static string ParseError(byte[] source)
+    {
+        try
+        {
+            _ = ChecklistDocument.Parse(source);
+        }
+        catch (CliException error)
+        {
+            return error.Message;
+        }
+        throw new InvalidOperationException("Expected CliException from Parse.");
     }
 
     private static void Throws(Action action, string message)

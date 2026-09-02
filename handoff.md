@@ -6,6 +6,17 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
 
 ## Current state (2026-08-25)
 
+- **`.checklist` 的 round anchor 契約補完，並補上純主控台驗證入口（2026-09-02）。** 起點是一則 bug 回報：`Winform/checklists/tray-app-output.checklist` 打不開，訊息是「Checklist 缺少 Current round plan anchor」。成因不在該檔下半部——work item、check 欄位、衍生狀態、相依 ID 全部合格，只有第 3 行寫成兩個 anchor 以 `與` 串接並以全形句號結尾，不符 `ChecklistDocument` 的 `RoundPattern`。該檔已由本輪修好（Winform 的未追蹤檔，只動第 3 行，round identity 取 `Documentation/TrayAppOutput.md#驗收`），但那份檔案的後續歸 Winform 自己追蹤。
+  - **真正的缺陷是指令檔從來沒寫這條規則。** `Current round` 在所有 skill 檔案裡出現 0 次；它只寫在 `src/TaskProgress.Cli/ChecklistDocument.cs` 的 regex、`plan.md` 的決策段落與 `tests/active-checklist-format.test.mjs`——沒有一個在跨 repo 執行者的路由上。執行者照 skill 能產出的部分都對了，skill 沒說的那一行就用猜的。`.agents/skills/checklist-round/SKILL.md` 因此新增 `### Document header`（前三行的精確形狀、單一 backtick anchor、半形 `.` 結尾、anchor 帶 `#<fragment>`）與 `### Verify the document`。
+  - **格式本身未放寬（使用者決定）。** 兩個 anchor 會把 round identity 從單一指標變成集合，語意變更而非放寬；全形 `。` 也不接受。嚴格度分兩級並寫進 skill：前兩者是 parser 整份拒收，`#<fragment>` 則是契約要求、由 `tests/active-checklist-format.test.mjs` 把關。
+  - **錯誤訊息本來會誤導。** 這是 parser 裡唯一不帶行號的格式錯誤，行明明在那裡卻報「缺少」。`ChecklistDocument.cs` 現在分辨兩種情況：prefix 內完全沒有這行才報「缺少」，有但不合格式則走 `FormatError` 報行號與規則。`ChecklistErrorDialog.cs` 的註解原本就宣稱訊息會 name the line，現在才成立。
+  - **`checklist validate <file>`（`src/TaskProgress.Cli/ChecklistCommand.cs`）。** 純 stdout／stderr，不開視窗、不寫回檔案，失敗回傳非 0。分岔放在公開的 `ChecklistCommand.Run(string[])` 這個邊緣選擇器，**不可**放進內部命令表——後者被 `ChecklistErrorDialog.Show` 包住，在無主控台的執行中會變成關不掉的訊息框。兩條路徑共用同一個 `ChecklistDocumentStore.Load`，解析不分岔。這是 `plan.md` 的「分派位置是這個契約的一部分」第一個遵守者。
+  - **驗證**：完全照新 SKILL.md 兩節寫出的全新檔案 `validate` 通過——這是指令是否足夠的實證，不是自評。`TaskProgress.Checklist.Tests` 93 checks（原 85，新增的 8 條含「malformed 必須報第 3 行」「absent 必須報缺少」與 `Validate` 的回傳碼與輸出內容）、JS 455/455。
+
+- **`tests/TaskProgress.Cli.Tests` 的兩條過期斷言已修，套件恢復綠燈（2026-09-02）。** `26159e2` 讓未設置估算不再代入預設值，卻沒有更新這個以 `reports/example/report.json`（零 `estimate` 欄位）為 fixture 的整合測試。兩處都改成讓新規則成為被測行為，而不是繞過它：
+  - estimate-only 區塊不再斷言總和大於 0，改為斷言公開範例報告總和為 0 且 `estimate_coverage` 為 `none`。排除規則本身由 `tests/TaskProgress.Cli.Tests/TimeAnalysisTests.cs` 擁有，此處只多守一件事：出貨的範例報告讀起來是「未涵蓋」，而不是帶著替代預設值。
+  - deadline 區塊的需求量原本來自被代入的預設值，規則移除後 `DeadlineIncluded` 變成 false，整段 capacity／urgency 覆蓋跟著失效。改為在該 fixture 寫入 `time.estimates.json`，兩個 pending item 各 480 分鐘的 `human_estimate`，`remaining_estimated_minutes` 960 這個數字因此有了真實來源。
+
 - **Checklist Browser 入口的設計已定案，一行程式都還沒寫（2026-09-02）。** 使用者逐題答完階段 3 的全部待決項。設計本體是 `plan.md#階段-3-的傳輸設計`，此處只記時間與範圍：讀寫分離（`checklists/*.checklist` 併入 `start` 既有的 scope 路由做唯讀預覽，寫入僅限明確開啟的檔案並經不透明 handle）、`checklist request --file <path>` 以 stdin／stdout 交換 JSON、沿用既有 bearer／loopback／Origin 授權、啟動入口以副檔名判斷而非路徑存在性、雙擊維持桌面版、預覽不輪詢也不推送。
   - **修正了本檔下方的一條順序規則。** 「Design the shared Edit Application Service before either missing entrance」對 Checklist 不成立——`ChecklistBridge.Handle(string requestJson)` 已經是 transport-agnostic 的（檔案、請求）純函式，兩宿主共用同一份服務在此已經成立；需要先抽出共用服務的是 Report Editor 的雙入口。
   - **這一輪的起點是我的一次誤判，值得記著。** 使用者問「Checklist 有沒有 local server 入口」，我查了程式碼答「沒有」卻沒查 Artifact 清單，因而否定了使用者記得的那次預覽——它其實是 Artifact `cda82b48`（2026-08-15「結構化 Checklist 編輯」，44.2KB，內含 `chrome.webview`／`fetch`／loopback 的次數皆為 0，是純快照）。查 repo 不等於查完所有既有成果。
@@ -214,7 +225,7 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
 - Active claim: none.
 - **Next steps:**
   - **Checklist Browser 入口第一刀**，設計見 `plan.md#階段-3-的傳輸設計`。放寬單參數限制以接受 `--localserver`：`Program.IsDirectChecklistActivation`（`src/TaskProgress.Cli/Program.cs:675`）與 `ChecklistCommand.Run` 的 `args.Length != 1` 檢查，改以副檔名判斷。
-  - 新增 `checklist request --file <path>`（stdin／stdout JSON）。分派位置與錯誤邊緣見 plan 的「分派位置是這個契約的一部分」；該規則只依賴 HEAD 既有的結構（公開 `Run(string[])` 委派給會呼叫 `ChecklistErrorDialog.Show` 的內部多載），不依賴任何尚未存在的命令。另一個 session 進行中的 `checklist validate` 會是第一個遵守它的命令，但**目前只在該 session 的工作區、尚未提交**；若它落地就直接對照，若沒有，規則本身仍然完整。
+  - 新增 `checklist request --file <path>`（stdin／stdout JSON）。分派位置與錯誤邊緣見 plan 的「分派位置是這個契約的一部分」；該規則只依賴 HEAD 既有的結構（公開 `Run(string[])` 委派給會呼叫 `ChecklistErrorDialog.Show` 的內部多載），不依賴任何尚未存在的命令。`checklist validate` 已是第一個遵守它的命令，實作見 `src/TaskProgress.Cli/ChecklistCommand.cs` 的 `Run(string[])` 與 `Validate`，直接對照即可。
   - `service/taskprogress_host.py` 新增 handle 表與 `/checklists/{handle}` 路由，讀與寫都轉呼叫上述子命令；沿用既有 bearer／loopback／Origin 授權。
   - UI 新增 HTTP transport，對照 `experiments/editor-svelte-spike/src/checklist-bridge.js`。Checklist 畫面已接受 `transport` prop，畫面本身不需修改。
   - Browser 版資產建置輸出到 `viewer/checklist/`，沿用既有靜態服務，不修改 `web_root`。
@@ -267,7 +278,7 @@ Each needs the user's answer before the work it blocks can be specced. Nothing h
 
 ## Blockers / open items
 
-- **`tests/TaskProgress.Cli.Tests` 目前在 HEAD 失敗，與 Checklist 無關。** `tests/TaskProgress.Cli.Tests/Program.cs:79` 的 `True(estimateOnly.TotalEstimatedMinutes > 0, "Default estimates were not generated")` 以 `reports/example/report.json` 為 fixture，而該檔沒有任何 `estimate` 欄位。`26159e2` 把未設置估算排除在所有總和之外後，那個總和必然是 0，斷言因此必然失敗；同一個 commit 只動了該測試檔一行，沒有更新這條斷言。**由另一個 session 回報，我以靜態閱讀複核（測試第 79 行、fixture 的 estimate 欄位計數為 0、`git show --stat 26159e2` 顯示該測試檔 +1 行），沒有實跑測試。** 尚未修：要先決定是換一個有估算的 fixture，還是改寫這條斷言的語意。
+- ~~`tests/TaskProgress.Cli.Tests` 在 HEAD 失敗~~ — **已修（2026-09-02）**，見 Current state。回報與靜態複核都成立；實跑後另有第二條同源的過期斷言（deadline 區塊），一併處理。
 - ~~Local edit-host capability unreachable~~ — **resolved 2026-08-06**, see Current state above. Earlier verification notes in this file that say edit mode could not be opened in a browser were written under that blocker and should be read as historical, not current. Optionally still worth doing: reinstall the published EXE as the `task-progress://` protocol handler.
 - ~~The `verify-bundle` CI job has never actually run~~ — **wrong, corrected 2026-08-22.** It has run eight times. Runs #1–#6 succeeded; #7 (`4cee62c`) and #8 (`abdca95`) failed, and the fix is in `e493292` — see Current state.
 - Whether real end-user browsers reliably fire the native `close` event on a scripted `dialog.close()`, and support Escape-to-close on a modal `<dialog>`, is unverified — this session's own browser automation tool does neither reliably (reproduced on a bare ad-hoc dialog, unrelated to app code), which is why `TimeDialog.svelte`'s close paths no longer depend on that event. Worth confirming in a real browser before trusting the ESC/`<form method="dialog">` fallback path in production.

@@ -108,7 +108,16 @@ internal sealed class ChecklistDocument
             .FirstOrDefault(match => match.Success);
         if (roundMatch is null)
         {
-            throw new CliException("Checklist 缺少 Current round plan anchor。");
+            // A malformed round line is a different failure from an absent one:
+            // reporting both as "missing" sends the reader hunting for a line
+            // that is sitting right there. Match loosely on purpose so a casing
+            // slip still lands on the offending line instead of the absent case.
+            var candidate = Array.FindIndex(
+                lines[..firstItem],
+                line => line.StartsWith("Current round", StringComparison.OrdinalIgnoreCase));
+            throw candidate < 0
+                ? new CliException("Checklist 缺少 Current round plan anchor。")
+                : FormatError(candidate, "Current round 必須是單一 backtick 包住的 plan anchor 並以半形 . 結尾");
         }
 
         var hasFinalNewLine = text.EndsWith(newLine, StringComparison.Ordinal);

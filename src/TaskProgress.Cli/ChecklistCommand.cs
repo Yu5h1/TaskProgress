@@ -3,7 +3,21 @@ namespace TaskProgress;
 
 internal static class ChecklistCommand
 {
-    public static int Run(string[] args) => Run(args, ChecklistDesktopHost.Run, ChecklistErrorDialog.Show);
+    public static int Run(string[] args)
+    {
+        ArgumentNullException.ThrowIfNull(args);
+        // Two commands, two error edges. The window command is normally launched
+        // from a shortcut with no console, so a failure there needs a dialog.
+        // `validate` is its console twin — written for an agent checking its own
+        // file — where a message box is a hang, not a report. Only the edge
+        // differs; both reach the same store load.
+        if (args.Length > 0 && string.Equals(args[0], "validate", StringComparison.OrdinalIgnoreCase))
+        {
+            return Validate(args[1..]);
+        }
+
+        return Run(args, ChecklistDesktopHost.Run, ChecklistErrorDialog.Show);
+    }
 
     internal static int Run(string[] args, Action<string> openWindow, Action<string> reportError)
     {
@@ -78,5 +92,34 @@ internal static class ChecklistCommand
         _ = new ChecklistDocumentStore().Load(path);
         openWindow(path);
         return 0;
+    }
+
+    // Reports the parser's verdict on stdout and nothing else: no window, no
+    // dialog, no write back to the file. This is the only way a checklist author
+    // can confirm the document contract without a desktop session.
+    internal static int Validate(string[] args)
+    {
+        ArgumentNullException.ThrowIfNull(args);
+        try
+        {
+            if (args.Length != 1)
+            {
+                throw new CliException("用法：task-progress checklist validate <task.checklist>");
+            }
+
+            var path = ChecklistDocumentStore.ValidatePath(args[0]);
+            var document = new ChecklistDocumentStore().Load(path);
+            var checks = document.Items.Sum(item => item.Checks.Count);
+            var manual = document.Items.Sum(item => item.Checks.Count(check => check.IsManual));
+            Console.WriteLine($"Checklist 格式正確：{path}");
+            Console.WriteLine($"  Current round：{document.RoundIdentity}");
+            Console.WriteLine($"  work items {document.Items.Count}，checks {checks}（manual {manual}）");
+            return 0;
+        }
+        catch (CliException error)
+        {
+            Console.Error.WriteLine($"錯誤：{error.Message}");
+            return 1;
+        }
     }
 }

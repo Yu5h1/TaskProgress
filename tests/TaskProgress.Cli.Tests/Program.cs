@@ -76,7 +76,12 @@ internal static class Program
             False(TimeAnalysisGenerator.HasInputs(derivedFolder),
                 "Generated output was mistaken for analyzer input");
             False(estimateOnly.DeadlineIncluded, "Default analysis unexpectedly created a deadline");
-            True(estimateOnly.TotalEstimatedMinutes > 0, "Default estimates were not generated");
+            // The shipped example report declares no estimates, so its analysis
+            // totals nothing and says so. TimeAnalysisTests owns the exclusion
+            // rule itself; what this fixture adds is that the public demo report
+            // reads as uncovered rather than carrying a substituted default.
+            Equal(0, estimateOnly.TotalEstimatedMinutes, "The example report totalled unestimated leaves");
+            Equal("none", estimateOnly.EstimateCoverage, "The example report did not read as uncovered");
             var estimateOnlyJson = await File.ReadAllTextAsync(
                 estimateOnly.OutputPath,
                 cancellation.Token);
@@ -141,6 +146,44 @@ internal static class Program
                 }
                 """,
                 cancellation.Token);
+            // The deadline engine needs demand to weigh capacity against. It used
+            // to get that from the default substituted for every unestimated
+            // leaf; with that gone the two pending items carry declared
+            // estimates instead, so the figures below rest on stated work.
+            await File.WriteAllTextAsync(
+                Path.Combine(secondFolder, "time.estimates.json"),
+                """
+                {
+                  "schema_version": "0.2",
+                  "scope_id": "sample-unity-project",
+                  "updated_at": "2026-07-24T12:00:00+08:00",
+                  "estimates": [
+                    {
+                      "estimate_id": "estimate-build-deployment-artifact",
+                      "task_id": "pages-deployment",
+                      "item_id": "build-deployment-artifact",
+                      "active": true,
+                      "contributors": [{ "kind": "human_estimate" }],
+                      "likely_minutes": 480,
+                      "confidence": "medium",
+                      "human_confirmed": true,
+                      "estimated_at": "2026-07-24T12:00:00+08:00"
+                    },
+                    {
+                      "estimate_id": "estimate-verify-public-separation",
+                      "task_id": "pages-deployment",
+                      "item_id": "verify-public-separation",
+                      "active": true,
+                      "contributors": [{ "kind": "human_estimate" }],
+                      "likely_minutes": 480,
+                      "confidence": "medium",
+                      "human_confirmed": true,
+                      "estimated_at": "2026-07-24T12:00:00+08:00"
+                    }
+                  ]
+                }
+                """,
+                cancellation.Token);
             True(TimeAnalysisGenerator.HasInputs(secondFolder),
                 "time.config.json did not enable automatic analysis");
             var deadlineAnalysis = TimeAnalysisGenerator.Generate(
@@ -158,7 +201,7 @@ internal static class Program
             Equal(
                 960d,
                 ReadSummaryNumber(deadlineJson, "remaining_estimated_minutes"),
-                "Remaining demand did not sum the two pending default estimates");
+                "Remaining demand did not sum the two pending estimates");
             Equal(
                 "on_track",
                 ReadDeadlineString(deadlineJson, "urgency"),

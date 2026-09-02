@@ -49,6 +49,26 @@ Do not create a later checklist-only commit merely to mark work already carried
 by an earlier implementation commit. This co-commit rule changes how the file is
 versioned; it does not make "update the checklist" a checklist item.
 
+### Document header
+
+Every `.checklist` file opens with the same three lines, in this order:
+
+```markdown
+# <Task title> Checklist
+
+Current round: `<path>#<anchor>`.
+```
+
+`Current round` is the round identity: exactly one backtick-quoted anchor naming
+the settled spec this round implements, on a line closed by a half-width `.`.
+Two anchors joined by prose, or a full-width `。`, fail the whole document —
+not just that line. The anchor names a section, so it carries the spec heading's
+`#<fragment>` rather than a bare file path.
+
+The file's own prose follows after a blank line, before the first work item.
+The file is UTF-8 and uses one newline style throughout; CRLF and LF must not be
+mixed.
+
 ### Shape
 
 Two layers. The outer list contains work items; nested checks prove each item's
@@ -123,6 +143,21 @@ Keep a correction under the same item when its outcome and acceptance condition
 are unchanged. Add a new numeric item only when the required outcome, scope,
 action, or expectation materially changes. An unattempted `[ ]` specification can
 still be clarified before its first saved result.
+
+### Verify the document
+
+Check the file against the parser rather than by eye:
+
+```text
+task-progress checklist validate <task.checklist>
+```
+
+On success it prints the round identity and the item and check counts. On
+failure it prints the offending line number and the rule that line broke, and
+exits non-zero. It never opens a window, so it is the entry point for a headless
+run; `checklist <file>` without `validate` opens the editor and reports a
+failure in a dialog instead. Run it after writing the round, and after any edit
+that changes a marker or a field.
 
 ### The round
 
