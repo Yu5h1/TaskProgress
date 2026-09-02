@@ -708,7 +708,7 @@ Proof: 兩宿主傳輸契約測試 | 精確 scope／檔案授權 | Browser／Des
 
 **子命令形狀**：`checklist request --file <path>`，stdin 收 JSON、stdout 回 JSON，與 `ChecklistBridge.Handle(string)` 同形，日後新增常駐模式不必更動契約。結束碼 0 代表「產生了 JSON 回應」，含 `type: "error"` 的業務錯誤；非 0 只保留給連 JSON 都產不出來的情況，使 Python 端只需解析 stdout。
 
-**分派位置是這個契約的一部分。** `checklist request` 必須與既有的 `checklist validate` 一樣，在公開的 `ChecklistCommand.Run(string[])`（邊緣選擇器）就分派，**不得放進內部的 `Run(args, openWindow, install, uninstall)` 命令表**——後者被對話框包裝器包住，`CliException` 會一路傳到 `ChecklistErrorDialog.Show`，在沒有主控台的執行中變成一個沒人按得掉的訊息框，正是這個分割要防止的失敗。子命令自行 try/catch，錯誤寫入 `Console.Error` 並回傳 1。兩條路徑共用同一個 `ChecklistDocumentStore.Load`，只有邊緣不同，解析不得分岔。
+**分派位置是這個契約的一部分。** `checklist request` 必須在公開的 `ChecklistCommand.Run(string[])`（邊緣選擇器）就分派，**不得放進內部的 `Run(args, openWindow, install, uninstall)` 命令表**——後者被對話框包裝器包住，`CliException` 會一路傳到 `ChecklistErrorDialog.Show`，在沒有主控台的執行中變成一個沒人按得掉的訊息框，正是這個分割要防止的失敗。子命令自行 try/catch，錯誤寫入 `Console.Error` 並回傳 1。兩條路徑共用同一個 `ChecklistDocumentStore.Load`，只有邊緣不同，解析不得分岔。
 
 **授權**：沿用既有 bearer session 與 loopback／Host allowlist／Origin 拒絕，不另設第二套信任邊界。
 

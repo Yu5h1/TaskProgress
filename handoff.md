@@ -214,7 +214,7 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
 - Active claim: none.
 - **Next steps:**
   - **Checklist Browser 入口第一刀**，設計見 `plan.md#階段-3-的傳輸設計`。放寬單參數限制以接受 `--localserver`：`Program.IsDirectChecklistActivation`（`src/TaskProgress.Cli/Program.cs:675`）與 `ChecklistCommand.Run` 的 `args.Length != 1` 檢查，改以副檔名判斷。
-  - 新增 `checklist request --file <path>`（stdin／stdout JSON）。分派位置與錯誤邊緣沿用同一檔案裡既有的 `checklist validate`，理由與失敗模式見 plan 的「分派位置是這個契約的一部分」。
+  - 新增 `checklist request --file <path>`（stdin／stdout JSON）。分派位置與錯誤邊緣見 plan 的「分派位置是這個契約的一部分」；該規則只依賴 HEAD 既有的結構（公開 `Run(string[])` 委派給會呼叫 `ChecklistErrorDialog.Show` 的內部多載），不依賴任何尚未存在的命令。另一個 session 進行中的 `checklist validate` 會是第一個遵守它的命令，但**目前只在該 session 的工作區、尚未提交**；若它落地就直接對照，若沒有，規則本身仍然完整。
   - `service/taskprogress_host.py` 新增 handle 表與 `/checklists/{handle}` 路由，讀與寫都轉呼叫上述子命令；沿用既有 bearer／loopback／Origin 授權。
   - UI 新增 HTTP transport，對照 `experiments/editor-svelte-spike/src/checklist-bridge.js`。Checklist 畫面已接受 `transport` prop，畫面本身不需修改。
   - Browser 版資產建置輸出到 `viewer/checklist/`，沿用既有靜態服務，不修改 `web_root`。
