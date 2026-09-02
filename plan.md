@@ -708,6 +708,8 @@ Proof: 兩宿主傳輸契約測試 | 精確 scope／檔案授權 | Browser／Des
 
 **子命令形狀**：`checklist request --file <path>`，stdin 收 JSON、stdout 回 JSON，與 `ChecklistBridge.Handle(string)` 同形，日後新增常駐模式不必更動契約。結束碼 0 代表「產生了 JSON 回應」，含 `type: "error"` 的業務錯誤；非 0 只保留給連 JSON 都產不出來的情況，使 Python 端只需解析 stdout。
 
+**分派位置是這個契約的一部分。** `checklist request` 必須與既有的 `checklist validate` 一樣，在公開的 `ChecklistCommand.Run(string[])`（邊緣選擇器）就分派，**不得放進內部的 `Run(args, openWindow, install, uninstall)` 命令表**——後者被對話框包裝器包住，`CliException` 會一路傳到 `ChecklistErrorDialog.Show`，在沒有主控台的執行中變成一個沒人按得掉的訊息框，正是這個分割要防止的失敗。子命令自行 try/catch，錯誤寫入 `Console.Error` 並回傳 1。兩條路徑共用同一個 `ChecklistDocumentStore.Load`，只有邊緣不同，解析不得分岔。
+
 **授權**：沿用既有 bearer session 與 loopback／Host allowlist／Origin 拒絕，不另設第二套信任邊界。
 
 **啟動入口**：`.checklist` 的桌面入口是裸參數形式（`task-progress.exe <檔案>.checklist`），因為 Windows 預設 App 啟動只傳選取的檔案路徑，不保留子命令。Browser 入口在其後加 `--localserver`，並沿用既有的 `--port`／`--no-browser`。判斷式因此必須放寬到「第一個參數的副檔名是 `.checklist`」，**不得以「路徑存在」作為判斷依據**——`task-progress.exe <report-folder>` 是既有入口，資料夾路徑同樣存在，以存在性判斷會把它一併吃掉。存在性檢查留在 `ValidatePath`，讓打錯的檔名落在 Checklist 的錯誤邊界，而不是報告資料夾的。
