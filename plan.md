@@ -694,7 +694,13 @@ Proof: 兩宿主傳輸契約測試 | 精確 scope／檔案授權 | Browser／Des
 
 **不得把 `.checklist` 註冊為靜態模組路由。** `ReportModuleRegistry` 服務的是瀏覽器抓下來自行渲染的靜態產物；`.checklist` 的解析只存在於 C#，UI 拿到原始 Markdown 也不准自行解析，因此它需要的是回傳解析後快照與 revision 的 API，不是檔案路由。走模組路由不只是繞路，還會逼出 `Declare(context)` 與子目錄放寬兩項與此無關的修改。
 
-**涵蓋範圍兩個宿主互補，不重疊。** 瀏覽器只到已註冊 scope 底下的 checklist；任意位置的 `.checklist` 仍由雙擊的桌面版負責。
+**涵蓋範圍兩個宿主互補，不重疊。** 瀏覽器只到服務目前認得的 scope 底下的 checklist；任意位置的 `.checklist` 仍由雙擊的桌面版負責。
+
+**「服務目前認得的 scope」不等於「已寫入 scope 清單」，兩者都算數。** `open <report-folder>` 是加上去而不是取代（只有 `start` 會清除未登記路由），因此它臨時加進來的 scope 同樣可以定址其 checklist。實作查表時對照的是服務現有的 scope 路由，不是儲存的 scope 清單；不需要為此新增第二條規則。
+
+**沒有 `report.json` 的資料夾無法從瀏覽器開啟。** scope 的定義就是一個報告資料夾（`scope add <report-folder>`），沒有 `report.json` 就構不成 scope，也就沒有 `{scope}` 可用來定址——即使該資料夾底下有 `checklists/`。那種資料夾仍可雙擊由桌面版開啟。這是上一條互補關係的另一面，不是缺陷。
+
+`report.json` 與 `checklists/` 是同層兄弟，不是父子：同處一個資料夾是**放置**而非**關聯**，兩者之間沒有自動比對或同步，只共用 Task ID 的慣例。
 
 **預覽不得引入輪詢或推送。** 桌面版改動後，瀏覽器以重新整理取得新內容。輪詢或推送會把一條路由變成有狀態的東西，代價高於它解決的問題。
 
