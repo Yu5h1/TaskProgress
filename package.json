@@ -8,6 +8,7 @@
   "scripts": {
     "test": "node --test",
     "checklist:ui:build": "vite build --config experiments/editor-svelte-spike/vite.checklist-ui.config.js",
+    "checklist:browser:build": "vite build --config experiments/editor-svelte-spike/vite.checklist-browser.config.js",
     "viewer:ui:build": "vite build --config experiments/editor-svelte-spike/vite.viewer-ui.config.js"
   },
   "engines": {

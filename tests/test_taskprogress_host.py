@@ -1070,5 +1070,204 @@ class TaskProgressEditHostTests(unittest.TestCase):
         self.assertFalse((self.root / TRANSACTION_JOURNAL).exists())
 
 
+def _cli_dll_path() -> Path | None:
+    """The Debug build of the CLI, if this environment has built it.
+
+    checklist request is exact-file and stdin/stdout only -- it never
+    touches WPF or WebView2 -- so `dotnet <dll>` runs it without a desktop
+    session even though the project's TFM is net9.0-windows.
+    """
+
+    candidate = (
+        REPOSITORY_ROOT
+        / "src"
+        / "TaskProgress.Cli"
+        / "bin"
+        / "Debug"
+        / "net9.0-windows"
+        / "task-progress.dll"
+    )
+    return candidate if candidate.is_file() else None
+
+
+class ChecklistRequestRouteTests(unittest.TestCase):
+    """The scope+task-id addressed route, plan.md#階段-3-的傳輸設計.
+
+    Exercises the route's own responsibilities -- auth, scope/task-id
+    validation, path derivation, and response passthrough -- against the
+    real built CLI, so a change to either side that breaks the seam shows
+    up here rather than only in a live browser session.
+    """
+
+    def setUp(self) -> None:
+        cli_dll = _cli_dll_path()
+        if cli_dll is None:
+            self.skipTest("CLI Debug build not found; run `dotnet build` under src/TaskProgress.Cli first")
+        self.temporary = tempfile.TemporaryDirectory()
+        self.root = Path(self.temporary.name)
+        (self.root / "index.html").write_text("viewer", encoding="utf-8")
+        self.report_path = self.root / "report.json"
+        self.report_path.write_text(
+            json.dumps(report_payload(), ensure_ascii=False, indent=2) + "\n",
+            encoding="utf-8",
+        )
+        self.schema_path = self.root / "schema" / "report.schema.json"
+        self.schema_path.parent.mkdir()
+        self.schema_path.write_bytes(REPORT_SCHEMA.read_bytes())
+        checklists = self.root / "checklists"
+        checklists.mkdir()
+        self.checklist_path = checklists / "first-task.checklist"
+        self.checklist_path.write_text(
+            "# Probe Checklist\n"
+            "\n"
+            "Current round: `plan.md#round`.\n"
+            "\n"
+            "- [ ] **1. Test item**\n"
+            "  Outcome: n/a\n"
+            "  Checks:\n"
+            "    - [ ] **Manual check** `[manual]`\n"
+            "      - Action: do the thing\n"
+            "      - Expect: it works\n"
+            "      - Reason: exercises the HTTP transport, not a real work item\n",
+            encoding="utf-8",
+        )
+        local_web_service = _load_module(LOCAL_WEB_SERVICE)
+        application = local_web_service.create_app(
+            self.root,
+            files={"/reports/secure-test/report.json": self.report_path},
+            control_token="a" * 32,
+            control_port=PORT,
+            cors_origins=(),
+        )
+        install_edit_api(
+            application,
+            report_schema=self.schema_path,
+            control_port=PORT,
+            analyzer_command=["dotnet", str(cli_dll)],
+        )
+        self.client = TestClient(
+            application,
+            base_url=ORIGIN,
+            headers={"host": HOST},
+        )
+
+    def tearDown(self) -> None:
+        self.client.close()
+        self.temporary.cleanup()
+
+    def request_headers(self) -> dict[str, str]:
+        return {
+            "origin": ORIGIN,
+            "x-taskprogress-editor": "1",
+            "content-type": "application/json",
+        }
+
+    def test_load_reaches_the_real_document_through_scope_and_task_id(self) -> None:
+        response = self.client.post(
+            "/__taskprogress/v1/checklists/secure-test/first-task",
+            headers=self.request_headers(),
+            json={"version": 1, "id": "t1", "type": "load"},
+        )
+        self.assertEqual(200, response.status_code, response.text)
+        body = response.json()
+        self.assertEqual("result", body["type"])
+        self.assertEqual("first-task.checklist", body["payload"]["fileName"])
+        self.assertEqual(1, len(body["payload"]["items"]))
+
+    def test_a_business_error_from_the_bridge_still_returns_200(self) -> None:
+        # The bridge's own {type: "error"} is a produced JSON response, not an
+        # HTTP-level failure -- the route passes it through unchanged.
+        response = self.client.post(
+            "/__taskprogress/v1/checklists/secure-test/first-task",
+            headers=self.request_headers(),
+            json={"version": 1, "id": "t2", "type": "openPath", "payload": {"path": "x"}},
+        )
+        self.assertEqual(200, response.status_code, response.text)
+        self.assertEqual("error", response.json()["type"])
+
+    def test_write_requires_the_same_origin_editor_header(self) -> None:
+        response = self.client.post(
+            "/__taskprogress/v1/checklists/secure-test/first-task",
+            headers={"content-type": "application/json"},
+            json={"version": 1, "id": "t3", "type": "load"},
+        )
+        self.assertEqual(403, response.status_code)
+
+    def test_unregistered_scope_is_not_found(self) -> None:
+        response = self.client.post(
+            "/__taskprogress/v1/checklists/no-such-scope/first-task",
+            headers=self.request_headers(),
+            json={"version": 1, "id": "t4", "type": "load"},
+        )
+        self.assertEqual(404, response.status_code)
+
+    def test_task_id_cannot_carry_a_path(self) -> None:
+        # Rejected before any file access is attempted -- there is no path
+        # to escape with, by construction. A raw `/` (literal or via `..`
+        # normalization) turns the URL into an extra segment this route
+        # cannot match by shape at all; that either lands on no route (404)
+        # or on this app's static GET mount for the resulting path, which
+        # then rejects the wrong method (405) -- POST never reaches this
+        # handler either way. `a\b` has no segment to split on, so it does
+        # reach the handler, and TASK_ID_PATTERN is this route's own 422.
+        # Every outcome proves the same thing: nothing outside checklists/
+        # was ever named.
+        for task in ("../report", "a/b", "a\\b", ".."):
+            with self.subTest(task=task):
+                response = self.client.post(
+                    f"/__taskprogress/v1/checklists/secure-test/{task}",
+                    headers=self.request_headers(),
+                    json={"version": 1, "id": "t5", "type": "load"},
+                )
+                self.assertIn(response.status_code, (404, 405, 422), response.text)
+
+    def test_a_task_id_with_no_matching_file_is_the_bridges_own_not_found(self) -> None:
+        # Scope and task-id format are both valid; the file simply is not
+        # there. That is ChecklistDocumentStore's "not found" (a business
+        # error the bridge reports), not a route-level 404 -- the route
+        # cannot distinguish a wrong task id from a task with no checklist
+        # yet without running the parser, and must not guess.
+        response = self.client.post(
+            "/__taskprogress/v1/checklists/secure-test/no-such-task",
+            headers=self.request_headers(),
+            json={"version": 1, "id": "t6", "type": "load"},
+        )
+        self.assertEqual(502, response.status_code, response.text)
+
+    def test_non_json_content_type_is_rejected(self) -> None:
+        response = self.client.post(
+            "/__taskprogress/v1/checklists/secure-test/first-task",
+            headers={"origin": ORIGIN, "x-taskprogress-editor": "1", "content-type": "text/plain"},
+            content=b"{}",
+        )
+        self.assertEqual(415, response.status_code)
+
+    def test_save_persists_through_the_real_parser_and_writer(self) -> None:
+        loaded = self.client.post(
+            "/__taskprogress/v1/checklists/secure-test/first-task",
+            headers=self.request_headers(),
+            json={"version": 1, "id": "t7", "type": "load"},
+        ).json()
+        revision = loaded["payload"]["revision"]
+        saved = self.client.post(
+            "/__taskprogress/v1/checklists/secure-test/first-task",
+            headers=self.request_headers(),
+            json={
+                "version": 1,
+                "id": "t8",
+                "type": "save",
+                "payload": {
+                    "revision": revision,
+                    "results": [
+                        {"workItemId": 1, "checkIndex": 0, "status": "passed", "observed": None},
+                    ],
+                },
+            },
+        )
+        self.assertEqual(200, saved.status_code, saved.text)
+        self.assertEqual("result", saved.json()["type"])
+        self.assertIn("[x]", self.checklist_path.read_text(encoding="utf-8"))
+
+
 if __name__ == "__main__":
     unittest.main()

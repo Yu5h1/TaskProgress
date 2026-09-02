@@ -9,6 +9,18 @@ internal static class Program
     public static async Task<int> Main(string[] args)
     {
         Console.OutputEncoding = Encoding.UTF8;
+        // `checklist request` reads a JSON body from stdin when LocalWebService
+        // pipes a browser's bridge message through the CLI. Without this,
+        // Console.In decodes redirected stdin using the system ANSI codepage —
+        // the same class of bug already found and fixed on the output side for
+        // TrayHost (see .agents/build-notes.md) — which corrupts any non-ASCII
+        // byte in the request body (Chinese `observed` text, in particular) and
+        // desyncs the JSON parser. Only guarded for redirected stdin: setting it
+        // unconditionally risks the console-codepage APIs on a real console.
+        if (Console.IsInputRedirected)
+        {
+            Console.InputEncoding = Encoding.UTF8;
+        }
         using var cancellation = new CancellationTokenSource();
         Console.CancelKeyPress += (_, eventArgs) =>
         {
@@ -696,6 +708,7 @@ internal static class Program
         Console.WriteLine("  analyze --scope <scope-id>       分析已登記的 scope");
         Console.WriteLine("  checklist <task.checklist>       開啟本機 WPF Checklist 編輯器");
         Console.WriteLine("  checklist validate <file>        僅驗證文件格式並輸出到 stdout，不開視窗");
+        Console.WriteLine("  checklist request --file <file>  stdin 收一則 bridge JSON 訊息，處理後輸出到 stdout（由 LocalWebService 呼叫，非人工執行）");
         Console.WriteLine("  checklist install                註冊目前使用者的 .checklist 檔案關聯");
         Console.WriteLine("  checklist uninstall              移除 TaskProgress .checklist 檔案關聯");
         Console.WriteLine("  open <report-folder>             開啟指定資料夾的報告");

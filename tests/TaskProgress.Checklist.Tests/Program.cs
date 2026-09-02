@@ -181,6 +181,117 @@ internal static class Program
             True(
                 validateError.ToString().Contains("第 3 行", StringComparison.Ordinal),
                 "Checklist validate reports the offending line on stderr");
+
+            // `request` is the console twin `validate` already established the
+            // pattern for, but piping a message through stdin/stdout instead of
+            // reporting a verdict: this is what LocalWebService calls per HTTP
+            // request so the one C# parser stays the only parser. Exit code
+            // follows the split recorded in plan.md — 0 means a JSON response
+            // came out (success or a business error alike), non-zero means one
+            // could not be produced at all.
+            var requestIn = new StringReader("""{"version":1,"id":"req-1","type":"load"}""");
+            var requestOut = new StringWriter();
+            var requestError = new StringWriter();
+            var previousIn = Console.In;
+            int requestLoadResult;
+            Console.SetIn(requestIn);
+            Console.SetOut(requestOut);
+            Console.SetError(requestError);
+            try
+            {
+                requestLoadResult = ChecklistCommand.Request(["--file", path]);
+            }
+            finally
+            {
+                Console.SetIn(previousIn);
+                Console.SetOut(previousOut);
+                Console.SetError(previousError);
+            }
+            Equal(0, requestLoadResult, "Checklist request exits 0 when a JSON response was produced");
+            using var requestLoadResponse = JsonDocument.Parse(requestOut.ToString());
+            Equal(
+                "result",
+                requestLoadResponse.RootElement.GetProperty("type").GetString(),
+                "Checklist request pipes a load message through to a result");
+            Equal(
+                "",
+                requestError.ToString(),
+                "Checklist request writes nothing to stderr when it produced a JSON response");
+
+            // A business error (unknown message type) is still a produced JSON
+            // response, not a CLI failure — it must not be conflated with the
+            // "no JSON could be produced at all" exit-code family below.
+            var requestErrorIn = new StringReader(
+                """{"version":1,"id":"req-2","type":"openPath","payload":{"path":"x"}}""");
+            var requestErrorOut = new StringWriter();
+            int requestBusinessErrorResult;
+            Console.SetIn(requestErrorIn);
+            Console.SetOut(requestErrorOut);
+            try
+            {
+                requestBusinessErrorResult = ChecklistCommand.Request(["--file", path]);
+            }
+            finally
+            {
+                Console.SetIn(previousIn);
+                Console.SetOut(previousOut);
+            }
+            Equal(0, requestBusinessErrorResult, "Checklist request still exits 0 for a business-level error");
+            using var requestErrorResponse = JsonDocument.Parse(requestErrorOut.ToString());
+            Equal(
+                "error",
+                requestErrorResponse.RootElement.GetProperty("type").GetString(),
+                "Checklist request surfaces the bridge's own error type");
+
+            var requestNoFileOut = new StringWriter();
+            var requestNoFileError = new StringWriter();
+            int requestMissingFlagResult;
+            int requestUnknownFlagResult;
+            Console.SetOut(requestNoFileOut);
+            Console.SetError(requestNoFileError);
+            try
+            {
+                requestMissingFlagResult = ChecklistCommand.Request([]);
+                requestUnknownFlagResult = ChecklistCommand.Request(["--bogus", "x"]);
+            }
+            finally
+            {
+                Console.SetOut(previousOut);
+                Console.SetError(previousError);
+            }
+            Equal(1, requestMissingFlagResult, "Checklist request requires --file");
+            Equal(1, requestUnknownFlagResult, "Checklist request rejects an unsupported flag");
+            Equal(
+                "",
+                requestNoFileOut.ToString(),
+                "Checklist request produces no stdout when no JSON response could be produced");
+
+            var requestMissingFileOut = new StringWriter();
+            var requestMissingFileError = new StringWriter();
+            int requestMissingFileResult;
+            Console.SetIn(new StringReader("""{"version":1,"id":"req-3","type":"load"}"""));
+            Console.SetOut(requestMissingFileOut);
+            Console.SetError(requestMissingFileError);
+            try
+            {
+                requestMissingFileResult = ChecklistCommand.Request(
+                    ["--file", Path.Combine(root, "missing-request.checklist")]);
+            }
+            finally
+            {
+                Console.SetIn(previousIn);
+                Console.SetOut(previousOut);
+                Console.SetError(previousError);
+            }
+            Equal(1, requestMissingFileResult, "Checklist request exits 1 when --file cannot even resolve to a bridge");
+            Equal(
+                "",
+                requestMissingFileOut.ToString(),
+                "Checklist request produces no stdout when the file itself is unresolvable");
+            True(
+                requestMissingFileError.ToString().Contains("找不到", StringComparison.Ordinal),
+                "Checklist request reports the unresolvable file on stderr");
+
             True(
                 TaskProgress.Program.IsDirectChecklistActivation([path]),
                 "direct .checklist activation");

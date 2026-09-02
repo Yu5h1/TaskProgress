@@ -46,6 +46,12 @@ TIME_SCHEMA_ROOT = (
 )
 LOCAL_STATE_SCHEMA_PATH = Path(__file__).resolve().parents[1] / "schemas" / "taskprogress.local.schema.json"
 SCOPE_PATTERN = re.compile(r"^[a-z0-9]+(?:[._-][a-z0-9]+)*$")
+# Same shape as report.schema.json's `$defs.id` (what task ids in
+# report.json and checklist file stems both already follow), reused rather
+# than duplicated. A single safe segment: no `/`, no `..`, no drive letter.
+TASK_ID_PATTERN = re.compile(r"^[a-z0-9]+(?:[._-][a-z0-9]+)*$")
+TASK_ID_MAX_LENGTH = 100
+MAX_CHECKLIST_PAYLOAD_BYTES = 1024 * 1024
 TIMEZONE_PATTERN = re.compile(r"^[A-Za-z0-9._+-]+(?:/[A-Za-z0-9._+-]+)*$")
 TRANSACTION_FILES = frozenset(
     {
@@ -869,6 +875,68 @@ def install_edit_api(
             "session_lifetime_seconds": SESSION_LIFETIME_SECONDS,
         }
         return JSONResponse(capability)
+
+    @router.post("/checklists/{scope}/{task}")
+    async def checklist_request(scope: str, task: str, request: Request) -> Response:
+        """Pipe one Checklist bridge message through the one C# parser.
+
+        The request body IS the bridge message verbatim -- the same
+        {version, id, type, payload} shape ChecklistBridge.Handle already
+        exchanges with the WebView2 host -- and the response body is that
+        call's exact JSON output, byte for byte. This route does no
+        translation of its own; it only resolves {scope}/{task} to a file
+        path the browser never sees or supplies, then hands the body to
+        `checklist request --file <path>` on stdin. Python must not parse
+        the Markdown itself -- that would be a second parser next to
+        ChecklistDocument.cs, the one already proven to drift (the round-
+        anchor format bug this project already fixed once).
+        """
+
+        if not _browser_write_allowed(request, control_port):
+            return _problem(403, "browser_origin_forbidden", "Trusted same-origin editor required")
+        try:
+            safe_scope = _validate_scope(scope)
+        except ValueError as error:
+            return _problem(404, "scope_not_found", "Editable scope was not found", str(error))
+        if not TASK_ID_PATTERN.fullmatch(task) or len(task) > TASK_ID_MAX_LENGTH:
+            return _problem(422, "invalid_task_id", "task id is invalid")
+        if not _content_type_is_json(request):
+            return _problem(415, "unsupported_media_type", "Requests must use application/json")
+        report_path = registered_report(safe_scope)
+        if report_path is None:
+            return _problem(404, "scope_not_found", "Editable scope was not found")
+        content_length = request.headers.get("content-length")
+        if content_length:
+            try:
+                if int(content_length) > MAX_CHECKLIST_PAYLOAD_BYTES:
+                    return _problem(413, "request_too_large", "Checklist request exceeds the edit limit")
+            except ValueError:
+                return _problem(400, "invalid_content_length", "Content-Length is invalid")
+        body = await request.body()
+        if len(body) > MAX_CHECKLIST_PAYLOAD_BYTES:
+            return _problem(413, "request_too_large", "Checklist request exceeds the edit limit")
+        if not analyzer_command:
+            return _problem(503, "checklist_cli_unavailable", "No analyzer command is available")
+        # Safe by construction, not by escaping: safe_scope and task both passed
+        # a single-segment allowlist pattern above, so this can only ever name a
+        # file directly under this one registered report's own checklists/
+        # folder -- there is no request-supplied path to traverse out of it.
+        checklist_path = report_path.parent / "checklists" / f"{task}.checklist"
+        try:
+            completed = subprocess.run(
+                [*analyzer_command, "checklist", "request", "--file", str(checklist_path)],
+                input=body,
+                capture_output=True,
+                timeout=30,
+                check=False,
+                creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
+            )
+        except (OSError, subprocess.SubprocessError) as error:
+            return _problem(502, "checklist_cli_failed", "Checklist CLI could not run", str(error))
+        if completed.returncode != 0:
+            detail = (completed.stderr or completed.stdout).decode("utf-8", errors="replace").strip()
+            return _problem(502, "checklist_cli_failed", "Checklist CLI reported a fatal error", detail)
+        return Response(content=completed.stdout, media_type="application/json")
 
     @router.post("/edit-sessions")
     async def create_edit_session(request: Request) -> Response:
