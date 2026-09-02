@@ -548,7 +548,7 @@
         },
         {
           "id": "checklist-browser-entrance",
-          "title": "讓 .checklist 在既有 LocalWebService 上預覽與編輯：checklists/ 併入 start 既有的 scope 路由註冊供唯讀預覽，寫入僅限明確開啟的檔案並經不透明 handle，parser／writer 維持 C# 單一來源",
+          "title": "讓 .checklist 在既有 LocalWebService 上預覽與編輯：start 之後即以已註冊 scope 加 task ID 定址，路徑由服務推導而非接收，讀寫都經 CLI 子命令，parser／writer 維持 C# 單一來源",
           "priority": 2
         },
         {

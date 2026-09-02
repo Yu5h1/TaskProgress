@@ -688,21 +688,13 @@ Proof: 兩宿主傳輸契約測試 | 精確 scope／檔案授權 | Browser／Des
 
 代價是每次請求約多出一次 CLI 啟動時間。若日後量到延遲確實擾人,再加上常駐模式即可 —— **bridge 契約不變**(`Handle` 兩種傳輸都一樣),所以那是加法,不是重做。
 
-**分兩刀，第一刀不觸碰既有的模組路由層。**
+**定址由已註冊的 scope 加 task ID 決定，不需要任何額外的啟動步驟。** `start` 之後即可使用：服務以 `/__taskprogress/v1/checklists/{scope}/{task-id}` 提供載入與儲存，**檔案路徑由服務從 scope 註冊資料推導，不從請求接收**；task ID 限單一安全段落，副檔名固定為 `.checklist`。任意路徑因此無法跨越 HTTP 邊界，而這是靠定址形狀達成的，不是靠逐次驗證。
 
-**第一刀——單檔 handle，讀寫共用同一條路由。** `--localserver` 啟動時為該檔案鑄一個不透明 handle，`/checklists/{handle}` 同時服務讀取與寫入，兩者都走 `ChecklistBridge` 既有的 `load`／`save`。**檔案路徑不得跨越 HTTP 邊界**，路徑逃逸因此是結構上不可能，而不是靠驗證攔截。授權來源是使用者在命令列上明確指定的那一個檔案，與桌面版一致，不需要任何新的註冊機制。
+授權沿用既有的 scope 註冊與既有的 bearer session／loopback／Host allowlist／Origin 拒絕——與 `report.json` 的編輯**同一個信任來源**，不另設第二套。使用者以 `scope add` 加入的專案就是授權本身。
 
-- **handle 的語意**：它代表「使用者已授權的那一個檔案」，作用等同 `SafeFileHandle`——取得之後以 handle 讀寫，不再重傳檔名。URL 中因此沒有可竄改的路徑，「要求別的檔案」在語法上無法表達。
-- **生命週期等於服務壽命**，不另設逾時，也不偵測分頁關閉。服務已綁在 tray 上（tray 在＝服務在，Exit＝服務停），因此 tray 關閉時 handle 全數消失。HTTP 沒有可靠的關窗事件，加上偵測只會得到一個時準時不準的機制，而 handle 只授權一個使用者自行指定的本機檔案。
-- **同一檔案重複下 `--localserver` 重用同一個 handle。** 重複執行得到同一結果比較好推理，與 tray worker 的冪等結論同源。
-- **Browser 版資產建置到既有 web root 底下的子目錄**（`viewer/checklist/`），沿用既有靜態服務，不修改 `web_root` 設定，也不新增第二條服務路徑。
+**不得把 `.checklist` 註冊為靜態模組路由。** `ReportModuleRegistry` 服務的是瀏覽器抓下來自行渲染的靜態產物；`.checklist` 的解析只存在於 C#，UI 拿到原始 Markdown 也不准自行解析，因此它需要的是回傳解析後快照與 revision 的 API，不是檔案路由。走模組路由不只是繞路，還會逼出 `Declare(context)` 與子目錄放寬兩項與此無關的修改。
 
-**第二刀——`checklists/*.checklist` 併入 `start` 既有的 scope 路由註冊**，與 `report.json` 等檔案共用同一條 `/reports/{scope}/{file}` 政策，唯讀，使任何一份 checklist 不必啟動即可預覽。這是便利性而不是能力，且有兩個前置條件必須先解除：
-
-- `IReportModuleProvider.Declare()` 目前不吃 context，只能回傳固定檔名；checklist 是「檔名與數量依報告而變」的集合，正是當初刻意延後的那個情況。
-- `ReportModuleRegistry.RequirePlainFileName` 明文拒絕子目錄，`checklists/x.checklist` 會被它擋下；`/reports/{scope}/{file}` 是平的路由政策。
-
-兩者都是模組路由層的修改，宜與下一個真正需要 `Declare(context)` 的模組一起做，成本才攤得掉。
+**涵蓋範圍兩個宿主互補，不重疊。** 瀏覽器只到已註冊 scope 底下的 checklist；任意位置的 `.checklist` 仍由雙擊的桌面版負責。
 
 **預覽不得引入輪詢或推送。** 桌面版改動後，瀏覽器以重新整理取得新內容。輪詢或推送會把一條路由變成有狀態的東西，代價高於它解決的問題。
 
@@ -710,11 +702,7 @@ Proof: 兩宿主傳輸契約測試 | 精確 scope／檔案授權 | Browser／Des
 
 **分派位置是這個契約的一部分。** `checklist request` 必須在公開的 `ChecklistCommand.Run(string[])`（邊緣選擇器）就分派，**不得放進內部的 `Run(args, openWindow, install, uninstall)` 命令表**——後者被對話框包裝器包住，`CliException` 會一路傳到 `ChecklistErrorDialog.Show`，在沒有主控台的執行中變成一個沒人按得掉的訊息框，正是這個分割要防止的失敗。子命令自行 try/catch，錯誤寫入 `Console.Error` 並回傳 1。兩條路徑共用同一個 `ChecklistDocumentStore.Load`，只有邊緣不同，解析不得分岔。
 
-**授權**：沿用既有 bearer session 與 loopback／Host allowlist／Origin 拒絕，不另設第二套信任邊界。
-
-**啟動入口**：`.checklist` 的桌面入口是裸參數形式（`task-progress.exe <檔案>.checklist`），因為 Windows 預設 App 啟動只傳選取的檔案路徑，不保留子命令。Browser 入口在其後加 `--localserver`，並沿用既有的 `--port`／`--no-browser`。判斷式因此必須放寬到「第一個參數的副檔名是 `.checklist`」，**不得以「路徑存在」作為判斷依據**——`task-progress.exe <report-folder>` 是既有入口，資料夾路徑同樣存在，以存在性判斷會把它一併吃掉。存在性檢查留在 `ValidatePath`，讓打錯的檔名落在 Checklist 的錯誤邊界，而不是報告資料夾的。
-
-**雙擊維持桌面版。** Browser 入口只服務命令列與捷徑，不為它新增 Windows shell verb。
+**Browser 版資產建置到既有 web root 底下的子目錄**（`viewer/checklist/`），沿用既有靜態服務，不修改 `web_root` 設定，也不新增第二條服務路徑。頁面 URL 的形狀尚未決定。
 
 **未來若在 Viewer 依任務子項提供 Checklist 入口**，那是 `task-id` → `checklists/<task-id>.checklist` 的慣例查找，不是資料關聯：檔案不存在必須是正常狀態，且不得因此在 `.checklist` 與 `report.json` 之間產生任何自動比對或雙向寫入。
 
