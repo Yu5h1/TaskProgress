@@ -547,6 +547,11 @@
           "priority": 2
         },
         {
+          "id": "checklist-browser-entrance",
+          "title": "讓 .checklist 在既有 LocalWebService 上預覽與編輯：checklists/ 併入 start 既有的 scope 路由註冊供唯讀預覽，寫入僅限明確開啟的檔案並經不透明 handle，parser／writer 維持 C# 單一來源",
+          "priority": 2
+        },
+        {
           "id": "verify-mobile-editing",
           "title": "未來另行設計並明確啟用受限 LAN 編輯 capability 後，以平板驗證正式 Viewer 的觸控編輯與 StatusFilters pointer capture；目前 exact-loopback 模式維持 PC 本機限定",
           "priority": 3

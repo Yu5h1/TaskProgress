@@ -657,8 +657,10 @@ TaskProgress surfaces
 
 1. **傳輸接縫**：Checklist 已改成接收傳輸方式，不自己抓 WebView 物件。
 2. **抽出共用編輯服務**：HTTP endpoint 與 Desktop bridge 共用一套 Edit Application Service。
-3. **補 Checklist Browser 入口**：沿用共用服務與精確檔案授權，讓 loopback Browser 操作 `.checklist`。
+3. **補 Checklist Browser 入口**：見「階段 3 的傳輸設計」，讓 loopback Browser 預覽與編輯 `.checklist`。
 4. **補 Viewer Desktop 入口**：沿用同一 Viewer UI 與 Report 編輯服務，由 `task-progress.exe` 的 WebView2 Host 承載。
+
+階段 3 不以階段 2 為前提。Checklist 的 parser／writer 只有 `ChecklistBridge` 一份實作，且 `Handle(string requestJson)` 已是 transport-agnostic 的（檔案、請求）純函式，兩宿主共用同一份服務在此已經成立。需要先抽出共用編輯服務的是 Report Editor 的雙入口（`report.json` 的 `dual-host-report-editor`），不是 Checklist。
 
 ```text
 Execution size: large — 兩個既有入口加上兩個未來補齊入口
@@ -686,11 +688,33 @@ Proof: 兩宿主傳輸契約測試 | 精確 scope／檔案授權 | Browser／Des
 
 代價是每次請求約多出一次 CLI 啟動時間。若日後量到延遲確實擾人,再加上常駐模式即可 —— **bridge 契約不變**(`Handle` 兩種傳輸都一樣),所以那是加法,不是重做。
 
-重新啟動本階段時再決定：
+**分兩刀，第一刀不觸碰既有的模組路由層。**
 
-1. **子命令形狀** —— 例如 `checklist request --file <path>`,stdin 收 JSON、stdout 回 JSON,使日後新增常駐模式不必更動契約。
-2. **授權** —— 沿用既有 bearer session 與 loopback／Host allowlist／Origin 拒絕,或另設。
-3. **哪些檔案可被開啟** —— 三項中最重要。桌面版的授權是「CLI 明確指定的那一個檔案」;改走 HTTP 後路由需要接受路徑參數,因此必須有允許清單,否則任意檔案都可被讀寫。既有的 scope 註冊機制是可能的沿用對象。
+**第一刀——單檔 handle，讀寫共用同一條路由。** `--localserver` 啟動時為該檔案鑄一個不透明 handle，`/checklists/{handle}` 同時服務讀取與寫入，兩者都走 `ChecklistBridge` 既有的 `load`／`save`。**檔案路徑不得跨越 HTTP 邊界**，路徑逃逸因此是結構上不可能，而不是靠驗證攔截。授權來源是使用者在命令列上明確指定的那一個檔案，與桌面版一致，不需要任何新的註冊機制。
+
+- **handle 的語意**：它代表「使用者已授權的那一個檔案」，作用等同 `SafeFileHandle`——取得之後以 handle 讀寫，不再重傳檔名。URL 中因此沒有可竄改的路徑，「要求別的檔案」在語法上無法表達。
+- **生命週期等於服務壽命**，不另設逾時，也不偵測分頁關閉。服務已綁在 tray 上（tray 在＝服務在，Exit＝服務停），因此 tray 關閉時 handle 全數消失。HTTP 沒有可靠的關窗事件，加上偵測只會得到一個時準時不準的機制，而 handle 只授權一個使用者自行指定的本機檔案。
+- **同一檔案重複下 `--localserver` 重用同一個 handle。** 重複執行得到同一結果比較好推理，與 tray worker 的冪等結論同源。
+- **Browser 版資產建置到既有 web root 底下的子目錄**（`viewer/checklist/`），沿用既有靜態服務，不修改 `web_root` 設定，也不新增第二條服務路徑。
+
+**第二刀——`checklists/*.checklist` 併入 `start` 既有的 scope 路由註冊**，與 `report.json` 等檔案共用同一條 `/reports/{scope}/{file}` 政策，唯讀，使任何一份 checklist 不必啟動即可預覽。這是便利性而不是能力，且有兩個前置條件必須先解除：
+
+- `IReportModuleProvider.Declare()` 目前不吃 context，只能回傳固定檔名；checklist 是「檔名與數量依報告而變」的集合，正是當初刻意延後的那個情況。
+- `ReportModuleRegistry.RequirePlainFileName` 明文拒絕子目錄，`checklists/x.checklist` 會被它擋下；`/reports/{scope}/{file}` 是平的路由政策。
+
+兩者都是模組路由層的修改，宜與下一個真正需要 `Declare(context)` 的模組一起做，成本才攤得掉。
+
+**預覽不得引入輪詢或推送。** 桌面版改動後，瀏覽器以重新整理取得新內容。輪詢或推送會把一條路由變成有狀態的東西，代價高於它解決的問題。
+
+**子命令形狀**：`checklist request --file <path>`，stdin 收 JSON、stdout 回 JSON，與 `ChecklistBridge.Handle(string)` 同形，日後新增常駐模式不必更動契約。結束碼 0 代表「產生了 JSON 回應」，含 `type: "error"` 的業務錯誤；非 0 只保留給連 JSON 都產不出來的情況，使 Python 端只需解析 stdout。
+
+**授權**：沿用既有 bearer session 與 loopback／Host allowlist／Origin 拒絕，不另設第二套信任邊界。
+
+**啟動入口**：`.checklist` 的桌面入口是裸參數形式（`task-progress.exe <檔案>.checklist`），因為 Windows 預設 App 啟動只傳選取的檔案路徑，不保留子命令。Browser 入口在其後加 `--localserver`，並沿用既有的 `--port`／`--no-browser`。判斷式因此必須放寬到「第一個參數的副檔名是 `.checklist`」，**不得以「路徑存在」作為判斷依據**——`task-progress.exe <report-folder>` 是既有入口，資料夾路徑同樣存在，以存在性判斷會把它一併吃掉。存在性檢查留在 `ValidatePath`，讓打錯的檔名落在 Checklist 的錯誤邊界，而不是報告資料夾的。
+
+**雙擊維持桌面版。** Browser 入口只服務命令列與捷徑，不為它新增 Windows shell verb。
+
+**未來若在 Viewer 依任務子項提供 Checklist 入口**，那是 `task-id` → `checklists/<task-id>.checklist` 的慣例查找，不是資料關聯：檔案不存在必須是正常狀態，且不得因此在 `.checklist` 與 `report.json` 之間產生任何自動比對或雙向寫入。
 
 #### 共用元件與傳輸接縫 Round（2026-08-15 核定）
 
