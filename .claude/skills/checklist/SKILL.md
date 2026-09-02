@@ -1,6 +1,6 @@
 ---
 name: checklist
-description: Open a TaskProgress `.checklist` round in the in-app Browser pane by name. Use when the user asks to open, show, or look at a checklist — `/checklist <name>`, "開 checklist", "看一下 <name> 那份清單", or a bare checklist stem with no other verb.
+description: Open a TaskProgress `.checklist` round in the in-app Browser pane by name. Use when the user asks to open, show, or look at a checklist — `/checklist <name>`, "開 checklist", "看一下 <name> 那份清單", a bare checklist stem with no other verb, or a recency word standing in for one (最近, 目前, 這輪, current, latest, recent).
 ---
 
 # Open a Checklist
@@ -16,10 +16,20 @@ for here. A page that will not load is reported, not routed around.
 ## Resolve the name
 
 1. List the stems in the scope's `checklists/` directory.
-2. Match `<name>` against them in this order: exact, unique prefix, unique
-   substring. Print the stems and stop when the match is ambiguous or absent —
-   a wrong round opened silently costs more than one extra question.
-3. With no `<name>` given, print the stems and stop. Do not pick one.
+2. An exact stem match wins outright.
+3. A recency word — 最近, 目前, 現在, 這輪, 本輪, latest, current, recent,
+   recently, active, last — asks for a round instead of naming one. Prefer the
+   round still open: one carrying at least one check that is not `[x]`. Exactly
+   one open round is the answer. With several open, or none open at all, take
+   the most recently modified file; when none is open, say every round is
+   finished, so the reader knows this is the latest rather than the active one.
+   Name the round chosen and what chose it — a fuzzy word resolved silently
+   fails the same way a wrong stem opened silently does.
+4. Otherwise match on unique prefix, then unique substring.
+5. Print the stems and stop when the match is ambiguous or absent, a tie on
+   modification time included — a wrong round opened silently costs more than
+   one extra question.
+6. With no `<name>` given, print the stems and stop. Do not pick one.
 
 ## Open it
 
