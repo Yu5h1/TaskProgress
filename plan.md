@@ -708,7 +708,11 @@ Proof: 兩宿主傳輸契約測試 | 精確 scope／檔案授權 | Browser／Des
 
 **分派位置是這個契約的一部分。** `checklist request` 必須在公開的 `ChecklistCommand.Run(string[])`（邊緣選擇器）就分派，**不得放進內部的 `Run(args, openWindow, install, uninstall)` 命令表**——後者被對話框包裝器包住，`CliException` 會一路傳到 `ChecklistErrorDialog.Show`，在沒有主控台的執行中變成一個沒人按得掉的訊息框，正是這個分割要防止的失敗。子命令自行 try/catch，錯誤寫入 `Console.Error` 並回傳 1。兩條路徑共用同一個 `ChecklistDocumentStore.Load`，只有邊緣不同，解析不得分岔。
 
-**Browser 版資產建置到既有 web root 底下的子目錄**（`viewer/checklist/`），沿用既有靜態服務，不修改 `web_root` 設定，也不新增第二條服務路徑。頁面 URL 的形狀尚未決定。
+**Browser 版資產建置到既有 web root 底下的子目錄**（`viewer/checklist/`），沿用既有靜態服務，不修改 `web_root` 設定，也不新增第二條服務路徑。
+
+**頁面位址是 `/checklist/?scope=<scope>&task=<task-id>`，與 `/?scope=` 是同一詞彙、不同 app。** `scope` 兩邊意思相同（都是專案），但 `/` 與 `/checklist/` 各自對應一份寫死的 `index.html`，分別載入 `viewer-ui.js` 與 `checklist-ui.js`；查詢參數只在各自的 app 內生效，不存在跨 app 分派的程式碼，因此不能靠在 `/?scope=` 上加參數讓它切換成 Checklist。`/` 這份 `index.html` 也是 Pages 部署的公開頁面（`viewer/`），Checklist 的載入邏輯不得混入其中。
+
+**`.checklist` 不得以原始位元組送出，即使唯讀也不行。** `report.json` 能直接從 root 靜態提供，是因為它已經是瀏覽器的原生格式，伺服器不做任何轉換；`.checklist` 是自訂格式，只有 `ChecklistDocument.cs` 懂它的規則，原始文字送到瀏覽器等於逼瀏覽器端另寫一份解析器——這正是「Python 不得解析 Markdown」在瀏覽器端的同一問題。因此路由必須是先跑過 C# parser、回傳結構化快照的 API，這也是上面「不得註冊為靜態模組路由」的直接原因，不只是路由政策的偏好。
 
 **未來若在 Viewer 依任務子項提供 Checklist 入口**，那是 `task-id` → `checklists/<task-id>.checklist` 的慣例查找，不是資料關聯：檔案不存在必須是正常狀態，且不得因此在 `.checklist` 與 `report.json` 之間產生任何自動比對或雙向寫入。
 

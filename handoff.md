@@ -228,7 +228,7 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
   - 新增 `checklist request --file <path>`（stdin／stdout JSON）。分派位置與錯誤邊緣照 `checklist validate` 的既有形狀，見 `src/TaskProgress.Cli/ChecklistCommand.cs` 的 `Run(string[])` 與 `Validate`。
   - UI 新增 HTTP transport，對照 `experiments/editor-svelte-spike/src/checklist-bridge.js`。Checklist 畫面已接受 `transport` prop，畫面本身不需修改。
   - Browser 版資產建置輸出到 `viewer/checklist/`，沿用既有靜態服務，不修改 `web_root`。
-  - 決定頁面 URL 的形狀（掛根路徑加查詢參數，如 Viewer 的 `/?scope=`，或自成一段路徑）。這會影響資產放置位置。
+  - 頁面位址已定：`/checklist/?scope=<scope>&task=<task-id>`，理由與 `report.json` 為何不能直接靜態提供見 `plan.md#階段-3-的傳輸設計`。
   - ~~**Tray worker 的手動 gate**~~ — **全部通過（2026-08-31）。** tray 圖示、`start --tray`（Debug 與已發布路徑皆可）、`--buildIcon` 自動生成 icon、Exit 停止服務、右鍵 `Restart` 皆由使用者確認。Restart 確實讓服務整個重來：PID 由 `38576` 換成 `25984`。觀測方式是 `task-progress service status`，它直接讀 state file、不碰 tray；`Instance` 欄位可與 PID 交叉對照，避免 PID 回收造成誤判。
   - **Tray 顯示服務狀態等四項已轉為需求，不是本專案的工作**，見 `Documentation/TrayWorkerPlan.md#對-winform-的需求`。
   - **評估模組下一步的優先序（2026-08-27，使用者定案原則）：系統耦合嚴重程度 > bug > 新功能設計討論。** 排第一的「擴充模組契約要不要有依賴宣告」已於 2026-08-28 全部定案（見 Current state），**設計完成、實作未開始**——落地範圍是 descriptor 的 `depends_on`、envelope 的 `content_revision`／`input_modules`、把 `Program.cs` 的 `TryAutoGenerate` 從平坦迴圈改成依拓樸順序只重算 dirty 模組，以及循環偵測與「未計入」提示。其餘順位不變：共用 detail slot（消掉 `#time-dialog-dock`／`#cost-dialog-dock` 並存）排第二，兩個 dock 並存目前能動、只是不乾淨；`LaborCostSettlement` 排第三，且現在還多卡一題「`工時 × 時薪` 歸誰」；assessment record 收斂 Schema 排最後。目前沒有已知未修 bug。
