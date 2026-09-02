@@ -105,6 +105,12 @@ fields; they duplicate this structure. Every check field is a nested Markdown
 list entry using the exact `      - Field: value` shape. This applies to required
 `Action` and `Expect` and optional `Reason`, `Observed`, and `Resolved`.
 
+Those fields are ordered, not a set: `Action`, then `Expect`, then whichever of
+`Reason`, `Observed`, and `Resolved` apply, in that order. The parser reads the
+next line by position, so a `Reason` placed between `Action` and `Expect` is
+rejected as a missing `Expect` rather than as a misplaced `Reason`. One blank
+line separates consecutive work items, and `Depends on` ends with a period.
+
 ### Markers
 
 Checks have three result states. The outer work-item marker is computed, not
