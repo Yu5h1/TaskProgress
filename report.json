@@ -533,6 +533,11 @@
           "id": "move-time-settings-into-delivery-dialog",
           "title": "將時間編輯設定收進交付日按鈕開啟的共享 TimeDialog：交付日排在最上方，其後為每日分配、工作日、休假／容量例外與重新計算預覽；移除獨立的瀏覽器本機容量覆寫機制，主頁不再直接暴露表單",
           "priority": 1
+        },
+        {
+          "id": "checklist-browser-entrance",
+          "title": "讓 .checklist 在既有 LocalWebService 上預覽與編輯：start 之後即以已註冊 scope 加 task ID 定址，路徑由服務推導而非接收，讀寫都經 CLI 子命令，parser／writer 維持 C# 單一來源",
+          "priority": 2
         }
       ],
       "pending_items": [
@@ -544,11 +549,6 @@
         {
           "id": "dual-host-report-editor",
           "title": "在 Checklist Desktop 路徑穩定後，讓完整 Report Editor 以同一 Edit Application Contract 支援 LocalWebService／Browser 與 WebView2／Desktop 雙入口",
-          "priority": 2
-        },
-        {
-          "id": "checklist-browser-entrance",
-          "title": "讓 .checklist 在既有 LocalWebService 上預覽與編輯：start 之後即以已註冊 scope 加 task ID 定址，路徑由服務推導而非接收，讀寫都經 CLI 子命令，parser／writer 維持 C# 單一來源",
           "priority": 2
         },
         {
