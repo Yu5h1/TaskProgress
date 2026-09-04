@@ -6,6 +6,12 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
 
 ## Current state (2026-08-25)
 
+- **消費端專案重造了一次 Checklist 檢視器，因為路由只指向「怎麼寫」、沒有指向「怎麼看」（2026-09-04）。** 另一個 repo（`W:\UnityProject\HealthAI`，unity_v1）的 session 依 `AgentsKnowledgeIndex.md` 找到 `checklist-round/SKILL.md`，正確寫出並 `validate` 通過兩份 `.checklist`——然後**自己手刻了一個 HTML Artifact 當檢視器**，完全沒發現 Browser 入口早就存在。使用者追問才查出來。
+  - **不是執行者沒照路由走，是路由本身只有一半。** 索引裡唯一與 `.checklist` 有關的那列，條件寫的是「Writing, marking, or completing a task's `.checklist` round」——純授權者視角。照這列走，拿到的是文件契約，一個字都沒提 `/checklist/?scope=&task=` 這個頁面。而 `.claude/skills/checklist/SKILL.md` 是本 repo 專案範圍的 skill，**在別的專案為根的 session 裡根本不會出現在技能清單上**，兩邊一疊，執行者照規則做到底也看不到那個入口。
+  - **這是同一形狀的第二次。** 2026-09-02 那條記的是「查了程式碼答『沒有 local server 入口』卻沒查 Artifact 清單」。兩次的共同點都不是判斷力，是**沒有任何東西要求先把已出貨的入口列一遍**——第一次漏的是 Artifact 清單，這次漏的是另一個 skills 目錄。
+  - **修法是補一個以「入口」為主詞的 skill，並讓索引指得到它。** 新增 `.agents/skills/taskprogress-capabilities/SKILL.md`：四個列舉來源（CLI 無參數輸出、`.agents/skills/` 與 `.claude/skills/` 兩個目錄、`handoff.md` 的 Current state、Artifact 清單）、現有入口對照表、以及從別的專案接上 Browser 入口的三個前置條件。`AgentsKnowledgeIndex.md` 新增一列，條件寫成「開啟或檢視既有 round、對 TaskProgress 資料做任何檢視器／預覽／工具、或**即將回答某個 TaskProgress 能力不存在**」——第三個條件是刻意的，那正是兩次都踩到的那一刻。條件用情境描述而非「checklist」這個詞，避免對話裡順口提到就誤觸。
+  - **順帶驗證了消費端接入的實際成本很低。** `scope add` 只卡在「該資料夾要有 `report.json`」，塞一份 `tasks: []` 的最小骨架就過；`healthai` scope 已登記，Browser 入口對它實測可用（`get_page_text` 讀回 11 work items／32 checks，與檔案一致）。這一點已寫進新 skill，免得下一個消費端又以為要整包導入報告系統。
+
 - **`.checklist` 的 round anchor 契約補完，並補上純主控台驗證入口（2026-09-02）。** 起點是另一個 repo 的 `.checklist` 打不開，訊息是「Checklist 缺少 Current round plan anchor」。成因不在該檔下半部——work item、check 欄位、衍生狀態、相依 ID 全部合格，只有第 3 行寫成兩個 anchor 以 `與` 串接並以全形句號結尾，不符 `ChecklistDocument` 的 `RoundPattern`。那份檔案歸它自己的專案追蹤，這裡只記本專案的成果。
   - **真正的缺陷是指令檔從來沒寫這條規則。** `Current round` 在所有 skill 檔案裡出現 0 次；它只寫在 `src/TaskProgress.Cli/ChecklistDocument.cs` 的 regex、`plan.md` 的決策段落與 `tests/active-checklist-format.test.mjs`——沒有一個在跨 repo 執行者的路由上。執行者照 skill 能產出的部分都對了，skill 沒說的那一行就用猜的。`.agents/skills/checklist-round/SKILL.md` 因此新增 `### Document header`（前三行的精確形狀、單一 backtick anchor、半形 `.` 結尾、anchor 帶 `#<fragment>`）與 `### Verify the document`，並補上四條原本只存在於範例、從未成文的規則：check 欄位是有序的（`Action` → `Expect` → `Reason`／`Observed`／`Resolved`）、work item 之間必須空一行、`Depends on` 以句點結尾。這四條是拿 parser 當裁判試出來的——寫四份只依 skill 敘述、踩到未成文規則的檔案，`validate` 全部擋下，不是憑判斷認為寫夠了。
   - **格式本身未放寬（使用者決定）。** 兩個 anchor 會把 round identity 從單一指標變成集合，語意變更而非放寬；全形 `。` 也不接受。嚴格度分兩級並寫進 skill：前兩者是 parser 整份拒收，`#<fragment>` 則是契約要求、由 `tests/active-checklist-format.test.mjs` 把關。
