@@ -409,6 +409,7 @@ task-progress.exe checklist <file> ──opens──> exactly one selected file
 - `task-progress.exe checklist install|uninstall` 管理目前 Windows 使用者的 `.checklist` 檔案關聯；安裝器建立的 shell command 固定回到 `task-progress.exe checklist "%1"`。使用者也可以透過 Windows「預設 App」直接關聯 EXE，此時系統只傳入 `task-progress.exe "%1"`；CLI 必須辨識唯一的 `.checklist` 參數並導向同一個 exact-file Checklist 入口。Uninstall 只有在 extension mapping 仍指向 TaskProgress ProgID 時才移除該 mapping，不修改 machine-wide Registry。
 - Agent work-route 在規格核定後建立或接續目前任務的 `checklists/<task-id>.checklist`；指派、執行、驗證與 co-commit 都只作用於該確切檔案。
 - `.agents/skills/checklist-round/SKILL.md`（本 repo）定義 per-task Checklist 的 artifact ownership、執行與換輪程序；`../.agents/skills/agent-work-route/SKILL.md` 只保留 opt-in 觸發條件並指向它。本計畫只保留 TaskProgress 的產品契約。
+- 非瀏覽器呼叫端（Unity Editor 工具、其他編輯器外掛）如何標記單一 check，由 `Documentation/ThirdPartyChecklistWritePlan.md` 擁有：單格寫入的 `set` 與執行者主導的 `reset`（清空後重跑）兩個 bridge message、只作用於 checklists 路由的 local-client token、port-independent 的端點探索檔，以及「自動標記只能少不能錯、人工標記永遠是後路」這兩條性質。`reset` 只清 manual 結果，agent 結果是不可變的執行證據。`.checklist` 格式不因此改變——「哪些項目會被自動標記」由實作端擁有並在執行時自行宣告，不寫進文件。需求來源是 `W:\UnityProject\HealthAI\docs\Requirements.TaskProgress.md`；未決項見該檔的 `#尚未決定`。
 
 ##### 驗收與非目標
 

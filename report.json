@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-08-25T02:34:09Z",
+  "updated_at": "2026-09-05T02:05:08+08:00",
   "tasks": [
     {
       "id": "viewer-core",
@@ -638,6 +638,57 @@
         }
       ],
       "pending_items": []
+    },
+    {
+      "id": "third-party-checklist-write",
+      "title": "第三方 Checklist 單項寫入",
+      "status": "planned",
+      "priority": 2,
+      "summary": "讓非瀏覽器呼叫端（Unity Editor 工具、其他編輯器外掛）標記與清空一份 .checklist 的人工項目。設計 2026-09-05 全部定案，實作未開始；全文見 Documentation/ThirdPartyChecklistWritePlan.md。",
+      "completed_items": [
+        {
+          "id": "item-third-party-checklist-write-done-1",
+          "title": "讀碼核對三條來源需求的 Evidence，並確認寫入規則可直接沿用 ApplyManualResults",
+          "priority": 3
+        },
+        {
+          "id": "item-third-party-checklist-write-done-2",
+          "title": "完成設計定案：set／reset 兩個 bridge 訊息、bearer token 授權、endpoints 端點探索、頁面清空按鈕的確認保險",
+          "priority": 3
+        }
+      ],
+      "pending_items": [
+        {
+          "id": "item-third-party-checklist-write-contract",
+          "title": "階段 0：修訂 checklist-round/SKILL.md 的記錄者條款與呼叫端宣告義務（純文件）",
+          "priority": 2
+        },
+        {
+          "id": "item-third-party-checklist-write-bridge",
+          "title": "階段 1：ChecklistBridge 新增 set 與 reset；reset 只清 manual 結果，agent 結果不得被改動",
+          "priority": 2
+        },
+        {
+          "id": "item-third-party-checklist-write-auth",
+          "title": "階段 2：host 新增 _local_client_allowed bearer token 路徑，只改 checklists 路由",
+          "priority": 2
+        },
+        {
+          "id": "item-third-party-checklist-write-endpoints",
+          "title": "階段 3：endpoints/<port>.json 端點探索檔，判活須確認回應的 service 欄位",
+          "priority": 2
+        },
+        {
+          "id": "item-third-party-checklist-write-route",
+          "title": "階段 4：taskprogress-capabilities 入口表補一列（不得在階段 2 完成前加）",
+          "priority": 3
+        },
+        {
+          "id": "item-third-party-checklist-write-reset-ui",
+          "title": "瀏覽器頁面的清空按鈕與確認框；與入口無相依，可獨立於階段 1-4 之後進行，需重建 viewer bundle",
+          "priority": 3
+        }
+      ]
     }
   ]
 }

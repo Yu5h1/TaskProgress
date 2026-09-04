@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "report_id": "task-progress-development",
-  "updated_at": "2026-08-23T12:22:38+08:00",
+  "updated_at": "2026-09-05T02:05:08+08:00",
   "tasks": [
     {
       "id": "viewer-core",
@@ -307,6 +307,45 @@
         {
           "summary": "plan／handoff 維持 canonical，但可用路徑與 Task ID 指向 report 的結構化內容而不重複抄寫；缺少 report 時才在 canonical Markdown 完整記錄。",
           "reference": "plan.md#任務入口與報告更新規則"
+        }
+      ]
+    },
+    {
+      "id": "third-party-checklist-write",
+      "next_step": "從階段 0 開工：修訂 checklist-round/SKILL.md 的記錄者條款（純文件，不碰程式）。五個階段的進入點見 handoff.md 的 Next steps，設計全文見 Documentation/ThirdPartyChecklistWritePlan.md。",
+      "decisions": [
+        {
+          "summary": "不新增第二套語意：新入口一律走進既有的 ApplyManualResults，Python 側不得解析 Markdown。",
+          "reference": "Documentation/ThirdPartyChecklistWritePlan.md#決策理由與替代方案"
+        },
+        {
+          "summary": "不做 ifStatus 寫入前提。重跑是執行者刻意發動的，真正的問題是陳舊，改由 reset（清空後重跑）處理；本設計因此不滿足 HEALTHAI-TASKPROGRESS-2，該需求檔由提出方自行修正。",
+          "reference": "Documentation/ThirdPartyChecklistWritePlan.md#決策理由與替代方案"
+        },
+        {
+          "summary": "「哪些項目可自動標記」不寫進 .checklist，該事實由實作端擁有並在執行時自行宣告，避免同一事實有兩個 owner。",
+          "reference": "Documentation/ThirdPartyChecklistWritePlan.md#設計"
+        },
+        {
+          "summary": "reset 只清 manual 結果；agent 的 [x]／[!] 是不可變的執行證據，清空不得變成擦掉證據。",
+          "reference": "Documentation/ThirdPartyChecklistWritePlan.md#設計"
+        }
+      ],
+      "routes": [
+        {
+          "title": "HTTP 入口 ＋ bearer token 授權",
+          "state": "selected",
+          "reason": "純 HTTP、語言無關，呼叫端不必 spawn 行程；token 放在只有該使用者能讀的 LOCALAPPDATA，網頁讀不到。"
+        },
+        {
+          "title": "新增 CLI 寫入 verb",
+          "state": "rejected",
+          "reason": "呼叫端大多在 web server 環境，HTTP 已足夠；既有的 checklist request --file 已是行程入口，多一個 verb 就是同一件事的第二個入口。"
+        },
+        {
+          "title": "提供 C# client helper／SDK",
+          "state": "rejected",
+          "reason": "入口是一個 HTTP POST，各語言自己接即可；helper 會變成第二個要跟 bridge 契約同步演進的東西。"
         }
       ]
     }
