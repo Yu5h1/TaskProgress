@@ -1,4 +1,5 @@
-// Implements the framework-neutral, exact-file Checklist WebView message boundary.
+// Implements the framework-neutral, exact-file Checklist message boundary.
+// All write messages share the document's manual-result rules and revision-checked store.
 using System.Text.Json;
 
 namespace TaskProgress;
@@ -35,6 +36,8 @@ internal sealed class ChecklistBridge
             {
                 "load" => Load(root),
                 "save" => Save(root),
+                "set" => Set(root),
+                "reset" => Reset(root),
                 _ => throw new ChecklistBridgeException("unknown_message", $"不支援的 bridge message：{type}"),
             };
             return Serialize(new
@@ -89,31 +92,96 @@ internal sealed class ChecklistBridge
         var manualResults = new List<ChecklistManualResult>();
         foreach (var result in results.EnumerateArray())
         {
-            RequireObject(result, "manual result");
-            RejectUnknown(result, "manual result", "workItemId", "checkIndex", "status", "observed");
-            var status = RequireString(result, "status", 16) switch
-            {
-                "pending" => ChecklistStatus.Pending,
-                "passed" => ChecklistStatus.Passed,
-                "failed" => ChecklistStatus.Failed,
-                _ => throw new ChecklistBridgeException(
-                    "invalid_request",
-                    "manual result status 只能是 pending、passed 或 failed。"),
-            };
-            manualResults.Add(new ChecklistManualResult(
-                RequireInteger(result, "workItemId", minimum: 1),
-                RequireInteger(result, "checkIndex", minimum: 0),
-                status,
-                OptionalString(result, "observed", 4000)));
+            manualResults.Add(ParseManualResult(result));
         }
         var source = store.Load(checklistPath);
         if (!string.Equals(source.Revision, revision, StringComparison.Ordinal))
         {
             throw new CliException("Checklist 已被外部修改；草稿尚未覆寫來源檔案。");
         }
-        var updated = source.ApplyManualResults(manualResults);
-        store.Save(checklistPath, revision, updated);
+        return Persist(source, manualResults);
+    }
+
+    private object Set(JsonElement root)
+    {
+        var result = ParseManualResult(RequirePayload(root, "set"));
+        return Persist(store.Load(checklistPath), [result]);
+    }
+
+    private object Reset(JsonElement root)
+    {
+        var payload = RequirePayload(root, "reset");
+        RejectUnknown(payload, "reset payload", "targets");
+        var source = store.Load(checklistPath);
+        var results = new List<ChecklistManualResult>();
+        if (payload.TryGetProperty("targets", out var targets))
+        {
+            if (targets.ValueKind != JsonValueKind.Array)
+            {
+                throw new ChecklistBridgeException("invalid_request", "reset targets 必須是 array。");
+            }
+            foreach (var target in targets.EnumerateArray())
+            {
+                RequireObject(target, "reset target");
+                RejectUnknown(target, "reset target", "workItemId", "checkIndex");
+                results.Add(new ChecklistManualResult(
+                    RequireInteger(target, "workItemId", minimum: 1),
+                    RequireInteger(target, "checkIndex", minimum: 0),
+                    ChecklistStatus.Pending,
+                    null));
+            }
+        }
+        else
+        {
+            foreach (var item in source.Items)
+            {
+                for (var index = 0; index < item.Checks.Count; index++)
+                {
+                    if (item.Checks[index].IsManual)
+                    {
+                        results.Add(new ChecklistManualResult(item.Id, index, ChecklistStatus.Pending, null));
+                    }
+                }
+            }
+        }
+        return Persist(source, results);
+    }
+
+    private object Persist(ChecklistDocument source, IEnumerable<ChecklistManualResult> results)
+    {
+        var updated = source.ApplyManualResults(results);
+        store.Save(checklistPath, source.Revision, updated);
         return Snapshot(store.Load(checklistPath));
+    }
+
+    private static JsonElement RequirePayload(JsonElement root, string type)
+    {
+        if (!root.TryGetProperty("payload", out var payload))
+        {
+            throw new ChecklistBridgeException("invalid_request", $"{type} message 缺少 payload。");
+        }
+        RequireObject(payload, $"{type} payload");
+        return payload;
+    }
+
+    private static ChecklistManualResult ParseManualResult(JsonElement result)
+    {
+        RequireObject(result, "manual result");
+        RejectUnknown(result, "manual result", "workItemId", "checkIndex", "status", "observed");
+        var status = RequireString(result, "status", 16) switch
+        {
+            "pending" => ChecklistStatus.Pending,
+            "passed" => ChecklistStatus.Passed,
+            "failed" => ChecklistStatus.Failed,
+            _ => throw new ChecklistBridgeException(
+                "invalid_request",
+                "manual result status 只能是 pending、passed 或 failed。"),
+        };
+        return new ChecklistManualResult(
+            RequireInteger(result, "workItemId", minimum: 1),
+            RequireInteger(result, "checkIndex", minimum: 0),
+            status,
+            OptionalString(result, "observed", 4000));
     }
 
     private object Snapshot(ChecklistDocument document) => new
@@ -215,6 +283,7 @@ internal sealed class ChecklistBridge
         int minimum = int.MinValue)
     {
         if (!element.TryGetProperty(propertyName, out var property)
+            || property.ValueKind != JsonValueKind.Number
             || !property.TryGetInt32(out var value)
             || value < minimum
             || (exact is not null && value != exact.Value))

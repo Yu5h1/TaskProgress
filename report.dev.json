@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "report_id": "task-progress-development",
-  "updated_at": "2026-09-05T11:07:04+08:00",
+  "updated_at": "2026-09-05T11:29:48+08:00",
   "tasks": [
     {
       "id": "viewer-core",
@@ -312,7 +312,7 @@
     },
     {
       "id": "third-party-checklist-write",
-      "next_step": "階段 1：在 src/TaskProgress.Cli/ChecklistBridge.cs 的 Handle 新增 set／reset，沿用 ApplyManualResults 與 ChecklistDocumentStore.Save；驗收見 Documentation/ThirdPartyChecklistWritePlan.md#驗證。階段 0 記錄者契約已完成。",
+      "next_step": "階段 2：在 service/taskprogress_host.py 的 checklists 路由新增 _local_client_allowed 與獨立 client token 產生；拒絕帶 Origin 的 token 請求，其他編輯 gate 不變。階段 0／1 已完成，依 Documentation/ThirdPartyChecklistWritePlan.md#分階段 接續。",
       "decisions": [
         {
           "summary": "不新增第二套語意：新入口一律走進既有的 ApplyManualResults，Python 側不得解析 Markdown。",

@@ -1,0 +1,27 @@
+# 第三方 Checklist 單項寫入 Checklist
+
+Current round: `Documentation/ThirdPartyChecklistWritePlan.md#驗證`.
+
+本 round 僅涵蓋階段 1 的 bridge 訊息與既有 CLI 傳遞；HTTP 授權、端點探索與頁面 UI 屬於後續 round。
+
+- [x] **1. 單格結果沿用既有 manual 規則**
+  Outcome: set 不需呼叫端 revision，僅改指定 manual check，失敗與衍生狀態由既有 document 規則判定。
+  Checks:
+    - [x] **寫入與輸入拒絕**
+      - Action: 執行 Checklist 測試專案的 set 案例，包含中文 Observed、缺少 Observed、agent check 與不合法 payload。
+      - Expect: 合法結果與回傳 snapshot 一致；不合法請求回傳 error，來源檔位元組不變。
+
+- [x] **2. 清空結果保留 agent 證據**
+  Outcome: reset 清除全部或指定 manual 結果與 Observed／Resolved，其他格子保持不變。
+  Checks:
+    - [x] **全部與指定清空**
+      - Action: 執行 reset 的全部、指定、空 targets、agent 目標、不存在與重複目標案例。
+      - Expect: 有效清空只影響指定 manual 結果，父項重新衍生；無效目標整筆拒絕且檔案不變，agent 證據始終保留。
+
+- [x] **3. 共用寫入與 CLI 相容性**
+  Depends on: 1, 2.
+  Outcome: load／save 原有契約維持，set／reset 經既有 request CLI 傳遞，不新增 parser 或寫入 verb。
+  Checks:
+    - [x] **定向回歸與傳遞**
+      - Action: 執行 Checklist 測試專案，包含既有 revision conflict、兩個真實程序競爭同一 revision，以及 request CLI 的 set／reset 往返。
+      - Expect: 測試通過，同一路徑的 store writer 競爭同一 revision 時一成功一 conflict；CLI 回傳結果且實際磁碟狀態吻合。

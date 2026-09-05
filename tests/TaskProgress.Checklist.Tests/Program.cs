@@ -3,17 +3,20 @@ using System.Text;
 using System.Text.Json;
 using TaskProgress;
 
-internal static class Program
+internal static partial class Program
 {
     private static int assertionCount;
 
-    public static int Main()
+    public static int Main(string[] args)
     {
+        if (args.Length > 0 && args[0] == "--store-writer") return RunStoreWriter(args);
         var root = Path.Combine(Path.GetTempPath(), $"task-progress-checklist-{Guid.NewGuid():N}");
         Directory.CreateDirectory(root);
         try
         {
             VerifySharedSemantics();
+            VerifySingleCheckMessages(root);
+            VerifyConcurrentStoreWriters(root);
             var source = Sample("\r\n", bom: true);
             var document = ChecklistDocument.Parse(source);
             Equal("plan.md#round", document.RoundIdentity, "round identity");

@@ -6,9 +6,14 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
 
 ## Current state (2026-09-05)
 
-- **第三方 Checklist 寫入階段 0 已完成（2026-09-05）。** `.agents/skills/checklist-round/SKILL.md` 已修訂 manual 記錄者條款、完整見證 `Expect` 的限制、呼叫端執行前宣告義務，以及測試行程／批次執行器不得寫入狀態的界線。程式入口仍未實作；下一步見 `third-party-checklist-write` 的 `report.dev.json` 條目。
-  - **本輪交接整理**：移除第三方寫入已定案的待答問題，修正 Time 遷移、共用 detail dock、估算排除與 CI 的過期狀態；保留尚未完成的 revision／dirty 重算與產品待決項，並補齊未決章節路由。兩份 report 已同步階段 0 完成與階段 1 入口。
-  - **驗證**：skill `quick_validate.py`（Python `-X utf8`）、兩份 report 的 JSON Schema／task ID 唯一性／overlay identity，以及 `git diff --check` 均通過。本輪僅改文件與狀態資料，未執行產品測試、重建 bundle 或啟動／重啟共用服務。`set`／`reset`、HTTP token、端點探索與頁面清空按鈕皆尚未實作。
+- **第三方 Checklist 寫入階段 1 已實作並通過定向驗證（2026-09-05）。** `ChecklistBridge.Handle` 新增 `set`／`reset`；`save`／`set` 共用結果解析，三種寫入共用 `Persist` → `ApplyManualResults` → `ChecklistDocumentStore.Save`。`reset` 預設清全部 manual，指定 `targets` 則只清那些格子（空 array 不清任何格）；agent、重複或不存在的目標整筆拒絕。`RequireInteger` 同時補上 JSON number 型別檢查，使錯誤型別回 `invalid_request` 而非拋出未處理例外。`ChecklistCommand` 不需修改。
+  - **審查抓到並修正既有 store 競態**：原本 revision 比對與 `File.Replace` 之間沒有鎖；現在同一正規化 Windows 路徑的 store writer 共用全域具名 Mutex，涵蓋比對到 replace。鎖逾時回錯誤，abandoned mutex 取得後仍重新比對。保證適用於使用本 store 的 writer；不遵守此鎖的外部編輯器仍只有 revision 偵測，不能宣稱任意外部程式寫入都具備原子 compare-and-swap。
+  - **驗證**：`dotnet build tests/TaskProgress.Checklist.Tests/TaskProgress.Checklist.Tests.csproj --no-restore` 0 warning／0 error；Checklist 定向回歸 239 checks 通過，含兩個真實程序先讀同一 revision、以大小寫不同路徑競爭寫入後一成功一 conflict。新 Debug EXE 的實際 UTF-8 stdin／stdout `set`／`reset` probe 亦確認中文落盤與清空；所有寫入驗證只使用臨時 fixture。未重建 Viewer bundle、未 publish／重啟共用服務，已發布 EXE 尚不含本輪修改。
+  - **獨立複核**：階段 1 功能與合作 writer 鎖定均符合驗收，未發現產品缺陷；review 指出的測試失敗路徑子程序清理缺口已修正，重跑仍為 239 checks 通過。`checklists/third-party-checklist-write.checklist` 的三項驗收已完成。
+
+- **第三方 Checklist 寫入階段 0 已完成（2026-09-05）。** `.agents/skills/checklist-round/SKILL.md` 已修訂 manual 記錄者條款、完整見證 `Expect` 的限制、呼叫端執行前宣告義務，以及測試行程／批次執行器不得寫入狀態的界線。階段 1 的程式與驗證見較新紀錄。
+  - **本輪交接整理**：移除第三方寫入已定案的待答問題，修正 Time 遷移、共用 detail dock、估算排除與 CI 的過期狀態；保留尚未完成的 revision／dirty 重算與產品待決項，並補齊未決章節路由。階段 0 的進度已同步兩份 report。
+  - **驗證**：skill `quick_validate.py`（Python `-X utf8`）、兩份 report 的 JSON Schema／task ID 唯一性／overlay identity，以及 `git diff --check` 均通過。本輪僅改文件與狀態資料，未執行產品測試、重建 bundle 或啟動／重啟共用服務。HTTP token、端點探索與頁面清空按鈕仍待後續階段。
 
 - **消費端專案重造了一次 Checklist 檢視器，因為路由只指向「怎麼寫」、沒有指向「怎麼看」（2026-09-04）。** 另一個 repo（`W:\UnityProject\HealthAI`，unity_v1）的 session 依 `AgentsKnowledgeIndex.md` 找到 `checklist-round/SKILL.md`，正確寫出並 `validate` 通過兩份 `.checklist`——然後**自己手刻了一個 HTML Artifact 當檢視器**，完全沒發現 Browser 入口早就存在。使用者追問才查出來。
   - **不是執行者沒照路由走，是路由本身只有一半。** 索引裡唯一與 `.checklist` 有關的那列，條件寫的是「Writing, marking, or completing a task's `.checklist` round」——純授權者視角。照這列走，拿到的是文件契約，一個字都沒提 `/checklist/?scope=&task=` 這個頁面。而 `.claude/skills/checklist/SKILL.md` 是本 repo 專案範圍的 skill，**在別的專案為根的 session 裡根本不會出現在技能清單上**，兩邊一疊，執行者照規則做到底也看不到那個入口。
@@ -238,7 +243,7 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
 - Active claim: none.
 - **Next steps:**
   - **Tray 顯示服務狀態等四項已轉為需求，不是本專案的工作**，見 `Documentation/TrayWorkerPlan.md#對-winform-的需求`。
-  - **第三方 Checklist 單項寫入：階段 0 完成，下一步是階段 1。** 從 `src/TaskProgress.Cli/ChecklistBridge.cs` 的 `Handle` 新增 `set`／`reset`，沿用 `ApplyManualResults` 與 `ChecklistDocumentStore.Save`；驗收由 `Documentation/ThirdPartyChecklistWritePlan.md#驗證` 擁有。後續依該計畫階段 2–4 接 HTTP 授權、端點探索與入口表，另有頁面清空按鈕；入口表不得在階段 2 前新增。
+  - **第三方 Checklist 單項寫入：下一步是階段 2。** 從 `service/taskprogress_host.py` 的 checklists 路由新增 `_local_client_allowed`，搭配獨立 client token 產生；只擴充 checklists gate，拒絕帶 Origin 的 token 請求，其他 report 編輯路由維持原契約。依 `Documentation/ThirdPartyChecklistWritePlan.md#分階段` 接續，階段 3 再交付端點探索；入口表不得在階段 2 前新增。
     - **本設計不實作 HEALTHAI-TASKPROGRESS-2 要求的寫入前提。** 該需求的 Evidence（Unity `OnEnable` 重複觸發）於 2026-09-05 由使用者收回為不精確的例子；重跑是執行者刻意發動的，真正存在的問題是陳舊，改由 `reset`（清空後重跑）處理。這裡只記錄設計事實與理由；`Requirements.TaskProgress.md` 由提出方擁有，本專案不寫它。
   - **評估模組剩餘工作。** 優先原則仍是系統耦合 > bug > 新功能設計。`ModuleDependencyGraph.Plan`、循環隔離與 CLI 診斷已於 2026-08-31 接入 `TryAutoGenerate`／`Analyze`；共用 `#module-detail-dock` 同日完成。尚未實作的是 `Documentation/ExtensionModuleArchitecturePlan.md#模組依賴與重算2026-08-28-使用者決策` 的 envelope `content_revision`／`input_modules`、啟動時比對與 dirty 重算，以及使用者可見的「未計入」提示；目前尚無真正跨模組依賴。材料／人工／Cost 新邊界與 assessment record 的後續設計見各自計畫的未決事項。
   - **膠囊列剩餘驗收與擴充。** 主面板遷移已完成，使用者視覺簽核仍待確認；overflow 的展開能力尚未實作，入口為 `HorizontalCapsuleStrip`，須由共用元件供兩個 slot 使用，等第二個模組確實擠滿該列再排入。

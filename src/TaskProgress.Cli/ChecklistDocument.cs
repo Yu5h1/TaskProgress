@@ -493,6 +493,40 @@ internal sealed class ChecklistDocumentStore
     public void Save(string path, string expectedRevision, ChecklistDocument updated)
     {
         var fullPath = ValidatePath(path);
+        using var writeMutex = OpenWriteMutex(fullPath);
+        var acquired = false;
+        try
+        {
+            try
+            {
+                acquired = writeMutex.WaitOne(TimeSpan.FromSeconds(10));
+            }
+            catch (AbandonedMutexException)
+            {
+                acquired = true;
+            }
+            if (!acquired) throw new CliException("Checklist 正由另一個程序寫入；請稍後重試。");
+            SaveLocked(fullPath, expectedRevision, updated);
+        }
+        finally
+        {
+            if (acquired) writeMutex.ReleaseMutex();
+        }
+    }
+
+    /// <summary>
+    ///   Coordinates store writers across processes and sessions for the same normalized Windows path.
+    ///   External editors that do not use this mutex remain subject to revision detection only.
+    /// </summary>
+    internal static Mutex OpenWriteMutex(string path)
+    {
+        var identity = Path.GetFullPath(path).ToUpperInvariant();
+        var digest = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(identity)));
+        return new Mutex(false, $"Global\\TaskProgress.Checklist.{digest}");
+    }
+
+    private static void SaveLocked(string fullPath, string expectedRevision, ChecklistDocument updated)
+    {
         var current = File.ReadAllBytes(fullPath);
         if (!string.Equals(
                 ChecklistDocument.ComputeRevision(current),
