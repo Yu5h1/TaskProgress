@@ -124,7 +124,8 @@ clicked.
 
 The parent is `[x]` only when every required check is `[x]`, `[!]` when any check
 is `[!]`, and `[ ]` otherwise. The agent runs and records every untagged check;
-the user interacts only with `[manual]` checks. A manual UI uses one marker at
+the user performs `[manual]` checks. Their recorder follows the contract below.
+A manual UI uses one marker at
 the check's normal left-side position and cycles `[ ]` → `[x]` → `[!]` → `[ ]`.
 Agent markers and derived work-item markers remain read-only. A transition to
 `[!]` requires `Observed`; until that text is valid, the failed state remains an
@@ -149,6 +150,24 @@ Keep a correction under the same item when its outcome and acceptance condition
 are unchanged. Add a new numeric item only when the required outcome, scope,
 action, or expectation materially changes. An unattempted `[ ]` specification can
 still be clarified before its first saved result.
+
+### Recording manual results
+
+`[manual]` identifies who performs the check and supplies the required capability,
+not who types its marker. The user may record the result directly, or the
+interactive tool the user is currently operating may record it when that tool
+can witness the check's entire `Expect`. Witnessing only part of `Expect` is
+insufficient; leave that check for the user to judge and record.
+
+Before each execution, a tool that records results must tell the user which
+work items and checks it covers. It may write only those declared checks;
+undeclared checks remain for the user. This declaration belongs to the tool at
+runtime, not to an automation whitelist or extra field in `.checklist`.
+
+Test processes and batch runners must never write checklist state. The agent
+records their results after execution under the untagged-check rules above.
+This exception for an interactive recorder does not grant it permission to
+change agent-owned execution evidence.
 
 ### Verify the document
 
@@ -175,8 +194,9 @@ else needs to track staleness.
    start `[ ]`.
 2. The agent implements the work and runs each untagged check once.
 3. If only `[manual]` checks remain, hand those checks to the user and stop.
-4. The user records and may later revise each manual check through the single
-   marker cycle. `[!]` requires `Observed`; `[ ]` remains incomplete.
+4. Record manual checks under **Recording manual results**. The user may later
+   revise them through the single marker cycle. `[!]` requires `Observed`;
+   `[ ]` remains incomplete.
 5. Any `[!]` pauses automatic retries of that check and blocks only work that
    depends on it. Continue independent unchecked work when doing so is safe and
    useful. Record dependencies explicitly when they are not obvious from order.

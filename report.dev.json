@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "report_id": "task-progress-development",
-  "updated_at": "2026-09-05T02:05:08+08:00",
+  "updated_at": "2026-09-05T11:07:04+08:00",
   "tasks": [
     {
       "id": "viewer-core",
@@ -312,7 +312,7 @@
     },
     {
       "id": "third-party-checklist-write",
-      "next_step": "從階段 0 開工：修訂 checklist-round/SKILL.md 的記錄者條款（純文件，不碰程式）。五個階段的進入點見 handoff.md 的 Next steps，設計全文見 Documentation/ThirdPartyChecklistWritePlan.md。",
+      "next_step": "階段 1：在 src/TaskProgress.Cli/ChecklistBridge.cs 的 Handle 新增 set／reset，沿用 ApplyManualResults 與 ChecklistDocumentStore.Save；驗收見 Documentation/ThirdPartyChecklistWritePlan.md#驗證。階段 0 記錄者契約已完成。",
       "decisions": [
         {
           "summary": "不新增第二套語意：新入口一律走進既有的 ApplyManualResults，Python 側不得解析 Markdown。",

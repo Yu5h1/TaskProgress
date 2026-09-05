@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-09-05T02:05:08+08:00",
+  "updated_at": "2026-09-05T11:07:04+08:00",
   "tasks": [
     {
       "id": "viewer-core",
@@ -642,9 +642,9 @@
     {
       "id": "third-party-checklist-write",
       "title": "第三方 Checklist 單項寫入",
-      "status": "planned",
+      "status": "in_progress",
       "priority": 2,
-      "summary": "讓非瀏覽器呼叫端（Unity Editor 工具、其他編輯器外掛）標記與清空一份 .checklist 的人工項目。設計 2026-09-05 全部定案，實作未開始；全文見 Documentation/ThirdPartyChecklistWritePlan.md。",
+      "summary": "第三方 Checklist 單項寫入設計已定案，階段 0 記錄者契約已完成。set／reset、HTTP 授權、端點探索與頁面清空按鈕待實作。",
       "completed_items": [
         {
           "id": "item-third-party-checklist-write-done-1",
@@ -655,14 +655,14 @@
           "id": "item-third-party-checklist-write-done-2",
           "title": "完成設計定案：set／reset 兩個 bridge 訊息、bearer token 授權、endpoints 端點探索、頁面清空按鈕的確認保險",
           "priority": 3
-        }
-      ],
-      "pending_items": [
+        },
         {
           "id": "item-third-party-checklist-write-contract",
           "title": "階段 0：修訂 checklist-round/SKILL.md 的記錄者條款與呼叫端宣告義務（純文件）",
           "priority": 2
-        },
+        }
+      ],
+      "pending_items": [
         {
           "id": "item-third-party-checklist-write-bridge",
           "title": "階段 1：ChecklistBridge 新增 set 與 reset；reset 只清 manual 結果，agent 結果不得被改動",
