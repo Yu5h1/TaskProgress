@@ -1,8 +1,8 @@
 """TaskProgress-owned local edit host layered on LocalWebService.
 
 The shared LocalWebService remains generic. This process wraps its public
-``create_app``/``serve`` boundary and inserts TaskProgress-only browser routes
-before the static mounts.
+``create_app``/``serve`` boundary and inserts TaskProgress-only routes before
+the static mounts. Checklist clients use a separate, process-owned credential.
 """
 
 from __future__ import annotations
@@ -21,6 +21,7 @@ import tempfile
 import threading
 import time
 from dataclasses import dataclass
+from contextlib import asynccontextmanager
 from datetime import datetime, timezone as datetime_timezone
 from pathlib import Path
 from types import ModuleType
@@ -654,6 +655,71 @@ def _browser_write_allowed(request: Request, port: int) -> bool:
     )
 
 
+def _local_client_allowed(request: Request, client_token: str | None) -> bool:
+    """Accept only a non-browser client with the distinct Checklist credential."""
+    if not client_token or "origin" in request.headers:
+        return False
+    values = request.headers.getlist("authorization")
+    if len(values) != 1:
+        return False
+    scheme, separator, supplied = values[0].partition(" ")
+    return (
+        scheme.lower() == "bearer"
+        and separator == " "
+        and secrets.compare_digest(supplied.encode("utf-8"), client_token.encode("utf-8"))
+    )
+
+
+def _install_checklist_endpoint(
+    application: FastAPI, directory: Path, port: int, client_token: str
+) -> None:
+    """Publish one process-owned credential during the existing ASGI lifespan.
+
+    The launcher restricts the directory ACL before starting this host. Direct
+    host callers must provide an equally private directory outside served roots.
+    Abrupt termination may leave a file; clients must verify the health service
+    identity, and the next start replaces only this port's stale entry.
+    """
+    path = directory / f"{port}.json"
+    original_lifespan = application.router.lifespan_context
+
+    @asynccontextmanager
+    async def lifespan(app: FastAPI):
+        async with original_lifespan(app) as state:
+            directory.mkdir(parents=True, exist_ok=True, mode=0o700)
+            payload = {
+                "service": "taskprogress",
+                "api_version": API_VERSION,
+                "host": "127.0.0.1",
+                "port": port,
+                "base_url": f"http://127.0.0.1:{port}",
+                "api_prefix": API_PREFIX,
+                "pid": os.getpid(),
+                "client_token": client_token,
+                "started_at": datetime.now(datetime_timezone.utc).isoformat(),
+            }
+            descriptor, temporary_name = tempfile.mkstemp(prefix=f".{port}.", suffix=".tmp", dir=directory)
+            temporary = Path(temporary_name)
+            try:
+                with os.fdopen(descriptor, "w", encoding="utf-8") as stream:
+                    json.dump(payload, stream, ensure_ascii=False, indent=2)
+                    stream.write("\n")
+                os.replace(temporary, path)
+            finally:
+                temporary.unlink(missing_ok=True)
+            try:
+                yield state
+            finally:
+                try:
+                    current = json.loads(path.read_text(encoding="utf-8"))
+                    if isinstance(current, dict) and current.get("client_token") == client_token:
+                        path.unlink(missing_ok=True)
+                except (OSError, ValueError):
+                    pass
+
+    application.router.lifespan_context = lifespan
+
+
 def _content_type_is_json(request: Request) -> bool:
     return (
         request.headers.get("content-type", "")
@@ -753,6 +819,7 @@ def install_edit_api(
     report_schema: os.PathLike[str] | str,
     control_port: int,
     analyzer_command: Sequence[str] = (),
+    client_token: str | None = None,
     now: Callable[[], float] = time.time,
 ) -> None:
     schema_source = _SchemaSource(report_schema)
@@ -892,7 +959,10 @@ def install_edit_api(
         anchor format bug this project already fixed once).
         """
 
-        if not _browser_write_allowed(request, control_port):
+        if not (
+            _browser_write_allowed(request, control_port)
+            or _local_client_allowed(request, client_token)
+        ):
             return _problem(403, "browser_origin_forbidden", "Trusted same-origin editor required")
         try:
             safe_scope = _validate_scope(scope)
@@ -1732,6 +1802,7 @@ def create_taskprogress_app_factory(
     *,
     report_schema: os.PathLike[str] | str,
     analyzer_command: Sequence[str] = (),
+    endpoints_directory: os.PathLike[str] | str | None = None,
 ) -> Callable[..., FastAPI]:
     original_create_app = local_web_service.create_app
 
@@ -1740,11 +1811,24 @@ def create_taskprogress_app_factory(
         control_port = kwargs.get("control_port")
         if not isinstance(control_port, int):
             raise ValueError("TaskProgress edit host requires control mode")
+        client_token = secrets.token_urlsafe(32) if endpoints_directory is not None else None
+        if endpoints_directory is not None:
+            directory = Path(endpoints_directory).expanduser().resolve()
+            exposed = [Path(args[0] if args else kwargs["web_root"]).resolve()]
+            mounts = args[1] if len(args) > 1 else kwargs.get("mounts")
+            exposed.extend(Path(value).resolve() for value in (mounts or {}).values())
+            if any(directory.is_relative_to(root) for root in exposed):
+                raise ValueError("Checklist endpoint directory cannot be placed in an exposed directory")
+            files = args[2] if len(args) > 2 else kwargs.get("files")
+            if any(Path(value).resolve().is_relative_to(directory) for value in (files or {}).values()):
+                raise ValueError("Checklist endpoint files cannot be exposed as exact-file routes")
+            _install_checklist_endpoint(application, directory, control_port, client_token)
         install_edit_api(
             application,
             report_schema=report_schema,
             control_port=control_port,
             analyzer_command=analyzer_command,
+            client_token=client_token,
         )
         return application
 
@@ -1757,6 +1841,7 @@ def _parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", type=int, default=8001)
     parser.add_argument("--control-state", required=True)
+    parser.add_argument("--endpoints-directory")
     parser.add_argument("--local-web-service", required=True)
     parser.add_argument("--report-schema", required=True)
     parser.add_argument("--analyzer-executable", required=True)
@@ -1775,6 +1860,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         local_web_service,
         report_schema=args.report_schema,
         analyzer_command=analyzer_command,
+        endpoints_directory=args.endpoints_directory,
     )
     local_web_service.serve(
         web_root=args.root,

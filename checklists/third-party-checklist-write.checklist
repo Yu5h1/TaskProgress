@@ -2,26 +2,39 @@
 
 Current round: `Documentation/ThirdPartyChecklistWritePlan.md#驗證`.
 
-本 round 僅涵蓋階段 1 的 bridge 訊息與既有 CLI 傳遞；HTTP 授權、端點探索與頁面 UI 屬於後續 round。
+本 round 僅涵蓋階段 2／3 的 HTTP 授權與端點探索。階段 1 的已完成 round 保存於 commit 46893e2；本 round 完成前不替換。依使用者 2026-09-08 指示，完整驗收與實機測試延後，未執行的 checks 保持未勾選。
 
-- [x] **1. 單格結果沿用既有 manual 規則**
-  Outcome: set 不需呼叫端 revision，僅改指定 manual check，失敗與衍生狀態由既有 document 規則判定。
+- [ ] **1. 第三方 HTTP 授權只開放 Checklist**
+  Outcome: 無 Origin 的 Checklist 客戶端可用獨立 bearer token 呼叫既有 bridge，其他編輯路由的授權邊界不變。
   Checks:
-    - [x] **寫入與輸入拒絕**
-      - Action: 執行 Checklist 測試專案的 set 案例，包含中文 Observed、缺少 Observed、agent check 與不合法 payload。
-      - Expect: 合法結果與回傳 snapshot 一致；不合法請求回傳 error，來源檔位元組不變。
+    - [ ] **授權矩陣與瀏覽器相容**
+      - Action: 執行 Python host 的正確／錯誤／缺少 token、含 Origin、重複 Authorization 與既有瀏覽器路徑測試。
+      - Expect: 只有核定路徑獲准；token 不可用於 report 編輯或 LocalWebService 控制 API。
 
-- [x] **2. 清空結果保留 agent 證據**
-  Outcome: reset 清除全部或指定 manual 結果與 Observed／Resolved，其他格子保持不變。
+- [ ] **2. 端點探索遵守服務生命週期**
+  Outcome: 服務啟動發布當前 port 的私有端點檔，正常停止刪除自己的檔案，重啟更換 token，不改動其他 port。
   Checks:
-    - [x] **全部與指定清空**
-      - Action: 執行 reset 的全部、指定、空 targets、agent 目標、不存在與重複目標案例。
-      - Expect: 有效清空只影響指定 manual 結果，父項重新衍生；無效目標整筆拒絕且檔案不變，agent 證據始終保留。
+    - [ ] **生命週期與判活**
+      - Action: 驗證啟動／停止／重啟／沿用服務、同 port 陳舊檔替換、其他 port 檔案保留及錯誤服務占用 port 的情境。
+      - Expect: 端點只含公開連線欄位與 client token；沿用服務不輪換 token，停止只清本次 token 的檔案；呼叫端需以 health 的 service 欄位確認身份。
 
-- [x] **3. 共用寫入與 CLI 相容性**
-  Depends on: 1, 2.
-  Outcome: load／save 原有契約維持，set／reset 經既有 request CLI 傳遞，不新增 parser 或寫入 verb。
+- [ ] **3. Launcher 傳遞私人端點目錄**
+  Outcome: Launcher 依應用程式 home 傳入 endpoints 目錄，以目前使用者專用 ACL 保護，host 拒絕靜態公開該位置。
   Checks:
-    - [x] **定向回歸與傳遞**
-      - Action: 執行 Checklist 測試專案，包含既有 revision conflict、兩個真實程序競爭同一 revision，以及 request CLI 的 set／reset 往返。
-      - Expect: 測試通過，同一路徑的 store writer 競爭同一 revision 時一成功一 conflict；CLI 回傳結果且實際磁碟狀態吻合。
+    - [x] **必要建置與語法檢查**
+      - Action: 使用已安裝的 .NET 9.0.315 MSBuild 建置 CLI（不 restore），並解析 taskprogress_host.py 的 Python 語法。
+      - Expect: C# 建置成功且 Python 語法合法。
+      - Observed: 預設 .NET 10.0.400 的 no-restore 建置回 NETSDK1127，未解析到專案所需的 targeting packs。
+      - Resolved: 改用已安裝的 .NET 9.0.315 MSBuild 後建置成功，未下載依賴；Python AST 解析通過。
+    - [ ] **權限與曝露邊界**
+      - Action: 在隔離目錄驗證 ACL、TASK_PROGRESS_HOME／port 對應、啟動參數、Viewer root／mount／exact-file 的端點曝露拒絕。
+      - Expect: 其他一般使用者不能讀取 token；token 不在 argv／health／公開 routes，錯誤目錄設定拒絕啟動。
+
+- [ ] **4. 第三方與人工後路共用同一份結果**
+  Depends on: 1, 2, 3.
+  Outcome: 第三方可探索端點並寫入 manual 結果，使用者仍可手動修改；服務不可用不改動來源。
+  Checks:
+    - [ ] **完整往返與人工後路** `[manual]`
+      - Action: 在實際消費端發出 reset／set，再於 Browser Checklist 修改同一格；停止服務後再次觸發工具操作。
+      - Expect: 寫入結果與頁面一致，人工可改回 pending；服務停止時工具保持可用，Checklist 不被改動。
+      - Reason: 需要使用者的消費端互動工具與實際 Browser 操作判斷。

@@ -17,6 +17,8 @@ internal sealed record LauncherSettings(
 
     public Uri BaseUri => new($"http://{LoopbackHost}:{Port}/");
 
+    public string EndpointsDirectory => Path.Combine(Path.GetDirectoryName(ScopeCatalogFile)!, "endpoints");
+
     public static LauncherSettings Create(int port)
     {
         if (port is < 1 or > 65535)

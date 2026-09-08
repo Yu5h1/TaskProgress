@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-09-05T23:00:05+08:00",
+  "updated_at": "2026-09-08T14:59:41+08:00",
   "tasks": [
     {
       "id": "viewer-core",
@@ -649,7 +649,7 @@
       "title": "第三方 Checklist 單項寫入",
       "status": "in_progress",
       "priority": 2,
-      "summary": "階段 0 記錄者契約與階段 1 set／reset 已完成；共用 store 補上跨行程寫入鎖，定向測試通過。HTTP 授權、端點探索與頁面清空按鈕待實作。",
+      "summary": "階段 0／1 已完成。階段 2 HTTP 授權與階段 3 端點探索已實作並通過必要建置；完整驗收依使用者安排延後。入口表與清空 UI 待實作。",
       "completed_items": [
         {
           "id": "item-third-party-checklist-write-done-1",
@@ -676,12 +676,14 @@
         {
           "id": "item-third-party-checklist-write-auth",
           "title": "階段 2：host 新增 _local_client_allowed bearer token 路徑，只改 checklists 路由",
-          "priority": 2
+          "priority": 2,
+          "status": "in_progress"
         },
         {
           "id": "item-third-party-checklist-write-endpoints",
           "title": "階段 3：endpoints/<port>.json 端點探索檔，判活須確認回應的 service 欄位",
-          "priority": 2
+          "priority": 2,
+          "status": "in_progress"
         },
         {
           "id": "item-third-party-checklist-write-route",

@@ -60,6 +60,7 @@ internal sealed class LocalWebServiceClient : IDisposable
         if (health is null)
         {
             PrepareStateFileForStart(settings);
+            ChecklistEndpointDirectory.Prepare(settings.EndpointsDirectory);
             using var process = StartService(settings, launchMode);
             health = await WaitForHealthAsync(settings, process, cancellationToken);
             startedNewProcess = true;
@@ -340,6 +341,8 @@ internal sealed class LocalWebServiceClient : IDisposable
             settings.Port.ToString(System.Globalization.CultureInfo.InvariantCulture),
             "--control-state",
             settings.StateFile,
+            "--endpoints-directory",
+            settings.EndpointsDirectory,
             "--local-web-service",
             settings.ServiceScript,
             "--report-schema",
