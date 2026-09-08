@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "report_id": "task-progress-development",
-  "updated_at": "2026-09-08T14:59:41+08:00",
+  "updated_at": "2026-09-09T01:38:09+08:00",
   "tasks": [
     {
       "id": "viewer-core",
@@ -316,7 +316,7 @@
     },
     {
       "id": "third-party-checklist-write",
-      "next_step": "階段 2／3 已實作，完整驗收後排，清單見 checklists/third-party-checklist-write.checklist。下一個程式項目是 Browser 清空按鈕與確認框；階段 4 入口表待入口驗收／部署狀態明確後補上。尚未 publish 或重啟共用服務。",
+      "next_step": "階段 2／3 與 Browser 清空確認 UI 已實作，完整驗收後排，清單見 checklists/third-party-checklist-write.checklist。階段 4 入口表待入口驗收／部署狀態明確後補上。尚未 publish 或重啟共用服務。",
       "decisions": [
         {
           "summary": "不新增第二套語意：新入口一律走進既有的 ApplyManualResults，Python 側不得解析 Markdown。",

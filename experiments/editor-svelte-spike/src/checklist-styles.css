@@ -219,3 +219,11 @@ body {
     margin-left: 0;
   }
 }
+
+.checklist-reset-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-block: 1rem;
+}

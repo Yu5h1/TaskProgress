@@ -2,7 +2,7 @@
 
 Current round: `Documentation/ThirdPartyChecklistWritePlan.md#驗證`.
 
-本 round 僅涵蓋階段 2／3 的 HTTP 授權與端點探索。階段 1 的已完成 round 保存於 commit 46893e2；本 round 完成前不替換。依使用者 2026-09-08 指示，完整驗收與實機測試延後，未執行的 checks 保持未勾選。
+本 round 涵蓋階段 2／3 的 HTTP 授權、端點探索，以及後續接續的 Browser 清空 UI。階段 1 的已完成 round 保存於 commit 46893e2；本 round 完成前不替換。依使用者 2026-09-08 指示，完整驗收與實機測試延後，未執行的 checks 保持未勾選。
 
 - [ ] **1. 第三方 HTTP 授權只開放 Checklist**
   Outcome: 無 Origin 的 Checklist 客戶端可用獨立 bearer token 呼叫既有 bridge，其他編輯路由的授權邊界不變。
@@ -38,3 +38,17 @@ Current round: `Documentation/ThirdPartyChecklistWritePlan.md#驗證`.
       - Action: 在實際消費端發出 reset／set，再於 Browser Checklist 修改同一格；停止服務後再次觸發工具操作。
       - Expect: 寫入結果與頁面一致，人工可改回 pending；服務停止時工具保持可用，Checklist 不被改動。
       - Reason: 需要使用者的消費端互動工具與實際 Browser 操作判斷。
+
+- [ ] **5. Browser 可確認後清空人工結果**
+  Outcome: 清空只重設確認範圍的 manual checks，保留 agent 證據，並與草稿儲存及前景刷新互斥。
+  Checks:
+    - [x] **共用 Checklist 資產建置**
+      - Action: 執行 checklist:ui:build 與 checklist:browser:build。
+      - Expect: Desktop 與 Browser 的共用 Svelte Checklist 資產均可建置。
+    - [ ] **確認、取消與寫入隔離** `[manual]`
+      - Action: 在有人工及 agent 結果的 Checklist 篩選部分項目，開啟清空確認框，分別取消與確認；另檢查草稿、寫入中、前景切換及失敗情境。
+      - Expect: 顯示全份人工 targets 數量；取消零請求；成功清除人工結果與 Observed／Resolved，保留 agent，Undo 不帶回舊結果；草稿或待寫入時禁用，請求期間不可編輯，確認／請求不被前景刷新打斷；失敗顯示錯誤，不自動重試。
+      - Reason: 完整 UI 與實機驗收依使用者安排後排。
+    - [ ] **HTTP reset 傳輸回歸**
+      - Action: 執行 tests/checklist-http-transport.test.mjs 已備妥的 reset 測試。
+      - Expect: 明確 targets 原樣送出、未指定與空 targets 保持不同語意、Browser 不加 bearer token，bridge 拒絕不自動重試。

@@ -1,11 +1,11 @@
 // The Browser twin of experiments/editor-svelte-spike/src/checklist-bridge.js.
-// Same {load, save} shape, same {version, id, type, payload} message the
+// Same {load, save} shape with an optional reset capability, same {version, id, type, payload} message the
 // desktop bridge already exchanges with ChecklistBridge.Handle — only the
 // channel differs: a postMessage round trip there, one POST here to the
 // scope+task-id route `checklist request --file <path>` sits behind. The
 // screen that consumes this transport does not know which one it got.
 const PROTOCOL_VERSION = 1;
-const ALLOWED_REQUEST_TYPES = new Set(["load", "save"]);
+const ALLOWED_REQUEST_TYPES = new Set(["load", "save", "reset"]);
 
 export function createChecklistHttpTransport({
   scope,
@@ -75,5 +75,6 @@ export function createChecklistHttpTransport({
   return Object.freeze({
     load: () => request("load"),
     save: (payload) => request("save", payload),
+    reset: (payload = {}) => request("reset", payload),
   });
 }

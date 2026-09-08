@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-09-08T14:59:41+08:00",
+  "updated_at": "2026-09-09T01:38:09+08:00",
   "tasks": [
     {
       "id": "viewer-core",
@@ -649,7 +649,7 @@
       "title": "第三方 Checklist 單項寫入",
       "status": "in_progress",
       "priority": 2,
-      "summary": "階段 0／1 已完成。階段 2 HTTP 授權與階段 3 端點探索已實作並通過必要建置；完整驗收依使用者安排延後。入口表與清空 UI 待實作。",
+      "summary": "階段 0／1 已完成。HTTP 授權、端點探索及 Browser 清空確認 UI 已實作並通過必要建置；完整驗收依使用者安排延後。入口表待補。",
       "completed_items": [
         {
           "id": "item-third-party-checklist-write-done-1",
@@ -692,8 +692,9 @@
         },
         {
           "id": "item-third-party-checklist-write-reset-ui",
-          "title": "瀏覽器頁面的清空按鈕與確認框；與入口無相依，可獨立於階段 1-4 之後進行，需重建 viewer bundle",
-          "priority": 3
+          "title": "驗收已實作的 Browser 清空按鈕與確認框；Browser／Desktop Checklist bundles 已重建",
+          "priority": 3,
+          "status": "in_progress"
         }
       ]
     }

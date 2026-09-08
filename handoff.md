@@ -4,12 +4,17 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
 
 - Canonical status entry: task status and progress are referenced by Task ID in `report.json`; Developer next steps, blockers, decisions, and routes are referenced by the same ID in `report.dev.json`. Do not duplicate that content here.
 
-## Current state (2026-09-08)
+## Current state (2026-09-09)
+
+- **Browser Checklist 清空 UI 已實作，完整驗收仍後排（2026-09-09）。** HTTP transport 增加 reset capability；共用 ChecklistApp 使用 DialogShell 確認人工檢查數量（包含篩選隱藏項目），確認後只送確認框開啟時擷取的全份 manual targets，範圍不受畫面篩選影響。取消不送 request；有草稿／待寫入時禁止清空。請求期間鎖住編輯，確認框與請求期間保護前景刷新；成功後以回傳 snapshot 建立新 session，保留謹慎模式、不提供舊結果 Undo。
+  - **必要檢查**：Browser／Desktop Checklist bundles 皆建置成功；Desktop transport 未提供 reset，因此不顯示清空按鈕。互動、取消零請求、失敗與不可 Undo 等驗收保持未勾選，見同一份 third-party checklist round。未 publish 或重啟共用服務。
+  - **收尾**：已補 tests/checklist-http-transport.test.mjs 的指定 targets、未指定／空 targets 語意與拒絕不重試案例；僅語法檢查通過，尚未執行。獨立程式複核未發現清空 UI／transport 的新缺陷，實機行為仍待驗收。目前可獨立實作的項目已接齊；階段 4 仍受階段 2 完成門檻限制。
+  - **Git**：既有階段 2／3 提交 `2759a9f` 已推送至 `origin/main`；本筆 UI 實作、重建資產與待驗收 checklist 隨同本輪提交。
 
 - **第三方 Checklist 階段 2／3 程式已接上，完整驗收延後（2026-09-08，使用者指示）。** `service/taskprogress_host.py` 的 Checklist 路由增加 `_local_client_allowed`，只有無 Origin 且獨立 bearer token 正確的請求可走新路徑；其他六處 browser gate 保持原樣。token 由啟動中的 TaskProgress host 產生，不經 argv，也不使用 LocalWebService control token。
   - **端點生命週期**：Launcher 傳入 application home 下的 `endpoints`（預設 `%LOCALAPPDATA%\TaskProgress\endpoints`，沿用 `TASK_PROGRESS_HOME`）；`ChecklistEndpointDirectory.Prepare` 建立目前 Windows 使用者專用 ACL，host 在原 ASGI lifespan 內原子替換 `<port>.json`，正常結束只移除 token 仍屬本程序的檔案。其他 port 不掃描；異常終止的檔案由下一次同 port 啟動替換。呼叫端判活契約仍由 `Documentation/ThirdPartyChecklistWritePlan.md#設計` 擁有。
   - **基本檢查**：Python AST 語法解析與 .NET 9.0.315 MSBuild `/t:Build` 通過，未 restore／下載依賴。預設 .NET 10.0.400 建置曾回 NETSDK1127；使用已安裝的 9.0.315 SDK 解決，不是產品編譯缺陷。未執行授權矩陣、ASGI 生命週期、ACL、端到端或人工驗收；未 publish／啟動／重啟服務。既有運行中的 process 不會獲得本輪 token／端點功能，後續部署須更新 EXE 並重啟。
-  - **交接**：`checklists/third-party-checklist-write.checklist` 已進入階段 2／3 round，階段 1 證據保留於 `46893e2`。report 中階段 2／3 保持 in_progress，不標為完成；階段 4 入口表與清空 UI 尚未實作。
+  - **交接**：`checklists/third-party-checklist-write.checklist` 已進入階段 2／3 round，階段 1 證據保留於 `46893e2`。report 中階段 2／3 保持 in_progress，不標為完成；階段 4 入口表尚未實作；清空 UI 進度見本節最新紀錄。
 
 - **Browser Preview 前景刷新已實作並通過定向驗證與獨立複核（2026-09-05）；只剩實機人工驗收。** `viewer/assets/foreground-refresh.js` 以 blur／hidden 武裝、focus／visible 觸發，將同次返回事件合併為一次整頁 reload；初次 focus 不刷新，受保護狀態拒絕後須再次離開／返回才可重試。Report 會在 dirty／saving／pending、preview、time settings 或 delivery confirmation 存在時阻止刷新；Browser Checklist 透過共用 `ChecklistApp` 的 persistence callback 取得同一組保護，Desktop／WebView2 入口沒有安裝此行為。持久化 controller 同步修正最後通知仍顯示 `pending: true` 的既有時序缺口；CI stale-bundle gate 現在同時涵蓋 Browser 與 Desktop Checklist bundle。
   - **驗證**：Browser／Desktop Checklist bundle 均重建成功；前景生命週期、持久化、transport、build 與 host contract 定向測試 27／27 通過；Checklist 格式驗證通過；`git diff --check` 無錯誤。獨立複核確認三個先前問題均已修正，未發現新程式缺陷。`checklists/foreground-source-refresh.checklist` 唯一未勾選的是使用者在真實 Preview Panel 的 clean reload／unsafe draft 保留確認。
@@ -22,7 +27,7 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
 
 - **第三方 Checklist 寫入階段 0 已完成（2026-09-05）。** `.agents/skills/checklist-round/SKILL.md` 已修訂 manual 記錄者條款、完整見證 `Expect` 的限制、呼叫端執行前宣告義務，以及測試行程／批次執行器不得寫入狀態的界線。階段 1 的程式與驗證見較新紀錄。
   - **本輪交接整理**：移除第三方寫入已定案的待答問題，修正 Time 遷移、共用 detail dock、估算排除與 CI 的過期狀態；保留尚未完成的 revision／dirty 重算與產品待決項，並補齊未決章節路由。階段 0 的進度已同步兩份 report。
-  - **驗證**：skill `quick_validate.py`（Python `-X utf8`）、兩份 report 的 JSON Schema／task ID 唯一性／overlay identity，以及 `git diff --check` 均通過。本輪僅改文件與狀態資料，未執行產品測試、重建 bundle 或啟動／重啟共用服務。階段 2／3 的實作與待驗證範圍見較新紀錄；頁面清空按鈕仍未實作。
+  - **驗證**：skill `quick_validate.py`（Python `-X utf8`）、兩份 report 的 JSON Schema／task ID 唯一性／overlay identity，以及 `git diff --check` 均通過。本輪僅改文件與狀態資料，未執行產品測試、重建 bundle 或啟動／重啟共用服務。階段 2／3 的實作與待驗證範圍見較新紀錄；頁面清空按鈕進度見本節最新紀錄。
 
 - **消費端專案重造了一次 Checklist 檢視器，因為路由只指向「怎麼寫」、沒有指向「怎麼看」（2026-09-04）。** 另一個 repo（`W:\UnityProject\HealthAI`，unity_v1）的 session 依 `AgentsKnowledgeIndex.md` 找到 `checklist-round/SKILL.md`，正確寫出並 `validate` 通過兩份 `.checklist`——然後**自己手刻了一個 HTML Artifact 當檢視器**，完全沒發現 Browser 入口早就存在。使用者追問才查出來。
   - **不是執行者沒照路由走，是路由本身只有一半。** 索引裡唯一與 `.checklist` 有關的那列，條件寫的是「Writing, marking, or completing a task's `.checklist` round」——純授權者視角。照這列走，拿到的是文件契約，一個字都沒提 `/checklist/?scope=&task=` 這個頁面。而 `.claude/skills/checklist/SKILL.md` 是本 repo 專案範圍的 skill，**在別的專案為根的 session 裡根本不會出現在技能清單上**，兩邊一疊，執行者照規則做到底也看不到那個入口。
@@ -253,7 +258,7 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
 - **Next steps:**
   - **Foreground Source Refresh：完成 Preview Panel 人工驗收。** 分別開啟 Browser Report 與 Browser Checklist：乾淨狀態下離開面板、由外部修改來源、返回時應各只刷新一次並顯示新資料；再以未提交／儲存中狀態返回，確認不刷新、不丟草稿。通過後勾選 `checklists/foreground-source-refresh.checklist` 的 `[manual]` check，並把 `item-viewer-core-foreground-refresh` 移至 completed。
   - **Tray 顯示服務狀態等四項已轉為需求，不是本專案的工作**，見 `Documentation/TrayWorkerPlan.md#對-winform-的需求`。
-  - **第三方 Checklist 單項寫入：階段 2／3 已實作、完整驗收依使用者指示後排。** 待驗收項目見 `checklists/third-party-checklist-write.checklist`。下一個程式項目是 `Documentation/ThirdPartyChecklistWritePlan.md#設計` 的 Browser 清空按鈕與確認框；階段 4 入口表待入口驗收／部署狀態明確後補上，避免把未運行的能力當成已可用。
+  - **第三方 Checklist 單項寫入：階段 2／3 已實作、完整驗收依使用者指示後排。** 待驗收項目見 `checklists/third-party-checklist-write.checklist`。Browser 清空按鈕與確認框亦已實作、待驗收；階段 4 入口表待入口驗收／部署狀態明確後補上，避免把未運行的能力當成已可用。
     - **本設計不實作 HEALTHAI-TASKPROGRESS-2 要求的寫入前提。** 該需求的 Evidence（Unity `OnEnable` 重複觸發）於 2026-09-05 由使用者收回為不精確的例子；重跑是執行者刻意發動的，真正存在的問題是陳舊，改由 `reset`（清空後重跑）處理。這裡只記錄設計事實與理由；`Requirements.TaskProgress.md` 由提出方擁有，本專案不寫它。
   - **評估模組剩餘工作。** 優先原則仍是系統耦合 > bug > 新功能設計。`ModuleDependencyGraph.Plan`、循環隔離與 CLI 診斷已於 2026-08-31 接入 `TryAutoGenerate`／`Analyze`；共用 `#module-detail-dock` 同日完成。尚未實作的是 `Documentation/ExtensionModuleArchitecturePlan.md#模組依賴與重算2026-08-28-使用者決策` 的 envelope `content_revision`／`input_modules`、啟動時比對與 dirty 重算，以及使用者可見的「未計入」提示；目前尚無真正跨模組依賴。材料／人工／Cost 新邊界與 assessment record 的後續設計見各自計畫的未決事項。
   - **膠囊列剩餘驗收與擴充。** 主面板遷移已完成，使用者視覺簽核仍待確認；overflow 的展開能力尚未實作，入口為 `HorizontalCapsuleStrip`，須由共用元件供兩個 slot 使用，等第二個模組確實擠滿該列再排入。

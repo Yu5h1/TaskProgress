@@ -17,6 +17,7 @@
   import { createPersistenceController } from "../../../viewer/assets/persistence-mode.js";
   import { createChecklistFilterOrder } from "../../../viewer/assets/checklist-filter-order.js";
   import { createThemeControl } from "../../../viewer/assets/theme-control.js";
+  import DialogShell from "./DialogShell.svelte";
   import FilterStrip from "./FilterStrip.svelte";
   import MarkerBox from "./MarkerBox.svelte";
   import NextStepCard from "./NextStepCard.svelte";
@@ -38,7 +39,51 @@
   let failure = "";
   let message = "正在載入 Checklist…";
 
-  $: onPersistenceChange(view);
+  let resetOpen = false;
+  let resetBusy = false;
+  let resetTargets = [];
+  $: manualTargets = view?.document.items.flatMap(item => item.checks
+    .filter(check => check.isManual)
+    .map(check => ({ workItemId: item.id, checkIndex: check.index }))) ?? [];
+  $: canReset = !!view && !view.dirty && !view.saving && !view.pending && !view.blocked
+    && !resetBusy && manualTargets.length > 0;
+  // Protect the confirmation and request from foreground-triggered reloads.
+  $: onPersistenceChange(view ? { ...view, pending: view.pending || resetOpen || resetBusy } : view);
+
+  function installDocument(document) {
+    persistence = createPersistenceController({
+      session: createChecklistEditorSession(document),
+      save: transport.save,
+      debounceCommand: command => command.type === "set-observed",
+      onChange: next => { view = next; message = next.message; },
+    });
+    view = persistence.snapshot();
+    message = view.message;
+  }
+
+  function openReset() {
+    if (!canReset) return;
+    resetTargets = manualTargets.map(target => ({ ...target }));
+    resetOpen = true;
+  }
+
+  async function confirmReset() {
+    if (!canReset || resetBusy) return;
+    resetBusy = true;
+    const cautious = view.cautious;
+    message = "正在清空人工結果…";
+    try {
+      const document = await transport.reset({ targets: resetTargets });
+      // Reset deliberately starts a new session: old results cannot be undone back in.
+      installDocument(document);
+      view = await persistence.setCautious(cautious);
+      message = "人工結果已清空；Agent 結果保留。";
+    } catch (error) {
+      message = error instanceof Error ? error.message : "清空失敗，請重新載入確認結果。";
+    } finally {
+      resetBusy = false;
+    }
+  }
 
   const statusLabel = (status) => ({ pending: "待驗證", passed: "通過", failed: "失敗" })[status] ?? status;
 
@@ -116,18 +161,7 @@
     try {
       if (!transport) throw new Error("Checklist 介面需要由 host 提供 transport。");
       const document = await transport.load();
-      persistence = createPersistenceController({
-        session: createChecklistEditorSession(document),
-        save: transport.save,
-        // Only free text waits; a marker change commits at once.
-        debounceCommand: (command) => command.type === "set-observed",
-        onChange: (next) => {
-          view = next;
-          message = next.message;
-        },
-      });
-      view = persistence.snapshot();
-      message = view.message;
+      installDocument(document);
     } catch (error) {
       failure = error instanceof Error ? error.message : "Checklist 載入失敗。";
       message = failure;
@@ -137,6 +171,7 @@
   });
 
   function apply(command) {
+    if (resetBusy) return;
     try {
       persistence.dispatch(command);
       view = persistence.snapshot();
@@ -152,25 +187,30 @@
   }
 
   function undo() {
+    if (resetBusy) return;
     persistence.undo();
     view = persistence.snapshot();
   }
 
   function redo() {
+    if (resetBusy) return;
     persistence.redo();
     view = persistence.snapshot();
   }
 
   function discard() {
+    if (resetBusy) return;
     view = persistence.discard();
   }
 
   async function save() {
+    if (resetBusy) return;
     await persistence.save();
     view = persistence.snapshot();
   }
 
   async function toggleCautious(next) {
+    if (resetBusy) return;
     view = await persistence.setCautious(next);
   }
 </script>
@@ -227,6 +267,15 @@
       onReorder={reorderFilter}
     />
 
+    {#if typeof transport?.reset === "function"}
+      <div class="checklist-reset-actions">
+        <button type="button" class="secondary-button" disabled={!canReset} onclick={openReset}>
+          清空人工結果
+        </button>
+        {#if view.dirty || view.pending || view.saving}<span>請先儲存或捨棄變更，再清空。</span>{/if}
+      </div>
+    {/if}
+
     <section class="checklist-items" aria-label="Implementation checklist items">
       {#each filterChecklistBySelection(orderChecklistItems(view.document, capsuleOrder), selection.selected).items as item (item.id)}
         <article class={`checklist-item checklist-${item.status}`}>
@@ -251,7 +300,7 @@
                 <div class="checklist-check-heading">
                   <MarkerBox
                     status={check.status}
-                    interactive={check.isManual}
+                    interactive={check.isManual && !resetBusy}
                     label={check.title}
                     onCycle={() => cycleResult(item.id, check)}
                   />
@@ -273,6 +322,7 @@
                     <span>Observed</span>
                     <textarea
                       rows="3"
+                      disabled={resetBusy}
                       value={check.observed ?? ""}
                       oninput={(event) => apply({
                         type: "set-observed",
@@ -295,13 +345,13 @@
       class="edit-save-bar"
       data-state={toneOf(view.status)}
       aria-live="polite"
-      aria-busy={view.saving}
+      aria-busy={view.saving || resetBusy}
     >
       <SaveBar
         cautious={view.cautious}
         onToggleCautious={toggleCautious}
         dirty={view.dirty}
-        saving={view.saving}
+        saving={view.saving || resetBusy}
         canUndo={view.history.canUndo}
         canRedo={view.history.canRedo}
         {message}
@@ -313,3 +363,14 @@
     </footer>
   {/if}
 </main>
+
+
+<DialogShell open={resetOpen} title="清空人工結果？" titleId="checklist-reset-title"
+  kicker="Checklist" onClose={() => { resetOpen = false; }}>
+  <p>將 {resetTargets.length} 個人工檢查重設為未執行，並清除 Observed／Resolved，包含篩選後隱藏的項目。Agent 結果不受影響。</p>
+  <p>此操作無法復原；如需回復，請使用 Git 歷史。</p>
+  <form method="dialog" class="theme-dialog-actions">
+    <button type="submit" class="secondary-button">取消</button>
+    <button type="submit" class="primary-button" disabled={resetBusy} onclick={confirmReset}>確認清空</button>
+  </form>
+</DialogShell>
