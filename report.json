@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-09-05T11:29:48+08:00",
+  "updated_at": "2026-09-05T23:00:05+08:00",
   "tasks": [
     {
       "id": "viewer-core",
@@ -64,6 +64,11 @@
         }
       ],
       "pending_items": [
+        {
+          "id": "item-viewer-core-foreground-refresh",
+          "title": "Browser Report／Checklist 已完成離開後回到前景時的整頁刷新、同次 focus／visibility 去重，以及 dirty／saving／pending 保護；待 Preview Panel 實機確認乾淨狀態刷新與未提交草稿保留",
+          "priority": 2
+        },
         {
           "id": "item-viewer-core-pointer-ref-route",
           "title": "受保護、scope allowlist 限定的路由，用來建立或更換 report_ref；第一版指路卡本身已完成，這條路由仍待設計，目前指路關係由維護者直接編輯 report.json 建立",

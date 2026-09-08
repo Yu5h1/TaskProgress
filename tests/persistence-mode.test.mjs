@@ -79,7 +79,7 @@ function textSession(initial = "") {
   };
 }
 
-function harness({ storage = fakeStorage(), save, session = textSession() } = {}) {
+function harness({ storage = fakeStorage(), save, session = textSession(), onChange = () => {} } = {}) {
   const calls = [];
   const timers = fakeTimers();
   const controller = createPersistenceController({
@@ -87,6 +87,7 @@ function harness({ storage = fakeStorage(), save, session = textSession() } = {}
     storage,
     timers,
     debounceCommand: (command) => command.type === "set-text",
+    onChange,
     save: save ?? (async (payload) => {
       calls.push(payload);
       return { revision: `r${calls.length + 1}`, value: payload.results[0].value };
@@ -94,6 +95,18 @@ function harness({ storage = fakeStorage(), save, session = textSession() } = {}
   });
   return { controller, calls, timers, storage, session };
 }
+
+test("the final persistence notification reports a drained save queue", async () => {
+  const snapshots = [];
+  const { controller } = harness({ onChange: (next) => snapshots.push(next) });
+
+  await controller.dispatch({ type: "set-flag", value: "on" });
+
+  assert.equal(controller.snapshot().pending, false);
+  assert.equal(snapshots.at(-1).pending, false);
+  assert.equal(snapshots.at(-1).dirty, false);
+  assert.equal(snapshots.at(-1).status, "saved");
+});
 
 test("the persistence preference defaults to automatic and only lives in profile storage", () => {
   assert.equal(CAUTIOUS_MODE_STORAGE_KEY, "task-progress.cautious-mode.v1");

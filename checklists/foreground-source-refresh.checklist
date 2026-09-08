@@ -1,0 +1,38 @@
+# Foreground Source Refresh Checklist
+
+Current round: `plan.md#預覽面板的前景刷新2026-09-05-決策`.
+
+This round adds one Browser-host lifecycle rule shared by the Report Viewer and Checklist page. It reloads externally changed sources when the reader returns, while preserving any in-memory work that is not safe to discard.
+
+- [x] **1. Add the shared foreground refresh controller**
+  Outcome: One framework-neutral owner arms on leave, coalesces return events, reloads only when safe, and can be disposed.
+  Checks:
+    - [x] **Lifecycle contract**
+      - Action: Run the focused Node tests for the foreground refresh controller.
+      - Expect: Initial focus does not reload; blur/focus and hidden/visible reload once; duplicate return events coalesce; an unsafe return needs a new leave before retrying; dispose prevents later reload.
+      - Observed: The first test version allowed a later event from the same return cycle to retry after the page became safe.
+      - Resolved: The controller now consumes one decision per return cycle, and the focused test requires another blur before a safe retry can reload.
+
+- [x] **2. Wire the Report Viewer and Checklist Browser entrances**
+  Depends on: 1.
+  Outcome: Both Browser surfaces use the shared controller and their existing full-load paths, while the Desktop Checklist entrance remains unchanged.
+  Checks:
+    - [x] **Source and state boundary**
+      - Action: Run the focused wiring tests and inspect the two Browser entries plus the shared Checklist screen.
+      - Expect: Report blocks refresh for dirty, saving, pending, previewing, or confirming state; Checklist blocks for dirty, saving, or pending persistence state; the Browser entry owns the listener and the Desktop entry does not install it.
+      - Observed: The persistence controller originally notified before decrementing its save queue, so hosts could cache a final clean snapshot that still reported pending.
+      - Resolved: Queue completion now emits a final snapshot, and a controller-level regression test proves the last notification is clean and pending-free.
+    - [x] **Committed bundles**
+      - Action: Rebuild the Checklist Browser and Desktop UI bundles, then run the bundle contract tests.
+      - Expect: Both committed bundles match their Svelte sources, and the Browser bundle contains the new lifecycle wiring without adding it to the Desktop entry.
+      - Observed: The existing CI stale guard rebuilt only the Viewer UI and Desktop Checklist bundles, leaving the committed Browser Checklist bundle unchecked.
+      - Resolved: CI and its contract test now rebuild and compare both Checklist host bundles; both were rebuilt after the lifecycle fixes.
+
+- [ ] **3. Verify external changes in the Preview Panel**
+  Depends on: 2.
+  Outcome: Returning to a clean Report or Checklist preview shows external source changes, while an unsafe editing state is preserved.
+  Checks:
+    - [ ] **Preview Panel focus behaviour** `[manual]`
+      - Action: Open one Report and one Checklist in the Browser Preview Panel; leave the panel, modify each source externally, then return once with a clean page and once while the page has an unsaved or pending edit.
+      - Expect: Each clean return reloads once and shows the external change; the unsafe return does not reload or discard the in-memory edit.
+      - Reason: Requires the user's Codex Preview Panel focus lifecycle and direct confirmation that a draft remains visible.

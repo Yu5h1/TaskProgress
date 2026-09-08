@@ -171,6 +171,12 @@ change agent-owned execution evidence.
 
 ### Verify the document
 
+This section applies when the agent writes or changes a round, or when the user explicitly requests
+validation. A request only to open or show an existing `.checklist` is navigation owned by
+`taskprogress-capabilities`: do not inspect the document for errors or run validation. If the opener
+surfaces an error, wait until the user explicitly asks before inspecting, validating, or
+troubleshooting it.
+
 Check the file against the parser rather than by eye:
 
 ```text

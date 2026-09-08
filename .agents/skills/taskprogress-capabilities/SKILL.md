@@ -10,9 +10,22 @@ skill. TaskProgress has more entrances than any single router row names, and the
 exists to stop is building a substitute for one that already ships — or telling the user a
 capability is absent after reading only the source.
 
+## Open-only requests
+
+When the user asks only to open or show an existing `.checklist`, treat that as navigation, not
+inspection or round execution. Use the recorded entrance below and perform only the routing needed
+to reach it, such as resolving the requested file or scope, checking whether the required service
+is available, and navigating the Browser pane.
+
+Do not enumerate the whole capability surface, inspect the checklist contents for mistakes, run
+`checklist validate` or `checklist request`, execute any checks, change markers, or diagnose the
+document. If the opened UI itself reports a parse or load error, relay that observed error and stop;
+inspect, validate, or troubleshoot only after the user explicitly asks for that work. A request to
+open and also check or validate authorizes only the additional action the user named.
+
 ## Enumerate the entrances first
 
-Four sources. All cheap, none sufficient alone; reading source and finding no implementation
+Except for the open-only path above, use four sources. All cheap, none sufficient alone; reading source and finding no implementation
 settles nothing until all four are checked.
 
 1. `task-progress.exe` with no arguments prints every command family: service (`start`, `worker`,

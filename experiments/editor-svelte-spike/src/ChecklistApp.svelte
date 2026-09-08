@@ -28,14 +28,17 @@
    * WebView object, so the same screen can run over the desktop bridge, over a
    * local HTTP endpoint, or over a substitute in a test, and cannot tell which
    * it is on.
-   */
+  */
   export let transport = null;
+  export let onPersistenceChange = () => {};
 
   let persistence = null;
   let view = null;
   let loading = true;
   let failure = "";
   let message = "正在載入 Checklist…";
+
+  $: onPersistenceChange(view);
 
   const statusLabel = (status) => ({ pending: "待驗證", passed: "通過", failed: "失敗" })[status] ?? status;
 

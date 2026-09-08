@@ -50,6 +50,7 @@ import { inspectCostAnalysis } from "./cost-model.js";
 import { loadLegacyTimeAnalysis } from "./time-legacy-discovery.js";
 import { loadManifestTimeAnalysis } from "./time-manifest-discovery.js";
 import { createModuleOrderControl } from "./module-order-control.js";
+import { installForegroundRefresh } from "./foreground-refresh.js";
 import {
   STATUS_ORDER_STORAGE_KEY,
   filterTaskItems,
@@ -1588,5 +1589,15 @@ window.addEventListener("beforeunload", (event) => {
   if (!state.editor.persistenceView?.dirty) return;
   event.preventDefault();
   event.returnValue = "";
+});
+installForegroundRefresh({
+  canRefresh: () => Boolean(
+    !state.editor.persistenceView?.dirty
+    && !state.editor.persistenceView?.saving
+    && !state.editor.persistenceView?.pending
+    && !state.editor.previewing
+    && !state.editor.timeSettingsPending
+    && !state.editor.confirmingDeliverySave
+  ),
 });
 main();

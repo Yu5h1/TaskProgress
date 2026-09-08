@@ -1,11 +1,11 @@
 {
   "schema_version": "1.0",
   "report_id": "task-progress-development",
-  "updated_at": "2026-09-05T11:29:48+08:00",
+  "updated_at": "2026-09-05T23:00:05+08:00",
   "tasks": [
     {
       "id": "viewer-core",
-      "next_step": "指路卡讀取、卡片渲染、開啟換頁與錯誤隔離已完成並以 Yu5h1Lib 上層 report 為真實資料驗證；剩下受保護的 report_ref 建立／更換路由未設計，見 pending item-viewer-core-pointer-ref-route。",
+      "next_step": "先完成 foreground-source-refresh 的 Preview Panel 人工驗收；其後 Viewer core 只剩受保護的 report_ref 建立／更換路由未設計，見 pending item-viewer-core-pointer-ref-route。",
       "decisions": [
         {
           "summary": "公開 Pages 與 localhost 使用同一份 Viewer 原始碼；Viewer 只依明確連結載入資料。",
@@ -30,6 +30,10 @@
         {
           "summary": "指路卡的目標 report 由既有 scope 相對路徑規則解析：../reports/<scope_id>/report.json 與一般切換 scope 完全相同，不需要新的 Launcher 端 resolver 或路徑對照表；report-model.js 的 reportPathForScope 是這條規則的唯一實作，resolveReportRequest 也改呼叫它。",
           "reference": "viewer/assets/report-model.js"
+        },
+        {
+          "summary": "Browser Report 與 Browser Checklist 共用前景生命週期 helper：頁面曾離開後，下一次回到前景才觸發一次整頁 reload；dirty、saving、pending 或其他未完成互動會阻止該次刷新，且必須重新離開再回來才會重試。Desktop／WebView2 Checklist 不安裝此行為。",
+          "reference": "plan.md#預覽面板的前景刷新2026-09-05-決策"
         }
       ],
       "routes": [

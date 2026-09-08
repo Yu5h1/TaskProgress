@@ -705,6 +705,22 @@ Proof: 兩宿主傳輸契約測試 | 精確 scope／檔案授權 | Browser／Des
 
 **預覽不得引入輪詢或推送。** 桌面版改動後，瀏覽器以重新整理取得新內容。輪詢或推送會把一條路由變成有狀態的東西，代價高於它解決的問題。
 
+###### 預覽面板的前景刷新（2026-09-05 決策）
+
+Browser Viewer 與 Checklist 頁面在離開後重新取得前景時，執行一次完整頁面重新載入，讓既有的 `report.json`、sidecar 與 Checklist transport 重新讀取外部變更。這是由頁面生命週期觸發的單次刷新，不加入輪詢、推送或第二套資料載入流程。
+
+- `blur` 或進入 hidden 狀態只負責標記頁面已離開；後續 `focus` 或回到 visible 才能觸發刷新。初次載入不得自行刷新，同一輪 focus／visibility 事件只執行一次。
+- Report 與 Checklist 共用同一個前景刷新控制器；兩個 Browser entry 各自提供「目前是否可安全刷新」的狀態，不把 Browser 生命週期放進 transport、parser 或資料模型。
+- dirty、saving、pending 或其他尚未完成的預覽／確認流程存在時不得刷新，也不得丟棄草稿。本次回到前景若不安全便結束判斷；只有再次離開並回來後才重新判斷，不能讓同一輪稍晚到達的第二個 focus／visibility 事件補觸發刷新。
+- 第一版不先比較 revision；安全時直接完整 reload，沿用既有 `cache: "no-store"` Report 載入與 Checklist `transport.load()`。Desktop／WebView2 Checklist 不套用這項 Browser Preview 行為。
+
+```text
+Execution size: small — 新增一個共用生命週期 helper，接到兩個 Browser entry，並重建 Checklist Browser／Desktop bundle
+Architectural impact: bounded — 沿用既有載入與 persistence snapshot，只增加 Browser host 的前景生命週期
+Precedent: Viewer 的完整 reload、Checklist transport.load、共用 persistence controller
+Proof: 純事件控制器測試 | 兩入口接線測試 | bundle stale guard | Preview Panel 人工回焦驗證
+```
+
 **子命令形狀**：`checklist request --file <path>`，stdin 收 JSON、stdout 回 JSON，與 `ChecklistBridge.Handle(string)` 同形，日後新增常駐模式不必更動契約。結束碼 0 代表「產生了 JSON 回應」，含 `type: "error"` 的業務錯誤；非 0 只保留給連 JSON 都產不出來的情況，使 Python 端只需解析 stdout。
 
 **分派位置是這個契約的一部分。** `checklist request` 必須在公開的 `ChecklistCommand.Run(string[])`（邊緣選擇器）就分派，**不得放進內部的 `Run(args, openWindow, install, uninstall)` 命令表**——後者被對話框包裝器包住，`CliException` 會一路傳到 `ChecklistErrorDialog.Show`，在沒有主控台的執行中變成一個沒人按得掉的訊息框，正是這個分割要防止的失敗。子命令自行 try/catch，錯誤寫入 `Console.Error` 並回傳 1。兩條路徑共用同一個 `ChecklistDocumentStore.Load`，只有邊緣不同，解析不得分岔。

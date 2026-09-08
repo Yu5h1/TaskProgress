@@ -161,6 +161,10 @@ export function createPersistenceController({
       })
       .finally(() => {
         queued -= 1;
+        // runSave notifies while this commit still occupies the queue. Hosts
+        // that cache the emitted snapshot need one final view after the queue
+        // drains, otherwise `pending` remains true until another edit occurs.
+        notify();
       });
     return queue;
   }

@@ -41,8 +41,11 @@ test("standalone Editor is retired while every committed UI bundle is guarded", 
   // rebuilding every host surface and finding no difference.
   assert.match(workflowText, /npm run viewer:ui:build/u);
   assert.match(workflowText, /npm run checklist:ui:build/u);
+  assert.match(workflowText, /npm run checklist:browser:build/u);
   assert.match(workflowText, /git diff --quiet -- "\$\{bundles\[@\]\}"/u);
   assert.match(workflowText, /src\/TaskProgress\.Cli\/checklist-ui\/checklist-ui\.js/u);
   assert.match(workflowText, /src\/TaskProgress\.Cli\/checklist-ui\/checklist-ui\.css/u);
+  assert.match(workflowText, /viewer\/checklist\/checklist-ui\.js/u);
+  assert.match(workflowText, /viewer\/checklist\/checklist-ui\.css/u);
   assert.match(workflowText, /needs: verify-bundle/u);
 });

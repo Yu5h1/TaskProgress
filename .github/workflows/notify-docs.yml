@@ -41,6 +41,7 @@ jobs:
         run: |
           npm run viewer:ui:build
           npm run checklist:ui:build
+          npm run checklist:browser:build
 
       - name: Fail if the committed bundle is stale
         shell: bash
@@ -51,6 +52,8 @@ jobs:
             viewer/assets/viewer-ui.js
             src/TaskProgress.Cli/checklist-ui/checklist-ui.js
             src/TaskProgress.Cli/checklist-ui/checklist-ui.css
+            viewer/checklist/checklist-ui.js
+            viewer/checklist/checklist-ui.css
           )
 
           if git diff --quiet -- "${bundles[@]}"; then
@@ -58,7 +61,7 @@ jobs:
             exit 0
           fi
 
-          echo "::error::A committed UI bundle is stale. Run 'npm run viewer:ui:build' and 'npm run checklist:ui:build', then commit the results." >&2
+          echo "::error::A committed UI bundle is stale. Rebuild the Viewer, Checklist Desktop, and Checklist Browser bundles, then commit the results." >&2
           git diff --stat -- "${bundles[@]}" >&2
           exit 1
 

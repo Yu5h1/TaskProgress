@@ -5,6 +5,7 @@ import "@editor/styles.css";
 import "./checklist-styles.css";
 import ChecklistApp from "./ChecklistApp.svelte";
 import { createChecklistHttpTransport } from "@editor/checklist-http-transport.js";
+import { installForegroundRefresh } from "@editor/foreground-refresh.js";
 
 // The Browser entry is what knows this build is loaded at /checklist/, so it
 // is the one place that reads scope and task off the URL — plan.md's settled
@@ -30,7 +31,22 @@ function resolveTransport() {
   }
 }
 
+let persistenceView = null;
+
+installForegroundRefresh({
+  canRefresh: () => Boolean(
+    !persistenceView?.dirty
+    && !persistenceView?.saving
+    && !persistenceView?.pending
+  ),
+});
+
 mount(ChecklistApp, {
   target: document.querySelector("#app"),
-  props: { transport: resolveTransport() },
+  props: {
+    transport: resolveTransport(),
+    onPersistenceChange: (next) => {
+      persistenceView = next;
+    },
+  },
 });
