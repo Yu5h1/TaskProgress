@@ -129,8 +129,8 @@ body {
 /* A manual check is the reader's to act on, so its state is carried by the row
    itself. Agent checks stay plain: they are evidence, not work. */
 .checklist-check.checklist-manual.checklist-pending {
-  background: var(--role-status-pending-surface);
-  border-color: var(--role-status-pending);
+  background: color-mix(in srgb, var(--role-status-pending-surface) 30%, transparent);
+  border-color: color-mix(in srgb, var(--role-status-pending) 80%, white);
 }
 
 .checklist-check.checklist-manual.checklist-passed {
@@ -139,8 +139,8 @@ body {
 }
 
 .checklist-check.checklist-manual.checklist-failed {
-  background: var(--role-status-failed-surface);
-  border-color: var(--role-status-failed);
+  background: color-mix(in srgb, var(--role-status-failed-surface) 30%, transparent);
+  border-color: color-mix(in srgb, var(--role-status-failed) 80%, white);
 }
 
 .checklist-check-heading {

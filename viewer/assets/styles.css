@@ -1921,13 +1921,11 @@ footer {
 
 .marker-box.marker-passed {
   color: var(--role-status-passed);
-  border-color: var(--role-status-passed);
   background: var(--role-status-passed-surface);
 }
 
 .marker-box.marker-failed {
   color: var(--role-status-failed);
-  border-color: var(--role-status-failed);
   background: var(--role-status-failed-surface);
 }
 
@@ -1936,7 +1934,7 @@ footer {
 }
 
 .marker-box-button:hover {
-  border-color: var(--color-active-border);
+  border-color: var(--color-accent);
 }
 
 .marker-box-button:focus-visible {
