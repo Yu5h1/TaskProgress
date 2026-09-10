@@ -4,7 +4,12 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
 
 - Canonical status entry: task status and progress are referenced by Task ID in `report.json`; Developer next steps, blockers, decisions, and routes are referenced by the same ID in `report.dev.json`. Do not duplicate that content here.
 
-## Current state (2026-09-09)
+## Current state (2026-09-10)
+
+- **Open bug `TP-TRAY-ACCESS-1`：`start --tray` 存取被拒，原因尚未確認（2026-09-10）。** 使用者執行 `task-progress.exe start --tray` 時，TrayHost 顯示 `Access to the path is denied.`；使用者重新登入 OS 後，已可用一般權限正常啟動。這是恢復現象，不代表根因已修復；目前無穩定重現步驟。
+  - **已觀察證據**：出錯期間既有 TaskProgress TrayHost 仍在執行。沙箱外測試確認 Windows administrator token 為 False；既有 mutex 可開啟，但 `NamedPipeClientStream.Connect` 拋出 `UnauthorizedAccessException`。同一實例在 Codex 沙箱內可連線，卻回報無法寫入 `scope-catalog-8001.json.tmp`；這是不同測試環境的結果，不能直接當成使用者錯誤的根因。使用者的其他 TrayHost 應用服務在一般權限下正常。
+  - **相關但未證實因果**：此前發布曾因 `task-progress.exe worker` 占用發布 EXE 而失敗；後續觀察 worker 已退出、TrayHost 仍在。Windows 於 9/9 安裝更新，但尚無證據證明更新、worker 殘留、pipe 權限或沙箱啟動身分就是根因。不要求管理員權限，不以重新登入視為正式修正。
+  - **再次發生時**：先保留程序／父程序與啟動身分、manifest 路徑、mutex／pipe 可存取性及 pipe ACL 證據，再比較正常應用實例。定位入口為 `src/TaskProgress.Cli/TrayHostLauncher.cs`、`../Winform/TrayHost/TrayAppInvoker.cs` 的 `IsHostRunning`／`SendAsync` 與 `TrayAppCommandServer.cs` 的 pipe 建立流程；本次未修改 ACL 或 TrayHost 程式。
 
 - **Browser Checklist 清空 UI 已實作，完整驗收仍後排（2026-09-09）。** HTTP transport 增加 reset capability；共用 ChecklistApp 使用 DialogShell 確認人工檢查數量（包含篩選隱藏項目），確認後只送確認框開啟時擷取的全份 manual targets，範圍不受畫面篩選影響。取消不送 request；有草稿／待寫入時禁止清空。請求期間鎖住編輯，確認框與請求期間保護前景刷新；成功後以回傳 snapshot 建立新 session，保留謹慎模式、不提供舊結果 Undo。
   - **必要檢查**：Browser／Desktop Checklist bundles 皆建置成功；Desktop transport 未提供 reset，因此不顯示清空按鈕。互動、取消零請求、失敗與不可 Undo 等驗收保持未勾選，見同一份 third-party checklist round。未 publish 或重啟共用服務。
