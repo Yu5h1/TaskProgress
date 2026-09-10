@@ -35,8 +35,11 @@ for here. A page that will not load is reported, not routed around.
 
 The page is `http://127.0.0.1:<port>/checklist/?scope=<scope-id>&task=<stem>`.
 `<scope-id>` is the registered scope owning that `checklists/` directory —
-`task-progress` for this repository. The port is 8001 unless the user names
-another.
+`task-progress` for this repository. Before navigating, follow
+`.agents/skills/taskprogress-capabilities/SKILL.md#ensure-the-checklist-service`:
+reuse the running service, or automatically start it with `task-progress.exe start --tray`
+when stopped, then confirm availability. Use the confirmed port for the URL and provide
+a clickable link to the resolved round.
 
 Read the pane's tab list first (`tabs_context`) and pick the tool by what it
 reports. With the pane open, navigate the existing active tab by its id —
@@ -56,11 +59,12 @@ not.
 
 A failed navigation has two unrelated causes, and they are told apart before
 anything is reported. Run `task-progress service status` — it reads the state
-file and does not touch the tray. A live PID means the host is up and the
-failure belongs to the pane: reopen it with `preview_start`. No service means
-the host is down: say so and offer `task-progress start`, and do not start it
-unasked. A bad name is neither, and was already settled while resolving the
-stem.
+file and does not touch the tray. When status confirms the service is running,
+retry the pane with `preview_start`; report any remaining load error. When it is
+stopped, use the same service-startup procedure above, at most once per invocation,
+then retry navigation after availability is confirmed. Report a failed startup
+instead of repeatedly launching it. A bad name is neither, and was already settled
+while resolving the stem.
 
 To check a file's format rather than look at it, use
 `task-progress checklist validate <file>` — console only, no window. The

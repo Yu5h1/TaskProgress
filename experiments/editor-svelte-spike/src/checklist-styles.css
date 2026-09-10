@@ -12,10 +12,10 @@ body {
 .checklist-page {
   display: grid;
   align-content: start;
-  gap: 16px;
+  gap: 10px;
   width: min(960px, calc(100% - 32px));
   margin: 0 auto;
-  padding: 40px 0 104px;
+  padding: 16px 0 104px;
 }
 
 .checklist-header h1,
@@ -225,5 +225,18 @@ body {
   align-items: center;
   flex-wrap: wrap;
   gap: 0.75rem;
-  margin-block: 1rem;
+  margin: 0;
 }
+
+.checklist-header > div:first-child { min-width: 0; flex: 1; }
+.checklist-header h1 { overflow-wrap: anywhere; font-size: clamp(1.1rem, 3vw, 1.5rem); }
+.checklist-round { margin-top: 4px; font-size: 0.8rem; overflow-wrap: anywhere; }
+.checklist-round summary { cursor: pointer; }
+.checklist-round p { margin-block: 4px 0; }
+.checklist-next-step { display: flex; min-width: 0; align-items: baseline; color: var(--color-accent); font-size: 0.85rem; }
+.checklist-next-step span { flex-shrink: 0; }
+.checklist-next-step strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.checklist-toolbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
+.checklist-toolbar .status-filter-strip { margin: 0; }
+.checklist-check { scroll-margin-top: 12px; }
+.checklist-check:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }

@@ -1,5 +1,5 @@
 <script>
-  import { onMount } from "svelte";
+  import { onMount, tick } from "svelte";
 
   import {
     checklistFilterCategories,
@@ -20,7 +20,6 @@
   import DialogShell from "./DialogShell.svelte";
   import FilterStrip from "./FilterStrip.svelte";
   import MarkerBox from "./MarkerBox.svelte";
-  import NextStepCard from "./NextStepCard.svelte";
   import ProgressSummary from "./ProgressSummary.svelte";
   import SaveBar from "./SaveBar.svelte";
   import ThemeControl from "./ThemeControl.svelte";
@@ -123,19 +122,17 @@
       }));
   }
 
-  // This screen names its own counts; the shared summary only draws them. A
-  // dozen-ish checks is exactly the case the segmented bar exists for.
-  function summaryStats(summary) {
-    const stats = [
-      { key: "total", label: "工作項目", value: summary.items.total },
-      { key: "passed", label: "已完成", value: summary.items.passed, tone: "passed" },
-      { key: "pending", label: "待處理", value: summary.items.pending, tone: "pending" },
-    ];
-    if (summary.items.failed > 0) {
-      stats.push({ key: "failed", label: "失敗", value: summary.items.failed, tone: "failed" });
-    }
-    return stats;
+  async function showNextStep(event) {
+    event.preventDefault();
+    const next = view.summary.nextStep;
+    if (!next) return;
+    selection = createFilterSelection(FILTER_TAGS);
+    await tick();
+    const target = document.getElementById(`check-${next.workItemId}-${next.checkIndex}`);
+    target?.focus({ preventScroll: true });
+    target?.scrollIntoView({ block: "start" });
   }
+
   const errorStates = new Set(["incomplete", "conflict", "error", "mode_blocked"]);
   const toneOf = (state) => {
     if (state === "saving") return "saving";
@@ -218,9 +215,8 @@
 <main class="checklist-page">
   <header class="checklist-header">
     <div>
-      <p class="section-kicker">Implementation Checklist</p>
       <h1>{view?.document.fileName ?? "TaskProgress Checklist"}</h1>
-      {#if view}<p class="checklist-round">{view.document.roundIdentity}</p>{/if}
+      {#if view}<details class="checklist-round"><summary>本輪依據</summary><p>{view.document.roundIdentity}</p></details>{/if}
     </div>
     {#if themeControl}
       <ThemeControl
@@ -239,21 +235,22 @@
     <p class="checklist-notice checklist-error" role="alert">{failure}</p>
   {:else}
     <ProgressSummary
-      stats={summaryStats(view.summary)}
       bar={{ form: "segmented", cells: view.summary.cells }}
       caption={`${view.summary.checks.passed} / ${view.summary.checks.total} checks 通過`}
       note={view.summary.checks.failed > 0 ? `${view.summary.checks.failed} 個失敗` : ""}
     />
 
     {#if view.summary.nextStep}
-      <NextStepCard
-        heading={view.summary.nextStep.isManual ? "下一步 · 需人工驗證" : "下一步 · Agent"}
-        title={`${view.summary.nextStep.workItemId}. ${view.summary.nextStep.itemTitle} — ${view.summary.nextStep.title}`}
-        action={view.summary.nextStep.action}
-        expect={view.summary.nextStep.expect}
-      />
+      <a class="checklist-next-step"
+        href={`#check-${view.summary.nextStep.workItemId}-${view.summary.nextStep.checkIndex}`}
+        onclick={showNextStep}
+        title={view.summary.nextStep.title}>
+        <span>{view.summary.nextStep.isManual ? "需人工驗證" : "下一步 · Agent"}：</span>
+        <strong>{view.summary.nextStep.title}</strong>
+      </a>
     {/if}
 
+    <div class="checklist-toolbar">
     <FilterStrip
       categories={filterCategories(view.document, capsuleOrder)}
       order={capsuleOrder}
@@ -276,6 +273,8 @@
       </div>
     {/if}
 
+    </div>
+
     <section class="checklist-items" aria-label="Implementation checklist items">
       {#each filterChecklistBySelection(orderChecklistItems(view.document, capsuleOrder), selection.selected).items as item (item.id)}
         <article class={`checklist-item checklist-${item.status}`}>
@@ -295,6 +294,8 @@
           <div class="checklist-checks">
             {#each item.checks as check (check.index)}
               <section
+                id={`check-${item.id}-${check.index}`}
+                tabindex="-1"
                 class={`checklist-check checklist-${check.status}${check.isManual ? " checklist-manual" : ""}`}
               >
                 <div class="checklist-check-heading">

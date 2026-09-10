@@ -3215,63 +3215,9 @@ function Ra(e, t) {
 }
 Sr(["click"]);
 //#endregion
-//#region experiments/editor-svelte-spike/src/NextStepCard.svelte
-var za = /* @__PURE__ */ J("<p class=\"next-step-heading\"> </p>"), Ba = /* @__PURE__ */ J("<h3 class=\"next-step-title\"> </h3>"), Va = /* @__PURE__ */ J("<div><dt> </dt><dd> </dd></div>"), Ha = /* @__PURE__ */ J("<dl class=\"next-step-fields\"><!> <!></dl>"), Ua = /* @__PURE__ */ J("<pre class=\"next-step-command\"> </pre>"), Wa = /* @__PURE__ */ J("<section class=\"next-step-card\"><!> <!> <!> <!></section>");
-function Ga(e, t) {
-	let n = $(t, "heading", 8, ""), r = $(t, "title", 8, ""), i = $(t, "action", 8, ""), a = $(t, "expect", 8, ""), o = $(t, "command", 8, ""), s = $(t, "actionLabel", 8, "要做什麼"), c = $(t, "expectLabel", 8, "怎樣算通過");
-	var l = Wa(), u = L(l), d = (e) => {
-		var t = za(), r = L(t, !0);
-		A(t), B(() => X(r, n())), Y(e, t);
-	};
-	Z(u, (e) => {
-		n() && e(d);
-	});
-	var f = R(u, 2), p = (e) => {
-		var t = Ba(), n = L(t, !0);
-		A(t), B(() => X(n, r())), Y(e, t);
-	};
-	Z(f, (e) => {
-		r() && e(p);
-	});
-	var m = R(f, 2), h = (e) => {
-		var t = Ha(), n = L(t), r = (e) => {
-			var t = Va(), n = L(t), r = L(n, !0);
-			A(n);
-			var a = R(n), o = L(a, !0);
-			A(a), A(t), B(() => {
-				X(r, s()), X(o, i());
-			}), Y(e, t);
-		};
-		Z(n, (e) => {
-			i() && e(r);
-		});
-		var o = R(n, 2), l = (e) => {
-			var t = Va(), n = L(t), r = L(n, !0);
-			A(n);
-			var i = R(n), o = L(i, !0);
-			A(i), A(t), B(() => {
-				X(r, c()), X(o, a());
-			}), Y(e, t);
-		};
-		Z(o, (e) => {
-			a() && e(l);
-		}), A(t), Y(e, t);
-	};
-	Z(m, (e) => {
-		(i() || a()) && e(h);
-	});
-	var g = R(m, 2), _ = (e) => {
-		var t = Ua(), n = L(t, !0);
-		A(t), B(() => X(n, o())), Y(e, t);
-	};
-	Z(g, (e) => {
-		o() && e(_);
-	}), A(l), B(() => Q(l, "aria-label", n() || r())), Y(e, l);
-}
-//#endregion
 //#region experiments/editor-svelte-spike/src/ProgressBar.svelte
-var Ka = /* @__PURE__ */ J("<i></i>"), qa = /* @__PURE__ */ J("<div role=\"img\"></div>"), Ja = /* @__PURE__ */ J("<progress max=\"100\"></progress>");
-function Ya(e, t) {
+var za = /* @__PURE__ */ J("<i></i>"), Ba = /* @__PURE__ */ J("<div role=\"img\"></div>"), Va = /* @__PURE__ */ J("<progress max=\"100\"></progress>");
+function Ha(e, t) {
 	Ue(t, !1);
 	let n = /* @__PURE__ */ F(), r = /* @__PURE__ */ F(), i = $(t, "form", 8, "continuous"), a = $(t, "cells", 24, () => []), o = $(t, "ratio", 8, 0), s = $(t, "label", 8, ""), c = $(t, "extraClass", 8, ""), l = /* @__PURE__ */ new Set([
 		"passed",
@@ -3288,15 +3234,15 @@ function Ya(e, t) {
 		I(r, Array.isArray(a()) ? a() : []);
 	}), En(), mi();
 	var f = kr(), p = dn(f), m = (e) => {
-		var t = qa();
+		var t = Ba();
 		zr(t, 5, () => W(r), Fr, (e, t) => {
-			var n = Ka();
+			var n = za();
 			B((e) => Qr(n, 1, e), [() => (W(t), G(() => `progress-cell${u(W(t))}`))]), Y(e, n);
 		}), A(t), B(() => {
 			Qr(t, 1, `progress-bar progress-bar-segmented ${c()}`), Q(t, "aria-label", s());
 		}), Y(e, t);
 	}, h = (e) => {
-		var t = Ja();
+		var t = Va();
 		B(() => {
 			Qr(t, 1, `progress-meter ${c()}`), ci(t, W(n)), Q(t, "aria-label", s());
 		}), Y(e, t);
@@ -3307,8 +3253,8 @@ function Ya(e, t) {
 }
 //#endregion
 //#region experiments/editor-svelte-spike/src/ProgressSummary.svelte
-var Xa = /* @__PURE__ */ J("<div><b> </b> <span> </span></div>"), Za = /* @__PURE__ */ J("<div class=\"progress-stats\"></div>"), Qa = /* @__PURE__ */ J("<span class=\"progress-note\"> </span>"), $a = /* @__PURE__ */ J("<p class=\"progress-caption\"><span> </span> <!></p>"), eo = /* @__PURE__ */ J("<section class=\"progress-summary\"><!> <!> <!></section>");
-function to(e, t) {
+var Ua = /* @__PURE__ */ J("<div><b> </b> <span> </span></div>"), Wa = /* @__PURE__ */ J("<div class=\"progress-stats\"></div>"), Ga = /* @__PURE__ */ J("<span class=\"progress-note\"> </span>"), Ka = /* @__PURE__ */ J("<p class=\"progress-caption\"><span> </span> <!></p>"), qa = /* @__PURE__ */ J("<section class=\"progress-summary\"><!> <!> <!></section>");
+function Ja(e, t) {
 	Ue(t, !1);
 	let n = $(t, "stats", 24, () => []), r = $(t, "bar", 8, null), i = $(t, "caption", 8, ""), a = $(t, "note", 8, ""), o = $(t, "label", 8, "進度摘要"), s = /* @__PURE__ */ new Set([
 		"passed",
@@ -3316,10 +3262,10 @@ function to(e, t) {
 		"pending"
 	]), c = (e) => s.has(e) ? ` progress-tone-${e}` : "";
 	mi();
-	var l = eo(), u = L(l), d = (e) => {
-		var t = Za();
+	var l = qa(), u = L(l), d = (e) => {
+		var t = Wa();
 		zr(t, 5, n, (e) => e.key ?? e.label, (e, t) => {
-			var n = Xa(), r = L(n), i = L(r, !0);
+			var n = Ua(), r = L(n), i = L(r, !0);
 			A(r);
 			var a = R(r, 2), o = L(a, !0);
 			A(a), A(n), B((e) => {
@@ -3333,7 +3279,7 @@ function to(e, t) {
 	var f = R(u, 2), p = (e) => {
 		{
 			let t = /* @__PURE__ */ N(() => (K(r()), G(() => r().cells ?? []))), n = /* @__PURE__ */ N(() => (K(r()), G(() => r().ratio ?? 0))), a = /* @__PURE__ */ N(() => i() || o());
-			Ya(e, {
+			Ha(e, {
 				get form() {
 					return K(r()), G(() => r().form);
 				},
@@ -3353,10 +3299,10 @@ function to(e, t) {
 		r() && e(p);
 	});
 	var m = R(f, 2), h = (e) => {
-		var t = $a(), n = L(t), r = L(n, !0);
+		var t = Ka(), n = L(t), r = L(n, !0);
 		A(n);
 		var o = R(n, 2), s = (e) => {
-			var t = Qa(), n = L(t, !0);
+			var t = Ga(), n = L(t, !0);
 			A(t), B(() => X(n, a())), Y(e, t);
 		};
 		Z(o, (e) => {
@@ -3369,19 +3315,19 @@ function to(e, t) {
 }
 //#endregion
 //#region experiments/editor-svelte-spike/src/SaveBar.svelte
-var no = /* @__PURE__ */ J("<button class=\"secondary-button edit-mode-button\" type=\"button\"> </button>"), ro = /* @__PURE__ */ J("<button class=\"secondary-button edit-discard-button\" type=\"button\" aria-label=\"放棄全部修改\"> </button> <button class=\"primary-button edit-save-button\" type=\"button\"> </button>", 1), io = /* @__PURE__ */ J("<span class=\"edit-save-status\" id=\"edit-save-status\" role=\"status\"> </span> <span class=\"edit-history-actions\"><button class=\"secondary-button edit-history-button\" type=\"button\"> </button> <button class=\"secondary-button edit-history-button\" type=\"button\"> </button></span> <!> <!>", 1);
-function ao(e, t) {
+var Ya = /* @__PURE__ */ J("<button class=\"secondary-button edit-mode-button\" type=\"button\"> </button>"), Xa = /* @__PURE__ */ J("<button class=\"secondary-button edit-discard-button\" type=\"button\" aria-label=\"放棄全部修改\"> </button> <button class=\"primary-button edit-save-button\" type=\"button\"> </button>", 1), Za = /* @__PURE__ */ J("<span class=\"edit-save-status\" id=\"edit-save-status\" role=\"status\"> </span> <span class=\"edit-history-actions\"><button class=\"secondary-button edit-history-button\" type=\"button\"> </button> <button class=\"secondary-button edit-history-button\" type=\"button\"> </button></span> <!> <!>", 1);
+function Qa(e, t) {
 	Ue(t, !1);
 	let n = $(t, "cautious", 8, !1), r = $(t, "onToggleCautious", 8, null), i = $(t, "cautiousLabel", 8, "謹慎模式"), a = $(t, "dirty", 8, !1), o = $(t, "saving", 8, !1), s = $(t, "canUndo", 8, !1), c = $(t, "canRedo", 8, !1), l = $(t, "message", 8, ""), u = $(t, "buttonLabel", 8, "儲存"), d = $(t, "savingLabel", 8, "正在儲存…"), f = $(t, "undoLabel", 8, "復原"), p = $(t, "redoLabel", 8, "重做"), m = $(t, "discardLabel", 8, "放棄"), h = $(t, "onSave", 8, () => {}), g = $(t, "onUndo", 8, () => {}), _ = $(t, "onRedo", 8, () => {}), v = $(t, "onDiscard", 8, () => {});
 	mi();
-	var y = io(), b = dn(y), x = L(b, !0);
+	var y = Za(), b = dn(y), x = L(b, !0);
 	A(b);
 	var S = R(b, 2), C = L(S), w = L(C, !0);
 	A(C);
 	var T = R(C, 2), ee = L(T, !0);
 	A(T), A(S);
 	var te = R(S, 2), ne = (e) => {
-		var t = no(), a = L(t, !0);
+		var t = Ya(), a = L(t, !0);
 		A(t), B(() => {
 			Q(t, "aria-pressed", n()), Q(t, "aria-label", `${i()}：改為手動儲存與放棄`), t.disabled = o(), X(a, i());
 		}), q("click", t, () => r()(!n())), Y(e, t);
@@ -3390,7 +3336,7 @@ function ao(e, t) {
 		r() && e(ne);
 	});
 	var re = R(te, 2), E = (e) => {
-		var t = ro(), n = dn(t), r = L(n, !0);
+		var t = Xa(), n = dn(t), r = L(n, !0);
 		A(n);
 		var i = R(n, 2), s = L(i, !0);
 		A(i), B(() => {
@@ -3414,8 +3360,8 @@ function ao(e, t) {
 Sr(["click"]);
 //#endregion
 //#region experiments/editor-svelte-spike/src/ThemeControl.svelte
-var oo = /* @__PURE__ */ J("<option> </option>"), so = /* @__PURE__ */ J("<label class=\"theme-color-field\"><span> </span> <span class=\"theme-color-controls\"><input type=\"color\"/> <input type=\"text\" inputmode=\"text\" maxlength=\"7\"/></span></label>"), co = /* @__PURE__ */ J("<p class=\"theme-dialog-description\">選擇基底後調整主要介面顏色；任務狀態色會沿用基底，保持完成、進行中與受阻容易辨識。</p> <label class=\"theme-base-field\" for=\"theme-custom-base\"><span>狀態色基底</span> <select id=\"theme-custom-base\"><option>亮色基底</option><option>暗色基底</option></select></label> <div class=\"theme-color-fields\" id=\"theme-color-fields\"></div> <p id=\"theme-dialog-status\" aria-live=\"polite\"> </p> <div class=\"theme-dialog-actions\"><button class=\"secondary-button\" id=\"theme-reset\" type=\"button\">恢復基底預設</button> <span class=\"theme-dialog-action-spacer\"></span> <button class=\"secondary-button\" id=\"theme-cancel\" type=\"button\">取消</button> <button class=\"primary-button\" id=\"theme-apply\" type=\"button\">套用自訂主題</button></div>", 1), lo = /* @__PURE__ */ J("<label class=\"theme-picker\" for=\"theme-select\"><span>主題</span> <select id=\"theme-select\" aria-label=\"顯示主題\"></select></label> <!>", 1);
-function uo(e, t) {
+var $a = /* @__PURE__ */ J("<option> </option>"), eo = /* @__PURE__ */ J("<label class=\"theme-color-field\"><span> </span> <span class=\"theme-color-controls\"><input type=\"color\"/> <input type=\"text\" inputmode=\"text\" maxlength=\"7\"/></span></label>"), to = /* @__PURE__ */ J("<p class=\"theme-dialog-description\">選擇基底後調整主要介面顏色；任務狀態色會沿用基底，保持完成、進行中與受阻容易辨識。</p> <label class=\"theme-base-field\" for=\"theme-custom-base\"><span>狀態色基底</span> <select id=\"theme-custom-base\"><option>亮色基底</option><option>暗色基底</option></select></label> <div class=\"theme-color-fields\" id=\"theme-color-fields\"></div> <p id=\"theme-dialog-status\" aria-live=\"polite\"> </p> <div class=\"theme-dialog-actions\"><button class=\"secondary-button\" id=\"theme-reset\" type=\"button\">恢復基底預設</button> <span class=\"theme-dialog-action-spacer\"></span> <button class=\"secondary-button\" id=\"theme-cancel\" type=\"button\">取消</button> <button class=\"primary-button\" id=\"theme-apply\" type=\"button\">套用自訂主題</button></div>", 1), no = /* @__PURE__ */ J("<label class=\"theme-picker\" for=\"theme-select\"><span>主題</span> <select id=\"theme-select\" aria-label=\"顯示主題\"></select></label> <!>", 1);
+function ro(e, t) {
 	Ue(t, !1);
 	let n = /* @__PURE__ */ F(), r = /* @__PURE__ */ F(), i = /* @__PURE__ */ F(), a = $(t, "mode", 8, "system"), o = $(t, "custom", 8, null), s = $(t, "systemScheme", 8, "light"), c = $(t, "onModeChange", 8, () => {}), l = $(t, "onApplyCustom", 8, () => {}), u = [
 		{
@@ -3499,9 +3445,9 @@ function uo(e, t) {
 	}), z(() => W(r), () => {
 		I(i, W(r).length ? `注意：${W(r).join("；")}。仍可套用，但可能較難閱讀。` : "目前的文字與背景色彩對比符合 4.5:1。");
 	}), En(), mi();
-	var ne = lo(), re = dn(ne), E = R(L(re), 2);
+	var ne = no(), re = dn(ne), E = R(L(re), 2);
 	zr(E, 5, () => u, (e) => e.value, (e, t) => {
-		var n = oo(), r = L(n, !0);
+		var n = $a(), r = L(n, !0);
 		A(n);
 		var i = {};
 		B(() => {
@@ -3518,7 +3464,7 @@ function uo(e, t) {
 		closeLabel: "關閉自訂主題",
 		onClose: ee,
 		children: (e, t) => {
-			var a = co(), o = R(dn(a), 2), s = R(L(o), 2), c = L(s);
+			var a = to(), o = R(dn(a), 2), s = R(L(o), 2), c = L(s);
 			c.value = c.__value = "light";
 			var l = R(c);
 			l.value = l.__value = "dark", A(s);
@@ -3526,7 +3472,7 @@ function uo(e, t) {
 			ei(s), A(o);
 			var d = R(o, 2);
 			zr(d, 7, () => da, (e) => e.key, (e, t, r) => {
-				var i = so(), a = L(i), o = L(a, !0);
+				var i = eo(), a = L(i), o = L(a, !0);
 				A(a);
 				var s = R(a, 2), c = L(s);
 				si(c);
@@ -3554,8 +3500,8 @@ Sr([
 ]);
 //#endregion
 //#region experiments/editor-svelte-spike/src/ChecklistApp.svelte
-var fo = /* @__PURE__ */ J("<p class=\"checklist-round\"> </p>"), po = /* @__PURE__ */ J("<p class=\"checklist-notice\" role=\"status\"> </p>"), mo = /* @__PURE__ */ J("<p class=\"checklist-notice checklist-error\" role=\"alert\"> </p>"), ho = /* @__PURE__ */ J("<span>請先儲存或捨棄變更，再清空。</span>"), go = /* @__PURE__ */ J("<div class=\"checklist-reset-actions\"><button type=\"button\" class=\"secondary-button\">清空人工結果</button> <!></div>"), _o = /* @__PURE__ */ J("<p class=\"checklist-chips\"><span class=\"checklist-chip\"> </span></p>"), vo = /* @__PURE__ */ J("<div><dt>Reason</dt><dd> </dd></div>"), yo = /* @__PURE__ */ J("<div><dt>Observed</dt><dd> </dd></div>"), bo = /* @__PURE__ */ J("<div><dt>Resolved</dt><dd> </dd></div>"), xo = /* @__PURE__ */ J("<label class=\"checklist-observed\"><span>Observed</span> <textarea rows=\"3\" placeholder=\"記錄實際看到的結果\"></textarea></label>"), So = /* @__PURE__ */ J("<section><div class=\"checklist-check-heading\"><!> <strong> </strong> <span> </span></div> <dl><div><dt>Action</dt><dd> </dd></div> <div><dt>Expect</dt><dd> </dd></div> <!> <!> <!></dl> <!></section>"), Co = /* @__PURE__ */ J("<article><header class=\"checklist-item-header\"><!> <div><h2> </h2> <p> </p> <!></div> <span class=\"checklist-status\"> </span></header> <div class=\"checklist-checks\"></div></article>"), wo = /* @__PURE__ */ J("<!> <!> <!> <!> <section class=\"checklist-items\" aria-label=\"Implementation checklist items\"></section> <footer class=\"edit-save-bar\" aria-live=\"polite\"><!></footer>", 1), To = /* @__PURE__ */ J("<p> </p> <p>此操作無法復原；如需回復，請使用 Git 歷史。</p> <form method=\"dialog\" class=\"theme-dialog-actions\"><button type=\"submit\" class=\"secondary-button\">取消</button> <button type=\"submit\" class=\"primary-button\">確認清空</button></form>", 1), Eo = /* @__PURE__ */ J("<main class=\"checklist-page\"><header class=\"checklist-header\"><div><p class=\"section-kicker\">Implementation Checklist</p> <h1> </h1> <!></div> <!></header> <!></main> <!>", 1);
-function Do(e, t) {
+var io = /* @__PURE__ */ J("<details class=\"checklist-round\"><summary>本輪依據</summary><p> </p></details>"), ao = /* @__PURE__ */ J("<p class=\"checklist-notice\" role=\"status\"> </p>"), oo = /* @__PURE__ */ J("<p class=\"checklist-notice checklist-error\" role=\"alert\"> </p>"), so = /* @__PURE__ */ J("<a class=\"checklist-next-step\"><span> </span> <strong> </strong></a>"), co = /* @__PURE__ */ J("<span>請先儲存或捨棄變更，再清空。</span>"), lo = /* @__PURE__ */ J("<div class=\"checklist-reset-actions\"><button type=\"button\" class=\"secondary-button\">清空人工結果</button> <!></div>"), uo = /* @__PURE__ */ J("<p class=\"checklist-chips\"><span class=\"checklist-chip\"> </span></p>"), fo = /* @__PURE__ */ J("<div><dt>Reason</dt><dd> </dd></div>"), po = /* @__PURE__ */ J("<div><dt>Observed</dt><dd> </dd></div>"), mo = /* @__PURE__ */ J("<div><dt>Resolved</dt><dd> </dd></div>"), ho = /* @__PURE__ */ J("<label class=\"checklist-observed\"><span>Observed</span> <textarea rows=\"3\" placeholder=\"記錄實際看到的結果\"></textarea></label>"), go = /* @__PURE__ */ J("<section tabindex=\"-1\"><div class=\"checklist-check-heading\"><!> <strong> </strong> <span> </span></div> <dl><div><dt>Action</dt><dd> </dd></div> <div><dt>Expect</dt><dd> </dd></div> <!> <!> <!></dl> <!></section>"), _o = /* @__PURE__ */ J("<article><header class=\"checklist-item-header\"><!> <div><h2> </h2> <p> </p> <!></div> <span class=\"checklist-status\"> </span></header> <div class=\"checklist-checks\"></div></article>"), vo = /* @__PURE__ */ J("<!> <!> <div class=\"checklist-toolbar\"><!> <!></div> <section class=\"checklist-items\" aria-label=\"Implementation checklist items\"></section> <footer class=\"edit-save-bar\" aria-live=\"polite\"><!></footer>", 1), yo = /* @__PURE__ */ J("<p> </p> <p>此操作無法復原；如需回復，請使用 Git 歷史。</p> <form method=\"dialog\" class=\"theme-dialog-actions\"><button type=\"submit\" class=\"secondary-button\">取消</button> <button type=\"submit\" class=\"primary-button\">確認清空</button></form>", 1), bo = /* @__PURE__ */ J("<main class=\"checklist-page\"><header class=\"checklist-header\"><div><h1> </h1> <!></div> <!></header> <!></main> <!>", 1);
+function xo(e, t) {
 	Ue(t, !1);
 	let n = /* @__PURE__ */ F(), r = /* @__PURE__ */ F(), i = $(t, "transport", 8, null), a = $(t, "onPersistenceChange", 8, () => {}), o = null, s = /* @__PURE__ */ F(null), c = /* @__PURE__ */ F(!0), l = /* @__PURE__ */ F(""), u = /* @__PURE__ */ F("正在載入 Checklist…"), d = /* @__PURE__ */ F(!1), f = /* @__PURE__ */ F(!1), p = /* @__PURE__ */ F([]);
 	function m(e) {
@@ -3615,32 +3561,13 @@ function Do(e, t) {
 			title: "拖曳可調整順序；排在「預設」左邊的標籤會分組到最前面"
 		}));
 	}
-	function te(e) {
-		let t = [
-			{
-				key: "total",
-				label: "工作項目",
-				value: e.items.total
-			},
-			{
-				key: "passed",
-				label: "已完成",
-				value: e.items.passed,
-				tone: "passed"
-			},
-			{
-				key: "pending",
-				label: "待處理",
-				value: e.items.pending,
-				tone: "pending"
-			}
-		];
-		return e.items.failed > 0 && t.push({
-			key: "failed",
-			label: "失敗",
-			value: e.items.failed,
-			tone: "failed"
-		}), t;
+	async function te(e) {
+		e.preventDefault();
+		let t = W(s).summary.nextStep;
+		if (!t) return;
+		I(b, Si(y)), await dr();
+		let n = document.getElementById(`check-${t.workItemId}-${t.checkIndex}`);
+		n?.focus({ preventScroll: !0 }), n?.scrollIntoView({ block: "start" });
 	}
 	let ne = /* @__PURE__ */ new Set([
 		"incomplete",
@@ -3712,17 +3639,17 @@ function Do(e, t) {
 			pending: W(s).pending || W(d) || W(f)
 		} : W(s));
 	}), En(), mi();
-	var pe = Eo(), me = dn(pe), he = L(me), ge = L(he), _e = R(L(ge), 2), ve = L(_e, !0);
+	var pe = bo(), me = dn(pe), he = L(me), ge = L(he), _e = L(ge), ve = L(_e, !0);
 	A(_e);
 	var ye = R(_e, 2), be = (e) => {
-		var t = fo(), n = L(t, !0);
-		A(t), B(() => X(n, (W(s), G(() => W(s).document.roundIdentity)))), Y(e, t);
+		var t = io(), n = R(L(t)), r = L(n, !0);
+		A(n), A(t), B(() => X(r, (W(s), G(() => W(s).document.roundIdentity)))), Y(e, t);
 	};
 	Z(ye, (e) => {
 		W(s) && e(be);
 	}), A(ge);
 	var xe = R(ge, 2), Se = (e) => {
-		uo(e, {
+		ro(e, {
 			get mode() {
 				return W(ie), G(() => W(ie).mode);
 			},
@@ -3744,59 +3671,45 @@ function Do(e, t) {
 		W(E) && e(Se);
 	}), A(he);
 	var Ce = R(he, 2), we = (e) => {
-		var t = po(), n = L(t, !0);
+		var t = ao(), n = L(t, !0);
 		A(t), B(() => X(n, W(u))), Y(e, t);
 	}, Te = (e) => {
-		var t = mo(), n = L(t, !0);
+		var t = oo(), n = L(t, !0);
 		A(t), B(() => X(n, W(l))), Y(e, t);
 	}, D = (e) => {
-		var t = wo(), n = dn(t);
+		var t = vo(), n = dn(t);
 		{
-			let e = /* @__PURE__ */ N(() => (W(s), G(() => te(W(s).summary)))), t = /* @__PURE__ */ N(() => (W(s), G(() => ({
+			let e = /* @__PURE__ */ N(() => (W(s), G(() => ({
 				form: "segmented",
 				cells: W(s).summary.cells
-			})))), r = /* @__PURE__ */ N(() => (W(s), G(() => `${W(s).summary.checks.passed} / ${W(s).summary.checks.total} checks 通過`))), i = /* @__PURE__ */ N(() => (W(s), G(() => W(s).summary.checks.failed > 0 ? `${W(s).summary.checks.failed} 個失敗` : "")));
-			to(n, {
-				get stats() {
+			})))), t = /* @__PURE__ */ N(() => (W(s), G(() => `${W(s).summary.checks.passed} / ${W(s).summary.checks.total} checks 通過`))), r = /* @__PURE__ */ N(() => (W(s), G(() => W(s).summary.checks.failed > 0 ? `${W(s).summary.checks.failed} 個失敗` : "")));
+			Ja(n, {
+				get bar() {
 					return W(e);
 				},
-				get bar() {
+				get caption() {
 					return W(t);
 				},
-				get caption() {
-					return W(r);
-				},
 				get note() {
-					return W(i);
+					return W(r);
 				}
 			});
 		}
 		var a = R(n, 2), o = (e) => {
-			{
-				let t = /* @__PURE__ */ N(() => (W(s), G(() => W(s).summary.nextStep.isManual ? "下一步 · 需人工驗證" : "下一步 · Agent"))), n = /* @__PURE__ */ N(() => (W(s), G(() => `${W(s).summary.nextStep.workItemId}. ${W(s).summary.nextStep.itemTitle} — ${W(s).summary.nextStep.title}`)));
-				Ga(e, {
-					get heading() {
-						return W(t);
-					},
-					get title() {
-						return W(n);
-					},
-					get action() {
-						return W(s), G(() => W(s).summary.nextStep.action);
-					},
-					get expect() {
-						return W(s), G(() => W(s).summary.nextStep.expect);
-					}
-				});
-			}
+			var t = so(), n = L(t), r = L(n);
+			A(n);
+			var i = R(n, 2), a = L(i, !0);
+			A(i), A(t), B(() => {
+				Q(t, "href", (W(s), G(() => `#check-${W(s).summary.nextStep.workItemId}-${W(s).summary.nextStep.checkIndex}`))), Q(t, "title", (W(s), G(() => W(s).summary.nextStep.title))), X(r, `${W(s), G(() => W(s).summary.nextStep.isManual ? "需人工驗證" : "下一步 · Agent") ?? ""}：`), X(a, (W(s), G(() => W(s).summary.nextStep.title)));
+			}), q("click", t, te), Y(e, t);
 		};
 		Z(a, (e) => {
 			W(s), G(() => W(s).summary.nextStep) && e(o);
 		});
-		var c = R(a, 2);
+		var c = R(a, 2), l = L(c);
 		{
 			let e = /* @__PURE__ */ N(() => (W(s), W(S), G(() => ee(W(s).document, W(S))))), t = /* @__PURE__ */ N(() => (K(Ci), W(b), G(() => Ci(W(b)))));
-			Fa(c, {
+			Fa(l, {
 				get categories() {
 					return W(e);
 				},
@@ -3817,20 +3730,20 @@ function Do(e, t) {
 				onReorder: T
 			});
 		}
-		var l = R(c, 2), d = (e) => {
-			var t = go(), n = L(t), i = R(n, 2), a = (e) => {
-				Y(e, ho());
+		var d = R(l, 2), p = (e) => {
+			var t = lo(), n = L(t), i = R(n, 2), a = (e) => {
+				Y(e, co());
 			};
 			Z(i, (e) => {
 				W(s), G(() => W(s).dirty || W(s).pending || W(s).saving) && e(a);
 			}), A(t), B(() => n.disabled = !W(r)), q("click", n, h), Y(e, t);
 		};
-		Z(l, (e) => {
-			K(i()), G(() => typeof i()?.reset == "function") && e(d);
-		});
-		var p = R(l, 2);
-		zr(p, 5, () => (K(Hi), K(Ui), W(s), W(S), W(b), G(() => Hi(Ui(W(s).document, W(S)), W(b).selected).items)), (e) => e.id, (e, t) => {
-			var n = Co(), r = L(n), i = L(r);
+		Z(d, (e) => {
+			K(i()), G(() => typeof i()?.reset == "function") && e(p);
+		}), A(c);
+		var m = R(c, 2);
+		zr(m, 5, () => (K(Hi), K(Ui), W(s), W(S), W(b), G(() => Hi(Ui(W(s).document, W(S)), W(b).selected).items)), (e) => e.id, (e, t) => {
+			var n = _o(), r = L(n), i = L(r);
 			{
 				let e = /* @__PURE__ */ N(() => (W(t), G(() => `工作項目 ${W(t).id}`)));
 				Ra(i, {
@@ -3847,7 +3760,7 @@ function Do(e, t) {
 			var c = R(o, 2), l = L(c, !0);
 			A(c);
 			var u = R(c, 2), d = (e) => {
-				var n = _o(), r = L(n), i = L(r);
+				var n = uo(), r = L(n), i = L(r);
 				A(r), A(n), B((e) => X(i, `Depends on ${e ?? ""}`), [() => (W(t), G(() => W(t).dependsOn.join(", ")))]), Y(e, n);
 			};
 			Z(u, (e) => {
@@ -3857,7 +3770,7 @@ function Do(e, t) {
 			A(p), A(r);
 			var h = R(r, 2);
 			zr(h, 5, () => (W(t), G(() => W(t).checks)), (e) => e.index, (e, n) => {
-				var r = So(), i = L(r), a = L(i);
+				var r = go(), i = L(r), a = L(i);
 				{
 					let e = /* @__PURE__ */ N(() => (W(n), W(f), G(() => W(n).isManual && !W(f))));
 					Ra(a, {
@@ -3882,28 +3795,28 @@ function Do(e, t) {
 				var h = R(d, 2), g = R(L(h)), _ = L(g, !0);
 				A(g), A(h);
 				var v = R(h, 2), y = (e) => {
-					var t = vo(), r = R(L(t)), i = L(r, !0);
+					var t = fo(), r = R(L(t)), i = L(r, !0);
 					A(r), A(t), B(() => X(i, (W(n), G(() => W(n).reason)))), Y(e, t);
 				};
 				Z(v, (e) => {
 					W(n), G(() => W(n).reason) && e(y);
 				});
 				var b = R(v, 2), x = (e) => {
-					var t = yo(), r = R(L(t)), i = L(r, !0);
+					var t = po(), r = R(L(t)), i = L(r, !0);
 					A(r), A(t), B(() => X(i, (W(n), G(() => W(n).observed)))), Y(e, t);
 				};
 				Z(b, (e) => {
 					W(n), G(() => W(n).observed && !(W(n).isManual && W(n).status === "failed")) && e(x);
 				});
 				var S = R(b, 2), C = (e) => {
-					var t = bo(), r = R(L(t)), i = L(r, !0);
+					var t = mo(), r = R(L(t)), i = L(r, !0);
 					A(r), A(t), B(() => X(i, (W(n), G(() => W(n).resolved)))), Y(e, t);
 				};
 				Z(S, (e) => {
 					W(n), G(() => W(n).resolved) && e(C);
 				}), A(u);
 				var w = R(u, 2), T = (e) => {
-					var r = xo(), i = R(L(r), 2);
+					var r = ho(), i = R(L(r), 2);
 					it(i), A(r), B(() => {
 						i.disabled = W(f), ci(i, (W(n), G(() => W(n).observed ?? "")));
 					}), q("input", i, (e) => oe({
@@ -3916,16 +3829,16 @@ function Do(e, t) {
 				Z(w, (e) => {
 					W(n), G(() => W(n).isManual && W(n).status === "failed") && e(T);
 				}), A(r), B(() => {
-					Qr(r, 1, (W(n), G(() => `checklist-check checklist-${W(n).status}${W(n).isManual ? " checklist-manual" : ""}`))), X(s, (W(n), G(() => W(n).title))), Qr(c, 1, (W(n), G(() => `checklist-owner${W(n).isManual ? " checklist-owner-manual" : ""}`))), X(l, (W(n), G(() => W(n).isManual ? "manual" : "Agent"))), X(m, (W(n), G(() => W(n).action))), X(_, (W(n), G(() => W(n).expect)));
+					Q(r, "id", (W(t), W(n), G(() => `check-${W(t).id}-${W(n).index}`))), Qr(r, 1, (W(n), G(() => `checklist-check checklist-${W(n).status}${W(n).isManual ? " checklist-manual" : ""}`))), X(s, (W(n), G(() => W(n).title))), Qr(c, 1, (W(n), G(() => `checklist-owner${W(n).isManual ? " checklist-owner-manual" : ""}`))), X(l, (W(n), G(() => W(n).isManual ? "manual" : "Agent"))), X(m, (W(n), G(() => W(n).action))), X(_, (W(n), G(() => W(n).expect)));
 				}), Y(e, r);
 			}), A(h), A(n), B((e) => {
 				Qr(n, 1, (W(t), G(() => `checklist-item checklist-${W(t).status}`))), X(s, `${W(t), G(() => W(t).id) ?? ""}. ${W(t), G(() => W(t).title) ?? ""}`), X(l, (W(t), G(() => W(t).outcome))), X(m, e);
 			}, [() => (W(t), G(() => _(W(t).status)))]), Y(e, n);
-		}), A(p);
-		var m = R(p, 2), g = L(m);
+		}), A(m);
+		var g = R(m, 2), v = L(g);
 		{
 			let e = /* @__PURE__ */ N(() => (W(s), W(f), G(() => W(s).saving || W(f))));
-			ao(g, {
+			Qa(v, {
 				get cautious() {
 					return W(s), G(() => W(s).cautious);
 				},
@@ -3951,8 +3864,8 @@ function Do(e, t) {
 				onDiscard: ue
 			});
 		}
-		A(m), B((e) => {
-			Q(m, "data-state", e), Q(m, "aria-busy", (W(s), W(f), G(() => W(s).saving || W(f))));
+		A(g), B((e) => {
+			Q(g, "data-state", e), Q(g, "aria-busy", (W(s), W(f), G(() => W(s).saving || W(f))));
 		}, [() => (W(s), G(() => re(W(s).status)))]), Y(e, t);
 	};
 	Z(Ce, (e) => {
@@ -3968,7 +3881,7 @@ function Do(e, t) {
 			I(d, !1);
 		},
 		children: (e, t) => {
-			var n = To(), r = dn(n), i = L(r);
+			var n = yo(), r = dn(n), i = L(r);
 			A(r);
 			var a = R(r, 4), o = R(L(a), 2);
 			A(a), B(() => {
@@ -3981,13 +3894,13 @@ function Do(e, t) {
 Sr(["click", "input"]);
 //#endregion
 //#region experiments/editor-svelte-spike/src/checklist-bridge.js
-var Oo = 1, ko = /* @__PURE__ */ new Set(["load", "save"]);
-function Ao(e = globalThis.chrome?.webview) {
+var So = 1, Co = /* @__PURE__ */ new Set(["load", "save"]);
+function wo(e = globalThis.chrome?.webview) {
 	if (!e || typeof e.postMessage != "function") throw Error("此頁面必須由 TaskProgress Checklist Desktop Host 開啟。");
 	let t = 0, n = /* @__PURE__ */ new Map();
 	e.addEventListener("message", (e) => {
 		let t = e.data;
-		if (!t || t.version !== Oo || typeof t.id != "string") return;
+		if (!t || t.version !== So || typeof t.id != "string") return;
 		let r = n.get(t.id);
 		if (!r) return;
 		if (n.delete(t.id), t.type === "result") {
@@ -3998,7 +3911,7 @@ function Ao(e = globalThis.chrome?.webview) {
 		i.code = t.error?.code ?? "bridge_error", r.reject(i);
 	});
 	function r(r, i) {
-		if (!ko.has(r)) return Promise.reject(/* @__PURE__ */ Error(`不支援的 Checklist bridge request：${r}`));
+		if (!Co.has(r)) return Promise.reject(/* @__PURE__ */ Error(`不支援的 Checklist bridge request：${r}`));
 		let a = `checklist-${Date.now()}-${++t}`;
 		return new Promise((t, o) => {
 			n.set(a, {
@@ -4006,7 +3919,7 @@ function Ao(e = globalThis.chrome?.webview) {
 				reject: o
 			});
 			let s = {
-				version: Oo,
+				version: So,
 				id: a,
 				type: r
 			};
@@ -4020,9 +3933,9 @@ function Ao(e = globalThis.chrome?.webview) {
 }
 //#endregion
 //#region experiments/editor-svelte-spike/src/checklist-main.js
-function jo() {
+function To() {
 	try {
-		return Ao();
+		return wo();
 	} catch (e) {
 		let t = () => Promise.reject(e);
 		return {
@@ -4031,8 +3944,8 @@ function jo() {
 		};
 	}
 }
-Ar(Do, {
+Ar(xo, {
 	target: document.querySelector("#app"),
-	props: { transport: jo() }
+	props: { transport: To() }
 });
 //#endregion

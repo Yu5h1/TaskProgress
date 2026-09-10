@@ -62,10 +62,30 @@ it — build the URL by hand instead. Three preconditions, in order:
    `{"schema_version":"1.0","report_id":"…","scope_id":"…","title":"…","updated_at":"…","tasks":[]}`
    satisfies it without adopting TaskProgress reporting for that project. Say so when adding one, so
    an empty report is never mistaken for real tracked progress.
-3. The service is running: `task-progress service status`. **Never start it unasked** — offer
-   `task-progress start` and wait.
+3. Ensure the service is running using [Ensure the Checklist service](#ensure-the-checklist-service).
 
 Then open `http://127.0.0.1:8001/checklist/?scope=<scope-id>&task=<stem>` — `preview_start` carrying
 the URL when the Browser pane is closed, otherwise navigate the tab already active. Confirm what
 landed with `get_page_text`; a navigation that silently failed looks identical to one that worked
 until the page is read.
+
+## Ensure the Checklist service
+
+Opening a Checklist includes starting its required service when stopped; the user has authorized
+this automatic startup for the Checklist navigation workflow. Do not stop merely to ask whether
+to start it.
+
+1. Resolve `Build/win-x64/task-progress.exe` from the TaskProgress repository, not the consuming
+   project's working directory; use its absolute path because it is not on PATH.
+2. Run `task-progress.exe service status` (with `--port <port>` when explicitly requested).
+   Reuse a running service. A status error or a foreign service is not evidence that it is stopped:
+   report that error instead of taking over or restarting it.
+3. When status reports no running service, run `task-progress.exe start --tray` once and wait for
+   the command to complete. This uses the existing tray startup/reuse path. Do not add `--port`:
+   tray mode takes its port from the TrayApp manifest and rejects that combination.
+4. After successful startup, check service status again and use the confirmed service URL/port
+   for the Checklist link. If startup fails, the service remains unavailable, or its port does not
+   match an explicitly requested port, report the actual error or mismatch and stop; do not loop,
+   restart another service, or provide an unverified link as ready.
+5. Provide a clickable `/checklist/?scope=<scope-id>&task=<stem>` link and open it in the Browser
+   pane when requested. Encode the scope and task query values. Confirm the page after navigation.
