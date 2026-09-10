@@ -80,11 +80,20 @@ to start it.
 2. Run `task-progress.exe service status` (with `--port <port>` when explicitly requested).
    Reuse a running service. A status error or a foreign service is not evidence that it is stopped:
    report that error instead of taking over or restarting it.
-3. When status reports no running service, run `task-progress.exe start --tray` once and wait for
-   the command to complete. This uses the existing tray startup/reuse path. Do not add `--port`:
-   tray mode takes its port from the TrayApp manifest and rejects that combination.
-4. After successful startup, check service status again and use the confirmed service URL/port
-   for the Checklist link. If startup fails, the service remains unavailable, or its port does not
+3. When status reports no running service, use the agent tool's supported approval mechanism to
+   run `task-progress.exe start --tray` outside the sandbox, as the current ordinary Windows user,
+   once, and wait for completion. In Codex, request `sandbox_permissions: "require_escalated"`;
+   this requests unsandboxed execution, not Windows administrator elevation. Do not launch the
+   persistent TrayHost/worker inside the sandbox: startup writes application state outside the
+   workspace, including scope/catalog JSON. Do not use `RunAs`, change ACLs, or weaken pipe security.
+   If approved unsandboxed execution is unavailable or denied, explain the limitation and give
+   the user the absolute EXE command to run in a normal terminal; resume after they start it.
+   Do not work around a denial through another launcher. Do not add `--port`: tray mode takes its
+   port from the TrayApp manifest and rejects that combination.
+4. Check service status again in the ordinary-user context and require a confirmed Running
+   service before using its URL/port for the Checklist link. Exit code 0 or a "tray ready" message
+   alone is insufficient: the tray can respond successfully while the service reports Stopped
+   or a startup error. If startup fails, the service remains unavailable, or its port does not
    match an explicitly requested port, report the actual error or mismatch and stop; do not loop,
    restart another service, or provide an unverified link as ready.
 5. Provide a clickable `/checklist/?scope=<scope-id>&task=<stem>` link and open it in the Browser

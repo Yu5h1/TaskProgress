@@ -37,8 +37,8 @@ The page is `http://127.0.0.1:<port>/checklist/?scope=<scope-id>&task=<stem>`.
 `<scope-id>` is the registered scope owning that `checklists/` directory —
 `task-progress` for this repository. Before navigating, follow
 `.agents/skills/taskprogress-capabilities/SKILL.md#ensure-the-checklist-service`:
-reuse the running service, or automatically start it with `task-progress.exe start --tray`
-when stopped, then confirm availability. Use the confirmed port for the URL and provide
+reuse the running service, or follow that procedure's approved unsandboxed startup and manual
+fallback when stopped. Require confirmed Running status. Use the confirmed port for the URL and provide
 a clickable link to the resolved round.
 
 Read the pane's tab list first (`tabs_context`) and pick the tool by what it

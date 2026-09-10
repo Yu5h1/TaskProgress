@@ -7,6 +7,7 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
 ## Current state (2026-09-10)
 
 - **Open bug `TP-TRAY-ACCESS-1`：`start --tray` 存取被拒，原因尚未確認（2026-09-10）。** 使用者執行 `task-progress.exe start --tray` 時，TrayHost 顯示 `Access to the path is denied.`；使用者重新登入 OS 後，已可用一般權限正常啟動。這是恢復現象，不代表根因已修復；目前無穩定重現步驟。
+  - **啟動流程調整**：使用者指出 agent 沙箱限制會擋住 scope/catalog JSON 寫入；Checklist skill 已改走工具核准的沙箱外一般使用者啟動，不可用時交由使用者手動啟動，且須確認 Running 才給就緒連結。流程由 `.agents/skills/taskprogress-capabilities/SKILL.md#ensure-the-checklist-service` 擁有。本次只更新指引，未重跑啟動；先前 pipe 拒絕的根因仍未確認。
   - **已觀察證據**：出錯期間既有 TaskProgress TrayHost 仍在執行。沙箱外測試確認 Windows administrator token 為 False；既有 mutex 可開啟，但 `NamedPipeClientStream.Connect` 拋出 `UnauthorizedAccessException`。同一實例在 Codex 沙箱內可連線，卻回報無法寫入 `scope-catalog-8001.json.tmp`；這是不同測試環境的結果，不能直接當成使用者錯誤的根因。使用者的其他 TrayHost 應用服務在一般權限下正常。
   - **相關但未證實因果**：此前發布曾因 `task-progress.exe worker` 占用發布 EXE 而失敗；後續觀察 worker 已退出、TrayHost 仍在。Windows 於 9/9 安裝更新，但尚無證據證明更新、worker 殘留、pipe 權限或沙箱啟動身分就是根因。不要求管理員權限，不以重新登入視為正式修正。
   - **再次發生時**：先保留程序／父程序與啟動身分、manifest 路徑、mutex／pipe 可存取性及 pipe ACL 證據，再比較正常應用實例。定位入口為 `src/TaskProgress.Cli/TrayHostLauncher.cs`、`../Winform/TrayHost/TrayAppInvoker.cs` 的 `IsHostRunning`／`SendAsync` 與 `TrayAppCommandServer.cs` 的 pipe 建立流程；本次未修改 ACL 或 TrayHost 程式。
