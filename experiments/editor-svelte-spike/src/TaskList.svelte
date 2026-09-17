@@ -1,8 +1,12 @@
 <script>
+  import { loadDisclosure, saveDisclosure } from "../../../viewer/assets/card-disclosure-state.js";
   import TaskCard from "./TaskCard.svelte";
+  import CardList from "./CardList.svelte";
   import ReportPointerCard from "./ReportPointerCard.svelte";
 
   export let tasks = [];
+  export let allIds = [];
+  export let cardStorageKey = null;
   export let progress = {};
   export let editing = false;
   export let policy;
@@ -20,14 +24,26 @@
   // message, openHref }. A pointer card never takes `editing`, `onCommand` or
   // any other write-capable prop — it has no edit affordances to receive one.
   export let pointerCards = {};
+  let defaultExpanded = true;
+  let expandedCards = {};
+  $: disclosureKey = `taskprogress.disclosure:${cardStorageKey ?? location.href}`;
+  $: restoreDisclosure(disclosureKey);
+  function restoreDisclosure(key) {
+    const state = loadDisclosure(key);
+    defaultExpanded = state.expanded;
+    expandedCards = state.overrides;
+  }
+  function setExpanded(id, value) { expandedCards = { ...expandedCards, [id]: value }; saveDisclosure(disclosureKey, defaultExpanded, expandedCards); }
+  function setAllExpanded(value) { defaultExpanded = value; expandedCards = {}; saveDisclosure(disclosureKey, defaultExpanded, expandedCards); }
 </script>
 
-{#if tasks.length}
-  {#each tasks as task (task.id)}
+  <CardList expanded={defaultExpanded} onToggleAll={setAllExpanded} items={tasks} {allIds} storageKey={cardStorageKey} let:item={task}>
     {#if task.kind === "report_pointer"}
-      <ReportPointerCard {task} state={pointerCards[task.id] ?? { status: "loading" }} />
+      <ReportPointerCard expanded={expandedCards[task.id] ?? defaultExpanded} onToggle={value => setExpanded(task.id, value)} {task} state={pointerCards[task.id] ?? { status: "loading" }} />
     {:else}
       <TaskCard
+        expanded={expandedCards[task.id] ?? defaultExpanded}
+        onToggle={value => setExpanded(task.id, value)}
         {task}
         progress={progress[task.id]}
         {editing}
@@ -43,7 +59,7 @@
         moduleTotals={moduleTotals[task.id] ?? []}
       />
     {/if}
-  {/each}
-{:else}
+  </CardList>
+{#if !tasks.length}
   <p class="empty-state">{emptyLabel}</p>
 {/if}

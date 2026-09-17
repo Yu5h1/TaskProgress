@@ -78,7 +78,7 @@ internal static class WorkerCommand
     ///   Runs one request against the allowed command surface. A failing
     ///   request is answered and survived; it never stops the worker.
     /// </summary>
-    private static async Task<string> DispatchAsync(
+    internal static async Task<string> DispatchAsync(
         WorkerSession session,
         WorkerRequest request,
         StringWriter captured,
@@ -105,6 +105,10 @@ internal static class WorkerCommand
         {
             switch (arguments[0].ToLowerInvariant())
             {
+                case "start":
+                    var start = Program.ParseStartRequest([.. arguments.Skip(1)]);
+                    await session.OpenViewerAsync(start.OpenBrowser, cancellationToken);
+                    break;
                 case "status":
                     if (arguments.Count != 1)
                         throw new CliException("用法：status");
@@ -122,7 +126,7 @@ internal static class WorkerCommand
                     return WorkerProtocol.Failure(
                         request.RequestId,
                         "unknown_operation",
-                        $"worker 不支援命令「{arguments[0]}」。可用：status、open、scope。");
+                        $"worker 不支援命令「{arguments[0]}」。可用：start、status、open、scope。");
             }
         }
         catch (CliException error)
@@ -179,6 +183,24 @@ internal sealed class WorkerSession
             _startupError = error.Message;
             await Console.Error.WriteLineAsync($"worker：LocalWebService 啟動失敗：{error.Message}");
         }
+    }
+
+    /// <summary>
+    ///   Ensures service readiness before reporting success or opening its page.
+    ///   Startup errors remain visible to the tray and fail the invoking command.
+    /// </summary>
+    internal async Task OpenViewerAsync(bool openBrowser, CancellationToken cancellationToken)
+    {
+        await StartServiceAsync(cancellationToken);
+        if (_startupError is not null || _settings is null)
+            throw new CliException($"LocalWebService 啟動失敗：{_startupError}");
+        using var service = await LocalWebServiceClient.TryConnectAsync(_settings, cancellationToken);
+        if (service is null) throw new CliException("LocalWebService 尚未就緒。");
+        Console.WriteLine($"TaskProgress Viewer：{_settings.BaseUri}");
+        Console.WriteLine("TaskProgress 系統匣已就緒；結束請使用 tray 選單的 Exit。");
+        if (openBrowser)
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(
+                _settings.BaseUri.AbsoluteUri) { UseShellExecute = true });
     }
 
     /// <summary>

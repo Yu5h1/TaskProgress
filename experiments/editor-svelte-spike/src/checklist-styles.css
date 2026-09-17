@@ -67,8 +67,8 @@ body {
 }
 
 .checklist-item-header {
-  display: grid;
-  grid-template-columns: 24px minmax(0, 1fr) auto;
+  display: flex;
+  flex-wrap: wrap;
   gap: 10px;
   align-items: start;
   padding: 17px 18px;
@@ -79,6 +79,9 @@ body {
   color: var(--ink);
   font-size: 1rem;
 }
+
+.checklist-item-header > div { flex: 1 1 min-content; min-width: 0; }
+.checklist-item-header > .checklist-status { margin-left: auto; }
 
 .checklist-item-header p {
   margin-top: 6px;
@@ -203,15 +206,6 @@ body {
   .checklist-page {
     width: min(100% - 20px, 960px);
     padding-top: 24px;
-  }
-
-  .checklist-item-header {
-    grid-template-columns: 22px minmax(0, 1fr);
-  }
-
-  .checklist-status {
-    grid-column: 2;
-    justify-self: start;
   }
 
   .checklist-check dl,

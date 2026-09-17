@@ -18,7 +18,7 @@ W:\UnityProject\BonghuoVR
 
 | 使用方式 | 適合情境 | 是否需要 Registry |
 |---|---|---|
-| `task-progress.exe start` | 將所有已登記 scope 當成一個本機服務啟動 | 不需要 |
+| `task-progress.exe start` | 透過 TrayHost 啟動或沿用本機服務並載入所有已登記 scope | 不需要 |
 | Windows 專案捷徑 | 最簡單，雙擊直接開啟一個專案 | 不需要 |
 | Chrome `task-progress://` 書籤 | 希望從 Chrome 書籤啟動服務與報告 | 需要註冊一次 |
 | HTTP 書籤 | 服務已經啟動，且 scope 已經登記 | 不需要，但不能自行啟動服務 |
@@ -50,27 +50,31 @@ python --version
 
 ## 建議方式：啟動所有已登記 Scope
 
+此入口預設使用 TrayHost，需有 Winform 的 TrayHost Release 執行檔；不再使用 `--tray`，也不接受 `--port`。`--no-browser` 可只啟動服務。Tray 不存在時會等待啟動完成，服務不可用時回報錯誤。
+
+本地 `checklist <file>` 與雙擊 `.checklist` 仍直接開 WPF，不需要伺服器；Browser Checklist 才需要服務。
+
 先依下方步驟使用 `scope add` 登記各個報告資料夾，之後執行：
 
 ```powershell
 .\Build\win-x64\task-progress.exe start
 ```
 
-Launcher 會一次完成：
+Launcher 先連線到 TrayHost；不存在則等待啟動，再由 worker 完成：
 
 1. 讀取 `%LOCALAPPDATA%\TaskProgress\scopes.json`。
 2. 若存在任一時間輸入，先確定性更新 `time.analysis.json`；沒有時間輸入時不建立新資料。
 3. 驗證所有已登記資料夾的 `report.json` 與選用的 `report.dev.json`，並掛載存在的 `time.analysis.json`。
-4. 在獨立 Console 啟動 LocalWebService。
+4. 在 Tray 管理下啟動或沿用 LocalWebService。
 5. 註冊所有 scope 的精確報告 URL。
 6. 產生不包含本機路徑的 scope catalog。
 7. 開啟 `http://127.0.0.1:8001/`，由首頁選擇報告。
 
 從首頁或 `open --scope` 開啟的網址只需要 `?scope=<id>`。本機 Viewer 會自動載入已註冊且存在的 `report.dev.json`；若只想查看基本報告，可在網址加入 `&dev=none`。
 
-LocalWebService Console 必須保持開啟。要正常停止服務，可在該視窗按 `Ctrl+C`，或另外執行 `task-progress.exe service stop`。加入 `--no-browser` 可只啟動服務與 Console。
+要結束常駐服務，在系統匣選擇 Exit。`task-progress.exe service stop` 只停止 Web 服務，Tray／worker 仍存在，再次 `start` 可啟動服務。加入 `--no-browser` 可只啟動服務、不開瀏覽器。
 
-`task-progress.exe` 本身是 Launcher；持續提供網頁的是 Python `localHost.py`。
+命令列的 `task-progress.exe` 是短命 Launcher；TrayHost 管理常駐的 `task-progress.exe worker`，由 worker 管理提供網頁的 Python `localHost.py`。
 
 ## 產生時間分析
 

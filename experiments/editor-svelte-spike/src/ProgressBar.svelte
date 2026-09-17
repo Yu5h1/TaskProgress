@@ -18,7 +18,7 @@
   export let label = "";
   export let extraClass = "";
 
-  const TONES = new Set(["passed", "failed", "pending"]);
+  const TONES = new Set(["passed", "failed", "pending", "active"]);
 
   const toneClass = (tone) => (TONES.has(tone) ? ` progress-tone-${tone}` : "");
 

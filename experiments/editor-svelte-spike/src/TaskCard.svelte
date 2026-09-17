@@ -1,4 +1,7 @@
 <script>
+  import CardDisclosure from "./CardDisclosure.svelte";
+  export let expanded = true;
+  export let onToggle = () => {};
   import DeveloperDetails from "./DeveloperDetails.svelte";
   import ItemRow from "./ItemRow.svelte";
 
@@ -83,7 +86,8 @@
 </script>
 
 <article class={`task-card editor-task-card priority-${taskPriority?.tone ?? "unspecified"}`} aria-labelledby={`task-${task.id}-title`}>
-  <header class="task-header">
+  <CardDisclosure {expanded} {onToggle} contentId={`task-body-${task.id}`} label={task.title}>
+  <header slot="header" class="task-header">
     <div class="task-title-group">
       {#if editing}
         <div class="time-task-status-line">
@@ -137,6 +141,7 @@
         {:else}
           <h3 id={`task-${task.id}-title`}>{task.title}</h3>
         {/if}
+        <span class={`status-badge status-${statusEntry.tone}`}>{statusEntry.label}</span>
       </div>
       {#if moduleTotals.length}
         <div class="task-module-totals">
@@ -236,4 +241,5 @@
       {/if}
     </section>
   </div>
+  </CardDisclosure>
 </article>

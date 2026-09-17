@@ -81,15 +81,18 @@ to start it.
    Reuse a running service. A status error or a foreign service is not evidence that it is stopped:
    report that error instead of taking over or restarting it.
 3. When status reports no running service, use the agent tool's supported approval mechanism to
-   run `task-progress.exe start --tray` outside the sandbox, as the current ordinary Windows user,
+   run `task-progress.exe start` outside the sandbox, as the current ordinary Windows user,
    once, and wait for completion. In Codex, request `sandbox_permissions: "require_escalated"`;
    this requests unsandboxed execution, not Windows administrator elevation. Do not launch the
    persistent TrayHost/worker inside the sandbox: startup writes application state outside the
    workspace, including scope/catalog JSON. Do not use `RunAs`, change ACLs, or weaken pipe security.
    If approved unsandboxed execution is unavailable or denied, explain the limitation and give
    the user the absolute EXE command to run in a normal terminal; resume after they start it.
-   Do not work around a denial through another launcher. Do not add `--port`: tray mode takes its
-   port from the TrayApp manifest and rejects that combination.
+   Do not work around a denial through another launcher. Do not add `--tray` (removed) or `--port`
+   (unsupported by start); the current worker uses `LauncherSettings.DefaultPort`.
+   This requires a published CLI/worker with the default-tray start contract. After updating
+   binaries, the user must exit an old resident worker before using the new commands; do not
+   automatically terminate it or retry the obsolete `--tray` option.
 4. Check service status again in the ordinary-user context and require a confirmed Running
    service before using its URL/port for the Checklist link. Exit code 0 or a "tray ready" message
    alone is insufficient: the tray can respond successfully while the service reports Stopped

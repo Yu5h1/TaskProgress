@@ -8,19 +8,21 @@
   export let percentage = 0;
   export let completed = 0;
   export let total = 0;
+  export let cells = [];
 
   // Core progress describes the report's own task progress only. It carried a
   // trailing 「時間已使用 X%」 until 2026-08-25; that sentence belongs to the
   // Time module and now rides on Time's own capsule, so this component takes
   // no module data and cannot be affected by one failing to load.
-  $: ariaLabel = `整體進度 ${percentage}%，已完成 ${completed}，共 ${total} 個進度單位`;
+  $: ariaLabel = `整體進度 ${percentage}%，已完成 ${completed}，共 ${total} 個進度單位；每格一個工作項目，共 ${cells.length} 格，進行中 ${cells.filter(tone => tone === "active").length}，受阻 ${cells.filter(tone => tone === "failed").length}，已完成 ${cells.filter(tone => tone === "passed").length}，待處理 ${cells.filter(tone => tone === "pending").length}，不含已封存`;
 </script>
 
 <div class="project-progress-label">
   <strong id="project-progress-value">整體約 {percentage}%</strong>
 </div>
 <ProgressBar
-  form="continuous"
+  form="segmented"
+  {cells}
   ratio={percentage / 100}
   label={ariaLabel}
   extraClass="project-progress-meter"

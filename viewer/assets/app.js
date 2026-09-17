@@ -4,6 +4,7 @@ import {
   SUPPORTED_SCHEMA_VERSIONS,
   buildScopeHref,
   calculateProjectProgress,
+  projectProgressCells,
   calculateTaskProgress,
   isSupportedSchemaVersion,
   mergeReports,
@@ -786,6 +787,7 @@ function renderProjectProgress() {
   // That sentence now lives on Time's own capsule.
   const props = {
     percentage: progress.percentage,
+    cells: projectProgressCells(state.tasks),
     completed: progress.completed,
     total: progress.total,
   };
@@ -1035,6 +1037,8 @@ function renderTasks() {
     });
 
   const props = taskListProps(tasks);
+  props.allIds = orderedTasks.map(task => task.id);
+  props.cardStorageKey = `taskprogress.cards.report.v1:${location.pathname}:${state.report.scope_id}:${state.report.report_id}`;
   if (state.taskListView) state.taskListView.update(props);
   else state.taskListView = createUiView("task-list", elements.taskList, props);
 

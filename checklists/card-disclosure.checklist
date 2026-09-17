@@ -1,0 +1,18 @@
+# 卡片收合與展開 Checklist
+
+Current round: `Documentation/CardDisclosurePlan.md#驗收`.
+
+- [ ] **1. Report 與 Checklist 共用卡片收合**
+  Outcome: 讀者可只看卡片摘要，按需展開內容，不影響資料與編輯草稿。
+  Checks:
+    - [x] **入口建置與狀態還原**
+      - Action: 執行 viewer:ui:build、checklist:ui:build 與 checklist:browser:build，並執行 tests/card-disclosure-state.test.mjs。
+      - Expect: Viewer、Desktop Checklist 與 Browser Checklist 均建置成功，混合收展還原、文件隔離及受限儲存測試通過。
+    - [ ] **卡片顯示與操作** `[manual]`
+      - Action: 開啟 Report 與 Checklist → 點工作項目旁上箭頭全部收合 → 展開單卡 → 切換篩選與排序 → 點下箭頭全部展開；調整視窗與重新載入確認收合保留，再以 Tab、Enter 操作切換按鈕。
+      - Expect: 標題、狀態、完整進度可見，收合選擇保留，全體切換後單卡仍可獨立收展，按鈕與文字可讀且鍵盤可用；Report 指路卡的導航或錯誤仍可見。
+      - Reason: 需要實際畫面、窄螢幕與鍵盤操作確認。
+    - [ ] **草稿與下一步** `[manual]`
+      - Action: Report 新增項目輸入未送出文字 → 收合再展開；Checklist 輸入 Observed 草稿 → 收合再展開 → 全部收合 → 點下一步。
+      - Expect: 草稿保留，收合不觸發儲存；下一步展開目標並定位 check。Browser 與更新後 Desktop Checklist 行為一致。
+      - Reason: 需要實際編輯介面與 Desktop 部署驗收。

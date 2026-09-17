@@ -1,4 +1,5 @@
 <script>
+  import { loadDisclosure, saveDisclosure } from "../../../viewer/assets/card-disclosure-state.js";
   import { onMount, tick } from "svelte";
 
   import {
@@ -17,6 +18,8 @@
   import { createPersistenceController } from "../../../viewer/assets/persistence-mode.js";
   import { createChecklistFilterOrder } from "../../../viewer/assets/checklist-filter-order.js";
   import { createThemeControl } from "../../../viewer/assets/theme-control.js";
+  import CardDisclosure from "./CardDisclosure.svelte";
+  import CardList from "./CardList.svelte";
   import DialogShell from "./DialogShell.svelte";
   import FilterStrip from "./FilterStrip.svelte";
   import MarkerBox from "./MarkerBox.svelte";
@@ -122,10 +125,24 @@
       }));
   }
 
+  let defaultExpanded = true;
+  let expandedItems = {};
+  $: disclosureKey = view?.document
+    ? `taskprogress.disclosure:checklist:${location.pathname}:${location.search}:${view.document.fileName}:${view.document.roundIdentity}` : null;
+  $: if (disclosureKey) restoreDisclosure(disclosureKey);
+  function restoreDisclosure(key) {
+    const state = loadDisclosure(key);
+    defaultExpanded = state.expanded;
+    expandedItems = state.overrides;
+  }
+  function setItemExpanded(id, value) { expandedItems = { ...expandedItems, [id]: value }; saveDisclosure(disclosureKey, defaultExpanded, expandedItems); }
+  function setAllExpanded(value) { defaultExpanded = value; expandedItems = {}; saveDisclosure(disclosureKey, defaultExpanded, expandedItems); }
+
   async function showNextStep(event) {
     event.preventDefault();
     const next = view.summary.nextStep;
     if (!next) return;
+    setItemExpanded(next.workItemId, true);
     selection = createFilterSelection(FILTER_TAGS);
     await tick();
     const target = document.getElementById(`check-${next.workItemId}-${next.checkIndex}`);
@@ -251,18 +268,7 @@
     {/if}
 
     <div class="checklist-toolbar">
-    <FilterStrip
-      categories={filterCategories(view.document, capsuleOrder)}
-      order={capsuleOrder}
-      selected={selection.selected}
-      defaultLit={isDefaultLit(selection)}
-      className="status-filter-strip"
-      ariaLabel="依 check 狀態篩選；可拖曳調整順序"
-      reorderable={true}
-      onSelect={selectTag}
-      onSelectDefault={selectDefault}
-      onReorder={reorderFilter}
-    />
+
 
     {#if typeof transport?.reset === "function"}
       <div class="checklist-reset-actions">
@@ -276,22 +282,44 @@
     </div>
 
     <section class="checklist-items" aria-label="Implementation checklist items">
-      {#each filterChecklistBySelection(orderChecklistItems(view.document, capsuleOrder), selection.selected).items as item (item.id)}
+      <CardList expanded={defaultExpanded} onToggleAll={setAllExpanded} items={filterChecklistBySelection(orderChecklistItems(view.document, capsuleOrder), selection.selected).items}
+        allIds={orderChecklistItems(view.document, capsuleOrder).items.map(item => item.id)}
+        storageKey={new URLSearchParams(location.search).has("scope")
+          ? `taskprogress.cards.checklist.v1:${location.pathname}:${new URLSearchParams(location.search).get("scope")}:${new URLSearchParams(location.search).get("task")}:${view.document.roundIdentity}`
+          : null} let:item>
+    <FilterStrip slot="filters"
+      categories={filterCategories(view.document, capsuleOrder)}
+      order={capsuleOrder}
+      selected={selection.selected}
+      defaultLit={isDefaultLit(selection)}
+      className="status-filter-strip"
+      ariaLabel="依 check 狀態篩選；可拖曳調整順序"
+      reorderable={true}
+      onSelect={selectTag}
+      onSelectDefault={selectDefault}
+      onReorder={reorderFilter}
+    />
+        {@const fullItem = view.document.items.find(candidate => candidate.id === item.id)}
         <article class={`checklist-item checklist-${item.status}`}>
-          <header class="checklist-item-header">
+          <CardDisclosure expanded={expandedItems[item.id] ?? defaultExpanded}
+            onToggle={value => setItemExpanded(item.id, value)}
+            contentId={`checklist-body-${item.id}`} label={item.title}>
+          <header slot="header" class="checklist-item-header">
             <MarkerBox status={item.status} label={`工作項目 ${item.id}`} />
             <div>
               <h2>{item.id}. {item.title}</h2>
-              <p>{item.outcome}</p>
+
+            </div>
+            <span class="checklist-status" aria-label={`通過 ${fullItem.checks.filter(check => check.status === "passed").length}，共 ${fullItem.checks.length}`}>{fullItem.checks.filter(check => check.status === "passed").length}/{fullItem.checks.length}</span>
+          </header>
+          <div class="checklist-checks">
+            <p class="checklist-outcome">{item.outcome}</p>
               {#if item.dependsOn.length}
                 <p class="checklist-chips">
                   <span class="checklist-chip">Depends on {item.dependsOn.join(", ")}</span>
                 </p>
               {/if}
-            </div>
-            <span class="checklist-status">{statusLabel(item.status)}</span>
-          </header>
-          <div class="checklist-checks">
+
             {#each item.checks as check (check.index)}
               <section
                 id={`check-${item.id}-${check.index}`}
@@ -338,8 +366,9 @@
               </section>
             {/each}
           </div>
+          </CardDisclosure>
         </article>
-      {/each}
+      </CardList>
     </section>
 
     <footer

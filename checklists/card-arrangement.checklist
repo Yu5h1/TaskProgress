@@ -1,0 +1,18 @@
+# 卡片選取與換位 Checklist
+
+Current round: `Documentation/CardDisclosurePlan.md#選取與換位`.
+
+- [ ] **1. 調整個人卡片檢視順序**
+  Outcome: Report 與 Checklist 可直接拖曳卡片空白處換位，無須改動來源工作資料。
+  Checks:
+    - [x] **排序資料與入口建置**
+      - Action: 執行 tests/card-order.test.mjs，以及 viewer:ui:build、checklist:ui:build、checklist:browser:build。
+      - Expect: 隱藏槽位保留、刪除／新增 ID 正規化、還原原序與三種排序模式檢查通過，三份前端資產建置成功。
+    - [ ] **拖曳與草稿** `[manual]`
+      - Action: 在 Report 與 Checklist 切換排序圖示至自由排序 → 按住卡片空白處 → 拖至另一張上半部及下半部 → Tab 聚焦卡片後使用 Alt＋↑／↓；輸入草稿並收合卡片，再移動它。
+      - Expect: 拖曳中的卡片與落點可辨識，換位位置正確，草稿與收合狀態保留；拖曳不觸發資料儲存。
+      - Reason: 需要實際滑鼠、鍵盤及編輯畫面確認。
+    - [ ] **篩選與本機記憶** `[manual]`
+      - Action: 篩選部分卡片 → 換位 → 解除篩選 → 重新載入 Browser → 開啟另一份報告／Checklist → 回原文件 → 切換順排／逆排／自由排序。
+      - Expect: 隱藏卡片原位置不變，Browser 按文件記住順序，三種模式皆可選取卡片且切換保留選取框；順排使用當前狀態排序、逆排反轉；兩者禁止拖曳與鍵盤換位，回自由排序恢復手動順序；Desktop 本次開啟可換位，不跨檔案共用順序。
+      - Reason: 需要真實 Browser 儲存與 Desktop 環境驗收。

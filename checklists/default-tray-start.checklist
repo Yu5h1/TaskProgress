@@ -1,0 +1,29 @@
+# 預設 Tray 啟動入口 Checklist
+
+Current round: `Documentation/TrayWorkerPlan.md#驗收`.
+
+- [x] **1. start 交給既有 TrayHost 命令入口**
+  Outcome: start 不再需要 tray 選項，透過既有 bootstrap 與 ready 機制交給 worker，checklist 本地入口保持獨立。
+  Checks:
+    - [x] **建置與參數檢查**
+      - Action: 使用 SDK 9.0.315 建置 CLI 與 CLI tests，執行 --worker-only。
+      - Expect: start 預設開 Viewer，no-browser／no-open 被接受，tray／port／未知參數被拒絕。
+    - [x] **獨立程式複核**
+      - Action: 比對 Program、WorkerCommand 與既有 TrayHost invoke 的分派與等待流程。
+      - Expect: 不另建 Tray 生命週期；checklist 開檔仍 WPF，validate/request 不經 Tray。
+
+- [x] **2. 啟動失敗不能回報就緒**
+  Outcome: 服務不可用時 start 失敗，worker 仍可提供診斷。
+  Checks:
+    - [x] **錯誤回傳**
+      - Action: 以不存在的 Viewer root 執行 worker start 分派測試，接續 status。
+      - Expect: start 與 start --no-browser 均回 command_failed、不印就緒連結；status 仍成功回報 Error。
+
+- [ ] **3. 已發布入口的實機行為**
+  Depends on: 1, 2.
+  Outcome: 一般權限可由 start 啟動並沿用 Tray，服務就緒後才開 Viewer。
+  Checks:
+    - [ ] **啟動、沿用與本地開檔** `[manual]`
+      - Action: 發布後退出舊 TrayHost，執行 start，再次 start，停止服務後再 start；另在 Tray 關閉時雙擊 checklist 並使用 validate/request。
+      - Expect: 首次等待服務就緒，後續重用同一 Tray；服務可恢復，no-browser 不開瀏覽器；本地 checklist 預覽與純命令不要求 Tray。
+      - Reason: 需要部署與實際 GUI／常駐服務操作；依使用者安排維持後排。

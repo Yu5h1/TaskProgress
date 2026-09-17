@@ -1,6 +1,6 @@
 # TaskProgress Tray Worker 計畫
 
-> 狀態：TaskProgress 這一側已完成並實機驗證（`worker` role 與 `start --tray`）。tray 顯示服務狀態等能力取決於 [Requirements.Winform.md](Requirements.Winform.md) 所列的目標專案需求，本專案不實作它們。
+> 實作與驗證狀態見 handoff.md。TrayHost 共用能力的需求由 [Requirements.Winform.md](Requirements.Winform.md) 記錄，本專案只擁有 TaskProgress worker 與入口。
 >
 > 與其他文件的關係：Launcher 與 LocalWebService 控制契約見 [LauncherPlan.md](LauncherPlan.md)；TrayHost 元件與 App 責任邊界見 Winform 的 `Documentation/TrayHost.md`；manifest、`host`／`invoke` 與 standalone identity 契約見 Winform 的 `Documentation/TrayApp.md`。已建置與待驗證狀態見 [../handoff.md](../handoff.md)。
 
@@ -31,15 +31,15 @@ TaskProgress 現在只有一次性 CLI：使用者執行 `task-progress start`�
 
 ## 目標流程
 
-以下是完整可用時的樣子。標示「需要 Winform」的部分尚未具備，其餘皆已實作並驗證。
+以下是完整可用時的樣子。標示「需要 Winform」的部分尚未具備，其餘實作與驗證狀態見 handoff.md。
 
 ### 啟用（第一次）
 
 ```text
-使用者：task-progress start --tray
+使用者：task-progress start
 │
 ├─ task-progress.exe（短命，前景 Console）
-│  └─ 執行 Yu5h1Lib.TrayHost.exe invoke <manifest> --standalone -- status
+│  └─ 執行 Yu5h1Lib.TrayHost.exe invoke <manifest> --standalone --buildIcon -- start
 │     ├─ 查 standalone mutex → 不存在
 │     ├─ 啟動 Yu5h1Lib.TrayHost.exe host <manifest> --standalone
 │     └─ 等 instance pipe 出現
@@ -57,10 +57,10 @@ TaskProgress 現在只有一次性 CLI：使用者執行 `task-progress start`�
    └─ 4. 進入 request 迴圈
 ```
 
-worker 進入迴圈後，最初那個 status request 才被回應：
+worker 進入迴圈後，最初的 start request 才執行並回應：
 
 ```text
-invoke ──status──► TrayHost ──► worker ──► "Ready | 127.0.0.1:8001 | PID 1234 | 4 scopes"
+invoke ──start──► TrayHost ──► worker ──► 確認服務／註冊 scope → 開 Viewer → 回傳結果
 │
 ├─ 把該行印到 Console
 ├─ 開啟 http://127.0.0.1:8001/（除非 --no-browser）
@@ -81,13 +81,13 @@ Yu5h1Lib.TrayHost.exe          常駐   系統匣圖示
 
 ### 觀測
 
-hover 圖示、開啟 tray 選單、Settings 的 Refresh，以及低頻背景保險，各自觸發一次 `status`。畫面先顯示上一次結果，再以回應更新。**（需要 `TP-WINFORM-2`。目前服務狀態只出現在 `start --tray` 的 Console 輸出。）**
+hover 圖示、開啟 tray 選單、Settings 的 Refresh，以及低頻背景保險，各自觸發一次 `status`。畫面先顯示上一次結果，再以回應更新。**（需要 `TP-WINFORM-2`。目前服務狀態只出現在 `start` 的 Console 輸出。）**
 
 ### 日常使用
 
 | 動作 | 發生什麼 |
 |---|---|
-| 再次 `start --tray` | mutex 已存在，invoke 直接走 pipe，不啟動任何 process，重用同一組 tray／worker／python，然後開瀏覽器 |
+| 再次 `start` | mutex 已存在，invoke 直接走 pipe，不啟動任何 process，重用同一組 tray／worker／python，然後開瀏覽器 |
 | Explorer 捷徑 | `invoke <manifest> --standalone -- open --scope <id>`，同上，開該 scope |
 | 直接開瀏覽器 | 服務已在，直接連 `127.0.0.1:8001` |
 
@@ -102,14 +102,14 @@ hover 圖示、開啟 tray 選單、Settings 的 Refresh，以及低頻背景保
 ### 重複啟動
 
 ```text
-再啟動一個 host（不是走 start --tray）
+再啟動一個 host（不是走 start）
 ├─ 取不到 mutex
 ├─ 送 activate 到既有 instance pipe      ← 需要 TP-WINFORM-3
 ├─ 既有 instance 浮出 Settings 視窗
 └─ 第二個 process 結束
 ```
 
-走 `start --tray` 的路徑不受影響：它用 `invoke`，重複執行本來就是跟既有 tray 講話。
+走 `start` 的路徑不受影響：它用 `invoke`，重複執行本來就是跟既有 tray 講話。
 
 ### 結束
 
@@ -127,19 +127,9 @@ tray → Exit
 
 ## 與 `start` 的關係
 
-這不是擴充 `start`，而是在它旁邊新增一個 process role，重用它已經擁有的能力。
+`start` 是短命的命令入口，透過 TrayHost invoke 將命令交給常駐 worker。TrayHost 擁有單一實例、啟動與等待 ready；worker 擁有服務啟動、scope／catalog 註冊與就緒判斷。CLI 不另開 Python console，也不複製常駐管理機制。
 
-`start` 的三個步驟（確認服務、註冊報告與 catalog、開啟 Viewer）確實就是 tray 需要的動作，`worker` 會直接呼叫同一組函式。但 `start` 有三項語意與 worker 相斥，不能靠加參數解決：
-
-| `start` 現況 | worker 的要求 |
-|---|---|
-| 做完就結束 process | 必須常駐，等待並回應 request |
-| 人看的訊息寫進 **stdout**（`Console.WriteLine`） | stdout 是 protocol channel，只能有 JSON lines；一行人類訊息就會讓 `TrayAppJsonLinesProtocol.ParseOutputLine` 抛 `JsonException` |
-| 以 `ServiceLaunchMode.VisibleConsole` 開一個獨立 Python console | TrayHost 以 `CreateNoWindow=true` 啟動 worker；tray-only 的用法不應該再彈出視窗 |
-
-另外 `start` 在沒有登記任何 scope 時直接抛 `CliException`。worker 不能這樣：伺服器或設定有問題時，tray 仍必須起得來並把問題顯示出來，否則使用者連看見錯誤的地方都沒有。
-
-因此 `start` 不帶新選項時行為與輸出保持不變，`worker` 是新增的第三個 role（現有兩個是一次性 CLI 與 `task-progress://` protocol 啟動）。`start` 只多一個 `--tray` 選項作為 tray 的啟動入口，見下面「啟動入口」。
+`checklist <file>` 與雙擊 `.checklist` 仍直接開啟本地 WPF，不需要 Web 或 Tray。`checklist validate/request` 保持純命令；Browser 的 `/checklist` 才需要本地服務。其他 `open`／protocol 入口維持既有契約。
 
 ## 問題與目標
 
@@ -197,29 +187,34 @@ task-progress worker
 
 **這一步不能有任何會抛出的東西逃到外面。** 設定解析失敗（例如 viewer root 找不到）同樣要被記下來並由 `status` 回報 `Error`，不能讓 worker 死掉——那會連帶讓 tray 消失，正好在最需要顯示錯誤的時候。
 
-### 啟動入口：`start --tray`
-
-使用者不需要記 TrayHost 的命令列。
+### 啟動入口：`start`
 
 ```text
-task-progress start --tray [--no-browser]
+task-progress start [--no-browser]
+  → TrayHost invoke <manifest> --standalone --buildIcon -- start [--no-browser]
+  → 不存在則啟動 Host，等待 broker／worker ready
+  → worker 確認服務與註冊 scope，確認服務可連線
+  → 回傳結果；未指定 --no-browser 時開啟 Viewer
 ```
 
-它不自己確認服務，而是轉呼叫 TrayHost 的 lazy bootstrap：
+- 已存在的 TrayHost 直接接收命令；單一實例與 ready 等待由既有 `TrayAppInvoker`／TrayHost 管理，不另建輪詢或第二個啟動器。
+- `--tray` 已移除，使用舊參數會回錯誤。`--no-open` 保留為 `--no-browser` 的別名。
+- `start` 不接受 `--port`；目前 worker 使用 `LauncherSettings.DefaultPort`。其他命令的 port 選項保持原契約。
+- worker 的 protocol ready 只表示可接收命令，不表示本地 Web 服務已就緒。`start` 必須等服務可連線才回成功與 Viewer 連結；啟動失敗回非零，worker 保留錯誤供 `status` 查詢。
+- `status` 仍是觀察命令，不會重新啟動服務。`start` 則會重新確認服務並更新已註冊 scopes。
+- 空 scope 清單沿用 worker 契約，可啟動並顯示空目錄。
+- 首次 worker 初始化會啟動服務；隨後 start 命令會再確認並註冊一次。服務由既有 ownership 檢查重用，仍有重複分析／註冊成本。
+- 發布此版本後，需先由使用者關閉舊 TrayHost，再啟動新版本，使常駐 worker 載入新增的 start 命令。CLI 不自動強制重啟舊實例。
 
-```text
-Yu5h1Lib.TrayHost.exe invoke <manifest> --standalone -- status
-```
+TrayHost executable 先由 `TASK_PROGRESS_TRAY_HOST` 指定，否則向上搜尋 Winform 的 Release 輸出。一般使用者權限即可運作；agent 的沙箱外啟動流程由 TaskProgress capabilities skill 擁有。
 
-`TrayAppInvoker` 已經完整處理了「pipe 不在就啟動 host、等 pipe、送一次 request、印出結果、結束」。因此 `start --tray` 天生冪等：第一次把 tray 叫起來，之後每一次都只是跟既有的 tray 講話。**單一實例的保證直接來自 TrayHost，本專案不另做一套。**
+#### 驗收
 
-- 印出 invoke 回傳的 `status` 那一行，使用者立刻看到服務起來了沒。
-- 未指定 `--no-browser` 時，在 invoke 成功後開啟 Viewer root，與現有 `start` 的行為一致。
-- invoke 失敗（TrayHost 找不到、worker 起不來、manifest 無效）以非零 exit code 與 stderr 訊息結束，不留下半開的狀態。
-
-TrayHost executable 的位置沿用本專案既有的探索方式：先看 `TASK_PROGRESS_TRAY_HOST` 環境變數，再向上搜尋同層的 Winform 專案 —— 與 LocalWebService 的尋找規則同一套，不新增第二種探索邏輯。
-
-`--tray` 與 `--port` 互斥。tray 的 port 由 manifest 的 `process.environment` 決定（TrayApp 契約禁止透過 IPC 覆寫啟動參數），命令列給的 port 不會生效，所以直接以錯誤拒絕，而不是安靜忽略。
+- start 預設開啟 Viewer，接受 no-browser／no-open，拒絕 tray、port 與未知參數。
+- 服務啟動失敗回 command_failed，不印出就緒連結、不開瀏覽器；worker 仍可回答 status。
+- TrayHost 不存在時啟動並等待 ready；存在時沿用同一實例。服務停止後再次 start 可恢復。
+- checklist 開檔／validate／request 維持無 Tray 依賴。
+- 實機啟動、沿用、Exit 與瀏覽器行為另作人工驗收。
 
 ### 輸出通道隔離
 
@@ -285,7 +280,7 @@ TrayHost App 端向 worker 送 `status` request，把回傳的整行字串當成
 
 **原本規劃以 `Process.Exited` 作為主訊號，Phase 1 沒有採用。** 服務確實是 worker 的子 process，worker 也拿得到 `Process`，但 `trayhost-jsonlines-v1` 只有 ready、response 與 fatal，**沒有 worker 主動推送的通道**。worker 提早知道服務掛了，並不會讓 tray 提早看到——tray 仍然要等到自己來問。因此那個訂閱在有推送路徑之前不會產生任何可見效果，Phase 1 不實作，`LocalWebServiceClient` 也因此完全沒有被改動。真正決定偵測延遲的是 App 端的查詢時機。
 
-**這一段依賴 Winform 提供能力，本專案不實作它**：目前 `TrayHostOptions` 只允許 App 提供 icon 與命令文字，Core 沒有讓 App 設定 tooltip 的入口。需求與理由見 `TP-WINFORM-2`。在那之前，服務狀態只能由 `task-progress start --tray` 印在 Console，tray 本身顯示不出來。
+**這一段依賴 Winform 提供能力，本專案不實作它**：目前 `TrayHostOptions` 只允許 App 提供 icon 與命令文字，Core 沒有讓 App 設定 tooltip 的入口。需求與理由見 `TP-WINFORM-2`。在那之前，服務狀態只能由 `task-progress start` 印在 Console，tray 本身顯示不出來。
 
 ### 單一實例
 
@@ -350,7 +345,7 @@ TrayHost 已有 standalone 的互斥機制：identity 由 manifest 的 `id` 與 
 | Exit 停止服務不分「啟動的」或「捕捉的」（2026-08-27 使用者決策） | 使用者要的是「tray 沒了服務就沒了」，沒有例外。而且連得上就代表 identity、state file、token 與 root 都比對過，那就是擁有權證據；連不上的本來就停不掉，不需要第二條規則 |
 | 生命週期綁在 tray 上，選單不放 Start／Stop（2026-08-27 使用者決策） | tray 圖示本身就是開關。多一組內部開關會讓「tray 在但服務停著」變成合法狀態，而那個狀態沒有任何使用者價值，卻要在 UI、文件與測試三處各解釋一次。服務重啟由 standalone 選單既有的 `Restart` 提供 |
 | 服務存活以 `Process.Exited` 為主訊號，health 查詢只當保險 | 服務是 worker 的子 process，事件即時且不花成本；把定時查詢當主訊號會在偵測延遲與查詢頻率之間做一個不必要的取捨 |
-| `start --tray` 走 TrayHost 的 `invoke` 而不是 `host`（2026-08-27 使用者決策） | `invoke` 本來就是 lazy bootstrap：不在就啟動、在就重用。走 `host` 等於在本專案再寫一次「已經開著就不要重開」，而那正是 TrayHost identity 已經保證的事 |
+| `start` 走 TrayHost 的 `invoke` 而不是 `host`（2026-08-27 使用者決策） | `invoke` 本來就是 lazy bootstrap：不在就啟動、在就重用。走 `host` 等於在本專案再寫一次「已經開著就不要重開」，而那正是 TrayHost identity 已經保證的事 |
 
 **已排除：讓 TrayHost 直接以 service profile 託管 python（2026-08-27 使用者決策）。** Winform 的 `Documentation/TrayHost.md` 有一份 `task-progress` service profile 草圖（HTTP health probe + `localwebservice-control` shutdown adapter），由 TrayHost App 直接啟動 `localHost.py`。它需要在 C# 的 TrayHost App 內重建 health identity 驗證、ownership 證據比對與授權 shutdown —— 全部是 `LocalWebServiceClient` 已經有的東西，而且 trayhost skill 明確要求把服務專屬的 launch、health、identity、ownership 與 shutdown 留在擁有該服務的 client adapter。
 
@@ -368,7 +363,7 @@ TrayHost 已有 standalone 的互斥機制：identity 由 manifest 的 `id` 與 
 
 - `src/TaskProgress.Cli/taskprogress.trayapp.json`（schema 2）與 `light.ico`／`dark.ico` 為簽入來源，csproj 以 `Content` 複製到輸出與發布目錄，因此 `Build/win-x64/` 由既有的 `Publish.cmd` 自動帶出，不需要改它。icon 由 TrayHost 的 `--BuildIcon` 產生，取 `displayName` 首字 `T`。
 - `TrayHostLauncher.cs`：executable 探索（`TASK_PROGRESS_TRAY_HOST` → 向上找 `Winform/bin/TrayHost/{Release,Debug}/`）、manifest 解析（與自己的 executable 同目錄）、轉呼叫 `invoke ... --standalone -- <args>`。
-- `Program.cs`：`--tray` 選項、與 `--port` 互斥、`StartTrayAsync`。
+- `Program.cs`：start 參數與 TrayHost invoke 分派。
 - **只呼叫 `invoke`，不呼叫 `host`。** 單一實例由 TrayHost identity 保證，本專案不寫第二套。
 
 ## 對 Winform 的需求
@@ -391,7 +386,7 @@ TrayHost 已有 standalone 的互斥機制：identity 由 manifest 的 `id` 與 
 
 ### 完成條件
 
-- `start`、`open`、`service`、`scope`、`analyze` 的輸出與 exit code 與改動前逐字相同。
+- `open`、`service`、`scope`、`analyze` 維持原契約；start 契約依「啟動入口」驗收。
 - worker 的 stdout 在任何路徑下都只有 protocol lines。
 - 同一份 manifest 在同一 session 只會有一個 tray 與一個 worker。
 - LocalWebService 的 health、ownership 與 shutdown 規則在整個 repository 仍只有一份實作。

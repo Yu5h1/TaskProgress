@@ -6,6 +6,12 @@ internal static class Program
 {
     public static async Task<int> Main(string[] args)
     {
+        if (args.Contains("--worker-only"))
+        {
+            WorkerTests.Run();
+            Console.WriteLine("Worker checks passed; no tray or service launched.");
+            return 0;
+        }
         ReportModuleTests.Run();
         CostEstimationTests.Run();
         WorkerTests.Run();

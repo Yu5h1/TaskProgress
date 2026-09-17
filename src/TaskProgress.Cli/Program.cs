@@ -79,7 +79,7 @@ internal static class Program
             case "service":
                 return await RunServiceCommandAsync(args[1..], cancellationToken);
             case "start":
-                await StartAsync(ParseStartRequest(args[1..]), store, cancellationToken);
+                await StartAsync(ParseStartRequest(args[1..]), cancellationToken);
                 return 0;
             case "worker":
                 return await WorkerCommand.RunAsync(store, cancellationToken);
@@ -250,41 +250,24 @@ internal static class Program
         return new OpenRequest(folder, scope, port, openBrowser);
     }
 
-    private static StartRequest ParseStartRequest(string[] args)
+    internal static StartRequest ParseStartRequest(string[] args)
     {
-        var port = LauncherSettings.DefaultPort;
-        var portSpecified = false;
         var openBrowser = true;
-        var tray = false;
-        for (var index = 0; index < args.Length; index++)
+        foreach (var value in args)
         {
-            var value = args[index];
             switch (value.ToLowerInvariant())
             {
-                case "--port":
-                    port = ParseInteger(ReadOptionValue(args, ref index, value), value, 1, 65535);
-                    portSpecified = true;
-                    break;
                 case "--no-browser":
                 case "--no-open":
                     openBrowser = false;
                     break;
-                case "--tray":
-                    tray = true;
-                    break;
+                case "--port":
+                    throw new CliException("start 由 TrayHost 管理服務，不接受 --port。");
                 default:
                     throw new CliException($"不支援的 start 選項：{value}");
             }
         }
-
-        if (tray && portSpecified)
-        {
-            throw new CliException(
-                "--tray 不能與 --port 併用。tray 的 port 由 TrayApp manifest 決定，"
-                + "命令列的值傳不進 worker，所以這裡拒絕而不是安靜忽略。 ");
-        }
-
-        return new StartRequest(port, openBrowser, tray);
+        return new StartRequest(openBrowser);
     }
 
     private static AnalyzeRequest ParseAnalyzeRequest(string[] args, ScopeStore store)
@@ -392,71 +375,15 @@ internal static class Program
         return selected;
     }
 
-    private static async Task StartAsync(
-        StartRequest request,
-        ScopeStore store,
-        CancellationToken cancellationToken)
-    {
-        if (request.Tray)
-        {
-            await StartTrayAsync(request, cancellationToken);
-            return;
-        }
-
-        if (store.List().Count == 0)
-        {
-            throw new CliException(
-                $"尚未登記本機 scope。請先執行 scope add <report-folder>。設定檔：{store.ConfigPath}");
-        }
-
-        var reports = LoadRegisteredReports(store);
-        var settings = LauncherSettings.Create(request.Port);
-        using var service = await EnsureServiceAsync(
-            settings,
-            reports,
-            ServiceLaunchMode.VisibleConsole,
-            cancellationToken);
-
-        Console.WriteLine($"TaskProgress Viewer：{settings.BaseUri}");
-        Console.WriteLine($"LocalWebService：PID {service.State.ProcessId}，port {settings.Port}");
-        Console.WriteLine($"已載入 scope：{reports.Count}");
-        foreach (var report in reports)
-        {
-            Console.WriteLine($"  {report.Scope}");
-        }
-        Console.WriteLine(service.StartedNewProcess
-            ? "LocalWebService 已在獨立 Console 啟動；按 Ctrl+C 可正常停止服務。"
-            : "LocalWebService 原本已在執行；已沿用現有 process，視窗狀態不變。 ");
-
-        if (request.OpenBrowser)
-        {
-            Process.Start(new ProcessStartInfo(settings.BaseUri.AbsoluteUri) { UseShellExecute = true });
-        }
-    }
-
     /// <summary>
-    ///   Hands startup to the tray. Nothing is confirmed or launched here:
-    ///   TrayHost's own invoke starts the Host only when it is not already
-    ///   running, and the resident worker is what brings the service up, so
-    ///   running this twice reuses one tray instead of racing itself.
+    ///   Uses TrayHost's existing bootstrap and readiness handshake before the
+    ///   resident worker executes the start command.
     /// </summary>
-    private static async Task StartTrayAsync(
-        StartRequest request,
-        CancellationToken cancellationToken)
+    private static async Task StartAsync(StartRequest request, CancellationToken cancellationToken)
     {
-        var status = await TrayHostLauncher.InvokeAsync(["status"], cancellationToken);
-        if (status.Length > 0)
-        {
-            Console.WriteLine(status);
-        }
-        Console.WriteLine("TaskProgress 系統匣已就緒；結束請使用 tray 選單的 Exit。");
-
-        if (request.OpenBrowser)
-        {
-            var viewer = LauncherSettings.Create(LauncherSettings.DefaultPort).BaseUri;
-            Console.WriteLine($"TaskProgress Viewer：{viewer}");
-            Process.Start(new ProcessStartInfo(viewer.AbsoluteUri) { UseShellExecute = true });
-        }
+        var arguments = request.OpenBrowser ? new[] { "start" } : new[] { "start", "--no-browser" };
+        var output = await TrayHostLauncher.InvokeAsync(arguments, cancellationToken);
+        if (output.Length > 0) Console.WriteLine(output);
     }
 
     /// <summary>
@@ -700,8 +627,7 @@ internal static class Program
         Console.WriteLine("  task-progress.exe <report-folder> [選項]");
         Console.WriteLine();
         Console.WriteLine("命令：");
-        Console.WriteLine("  start                            啟動服務並載入所有已登記 scope");
-        Console.WriteLine("  start --tray                     改以系統匣常駐啟動；重複執行會重用同一個 tray");
+        Console.WriteLine("  start                            透過系統匣啟動服務並載入所有已登記 scope");
         Console.WriteLine("  worker                           以 TrayHost owned worker 常駐（由 tray 啟動，非人工執行）");
         Console.WriteLine("  analyze <report-folder>          執行所有分析模組");
         Console.WriteLine("  analyze --module <名稱>          只執行指定模組，例如 time、cost");
@@ -727,9 +653,8 @@ internal static class Program
         Console.WriteLine("  --as-of <ISO timestamp>          固定分析時間，便於重現與測試");
         Console.WriteLine("  --module <名稱>                  選擇單一分析模組（time、cost）");
         Console.WriteLine("  --output <path>                  指定分析輸出，需搭配 --module");
-        Console.WriteLine("  --port <port>                    指定連接埠，預設 8001");
+        Console.WriteLine("  --port <port>                    open／service 的連接埠，預設 8001；start 不接受");
         Console.WriteLine("  --no-browser                     不自動開啟瀏覽器");
-        Console.WriteLine("  --tray                           搭配 start，改用系統匣常駐（不可與 --port 併用）");
         Console.WriteLine("  -h, -help, --help                顯示本說明");
         Console.WriteLine();
         Console.WriteLine("範例：");
@@ -750,7 +675,7 @@ internal static class Program
         int Port,
         bool OpenBrowser);
 
-    private sealed record StartRequest(int Port, bool OpenBrowser, bool Tray);
+    internal sealed record StartRequest(bool OpenBrowser);
 
     private sealed record AnalyzeRequest(
         string Folder,

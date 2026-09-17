@@ -177,6 +177,12 @@ export function calculateTaskProgress(task) {
   return { completed: task.status === "done" ? 1 : 0, total: 1 };
 }
 
+export function projectProgressCells(tasks) {
+  const tones = { in_progress: "active", blocked: "failed", done: "passed", planned: "pending" };
+  return tasks.filter(task => taskKind(task) !== "report_pointer" && task.status !== "archive")
+    .map(task => tones[task.status] ?? "pending");
+}
+
 export function calculateProjectProgress(tasks) {
   const progress = tasks
     .filter((task) => task.status !== "archive")

@@ -21,6 +21,62 @@ internal static class WorkerTests
         AnEmptyScopeStoreIsAValidWorkerStartup();
         UnresolvableConfigurationIsReportedNotFatal();
         StdoutIsProtectedByRedirectionNotByDiscipline();
+        StartOptionsRequireNoTrayFlag();
+        StartFailureIsAProtocolErrorAndWorkerSurvives();
+    }
+
+    private static void StartOptionsRequireNoTrayFlag()
+    {
+        True(TaskProgress.Program.ParseStartRequest([]).OpenBrowser, "start should open Viewer by default");
+        False(TaskProgress.Program.ParseStartRequest(["--no-browser"]).OpenBrowser, "no-browser was ignored");
+        False(TaskProgress.Program.ParseStartRequest(["--no-open"]).OpenBrowser, "no-open was ignored");
+        foreach (var args in new[] { new[] { "--tray" }, new[] { "--port", "8001" }, new[] { "unexpected" } })
+        {
+            try
+            {
+                TaskProgress.Program.ParseStartRequest(args);
+                throw new InvalidOperationException($"Invalid start arguments accepted: {string.Join(' ', args)}");
+            }
+            catch (CliException) { }
+        }
+    }
+
+    private static void StartFailureIsAProtocolErrorAndWorkerSurvives()
+    {
+        var root = Path.Combine(Path.GetTempPath(), $"task-progress-start-{Guid.NewGuid():N}");
+        var originalRoot = Environment.GetEnvironmentVariable("TASK_PROGRESS_VIEWER_ROOT");
+        var originalOutput = Console.Out;
+        using var captured = new StringWriter();
+        try
+        {
+            Environment.SetEnvironmentVariable("TASK_PROGRESS_VIEWER_ROOT", Path.Combine(root, "missing"));
+            Console.SetOut(captured);
+            var session = new WorkerSession(new ScopeStore(Path.Combine(root, "scopes.json")));
+            foreach (var args in new[] { new[] { "start" }, new[] { "start", "--no-browser" } })
+            {
+                captured.GetStringBuilder().Clear();
+                var response = WorkerCommand.DispatchAsync(session,
+                    new WorkerRequest("start-1", WorkerProtocol.InvokeOperation, args),
+                    captured, CancellationToken.None).GetAwaiter().GetResult();
+                using var document = JsonDocument.Parse(response);
+                False(document.RootElement.GetProperty("success").GetBoolean(), "Failed service returned success");
+                Equal("command_failed", document.RootElement.GetProperty("error").GetProperty("code").GetString(),
+                    "Service startup failure lost its command error");
+                Equal("", captured.ToString(), "Failed start printed a ready link");
+            }
+            captured.GetStringBuilder().Clear();
+            var status = WorkerCommand.DispatchAsync(session,
+                new WorkerRequest("status-2", WorkerProtocol.InvokeOperation, ["status"]),
+                captured, CancellationToken.None).GetAwaiter().GetResult();
+            using var statusDocument = JsonDocument.Parse(status);
+            True(statusDocument.RootElement.GetProperty("success").GetBoolean(), "Worker cannot answer after failed start");
+            True(captured.ToString().StartsWith("Error", StringComparison.Ordinal), "Status lost startup error");
+        }
+        finally
+        {
+            Console.SetOut(originalOutput);
+            Environment.SetEnvironmentVariable("TASK_PROGRESS_VIEWER_ROOT", originalRoot);
+        }
     }
 
     private static void ReadyIsOneLineAndAnnouncesNothingElse()

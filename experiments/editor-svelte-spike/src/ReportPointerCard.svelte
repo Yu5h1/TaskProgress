@@ -1,4 +1,7 @@
 <script>
+  import CardDisclosure from "./CardDisclosure.svelte";
+  export let expanded = true;
+  export let onToggle = () => {};
   // A Report pointer card is read-only end to end: it takes only the pointer
   // task's own stable id/title and a projected view of its target report,
   // never `editing`, `onCommand` or any other write-capable prop. There is no
@@ -37,16 +40,9 @@
   class={`task-card pointer-card ${cardStatusEntry ? `status-${cardStatusEntry.tone}` : ""}`}
   aria-labelledby={`task-${task.id}-title`}
 >
-  <header class="task-header">
+  <CardDisclosure {expanded} {onToggle} contentId={`task-body-${task.id}`} label={task.title}>
+  <header slot="header" class="task-header">
     <div class="task-title-group">
-      <div class="time-task-status-line">
-        {#if cardStatusEntry}
-          <span class={`status-badge status-${cardStatusEntry.tone}`}>{cardStatusEntry.label}</span>
-        {/if}
-        {#if state.openHref}
-          <a class="pointer-card-badge" href={state.openHref}>開啟專案報告 →</a>
-        {/if}
-      </div>
       <div class="time-task-title-line">
         <h3 id={`task-${task.id}-title`}>
           {#if state.openHref}
@@ -55,15 +51,22 @@
             {task.title}
           {/if}
         </h3>
+        {#if cardStatusEntry}
+          <span class={`status-badge status-${cardStatusEntry.tone}`}>{cardStatusEntry.label}</span>
+        {/if}
       </div>
+      {#if state.openHref}
+        <a class="pointer-card-badge" href={state.openHref}>開啟專案報告 →</a>
+      {/if}
+    </div>
+    <div class="task-header-meta">
+      {#if card}<strong class="task-fraction">{card.progress.completed} / {card.progress.total}</strong>{/if}
+      {#if state.status === "loading"}<span role="status">讀取目標報告中…</span>{/if}
+      {#if state.status === "error"}<span class="pointer-card-error" role="alert">{state.message}</span>{/if}
     </div>
   </header>
 
-  {#if state.status === "loading"}
-    <p class="pointer-card-status" role="status">讀取目標報告中…</p>
-  {:else if state.status === "error"}
-    <p class="pointer-card-status pointer-card-error" role="alert">{state.message}</p>
-  {:else if card}
+  {#if card}
     <p class="task-summary">{card.summary}</p>
     <p
       class="pointer-card-progress"
@@ -79,4 +82,5 @@
       {/each}
     </ul>
   {/if}
+  </CardDisclosure>
 </article>

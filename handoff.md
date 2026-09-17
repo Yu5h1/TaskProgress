@@ -4,7 +4,24 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
 
 - Canonical status entry: task status and progress are referenced by Task ID in `report.json`; Developer next steps, blockers, decisions, and routes are referenced by the same ID in `report.dev.json`. Do not duplicate that content here.
 
-## Current state (2026-09-10)
+## Current state (2026-09-17)
+
+- **卡片介面收尾（2026-09-17）。** 工作項目工具列與狀態膠囊同列並依實際空間換行；Checklist 標題右側只顯示通過分數，取消 640px 強制換行。Report 整體進度使用既有 segmented 元件，每個非封存普通任務一格，以狀態填色，百分比維持原計算。
+  - **收合狀態修正**：同分頁／文件以 sessionStorage 保存全體預設與單卡例外，前景重新載入可還原；尚未證實視窗調整是否必然觸發前景 reload，實機重現仍待確認。狀態還原測試 2／2、進度格測試 1／1、排序測試 4／4 與三份前端建置已通過。人工驗收保持未完成。
+
+- **卡片工具列改為圖示（2026-09-17）。** Report／Checklist「工作項目」旁共用單一全體收展 chevron 與三態排序 SVG。三種模式均可選取卡片，選取獨立保存於本頁，切換模式與結束拖曳不清除；Enter／Space 選取、Escape 取消。全體收展只在點擊套用一次，各卡仍可獨立切換。排序依序為既有順序、逆序、自由排序，僅自由排序可拖曳空白處或 Alt＋↑／↓ 換位，切換保留手動順序；取代文字收展及還原排序按鈕。
+  - **驗證**：排序純函式 4／4、三份前端建置通過，獨立程式複核未發現具體缺陷。驗收已同步至 card-disclosure／card-arrangement checklist，實際圖示、點擊與拖曳仍待使用者確認；未 publish／重啟服務。
+
+- **卡片選取／換位已實作（2026-09-17），實機驗收後排。** 共用 CardList 改為滑鼠拖曳卡片空白處插入，移除選取與上下移按鈕；保留聚焦卡片後 Alt＋↑／↓；本機手動順序在自由排序模式覆蓋狀態排序，可切回順排。篩選僅移動可見槽位，來源檔不寫入。Browser 按文件保存；Desktop 缺少完整檔案識別，暫限本頁。設計見 Documentation/CardDisclosurePlan.md#選取與換位，驗收見 checklists/card-arrangement.checklist。
+  - **檢查**：排序純函式測試 3／3、三份入口建置與 Checklist 格式驗證通過。獨立複核發現的零卡片篩選卸載問題已修正並再複核，未發現剩餘具體缺陷；實際拖曳、鍵盤、草稿、重載隔離仍未驗收。保留本輪開始前新增的 packages.lock.json 修改，不接管；未 publish／重啟服務。
+
+- **Report／Checklist 卡片收合已實作（2026-09-17），實機驗收後排。** 共用 CardDisclosure，普通 Report 卡、指路卡與 Checklist 工作項目支援單卡及全部收合／展開；預設展開，頁面內按 ID 保存選擇，內容 hidden 保留輸入草稿。Checklist 下一步會先展開目標，卡片進度使用未篩選的完整項目。設計由 Documentation/CardDisclosurePlan.md 擁有，人工驗收見 checklists/card-disclosure.checklist。
+  - **檢查與限制**：Viewer、Browser／Desktop Checklist 資產建置成功，Checklist 格式驗證與 diff 空白檢查通過；獨立程式複核未發現阻擋缺陷。未 publish／重啟共用服務。Desktop 需更新部署才能取得新資產；實機窄螢幕、鍵盤、草稿與跳轉仍未驗收。
+
+- **start 預設 Tray 入口已實作（2026-09-17），尚未發布／實機驗收。** 定案為 start 預設經 TrayHost；本地 checklist 開檔與雙擊仍直接開 WPF，validate/request 保持純命令，Browser Checklist 才依賴服務。Program 透過既有 invoke/bootstrap/ready 交給 worker 的 start handler；worker 確認服務可連線後才回成功及開 Viewer，啟動失敗回 command_failed。移除 start 的 --tray／--port，保留 --no-browser／--no-open；open／service 的 port 選項不變。
+  - **檢查**：SDK 9.0.315 Debug CLI／測試專案建置與 --worker-only 定向檢查通過（參數拒絕、啟動失敗不回就緒連結、失敗後 status 仍可用，未啟動 Tray／server）。獨立程式複核未發現阻擋缺陷；cold start 仍會在 worker 初始化與 start handler 各確認／註冊一次，有重複分析成本。實機 cold start／重用／恢復／瀏覽器驗收保留待執行。
+  - **接續**：規格見 Documentation/TrayWorkerPlan.md 的「啟動入口」，驗收清單為 checklists/default-tray-start.checklist。更新已發布 EXE 後，需由使用者 Exit 舊 TrayHost 再開啟，使常駐 worker 載入 start 命令；本輪未 publish／重啟共用服務，不宣稱已發布版本具備新契約。
+  - **保留他人修改**：工作開始時 checklists/third-party-checklist-write.checklist 已有未提交修改，本輪不接管。
 
 - **Open bug `TP-TRAY-ACCESS-1`：`start --tray` 存取被拒，原因尚未確認（2026-09-10）。** 使用者執行 `task-progress.exe start --tray` 時，TrayHost 顯示 `Access to the path is denied.`；使用者重新登入 OS 後，已可用一般權限正常啟動。這是恢復現象，不代表根因已修復；目前無穩定重現步驟。
   - **啟動流程調整**：使用者指出 agent 沙箱限制會擋住 scope/catalog JSON 寫入；Checklist skill 已改走工具核准的沙箱外一般使用者啟動，不可用時交由使用者手動啟動，且須確認 Running 才給就緒連結。流程由 `.agents/skills/taskprogress-capabilities/SKILL.md#ensure-the-checklist-service` 擁有。本次只更新指引，未重跑啟動；先前 pipe 拒絕的根因仍未確認。
