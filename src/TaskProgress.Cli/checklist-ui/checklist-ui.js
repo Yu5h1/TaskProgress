@@ -3708,7 +3708,7 @@ Cr([
 ]);
 //#endregion
 //#region experiments/editor-svelte-spike/src/ChecklistApp.svelte
-var bo = /* @__PURE__ */ J("<details class=\"checklist-round\"><summary>本輪依據</summary><p> </p></details>"), xo = /* @__PURE__ */ J("<p class=\"checklist-notice\" role=\"status\"> </p>"), So = /* @__PURE__ */ J("<p class=\"checklist-notice checklist-error\" role=\"alert\"> </p>"), Co = /* @__PURE__ */ J("<a class=\"checklist-next-step\"><span> </span> <strong> </strong></a>"), wo = /* @__PURE__ */ J("<span>請先儲存或捨棄變更，再清空。</span>"), To = /* @__PURE__ */ J("<div class=\"checklist-reset-actions\"><button type=\"button\" class=\"secondary-button\">清空人工結果</button> <!></div>"), Eo = /* @__PURE__ */ J("<p class=\"checklist-chips\"><span class=\"checklist-chip\"> </span></p>"), Do = /* @__PURE__ */ J("<div><dt>Reason</dt><dd> </dd></div>"), Oo = /* @__PURE__ */ J("<div><dt>Observed</dt><dd> </dd></div>"), ko = /* @__PURE__ */ J("<div><dt>Resolved</dt><dd> </dd></div>"), Ao = /* @__PURE__ */ J("<label class=\"checklist-observed\"><span>Observed</span> <textarea rows=\"3\" placeholder=\"記錄實際看到的結果\"></textarea></label>"), jo = /* @__PURE__ */ J("<section tabindex=\"-1\"><div class=\"checklist-check-heading\"><!> <strong> </strong> <span> </span></div> <dl><div><dt>Action</dt><dd> </dd></div> <div><dt>Expect</dt><dd> </dd></div> <!> <!> <!></dl> <!></section>"), Mo = /* @__PURE__ */ J("<div class=\"checklist-checks\"><p class=\"checklist-outcome\"> </p> <!> <!></div>"), No = /* @__PURE__ */ J("<header slot=\"header\" class=\"checklist-item-header\"><!> <div><h2> </h2></div> <span class=\"checklist-status\"> </span></header>"), Po = /* @__PURE__ */ J("<article><!></article>"), Fo = /* @__PURE__ */ J("<!> <!> <!> <div class=\"checklist-toolbar\"><!></div> <section class=\"checklist-items\" aria-label=\"Implementation checklist items\"><!></section> <footer class=\"edit-save-bar\" aria-live=\"polite\"><!></footer>", 1), Io = /* @__PURE__ */ J("<p> </p> <p>此操作無法復原；如需回復，請使用 Git 歷史。</p> <form method=\"dialog\" class=\"theme-dialog-actions\"><button type=\"submit\" class=\"secondary-button\">取消</button> <button type=\"submit\" class=\"primary-button\">確認清空</button></form>", 1), Lo = /* @__PURE__ */ J("<main class=\"checklist-page\"><header class=\"checklist-header\"><div><h1> </h1> <!></div> <!></header> <!></main> <!>", 1);
+var bo = /* @__PURE__ */ J("<details class=\"checklist-round\"><summary>本輪依據</summary><p> </p></details>"), xo = /* @__PURE__ */ J("<p class=\"checklist-notice\" role=\"status\"> </p>"), So = /* @__PURE__ */ J("<p class=\"checklist-notice checklist-error\" role=\"alert\"> </p>"), Co = /* @__PURE__ */ J("<a class=\"checklist-next-step\"><span> </span> <strong> </strong></a>"), wo = /* @__PURE__ */ J("<p class=\"checklist-chips\"><span class=\"checklist-chip\"> </span></p>"), To = /* @__PURE__ */ J("<div><dt>Reason</dt><dd> </dd></div>"), Eo = /* @__PURE__ */ J("<div><dt>Observed</dt><dd> </dd></div>"), Do = /* @__PURE__ */ J("<div><dt>Resolved</dt><dd> </dd></div>"), Oo = /* @__PURE__ */ J("<label class=\"checklist-observed\"><span>Observed</span> <textarea rows=\"3\" placeholder=\"記錄實際看到的結果\"></textarea></label>"), ko = /* @__PURE__ */ J("<section tabindex=\"-1\"><div class=\"checklist-check-heading\"><!> <strong> </strong> <span> </span></div> <dl><div><dt>Action</dt><dd> </dd></div> <div><dt>Expect</dt><dd> </dd></div> <!> <!> <!></dl> <!></section>"), Ao = /* @__PURE__ */ J("<div class=\"checklist-checks\"><p class=\"checklist-outcome\"> </p> <!> <!></div>"), jo = /* @__PURE__ */ J("<header slot=\"header\" class=\"checklist-item-header\"><!> <div><h2> </h2></div> <span class=\"checklist-status\"> </span></header>"), Mo = /* @__PURE__ */ J("<article><!></article>"), No = /* @__PURE__ */ J("<span>請先儲存或捨棄變更，再清空。</span>"), Po = /* @__PURE__ */ J("<div class=\"checklist-reset-actions\"><!> <button type=\"button\" class=\"secondary-button\">清空人工結果</button></div>"), Fo = /* @__PURE__ */ J("<!> <!> <!> <section class=\"checklist-items\" aria-label=\"Implementation checklist items\"><!></section> <footer class=\"edit-save-bar\" aria-live=\"polite\"><!> <!></footer>", 1), Io = /* @__PURE__ */ J("<p> </p> <p>此操作無法復原；如需回復，請使用 Git 歷史。</p> <form method=\"dialog\" class=\"theme-dialog-actions\"><button type=\"submit\" class=\"secondary-button\">取消</button> <button type=\"submit\" class=\"primary-button\">確認清空</button></form>", 1), Lo = /* @__PURE__ */ J("<main class=\"checklist-page\"><header class=\"checklist-header\"><div><h1> </h1> <!></div> <!></header> <!></main> <!>", 1);
 function Ro(e, t) {
 	Ue(t, !1);
 	let n = /* @__PURE__ */ I(), r = /* @__PURE__ */ I(), i = /* @__PURE__ */ I(), a = $(t, "transport", 8, null), o = $(t, "onPersistenceChange", 8, () => {}), s = null, c = /* @__PURE__ */ I(null), l = /* @__PURE__ */ I(!0), u = /* @__PURE__ */ I(""), d = /* @__PURE__ */ I("正在載入 Checklist…"), f = /* @__PURE__ */ I(!1), p = /* @__PURE__ */ I(!1), m = /* @__PURE__ */ I([]);
@@ -3952,21 +3952,10 @@ function Ro(e, t) {
 				onReorder: T
 			});
 		}
-		var l = z(s, 2), u = R(l), f = (e) => {
-			var t = To(), n = R(t), i = z(n, 2), a = (e) => {
-				Y(e, wo());
-			};
-			Z(i, (e) => {
-				W(c), G(() => W(c).dirty || W(c).pending || W(c).saving) && e(a);
-			}), j(t), V(() => n.disabled = !W(r)), q("click", n, g), Y(e, t);
-		};
-		Z(u, (e) => {
-			K(a()), G(() => typeof a()?.reset == "function") && e(f);
-		}), j(l);
-		var m = z(l, 2), h = R(m);
+		var l = z(s, 2), u = R(l);
 		{
 			let e = /* @__PURE__ */ P(() => (K(qi), K(Ji), W(c), W(S), W(b), G(() => qi(Ji(W(c).document, W(S)), W(b).selected).items))), t = /* @__PURE__ */ P(() => (K(Ji), W(c), W(S), G(() => Ji(W(c).document, W(S)).items.map((e) => e.id)))), n = /* @__PURE__ */ P(() => (W(c), G(() => new URLSearchParams(location.search).has("scope") ? `taskprogress.cards.checklist.v1:${location.pathname}:${new URLSearchParams(location.search).get("scope")}:${new URLSearchParams(location.search).get("task")}:${W(c).document.roundIdentity}` : null)));
-			Ha(h, {
+			Ha(u, {
 				get expanded() {
 					return W(E);
 				},
@@ -3983,7 +3972,7 @@ function Ro(e, t) {
 				children: fe,
 				$$slots: { default: (e, t) => {
 					let n = /* @__PURE__ */ P(() => t.item), r = /* @__PURE__ */ P(() => (W(c), K(W(n)), G(() => W(c).document.items.find((e) => e.id === W(n).id))));
-					var i = Po(), a = R(i);
+					var i = Mo(), a = R(i);
 					{
 						let e = /* @__PURE__ */ P(() => (W(te), K(W(n)), W(E), G(() => W(te)[W(n).id] ?? W(E)))), t = /* @__PURE__ */ P(() => (K(W(n)), G(() => `checklist-body-${W(n).id}`)));
 						Pa(a, {
@@ -3998,16 +3987,16 @@ function Ro(e, t) {
 								return K(W(n)), G(() => W(n).title);
 							},
 							children: (e, t) => {
-								var r = Mo(), i = R(r), a = R(i, !0);
+								var r = Ao(), i = R(r), a = R(i, !0);
 								j(i);
 								var o = z(i, 2), s = (e) => {
-									var t = Eo(), r = R(t), i = R(r);
+									var t = wo(), r = R(t), i = R(r);
 									j(r), j(t), V((e) => X(i, `Depends on ${e ?? ""}`), [() => (K(W(n)), G(() => W(n).dependsOn.join(", ")))]), Y(e, t);
 								};
 								Z(o, (e) => {
 									K(W(n)), G(() => W(n).dependsOn.length) && e(s);
 								}), Hr(z(o, 2), 1, () => (K(W(n)), G(() => W(n).checks)), (e) => e.index, (e, t) => {
-									var r = jo(), i = R(r), a = R(i);
+									var r = ko(), i = R(r), a = R(i);
 									{
 										let e = /* @__PURE__ */ P(() => (W(t), W(p), G(() => W(t).isManual && !W(p))));
 										$a(a, {
@@ -4032,28 +4021,28 @@ function Ro(e, t) {
 									var h = z(d, 2), g = z(R(h)), _ = R(g, !0);
 									j(g), j(h);
 									var v = z(h, 2), y = (e) => {
-										var n = Do(), r = z(R(n)), i = R(r, !0);
+										var n = To(), r = z(R(n)), i = R(r, !0);
 										j(r), j(n), V(() => X(i, (W(t), G(() => W(t).reason)))), Y(e, n);
 									};
 									Z(v, (e) => {
 										W(t), G(() => W(t).reason) && e(y);
 									});
 									var b = z(v, 2), x = (e) => {
-										var n = Oo(), r = z(R(n)), i = R(r, !0);
+										var n = Eo(), r = z(R(n)), i = R(r, !0);
 										j(r), j(n), V(() => X(i, (W(t), G(() => W(t).observed)))), Y(e, n);
 									};
 									Z(b, (e) => {
 										W(t), G(() => W(t).observed && !(W(t).isManual && W(t).status === "failed")) && e(x);
 									});
 									var S = z(b, 2), C = (e) => {
-										var n = ko(), r = z(R(n)), i = R(r, !0);
+										var n = Do(), r = z(R(n)), i = R(r, !0);
 										j(r), j(n), V(() => X(i, (W(t), G(() => W(t).resolved)))), Y(e, n);
 									};
 									Z(S, (e) => {
 										W(t), G(() => W(t).resolved) && e(C);
 									}), j(u);
 									var w = z(u, 2), T = (e) => {
-										var r = Ao(), i = z(R(r), 2);
+										var r = Oo(), i = z(R(r), 2);
 										it(i), j(r), V(() => {
 											i.disabled = W(p), di(i, (W(t), G(() => W(t).observed ?? "")));
 										}), q("input", i, (e) => ue({
@@ -4073,7 +4062,7 @@ function Ro(e, t) {
 							$$slots: {
 								default: !0,
 								header: (e, t) => {
-									var i = No(), a = R(i);
+									var i = jo(), a = R(i);
 									{
 										let e = /* @__PURE__ */ P(() => (K(W(n)), G(() => `工作項目 ${W(n).id}`)));
 										$a(a, {
@@ -4099,11 +4088,11 @@ function Ro(e, t) {
 				} }
 			});
 		}
-		j(m);
-		var _ = z(m, 2), v = R(_);
+		j(l);
+		var f = z(l, 2), m = R(f);
 		{
 			let e = /* @__PURE__ */ P(() => (W(c), W(p), G(() => W(c).saving || W(p))));
-			mo(v, {
+			mo(m, {
 				get cautious() {
 					return W(c), G(() => W(c).cautious);
 				},
@@ -4129,8 +4118,20 @@ function Ro(e, t) {
 				onDiscard: he
 			});
 		}
-		j(_), V((e) => {
-			Q(_, "data-state", e), Q(_, "aria-busy", (W(c), W(p), G(() => W(c).saving || W(p))));
+		var h = z(m, 2), _ = (e) => {
+			var t = Po(), n = R(t), i = (e) => {
+				Y(e, No());
+			};
+			Z(n, (e) => {
+				W(c), G(() => W(c).dirty || W(c).pending || W(c).saving) && e(i);
+			});
+			var a = z(n, 2);
+			j(t), V(() => a.disabled = !W(r)), q("click", a, g), Y(e, t);
+		};
+		Z(h, (e) => {
+			K(a()), G(() => typeof a()?.reset == "function") && e(_);
+		}), j(f), V((e) => {
+			Q(f, "data-state", e), Q(f, "aria-busy", (W(c), W(p), G(() => W(c).saving || W(p))));
 		}, [() => (W(c), G(() => oe(W(c).status)))]), Y(e, t);
 	};
 	Z(De, (e) => {

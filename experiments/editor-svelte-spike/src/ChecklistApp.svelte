@@ -280,20 +280,6 @@
       onReorder={reorderFilter}
     />
 
-    <div class="checklist-toolbar">
-
-
-    {#if typeof transport?.reset === "function"}
-      <div class="checklist-reset-actions">
-        <button type="button" class="secondary-button" disabled={!canReset} onclick={openReset}>
-          清空人工結果
-        </button>
-        {#if view.dirty || view.pending || view.saving}<span>請先儲存或捨棄變更，再清空。</span>{/if}
-      </div>
-    {/if}
-
-    </div>
-
     <section class="checklist-items" aria-label="Implementation checklist items">
       <CardList expanded={defaultExpanded} onToggleAll={setAllExpanded} items={filterChecklistBySelection(orderChecklistItems(view.document, capsuleOrder), selection.selected).items}
         allIds={orderChecklistItems(view.document, capsuleOrder).items.map(item => item.id)}
@@ -392,6 +378,14 @@
         onRedo={redo}
         onDiscard={discard}
       />
+    {#if typeof transport?.reset === "function"}
+      <div class="checklist-reset-actions">
+        {#if view.dirty || view.pending || view.saving}<span>請先儲存或捨棄變更，再清空。</span>{/if}
+        <button type="button" class="secondary-button" disabled={!canReset} onclick={openReset}>
+          清空人工結果
+        </button>
+      </div>
+    {/if}
     </footer>
   {/if}
 </main>

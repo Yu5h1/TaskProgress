@@ -219,11 +219,12 @@ body {
 }
 
 .checklist-reset-actions {
+  justify-content: flex-end;
   display: flex;
   align-items: center;
   flex-wrap: wrap;
   gap: 0.75rem;
-  margin: 0;
+  margin: 0 0 0 auto;
 }
 
 .checklist-header > div:first-child { min-width: 0; flex: 1; }
