@@ -91,7 +91,7 @@ function reduce(document, command) {
       ? CYCLE[check.status] ?? "pending"
       : command.status;
     if (!["pending", "passed", "failed"].includes(next)) {
-      throw new Error("不支援的 manual check 狀態。");
+      throw new Error("不支援的實機檢查狀態。");
     }
     check.status = next;
     if (next !== "failed") {
@@ -233,7 +233,7 @@ export function createChecklistEditorSession(document, options = {}) {
       });
     }));
     if (transaction.dirty && results.length === 0 && errors.length === 0) {
-      errors.push({ code: "empty_change", message: "沒有可儲存的 manual check 結果。" });
+      errors.push({ code: "empty_change", message: "沒有可儲存的實機檢查結果。" });
     }
     return Object.freeze({
       revision,

@@ -2536,7 +2536,7 @@ function Wi(e, t) {
 			"pending",
 			"passed",
 			"failed"
-		].includes(e)) throw Error("不支援的 manual check 狀態。");
+		].includes(e)) throw Error("不支援的實機檢查狀態。");
 		r.status = e, e !== "failed" && (r.observed = null, r.resolved = null);
 	} else if (t.type === "set-observed") {
 		if (r.status !== "failed") throw Error("只有失敗草稿可以填寫 Observed。");
@@ -2621,7 +2621,7 @@ function Xi(e, t = {}) {
 			}
 		})), r.dirty && e.length === 0 && t.length === 0 && t.push({
 			code: "empty_change",
-			message: "沒有可儲存的 manual check 結果。"
+			message: "沒有可儲存的實機檢查結果。"
 		}), Object.freeze({
 			revision: n,
 			results: e,
@@ -3708,7 +3708,7 @@ Cr([
 ]);
 //#endregion
 //#region experiments/editor-svelte-spike/src/ChecklistApp.svelte
-var bo = /* @__PURE__ */ J("<details class=\"checklist-round\"><summary>本輪依據</summary><p> </p></details>"), xo = /* @__PURE__ */ J("<p class=\"checklist-notice\" role=\"status\"> </p>"), So = /* @__PURE__ */ J("<p class=\"checklist-notice checklist-error\" role=\"alert\"> </p>"), Co = /* @__PURE__ */ J("<a class=\"checklist-next-step\"><span> </span> <strong> </strong></a>"), wo = /* @__PURE__ */ J("<p class=\"checklist-chips\"><span class=\"checklist-chip\"> </span></p>"), To = /* @__PURE__ */ J("<div><dt>Reason</dt><dd> </dd></div>"), Eo = /* @__PURE__ */ J("<div><dt>Observed</dt><dd> </dd></div>"), Do = /* @__PURE__ */ J("<div><dt>Resolved</dt><dd> </dd></div>"), Oo = /* @__PURE__ */ J("<label class=\"checklist-observed\"><span>Observed</span> <textarea rows=\"3\" placeholder=\"記錄實際看到的結果\"></textarea></label>"), ko = /* @__PURE__ */ J("<section tabindex=\"-1\"><div class=\"checklist-check-heading\"><!> <strong> </strong> <span> </span></div> <dl><div><dt>Action</dt><dd> </dd></div> <div><dt>Expect</dt><dd> </dd></div> <!> <!> <!></dl> <!></section>"), Ao = /* @__PURE__ */ J("<div class=\"checklist-checks\"><p class=\"checklist-outcome\"> </p> <!> <!></div>"), jo = /* @__PURE__ */ J("<header slot=\"header\" class=\"checklist-item-header\"><!> <div><h2> </h2></div> <span class=\"checklist-status\"> </span></header>"), Mo = /* @__PURE__ */ J("<article><!></article>"), No = /* @__PURE__ */ J("<span>請先儲存或捨棄變更，再清空。</span>"), Po = /* @__PURE__ */ J("<div class=\"checklist-reset-actions\"><!> <button type=\"button\" class=\"secondary-button\">清空人工結果</button></div>"), Fo = /* @__PURE__ */ J("<!> <!> <!> <section class=\"checklist-items\" aria-label=\"Implementation checklist items\"><!></section> <footer class=\"edit-save-bar\" aria-live=\"polite\"><!> <!></footer>", 1), Io = /* @__PURE__ */ J("<p> </p> <p>此操作無法復原；如需回復，請使用 Git 歷史。</p> <form method=\"dialog\" class=\"theme-dialog-actions\"><button type=\"submit\" class=\"secondary-button\">取消</button> <button type=\"submit\" class=\"primary-button\">確認清空</button></form>", 1), Lo = /* @__PURE__ */ J("<main class=\"checklist-page\"><header class=\"checklist-header\"><div><h1> </h1> <!></div> <!></header> <!></main> <!>", 1);
+var bo = /* @__PURE__ */ J("<details class=\"checklist-round\"><summary>本輪依據</summary><p> </p></details>"), xo = /* @__PURE__ */ J("<p class=\"checklist-notice\" role=\"status\"> </p>"), So = /* @__PURE__ */ J("<p class=\"checklist-notice checklist-error\" role=\"alert\"> </p>"), Co = /* @__PURE__ */ J("<a class=\"checklist-next-step\"><span> </span> <strong> </strong></a>"), wo = /* @__PURE__ */ J("<p class=\"checklist-chips\"><span class=\"checklist-chip\"> </span></p>"), To = /* @__PURE__ */ J("<div><dt>Reason</dt><dd> </dd></div>"), Eo = /* @__PURE__ */ J("<div><dt>Observed</dt><dd> </dd></div>"), Do = /* @__PURE__ */ J("<div><dt>Resolved</dt><dd> </dd></div>"), Oo = /* @__PURE__ */ J("<label class=\"checklist-observed\"><span>Observed</span> <textarea rows=\"3\" placeholder=\"記錄實際看到的結果\"></textarea></label>"), ko = /* @__PURE__ */ J("<section tabindex=\"-1\"><div class=\"checklist-check-heading\"><!> <strong> </strong> <span> </span></div> <dl><div><dt>Action</dt><dd> </dd></div> <div><dt>Expect</dt><dd> </dd></div> <!> <!> <!></dl> <!></section>"), Ao = /* @__PURE__ */ J("<div class=\"checklist-checks\"><p class=\"checklist-outcome\"> </p> <!> <!></div>"), jo = /* @__PURE__ */ J("<header slot=\"header\" class=\"checklist-item-header\"><!> <div><h2> </h2></div> <span class=\"checklist-status\"> </span></header>"), Mo = /* @__PURE__ */ J("<article><!></article>"), No = /* @__PURE__ */ J("<span>請先儲存或捨棄變更，再清空。</span>"), Po = /* @__PURE__ */ J("<div class=\"checklist-reset-actions\"><!> <button type=\"button\" class=\"secondary-button\">清空實機結果</button></div>"), Fo = /* @__PURE__ */ J("<!> <!> <!> <section class=\"checklist-items\" aria-label=\"Implementation checklist items\"><!></section> <footer class=\"edit-save-bar\" aria-live=\"polite\"><!> <!></footer>", 1), Io = /* @__PURE__ */ J("<p> </p> <p>此操作無法復原；如需回復，請使用 Git 歷史。</p> <form method=\"dialog\" class=\"theme-dialog-actions\"><button type=\"submit\" class=\"secondary-button\">取消</button> <button type=\"submit\" class=\"primary-button\">確認清空</button></form>", 1), Lo = /* @__PURE__ */ J("<main class=\"checklist-page\"><header class=\"checklist-header\"><div><h1> </h1> <!></div> <!></header> <!></main> <!>", 1);
 function Ro(e, t) {
 	Ue(t, !1);
 	let n = /* @__PURE__ */ I(), r = /* @__PURE__ */ I(), i = /* @__PURE__ */ I(), a = $(t, "transport", 8, null), o = $(t, "onPersistenceChange", 8, () => {}), s = null, c = /* @__PURE__ */ I(null), l = /* @__PURE__ */ I(!0), u = /* @__PURE__ */ I(""), d = /* @__PURE__ */ I("正在載入 Checklist…"), f = /* @__PURE__ */ I(!1), p = /* @__PURE__ */ I(!1), m = /* @__PURE__ */ I([]);
@@ -3729,9 +3729,9 @@ function Ro(e, t) {
 		if (!W(r) || W(p)) return;
 		L(p, !0);
 		let e = W(c).cautious;
-		L(d, "正在清空人工結果…");
+		L(d, "正在清空實機結果…");
 		try {
-			h(await a().reset({ targets: W(m) })), L(c, await s.setCautious(e)), L(d, "人工結果已清空；Agent 結果保留。");
+			h(await a().reset({ targets: W(m) })), L(c, await s.setCautious(e)), L(d, "實機結果已清空；其他檢查結果保留。");
 		} catch (e) {
 			L(d, e instanceof Error ? e.message : "清空失敗，請重新載入確認結果。");
 		} finally {
@@ -3922,7 +3922,7 @@ function Ro(e, t) {
 			j(n);
 			var i = z(n, 2), a = R(i, !0);
 			j(i), j(t), V(() => {
-				Q(t, "href", (W(c), G(() => `#check-${W(c).summary.nextStep.workItemId}-${W(c).summary.nextStep.checkIndex}`))), Q(t, "title", (W(c), G(() => W(c).summary.nextStep.title))), X(r, `${W(c), G(() => W(c).summary.nextStep.isManual ? "需人工驗證" : "下一步 · Agent") ?? ""}：`), X(a, (W(c), G(() => W(c).summary.nextStep.title)));
+				Q(t, "href", (W(c), G(() => `#check-${W(c).summary.nextStep.workItemId}-${W(c).summary.nextStep.checkIndex}`))), Q(t, "title", (W(c), G(() => W(c).summary.nextStep.title))), X(r, `${W(c), G(() => W(c).summary.nextStep.isManual ? "需實機驗證" : "下一步 · Agent") ?? ""}：`), X(a, (W(c), G(() => W(c).summary.nextStep.title)));
 			}), q("click", t, ie), Y(e, t);
 		};
 		Z(i, (e) => {
@@ -4055,7 +4055,7 @@ function Ro(e, t) {
 									Z(w, (e) => {
 										W(t), G(() => W(t).isManual && W(t).status === "failed") && e(T);
 									}), j(r), V(() => {
-										Q(r, "id", (K(W(n)), W(t), G(() => `check-${W(n).id}-${W(t).index}`))), ti(r, 1, (W(t), G(() => `checklist-check checklist-${W(t).status}${W(t).isManual ? " checklist-manual" : ""}`))), X(s, (W(t), G(() => W(t).title))), ti(c, 1, (W(t), G(() => `checklist-owner${W(t).isManual ? " checklist-owner-manual" : ""}`))), X(l, (W(t), G(() => W(t).isManual ? "manual" : "Agent"))), X(m, (W(t), G(() => W(t).action))), X(_, (W(t), G(() => W(t).expect)));
+										Q(r, "id", (K(W(n)), W(t), G(() => `check-${W(n).id}-${W(t).index}`))), ti(r, 1, (W(t), G(() => `checklist-check checklist-${W(t).status}${W(t).isManual ? " checklist-manual" : ""}`))), X(s, (W(t), G(() => W(t).title))), ti(c, 1, (W(t), G(() => `checklist-owner${W(t).isManual ? " checklist-owner-manual" : ""}`))), X(l, (W(t), G(() => W(t).isManual ? "實機" : "Agent"))), X(m, (W(t), G(() => W(t).action))), X(_, (W(t), G(() => W(t).expect)));
 									}), Y(e, r);
 								}), j(r), V(() => X(a, (K(W(n)), G(() => W(n).outcome)))), Y(e, r);
 							},
@@ -4140,7 +4140,7 @@ function Ro(e, t) {
 		get open() {
 			return W(f);
 		},
-		title: "清空人工結果？",
+		title: "清空實機結果？",
 		titleId: "checklist-reset-title",
 		kicker: "Checklist",
 		onClose: () => {
@@ -4151,7 +4151,7 @@ function Ro(e, t) {
 			j(r);
 			var a = z(r, 4), o = z(R(a), 2);
 			j(a), V(() => {
-				X(i, `將 ${W(m), G(() => W(m).length) ?? ""} 個人工檢查重設為未執行，並清除 Observed／Resolved，包含篩選後隱藏的項目。Agent 結果不受影響。`), o.disabled = W(p);
+				X(i, `將 ${W(m), G(() => W(m).length) ?? ""} 個實機檢查重設為未執行，並清除 Observed／Resolved，包含篩選後隱藏的項目。其他檢查結果不受影響。`), o.disabled = W(p);
 			}), q("click", o, _), Y(e, n);
 		},
 		$$slots: { default: !0 }

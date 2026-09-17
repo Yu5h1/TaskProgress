@@ -73,13 +73,13 @@
     if (!canReset || resetBusy) return;
     resetBusy = true;
     const cautious = view.cautious;
-    message = "正在清空人工結果…";
+    message = "正在清空實機結果…";
     try {
       const document = await transport.reset({ targets: resetTargets });
       // Reset deliberately starts a new session: old results cannot be undone back in.
       installDocument(document);
       view = await persistence.setCautious(cautious);
-      message = "人工結果已清空；Agent 結果保留。";
+      message = "實機結果已清空；其他檢查結果保留。";
     } catch (error) {
       message = error instanceof Error ? error.message : "清空失敗，請重新載入確認結果。";
     } finally {
@@ -262,7 +262,7 @@
         href={`#check-${view.summary.nextStep.workItemId}-${view.summary.nextStep.checkIndex}`}
         onclick={showNextStep}
         title={view.summary.nextStep.title}>
-        <span>{view.summary.nextStep.isManual ? "需人工驗證" : "下一步 · Agent"}：</span>
+        <span>{view.summary.nextStep.isManual ? "需實機驗證" : "下一步 · Agent"}：</span>
         <strong>{view.summary.nextStep.title}</strong>
       </a>
     {/if}
@@ -323,7 +323,7 @@
                   />
                   <strong>{check.title}</strong>
                   <span class={`checklist-owner${check.isManual ? " checklist-owner-manual" : ""}`}
-                  >{check.isManual ? "manual" : "Agent"}</span>
+                  >{check.isManual ? "實機" : "Agent"}</span>
                 </div>
                 <dl>
                   <div><dt>Action</dt><dd>{check.action}</dd></div>
@@ -382,7 +382,7 @@
       <div class="checklist-reset-actions">
         {#if view.dirty || view.pending || view.saving}<span>請先儲存或捨棄變更，再清空。</span>{/if}
         <button type="button" class="secondary-button" disabled={!canReset} onclick={openReset}>
-          清空人工結果
+          清空實機結果
         </button>
       </div>
     {/if}
@@ -391,9 +391,9 @@
 </main>
 
 
-<DialogShell open={resetOpen} title="清空人工結果？" titleId="checklist-reset-title"
+<DialogShell open={resetOpen} title="清空實機結果？" titleId="checklist-reset-title"
   kicker="Checklist" onClose={() => { resetOpen = false; }}>
-  <p>將 {resetTargets.length} 個人工檢查重設為未執行，並清除 Observed／Resolved，包含篩選後隱藏的項目。Agent 結果不受影響。</p>
+  <p>將 {resetTargets.length} 個實機檢查重設為未執行，並清除 Observed／Resolved，包含篩選後隱藏的項目。其他檢查結果不受影響。</p>
   <p>此操作無法復原；如需回復，請使用 Git 歷史。</p>
   <form method="dialog" class="theme-dialog-actions">
     <button type="submit" class="secondary-button">取消</button>
