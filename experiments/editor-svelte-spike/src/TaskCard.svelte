@@ -141,7 +141,6 @@
         {:else}
           <h3 id={`task-${task.id}-title`}>{task.title}</h3>
         {/if}
-        <span class={`status-badge status-${statusEntry.tone}`}>{statusEntry.label}</span>
       </div>
       {#if moduleTotals.length}
         <div class="task-module-totals">
@@ -156,6 +155,7 @@
         class="task-fraction"
         aria-label={`子項目完成 ${progress.completed}，共 ${progress.total}`}
       >{progress.completed} / {progress.total}</strong>
+        <span class={`status-badge status-${statusEntry.tone}`}>{statusEntry.label}</span>
       <code class="task-id">{task.id}</code>
     </div>
   </header>

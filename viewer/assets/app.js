@@ -131,7 +131,6 @@ const elements = {
   projectProgress: document.querySelector("#project-progress"),
   diagnostics: document.querySelector("#diagnostics"),
   content: document.querySelector("#report-content"),
-  overview: document.querySelector("#overview-grid"),
   filters: document.querySelector("#status-filters"),
   taskList: document.querySelector("#task-list"),
   empty: document.querySelector("#empty-state"),
@@ -185,7 +184,6 @@ const state = {
   moduleDetailViews: new Map(),
   diagnosticsView: null,
   scopeDirectoryView: null,
-  overviewView: null,
   projectProgressView: null,
   filtersView: null,
   deliverySaveConfirmationView: null,
@@ -768,14 +766,6 @@ function renderDiagnostics() {
   else state.diagnosticsView = createUiView("diagnostics", elements.diagnostics, props);
 }
 
-function renderOverview() {
-  const counts = Object.fromEntries(supportedStatuses.map((status) => [status, 0]));
-  state.tasks.forEach((task) => { counts[task.status] += 1; });
-  const props = { counts, statusOrder: state.statusOrder };
-  if (state.overviewView) state.overviewView.update(props);
-  else state.overviewView = createUiView("status-overview", elements.overview, props);
-}
-
 function renderProjectProgress() {
   const progress = currentProjectProgress(state.tasks);
   // Core progress reports the report's own task progress and nothing else.
@@ -812,7 +802,6 @@ function applyStatusOrder(status, targetStatus, placeAfter = false) {
   if (nextOrder.every((candidate, index) => candidate === state.statusOrder[index])) return;
   state.statusOrder = nextOrder;
   saveStatusOrder(statusOrderStorage, state.statusOrder);
-  renderOverview();
   renderFilters();
   renderTasks();
 }
@@ -1077,7 +1066,6 @@ function renderReport() {
   });
   renderDiagnostics();
   renderProjectProgress();
-  renderOverview();
   renderFilters();
   renderTasks();
   renderTimeReference();

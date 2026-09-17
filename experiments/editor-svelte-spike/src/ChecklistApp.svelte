@@ -267,6 +267,19 @@
       </a>
     {/if}
 
+    <FilterStrip
+      categories={filterCategories(view.document, capsuleOrder)}
+      order={capsuleOrder}
+      selected={selection.selected}
+      defaultLit={isDefaultLit(selection)}
+      className="status-filter-strip status-summary-filters"
+      ariaLabel="依 check 狀態篩選；可拖曳調整順序"
+      reorderable={true}
+      onSelect={selectTag}
+      onSelectDefault={selectDefault}
+      onReorder={reorderFilter}
+    />
+
     <div class="checklist-toolbar">
 
 
@@ -287,18 +300,7 @@
         storageKey={new URLSearchParams(location.search).has("scope")
           ? `taskprogress.cards.checklist.v1:${location.pathname}:${new URLSearchParams(location.search).get("scope")}:${new URLSearchParams(location.search).get("task")}:${view.document.roundIdentity}`
           : null} let:item>
-    <FilterStrip slot="filters"
-      categories={filterCategories(view.document, capsuleOrder)}
-      order={capsuleOrder}
-      selected={selection.selected}
-      defaultLit={isDefaultLit(selection)}
-      className="status-filter-strip"
-      ariaLabel="依 check 狀態篩選；可拖曳調整順序"
-      reorderable={true}
-      onSelect={selectTag}
-      onSelectDefault={selectDefault}
-      onReorder={reorderFilter}
-    />
+
         {@const fullItem = view.document.items.find(candidate => candidate.id === item.id)}
         <article class={`checklist-item checklist-${item.status}`}>
           <CardDisclosure expanded={expandedItems[item.id] ?? defaultExpanded}

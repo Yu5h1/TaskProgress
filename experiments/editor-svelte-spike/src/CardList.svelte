@@ -93,7 +93,6 @@
       {/if}
     </svg>
   </button>
-  <slot name="filters" />
   <span role="status">{notice}</span>
 </div>
 <div class="arrangeable-cards" bind:this={root}>

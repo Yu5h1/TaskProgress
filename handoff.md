@@ -4,7 +4,11 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
 
 - Canonical status entry: task status and progress are referenced by Task ID in `report.json`; Developer next steps, blockers, decisions, and routes are referenced by the same ID in `report.dev.json`. Do not duplicate that content here.
 
-## Current state (2026-09-17)
+## Current state (2026-09-18)
+
+- **版面收斂（2026-09-18）。** Report 卡片標題右側依序為分數、狀態膠囊，垂直置中；Checklist 的三角形、完成框與標題置中，收合時縮小上下留白。移除 Report 重複狀態統計，排序／篩選膠囊採狀態底色與圓角，移至上方獨立列並逐項換行，工作項目列僅保留收展及排序控制。分隔線上下留白為 10px。
+  - **驗證**：三份前端資產建置與 diff 空白檢查通過；人工介面驗收維持待辦，未 publish／重啟服務。
+
 
 - **卡片介面收尾（2026-09-17）。** 工作項目工具列與狀態膠囊同列並依實際空間換行；Checklist 標題右側只顯示通過分數，取消 640px 強制換行。Report 整體進度使用既有 segmented 元件，每個非封存普通任務一格，以狀態填色，百分比維持原計算。
   - **收合狀態修正**：同分頁／文件以 sessionStorage 保存全體預設與單卡例外，前景重新載入可還原；尚未證實視窗調整是否必然觸發前景 reload，實機重現仍待確認。狀態還原測試 2／2、進度格測試 1／1、排序測試 4／4 與三份前端建置已通過。人工驗收保持未完成。

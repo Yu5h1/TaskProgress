@@ -76,7 +76,7 @@
         <section class="diagnostics" id="diagnostics" aria-live="polite" hidden></section>
 
         <section id="report-content" hidden>
-          <div class="overview-grid" id="overview-grid" aria-label="報告摘要"></div>
+          <div class="filters status-summary-filters" id="status-filters" aria-label="依狀態篩選；拖曳狀態標籤可調整卡片排序"></div>
 
           <!-- Bootstrap-only prompt: a project with no time.config.json and
                no time.analysis.json has no delivery button to open a
@@ -85,14 +85,6 @@
           <div class="time-settings-dock" id="time-settings-dock" hidden></div>
 
           <div class="task-workspace">
-          <div class="task-toolbar">
-            <div
-              class="filters"
-              id="status-filters"
-              aria-label="依狀態篩選；拖曳狀態標籤可調整卡片排序"
-            ></div>
-          </div>
-
           <div class="task-list editor-task-list" id="task-list"></div>
           </div>
           <div class="task-add-shell" id="task-add-shell" hidden></div>

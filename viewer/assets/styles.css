@@ -556,7 +556,7 @@ code {
   align-items: start;
   column-gap: 24px;
   row-gap: 10px;
-  padding: 18px 0 20px;
+  padding: 18px 0 10px;
   border-bottom: 1px solid var(--color-line-subtle);
 }
 
@@ -742,25 +742,21 @@ h1 {
 }
 
 .overview-grid {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 10px;
-  padding: 16px 0 22px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 10px 0;
 }
 
 .overview-card {
-  position: relative;
-  overflow: hidden;
-  display: flex;
-  align-items: flex-start;
-  flex-direction: column;
-  justify-content: space-between;
-  min-height: 78px;
-  padding: 11px 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
   background: var(--muted-soft);
   border: 0;
   border-radius: var(--radius-md);
-  box-shadow: none;
+  white-space: nowrap;
 }
 
 .overview-card::before {
@@ -772,7 +768,7 @@ h1 {
 .overview-danger { color: var(--red); background: var(--red-soft); }
 
 .overview-value {
-  font-size: 1.55rem;
+  font-size: 0.95rem;
   font-weight: 650;
   line-height: 1;
 }
@@ -2050,7 +2046,7 @@ footer {
 
   .hero {
     column-gap: 12px;
-    padding: 12px 0 16px;
+    padding: 12px 0 10px;
   }
 
   .hero-summary {
@@ -2059,21 +2055,6 @@ footer {
 
   .report-meta {
     gap: 4px 12px;
-  }
-
-  .overview-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 10px;
-    padding: 12px 0 18px;
-  }
-
-  .overview-card {
-    min-height: 68px;
-    padding: 9px 11px;
-  }
-
-  .overview-value {
-    font-size: 1.35rem;
   }
 
   .task-title-group {
@@ -2941,15 +2922,19 @@ footer {
 .card-disclosure-toggle { flex: 0 0 24px; width: 24px; height: 24px; padding: 0; border: 0; border-radius: 4px; background: transparent; color: var(--color-heading); font-size: 12px; line-height: 1; cursor: pointer; }
 .card-disclosure-toggle:hover { background: var(--muted-soft); color: var(--color-accent); }
 .card-disclosure-toggle:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
-.checklist-item > .card-disclosure-heading > .card-disclosure-toggle { margin: 12px 0 0 12px; }
+.checklist-item > .card-disclosure-heading { align-items: center; }
+.checklist-item > .card-disclosure-heading > .card-disclosure-toggle { margin: 0 0 0 12px; }
 .card-disclosure-body[hidden] { display: none; }
+.task-card:has(> .card-disclosure-collapsed) { padding-top: 7px; padding-bottom: 7px; }
 .card-disclosure-toolbar { display: flex; flex-wrap: wrap; gap: 6px; grid-column: 1 / -1; }
-.card-disclosure-heading .task-header { flex-wrap: nowrap; }
-.card-disclosure-heading .task-title-group { min-width: 0; overflow-wrap: anywhere; }
+.card-disclosure-heading .task-header { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 4px 12px; }
+.card-disclosure-heading .task-title-group { display: contents; overflow-wrap: anywhere; }
+.card-disclosure-heading .task-title-group > * { grid-column: 1 / -1; }
+.card-disclosure-heading .task-title-group > .time-task-title-line { grid-column: 1; grid-row: 1; }
 .card-disclosure-heading .time-task-title-line { flex-direction: row; align-items: center; flex-wrap: nowrap; min-width: 0; }
 .card-disclosure-heading .time-task-title-line h3 { min-width: 0; }
 .card-disclosure-heading .time-task-title-line .status-badge { white-space: nowrap; }
-.card-disclosure-heading .task-header-meta { padding-top: 5px; }
+.card-disclosure-heading .task-header-meta { grid-column: 2; grid-row: 1; flex-direction: row; align-items: center; padding-top: 0; }
 .card-disclosure-heading .task-fraction { white-space: nowrap; }
 .checklist-outcome { margin: 0; }
 
@@ -2958,10 +2943,7 @@ footer {
 .task-workspace { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 .task-workspace > .task-toolbar, .task-workspace > .task-list { display: contents; }
 .task-workspace .card-list-tools { order: 0; }
-.task-workspace .filters, .task-workspace .status-filter-strip { display: contents; }
-.task-workspace .status-filter-strip > * { order: 1; }
 .task-workspace .arrangeable-cards, .task-workspace .empty-state { order: 2; flex: 0 0 100%; }
-.card-list-tools .status-filter-strip { display: contents; }
 .card-toolbar-icon { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; padding: 4px; border: 0; border-radius: 5px; background: transparent; color: var(--color-heading); cursor: pointer; }
 .card-toolbar-icon:hover { background: var(--muted-soft); color: var(--color-accent); }
 .card-toolbar-icon:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
@@ -2974,3 +2956,28 @@ footer {
 
 .arrangeable-card[draggable="true"] { cursor: grabbing; }
 .arrangeable-card:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+
+/* Status counts are the filter controls, in one dedicated wrapping row. */
+.status-summary-filters { display: flex; flex-wrap: wrap; justify-content: flex-start; gap: 8px; padding: 10px 0; }
+.status-summary-filters .status-filter-strip,
+.status-filter-strip.status-summary-filters { display: flex; flex-wrap: wrap; justify-content: flex-start; gap: 8px; overflow: visible; }
+.status-summary-filters .filter-button {
+  --filter-ink: var(--muted);
+  --filter-fill: var(--muted-soft);
+  padding: 6px 10px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  color: var(--filter-ink);
+  background: var(--filter-fill);
+  font-size: .75rem;
+  font-weight: 650;
+  white-space: nowrap;
+}
+.status-summary-filters [data-capsule-id="in_progress"] { --filter-ink: var(--blue); --filter-fill: var(--blue-soft); }
+.status-summary-filters [data-capsule-id="blocked"],
+.status-summary-filters [data-capsule-id="failed"] { --filter-ink: var(--red); --filter-fill: var(--red-soft); }
+.status-summary-filters [data-capsule-id="done"],
+.status-summary-filters [data-capsule-id="passed"] { --filter-ink: var(--moss); --filter-fill: var(--moss-soft); }
+.status-summary-filters .filter-button[aria-pressed="false"] { background: transparent; border-color: var(--line); color: var(--ink-soft); }
+.status-summary-filters .filter-button:hover { border-color: var(--filter-ink); }
+.status-summary-filters .filter-button.status-sortable::before { display: none; }

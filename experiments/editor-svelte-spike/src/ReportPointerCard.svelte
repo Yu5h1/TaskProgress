@@ -51,9 +51,6 @@
             {task.title}
           {/if}
         </h3>
-        {#if cardStatusEntry}
-          <span class={`status-badge status-${cardStatusEntry.tone}`}>{cardStatusEntry.label}</span>
-        {/if}
       </div>
       {#if state.openHref}
         <a class="pointer-card-badge" href={state.openHref}>開啟專案報告 →</a>
@@ -61,6 +58,9 @@
     </div>
     <div class="task-header-meta">
       {#if card}<strong class="task-fraction">{card.progress.completed} / {card.progress.total}</strong>{/if}
+        {#if cardStatusEntry}
+          <span class={`status-badge status-${cardStatusEntry.tone}`}>{cardStatusEntry.label}</span>
+        {/if}
       {#if state.status === "loading"}<span role="status">讀取目標報告中…</span>{/if}
       {#if state.status === "error"}<span class="pointer-card-error" role="alert">{state.message}</span>{/if}
     </div>

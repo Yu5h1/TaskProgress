@@ -6,7 +6,7 @@
   export let onToggle = () => {};
 </script>
 
-<div class="card-disclosure-heading">
+<div class="card-disclosure-heading" class:card-disclosure-collapsed={!expanded}>
   <button type="button" class="card-disclosure-toggle"
     aria-expanded={expanded} aria-controls={contentId}
     aria-label={`${expanded ? "收合" : "展開"} ${label}`}
