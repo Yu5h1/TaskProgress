@@ -49,6 +49,6 @@ Current round: `Documentation/ThirdPartyChecklistWritePlan.md#驗證`.
       - Action: 在有人工及 agent 結果的 Checklist 篩選部分項目，開啟清空確認框，分別取消與確認；另檢查草稿、寫入中、前景切換及失敗情境。
       - Expect: 顯示全份人工 targets 數量；取消零請求；成功清除人工結果與 Observed／Resolved，保留 agent，Undo 不帶回舊結果；草稿或待寫入時禁用，請求期間不可編輯，確認／請求不被前景刷新打斷；失敗顯示錯誤，不自動重試。
       - Reason: 完整 UI 與實機驗收依使用者安排後排。
-    - [ ] **HTTP reset 傳輸回歸**
+    - [x] **HTTP reset 傳輸回歸**
       - Action: 執行 tests/checklist-http-transport.test.mjs 已備妥的 reset 測試。
       - Expect: 明確 targets 原樣送出、未指定與空 targets 保持不同語意、Browser 不加 bearer token，bridge 拒絕不自動重試。
