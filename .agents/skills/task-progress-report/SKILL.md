@@ -24,7 +24,7 @@ description: Generate, update, validate, roll up, register, and locally deploy T
 
 ## Read project truth first
 
-1. Use the target scope's `tasks.md` only to resolve tracked task IDs, ownership, and canonical entries; do not treat it as a progress source.
+1. Resolve each tracked task ID to its canonical entry through its `Task ID:` declaration (`AgentArtifactGuide.md` § Task identity); the declaration is a route, not a progress source.
 2. Start with the target project's `handoff.md` when present, then follow the canonical entry to the relevant plan or design record.
 3. Load only the additional sources needed to establish report facts, such as issue files, implementation, and test results.
 4. Prefer verified repository state over stale prose. Do not invent completion, blockers, totals, decisions, or claims.
@@ -33,8 +33,8 @@ description: Generate, update, validate, roll up, register, and locally deploy T
 ## Resolve scope level and roll-up coverage
 
 - Treat every report directory as an independent scope. The same schema may describe a multi-project workspace, a project, or a narrower component; the Viewer and Launcher render one selected scope and do not infer hierarchy.
-- Resolve the requested target first. Use that scope's `tasks.md` as the explicit inclusion and routing boundary; never recursively scan directories to discover report members.
-- A workspace with `tasks.md` and a root report may validly have no root handoff. Follow each canonical route to the relevant child plan, handoff, report, and repository facts.
+- Resolve the requested target first. Its existing `report.json` cards, including `report_pointer` cards for child scopes, are the explicit inclusion boundary; add a card only for a task the user names or whose declaration is in scope. Never recursively scan directories to discover report members.
+- A workspace with a root report may validly have no root handoff. Follow each canonical route to the relevant child plan, handoff, report, and repository facts.
 - Classify each workspace card as one of: a direct workspace task, a whole child-scope roll-up, or a selected child deliverable. Preserve mixed portfolios when that is the established report intent.
 - Require the canonical route or routing note to make the card's coverage unambiguous. For a selected deliverable, record the covered child task IDs or a clear named boundary. Do not treat a deliverable marked `done` as proof that its whole child project is complete.
 - For a whole child scope, summarize its current outcome and project-level milestones. For a selected deliverable, read only the covered child work. If coverage remains ambiguous, report the ambiguity and do not silently switch between whole-scope and deliverable semantics.
