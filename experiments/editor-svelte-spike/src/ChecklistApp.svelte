@@ -125,6 +125,7 @@
       }));
   }
 
+  let cardList;
   let defaultExpanded = true;
   let expandedItems = {};
   $: disclosureKey = view?.document
@@ -142,6 +143,7 @@
     event.preventDefault();
     const next = view.summary.nextStep;
     if (!next) return;
+    cardList?.revealCard(next.workItemId);
     setItemExpanded(next.workItemId, true);
     selection = createFilterSelection(FILTER_TAGS);
     await tick();
@@ -281,15 +283,15 @@
     />
 
     <section class="checklist-items" aria-label="Implementation checklist items">
-      <CardList expanded={defaultExpanded} onToggleAll={setAllExpanded} items={filterChecklistBySelection(orderChecklistItems(view.document, capsuleOrder), selection.selected).items}
+      <CardList bind:this={cardList} expanded={defaultExpanded} onToggleAll={setAllExpanded} items={filterChecklistBySelection(orderChecklistItems(view.document, capsuleOrder), selection.selected).items}
         allIds={orderChecklistItems(view.document, capsuleOrder).items.map(item => item.id)}
         storageKey={new URLSearchParams(location.search).has("scope")
           ? `taskprogress.cards.checklist.v1:${location.pathname}:${new URLSearchParams(location.search).get("scope")}:${new URLSearchParams(location.search).get("task")}:${view.document.roundIdentity}`
-          : null} let:item>
+          : null} let:item let:visibilityEnabled let:visible let:onVisibleChange>
 
         {@const fullItem = view.document.items.find(candidate => candidate.id === item.id)}
         <article class={`checklist-item checklist-${item.status}`}>
-          <CardDisclosure expanded={expandedItems[item.id] ?? defaultExpanded}
+          <CardDisclosure {visibilityEnabled} {visible} {onVisibleChange} expanded={expandedItems[item.id] ?? defaultExpanded}
             onToggle={value => setItemExpanded(item.id, value)}
             contentId={`checklist-body-${item.id}`} label={item.title}>
           <header slot="header" class="checklist-item-header">

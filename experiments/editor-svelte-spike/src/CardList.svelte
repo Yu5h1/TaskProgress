@@ -1,4 +1,7 @@
 <script>
+  import IconChoice from "./IconChoice.svelte";
+  import VisibilityMenu from "./VisibilityMenu.svelte";
+  import { isCardVisible, chooseVisibility } from "../../../viewer/assets/card-visibility.js";
   import { tick } from "svelte";
   import { displayCards, moveVisibleCard } from "../../../viewer/assets/card-order.js";
   export let items = [];
@@ -9,6 +12,28 @@
   let mode = "forward";
   const modes = ["forward", "reverse", "free"];
   const modeLabels = { forward: "順排", reverse: "逆排", free: "自由排序（可拖曳）" };
+  let visibilityMode = "disabled";
+  $: visibilityEnabled = visibilityMode === "enabled";
+  let hiddenIds = [];
+
+  function saveVisibility() {
+    if (!storageKey) return;
+    try { sessionStorage.setItem(`${storageKey}:visibility`, JSON.stringify({ mode: visibilityMode, hiddenIds })); } catch {}
+  }
+  function selectVisibility(action) {
+    const next = chooseVisibility(visibilityMode, hiddenIds, action);
+    visibilityMode = next.mode;
+    hiddenIds = next.hiddenIds;
+    clearDrag();
+    saveVisibility();
+  }
+  function setVisible(id, visible) {
+    hiddenIds = visible ? hiddenIds.filter(key => key !== id) : [...new Set([...hiddenIds, id])];
+    clearDrag();
+    saveVisibility();
+  }
+  export function revealCard(id) { if (visibilityMode === "closed") visibilityMode = "enabled"; setVisible(id, true); }
+  $: movable = ordered.filter(item => isCardVisible(item.id, visibilityMode, hiddenIds));
   let order = null;
   let selected = null;
   let armed = null;
@@ -20,6 +45,15 @@
   $: ordered = displayCards(items, order, mode);
 
   function load(key) {
+    visibilityMode = "disabled";
+    hiddenIds = [];
+    if (key) {
+      try {
+        const saved = JSON.parse(sessionStorage.getItem(`${key}:visibility`));
+        visibilityMode = ["enabled", "closed", "disabled"].includes(saved?.mode) ? saved.mode : (saved?.enabled === true ? "enabled" : "disabled");
+        hiddenIds = Array.isArray(saved?.hiddenIds) ? saved.hiddenIds : [];
+      } catch {}
+    }
     selected = null;
     armed = null;
     dragging = null;
@@ -41,9 +75,9 @@
       notice = value ? "已記住本機卡片順序" : "已還原排序";
     } catch { notice = "此環境無法保存檢視設定；順序僅保留於本頁"; }
   }
-  function cycleMode() {
+  function selectMode(value) {
     clearDrag();
-    mode = modes[(modes.indexOf(mode) + 1) % modes.length];
+    mode = value;
     notice = "";
     if (!storageKey) return;
     try { localStorage.setItem(`${storageKey}:mode`, mode); }
@@ -52,14 +86,14 @@
   async function move(id, targetId, after) {
     if (mode !== "free") return;
     if (id === targetId) return;
-    save(moveVisibleCard(allIds, order, ordered.map(item => item.id), id, targetId, after));
+    save(moveVisibleCard(allIds, order, movable.map(item => item.id), id, targetId, after));
     selected = id;
     await tick();
     [...root.querySelectorAll("[data-card-id]")].find(button => button.dataset.cardId === String(id))?.focus();
   }
   function moveBy(id, offset) {
-    const index = ordered.findIndex(item => item.id === id);
-    const other = ordered[index + offset];
+    const index = movable.findIndex(item => item.id === id);
+    const other = movable[index + offset];
     if (other) move(id, other.id, offset > 0);
   }
   function clearDrag() { armed = null; dragging = null; target = null; }
@@ -80,24 +114,27 @@
       <path d={expanded ? "M5 15l7-7 7 7" : "M5 9l7 7 7-7"} fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
     </svg>
   </button>
-  <button type="button" class="card-toolbar-icon" aria-label={`排序：${modeLabels[mode]}；切換為${modeLabels[modes[(modes.indexOf(mode) + 1) % modes.length]]}`}
-    title={`${modeLabels[mode]}；點擊切換排序`} onclick={cycleMode}>
+  <IconChoice items={modes.map(id => ({ id, label: modeLabels[id] }))} value={mode}
+    label="排序" interaction="both" orientation="vertical" onChoose={selectMode}>
+    <svelte:fragment slot="icon" let:item>
     <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true">
-      {#if mode === "free"}
+      {#if item.id === "free"}
         <path d="M4 5h15M4 10h8M4 15h17M4 20h11" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
       {:else}
-        <path d={mode === "forward" ? "M5 3v18m-3-3 3 3 3-3" : "M5 21V3m-3 3 3-3 3 3"}
+        <path d={item.id === "forward" ? "M5 3v18m-3-3 3 3 3-3" : "M5 21V3m-3 3 3-3 3 3"}
           fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-        <path d={mode === "forward" ? "M11 4h10M11 9h8M11 14h6M11 19h3" : "M11 4h3M11 9h6M11 14h8M11 19h10"}
+        <path d={item.id === "forward" ? "M11 4h10M11 9h8M11 14h6M11 19h3" : "M11 4h3M11 9h6M11 14h8M11 19h10"}
           fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
       {/if}
     </svg>
-  </button>
+    </svelte:fragment>
+  </IconChoice>
+  <VisibilityMenu mode={visibilityMode} onChoose={selectVisibility} />
   <span role="status">{notice}</span>
 </div>
 <div class="arrangeable-cards" bind:this={root}>
   {#each ordered as item (item.id)}
-    <div class:card-selected={selected === item.id}
+    <div hidden={!isCardVisible(item.id, visibilityMode, hiddenIds)} class:card-selected={selected === item.id}
       class:card-drop-before={target?.id === item.id && !target.after}
       class:card-drop-after={target?.id === item.id && target.after}
       class="arrangeable-card" role="group" aria-label={`${item.title}${selected === item.id ? "，已選取" : ""}`}
@@ -138,7 +175,7 @@
         move(dragging, item.id, target.after);
         clearDrag();
       }}>
-      <slot {item} />
+      <slot {item} {visibilityEnabled} visible={!hiddenIds.includes(item.id)} onVisibleChange={value => setVisible(item.id, value)} />
     </div>
   {/each}
 </div>

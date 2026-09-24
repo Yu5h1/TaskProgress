@@ -37,11 +37,11 @@
   function setAllExpanded(value) { defaultExpanded = value; expandedCards = {}; saveDisclosure(disclosureKey, defaultExpanded, expandedCards); }
 </script>
 
-  <CardList expanded={defaultExpanded} onToggleAll={setAllExpanded} items={tasks} {allIds} storageKey={cardStorageKey} let:item={task}>
+  <CardList expanded={defaultExpanded} onToggleAll={setAllExpanded} items={tasks} {allIds} storageKey={cardStorageKey} let:item={task} let:visibilityEnabled let:visible let:onVisibleChange>
     {#if task.kind === "report_pointer"}
-      <ReportPointerCard expanded={expandedCards[task.id] ?? defaultExpanded} onToggle={value => setExpanded(task.id, value)} {task} state={pointerCards[task.id] ?? { status: "loading" }} />
+      <ReportPointerCard {visibilityEnabled} {visible} {onVisibleChange} expanded={expandedCards[task.id] ?? defaultExpanded} onToggle={value => setExpanded(task.id, value)} {task} state={pointerCards[task.id] ?? { status: "loading" }} />
     {:else}
-      <TaskCard
+      <TaskCard {visibilityEnabled} {visible} {onVisibleChange}
         expanded={expandedCards[task.id] ?? defaultExpanded}
         onToggle={value => setExpanded(task.id, value)}
         {task}

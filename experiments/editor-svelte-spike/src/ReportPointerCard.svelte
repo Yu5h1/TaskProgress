@@ -1,4 +1,7 @@
 <script>
+  export let visibilityEnabled = false;
+  export let visible = true;
+  export let onVisibleChange = () => {};
   import CardDisclosure from "./CardDisclosure.svelte";
   export let expanded = true;
   export let onToggle = () => {};
@@ -40,7 +43,7 @@
   class={`task-card pointer-card ${cardStatusEntry ? `status-${cardStatusEntry.tone}` : ""}`}
   aria-labelledby={`task-${task.id}-title`}
 >
-  <CardDisclosure {expanded} {onToggle} contentId={`task-body-${task.id}`} label={task.title}>
+  <CardDisclosure {visibilityEnabled} {visible} {onVisibleChange} {expanded} {onToggle} contentId={`task-body-${task.id}`} label={task.title}>
   <header slot="header" class="task-header">
     <div class="task-title-group">
       <div class="time-task-title-line">

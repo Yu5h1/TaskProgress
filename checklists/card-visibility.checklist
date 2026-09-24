@@ -1,0 +1,18 @@
+# 卡片可見性與應用版清空 Checklist
+
+Current round: `Documentation/CardDisclosurePlan.md#可見性控制`.
+
+- [ ] **1. 可見性控制與 Desktop 清空接線**
+  Outcome: 可見性依開關套用，Desktop 與 Browser 共用清空結果流程。
+  Checks:
+    - [x] **狀態與 transport 驗證**
+      - Action: 執行 card-visibility 與 checklist-transport 定向測試，重建三份前端資產。
+      - Expect: 停用全顯示、啟用隱藏、全體關閉與重置與移動隱藏槽位檢查通過；reset 正確送出 targets、傳回 snapshot、失敗不重試；建置成功。
+    - [ ] **眼睛與找回操作** `[manual]`
+      - Action: 點開與長按選單分別選擇啟用、全體關閉、禁用、重置；啟用時隱藏卡片，切換模式，再對隱藏項目使用下一步。
+      - Expect: 禁用全顯示且無單卡眼睛；啟用依 hidden 顯示；全體關閉保留設定；重置清空 hidden 並回啟用；放開於選項外取消，下一步顯示並展開目標，草稿保留。
+      - Reason: 需要實際 Browser／Desktop 圖示位置與互動確認。
+    - [ ] **應用版清空實機結果** `[manual]`
+      - Action: 更新部署並重開 Desktop，在可拋棄的測試 checklist 操作清空；先取消，再確認，並檢查有草稿時的按鈕。
+      - Expect: 按鈕與 Web 同在儲存列最右側；取消不寫入，確認僅清空實機檢查，草稿時禁用，清空後無舊結果 Undo。
+      - Reason: 需要更新應用版部署與測試文件，不清空真實工作紀錄。

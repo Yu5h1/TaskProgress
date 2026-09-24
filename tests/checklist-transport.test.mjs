@@ -94,3 +94,22 @@ test("a substitute transport drives the same screen contract", async () => {
   assert.equal(view.document.revision, "def");
   assert.equal(view.summary.checks.passed, 1, "the summary follows the saved document");
 });
+
+test("desktop reset forwards exact targets and returns bridge snapshot without retry", async () => {
+  const sent = [];
+  let receive;
+  const bridge = createChecklistBridgeTransport({
+    addEventListener: (_, listener) => { receive = listener; },
+    postMessage: message => sent.push(message),
+  });
+  const payload = { targets: [{ workItemId: 1, checkIndex: 2 }] };
+  const result = bridge.reset(payload);
+  assert.equal(sent[0].type, "reset");
+  assert.deepEqual(sent[0].payload, payload);
+  receive({ data: { version: 1, id: sent[0].id, type: "result", payload: { revision: "reset" } } });
+  assert.deepEqual(await result, { revision: "reset" });
+  const rejected = bridge.reset({ targets: [] });
+  receive({ data: { version: 1, id: sent[1].id, type: "error", error: { code: "conflict", message: "changed" } } });
+  await assert.rejects(rejected, { code: "conflict" });
+  assert.equal(sent.length, 2);
+});

@@ -2947,6 +2947,13 @@ footer {
 .card-toolbar-icon { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; padding: 4px; border: 0; border-radius: 5px; background: transparent; color: var(--color-heading); cursor: pointer; }
 .card-toolbar-icon:hover { background: var(--muted-soft); color: var(--color-accent); }
 .card-toolbar-icon:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+.card-visibility-toggle { flex: 0 0 24px; width: 24px; height: 24px; padding: 2px; }
+.icon-choice { position: relative; display: inline-flex; }
+.icon-choice-options { position: fixed; z-index: 100; display: flex; padding: 4px; gap: 4px; max-width: calc(100vw - 8px); max-height: calc(100vh - 8px); box-sizing: border-box; overflow: auto; border: 1px solid var(--color-border); border-radius: 8px; background: var(--color-panel-bg); box-shadow: var(--shadow); }
+.icon-choice-options.vertical { flex-direction: column; }
+.icon-choice-options .card-toolbar-icon { flex: 0 0 auto; }
+.icon-choice-hover, .icon-choice-options [aria-pressed="true"] { background: var(--muted-soft); color: var(--color-accent); }
+.arrangeable-card[hidden] { display: none; }
 .arrangeable-cards { display: grid; gap: 14px; grid-column: 1 / -1; min-width: 0; }
 .arrangeable-card { position: relative; min-width: 0; border-radius: 14px; }
 .card-selected { outline: 2px solid var(--color-accent); outline-offset: 2px; }

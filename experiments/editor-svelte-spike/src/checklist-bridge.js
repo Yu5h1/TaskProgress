@@ -1,5 +1,5 @@
 const PROTOCOL_VERSION = 1;
-const ALLOWED_REQUEST_TYPES = new Set(["load", "save"]);
+const ALLOWED_REQUEST_TYPES = new Set(["load", "save", "reset"]);
 
 export function createChecklistBridgeTransport(webview = globalThis.chrome?.webview) {
   if (!webview || typeof webview.postMessage !== "function") {
@@ -40,5 +40,6 @@ export function createChecklistBridgeTransport(webview = globalThis.chrome?.webv
   return Object.freeze({
     load: () => request("load"),
     save: (payload) => request("save", payload),
+    reset: (payload = {}) => request("reset", payload),
   });
 }

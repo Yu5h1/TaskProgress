@@ -1,0 +1,16 @@
+# IconChoice Checklist
+
+Current round: `Documentation/IconChoicePlan.md#驗收`.
+
+本輪只處理共用圖示選擇元件與排序／可見性接入。
+
+- [ ] **1. 共用選擇元件**
+  Outcome: 排序與可見性使用同一互動元件，既有卡片狀態行為保留。
+  Checks:
+    - [x] **選項運算與入口建置**
+      - Action: 執行 icon-choice、card-visibility 與 checklist-transport 定向測試，建置 Viewer、Browser Checklist 與 Desktop Checklist。
+      - Expect: 測試與三份建置成功，動作不參與循環，端點模式保留其他選項順序。
+    - [ ] **操作與對齊** `[manual]`
+      - Action: 更新前端資產並開啟 Report／Checklist → 點擊排序 → 長按排序或眼睛 → 移到選項放開；再試列外放開、Escape、Tab、方向鍵與窄視窗。
+      - Expect: 排序短按循環；浮動列目前選項對齊原圖示，邊緣可見；選擇只套用一次，取消不改狀態，鍵盤可操作。可見性四選項語意保持。
+      - Reason: 需要實際瀏覽器與應用版的指標操作及對齊觀感確認。

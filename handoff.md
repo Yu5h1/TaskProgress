@@ -6,6 +6,13 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
 
 ## Current state (2026-09-18)
 
+- **IconChoice 共用元件（2026-09-18）。** 排序與可見性已接入同一元件，支援 cycle／picker／both、水平／垂直與 aligned／adjacent；目前兩者採垂直 aligned，排序短按循環／長按選擇，可見性點按或長按選擇。規格與 API 見 Documentation/IconChoicePlan.md；卡片業務狀態及保存仍由 CardList 擁有。
+  - **驗證範圍**：選項／可見性／Desktop transport 定向測試 10／10 與三份前端建置通過；獨立複核提出的 Tab 離開與環境取消焦點問題已修正並複核。實機對齊與手勢驗收保留於 checklists/icon-choice.checklist；未 publish／重啟應用，Desktop 仍需部署新資產並重開。
+
+- **卡片可見性／Desktop 清空結果（2026-09-18）。** 共用眼睛控制改為四選項：啟用依 hidden 顯示、全體關閉保留設定但全隱藏、禁用全顯示且不提供單卡眼睛、重置清空 hidden 並回啟用。支援點開選擇與長按 300ms 拖至選項放開；移除找回隱藏項目按鈕，透明度／疊牌未實作。下一步會先顯示目標。Desktop bridge 補上 reset capability，使用相同清空實機結果 UI。設計見 Documentation/CardDisclosurePlan.md#可見性控制。
+  - **檢查**：可見性定向測試 3／3、Desktop transport 5／5、三份前端建置通過；實機驗收見 checklists/card-visibility.checklist；未清空真實結果，未 publish／重啟應用。已開啟或已發布應用版仍需更新部署與重開才能取得新資產。
+
+
 - **版面收斂（2026-09-18）。** Report 卡片標題右側依序為分數、狀態膠囊，垂直置中；Checklist 的三角形、完成框與標題置中，收合時縮小上下留白。移除 Report 重複狀態統計，排序／篩選膠囊採狀態底色與圓角，移至上方獨立列並逐項換行，工作項目列僅保留收展及排序控制。分隔線上下留白為 10px。
   - **驗證**：三份前端資產建置與 diff 空白檢查通過；人工介面驗收維持待辦，未 publish／重啟服務。
 

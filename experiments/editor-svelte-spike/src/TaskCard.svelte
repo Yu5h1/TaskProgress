@@ -1,4 +1,7 @@
 <script>
+  export let visibilityEnabled = false;
+  export let visible = true;
+  export let onVisibleChange = () => {};
   import CardDisclosure from "./CardDisclosure.svelte";
   export let expanded = true;
   export let onToggle = () => {};
@@ -86,7 +89,7 @@
 </script>
 
 <article class={`task-card editor-task-card priority-${taskPriority?.tone ?? "unspecified"}`} aria-labelledby={`task-${task.id}-title`}>
-  <CardDisclosure {expanded} {onToggle} contentId={`task-body-${task.id}`} label={task.title}>
+  <CardDisclosure {visibilityEnabled} {visible} {onVisibleChange} {expanded} {onToggle} contentId={`task-body-${task.id}`} label={task.title}>
   <header slot="header" class="task-header">
     <div class="task-title-group">
       {#if editing}
