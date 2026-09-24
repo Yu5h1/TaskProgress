@@ -13,12 +13,18 @@ internal static class ChecklistDesktopHost
 
     public static void Run(string checklistPath)
     {
+        var bridge = new ChecklistBridge(checklistPath);
+        RunDocument(checklistPath, "checklist-ui", "taskprogress.checklist", "Checklist", bridge.Handle);
+    }
+
+    public static void RunDocument(string file, string assets, string host, string title, Func<string, string> handle)
+    {
         Exception? failure = null;
         var thread = new Thread(() =>
         {
             try
             {
-                RunWindow(checklistPath);
+                RunWindow(file, assets, host, title, handle);
             }
             catch (Exception error)
             {
@@ -58,15 +64,14 @@ internal static class ChecklistDesktopHost
             + $"請先安裝 Evergreen Runtime：{RuntimeDownloadUrl} "
             + $"({detail})");
 
-    private static void RunWindow(string checklistPath)
+    private static void RunWindow(string checklistPath, string assets, string host, string title, Func<string, string> handle)
     {
-        var assetDirectory = Path.Combine(AppContext.BaseDirectory, "checklist-ui");
+        var assetDirectory = Path.Combine(AppContext.BaseDirectory, assets);
         var entryPath = Path.Combine(assetDirectory, "index.html");
         if (!File.Exists(entryPath))
         {
             throw new CliException($"找不到 Checklist UI 資產：{entryPath}");
         }
-        var bridge = new ChecklistBridge(checklistPath);
         var application = new Application
         {
             ShutdownMode = ShutdownMode.OnMainWindowClose,
@@ -74,7 +79,7 @@ internal static class ChecklistDesktopHost
         var webView = new WebView2();
         var window = new Window
         {
-            Title = $"TaskProgress Checklist — {Path.GetFileName(checklistPath)}",
+            Title = $"TaskProgress {title} — {Path.GetFileName(checklistPath)}",
             Width = 1100,
             Height = 760,
             MinWidth = 720,
@@ -96,15 +101,20 @@ internal static class ChecklistDesktopHost
                 webView.CoreWebView2.Settings.AreDefaultContextMenusEnabled = false;
                 webView.CoreWebView2.Settings.AreHostObjectsAllowed = false;
                 webView.CoreWebView2.SetVirtualHostNameToFolderMapping(
-                    "taskprogress.checklist",
+                    host,
                     assetDirectory,
                     CoreWebView2HostResourceAccessKind.DenyCors);
                 webView.CoreWebView2.WebMessageReceived += (_, message) =>
                 {
-                    var response = bridge.Handle(message.WebMessageAsJson);
+                    var response = handle(message.WebMessageAsJson);
                     webView.CoreWebView2.PostWebMessageAsJson(response);
                 };
-                webView.CoreWebView2.Navigate("https://taskprogress.checklist/index.html");
+                webView.CoreWebView2.NavigationStarting += (_, e) =>
+                {
+                    if (!Uri.TryCreate(e.Uri, UriKind.Absolute, out var uri) || uri.Host != host || uri.Scheme != "https") e.Cancel = true;
+                };
+                webView.CoreWebView2.NewWindowRequested += (_, e) => e.Handled = true;
+                webView.CoreWebView2.Navigate($"https://{host}/index.html");
             }
             catch (Exception error)
             {

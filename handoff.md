@@ -6,6 +6,13 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
 
 ## Current state (2026-09-25)
 
+- **決策回答簡化：移除選擇理由欄。** 新 UI 只提交單選或其他答案，補充條件／理由使用「其他」；出題者推薦理由保留。既有答案 reason 與歷史維持相容。Node 決策定向測試 9／9 及雙入口資產建置通過，並同步 Debug Desktop 資產；開啟中的視窗需重開，Browser 需重新載入。未發布、重啟服務或 commit。
+
+- **決策項目第一版程式已接齊，實機驗收待執行（2026-09-25）。** `.decisions` 使用 UTF-8 JSON；新增 DecisionDocument／DecisionStore，具備 confirm／reopen／revise、歷史一致性、revision、跨程序互斥與 request 去重。CLI `decisions <file>`／validate／request／install／uninstall 已接上；Browser `/decisions/?scope=&task=` 與 Desktop 共用同一 Svelte 畫面和資產，Report 卡片載入私有決策摘要。規格入口：`Documentation/DecisionItemsPlan.md`（Task ID: decision-items）；操作：`Documentation/DecisionItemsUsage.md`。
+  - **驗證**：.NET 9.0.315 CLI／定向測試建置、`--decisions-only`、Python 5 項（路由 mock＋真實双 CLI 程序競爭）、Node 9 項（草稿／HTTP transport）、決策雙入口與 Viewer 資產建置通過。獨立複核指出的 JSON 重複欄位、必要 answer、檔案關聯路徑、editor header、prototype ID 與全部篩選均修正並補測。前端建置仍有既有共用元件 a11y warnings。
+  - **驗證限制**：尚未操作真實 Browser／WPF 視窗、未執行 Registry install／uninstall、未 publish／啟動或重啟共用服務。Debug CLI 與源碼具備功能，舊已發布 EXE／resident host 不宣稱已有新路由。人工驗收保留於 `checklists/decision-items.checklist` 第 6 項。
+  - **下一步**：使用包含本輪 CLI 與資產的版本，依 `Documentation/DecisionItemsUsage.md` 用範例副本完成 Browser／Desktop 操作驗收；部署／重啟需另行安排，不能把建置成功當實機通過。
+
 - **Scope 重算邊界／未估算時數已修正。** `LoadRegisteredReports` 不再自動分析；open 維持指定專案、analyze 維持明確目標。新 Time 投影保留 default 身分但省略虛構時數，Viewer 顯示未估算數量並相容舊快照。plan.md 第 6／7 待決已移至「Scope 重算邊界與未估算投影」。
   - 定向 .NET time／scope 隔離驗證、Node 18 項、三份前端建置及 scratch 投影 Schema 檢查通過。BonghuoVR 的 scratch 副本：55 個未設置，總量 19472、剩餘 301 不變。未修改 BonghuoVR 原檔，未 start／open／publish／重啟服務；已发布 EXE 與 resident worker 仍是舊行為，部署後再做實機驗收。驗收入口：checklists/scope-analysis-boundary.checklist。
 

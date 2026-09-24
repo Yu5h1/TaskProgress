@@ -175,3 +175,6 @@ Launcher 整合測試會啟動真實 LocalWebService、註冊多個 scope 與選
 TaskProgress 以 [MIT License](LICENSE) 授權。
 
 Copyright (c) 2026 Yu5h1
+## 決策項目入口
+
+具名 `.decisions` 文件以 JSON 保存問題、選項、答案及歷史，與 Checklist 共用卡片介面。使用 `task-progress.exe decisions <file.decisions>` 開啟；本機 Browser／Report 整合及 Agent request 用法見 [決策項目使用方式](Documentation/DecisionItemsUsage.md)。

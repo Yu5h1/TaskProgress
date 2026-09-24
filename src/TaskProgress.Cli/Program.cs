@@ -61,6 +61,9 @@ internal static class Program
             return ChecklistCommand.Run(args);
         }
 
+        if (args.Length == 1 && args[0].EndsWith(".decisions", StringComparison.OrdinalIgnoreCase))
+            return DecisionCommand.Run(args);
+
         var store = new ScopeStore();
         if (Uri.TryCreate(args[0], UriKind.Absolute, out var activationUri)
             && string.Equals(activationUri.Scheme, ProtocolRegistration.Scheme, StringComparison.OrdinalIgnoreCase))
@@ -88,6 +91,8 @@ internal static class Program
                 return 0;
             case "checklist":
                 return ChecklistCommand.Run(args[1..]);
+            case "decisions":
+                return DecisionCommand.Run(args[1..]);
             case "open":
                 await OpenAsync(ParseOpenRequest(args[1..], store), cancellationToken);
                 return 0;
@@ -630,6 +635,10 @@ internal static class Program
         Console.WriteLine("  analyze --scope <scope-id>       分析已登記的 scope");
         Console.WriteLine("  checklist <task.checklist>       開啟本機 WPF Checklist 編輯器");
         Console.WriteLine("  checklist validate <file>        僅驗證文件格式並輸出到 stdout，不開視窗");
+        Console.WriteLine("  decisions <file.decisions>      開啟具名決策文件（Desktop）");
+        Console.WriteLine("  decisions validate <file>        驗證決策 JSON 與歷史，輸出 JSON");
+        Console.WriteLine("  decisions request --file <file>  stdin 接收 load/confirm/reopen/revise，stdout 回 JSON；檢查 ok 欄位");
+        Console.WriteLine("  decisions install|uninstall      管理目前使用者的 .decisions 檔案關聯");
         Console.WriteLine("  checklist request --file <file>  stdin 收一則 bridge JSON 訊息，處理後輸出到 stdout（由 LocalWebService 呼叫，非人工執行）");
         Console.WriteLine("  checklist install                註冊目前使用者的 .checklist 檔案關聯");
         Console.WriteLine("  checklist uninstall              移除 TaskProgress .checklist 檔案關聯");

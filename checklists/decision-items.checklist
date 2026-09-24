@@ -1,0 +1,48 @@
+# 決策項目 Checklist
+
+Current round: `Documentation/DecisionItemsPlan.md#驗收與遷移`.
+
+本輪實作具名 JSON 決策文件與 Browser／Desktop 共用畫面；實機操作由人工確認。
+
+- [x] **1. 格式與歷史核心**
+  Outcome: 具名 JSON 決策文件支援驗證、確認、重開與修訂。
+  Checks:
+    - [x] **定向驗證**
+      - Action: 執行 Decisions 核心定向測試。
+      - Expect: D-01、未知欄位、重複 ID、其他空白及歷史不一致案例通過。
+
+- [x] **2. 保存與本機入口**
+  Outcome: 精確文件保存具備 revision、互斥鎖與冪等請求。
+  Checks:
+    - [x] **定向驗證**
+      - Action: 執行保存與 CLI request 定向測試。
+      - Expect: D-03 重送、衝突、UTF-8 與失敗不落盤通過。
+
+- [x] **3. 共用畫面與草稿**
+  Outcome: 決策頁使用共用卡片元件並保留多題草稿。
+  Checks:
+    - [x] **定向驗證**
+      - Action: 執行 decision session 測試並建置決策 UI。
+      - Expect: D-02 跨題草稿與衝突測試通過，UI 建置成功。
+
+- [x] **4. Browser 與 Report 入口**
+  Outcome: 本機服務提供文件清單、決策請求及 Report 導航。
+  Checks:
+    - [x] **定向驗證**
+      - Action: 執行 decisions 路由定向測試。
+      - Expect: 授權、路徑界線、壞檔隔離及數量計算通過。
+
+- [x] **5. Desktop 與檔案入口**
+  Outcome: 同一 DecisionApp 可由精確文件入口開啟。
+  Checks:
+    - [x] **定向驗證**
+      - Action: 建置 CLI 並檢查 Desktop adapter 與檔案關聯契約。
+      - Expect: CLI 建置與入口定向測試通過。
+
+- [ ] **6. 實機操作一致性**
+  Outcome: Browser 與 Desktop 的決策操作符合畫面與草稿契約。
+  Checks:
+    - [ ] **操作與版面** `[manual]`
+      - Action: 以範例副本在 Browser 與 Desktop 選擇其他、確認、重開，並檢查鍵盤、窄版、收合與刷新保護。
+      - Expect: 答案可保存、歷史可讀，草稿不因卡片操作遺失，鍵盤焦點與版面可用。
+      - Reason: 需要使用者實機與介面判斷。

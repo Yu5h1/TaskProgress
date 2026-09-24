@@ -975,6 +975,7 @@ function taskListProps(tasks) {
     moduleTotals,
     itemCapsules,
     pointerCards,
+    decisionCards: state.decisionCards ?? {},
     editing: state.editor.editing,
     statusOrder: state.statusOrder,
     moduleOrder: state.moduleOrder,
@@ -1413,6 +1414,22 @@ async function main() {
     state.persistedReport = structuredClone(report);
     state.developerReport = developerReport;
     state.tasks = merged.tasks;
+    state.decisionCards = {};
+    if (["localhost", "127.0.0.1", "[::1]"].includes(location.hostname)
+      && new URL(request.reportSource, location.href).origin === location.origin) {
+      const decisionScope = report.scope_id;
+      import("./decision-summary.js").then(module => module.loadDecisionSummary(decisionScope)).then(cards => {
+        if (state.report?.scope_id === decisionScope) { state.decisionCards = cards; renderTasks(); }
+      }).catch(error => {
+        if (state.report?.scope_id === decisionScope) {
+          state.decisionCards = Object.fromEntries(state.tasks.map(task => [task.id, {
+            href: `/decisions/?scope=${encodeURIComponent(decisionScope)}&task=${encodeURIComponent(task.id)}`,
+            label: "決策清單無法讀取", error: error.message
+          }]));
+          renderTasks();
+        }
+      });
+    }
     state.developerAvailable = merged.developerAvailable;
     state.diagnostics.push(...merged.diagnostics);
     // Fire-and-forget: pointer cards paint as "loading" on first render and

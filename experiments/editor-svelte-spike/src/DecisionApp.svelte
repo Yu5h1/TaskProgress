@@ -1,0 +1,142 @@
+<script>
+  // Hosts decision content in the same card and dialog components as Checklist.
+  import { onMount, tick } from "svelte";
+  import CardList from "./CardList.svelte";
+  import CardDisclosure from "./CardDisclosure.svelte";
+  import FilterStrip from "./FilterStrip.svelte";
+  import { DEFAULT_CAPSULE_ID } from "../../../viewer/assets/filter-selection.js";
+  import DialogShell from "./DialogShell.svelte";
+  import ThemeControl from "./ThemeControl.svelte";
+  import { createThemeControl } from "../../../viewer/assets/theme-control.js";
+  import { createDecisionSession } from "../../../viewer/assets/decision-session.js";
+  import { loadDisclosure, saveDisclosure } from "../../../viewer/assets/card-disclosure-state.js";
+  export let transport;
+  export let onPersistenceChange = () => {};
+  let session, view, summary, message = "載入中…", filter = "pending", expanded = true, overrides = {}, cardList, reopenId = null;
+  let theme, themeState;
+  function readTheme() { themeState = {mode:theme.mode,custom:theme.custom,systemScheme:theme.systemScheme}; }
+  $: decisions = view?.snapshot.document.decisions ?? [];
+  $: dirty = !!view?.dirty || !!view?.pending;
+  $: onPersistenceChange({ dirty, saving: !!view?.busy, pending: !!reopenId || !!view?.pending });
+  $: storageKey = view ? `taskprogress.decisions:${view.snapshot.document_key}` : null;
+  const sync = () => { view = session.view(); };
+  const edit = (id, fields) => { session.edit(id, fields); sync(); };
+  function disclose(id, value) { overrides = { ...overrides, [id]: value }; saveDisclosure(storageKey, expanded, overrides); }
+  function all(value) { expanded = value; overrides = {}; saveDisclosure(storageKey, expanded, overrides); }
+  async function load() {
+    try {
+      const result = await transport.load();
+      if (!result.ok) throw new Error(result.error.message);
+      if (result.files) { summary = result; message = ""; return; }
+      session = createDecisionSession(result); sync();
+      const saved = loadDisclosure(`taskprogress.decisions:${result.document_key}`); expanded = saved.expanded; overrides = saved.overrides;
+      message = "";
+    } catch (error) { message = error.message; }
+  }
+  onMount(() => {
+    theme = createThemeControl(); readTheme();
+    load();
+    const leave = e => { if (dirty || reopenId) { e.preventDefault(); e.returnValue = ""; } };
+    window.addEventListener("beforeunload", leave);
+    return () => { window.removeEventListener("beforeunload", leave); theme?.destroy?.(); };
+  });
+  async function send(id, operation = "confirm", retry = false) {
+    try {
+      const request = retry ? session.retry() : session.begin(id, operation); sync();
+      let result;
+      try { result = await transport.request(request); }
+      catch (error) { session.failed(); sync(); message = `結果未確認：${error.message}`; return; }
+      session.complete(result); sync();
+      message = result.ok ? "已保存；以下顯示最新狀態。" : result.error.message;
+      if (!result.ok) {
+        const fresh = await transport.load();
+        if (fresh.ok) { session.merge(fresh); sync(); }
+      }
+    } catch (error) { message = error.message; }
+  }
+  async function next() {
+    const target = decisions.find(d => d.status === "pending");
+    if (!target) return;
+    filter = "pending"; disclose(target.id, true); await tick();
+    cardList?.revealCard(target.id); await tick(); document.getElementById(`decision-${target.id}`)?.focus();
+  }
+</script>
+
+<main class="checklist-shell decisions-shell">
+  <header class="checklist-header"><h1>決策項目</h1>
+    {#if themeState}<ThemeControl mode={themeState.mode} custom={themeState.custom} systemScheme={themeState.systemScheme}
+      onModeChange={mode => { theme.setMode(mode); readTheme(); }}
+      onApplyCustom={palette => { theme.applyCustom(palette); readTheme(); }} />{/if}
+  </header>
+  {#if message}<p role="status">{message}</p>{/if}
+  {#if summary}
+    <p>待決策 {summary.pending}{summary.incomplete ? "（統計不完整）" : ""}</p>
+    {#each summary.files as file}<article class="checklist-item">
+      <a href={`?scope=${encodeURIComponent(summary.scope_id)}&task=${encodeURIComponent(file.task_id)}`}>{file.task_id}</a>
+      <p>{file.error ?? `待決策 ${file.pending}／全部 ${file.total}`}</p>
+    </article>{/each}
+    {#if !summary.files.length}<p>尚未建立決策文件。</p>{/if}
+  {:else if view}
+    <p>待決策 {decisions.filter(d => d.status === "pending").length}／全部 {decisions.length}</p>
+    <p>選擇僅保留於本頁；按「確認決策」才保存，關閉頁面會失去未確認草稿。</p>
+    <button onclick={next} disabled={!decisions.some(d => d.status === "pending")}>下一項待決策</button>
+    <FilterStrip categories={[{id:"pending",label:"待決策"},{id:"decided",label:"已決策"}]} order={[DEFAULT_CAPSULE_ID,"pending","decided"]}
+      selected={new Set(filter ? [filter] : ["pending","decided"])} defaultLit={!filter} defaultLabel="全部"
+      onSelect={id => filter = id} onSelectDefault={() => filter = ""} />
+    {#if view.pending && !view.busy}<button onclick={() => send(null, null, true)}>查核／重試原請求</button>{/if}
+    {#if !decisions.some(d => !filter || d.status === filter)}<p>目前沒有符合條件的決策項目。</p>{/if}
+    <CardList bind:this={cardList} items={decisions.filter(d => !filter || d.status === filter).map(d => ({...d,title:d.question}))} allIds={decisions.map(d => d.id)} {storageKey}
+      {expanded} onToggleAll={all} let:item let:visibilityEnabled let:visible let:onVisibleChange>
+      {@const draft = Object.hasOwn(view.drafts, item.id) ? view.drafts[item.id] : null}
+      <article class="checklist-item">
+        <CardDisclosure {visibilityEnabled} {visible} {onVisibleChange} expanded={overrides[item.id] ?? expanded}
+          onToggle={value => disclose(item.id, value)} contentId={`body-${item.id}`} label={item.question}>
+          <header slot="header" class="checklist-item-header"><h2 id={`decision-${item.id}`} tabindex="-1">{item.question}</h2><span>{item.status === "pending" ? "待決策" : "已決策"}</span></header>
+          {#if item.context}<p class="decision-text">{item.context}</p>{/if}
+          {#if item.recommendation}<p>建議：{item.options.find(o => o.id === item.recommendation.option_id)?.label} — {item.recommendation.reason}</p>{/if}
+          {#if item.status === "pending"}
+            <fieldset disabled={view.pending?.decision_id === item.id || draft?.conflict}>
+              <legend>{item.question}</legend>
+              {#each item.options as option, index}
+                <label class="decision-option"><input type="radio" name={`answer-${item.id}`} checked={draft?.choice === option.id}
+                  onchange={() => edit(item.id, {choice: option.id})} />
+                  <span>{String.fromCharCode(65 + index)}　{option.label}{option.id === item.recommendation?.option_id ? "（建議）" : ""}
+                    {#if option.description}<small>{option.description}</small>{/if}</span></label>
+              {/each}
+              {#if item.allow_other}<label class="decision-option"><input type="radio" name={`answer-${item.id}`} checked={draft?.choice === "__other"}
+                onchange={async () => { edit(item.id, {choice:"__other"}); await tick(); document.getElementById(`other-${item.id}`)?.focus(); }} />其他</label>
+                <label for={`other-${item.id}`}>其他方案</label><textarea id={`other-${item.id}`} disabled={draft?.choice !== "__other"} value={draft?.other ?? ""} oninput={e => edit(item.id, {other:e.currentTarget.value})}></textarea>{/if}
+            </fieldset>
+          {:else}<p class="decision-text">答案：{item.answer.kind === "other" ? item.answer.text : item.options.find(o => o.id === item.answer.option_id)?.label}</p>
+            <p class="decision-text">{item.answer.reason ?? ""}</p><p>{item.answer.confirmed_at}</p>
+            <button disabled={!!view.pending} onclick={() => reopenId = item.id}>重新開啟</button>{/if}
+          {#if draft?.conflict}<p role="alert">此題已變更，原草稿保留：{draft.choice} {draft.other}</p>
+            {#if item.status === "pending"}<button onclick={() => { session.rebase(item.id); sync(); }}>已核對最新題目，保留草稿</button>{/if}{/if}
+          {#if draft}<button disabled={view.pending?.decision_id === item.id} onclick={() => { session.discard(item.id); sync(); }}>捨棄草稿</button>{/if}
+          {#if item.status === "pending"}<button disabled={!!view.pending || !draft?.choice || draft?.conflict || (draft?.choice === "__other" && !draft?.other.trim())} onclick={() => send(item.id)}>確認決策</button>{/if}
+          {#if item.history.length}<details><summary>歷史（{item.history.length}）</summary>
+            {#each item.history as entry}<section><p>{entry.at} · {entry.operation}</p><pre>{JSON.stringify({before:entry.before,after:entry.after},null,2)}</pre></section>{/each}
+          </details>{/if}
+        </CardDisclosure>
+      </article>
+    </CardList>
+    {#each Object.entries(view.drafts).filter(([id]) => !decisions.some(d => d.id === id)) as [id, draft]}
+      <p role="alert">已移除題目 {id} 的原草稿：{draft.choice} {draft.other}</p>
+      <button onclick={() => { session.discard(id); sync(); }}>捨棄此草稿</button>
+    {/each}
+  {/if}
+</main>
+<DialogShell open={!!reopenId} title="重新開啟決策？" titleId="decision-reopen-title" onClose={() => reopenId = null}>
+  <p>先前答案保留在歷史，這題將回到待決策。</p>
+  <button onclick={() => reopenId = null}>取消</button>
+  <button onclick={() => { const id = reopenId; reopenId = null; send(id, "reopen"); }}>確認重新開啟</button>
+</DialogShell>
+<style>
+  .decision-option { display:flex; gap:.6rem; align-items:flex-start; padding:.6rem 0; }
+  .decision-option small { display:block; }
+  textarea { display:block; width:100%; min-height:4rem; box-sizing:border-box; }
+  fieldset { min-width:0; }
+  .decision-text, pre { white-space:pre-wrap; overflow-wrap:anywhere; }
+  button { margin:.4rem .4rem .4rem 0; }
+  .decisions-shell { max-width:1000px; margin:auto; padding:1rem; }
+</style>

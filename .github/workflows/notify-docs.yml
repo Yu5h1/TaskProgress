@@ -42,6 +42,7 @@ jobs:
           npm run viewer:ui:build
           npm run checklist:ui:build
           npm run checklist:browser:build
+          npm run decisions:ui:build
 
       - name: Fail if the committed bundle is stale
         shell: bash
@@ -49,6 +50,11 @@ jobs:
           set -euo pipefail
 
           bundles=(
+            viewer/decisions/decisions-ui.js
+            viewer/decisions/decisions-ui.css
+            src/TaskProgress.Cli/decisions-ui/index.html
+            src/TaskProgress.Cli/decisions-ui/decisions-ui.js
+            src/TaskProgress.Cli/decisions-ui/decisions-ui.css
             viewer/assets/viewer-ui.js
             src/TaskProgress.Cli/checklist-ui/checklist-ui.js
             src/TaskProgress.Cli/checklist-ui/checklist-ui.css

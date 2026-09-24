@@ -9,6 +9,7 @@
   import ItemRow from "./ItemRow.svelte";
 
   export let task;
+  export let decisionCard = null;
   export let progress;
   export let editing;
   export let policy;
@@ -91,6 +92,7 @@
 <article class={`task-card editor-task-card priority-${taskPriority?.tone ?? "unspecified"}`} aria-labelledby={`task-${task.id}-title`}>
   <CardDisclosure {visibilityEnabled} {visible} {onVisibleChange} {expanded} {onToggle} contentId={`task-body-${task.id}`} label={task.title}>
   <header slot="header" class="task-header">
+    {#if decisionCard}<a href={decisionCard.href} title={decisionCard.error ?? "開啟決策項目"}>{decisionCard.label}</a>{/if}
     <div class="task-title-group">
       {#if editing}
         <div class="time-task-status-line">

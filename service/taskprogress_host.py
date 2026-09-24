@@ -1008,6 +1008,93 @@ def install_edit_api(
             return _problem(502, "checklist_cli_failed", "Checklist CLI reported a fatal error", detail)
         return Response(content=completed.stdout, media_type="application/json")
 
+    def decision_path(scope: str, task: str) -> Path:
+        safe_scope = _validate_scope(scope)
+        if not TASK_ID_PATTERN.fullmatch(task) or len(task) > TASK_ID_MAX_LENGTH:
+            raise ValueError("Invalid task id")
+        report = registered_report(safe_scope)
+        if report is None:
+            raise ValueError("Scope not found")
+        folder = report.parent.resolve() / "decisions"
+        path = folder / f"{task}.decisions"
+        if folder.resolve() != folder or path.resolve().parent != folder or path.resolve() != path:
+            raise ValueError("Linked decision paths are forbidden")
+        return path
+
+    async def run_decision(path: Path, body: bytes) -> dict[str, Any]:
+        if not analyzer_command:
+            raise ValueError("Decision CLI unavailable")
+        completed = await asyncio.to_thread(
+            subprocess.run, [*analyzer_command, "decisions", "request", "--file", str(path), "--task", path.stem],
+            input=body, capture_output=True, timeout=30, check=False,
+            creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
+        )
+        if completed.returncode != 0:
+            raise ValueError("Decision CLI failed")
+        result = json.loads(completed.stdout)
+        if not isinstance(result, dict) or not isinstance(result.get("ok"), bool):
+            raise ValueError("Invalid Decision CLI response")
+        return result
+
+    @router.post("/decisions/{scope}")
+    async def decision_summary(scope: str, request: Request) -> Response:
+        if not _browser_write_allowed(request, control_port):
+            return _problem(403, "browser_origin_forbidden", "Trusted same-origin editor required")
+        try:
+            report = registered_report(_validate_scope(scope))
+            if report is None:
+                return _problem(404, "scope_not_found", "Scope not found")
+            _, report_data, _ = _read_report(report)
+            tasks = {t["id"] for t in report_data["tasks"] if t.get("kind") != "report_pointer"}
+            folder = decision_path(scope, "placeholder").parent
+            files = []
+            for path in sorted(folder.glob("*.decisions")):
+                entry: dict[str, Any] = {"task_id": path.stem}
+                try:
+                    result = await run_decision(decision_path(scope, path.stem), b'{"operation":"load"}')
+                    if not result["ok"]:
+                        raise ValueError(result.get("error", {}).get("code", "invalid_document"))
+                    document = result["document"]
+                    if document["task_id"] != path.stem or path.stem not in tasks:
+                        raise ValueError("Task link does not match Report")
+                    entry.update(pending=sum(d["status"] == "pending" for d in document["decisions"]), total=len(document["decisions"]))
+                except (OSError, ValueError, KeyError, subprocess.SubprocessError) as error:
+                    entry["error"] = str(error)
+                files.append(entry)
+            return JSONResponse({"ok": True, "scope_id": scope, "files": files,
+                "pending": sum(f.get("pending", 0) for f in files), "incomplete": any("error" in f for f in files)})
+        except (OSError, ValueError, KeyError) as error:
+            return _problem(422, "invalid_scope", str(error))
+
+    @router.post("/decisions/{scope}/{task}")
+    async def decision_request(scope: str, task: str, request: Request) -> Response:
+        if not _browser_write_allowed(request, control_port):
+            return _problem(403, "browser_origin_forbidden", "Trusted same-origin editor required")
+        if not _content_type_is_json(request):
+            return _problem(415, "unsupported_media_type", "Use application/json")
+        body = await request.body()
+        if len(body) > MAX_TRANSACTION_FILE_BYTES:
+            return _problem(413, "request_too_large", "Decision request exceeds limit")
+        try:
+            payload = json.loads(body)
+            if not isinstance(payload, dict) or payload.get("operation") not in ("load", "confirm", "reopen"):
+                return _problem(422, "invalid_operation", "Browser supports load, confirm and reopen")
+            path = decision_path(scope, task)
+            report = registered_report(scope)
+            _, report_data, _ = _read_report(report)
+            if not any(t["id"] == task and t.get("kind") != "report_pointer" for t in report_data["tasks"]):
+                return _problem(422, "task_not_found", "Task does not exist in Report")
+            initial = await run_decision(path, b'{"operation":"load"}')
+            if initial["ok"] and initial["document"]["task_id"] != task:
+                return _problem(422, "task_mismatch", "Document task id differs from file name")
+            if not initial["ok"] or payload["operation"] == "load":
+                if payload.get("request_id"):
+                    initial["request_id"] = payload["request_id"]
+                return JSONResponse(initial)
+            return JSONResponse(await run_decision(path, body))
+        except (OSError, ValueError, KeyError, subprocess.SubprocessError) as error:
+            return _problem(422, "decision_request_failed", str(error))
+
     @router.post("/edit-sessions")
     async def create_edit_session(request: Request) -> Response:
         if not _browser_write_allowed(request, control_port):

@@ -6,6 +6,7 @@ internal static class Program
 {
     public static async Task<int> Main(string[] args)
     {
+        if (args.Contains("--decisions-only")) { DecisionTests.Run(); return 0; }
         if (args.Contains("--time-only"))
         {
             TimeAnalysisTests.Run();

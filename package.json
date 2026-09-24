@@ -6,6 +6,7 @@
   "type": "module",
   "description": "Link-first read-only task progress reports for public pages and local projects.",
   "scripts": {
+    "decisions:ui:build": "vite build --config experiments/editor-svelte-spike/vite.decisions.config.js && node scripts/copy-decisions-ui.mjs",
     "test": "node --test",
     "checklist:ui:build": "vite build --config experiments/editor-svelte-spike/vite.checklist-ui.config.js",
     "checklist:browser:build": "vite build --config experiments/editor-svelte-spike/vite.checklist-browser.config.js",
