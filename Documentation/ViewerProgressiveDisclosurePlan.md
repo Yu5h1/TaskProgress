@@ -2,7 +2,7 @@
 
 > 狀態：Requirements Draft 0.1；視覺方向已由使用者提出，尚未形成完整實作計畫，也尚未實作。
 >
-> 與其他文件的關係：`UIConvergenceOneSourcePlan.md` 擁有「同一 UI 元素只有一份實作」的收斂規則；`ExtensionModuleArchitecturePlan.md` 擁有 module slots 與失敗隔離；`ScheduleProjectionModulePlan.md` 擁有未來甘特圖所需的排程資料；sibling workspace `..\Dandelion\Documentation\CoreInteractionArchitecturePlan.md` 擁有可跨產品重用的 anchor／line／node／route／transition contract。本文件只擁有 Viewer 的圖像優先總覽、向下漸進展開、detail shell 與 TaskProgress 圖層語意。現行任務卡、filter、Time detail 與編輯能力仍由既有設計擁有。
+> 與其他文件的關係：`UIConvergenceOneSourcePlan.md` 擁有「同一 UI 元素只有一份實作」的收斂規則；`ExtensionModuleArchitecturePlan.md` 擁有 module slots 與失敗隔離；`ScheduleProjectionModulePlan.md` 擁有未來甘特圖所需的排程資料；Web 庫內的 [Dandelion 契約](../../Web/Dandelion/Documentation/CoreInteractionArchitecturePlan.md) 擁有可跨產品重用的 anchor／line／node／route／transition contract。本文件只擁有 Viewer 的圖像優先總覽、向下漸進展開、detail shell 與 TaskProgress 圖層語意。現行任務卡、filter、Time detail 與編輯能力仍由既有設計擁有。
 
 ## 系統階層與關係
 
