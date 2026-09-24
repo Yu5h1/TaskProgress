@@ -387,8 +387,8 @@ internal static class Program
     }
 
     /// <summary>
-    ///   Loads and validates every registered scope, refreshing whatever
-    ///   analysis modules have inputs. An empty store is a valid result here;
+    ///   Loads and validates every registered scope without regenerating
+    ///   analysis snapshots. An empty store is a valid result here;
     ///   only callers that cannot proceed without a scope reject it.
     /// </summary>
     internal static IReadOnlyList<ReportFolder> LoadRegisteredReports(ScopeStore store)
@@ -403,10 +403,6 @@ internal static class Program
             {
                 throw new CliException(
                     $"scope「{expectedScope}」與 {report.ReportPath} 的 scope_id「{report.Scope}」不一致。 ");
-            }
-            if (TryAutoGenerate(item.Value))
-            {
-                report = ReportFolder.Load(item.Value);
             }
             reports.Add(report);
         }

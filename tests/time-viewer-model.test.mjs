@@ -184,3 +184,14 @@ test("the time summary button and its dialog are registered as one shared implem
   assert.doesNotMatch(timeSummaryButton, /localStorage/);
   assert.doesNotMatch(timeDialog, /localStorage/);
 });
+
+ test("unset entries accept absent durations; real estimates still require durations", () => {
+  const copy = structuredClone(analysis);
+  const item = copy.tasks[0].items[0];
+  item.mode = "default";
+  delete item.likely_minutes;
+  delete item.display_hours;
+  assert.deepEqual(validateTimeAnalysis(copy, "example"), []);
+  item.mode = "manual";
+  assert.ok(validateTimeAnalysis(copy, "example").length > 0);
+});

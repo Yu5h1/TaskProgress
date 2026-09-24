@@ -90,15 +90,15 @@ Minimal shape:
 & "<task-progress-exe>" analyze "<project-root>"
 ```
 
-  `analyze --scope <scope-id>` uses the shared registry. `--as-of <ISO timestamp>` fixes the clock for reproducible validation. `open` and `start` also refresh automatically when `time.config.json`, `time.estimates.json`, or `time.events.json` exists; projects without any time input remain unchanged.
-- The analyzer can produce an estimate-only snapshot without a deadline. When invoked with only `report.json`, stable items missing active estimates receive the explicit low-confidence default. Do not treat this deterministic fallback as AI analysis.
+  `analyze --scope <scope-id>` uses the shared registry. `--as-of <ISO timestamp>` fixes the clock for reproducible validation. `open` refreshes only its target automatically when `time.config.json`, `time.estimates.json`, or `time.events.json` exists; projects without any time input remain unchanged. `start` synchronizes routes without regenerating any scope; `scope add` only registers its target.
+- The analyzer can produce an estimate-only snapshot without a deadline. When invoked with only `report.json`, stable items missing active estimates retain unset identities without invented durations and are excluded from totals. Do not treat this deterministic fallback as AI analysis.
 - Treat `time.analysis.json` as a public, derived snapshot. Keep private work patterns, raw sessions, private leave reasons, prompts, and hidden reasoning in local inputs rather than this projection.
 - Match `scope_id` to `report.json`. Match every `task_id` and `item_id` to stable IDs in the base report; do not guess correspondence from display text.
 - Store durations as integer minutes. Display hours are derived presentation values, not the arithmetic source of truth.
 - Preserve existing `analysis_id`, stable work IDs, algorithm IDs, and estimate lineage unless their identities genuinely change.
 - Recompute deterministic values after changing progress, capacity, deadline, parameters, or estimates. Do not ask AI to redo arithmetic already covered by a registered formula.
 - For `deterministic-capacity-feasibility` v0.3, sum calibrated estimates for unfinished items, compare that demand with remaining scheduled capacity first, and then use progress pressure as a secondary trend signal. A capacity shortfall is critical; capacity utilization above 80% is at least at risk. Preserve legacy v0.2 pressure-only snapshots when reading old sidecars.
-- If required evidence is missing, emit an explicit low-confidence default estimate rather than inventing a precise range or historical basis.
+- If required evidence is missing, leave the estimate unset; report coverage and unestimated item counts, never fallback minutes.
 
 ## Generate optional `report.dev.json`
 

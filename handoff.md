@@ -4,7 +4,11 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
 
 - Canonical status entry: task status and progress are referenced by Task ID in `report.json`; Developer next steps, blockers, decisions, and routes are referenced by the same ID in `report.dev.json`. Do not duplicate that content here.
 
-## Current state (2026-09-18)
+## Current state (2026-09-25)
+
+- **Scope 重算邊界／未估算時數已修正。** `LoadRegisteredReports` 不再自動分析；open 維持指定專案、analyze 維持明確目標。新 Time 投影保留 default 身分但省略虛構時數，Viewer 顯示未估算數量並相容舊快照。plan.md 第 6／7 待決已移至「Scope 重算邊界與未估算投影」。
+  - 定向 .NET time／scope 隔離驗證、Node 18 項、三份前端建置及 scratch 投影 Schema 檢查通過。BonghuoVR 的 scratch 副本：55 個未設置，總量 19472、剩餘 301 不變。未修改 BonghuoVR 原檔，未 start／open／publish／重啟服務；已发布 EXE 與 resident worker 仍是舊行為，部署後再做實機驗收。驗收入口：checklists/scope-analysis-boundary.checklist。
+
 
 - **IconChoice 共用元件（2026-09-18）。** 排序與可見性已接入同一元件，支援 cycle／picker／both、水平／垂直與 aligned／adjacent；目前兩者採垂直 aligned，排序短按循環／長按選擇，可見性點按或長按選擇。規格與 API 見 Documentation/IconChoicePlan.md；卡片業務狀態及保存仍由 CardList 擁有。
   - **驗證範圍**：選項／可見性／Desktop transport 定向測試 10／10 與三份前端建置通過；獨立複核提出的 Tab 離開與環境取消焦點問題已修正並複核。實機對齊與手勢驗收保留於 checklists/icon-choice.checklist；未 publish／重啟應用，Desktop 仍需部署新資產並重開。

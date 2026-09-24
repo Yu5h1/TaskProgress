@@ -6,6 +6,12 @@ internal static class Program
 {
     public static async Task<int> Main(string[] args)
     {
+        if (args.Contains("--time-only"))
+        {
+            TimeAnalysisTests.Run();
+            Console.WriteLine("Time and scope isolation checks passed; no service launched.");
+            return 0;
+        }
         if (args.Contains("--worker-only"))
         {
             WorkerTests.Run();

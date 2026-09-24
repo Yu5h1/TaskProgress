@@ -85,19 +85,16 @@ internal static class TimeAnalysisGenerator
         var totalEstimatedMinutes = 0;
         double remainingBaseMinutes = 0;
         var itemCount = 0;
-        // Leaves nobody estimated are excluded from every total. Their minutes
-        // are still reported separately so the size of what was left out stays
-        // visible; they are not part of any sum.
-        var excludedDefaultMinutes = 0;
         var estimatedLeafCount = 0;
         var leafCount = 0;
 
         foreach (var task in reportTasks.Where(task => task.Status != "archive"))
         {
             var taskLevel = activeEstimates.GetValueOrDefault(TargetKey(task.Id, null));
+            if (taskLevel is not null && ResolveMode(taskLevel) == "default") taskLevel = null;
             var itemLevel = task.Items
                 .Select(item => activeEstimates.GetValueOrDefault(TargetKey(task.Id, item.Id)))
-                .Where(estimate => estimate is not null)
+                .Where(estimate => estimate is not null && ResolveMode(estimate) != "default")
                 .Cast<JsonObject>()
                 .ToList();
             if (taskLevel is not null && itemLevel.Count > 0)
@@ -128,11 +125,11 @@ internal static class TimeAnalysisGenerator
             {
                 foreach (var item in task.Items)
                 {
-                    var source = activeEstimates.GetValueOrDefault(TargetKey(task.Id, item.Id))
-                        ?? CreateDefaultEstimate(task.Id, item.Id, config, asOf);
-                    var mode = ResolveMode(source);
-                    var itemAnalysis = CreateItemAnalysis(source, item.Id, mode);
-                    var likely = itemAnalysis["likely_minutes"]!.GetValue<int>();
+                    var source = activeEstimates.GetValueOrDefault(TargetKey(task.Id, item.Id));
+                    var mode = source is null ? "default" : ResolveMode(source);
+                    var itemAnalysis = mode == "default"
+                        ? CreateUnsetItem(task.Id, item.Id)
+                        : CreateItemAnalysis(source!, item.Id, mode);
                     items.Add(itemAnalysis);
                     itemCount++;
                     leafCount++;
@@ -143,13 +140,13 @@ internal static class TimeAnalysisGenerator
                     // in `isUnsetEstimate`, so both sides exclude the same set.
                     if (mode == "default")
                     {
-                        excludedDefaultMinutes += likely;
                         diagnostics.Add(new Diagnostic(
                             "info",
                             "unset-estimate-excluded",
                             $"{item.Id} 沒有 active estimate，未計入任何總和。"));
                         continue;
                     }
+                    var likely = itemAnalysis["likely_minutes"]!.GetValue<int>();
                     estimatedLeafCount++;
                     taskMinutes += likely;
                     totalEstimatedMinutes += likely;
@@ -226,8 +223,7 @@ internal static class TimeAnalysisGenerator
             {
                 ["ai_minutes"] = composition["ai"],
                 ["mixed_minutes"] = composition["mixed"],
-                ["manual_minutes"] = composition["manual"],
-                ["default_minutes"] = excludedDefaultMinutes
+                ["manual_minutes"] = composition["manual"]
             },
             // Coverage travels with the totals so a consumer never has to guess
             // whether a small number means little work or little data. `none`
@@ -578,55 +574,20 @@ internal static class TimeAnalysisGenerator
         return result;
     }
 
-    private static JsonObject CreateDefaultEstimate(
-        string taskId,
-        string itemId,
-        AnalyzerConfig config,
-        DateTimeOffset asOf)
+    private static JsonObject CreateUnsetItem(string taskId, string itemId) => new()
     {
-        return new JsonObject
+        ["estimate_id"] = $"estimate-default-{taskId}-{itemId}-v1",
+        ["item_id"] = itemId,
+        ["mode"] = "default",
+        ["contributors"] = new JsonArray(new JsonObject
         {
-            ["estimate_id"] = $"estimate-default-{taskId}-{itemId}-v1",
-            ["task_id"] = taskId,
-            ["item_id"] = itemId,
-            ["likely_minutes"] = config.DefaultItemMinutes,
-            ["contributors"] = new JsonArray
-            {
-                new JsonObject
-                {
-                    ["kind"] = "system_default",
-                    ["summary"] = "沒有 active estimate，採用設定檔的預設項目工時。"
-                },
-                new JsonObject
-                {
-                    ["kind"] = "deterministic_formula",
-                    ["summary"] = "固定公式直接使用預設分鐘數。"
-                }
-            },
-            ["human_confirmed"] = false,
-            ["inputs"] = new JsonArray
-            {
-                new JsonObject
-                {
-                    ["name"] = "default_item_minutes",
-                    ["value"] = config.DefaultItemMinutes,
-                    ["unit"] = "min",
-                    ["origin"] = "default"
-                }
-            },
-            ["calculation"] = new JsonObject
-            {
-                ["algorithm_id"] = "default-workday",
-                ["formula"] = "unplanned_item_likely_minutes",
-                ["version"] = "0.2",
-                ["explanation"] = $"使用設定值 {config.DefaultItemMinutes} 分鐘。"
-            },
-            ["confidence"] = config.DefaultConfidence,
-            ["estimated_at"] = asOf.ToString("O", CultureInfo.InvariantCulture),
-            ["active"] = true,
-            ["rationale"] = "尚無足夠工程估算資料，使用低信心預設值；未虛構估算範圍。"
-        };
-    }
+            ["kind"] = "system_default",
+            ["summary"] = "沒有 active estimate，尚未設置工時。"
+        }),
+        ["human_confirmed"] = false,
+        ["confidence"] = "low",
+        ["explanation"] = "尚未估算；不計入總量與風險需求。"
+    };
 
     private static JsonObject CreateItemAnalysis(JsonObject source, string itemId, string mode)
     {

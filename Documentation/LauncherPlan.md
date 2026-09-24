@@ -51,7 +51,7 @@ Launcher 每次開啟專案都會重新確認註冊，因此專案移動後不�
 Launcher 了解 TaskProgress 的語意，負責：
 
 - 尋找 `report.json` 與 `report.dev.json`。
-- 提供 `analyze` 命令，並在 `open`／`start` 發現時間輸入時自動重建衍生快照。
+- 提供 `analyze` 命令，`open` 只在指定專案發現時間輸入時自動重建衍生快照；`start` 僅同步路由。
 - 沒有任何時間輸入時保持舊專案原狀，不因 Viewer 支援時間就擅自建立 sidecar。
 - 讀取並驗證 `scope_id`、`schema_version` 與 `report_id`。
 - 將 scope 轉成 Viewer 需要的 URL 路徑。

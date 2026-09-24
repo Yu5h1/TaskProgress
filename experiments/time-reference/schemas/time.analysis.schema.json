@@ -281,8 +281,7 @@
       "required": [
         "ai_minutes",
         "mixed_minutes",
-        "manual_minutes",
-        "default_minutes"
+        "manual_minutes"
       ],
       "properties": {
         "ai_minutes": {
@@ -569,6 +568,9 @@
         "estimate_composition"
       ],
       "properties": {
+        "estimated_leaf_count": { "type": "integer", "minimum": 0 },
+        "leaf_count": { "type": "integer", "minimum": 0 },
+        "estimate_coverage": { "enum": ["none", "partial", "complete"] },
         "executor_count": {
           "type": "integer",
           "minimum": 1
@@ -621,14 +623,17 @@
       "required": [
         "estimate_id",
         "item_id",
-        "likely_minutes",
-        "display_hours",
         "mode",
         "contributors",
         "human_confirmed",
         "confidence",
         "explanation"
       ],
+      "allOf": [{
+        "if": { "properties": { "mode": { "const": "default" } }, "required": ["mode"] },
+        "then": {},
+        "else": { "required": ["likely_minutes", "display_hours"] }
+      }],
       "dependentRequired": {
         "low_minutes": ["high_minutes"],
         "high_minutes": ["low_minutes"]
@@ -713,6 +718,9 @@
         "items"
       ],
       "properties": {
+        "estimated_leaf_count": { "type": "integer", "minimum": 0 },
+        "leaf_count": { "type": "integer", "minimum": 0 },
+        "estimate_coverage": { "enum": ["none", "partial", "complete"] },
         "task_id": {
           "$ref": "#/$defs/id"
         },

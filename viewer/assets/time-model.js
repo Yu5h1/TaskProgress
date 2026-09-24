@@ -147,8 +147,8 @@ export function inspectTimeAnalysis(value, expectedScopeId) {
       if (!isRecord(item)
         || typeof item.item_id !== "string"
         || !ID_PATTERN.test(item.item_id)
-        || !Number.isFinite(item.likely_minutes)
-        || !Number.isFinite(item.display_hours)) {
+        || (!isUnsetEstimate(item) && (!Number.isFinite(item.likely_minutes)
+          || !Number.isFinite(item.display_hours)))) {
         errors.push(`tasks[${taskIndex}].items[${itemIndex}] 無效。`);
         return;
       }

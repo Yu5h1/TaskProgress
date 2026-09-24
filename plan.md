@@ -893,7 +893,7 @@ TaskProgress 仍是唯讀報告與分析介面，不直接成為行事曆或計�
 
 - 不建立個人 profile，也不保存執行者身分；第一版只處理專案層級的標準容量。
 - 一名標準執行者每天理論容量為 8 小時；專案保存 `executor_count`，第一版正式支援值為 1。
-- `capacity_minutes_per_executor_day`（每日工作容量）與 `unplanned_item_likely_minutes`（沒有工程資料時的預設項目工時）是兩個獨立功能參數；範例剛好同為 480 分鐘，不代表必須相等。前者負責小時／工作日換算及產生容量時間線，後者只在分析器缺少 item 估算時建立一筆低信心預設值。
+- `capacity_minutes_per_executor_day`（每日工作容量）與 `unplanned_item_likely_minutes`（沒有工程資料時的預設項目工時）是兩個獨立功能參數；範例剛好同為 480 分鐘，不代表必須相等。前者負責小時／工作日換算及產生容量時間線，後者僅保留舊輸入相容性，不再替未估算項目產生時數；詳見「Scope 重算邊界與未估算投影」。
 - 執行者數量與執行校正分開。理論容量是 `executor_count × 每人容量`，執行校正才反映實際紀錄；多人平行效率留待後續排程階段。
 - 執行校正依專案累積，初始為 100% 中性基準與低信心；第一版只記錄，不自動調整。
 - `time.config.json` 保存標準容量、執行者數量、期限、預設項目 8 小時及顯示政策。每日分配明確保存睡眠、生活、其他固定不可工作時間與最後衍生的工作容量；四者合計必須等於 24 小時。
@@ -1274,8 +1274,12 @@ Agent 先依穩定 task/item id 與可驗證特徵尋找相似歷史資料，再
 3. 多名執行者的平行效率、技術差異與溝通成本模型；第一版只驗證 `executor_count = 1`。
 4. `time.analysis.json` Draft 何時移入正式 `schemas/` 並升為穩定版本；第一版已決定維持獨立投影，不放入 `report.json`。
 5. 進度壓力 1.10／1.50 門檻是否經實際回測後需要調整；信心始終留在彈出面板，不改變主畫面顏色。
-6. `open`／`start` 的自動重算是否應寫入受版控的 `time.analysis.json`。`as_of` 取執行當下，輸入未變也每次產生不同內容；TaskProgress 自身以 `.gitignore` 排除此檔所以無感，但 BonghuoVR 為了發布而將它納入版控。2026-09-24 一次只為同步新登記 `dotnet` scope 路由的 `start --no-browser`，就讓 BonghuoVR 多出約 2,577 行差異，且該 repo 當時另有他人未提交的工作（使用者已還原）。選項：自動重算改寫到不進版控的位置，發布用快照只由明確的 `analyze` 產生；輸入未變時不重寫；或維持現狀，並在 `task-progress-report` skill 明寫 `start` 會寫入每個有時間輸入的 scope。
-7. 同一次重算中，BonghuoVR 投影的估算組成 `default_minutes` 由 0 變為 26,400（`task_state_updated_at` 2026-09-23 新增的項目未估時）。需確認這與 `Documentation/AssessmentModuleArchitecturePlan.md`「未設置不是零，也不是領域預設值」及 2026-09-01 已落地的「未設置排除於加總」一致；若分析器仍把 `estimate_defaults` 計入組成或總量，屬該決策的殘留實作，需決定修正範圍。
+
+### Scope 重算邊界與未估算投影
+
+`start` 只啟動服務與同步所有 scope 的路由，不重算快照；`scope add` 只登記指定專案。`open` 的自動重算限正在開啟的專案；`analyze` 明確重算指定專案。發布快照仍由專案明確產生，不引入快取架構。
+
+未估算 leaf 保留 ID、未設置標記與編輯入口，排除於總量及風險需求；不產生 likely_minutes、display_hours 或虛構預設分鐘組成。以 leaf_count 減 estimated_leaf_count 表示未估算數量。Viewer 相容舊 default 快照但不顯示其虛構時數。此規則延續 AssessmentModuleArchitecturePlan.md「未設置不是零，也不是領域預設值」。
 
 ## 本機任務編輯 Draft 0.1
 

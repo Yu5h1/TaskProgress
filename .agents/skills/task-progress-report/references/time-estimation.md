@@ -26,7 +26,7 @@ Use one exclusive result mode per active item estimate so project composition ne
 1. `manual`: a human directly supplies the final likely duration.
 2. `mixed`: human parameters combine with AI analysis, historical evidence, and a registered deterministic formula.
 3. `ai`: AI selects and explains an estimate without human parameters; deterministic arithmetic still uses a registered formula when possible.
-4. `default`: evidence is insufficient; use `unplanned_item_likely_minutes`, initially 480 minutes, with low confidence and no invented range.
+4. `default`: compatibility marker for unset items. New projections omit durations; old default durations are ignored.
 
 Historical evidence is a contributor, not a fifth exclusive result mode. Use it only when samples are comparable by task type, technology, scale, difficulty, novelty, method, and data quality. Otherwise state that the sample basis is insufficient.
 
@@ -45,7 +45,7 @@ When an input changes but the registered algorithm still applies, rerun the form
 - Store all durations as integer minutes.
 - Sum the active item `likely_minutes` to produce each task total.
 - Sum task totals once to produce `total_estimated_minutes`.
-- Sum mutually exclusive manual/mixed/ai/default modes to produce `estimate_composition`; its total must equal the project estimate.
+- Sum only manual/mixed/ai modes to produce `estimate_composition`; its total must equal the project estimate. Show unset leaves as counts, not minutes.
 - Apply execution calibration only once. With no reliable samples, keep factor `1.0`, effective sample count `0`, and low confidence.
 - Preserve stable `task_id` and `item_id`. Create a new versioned `estimate_id` when the estimate changes; link it through `supersedes_estimate_id` rather than overwriting history.
 
@@ -138,6 +138,6 @@ After engineering inputs are ready, use the deterministic Launcher instead of ma
 & "<task-progress-exe>" analyze "<project-root>"
 ```
 
-The command reads the base report plus optional config, estimates, and events, then atomically updates the derived snapshot. Missing `delivery_at` is a valid estimate-only result. `open` and `start` automatically run the same projection when any time input exists; Viewer reload only advances deadline risk and never reruns AI.
+The command reads the base report plus optional config, estimates, and events, then atomically updates the derived snapshot. Missing `delivery_at` is a valid estimate-only result. `open` automatically runs the projection only for its target when time inputs exist; `start` only synchronizes routes and never regenerates snapshots; Viewer reload only advances deadline risk and never reruns AI.
 
 Missing sidecars are normal. Invalid sidecars must be ignored by the Viewer without breaking the base report.

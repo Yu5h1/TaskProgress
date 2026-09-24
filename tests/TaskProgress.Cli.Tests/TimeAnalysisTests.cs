@@ -30,7 +30,8 @@ internal static class TimeAnalysisTests
             AnExcludedItemStillHasAnEntryToOpen(root);
             PartialCoverageSumsOnlyWhatIsSet(root);
             NoEstimateAnywhereWithholdsTheDeadline(root);
-            ExcludedMinutesStayVisibleWithoutJoiningTheTotal(root);
+            UnsetItemsHaveNoInventedMinutes(root);
+            LoadingScopesDoesNotRewriteSnapshots(root);
         }
         finally
         {
@@ -129,10 +130,9 @@ internal static class TimeAnalysisTests
     }
 
     /// <summary>
-    ///   What was left out stays reportable. Hiding the size of the exclusion
-    ///   would make it as hard to notice as the default it replaced.
+    ///   Unset items retain identity without inventing a duration.
     /// </summary>
-    private static void ExcludedMinutesStayVisibleWithoutJoiningTheTotal(string root)
+    private static void UnsetItemsHaveNoInventedMinutes(string root)
     {
         var folder = NewReport(root, "excluded", pending: ["a"], done: []);
         WriteConfig(folder);
@@ -141,8 +141,31 @@ internal static class TimeAnalysisTests
         var composition = ReadAnalysis(folder)
             .RootElement.GetProperty("summary").GetProperty("estimate_composition");
 
-        Equal(480L, composition.GetProperty("default_minutes").GetInt64(), "The excluded minutes were not reported");
+        False(composition.TryGetProperty("default_minutes", out _), "Invented composition minutes survived");
+        var item = ReadAnalysis(folder).RootElement.GetProperty("tasks")[0].GetProperty("items")[0];
+        False(item.TryGetProperty("likely_minutes", out _), "Unset item has invented minutes");
+        False(item.TryGetProperty("display_hours", out _), "Unset item has invented hours");
         Equal(0L, composition.GetProperty("manual_minutes").GetInt64(), "An excluded leaf was counted as manual");
+    }
+
+    private static void LoadingScopesDoesNotRewriteSnapshots(string root)
+    {
+        var store = new ScopeStore(Path.Combine(root, "scopes.json"));
+        foreach (var scope in new[] { "scope-a", "scope-b" })
+        {
+            var folder = NewReport(root, scope, pending: ["a"], done: []);
+            WriteConfig(folder);
+            foreach (var name in new[] { "report.json", "time.config.json" })
+            {
+                var path = Path.Combine(folder, name);
+                File.WriteAllText(path, File.ReadAllText(path).Replace("time-fixture", scope));
+            }
+            File.WriteAllText(Path.Combine(folder, "time.analysis.json"), "{\"sentinel\":true}");
+            store.Add(folder);
+        }
+        Equal(2, TaskProgress.Program.LoadRegisteredReports(store).Count, "Missing registered scope");
+        foreach (var folder in store.List().Values)
+            Equal("{\"sentinel\":true}", File.ReadAllText(Path.Combine(folder, "time.analysis.json")), "Scope loading rewrote a snapshot");
     }
 
     private static readonly DateTimeOffset When = DateTimeOffset.Parse("2026-08-28T12:00:00+08:00");

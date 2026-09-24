@@ -1,0 +1,23 @@
+# Scope 分析邊界 Checklist
+
+Current round: `plan.md#scope-重算邊界與未估算投影`.
+
+本輪只處理服務路由與分析副作用邊界，以及未估算投影。
+
+- [x] **1. 限定重算範圍並移除虛構時數**
+  Outcome: scope 載入不改快照，未估算項目保留入口且不產生分鐘數。
+  Checks:
+    - [x] **隔離與投影契約**
+      - Action: 建置 CLI Tests 並執行 --time-only；以固定時鐘分析 scratch 副本並驗證 Schema、55 個未估算與既有總量。
+      - Expect: 多 scope 快照保持原文；未估算無分鐘數、總量 19472 與剩餘 301 不變；Schema 通過，不操作真實 scope。
+    - [x] **Viewer 相容性**
+      - Action: 執行 time-viewer-model、time-dialog-control 定向測試並重建三入口。
+      - Expect: 舊快照與無時數未設置格式可讀，真實估算仍要求時數，18 項測試與建置通過。
+
+- [ ] **2. 部署後操作確認**
+  Outcome: 使用新 CLI 與 worker 時，路由同步不改其他專案，畫面未估算顯示數量。
+  Checks:
+    - [ ] **實機畫面與服務** `[manual]`
+      - Action: 更新部署並結束舊 worker → 使用可拋棄測試 scope 啟動及同步服務 → 檢查快照檔案與 Viewer 未估算顯示。
+      - Expect: 同步不改快照；未估算以項目數呈現，仍可開啟估算入口。
+      - Reason: 需要使用者安排 resident worker 與應用部署切換；本輪不重啟共用服務。

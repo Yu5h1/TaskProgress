@@ -184,15 +184,13 @@ function capacityProfileFor(summary, deadline) {
   };
 }
 
-function compositionRows(summary) {
+function compositionRows(summary, analysis) {
+  const unsetCount = analysis.tasks.reduce((sum, task) => sum + task.items.filter(isUnsetEstimate).length, 0);
   const values = summary.estimate_composition ?? {};
   const rows = [
     { label: "混合估算", value: hours(values.mixed_minutes ?? 0), note: "人工參數＋AI 分析＋固定公式" },
     { label: "人工直接估算", value: hours(values.manual_minutes ?? 0), note: "由使用者輸入最後估值" },
-    // Reads as a sibling of the other rows, so it has to say outright that it
-    // is not one. These minutes were excluded from the total; leaving the old
-    // "缺少足夠工程資料" note would let the row be read as part of the sum.
-    { label: "未設置（未計入）", value: hours(values.default_minutes ?? 0), note: "沒有 active estimate，已排除於總和之外" },
+    { label: "未估算", value: `${unsetCount} 項`, note: "尚未設置工時，不計入總和" },
   ];
   if ((values.ai_minutes ?? 0) > 0) {
     rows.push({ label: "AI 估算", value: hours(values.ai_minutes), note: "沒有人工參數的 AI 分析" });
@@ -373,7 +371,7 @@ export function createTimeReferenceController({
       ],
       explanation: { className: meta.className, text: result.text, formula: result.formula },
       calibrationText: `目前因子 ${summary.execution_calibration.factor.toFixed(1)}，有效樣本 ${summary.execution_calibration.effective_sample_count ?? 0}。`,
-      composition: compositionRows(summary),
+      composition: compositionRows(summary, analysis),
     };
   }
 
@@ -390,7 +388,7 @@ export function createTimeReferenceController({
         { label: "最後估算", value: formatTime(reportTime) },
       ],
       calibrationText: `目前因子 ${summary.execution_calibration.factor.toFixed(1)}，有效樣本 ${summary.execution_calibration.effective_sample_count ?? 0}。`,
-      composition: compositionRows(summary),
+      composition: compositionRows(summary, analysis),
     };
   }
 
@@ -472,8 +470,8 @@ export function createTimeReferenceController({
       taskId,
       itemId: item.item_id,
       /*
-       * `unset` travels so the editor can start empty. The analyzer still
-       * substitutes a default into `likely_minutes`, and pre-filling the form
+       * `unset` travels so the editor can start empty. Legacy snapshots may still
+       * carry a default in `likely_minutes`, and pre-filling the form
        * with it would put a number nobody chose in front of the reader as
        * though it were their estimate — the exact substitution this project
        * decided to stop trusting.
@@ -486,7 +484,7 @@ export function createTimeReferenceController({
       confidenceLabel: CONFIDENCE_LABELS[item.confidence] ?? "信心未標示",
       confidenceClass: `time-confidence confidence-${item.confidence}`,
       sourceBadges: itemSourceBadges(item),
-      likelyHoursLabel: hours(item.likely_minutes),
+      likelyHoursLabel: isUnsetEstimate(item) ? "未估算" : hours(item.likely_minutes),
       rationale: item.explanation ?? "尚未提供估算依據。",
       technical: {
         metrics: [
