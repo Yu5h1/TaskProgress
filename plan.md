@@ -1274,6 +1274,8 @@ Agent 先依穩定 task/item id 與可驗證特徵尋找相似歷史資料，再
 3. 多名執行者的平行效率、技術差異與溝通成本模型；第一版只驗證 `executor_count = 1`。
 4. `time.analysis.json` Draft 何時移入正式 `schemas/` 並升為穩定版本；第一版已決定維持獨立投影，不放入 `report.json`。
 5. 進度壓力 1.10／1.50 門檻是否經實際回測後需要調整；信心始終留在彈出面板，不改變主畫面顏色。
+6. `open`／`start` 的自動重算是否應寫入受版控的 `time.analysis.json`。`as_of` 取執行當下，輸入未變也每次產生不同內容；TaskProgress 自身以 `.gitignore` 排除此檔所以無感，但 BonghuoVR 為了發布而將它納入版控。2026-09-24 一次只為同步新登記 `dotnet` scope 路由的 `start --no-browser`，就讓 BonghuoVR 多出約 2,577 行差異，且該 repo 當時另有他人未提交的工作（使用者已還原）。選項：自動重算改寫到不進版控的位置，發布用快照只由明確的 `analyze` 產生；輸入未變時不重寫；或維持現狀，並在 `task-progress-report` skill 明寫 `start` 會寫入每個有時間輸入的 scope。
+7. 同一次重算中，BonghuoVR 投影的估算組成 `default_minutes` 由 0 變為 26,400（`task_state_updated_at` 2026-09-23 新增的項目未估時）。需確認這與 `Documentation/AssessmentModuleArchitecturePlan.md`「未設置不是零，也不是領域預設值」及 2026-09-01 已落地的「未設置排除於加總」一致；若分析器仍把 `estimate_defaults` 計入組成或總量，屬該決策的殘留實作，需決定修正範圍。
 
 ## 本機任務編輯 Draft 0.1
 
