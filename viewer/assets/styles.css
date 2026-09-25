@@ -891,7 +891,6 @@ h1 {
   box-shadow: 4px 0 0 var(--color-active-text);
 }
 
-.filter-button:hover,
 .filter-button[aria-pressed="true"] {
   color: var(--color-control-text);
   background: var(--color-control-bg);
@@ -2986,5 +2985,11 @@ footer {
 .status-summary-filters [data-capsule-id="done"],
 .status-summary-filters [data-capsule-id="passed"] { --filter-ink: var(--moss); --filter-fill: var(--moss-soft); }
 .status-summary-filters .filter-button[aria-pressed="false"] { background: transparent; border-color: var(--line); color: var(--ink-soft); }
-.status-summary-filters .filter-button:hover { border-color: var(--filter-ink); }
+.filter-strip.horizontal-capsule-strip { gap: 10px; padding: 4px; }
+.filter-strip .filter-button { margin: 0; }
+.filter-strip .filter-button:hover {
+  border-color: var(--color-focus);
+  outline: 2px solid var(--color-focus);
+  outline-offset: 1px;
+}
 .status-summary-filters .filter-button.status-sortable::before { display: none; }

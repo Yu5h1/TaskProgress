@@ -4,7 +4,7 @@
   import CardList from "./CardList.svelte";
   import CardDisclosure from "./CardDisclosure.svelte";
   import FilterStrip from "./FilterStrip.svelte";
-  import { DEFAULT_CAPSULE_ID } from "../../../viewer/assets/filter-selection.js";
+  import { DEFAULT_CAPSULE_ID, createFilterSelection, isDefaultLit, toggleTag, toggleDefault } from "../../../viewer/assets/filter-selection.js";
   import DialogShell from "./DialogShell.svelte";
   import ThemeControl from "./ThemeControl.svelte";
   import { createThemeControl } from "../../../viewer/assets/theme-control.js";
@@ -12,7 +12,8 @@
   import { loadDisclosure, saveDisclosure } from "../../../viewer/assets/card-disclosure-state.js";
   export let transport;
   export let onPersistenceChange = () => {};
-  let session, view, summary, message = "載入中…", filter = "pending", expanded = true, overrides = {}, cardList, reopenId = null;
+  let session, view, summary, message = "載入中…", expanded = true, overrides = {}, cardList, reopenId = null;
+  let selection = toggleTag(createFilterSelection(["pending", "decided"]), "decided");
   let theme, themeState;
   function readTheme() { themeState = {mode:theme.mode,custom:theme.custom,systemScheme:theme.systemScheme}; }
   $: decisions = view?.snapshot.document.decisions ?? [];
@@ -57,7 +58,8 @@
   async function next() {
     const target = decisions.find(d => d.status === "pending");
     if (!target) return;
-    filter = "pending"; disclose(target.id, true); await tick();
+    if (!selection.selected.has("pending")) selection = toggleTag(selection, "pending");
+    disclose(target.id, true); await tick();
     cardList?.revealCard(target.id); await tick(); document.getElementById(`decision-${target.id}`)?.focus();
   }
 </script>
@@ -84,12 +86,12 @@
     <div class="decision-controls">
     <button onclick={next} disabled={!decisions.some(d => d.status === "pending")}>下一項待決策</button>
     <FilterStrip categories={[{id:"pending",label:"待決策"},{id:"decided",label:"已決策"}]} order={[DEFAULT_CAPSULE_ID,"pending","decided"]}
-      selected={new Set(filter ? [filter] : ["pending","decided"])} defaultLit={!filter} defaultLabel="全部"
-      onSelect={id => filter = id} onSelectDefault={() => filter = ""} />
+      selected={selection.selected} defaultLit={isDefaultLit(selection)} defaultLabel="全部"
+      onSelect={id => selection = toggleTag(selection, id)} onSelectDefault={() => selection = toggleDefault(selection)} />
     </div>
     {#if view.pending && !view.busy}<button onclick={() => send(null, null, true)}>查核／重試原請求</button>{/if}
-    {#if !decisions.some(d => !filter || d.status === filter)}<p>目前沒有符合條件的決策項目。</p>{/if}
-    <CardList bind:this={cardList} items={decisions.filter(d => !filter || d.status === filter).map(d => ({...d,title:d.question}))} allIds={decisions.map(d => d.id)} {storageKey}
+    {#if !decisions.some(d => selection.selected.has(d.status))}<p>目前沒有符合條件的決策項目。</p>{/if}
+    <CardList bind:this={cardList} items={decisions.filter(d => selection.selected.has(d.status)).map(d => ({...d,title:d.question}))} allIds={decisions.map(d => d.id)} {storageKey}
       {expanded} onToggleAll={all} let:item let:visibilityEnabled let:visible let:onVisibleChange>
       {@const draft = Object.hasOwn(view.drafts, item.id) ? view.drafts[item.id] : null}
       <article class="checklist-item decision-card" class:decision-has-visibility={visibilityEnabled}>

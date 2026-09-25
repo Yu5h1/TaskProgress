@@ -3733,14 +3733,14 @@ wr([
 //#region experiments/editor-svelte-spike/src/FilterStrip.svelte
 function So(e, t) {
 	Ue(t, !1);
-	let n = /* @__PURE__ */ I(), r = /* @__PURE__ */ I(), i = /* @__PURE__ */ I(), a = /* @__PURE__ */ I(), o = $(t, "categories", 24, () => []), s = $(t, "order", 24, () => []), c = $(t, "selected", 24, () => /* @__PURE__ */ new Set()), l = $(t, "defaultLit", 8, !1), u = $(t, "defaultLabel", 8, "預設"), d = $(t, "ariaLabel", 8, "篩選"), f = $(t, "className", 8, ""), p = $(t, "reorderable", 8, !1), m = $(t, "onSelect", 8, () => {}), h = $(t, "onSelectDefault", 8, () => {}), g = $(t, "onReorder", 8, () => {}), _ = (e) => e.count === void 0 || e.count === null ? e.label : `${e.label} ${e.count}`, v = (e) => {
-		let t = p() && e.sortable !== !1;
+	let n = /* @__PURE__ */ I(), r = /* @__PURE__ */ I(), i = /* @__PURE__ */ I(), a = /* @__PURE__ */ I(), o = $(t, "categories", 24, () => []), s = $(t, "order", 24, () => []), c = $(t, "selected", 24, () => /* @__PURE__ */ new Set()), l = $(t, "defaultLit", 8, !1), u = $(t, "defaultLabel", 8, "預設"), d = $(t, "ariaLabel", 8, "篩選"), f = $(t, "className", 8, ""), p = $(t, "reorderable", 8, !1), m = $(t, "onSelect", 8, () => {}), h = $(t, "onSelectDefault", 8, () => {}), g = $(t, "onReorder", 8, () => {}), _ = (e) => e.count === void 0 || e.count === null ? e.label : `${e.label} ${e.count}`, v = (e, t, n) => {
+		let r = n && e.sortable !== !1;
 		return {
 			id: e.id,
 			label: _(e),
-			className: `filter-button${t ? " status-sortable" : ""}`,
-			sortable: t,
-			pressed: c().has(e.id),
+			className: `filter-button${r ? " status-sortable" : ""}`,
+			sortable: r,
+			pressed: t.has(e.id),
 			title: e.title ?? null,
 			ariaLabel: e.ariaLabel ?? _(e)
 		};
@@ -3762,23 +3762,28 @@ function So(e, t) {
 		L(r, new Map(o().map((e) => [e.id, e])));
 	}), B(() => (K(s()), K(o())), () => {
 		L(i, s().length > 0 ? s() : [Ni, ...o().map((e) => e.id)]);
-	}), B(() => (W(i), W(n), W(r)), () => {
-		L(a, W(i).map((e) => e === "__default__" ? W(n) : W(r).get(e)).filter(Boolean).map((e) => e === W(n) ? e : v(e)));
-	}), Dn(), wi(), xo(e, {
-		get items() {
-			return W(a);
-		},
-		get className() {
-			return f();
-		},
-		get ariaLabel() {
-			return d();
-		},
-		onActivate: y,
-		get onReorder() {
-			return g();
-		}
-	}), We();
+	}), B(() => (W(i), W(n), W(r), K(c()), K(p())), () => {
+		L(a, W(i).map((e) => e === "__default__" ? W(n) : W(r).get(e)).filter(Boolean).map((e) => e === W(n) ? e : v(e, c(), p())));
+	}), Dn(), wi();
+	{
+		let t = /* @__PURE__ */ P(() => `filter-strip ${f()}`);
+		xo(e, {
+			get items() {
+				return W(a);
+			},
+			get className() {
+				return W(t);
+			},
+			get ariaLabel() {
+				return d();
+			},
+			onActivate: y,
+			get onReorder() {
+				return g();
+			}
+		});
+	}
+	We();
 }
 //#endregion
 //#region experiments/editor-svelte-spike/src/MarkerBox.svelte

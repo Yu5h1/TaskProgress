@@ -3248,14 +3248,14 @@ var Ya = "__default__";
 //#region experiments/editor-svelte-spike/src/FilterStrip.svelte
 function Xa(e, t) {
 	qe(t, !1);
-	let n = /* @__PURE__ */ N(), r = /* @__PURE__ */ N(), i = /* @__PURE__ */ N(), a = /* @__PURE__ */ N(), o = $(t, "categories", 24, () => []), s = $(t, "order", 24, () => []), c = $(t, "selected", 24, () => /* @__PURE__ */ new Set()), l = $(t, "defaultLit", 8, !1), u = $(t, "defaultLabel", 8, "預設"), d = $(t, "ariaLabel", 8, "篩選"), f = $(t, "className", 8, ""), p = $(t, "reorderable", 8, !1), m = $(t, "onSelect", 8, () => {}), h = $(t, "onSelectDefault", 8, () => {}), g = $(t, "onReorder", 8, () => {}), _ = (e) => e.count === void 0 || e.count === null ? e.label : `${e.label} ${e.count}`, v = (e) => {
-		let t = p() && e.sortable !== !1;
+	let n = /* @__PURE__ */ N(), r = /* @__PURE__ */ N(), i = /* @__PURE__ */ N(), a = /* @__PURE__ */ N(), o = $(t, "categories", 24, () => []), s = $(t, "order", 24, () => []), c = $(t, "selected", 24, () => /* @__PURE__ */ new Set()), l = $(t, "defaultLit", 8, !1), u = $(t, "defaultLabel", 8, "預設"), d = $(t, "ariaLabel", 8, "篩選"), f = $(t, "className", 8, ""), p = $(t, "reorderable", 8, !1), m = $(t, "onSelect", 8, () => {}), h = $(t, "onSelectDefault", 8, () => {}), g = $(t, "onReorder", 8, () => {}), _ = (e) => e.count === void 0 || e.count === null ? e.label : `${e.label} ${e.count}`, v = (e, t, n) => {
+		let r = n && e.sortable !== !1;
 		return {
 			id: e.id,
 			label: _(e),
-			className: `filter-button${t ? " status-sortable" : ""}`,
-			sortable: t,
-			pressed: c().has(e.id),
+			className: `filter-button${r ? " status-sortable" : ""}`,
+			sortable: r,
+			pressed: t.has(e.id),
 			title: e.title ?? null,
 			ariaLabel: e.ariaLabel ?? _(e)
 		};
@@ -3277,23 +3277,28 @@ function Xa(e, t) {
 		P(r, new Map(o().map((e) => [e.id, e])));
 	}), R(() => (W(s()), W(o())), () => {
 		P(i, s().length > 0 ? s() : [Ya, ...o().map((e) => e.id)]);
-	}), R(() => (H(i), H(n), H(r)), () => {
-		P(a, H(i).map((e) => e === "__default__" ? H(n) : H(r).get(e)).filter(Boolean).map((e) => e === H(n) ? e : v(e)));
-	}), jn(), Vi(), ja(e, {
-		get items() {
-			return H(a);
-		},
-		get className() {
-			return f();
-		},
-		get ariaLabel() {
-			return d();
-		},
-		onActivate: y,
-		get onReorder() {
-			return g();
-		}
-	}), Je();
+	}), R(() => (H(i), H(n), H(r), W(c()), W(p())), () => {
+		P(a, H(i).map((e) => e === "__default__" ? H(n) : H(r).get(e)).filter(Boolean).map((e) => e === H(n) ? e : v(e, c(), p())));
+	}), jn(), Vi();
+	{
+		let t = /* @__PURE__ */ j(() => `filter-strip ${f()}`);
+		ja(e, {
+			get items() {
+				return H(a);
+			},
+			get className() {
+				return H(t);
+			},
+			get ariaLabel() {
+				return d();
+			},
+			onActivate: y,
+			get onReorder() {
+				return g();
+			}
+		});
+	}
+	Je();
 }
 //#endregion
 //#region experiments/editor-svelte-spike/src/StatusOverview.svelte

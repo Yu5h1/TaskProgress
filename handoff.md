@@ -6,6 +6,10 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
 
 ## Current state (2026-09-25)
 
+- **篩選 hover 與選取分離。** 共用 FilterStrip 加上樣式入口，標籤間距 10px、外圍留白 4px；hover 只亮框，底色維持代表選取狀態，避免未選取標籤 hover 後看似已選取。四入口建置通過，Browser／Desktop／Debug／Build 資產同步；實際 hover 待使用者重載確認，未 commit。
+
+- **篩選標籤亮暗修正。** DecisionApp 改用共用 filter-selection 的獨立 toggle／全選反選；保留初始只顯示 pending，下一項會啟用 pending 而保留其他選取。FilterStrip 將 selected／reorderable 明確傳入 capsule 投影，修正 Svelte 無法追蹤 helper 閉包依賴而造成 Checklist 等入口亮暗不同步。30 項篩選定向測試通過（含編譯依賴回歸），四份入口資產建置通過並同步 Debug／Build Desktop 資產；本輪實機切換待確認，未 commit。使用者已確認開啟、其他輸入與排版正常；開始前 decisions/decision-example.decisions 已有使用者保存的答案，未修改或接管。
+
 - **決策面板間距分層。** 選項垂直 padding 由 8px 收至 4px，說明／建議以 4px 間距分組；內容區塊與卡片以 20px 分隔，其他輸入區增加上方留白、操作區增加分隔線。標題與內容仍對齊，收合保留 7px 標題內距。建置通過並同步 Browser／Desktop／Debug／Build 資產；實際預覽確認版面。使用者原頁含未保存 C 選項，保留原頁並另開新版預覽，未提交答案、未 commit。
 
 - **最新版本已發布並啟動預覽。** 依使用者明確要求，以 SDK 9.0.315 發布至 Build/win-x64（含 Report CLI 與標題對齊修正），執行 start --no-browser 成功。service status 確認 8001、PID 29896、instance 38237857973841ec9b080703433a7871、Viewer root 為本專案，17 個註冊檔案。已在 Codex Browser 開啟 /decisions/?scope=task-progress&task=decision-example，兩題正常載入；截圖確認第一張卡說明左緣對齊標題。只預覽，未提交答案或執行完整整合驗收。Publish 有 ReportCommand.cs 的既有 IL3000 警告，未影響完成。

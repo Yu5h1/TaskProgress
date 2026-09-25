@@ -33,7 +33,7 @@
       ? category.label
       : `${category.label} ${category.count}`;
 
-  const tagCapsule = (category) => {
+  const tagCapsule = (category, selected, reorderable) => {
     const sortable = reorderable && category.sortable !== false;
     return {
       id: category.id,
@@ -66,7 +66,7 @@
   $: capsules = sequence
     .map((id) => (id === DEFAULT_CAPSULE_ID ? defaultCapsule : byId.get(id)))
     .filter(Boolean)
-    .map((entry) => (entry === defaultCapsule ? entry : tagCapsule(entry)));
+    .map((entry) => (entry === defaultCapsule ? entry : tagCapsule(entry, selected, reorderable)));
 
   function activate(id) {
     if (id === DEFAULT_CAPSULE_ID) onSelectDefault();
@@ -76,7 +76,7 @@
 
 <HorizontalCapsuleStrip
   items={capsules}
-  {className}
+  className={`filter-strip ${className}`}
   {ariaLabel}
   onActivate={activate}
   {onReorder}

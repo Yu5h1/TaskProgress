@@ -17,6 +17,16 @@ test("the strip compiles cleanly", () => {
   assert.deepEqual(compiled.warnings.map((warning) => warning.code), []);
 });
 
+test("capsule updates track selection even when categories and all-selected stay unchanged", () => {
+  const { js } = compile(strip, { name: "FilterStrip" });
+  // Svelte's legacy dependency analysis cannot see state captured inside helpers.
+  const effect = js.code.split("$.legacy_pre_effect(").find(part => part.includes("$.set(capsules,"));
+  assert.ok(effect, "capsules have a reactive effect");
+  const dependencies = effect.slice(0, effect.indexOf("() => {"));
+  assert.match(dependencies, /deep_read_state\(selected\(\)\)/u);
+  assert.match(dependencies, /deep_read_state\(reorderable\(\)\)/u);
+});
+
 test("the strip defines no categories of its own", () => {
   assert.match(strip, /export let categories = \[\];/u);
   assert.match(strip, /categories\.map\(/u);
