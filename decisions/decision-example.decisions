@@ -1,0 +1,55 @@
+{
+  "schema_version": "1.0",
+  "task_id": "decision-example",
+  "updated_at": "2026-09-25T00:00:00+08:00",
+  "decisions": [
+    {
+      "id": "input",
+      "version": 1,
+      "question": "CLI 使用哪種輸入？",
+      "context": "這是操作範例，確認不會修改程式。",
+      "options": [
+        {
+          "id": "batch",
+          "label": "批次 JSON",
+          "description": "一次提交多項"
+        },
+        {
+          "id": "short",
+          "label": "簡短命令"
+        },
+        {
+          "id": "both",
+          "label": "兩種都提供"
+        }
+      ],
+      "recommendation": {
+        "option_id": "batch",
+        "reason": "先收斂修改契約"
+      },
+      "allow_other": true,
+      "status": "pending",
+      "answer": null,
+      "history": []
+    },
+    {
+      "id": "next",
+      "version": 1,
+      "question": "下一步先驗證什麼？",
+      "options": [
+        {
+          "id": "conflict",
+          "label": "衝突處理"
+        },
+        {
+          "id": "ui",
+          "label": "畫面操作"
+        }
+      ],
+      "allow_other": true,
+      "status": "pending",
+      "answer": null,
+      "history": []
+    }
+  ]
+}

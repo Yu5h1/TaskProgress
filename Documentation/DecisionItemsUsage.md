@@ -23,11 +23,23 @@ task-progress.exe decisions validate "C:\Project\decisions\task-a.decisions"
 - scope 總覽：`/decisions/?scope=<scope-id>`。
 - 本機 Report 卡片會顯示對應文件的待決策數量與連結。
 
-選取選項或「其他」→ 填寫答案 →「確認決策」。只有成功確認才保存。草稿僅保留本頁，重新載入或關閉可能遺失。
+選取選項，或直接在「其他方案」輸入文字（自動選中「其他」）→「確認決策」。只有成功確認才保存。草稿僅保留本頁，重新載入或關閉可能遺失。
 
 修改已確認的答案 →「重新開啟」→ 確認 → 重新選擇答案。原答案保留在歷史。
 
 若顯示衝突，先核對最新問題，再選擇捨棄或保留草稿；若顯示結果未確認，使用「查核／重試原請求」，避免重複發動新操作。
+
+## 本機操作範例
+
+> Task ID: decision-example
+
+操作檔：[decisions/decision-example.decisions](../decisions/decision-example.decisions)。此檔與測試 fixture 分開，答案僅供驗收，不作為正式設計決策。
+
+啟動本機服務 → 開啟 [Web 範例](http://127.0.0.1:8001/decisions/?scope=task-progress&task=decision-example) → 直接在「其他方案」輸入文字 → 確認「其他」自動選中 → 按「確認決策」。
+
+重新載入 → 確認答案仍在 →「重新開啟」→ 確認 → 檢查題目回到待決策且歷史保留。
+
+Desktop 可雙擊操作檔，或以 `Build/win-x64/task-progress.exe decisions decisions/decision-example.decisions` 開啟。
 
 ## Agent 與本機請求
 

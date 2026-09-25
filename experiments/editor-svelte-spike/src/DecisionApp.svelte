@@ -105,7 +105,7 @@
               {/each}
               {#if item.allow_other}<label class="decision-option"><input type="radio" name={`answer-${item.id}`} checked={draft?.choice === "__other"}
                 onchange={async () => { edit(item.id, {choice:"__other"}); await tick(); document.getElementById(`other-${item.id}`)?.focus(); }} />其他</label>
-                <label for={`other-${item.id}`}>其他方案</label><textarea id={`other-${item.id}`} disabled={draft?.choice !== "__other"} value={draft?.other ?? ""} oninput={e => edit(item.id, {other:e.currentTarget.value})}></textarea>{/if}
+                <label for={`other-${item.id}`}>其他方案</label><textarea id={`other-${item.id}`} value={draft?.other ?? ""} oninput={e => edit(item.id, {choice:"__other", other:e.currentTarget.value})}></textarea>{/if}
             </fieldset>
           {:else}<p class="decision-text">答案：{item.answer.kind === "other" ? item.answer.text : item.options.find(o => o.id === item.answer.option_id)?.label}</p>
             <p class="decision-text">{item.answer.reason ?? ""}</p><p>{item.answer.confirmed_at}</p>

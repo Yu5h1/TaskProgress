@@ -3,8 +3,15 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-09-09T01:38:09+08:00",
+  "updated_at": "2026-09-25T03:20:09+08:00",
   "tasks": [
+    {
+      "id": "decision-example",
+      "title": "決策項目操作範例",
+      "status": "in_progress",
+      "summary": "供 Browser／Desktop 測試選項、其他文字、確認與重新開啟；範例答案不作為正式設計決策。",
+      "pending_items": ["完成決策畫面操作驗收"]
+    },
     {
       "id": "viewer-core",
       "title": "TaskProgress Viewer",

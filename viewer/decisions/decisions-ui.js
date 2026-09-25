@@ -3826,10 +3826,13 @@ function yo(e, t) {
 										vi(i), Fe(), j(r);
 										var a = z(r, 2), s = z(a);
 										at(s), V(() => {
-											Q(i, "name", (K(W(n)), G(() => `answer-${W(n).id}`))), bi(i, (K(W(o)), G(() => W(o)?.choice === "__other"))), Q(a, "for", (K(W(n)), G(() => `other-${W(n).id}`))), Q(s, "id", (K(W(n)), G(() => `other-${W(n).id}`))), s.disabled = (K(W(o)), G(() => W(o)?.choice !== "__other")), yi(s, (K(W(o)), G(() => W(o)?.other ?? "")));
+											Q(i, "name", (K(W(n)), G(() => `answer-${W(n).id}`))), bi(i, (K(W(o)), G(() => W(o)?.choice === "__other"))), Q(a, "for", (K(W(n)), G(() => `other-${W(n).id}`))), Q(s, "id", (K(W(n)), G(() => `other-${W(n).id}`))), yi(s, (K(W(o)), G(() => W(o)?.other ?? "")));
 										}), q("change", i, async () => {
 											x(W(n).id, { choice: "__other" }), await hr(), document.getElementById(`other-${W(n).id}`)?.focus();
-										}), q("input", s, (e) => x(W(n).id, { other: e.currentTarget.value })), Y(e, t);
+										}), q("input", s, (e) => x(W(n).id, {
+											choice: "__other",
+											other: e.currentTarget.value
+										})), Y(e, t);
 									};
 									Z(s, (e) => {
 										K(W(n)), G(() => W(n).allow_other) && e(l);
