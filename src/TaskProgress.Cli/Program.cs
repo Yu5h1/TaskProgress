@@ -89,6 +89,8 @@ internal static class Program
             case "analyze":
                 Analyze(ParseAnalyzeRequest(args[1..], store));
                 return 0;
+            case "report":
+                return await ReportCommand.RunAsync(args[1..], store, cancellationToken);
             case "checklist":
                 return ChecklistCommand.Run(args[1..]);
             case "decisions":
@@ -633,6 +635,10 @@ internal static class Program
         Console.WriteLine("  analyze <report-folder>          執行所有分析模組");
         Console.WriteLine("  analyze --module <名稱>          只執行指定模組，例如 time、cost");
         Console.WriteLine("  analyze --scope <scope-id>       分析已登記的 scope");
+        Console.WriteLine("  report get <folder> [--task <id>] 取得 Report／任務及來源 revision，輸出 JSON");
+        Console.WriteLine("  report validate <folder>        驗證 Report 與 developer overlay，輸出 JSON");
+        Console.WriteLine("  report apply <folder> --input <file|-> [--dry-run]  提交操作；- 使用 UTF-8 stdin");
+        Console.WriteLine("  report <動作> --scope <id>       以已登記 scope 取代 folder；exit code 0／2／3／4");
         Console.WriteLine("  checklist <task.checklist>       開啟本機 WPF Checklist 編輯器");
         Console.WriteLine("  checklist validate <file>        僅驗證文件格式並輸出到 stdout，不開視窗");
         Console.WriteLine("  decisions <file.decisions>      開啟具名決策文件（Desktop）");

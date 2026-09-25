@@ -33,6 +33,22 @@ from jsonschema import Draft202012Validator, FormatChecker
 from starlette.routing import Mount
 
 
+
+if __package__:
+    from .report_store import (
+        LocalFileTransaction, TransactionRollbackError, recover_pending_transaction,
+        _atomic_replace, _revision, _read_report, _SchemaSource, _schema_errors,
+        _json_schema_errors, validate_documents, read_overlay, auxiliary_revision, run_time_analysis,
+    )
+    from .report_lock import scope_lock, async_scope_lock
+else:
+    from report_store import (
+        LocalFileTransaction, TransactionRollbackError, recover_pending_transaction,
+        _atomic_replace, _revision, _read_report, _SchemaSource, _schema_errors,
+        _json_schema_errors, validate_documents, read_overlay, auxiliary_revision, run_time_analysis,
+    )
+    from report_lock import scope_lock, async_scope_lock
+
 API_PREFIX = "/__taskprogress/v1"
 API_VERSION = 1
 MAX_REPORT_BYTES = 1024 * 1024
@@ -54,19 +70,6 @@ TASK_ID_PATTERN = re.compile(r"^[a-z0-9]+(?:[._-][a-z0-9]+)*$")
 TASK_ID_MAX_LENGTH = 100
 MAX_CHECKLIST_PAYLOAD_BYTES = 1024 * 1024
 TIMEZONE_PATTERN = re.compile(r"^[A-Za-z0-9._+-]+(?:/[A-Za-z0-9._+-]+)*$")
-TRANSACTION_FILES = frozenset(
-    {
-        "report.json",
-        "time.config.json",
-        "time.estimates.json",
-        "time.analysis.json",
-        "taskprogress.local.json",
-    }
-)
-TRANSACTION_JOURNAL = ".taskprogress.transaction.json"
-TRANSACTION_BACKUP_PATTERN = re.compile(
-    r"^\.taskprogress\.transaction\.([a-f0-9]{24})\.([a-z0-9.]+)\.bak$"
-)
 
 
 @dataclass(frozen=True)
@@ -78,6 +81,7 @@ class EditSession:
     local_revision: str
     report_id: str
     expires_at: float
+    auxiliary_revision: str
 
 
 def _problem(
@@ -112,126 +116,10 @@ def _load_module(path: os.PathLike[str] | str) -> ModuleType:
     return module
 
 
-def _revision(source: bytes) -> str:
-    return hashlib.sha256(source).hexdigest()
-
-
-def _read_report(path: Path) -> tuple[bytes, dict[str, Any], str]:
-    source = path.read_bytes()
-    if len(source) > MAX_REPORT_BYTES:
-        raise ValueError("report.json exceeds the 1 MiB edit limit")
-    payload = json.loads(source)
-    if not isinstance(payload, dict):
-        raise ValueError("report.json root must be an object")
-    return source, payload, _revision(source)
-
-
 def _validate_scope(value: object) -> str:
     if not isinstance(value, str) or not SCOPE_PATTERN.fullmatch(value):
         raise ValueError("scope_id is invalid")
     return value
-
-
-def _cross_validate_report(report: dict[str, Any]) -> list[str]:
-    errors: list[str] = []
-    task_ids: set[str] = set()
-    for task_index, task in enumerate(report.get("tasks", [])):
-        if not isinstance(task, dict):
-            continue
-        task_id = task.get("id")
-        if isinstance(task_id, str):
-            if task_id in task_ids:
-                errors.append(f"tasks[{task_index}].id is duplicated")
-            task_ids.add(task_id)
-        item_ids: set[str] = set()
-        for field in ("completed_items", "pending_items"):
-            for item_index, item in enumerate(task.get(field, [])):
-                if not isinstance(item, dict):
-                    continue
-                item_id = item.get("id")
-                if not isinstance(item_id, str):
-                    continue
-                if item_id in item_ids:
-                    errors.append(
-                        f"tasks[{task_index}].{field}[{item_index}].id is duplicated"
-                    )
-                item_ids.add(item_id)
-    return errors
-
-
-class _SchemaSource:
-    """The report schema as the file it is, not as a copy taken at startup.
-
-    A validator built once and kept forever keeps answering with whatever the
-    schema said at that moment — and it answers confidently, blaming the report
-    it was handed rather than reporting itself as stale. That failure is
-    silent, misleading, and costs a restart to clear. Reading the file back
-    whenever it changes on disk costs one ``stat`` per validation.
-
-    A schema that momentarily fails to parse — an editor writing it — leaves
-    the last good validator in place rather than breaking every save. The
-    fingerprint in :meth:`label` is what shows that it did not advance.
-    """
-
-    def __init__(self, path: os.PathLike[str] | str) -> None:
-        self._path = Path(path)
-        self._signature: object = None
-        self._validator: Draft202012Validator | None = None
-        self._fingerprint = "unreadable"
-        self._loaded_at = "never"
-
-    def validator(self) -> Draft202012Validator:
-        try:
-            stat = self._path.stat()
-            signature: object = (stat.st_mtime_ns, stat.st_size)
-        except OSError:
-            signature = self._signature
-        if self._validator is not None and signature == self._signature:
-            return self._validator
-        try:
-            source = self._path.read_bytes()
-            validator = Draft202012Validator(
-                json.loads(source), format_checker=FormatChecker()
-            )
-        except (OSError, ValueError):
-            if self._validator is None:
-                raise
-            return self._validator
-        self._validator = validator
-        self._signature = signature
-        self._fingerprint = hashlib.sha256(source).hexdigest()[:12]
-        self._loaded_at = datetime.now(datetime_timezone.utc).isoformat(
-            timespec="seconds"
-        )
-        return validator
-
-    def label(self) -> str:
-        return f"{self._path.name}@{self._fingerprint} loaded {self._loaded_at}"
-
-    def annotate(self, errors: Sequence[str]) -> str:
-        return "; ".join(list(errors)[:8]) + f" [{self.label()}]"
-
-
-def _schema_errors(
-    validator: Draft202012Validator,
-    report: dict[str, Any],
-) -> list[str]:
-    errors = [
-        f"{'.'.join(str(part) for part in error.absolute_path) or '$'}: {error.message}"
-        for error in sorted(validator.iter_errors(report), key=lambda item: list(item.path))
-    ]
-    errors.extend(_cross_validate_report(report))
-    return errors
-
-
-def _json_schema_errors(
-    validator: Draft202012Validator,
-    payload: dict[str, Any],
-) -> list[str]:
-    return [
-        f"{'.'.join(str(part) for part in error.absolute_path) or '$'}: {error.message}"
-        for error in sorted(validator.iter_errors(payload), key=lambda item: list(item.path))
-    ]
 
 
 def _read_time_inputs(
@@ -362,277 +250,6 @@ def _delivery_value(config: dict[str, Any] | None) -> tuple[bool, object]:
     return True, project["delivery_at"]
 
 
-def _atomic_replace(path: Path, source: bytes) -> None:
-    descriptor, temporary_name = tempfile.mkstemp(
-        prefix=f".{path.name}.",
-        suffix=".tmp",
-        dir=path.parent,
-    )
-    temporary = Path(temporary_name)
-    try:
-        with os.fdopen(descriptor, "wb") as stream:
-            stream.write(source)
-            stream.flush()
-            os.fsync(stream.fileno())
-        try:
-            os.chmod(temporary, path.stat().st_mode)
-        except OSError:
-            pass
-        os.replace(temporary, path)
-    except BaseException:
-        try:
-            temporary.unlink()
-        except OSError:
-            pass
-        raise
-
-
-@dataclass(frozen=True)
-class TransactionEntry:
-    target: Path
-    backup: Path
-    existed: bool
-
-
-class TransactionRollbackError(RuntimeError):
-    pass
-
-
-class LocalFileTransaction:
-    """Recoverable same-folder transaction for TaskProgress-owned files.
-
-    Input files are staged in memory, existing targets are copied to hidden
-    backups, and a hidden journal distinguishes prepared/applying/committed
-    states. A later request can recover an interrupted prepared transaction;
-    a committed journal is cleanup-only.
-    """
-
-    def __init__(self, folder: os.PathLike[str] | str) -> None:
-        self.folder = Path(folder).resolve(strict=True)
-        if not self.folder.is_dir():
-            raise ValueError("Transaction root must be a directory")
-        self.transaction_id = secrets.token_hex(12)
-        self.journal_path = self.folder / TRANSACTION_JOURNAL
-        self._watched: set[Path] = set()
-        self._staged: dict[Path, bytes] = {}
-        self._entries: list[TransactionEntry] = []
-        self._state = "draft"
-        self._closed = False
-
-    def _target(self, path: os.PathLike[str] | str) -> Path:
-        candidate = Path(path)
-        if not candidate.is_absolute():
-            candidate = self.folder / candidate
-        target = candidate.resolve(strict=False)
-        if target.parent != self.folder or target.name not in TRANSACTION_FILES:
-            raise ValueError(f"Transaction target is not allowed: {target.name}")
-        return target
-
-    def watch(self, path: os.PathLike[str] | str) -> Path:
-        if self._state != "draft" or self._closed:
-            raise RuntimeError("Transaction can no longer accept targets")
-        target = self._target(path)
-        self._watched.add(target)
-        return target
-
-    def stage_bytes(self, path: os.PathLike[str] | str, source: bytes) -> Path:
-        if not isinstance(source, bytes):
-            raise TypeError("Transaction source must be bytes")
-        if len(source) > MAX_TRANSACTION_FILE_BYTES:
-            raise ValueError("Transaction file exceeds the 4 MiB limit")
-        target = self.watch(path)
-        self._staged[target] = source
-        return target
-
-    def stage_json(self, path: os.PathLike[str] | str, payload: object) -> Path:
-        source = json.dumps(payload, ensure_ascii=False, indent=2).encode("utf-8") + b"\n"
-        return self.stage_bytes(path, source)
-
-    def _journal_payload(self, state: str) -> bytes:
-        payload = {
-            "version": 1,
-            "transaction_id": self.transaction_id,
-            "state": state,
-            "entries": [
-                {
-                    "target": entry.target.name,
-                    "backup": entry.backup.name,
-                    "existed": entry.existed,
-                }
-                for entry in self._entries
-            ],
-        }
-        return json.dumps(payload, ensure_ascii=False, indent=2).encode("utf-8") + b"\n"
-
-    def _write_journal(self, state: str) -> None:
-        _atomic_replace(self.journal_path, self._journal_payload(state))
-        self._state = state
-
-    def prepare(self, validators: Sequence[Callable[[], None]] = ()) -> None:
-        if self._closed or self._state != "draft":
-            raise RuntimeError("Transaction is not in draft state")
-        if not self._watched:
-            raise ValueError("Transaction has no files")
-        for validate in validators:
-            validate()
-        try:
-            for target in sorted(self._watched, key=lambda item: item.name):
-                if target.exists() and not target.is_file():
-                    raise ValueError(f"Transaction target is not a file: {target.name}")
-                existed = target.is_file()
-                backup = self.folder / (
-                    f".taskprogress.transaction.{self.transaction_id}.{target.name}.bak"
-                )
-                if existed:
-                    source = target.read_bytes()
-                    if len(source) > MAX_TRANSACTION_FILE_BYTES:
-                        raise ValueError(f"Transaction source is too large: {target.name}")
-                    _atomic_replace(backup, source)
-                self._entries.append(TransactionEntry(target, backup, existed))
-            self._write_journal("prepared")
-        except BaseException:
-            for entry in self._entries:
-                try:
-                    entry.backup.unlink()
-                except FileNotFoundError:
-                    pass
-            self._entries.clear()
-            raise
-
-    def apply(self) -> None:
-        if self._state == "draft":
-            self.prepare()
-        if self._closed or self._state != "prepared":
-            raise RuntimeError("Transaction is not prepared")
-        self._write_journal("applying")
-        for target, source in sorted(self._staged.items(), key=lambda item: item[0].name):
-            _atomic_replace(target, source)
-
-    def _cleanup(self) -> None:
-        for entry in self._entries:
-            try:
-                entry.backup.unlink()
-            except FileNotFoundError:
-                pass
-        try:
-            self.journal_path.unlink()
-        except FileNotFoundError:
-            pass
-
-    def commit(self) -> None:
-        if self._closed or self._state != "applying":
-            raise RuntimeError("Transaction has not been applied")
-        self._write_journal("committed")
-        self._closed = True
-        try:
-            self._cleanup()
-        except OSError:
-            # A committed journal is cleanup-only if the process is interrupted.
-            pass
-
-    def rollback(self) -> None:
-        if self._closed:
-            return
-        if self._state == "draft":
-            self._closed = True
-            return
-        errors: list[str] = []
-        for entry in reversed(self._entries):
-            try:
-                if entry.existed:
-                    if entry.backup.is_symlink() or not entry.backup.is_file():
-                        raise OSError(f"Missing backup for {entry.target.name}")
-                    _atomic_replace(entry.target, entry.backup.read_bytes())
-                elif entry.target.exists():
-                    if not entry.target.is_file():
-                        raise OSError(f"Rollback target is not a file: {entry.target.name}")
-                    entry.target.unlink()
-            except OSError as error:
-                errors.append(str(error))
-        if errors:
-            raise TransactionRollbackError("; ".join(errors))
-        self._closed = True
-        self._cleanup()
-
-
-def _journal_entries(folder: Path, payload: object) -> tuple[str, list[TransactionEntry]]:
-    if not isinstance(payload, dict) or payload.get("version") != 1:
-        raise ValueError("Transaction journal version is invalid")
-    transaction_id = payload.get("transaction_id")
-    state = payload.get("state")
-    raw_entries = payload.get("entries")
-    if (
-        not isinstance(transaction_id, str)
-        or not re.fullmatch(r"[a-f0-9]{24}", transaction_id)
-        or not isinstance(state, str)
-        or state not in {"prepared", "applying", "committed"}
-        or not isinstance(raw_entries, list)
-    ):
-        raise ValueError("Transaction journal is invalid")
-    entries: list[TransactionEntry] = []
-    seen_targets: set[str] = set()
-    for raw in raw_entries:
-        if not isinstance(raw, dict) or set(raw) != {"target", "backup", "existed"}:
-            raise ValueError("Transaction journal entry is invalid")
-        target_name = raw["target"]
-        backup_name = raw["backup"]
-        existed = raw["existed"]
-        match = (
-            TRANSACTION_BACKUP_PATTERN.fullmatch(backup_name)
-            if isinstance(backup_name, str)
-            else None
-        )
-        if (
-            not isinstance(target_name, str)
-            or target_name not in TRANSACTION_FILES
-            or target_name in seen_targets
-            or not isinstance(existed, bool)
-            or match is None
-            or match.group(1) != transaction_id
-            or match.group(2) != target_name
-        ):
-            raise ValueError("Transaction journal entry is unsafe")
-        seen_targets.add(target_name)
-        entries.append(
-            TransactionEntry(folder / target_name, folder / backup_name, existed)
-        )
-    return str(state), entries
-
-
-def recover_pending_transaction(folder: os.PathLike[str] | str) -> bool:
-    root = Path(folder).resolve(strict=True)
-    journal = root / TRANSACTION_JOURNAL
-    if journal.is_symlink():
-        raise ValueError("Transaction journal cannot be a symbolic link")
-    if not journal.is_file():
-        return False
-    payload = json.loads(journal.read_text(encoding="utf-8"))
-    state, entries = _journal_entries(root, payload)
-    if state != "committed":
-        errors: list[str] = []
-        for entry in reversed(entries):
-            try:
-                if entry.existed:
-                    if entry.backup.is_symlink() or not entry.backup.is_file():
-                        raise OSError(f"Missing backup for {entry.target.name}")
-                    _atomic_replace(entry.target, entry.backup.read_bytes())
-                elif entry.target.exists():
-                    if not entry.target.is_file():
-                        raise OSError(f"Recovery target is not a file: {entry.target.name}")
-                    entry.target.unlink()
-            except OSError as error:
-                errors.append(str(error))
-        if errors:
-            raise TransactionRollbackError("; ".join(errors))
-    for entry in entries:
-        try:
-            entry.backup.unlink()
-        except FileNotFoundError:
-            pass
-    journal.unlink()
-    return True
-
-
 def _report_route(scope: str) -> str:
     return f"/reports/{scope}/report.json"
 
@@ -730,36 +347,8 @@ def _content_type_is_json(request: Request) -> bool:
     )
 
 
-def _run_analysis(
-    analyzer_command: Sequence[str],
-    report_path: Path,
-) -> tuple[bool, str]:
-    folder = report_path.parent
-    if not any(
-        (folder / name).is_file()
-        for name in ("time.config.json", "time.estimates.json", "time.events.json")
-    ):
-        return True, ""
-    if not analyzer_command:
-        return False, "Time inputs exist but no analyzer command is available"
-    try:
-        completed = subprocess.run(
-            [*analyzer_command, "analyze", str(folder)],
-            cwd=folder,
-            capture_output=True,
-            text=True,
-            encoding="utf-8",
-            errors="replace",
-            timeout=120,
-            check=False,
-            creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
-        )
-    except (OSError, subprocess.SubprocessError) as error:
-        return False, str(error)
-    if completed.returncode == 0:
-        return True, ""
-    detail = (completed.stderr or completed.stdout).strip()
-    return False, detail or f"Analyzer exited with code {completed.returncode}"
+def _run_analysis(analyzer_command, report_path):
+    return run_time_analysis(report_path.parent, analyzer_command, hidden=True)
 
 
 def _preview_analysis(
@@ -886,6 +475,7 @@ def install_edit_api(
         inputs_revision: str,
         local_revision: str,
         report_id: str,
+        auxiliary: str,
     ) -> EditSession:
         token = secrets.token_urlsafe(32)
         session = EditSession(
@@ -896,6 +486,7 @@ def install_edit_api(
             local_revision=local_revision,
             report_id=report_id,
             expires_at=now() + SESSION_LIFETIME_SECONDS,
+            auxiliary_revision=auxiliary,
         )
         with sessions_lock:
             sessions[token] = session
@@ -917,10 +508,12 @@ def install_edit_api(
         path = registered_report(safe_scope)
         if path is None:
             return _problem(404, "scope_not_found", "Editable scope was not found")
-        async with write_lock:
+        async with write_lock, async_scope_lock(path.parent):
             try:
                 recover_pending_transaction(path.parent)
                 _, report, revision = _read_report(path)
+                validate_documents(report, read_overlay(path.parent), schema_source.validator())
+                auxiliary = auxiliary_revision(path.parent)
             except (
                 OSError,
                 ValueError,
@@ -1124,10 +717,12 @@ def install_edit_api(
         path = registered_report(scope)
         if path is None:
             return _problem(404, "scope_not_found", "Editable scope was not found")
-        async with write_lock:
+        async with write_lock, async_scope_lock(path.parent):
             try:
                 recover_pending_transaction(path.parent)
                 _, report, revision = _read_report(path)
+                validate_documents(report, read_overlay(path.parent), schema_source.validator())
+                auxiliary = auxiliary_revision(path.parent)
             except (
                 OSError,
                 ValueError,
@@ -1200,6 +795,7 @@ def install_edit_api(
             inputs_revision,
             local_revision,
             str(report["report_id"]),
+            auxiliary,
         )
         return JSONResponse(
             {
@@ -1320,10 +916,13 @@ def install_edit_api(
         path = registered_report(scope)
         if path is None:
             return _problem(404, "scope_not_found", "Editable scope was not found")
-        async with write_lock:
+        async with write_lock, async_scope_lock(path.parent):
             try:
                 recover_pending_transaction(path.parent)
                 _, current_report, current_revision = _read_report(path)
+                current_overlay = read_overlay(path.parent)
+                validate_documents(current_report, current_overlay, schema_source.validator())
+                validate_documents(report, current_overlay, schema_source.validator())
                 current_inputs, current_inputs_revision = _read_time_inputs(
                     path.parent,
                     scope,
@@ -1348,6 +947,7 @@ def install_edit_api(
                 )
             if (
                 current_revision != session.revision
+                or auxiliary_revision(path.parent) != session.auxiliary_revision
                 or current_inputs_revision != session.inputs_revision
                 or current_local_revision != session.local_revision
                 or current_report.get("report_id") != session.report_id
@@ -1397,10 +997,13 @@ def install_edit_api(
     ) -> Response:
         """Atomically persist canonical inputs, regenerate analysis, and rotate the session."""
 
-        async with write_lock:
+        async with write_lock, async_scope_lock(path.parent):
             try:
                 recover_pending_transaction(path.parent)
                 _, current_report, current_revision = _read_report(path)
+                current_overlay = read_overlay(path.parent)
+                validate_documents(current_report, current_overlay, schema_source.validator())
+                validate_documents(report, current_overlay, schema_source.validator())
                 current_inputs, current_inputs_revision = _read_time_inputs(
                     path.parent,
                     scope,
@@ -1425,6 +1028,7 @@ def install_edit_api(
                 )
             if (
                 current_revision != session.revision
+                or auxiliary_revision(path.parent) != session.auxiliary_revision
                 or current_inputs_revision != session.inputs_revision
                 or current_local_revision != session.local_revision
                 or current_report.get("report_id") != session.report_id
@@ -1548,11 +1152,24 @@ def install_edit_api(
                 transaction.watch(path.parent / "time.analysis.json")
                 transaction.prepare((validate_staged_payloads,))
                 transaction.apply()
-                analysis_ok, analysis_error = await asyncio.to_thread(
+                analysis_task = asyncio.create_task(asyncio.to_thread(
                     _run_analysis,
                     analyzer_command,
                     path,
-                )
+                ))
+                try:
+                    analysis_ok, analysis_error = await asyncio.shield(analysis_task)
+                except asyncio.CancelledError:
+                    try:
+                        while not analysis_task.done():
+                            try:
+                                await asyncio.shield(analysis_task)
+                            except asyncio.CancelledError:
+                                continue
+                        analysis_task.result()
+                    finally:
+                        transaction.rollback()
+                    raise
                 if not analysis_ok:
                     transaction.rollback()
                     return _problem(
@@ -1615,6 +1232,7 @@ def install_edit_api(
                 next_inputs_revision,
                 next_local_revision,
                 session.report_id,
+                auxiliary_revision(path.parent),
             )
             return JSONResponse(
                 {

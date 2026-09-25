@@ -43,6 +43,10 @@ description: Generate, update, validate, roll up, register, and locally deploy T
 - Choose a workspace `next_step` for portfolio relevance: first a scope-stopping blocker, then an explicit child primary next step, then the next covered milestone. Do not copy an entire child backlog or select an arbitrary first pending item.
 - Treat cross-scope synthesis as an Agent workflow. Deterministic aggregation, drill-down, or stale-roll-up detection requires explicit machine-readable parent/child coverage and is outside the current Viewer, Launcher, and schema behavior.
 
+## Update existing Report through CLI
+
+For ordinary task/item or developer-field updates, prefer the `report` command when the selected CLI's help advertises it. Read [Report CLI usage](../../../Documentation/ReportCliUsage.md) for request shape and runtime requirements. Use `get` (optionally `--task`) to obtain the current revision, then `apply --input` with ID-addressed operations; use `--dry-run` for a preview. Never invent a revision or overwrite a conflict without rereading the source. Check both the JSON `ok` value and exit code. Existing string items, pointer mutations, deletions, and new report creation remain outside this command's first version. Do not start a server for these commands.
+
 ## Generate `report.json`
 
 - Use an ISO 8601 `updated_at` timestamp with timezone.

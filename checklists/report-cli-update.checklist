@@ -1,0 +1,39 @@
+# Report CLI 修改命令 Checklist
+
+Current round: `Documentation/ReportCliUpdatePlan.md#第一版補充契約`.
+
+本輪涵蓋第一版 Report CLI；實機整合驗收集中於實作完成後執行。
+
+- [x] **1. 批次修改及預覽**
+  Outcome: 依穩定 ID 修改普通任務、項目及 overlay，任一操作錯誤時整批不寫入。
+  Checks:
+    - [x] **候選與交易定向檢查**
+      - Action: 執行 tests/test_report_cli.py。
+      - Expect: 中文、多行、項目移動、同批新增、no-op、dry-run、錯誤整批拒絕、revision 與分析失敗回復通過。
+
+- [x] **2. 共用保存邊界**
+  Outcome: Viewer 透過共用驗證與交易保存，保留 session 與回復行為。
+  Checks:
+    - [x] **既有保存定向回歸**
+      - Action: 執行 test_taskprogress_host 的 valid_save、schema_and_external_revision、transaction_rollback、interrupted_transaction、analysis_failure 五項測試。
+      - Expect: 保存輪替 token、衝突拒絕、失敗回復與中斷交易恢復通過。
+      - Observed: 抽取後測試仍從舊模組匯入 TRANSACTION_JOURNAL，首次載入失敗。
+      - Resolved: 測試改為從共用 report_store 匯入交易元件後，五項通過。
+
+- [x] **3. CLI 入口建置**
+  Outcome: C# CLI 提供 report get／validate／apply 與 JSON 程序邊界。
+  Checks:
+    - [x] **建置**
+      - Action: 使用 SDK 9.0.315 建置 TaskProgress.Cli Debug。
+      - Expect: 建置成功且 help／dispatch 接上 ReportCommand。
+
+- [ ] **4. 集中整合驗收**
+  Outcome: 真實 CLI 與 Viewer 可在同一 scope 安全操作。
+  Checks:
+    - [ ] **真實程序往返與競爭**
+      - Action: 在範例副本執行 input file／stdin、多程序及 CLI／Viewer 競爭、分析與中斷後恢復。
+      - Expect: UTF-8 JSON 與 exit code 正確，競爭只有一方保存，分析與回復沒有遺失檔案。
+    - [ ] **Viewer 操作回歸** `[manual]`
+      - Action: 更新服務後開啟 Report 編輯，修改並保存；另以 CLI 更新後確認舊 session 保存被拒絕。
+      - Expect: Viewer 顯示新資料，舊 session 不覆蓋 CLI 修改。
+      - Reason: 需使用者本機常駐服務及畫面操作驗收。

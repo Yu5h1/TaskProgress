@@ -1,6 +1,8 @@
 # Report CLI 修改命令更新計畫
 
-> 討論草案。範圍為透過 CLI 更新 Report；命令與第一版操作集合為建議設計，尚未實作。
+> Task ID: report-cli-update
+
+> 範圍為透過 CLI 更新既有 Report。以下為第一版實作契約；實機整合驗收集中於實作完成後進行。
 > 本文件細化根目錄 `plan.md`「Phase 5：來源 Adapters 與 Agent 工作流」保留的 `report apply` 方向。
 
 ## 系統階層與關係
@@ -22,11 +24,11 @@ CLI 與 Viewer 共用驗證及保存規則。CLI 的領域操作先產生候選 
 
 讓人或 Agent 依穩定 ID 修改指定任務、項目與開發者欄位，不必每次讀回及重寫整份報告。保留現有 JSON 格式、Viewer 行為與既有 CLI 命令。
 
-目前 `Program.cs` 沒有 `report` 分支。`service/taskprogress_host.py` 已有 Report Schema 驗證、重複 ID 檢查、revision、`commit_edit` 與 `LocalFileTransaction`。這些能力可作為抽取起點，但目前的 `asyncio.Lock` 屬於單一 host 實例，不能保護獨立 CLI 程序；也不能把既有保存路徑直接視為已支援 `report.dev.json`。
+C# `ReportCommand` 負責參數與一次性 Python 程序。`service/report_store.py` 擁有共用驗證、可回復交易與時間分析呼叫；`report_operations.py` 只產生候選資料，`report_cli.py` 協調 CLI 的 revision／保存。HTTP 與 CLI 共用 `report_lock.py` 的 scope 鎖；HTTP 另保留 session 與 UI 草稿契約。
 
 第一版涵蓋既有 Report 的普通任務與具 ID 項目。新建整份報告、刪除／改名 ID、修改指路卡關係、Checklist、時間估算輸入及任意 JSON 路徑修改留待後續。
 
-## 建議命令
+## 命令
 
 | 命令 | 用途 |
 |---|---|
@@ -42,7 +44,7 @@ CLI 與 Viewer 共用驗證及保存規則。CLI 的領域操作先產生候選 
 
 ## 第一版操作集合
 
-| 操作 | 建議契約 |
+| 操作 | 契約 |
 |---|---|
 | `report.update` | 更新 Report 的 title、summary |
 | `task.add` | 新增明確 ID 的普通任務；重複 ID 拒絕 |
@@ -59,7 +61,7 @@ task status 與明示 progress 不因單一項目完成而自行推定。若使�
 
 ## 請求與結果
 
-以下是提案格式；revision 必須使用 `get` 的實際回傳值：
+以下是請求格式；revision 必須使用 `get` 的實際回傳值：
 
 ```json
 {
@@ -82,7 +84,7 @@ task status 與明示 progress 不因單一項目完成而自行推定。若使�
 
 一批操作依序套用到記憶體候選資料，全部通過才保存；後面的操作可以引用同批新增的任務。任一操作失敗，整批不寫入，錯誤包含 operation index、code 與欄位位置。
 
-成功結果只回傳來源／新 revision、是否實際修改、異動 task IDs、欄位摘要及分析結果狀態，不回傳完整 Report 或私人欄位內容。建議固定 exit code：0 成功、2 輸入或驗證錯誤、3 revision 衝突、4 保存／分析／回復失敗。發生需要復原的錯誤時必須明示，不能回成功。
+成功結果只回傳來源／新 revision、是否實際修改、異動 task IDs、欄位摘要及分析結果狀態，不回傳完整 Report 或私人欄位內容。固定 exit code：0 成功、2 輸入或驗證錯誤、3 revision 衝突、4 保存／分析／回復失敗。發生需要復原的錯誤時必須明示，不能回成功。
 
 ## 共用保存邊界
 
@@ -94,7 +96,7 @@ task status 與明示 progress 不因單一項目完成而自行推定。若使�
 6. 沿用並擴充既有可回復交易機制，讓 Report 與 overlay 不會留下「只更新一半卻回成功」的結果。多檔案 replace 不等同所有外部讀取者都能看到原子快照；合作讀寫入口需共用鎖與回復流程。
 7. Report 變更影響已存在的分析投影時，沿用既有模組重算機制。先驗證重算及回復邊界，失敗不得留下舊分析卻宣稱完整成功；不在此修改估算判斷或擴張模組架構。
 
-建議抽取既有 Python 保存能力供 HTTP 與一次性 CLI adapter 使用，由 C# CLI 管理參數與程序邊界，避免重寫第二套保存器。第一階段需確認 runtime／發布可攜性；若既有發布方式無法支援離線 adapter，先修訂本段，再進入實作。CLI 操作不應為了改檔而啟動常駐服務。
+一次性 Python adapter 與 HTTP 共用保存模組，由 C# 管理參數與程序邊界。沿用本專案的部署形態：EXE 搭配專案 service／schemas 檔案及已安裝 jsonschema 的 Python；不宣稱單獨複製 EXE 即可執行 Report 編輯。Python 由 TASK_PROGRESS_PYTHON 或 PATH 尋找，專案由 EXE／工作目錄的祖先或 TASK_PROGRESS_VIEWER_ROOT 定位。不安裝依賴、不啟動常駐服務；CLI 子程序使用正常可見執行方式。
 
 `--dry-run` 不寫入來源、時間戳、分析輸出或交易日誌；遇到待回復交易時回診斷，不能偷偷執行回復。它顯示預期差異與會觸發的分析，正式 apply 仍重新檢查 revision，不保證預覽後來源不變。
 
@@ -123,4 +125,17 @@ task status 與明示 progress 不因單一項目完成而自行推定。若使�
 - 主檔與 overlay 保存／分析重算失敗，以及程序中斷後回復都有明確結果。
 - Report 1.0／1.1、既有指路卡與字串項目可讀取並保留；不支援的修改回明確錯誤。
 
-本輪交付為此更新計畫。實作起點為階段 1；操作集合及 adapter 方向先按本草案討論定案，再建立執行 checklist。
+定向驗證與集中整合驗收見 `checklists/report-cli-update.checklist`；實機驗收未通過前不宣稱發布版本具備本功能。
+
+
+## 第一版補充契約
+
+- `task.add` 使用 `value` 提供完整普通任務；`item.add` 使用 `task_id` 與 `value` 提供具 ID 項目，省略 status 時為 planned。新增內容仍須通過 Schema。
+- `item.update` 的定位欄位為 `task_id`＋`item_id`。跨完成／待辦陣列移動時附加至目標陣列末端，同陣列保留位置；不提供 unset status，避免含糊的狀態回退。
+- `dev.update` 不覆蓋 claim；指定 next_step 時移除同一 overlay 的舊 next_steps。只有實際新增內容才建立缺少的 overlay，清除不存在欄位為 no-op。
+- 每批 1–1000 操作，請求最多 4 MiB；Report 與 overlay 各最多 1 MiB。UTF-8 JSON 拒絕重複欄位與 NaN／Infinity。
+- revision 包含 Report、overlay、time.config／estimates／events／analysis 與私有 local 狀態的原始位元組或缺少狀態。CLI get 不恢復交易；有待回復交易時，get／validate／dry-run 回 recovery_required，明確 apply 在鎖內先恢復再檢查 revision。
+- 目前共用分析保存邊界涵蓋既有 Time 模組；只有 Report 實際變更且存在時間輸入或投影才重算，純 overlay 更新不重算。只呼叫 `analyze --module time`，不觸及其他模組輸出。
+- 成功 `get` 回 `{ok, revision, report, developer}`；局部 get 以 task 取代 report。`validate` 回 `{ok, revision}`。apply／dry-run 回 `{ok, source_revision, revision, changed, dry_run, task_ids, changes, analysis}`；dry-run 的 revision 維持來源值，analysis 可為 planned／updated／not_required。
+- 錯誤回 `{ok:false,error:{code,message,operation_index?,field?}}`；operation_index 從 0 起算。批次操作結果摘要不含欄位值。stdout 只有單一 JSON。
+- 跨程序鎖以正規化資料夾路徑建立 Windows named mutex；同事件迴圈另加 scope lock 防止 mutex 的執行緒重入。鎖等待上限 10 秒。HTTP 編輯 session 亦比對 overlay／events 變更，取消分析請求時等待分析完成並回復後才釋放鎖。

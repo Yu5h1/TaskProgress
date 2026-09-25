@@ -6,6 +6,14 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
 
 ## Current state (2026-09-25)
 
+- **Report CLI 第一版已實作，整合驗收後排。** 入口為 `report get|validate|apply`，支援 folder／scope、局部 task、UTF-8 file／stdin 與 dry-run。共用 `service/report_store.py` 驗證／交易／Time 分析；HTTP 與 CLI 透過 `report_lock.py` 同一 scope 鎖保存，HTTP 另比對 overlay／events 變更。操作與部署契約由 `Documentation/ReportCliUpdatePlan.md`（Task ID: report-cli-update）擁有，操作例見 `Documentation/ReportCliUsage.md`。
+  - **驗證**：SDK 9.0.315 Debug CLI 建置成功；Python Report CLI 9 項及既有 HTTP 保存／交易 5 項定向測試通過。抽取初次測試因 TRANSACTION_JOURNAL 舊 import 失敗，改用共用模組後通過。複核發現的無效 JSON shape、浮點整數 progress、空 overlay no-op 與 HTTP 取消分析鎖釋放問題已修正。
+  - **下一步**：依使用者要求先完成實作，真實 CLI 程序／Viewer 競爭、Time 分析及畫面操作集中於 `checklists/report-cli-update.checklist` 第 4 項。未啟動服務、未 publish 本輪 CLI；目前 Build/win-x64 仍是上一輪決策項目版本。
+
+- **I-01：其他方案可直接輸入。** DecisionApp 已解除 textarea 的選項前置鎖定，輸入時同步選中 Other；空白禁止確認、衝突／請求中的 fieldset 鎖定與明確確認保存維持。雙入口資產建置、Node 決策定向測試 9／9 通過，已同步 Debug Desktop JS；真實視窗操作待驗收；介面與範例已提交於 e95a114。
+  - **I-02／I-03 部署準備完成**：以 SDK 9.0.315 發布至 Build/win-x64，已發布 EXE 的 decisions help／validate 通過，決策 JS 與 Browser 資產一致。新增 decisions/decision-example.decisions、Report 普通範例卡與 Documentation/DecisionItemsUsage.md 的 canonical entry；Report／overlay Schema 與 ID 對應通過。操作範例獨立於測試 fixture，答案不作正式設計決策。
+  - **待執行**：依使用者要求，Web／Desktop 操作改為集中驗收，現在不啟動服務。集中驗收時確認服務執行授權、service status，再驗證 /decisions/?scope=task-progress&task=decision-example；尚未改 Registry／實測雙擊。
+
 - **決策回答簡化：移除選擇理由欄。** 新 UI 只提交單選或其他答案，補充條件／理由使用「其他」；出題者推薦理由保留。既有答案 reason 與歷史維持相容。Node 決策定向測試 9／9 及雙入口資產建置通過，並同步 Debug Desktop 資產；開啟中的視窗需重開，Browser 需重新載入。未發布、重啟服務或 commit。
 
 - **決策項目第一版程式已接齊，實機驗收待執行（2026-09-25）。** `.decisions` 使用 UTF-8 JSON；新增 DecisionDocument／DecisionStore，具備 confirm／reopen／revise、歷史一致性、revision、跨程序互斥與 request 去重。CLI `decisions <file>`／validate／request／install／uninstall 已接上；Browser `/decisions/?scope=&task=` 與 Desktop 共用同一 Svelte 畫面和資產，Report 卡片載入私有決策摘要。規格入口：`Documentation/DecisionItemsPlan.md`（Task ID: decision-items）；操作：`Documentation/DecisionItemsUsage.md`。

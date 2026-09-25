@@ -178,3 +178,7 @@ Copyright (c) 2026 Yu5h1
 ## 決策項目入口
 
 具名 `.decisions` 文件以 JSON 保存問題、選項、答案及歷史，與 Checklist 共用卡片介面。使用 `task-progress.exe decisions <file.decisions>` 開啟；本機 Browser／Report 整合及 Agent request 用法見 [決策項目使用方式](Documentation/DecisionItemsUsage.md)。
+
+## Report CLI 修改
+
+`task-progress.exe report get|validate|apply` 可依穩定 ID 修改卡片、子項目與 developer overlay，支援批次操作、revision 衝突檢查與 `--dry-run`。需要專案 Python runtime，執行時不啟動服務；範例與部署條件見 [Report CLI 使用方式](Documentation/ReportCliUsage.md)。

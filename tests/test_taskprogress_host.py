@@ -9,15 +9,14 @@ from unittest.mock import patch
 from fastapi.testclient import TestClient
 from jsonschema import Draft202012Validator, FormatChecker
 
-from service.taskprogress_host import (
+from service.report_store import (
     LocalFileTransaction,
     TRANSACTION_JOURNAL,
     _atomic_replace,
-    install_edit_api,
     recover_pending_transaction,
-    _load_module,
 )
 
+from service.taskprogress_host import install_edit_api, _load_module
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 LOCAL_WEB_SERVICE = REPOSITORY_ROOT.parent / "LocalWebService" / "localHost.py"
@@ -461,7 +460,7 @@ class TaskProgressEditHostTests(unittest.TestCase):
             _atomic_replace(path, source)
 
         with patch(
-            "service.taskprogress_host._atomic_replace",
+            "service.report_store._atomic_replace",
             side_effect=fail_local_history,
         ), patch(
             "service.taskprogress_host._run_analysis",
