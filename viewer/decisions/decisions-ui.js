@@ -3566,7 +3566,7 @@ function Ga(e, t, n, r) {
 }
 //#endregion
 //#region experiments/editor-svelte-spike/src/DecisionApp.svelte
-var Ka = /* @__PURE__ */ J("<p role=\"status\"> </p>"), qa = /* @__PURE__ */ J("<article class=\"checklist-item\"><a> </a> <p> </p></article>"), Ja = /* @__PURE__ */ J("<p>尚未建立決策文件。</p>"), Ya = /* @__PURE__ */ J("<p> </p> <!> <!>", 1), Xa = /* @__PURE__ */ J("<button class=\"svelte-17meywc\">查核／重試原請求</button>"), Za = /* @__PURE__ */ J("<p>目前沒有符合條件的決策項目。</p>"), Qa = /* @__PURE__ */ J("<p class=\"decision-text svelte-17meywc\"> </p>"), $a = /* @__PURE__ */ J("<p> </p>"), eo = /* @__PURE__ */ J("<small class=\"svelte-17meywc\"> </small>"), to = /* @__PURE__ */ J("<label class=\"decision-option svelte-17meywc\"><input type=\"radio\"/> <span> <!></span></label>"), no = /* @__PURE__ */ J("<label class=\"decision-option svelte-17meywc\"><input type=\"radio\"/>其他</label> <label>其他方案</label><textarea class=\"svelte-17meywc\"></textarea>", 1), ro = /* @__PURE__ */ J("<fieldset class=\"svelte-17meywc\"><legend> </legend> <!> <!></fieldset>"), io = /* @__PURE__ */ J("<p class=\"decision-text svelte-17meywc\"> </p> <p class=\"decision-text svelte-17meywc\"> </p><p> </p> <button class=\"svelte-17meywc\">重新開啟</button>", 1), ao = /* @__PURE__ */ J("<button class=\"svelte-17meywc\">已核對最新題目，保留草稿</button>"), oo = /* @__PURE__ */ J("<p role=\"alert\"> </p> <!>", 1), so = /* @__PURE__ */ J("<button class=\"svelte-17meywc\">捨棄草稿</button>"), co = /* @__PURE__ */ J("<button class=\"svelte-17meywc\">確認決策</button>"), lo = /* @__PURE__ */ J("<section><p> </p><pre class=\"svelte-17meywc\"> </pre></section>"), uo = /* @__PURE__ */ J("<details><summary> </summary> <!></details>"), fo = /* @__PURE__ */ J("<!> <!> <!> <!> <!> <!> <!>", 1), po = /* @__PURE__ */ J("<header slot=\"header\" class=\"checklist-item-header\"><h2 tabindex=\"-1\"> </h2><span> </span></header>"), mo = /* @__PURE__ */ J("<article class=\"checklist-item\"><!></article>"), ho = /* @__PURE__ */ J("<p role=\"alert\"> </p> <button class=\"svelte-17meywc\">捨棄此草稿</button>", 1), go = /* @__PURE__ */ J("<p> </p> <p>選擇僅保留於本頁；按「確認決策」才保存，關閉頁面會失去未確認草稿。</p> <button class=\"svelte-17meywc\">下一項待決策</button> <!> <!> <!> <!> <!>", 1), _o = /* @__PURE__ */ J("<p>先前答案保留在歷史，這題將回到待決策。</p> <button class=\"svelte-17meywc\">取消</button> <button class=\"svelte-17meywc\">確認重新開啟</button>", 1), vo = /* @__PURE__ */ J("<main class=\"checklist-shell decisions-shell svelte-17meywc\"><header class=\"checklist-header\"><h1>決策項目</h1> <!></header> <!> <!></main> <!>", 1);
+var Ka = /* @__PURE__ */ J("<p role=\"status\"> </p>"), qa = /* @__PURE__ */ J("<article class=\"checklist-item\"><a> </a> <p> </p></article>"), Ja = /* @__PURE__ */ J("<p>尚未建立決策文件。</p>"), Ya = /* @__PURE__ */ J("<p> </p> <!> <!>", 1), Xa = /* @__PURE__ */ J("<button class=\"svelte-17meywc\">查核／重試原請求</button>"), Za = /* @__PURE__ */ J("<p>目前沒有符合條件的決策項目。</p>"), Qa = /* @__PURE__ */ J("<p class=\"decision-text svelte-17meywc\"> </p>"), $a = /* @__PURE__ */ J("<p> </p>"), eo = /* @__PURE__ */ J("<small class=\"svelte-17meywc\"> </small>"), to = /* @__PURE__ */ J("<label class=\"decision-option svelte-17meywc\"><input type=\"radio\" class=\"svelte-17meywc\"/> <span class=\"svelte-17meywc\"> <!></span></label>"), no = /* @__PURE__ */ J("<label class=\"decision-option svelte-17meywc\"><input type=\"radio\" class=\"svelte-17meywc\"/><span class=\"svelte-17meywc\">其他</span></label> <div class=\"decision-other svelte-17meywc\"><label>其他方案</label><textarea class=\"svelte-17meywc\"></textarea></div>", 1), ro = /* @__PURE__ */ J("<fieldset class=\"svelte-17meywc\"><legend class=\"decision-visually-hidden svelte-17meywc\"> </legend> <!> <!></fieldset>"), io = /* @__PURE__ */ J("<p class=\"decision-text svelte-17meywc\"> </p> <p class=\"decision-text svelte-17meywc\"> </p><p> </p> <button class=\"svelte-17meywc\">重新開啟</button>", 1), ao = /* @__PURE__ */ J("<button class=\"svelte-17meywc\">已核對最新題目，保留草稿</button>"), oo = /* @__PURE__ */ J("<p role=\"alert\"> </p> <!>", 1), so = /* @__PURE__ */ J("<button class=\"svelte-17meywc\">捨棄草稿</button>"), co = /* @__PURE__ */ J("<button class=\"svelte-17meywc\">確認決策</button>"), lo = /* @__PURE__ */ J("<section><p> </p><pre class=\"svelte-17meywc\"> </pre></section>"), uo = /* @__PURE__ */ J("<details><summary> </summary> <!></details>"), fo = /* @__PURE__ */ J("<div class=\"decision-content svelte-17meywc\"><!> <!> <!> <!> <div class=\"decision-actions svelte-17meywc\"><!> <!></div> <!></div>"), po = /* @__PURE__ */ J("<header slot=\"header\" class=\"checklist-item-header svelte-17meywc\"><h2 tabindex=\"-1\" class=\"svelte-17meywc\"> </h2><span class=\"checklist-status\"> </span></header>"), mo = /* @__PURE__ */ J("<article class=\"checklist-item\"><!></article>"), ho = /* @__PURE__ */ J("<p role=\"alert\"> </p> <button class=\"svelte-17meywc\">捨棄此草稿</button>", 1), go = /* @__PURE__ */ J("<p> </p> <p>選擇僅保留於本頁；按「確認決策」才保存，關閉頁面會失去未確認草稿。</p> <button class=\"svelte-17meywc\">下一項待決策</button> <!> <!> <!> <!> <!>", 1), _o = /* @__PURE__ */ J("<p>先前答案保留在歷史，這題將回到待決策。</p> <button class=\"svelte-17meywc\">取消</button> <button class=\"svelte-17meywc\">確認重新開啟</button>", 1), vo = /* @__PURE__ */ J("<main class=\"checklist-shell decisions-shell svelte-17meywc\"><header class=\"checklist-header\"><h1>決策項目</h1> <!></header> <!> <!></main> <!>", 1);
 function yo(e, t) {
 	We(t, !1);
 	let n = /* @__PURE__ */ I(), r = /* @__PURE__ */ I(), i = /* @__PURE__ */ I(), a = $(t, "transport", 8), o = $(t, "onPersistenceChange", 8, () => {}), s = /* @__PURE__ */ I(), c = /* @__PURE__ */ I(), l = /* @__PURE__ */ I(), u = /* @__PURE__ */ I("載入中…"), d = /* @__PURE__ */ I("pending"), f = /* @__PURE__ */ I(!0), p = /* @__PURE__ */ I({}), m = /* @__PURE__ */ I(), g = /* @__PURE__ */ I(null), _ = /* @__PURE__ */ I(), v = /* @__PURE__ */ I();
@@ -3790,7 +3790,7 @@ function yo(e, t) {
 								return K(W(n)), G(() => W(n).question);
 							},
 							children: (e, t) => {
-								var r = fo(), i = mn(r), a = (e) => {
+								var r = fo(), i = R(r), a = (e) => {
 									var t = Qa(), r = R(t, !0);
 									j(t), V(() => X(r, (K(W(n)), G(() => W(n).context)))), Y(e, t);
 								};
@@ -3824,12 +3824,12 @@ function yo(e, t) {
 									var s = z(a, 2), l = (e) => {
 										var t = no(), r = mn(t), i = R(r);
 										vi(i), Fe(), j(r);
-										var a = z(r, 2), s = z(a);
-										at(s), V(() => {
-											Q(i, "name", (K(W(n)), G(() => `answer-${W(n).id}`))), bi(i, (K(W(o)), G(() => W(o)?.choice === "__other"))), Q(a, "for", (K(W(n)), G(() => `other-${W(n).id}`))), Q(s, "id", (K(W(n)), G(() => `other-${W(n).id}`))), yi(s, (K(W(o)), G(() => W(o)?.other ?? "")));
+										var a = z(r, 2), s = R(a), c = z(s);
+										at(c), j(a), V(() => {
+											Q(i, "name", (K(W(n)), G(() => `answer-${W(n).id}`))), bi(i, (K(W(o)), G(() => W(o)?.choice === "__other"))), Q(s, "for", (K(W(n)), G(() => `other-${W(n).id}`))), Q(c, "id", (K(W(n)), G(() => `other-${W(n).id}`))), yi(c, (K(W(o)), G(() => W(o)?.other ?? "")));
 										}), q("change", i, async () => {
 											x(W(n).id, { choice: "__other" }), await hr(), document.getElementById(`other-${W(n).id}`)?.focus();
-										}), q("input", s, (e) => x(W(n).id, {
+										}), q("input", c, (e) => x(W(n).id, {
 											choice: "__other",
 											other: e.currentTarget.value
 										})), Y(e, t);
@@ -3870,23 +3870,23 @@ function yo(e, t) {
 								Z(m, (e) => {
 									K(W(o)), G(() => W(o)?.conflict) && e(h);
 								});
-								var _ = z(m, 2), v = (e) => {
+								var _ = z(m, 2), v = R(_), y = (e) => {
 									var t = so();
 									V(() => t.disabled = (W(c), K(W(n)), G(() => W(c).pending?.decision_id === W(n).id))), q("click", t, () => {
 										W(s).discard(W(n).id), b();
 									}), Y(e, t);
 								};
-								Z(_, (e) => {
-									W(o) && e(v);
+								Z(v, (e) => {
+									W(o) && e(y);
 								});
-								var y = z(_, 2), S = (e) => {
+								var S = z(v, 2), C = (e) => {
 									var t = co();
 									V((e) => t.disabled = e, [() => (W(c), K(W(o)), G(() => !!W(c).pending || !W(o)?.choice || W(o)?.conflict || W(o)?.choice === "__other" && !W(o)?.other.trim()))]), q("click", t, () => ee(W(n).id)), Y(e, t);
 								};
-								Z(y, (e) => {
-									K(W(n)), G(() => W(n).status === "pending") && e(S);
-								});
-								var C = z(y, 2), w = (e) => {
+								Z(S, (e) => {
+									K(W(n)), G(() => W(n).status === "pending") && e(C);
+								}), j(_);
+								var w = z(_, 2), te = (e) => {
 									var t = uo(), r = R(t), i = R(r);
 									j(r), Gr(z(r, 2), 1, () => (K(W(n)), G(() => W(n).history)), Vr, (e, t) => {
 										var n = lo(), r = R(n), i = R(r);
@@ -3900,9 +3900,9 @@ function yo(e, t) {
 										}, null, 2)))]), Y(e, n);
 									}), j(t), V(() => X(i, `歷史（${K(W(n)), G(() => W(n).history.length) ?? ""}）`)), Y(e, t);
 								};
-								Z(C, (e) => {
-									K(W(n)), G(() => W(n).history.length) && e(w);
-								}), Y(e, r);
+								Z(w, (e) => {
+									K(W(n)), G(() => W(n).history.length) && e(te);
+								}), j(r), Y(e, r);
 							},
 							$$slots: {
 								default: !0,

@@ -91,12 +91,13 @@
       <article class="checklist-item">
         <CardDisclosure {visibilityEnabled} {visible} {onVisibleChange} expanded={overrides[item.id] ?? expanded}
           onToggle={value => disclose(item.id, value)} contentId={`body-${item.id}`} label={item.question}>
-          <header slot="header" class="checklist-item-header"><h2 id={`decision-${item.id}`} tabindex="-1">{item.question}</h2><span>{item.status === "pending" ? "待決策" : "已決策"}</span></header>
+          <header slot="header" class="checklist-item-header"><h2 id={`decision-${item.id}`} tabindex="-1">{item.question}</h2><span class="checklist-status">{item.status === "pending" ? "待決策" : "已決策"}</span></header>
+          <div class="decision-content">
           {#if item.context}<p class="decision-text">{item.context}</p>{/if}
           {#if item.recommendation}<p>建議：{item.options.find(o => o.id === item.recommendation.option_id)?.label} — {item.recommendation.reason}</p>{/if}
           {#if item.status === "pending"}
             <fieldset disabled={view.pending?.decision_id === item.id || draft?.conflict}>
-              <legend>{item.question}</legend>
+              <legend class="decision-visually-hidden">{item.question}</legend>
               {#each item.options as option, index}
                 <label class="decision-option"><input type="radio" name={`answer-${item.id}`} checked={draft?.choice === option.id}
                   onchange={() => edit(item.id, {choice: option.id})} />
@@ -104,19 +105,22 @@
                     {#if option.description}<small>{option.description}</small>{/if}</span></label>
               {/each}
               {#if item.allow_other}<label class="decision-option"><input type="radio" name={`answer-${item.id}`} checked={draft?.choice === "__other"}
-                onchange={async () => { edit(item.id, {choice:"__other"}); await tick(); document.getElementById(`other-${item.id}`)?.focus(); }} />其他</label>
-                <label for={`other-${item.id}`}>其他方案</label><textarea id={`other-${item.id}`} value={draft?.other ?? ""} oninput={e => edit(item.id, {choice:"__other", other:e.currentTarget.value})}></textarea>{/if}
+                onchange={async () => { edit(item.id, {choice:"__other"}); await tick(); document.getElementById(`other-${item.id}`)?.focus(); }} /><span>其他</span></label>
+                <div class="decision-other"><label for={`other-${item.id}`}>其他方案</label><textarea id={`other-${item.id}`} value={draft?.other ?? ""} oninput={e => edit(item.id, {choice:"__other", other:e.currentTarget.value})}></textarea></div>{/if}
             </fieldset>
           {:else}<p class="decision-text">答案：{item.answer.kind === "other" ? item.answer.text : item.options.find(o => o.id === item.answer.option_id)?.label}</p>
             <p class="decision-text">{item.answer.reason ?? ""}</p><p>{item.answer.confirmed_at}</p>
             <button disabled={!!view.pending} onclick={() => reopenId = item.id}>重新開啟</button>{/if}
           {#if draft?.conflict}<p role="alert">此題已變更，原草稿保留：{draft.choice} {draft.other}</p>
             {#if item.status === "pending"}<button onclick={() => { session.rebase(item.id); sync(); }}>已核對最新題目，保留草稿</button>{/if}{/if}
+          <div class="decision-actions">
           {#if draft}<button disabled={view.pending?.decision_id === item.id} onclick={() => { session.discard(item.id); sync(); }}>捨棄草稿</button>{/if}
           {#if item.status === "pending"}<button disabled={!!view.pending || !draft?.choice || draft?.conflict || (draft?.choice === "__other" && !draft?.other.trim())} onclick={() => send(item.id)}>確認決策</button>{/if}
+          </div>
           {#if item.history.length}<details><summary>歷史（{item.history.length}）</summary>
             {#each item.history as entry}<section><p>{entry.at} · {entry.operation}</p><pre>{JSON.stringify({before:entry.before,after:entry.after},null,2)}</pre></section>{/each}
           </details>{/if}
+          </div>
         </CardDisclosure>
       </article>
     </CardList>
@@ -132,11 +136,20 @@
   <button onclick={() => { const id = reopenId; reopenId = null; send(id, "reopen"); }}>確認重新開啟</button>
 </DialogShell>
 <style>
-  .decision-option { display:flex; gap:.6rem; align-items:flex-start; padding:.6rem 0; }
-  .decision-option small { display:block; }
-  textarea { display:block; width:100%; min-height:4rem; box-sizing:border-box; }
-  fieldset { min-width:0; }
+  .decision-content { display:grid; gap:12px; min-width:0; padding:16px 18px; }
+  .checklist-item-header h2 { flex:1; min-width:0; overflow-wrap:anywhere; }
+  .decision-option { display:grid; grid-template-columns:1rem minmax(0, 1fr); gap:10px; align-items:start; padding:8px 0; line-height:1.5; }
+  .decision-option input { width:1rem; height:1rem; margin:4px 0 0; }
+  .decision-option span { min-width:0; overflow-wrap:anywhere; }
+  .decision-option small { display:block; margin-top:4px; color:var(--muted); }
+  .decision-other { display:grid; gap:6px; margin-inline-start:calc(1rem + 10px); }
+  textarea { display:block; width:100%; min-height:5rem; padding:10px 12px; box-sizing:border-box; font:inherit; resize:vertical; }
+  fieldset { min-width:0; margin:0; padding:0; border:0; }
+  .decision-visually-hidden { position:absolute; width:1px; height:1px; padding:0; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
   .decision-text, pre { white-space:pre-wrap; overflow-wrap:anywhere; }
+  .decision-actions { display:flex; flex-wrap:wrap; gap:8px; }
+  .decision-actions:empty { display:none; }
   button { margin:.4rem .4rem .4rem 0; }
+  .decision-content button { justify-self:start; margin:0; }
   .decisions-shell { max-width:1000px; margin:auto; padding:1rem; }
 </style>

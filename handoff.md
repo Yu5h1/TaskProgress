@@ -6,6 +6,8 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
 
 ## Current state (2026-09-25)
 
+- **決策面板卡內縮排已調整。** `DecisionApp.svelte` 新增統一內容內距、重設 fieldset 預設框線與縮排；選項使用固定 radio 欄，「其他方案」輸入框對齊選項文字，操作按鈕獨立成列。雙入口資產建置通過，已同步 Debug 及 Build/win-x64 的決策 JS／CSS；實際畫面驗收仍待集中進行，Desktop 重開／Web 重載後取得新版。未 commit。
+
 - **Report CLI 第一版已實作，整合驗收後排。** 入口為 `report get|validate|apply`，支援 folder／scope、局部 task、UTF-8 file／stdin 與 dry-run。共用 `service/report_store.py` 驗證／交易／Time 分析；HTTP 與 CLI 透過 `report_lock.py` 同一 scope 鎖保存，HTTP 另比對 overlay／events 變更。操作與部署契約由 `Documentation/ReportCliUpdatePlan.md`（Task ID: report-cli-update）擁有，操作例見 `Documentation/ReportCliUsage.md`。
   - **驗證**：SDK 9.0.315 Debug CLI 建置成功；Python Report CLI 9 項及既有 HTTP 保存／交易 5 項定向測試通過。抽取初次測試因 TRANSACTION_JOURNAL 舊 import 失敗，改用共用模組後通過。複核發現的無效 JSON shape、浮點整數 progress、空 overlay no-op 與 HTTP 取消分析鎖釋放問題已修正。
   - **下一步**：依使用者要求先完成實作，真實 CLI 程序／Viewer 競爭、Time 分析及畫面操作集中於 `checklists/report-cli-update.checklist` 第 4 項。未啟動服務、未 publish 本輪 CLI；目前 Build/win-x64 仍是上一輪決策項目版本。
