@@ -6,6 +6,12 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
 
 ## Current state (2026-09-25)
 
+- **決策面板間距分層。** 選項垂直 padding 由 8px 收至 4px，說明／建議以 4px 間距分組；內容區塊與卡片以 20px 分隔，其他輸入區增加上方留白、操作區增加分隔線。標題與內容仍對齊，收合保留 7px 標題內距。建置通過並同步 Browser／Desktop／Debug／Build 資產；實際預覽確認版面。使用者原頁含未保存 C 選項，保留原頁並另開新版預覽，未提交答案、未 commit。
+
+- **最新版本已發布並啟動預覽。** 依使用者明確要求，以 SDK 9.0.315 發布至 Build/win-x64（含 Report CLI 與標題對齊修正），執行 start --no-browser 成功。service status 確認 8001、PID 29896、instance 38237857973841ec9b080703433a7871、Viewer root 為本專案，17 個註冊檔案。已在 Codex Browser 開啟 /decisions/?scope=task-progress&task=decision-example，兩題正常載入；截圖確認第一張卡說明左緣對齊標題。只預覽，未提交答案或執行完整整合驗收。Publish 有 ReportCommand.cs 的既有 IL3000 警告，未影響完成。
+
+- **決策卡內容對齊標題文字。** 依使用者修正，DecisionApp 的卡片改為 grid，收合／可見性控制各自一欄，header 與 body 共用最後一欄與相同左右內距；內容不再從 foldout 下方開始。保留共用 CardDisclosure 與收合行為。決策資產建置通過，已同步 Browser、Desktop 源資產及 Debug／Build 決策資產；實際畫面待集中驗收，未 commit。
+
 - **決策面板卡內縮排已調整。** `DecisionApp.svelte` 新增統一內容內距、重設 fieldset 預設框線與縮排；選項使用固定 radio 欄，「其他方案」輸入框對齊選項文字，操作按鈕獨立成列。雙入口資產建置通過，已同步 Debug 及 Build/win-x64 的決策 JS／CSS；實際畫面驗收仍待集中進行，Desktop 重開／Web 重載後取得新版。未 commit。
 
 - **Report CLI 第一版已實作，整合驗收後排。** 入口為 `report get|validate|apply`，支援 folder／scope、局部 task、UTF-8 file／stdin 與 dry-run。共用 `service/report_store.py` 驗證／交易／Time 分析；HTTP 與 CLI 透過 `report_lock.py` 同一 scope 鎖保存，HTTP 另比對 overlay／events 變更。操作與部署契約由 `Documentation/ReportCliUpdatePlan.md`（Task ID: report-cli-update）擁有，操作例見 `Documentation/ReportCliUsage.md`。

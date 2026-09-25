@@ -77,24 +77,30 @@
     </article>{/each}
     {#if !summary.files.length}<p>尚未建立決策文件。</p>{/if}
   {:else if view}
+    <div class="decision-overview">
     <p>待決策 {decisions.filter(d => d.status === "pending").length}／全部 {decisions.length}</p>
     <p>選擇僅保留於本頁；按「確認決策」才保存，關閉頁面會失去未確認草稿。</p>
+    </div>
+    <div class="decision-controls">
     <button onclick={next} disabled={!decisions.some(d => d.status === "pending")}>下一項待決策</button>
     <FilterStrip categories={[{id:"pending",label:"待決策"},{id:"decided",label:"已決策"}]} order={[DEFAULT_CAPSULE_ID,"pending","decided"]}
       selected={new Set(filter ? [filter] : ["pending","decided"])} defaultLit={!filter} defaultLabel="全部"
       onSelect={id => filter = id} onSelectDefault={() => filter = ""} />
+    </div>
     {#if view.pending && !view.busy}<button onclick={() => send(null, null, true)}>查核／重試原請求</button>{/if}
     {#if !decisions.some(d => !filter || d.status === filter)}<p>目前沒有符合條件的決策項目。</p>{/if}
     <CardList bind:this={cardList} items={decisions.filter(d => !filter || d.status === filter).map(d => ({...d,title:d.question}))} allIds={decisions.map(d => d.id)} {storageKey}
       {expanded} onToggleAll={all} let:item let:visibilityEnabled let:visible let:onVisibleChange>
       {@const draft = Object.hasOwn(view.drafts, item.id) ? view.drafts[item.id] : null}
-      <article class="checklist-item">
+      <article class="checklist-item decision-card" class:decision-has-visibility={visibilityEnabled}>
         <CardDisclosure {visibilityEnabled} {visible} {onVisibleChange} expanded={overrides[item.id] ?? expanded}
           onToggle={value => disclose(item.id, value)} contentId={`body-${item.id}`} label={item.question}>
           <header slot="header" class="checklist-item-header"><h2 id={`decision-${item.id}`} tabindex="-1">{item.question}</h2><span class="checklist-status">{item.status === "pending" ? "待決策" : "已決策"}</span></header>
           <div class="decision-content">
+          {#if item.context || item.recommendation}<div class="decision-description">
           {#if item.context}<p class="decision-text">{item.context}</p>{/if}
           {#if item.recommendation}<p>建議：{item.options.find(o => o.id === item.recommendation.option_id)?.label} — {item.recommendation.reason}</p>{/if}
+          </div>{/if}
           {#if item.status === "pending"}
             <fieldset disabled={view.pending?.decision_id === item.id || draft?.conflict}>
               <legend class="decision-visually-hidden">{item.question}</legend>
@@ -136,18 +142,32 @@
   <button onclick={() => { const id = reopenId; reopenId = null; send(id, "reopen"); }}>確認重新開啟</button>
 </DialogShell>
 <style>
-  .decision-content { display:grid; gap:12px; min-width:0; padding:16px 18px; }
+  .decision-card { display:grid; grid-template-columns:auto minmax(0, 1fr); column-gap:8px; padding-inline-start:12px; }
+  .decision-card.decision-has-visibility { grid-template-columns:auto auto minmax(0, 1fr); }
+  .decision-card > :global(.card-disclosure-heading) { display:contents; }
+  .decision-card > :global(.card-disclosure-heading > .card-disclosure-toggle) { grid-column:1; grid-row:1; align-self:center; margin:0; }
+  .decision-card > :global(.card-disclosure-heading > .card-visibility-toggle) { grid-column:2; grid-row:1; align-self:center; }
+  .decision-card .checklist-item-header { grid-column:-2 / -1; grid-row:1; padding-block:12px; }
+  .decision-card :global(.card-disclosure-collapsed > .checklist-item-header) { padding-block:7px; }
+  .decision-card > :global(.card-disclosure-body) { grid-column:-2 / -1; grid-row:2; min-width:0; }
+  .decision-content { display:grid; gap:20px; min-width:0; padding:4px 18px 18px; line-height:1.45; }
+  .decision-description { display:grid; gap:4px; }
+  .decision-overview { display:grid; gap:4px; margin:10px 0 18px; }
+  .decision-overview p { margin:0; }
+  .decision-controls { display:grid; justify-items:start; gap:12px; margin-bottom:20px; }
+  .decision-controls > button { margin:0; }
+  .decisions-shell :global(.arrangeable-cards) { gap:20px; }
   .checklist-item-header h2 { flex:1; min-width:0; overflow-wrap:anywhere; }
-  .decision-option { display:grid; grid-template-columns:1rem minmax(0, 1fr); gap:10px; align-items:start; padding:8px 0; line-height:1.5; }
+  .decision-option { display:grid; grid-template-columns:1rem minmax(0, 1fr); gap:10px; align-items:start; padding:4px 0; line-height:1.4; }
   .decision-option input { width:1rem; height:1rem; margin:4px 0 0; }
   .decision-option span { min-width:0; overflow-wrap:anywhere; }
-  .decision-option small { display:block; margin-top:4px; color:var(--muted); }
-  .decision-other { display:grid; gap:6px; margin-inline-start:calc(1rem + 10px); }
+  .decision-option small { display:block; margin-top:2px; color:var(--muted); }
+  .decision-other { display:grid; gap:6px; margin-top:14px; margin-inline-start:calc(1rem + 10px); }
   textarea { display:block; width:100%; min-height:5rem; padding:10px 12px; box-sizing:border-box; font:inherit; resize:vertical; }
   fieldset { min-width:0; margin:0; padding:0; border:0; }
   .decision-visually-hidden { position:absolute; width:1px; height:1px; padding:0; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
   .decision-text, pre { white-space:pre-wrap; overflow-wrap:anywhere; }
-  .decision-actions { display:flex; flex-wrap:wrap; gap:8px; }
+  .decision-actions { display:flex; flex-wrap:wrap; gap:8px; padding-top:12px; border-top:1px solid var(--line); }
   .decision-actions:empty { display:none; }
   button { margin:.4rem .4rem .4rem 0; }
   .decision-content button { justify-self:start; margin:0; }
