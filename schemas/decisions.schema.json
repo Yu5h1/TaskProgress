@@ -3,7 +3,7 @@
   "additionalProperties": false,
   "properties": {
     "schema_version": {
-      "const": "1.0"
+      "const": "1.1"
     },
     "task_id": {
       "type": "string",
@@ -112,11 +112,24 @@
               }
             ]
           },
-          "history": {
-            "type": "array",
-            "items": {
-              "$ref": "#/$defs/event"
-            }
+          "last_request": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "request_id": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 16000
+              },
+              "fingerprint": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{64}$"
+              }
+            },
+            "required": [
+              "request_id",
+              "fingerprint"
+            ]
           }
         },
         "required": [
@@ -126,8 +139,7 @@
           "options",
           "allow_other",
           "status",
-          "answer",
-          "history"
+          "answer"
         ]
       }
     }
@@ -140,84 +152,6 @@
   ],
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$defs": {
-    "definition": {
-      "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "question": {
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 16000
-        },
-        "context": {
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 16000
-        },
-        "source_ref": {
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 16000
-        },
-        "options": {
-          "type": "array",
-          "minItems": 2,
-          "items": {
-            "type": "object",
-            "additionalProperties": false,
-            "properties": {
-              "id": {
-                "type": "string",
-                "pattern": "^[a-z0-9]+(?:[._-][a-z0-9]+)*$",
-                "maxLength": 100
-              },
-              "label": {
-                "type": "string",
-                "minLength": 1,
-                "maxLength": 16000
-              },
-              "description": {
-                "type": "string",
-                "minLength": 1,
-                "maxLength": 16000
-              }
-            },
-            "required": [
-              "id",
-              "label"
-            ]
-          }
-        },
-        "recommendation": {
-          "type": "object",
-          "additionalProperties": false,
-          "properties": {
-            "option_id": {
-              "type": "string",
-              "pattern": "^[a-z0-9]+(?:[._-][a-z0-9]+)*$",
-              "maxLength": 100
-            },
-            "reason": {
-              "type": "string",
-              "minLength": 1,
-              "maxLength": 16000
-            }
-          },
-          "required": [
-            "option_id",
-            "reason"
-          ]
-        },
-        "allow_other": {
-          "type": "boolean"
-        }
-      },
-      "required": [
-        "question",
-        "options",
-        "allow_other"
-      ]
-    },
     "answer": {
       "oneOf": [
         {
@@ -276,81 +210,6 @@
             "confirmed_at"
           ]
         }
-      ]
-    },
-    "state": {
-      "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "version": {
-          "type": "integer",
-          "minimum": 1
-        },
-        "definition": {
-          "$ref": "#/$defs/definition"
-        },
-        "status": {
-          "enum": [
-            "pending",
-            "decided"
-          ]
-        },
-        "answer": {
-          "oneOf": [
-            {
-              "type": "null"
-            },
-            {
-              "$ref": "#/$defs/answer"
-            }
-          ]
-        }
-      },
-      "required": [
-        "version",
-        "definition",
-        "status",
-        "answer"
-      ]
-    },
-    "event": {
-      "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "request_id": {
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 16000
-        },
-        "fingerprint": {
-          "type": "string",
-          "pattern": "^[a-f0-9]{64}$"
-        },
-        "operation": {
-          "enum": [
-            "confirm",
-            "reopen",
-            "revise"
-          ]
-        },
-        "at": {
-          "type": "string",
-          "format": "date-time"
-        },
-        "before": {
-          "$ref": "#/$defs/state"
-        },
-        "after": {
-          "$ref": "#/$defs/state"
-        }
-      },
-      "required": [
-        "request_id",
-        "fingerprint",
-        "operation",
-        "at",
-        "before",
-        "after"
       ]
     }
   }

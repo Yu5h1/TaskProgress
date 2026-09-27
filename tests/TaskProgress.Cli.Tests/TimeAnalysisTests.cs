@@ -32,6 +32,7 @@ internal static class TimeAnalysisTests
             NoEstimateAnywhereWithholdsTheDeadline(root);
             UnsetItemsHaveNoInventedMinutes(root);
             LoadingScopesDoesNotRewriteSnapshots(root);
+            ContentRevisionIgnoresEvaluationClock(root);
         }
         finally
         {
@@ -169,6 +170,21 @@ internal static class TimeAnalysisTests
     }
 
     private static readonly DateTimeOffset When = DateTimeOffset.Parse("2026-08-28T12:00:00+08:00");
+
+    private static void ContentRevisionIgnoresEvaluationClock(string root)
+    {
+        var folder = NewReport(root, "revision", pending: ["a"], done: []);
+        WriteConfig(folder, delivery: "2026-09-30T00:00:00+08:00");
+        WriteEstimates(folder, ("a", 120));
+        var clock = DateTimeOffset.Parse("2026-09-27T01:00:00+08:00");
+        TimeAnalysisGenerator.Generate(folder, clock);
+        using var before = ReadAnalysis(folder);
+        TimeAnalysisGenerator.Generate(folder, clock.AddSeconds(1));
+        using var after = ReadAnalysis(folder);
+        Equal(before.RootElement.GetProperty("content_revision").GetString(), after.RootElement.GetProperty("content_revision").GetString(), "Evaluation timestamp must not change content revision");
+        False(before.RootElement.GetProperty("summary").GetProperty("deadline").GetProperty("evaluated_at").GetString()
+            == after.RootElement.GetProperty("summary").GetProperty("deadline").GetProperty("evaluated_at").GetString(), "Evaluation clock really changed");
+    }
 
     private static string NewReport(string root, string name, string[] pending, string[] done)
     {

@@ -242,26 +242,26 @@ internal static class ModuleDependencyGraph
         IReadOnlyDictionary<string, string[]> edges)
     {
         var members = component.ToHashSet(StringComparer.Ordinal);
-        var start = component.OrderBy(type => type, StringComparer.Ordinal).First();
-        var path = new List<string> { start };
-        var visited = new HashSet<string>(StringComparer.Ordinal) { start };
-        var current = start;
-
-        while (true)
+        var ordered = component.OrderBy(type => type, StringComparer.Ordinal).ToArray();
+        var path = new List<string> { ordered[0] };
+        foreach (var target in ordered.Skip(1).Append(ordered[0]))
         {
-            var successor = edges[current]
-                .Where(members.Contains)
-                .OrderBy(type => type, StringComparer.Ordinal)
-                .FirstOrDefault(type => string.Equals(type, start, StringComparison.Ordinal)
-                    || !visited.Contains(type));
-            if (successor is null) break;
-
-            path.Add(successor);
-            if (string.Equals(successor, start, StringComparison.Ordinal)) break;
-            visited.Add(successor);
-            current = successor;
+            var queue = new Queue<List<string>>();
+            queue.Enqueue([path[^1]]);
+            var seen = new HashSet<string>(StringComparer.Ordinal);
+            while (queue.TryDequeue(out var route))
+            {
+                var current = route[^1];
+                if (route.Count > 1 && current == target)
+                {
+                    path.AddRange(route.Skip(1));
+                    break;
+                }
+                if (!seen.Add(current)) continue;
+                foreach (var next in edges[current].Where(members.Contains).OrderBy(type => type, StringComparer.Ordinal))
+                    queue.Enqueue([.. route, next]);
+            }
         }
-
         return path;
     }
 }

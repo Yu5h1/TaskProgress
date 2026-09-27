@@ -1,4 +1,4 @@
-// Focused decision lifecycle, conflict, receipt and history tests on temporary files.
+// Focused decision lifecycle, conflict, receipt and migration tests on temporary files.
 using System.Text.Json.Nodes;
 using TaskProgress;
 
@@ -30,14 +30,16 @@ internal static class DecisionTests
             var confirm = Request(initial, "confirm", "confirm-1", new() { ["kind"] = "option", ["option_id"] = "batch" });
             var success = store.Handle(confirm.ToJsonString());
             Check(success["status"]!.GetValue<string>() == "applied", "confirm");
-            var reopened = store.Handle(Request(success, "reopen", "reopen-1", new()).ToJsonString());
-            Check(reopened["ok"]!.GetValue<bool>(), "reopen");
             var repeated = store.Handle(confirm.ToJsonString());
-            Check(repeated["status"]!.GetValue<string>() == "already_applied", "receipt");
-            Check(repeated["document"]!["decisions"]![0]!["status"]!.GetValue<string>() == "pending", "latest snapshot on retry");
-            Check(repeated["document"]!["decisions"]![0]!["history"]!.AsArray().Count == 2, "no duplicate history");
+            Check(repeated["status"]!.GetValue<string>() == "already_applied", "latest receipt retry");
+            Check(!repeated["document"]!["decisions"]![0]!.AsObject().ContainsKey("history"), "no history persisted");
             confirm["payload"]!["option_id"] = "short";
             Check(store.Handle(confirm.ToJsonString())["error"]!["code"]!.GetValue<string>() == "request_id_conflict", "receipt mismatch");
+            confirm["payload"]!["option_id"] = "batch";
+            var reopened = store.Handle(Request(success, "reopen", "reopen-1", new()).ToJsonString());
+            Check(reopened["ok"]!.GetValue<bool>(), "reopen");
+            Check(reopened["document"]!["decisions"]![0]!["answer"] is null, "reopen clears answer");
+            Check(store.Handle(confirm.ToJsonString())["error"]!["code"]!.GetValue<string>() == "revision_conflict", "superseded retry conflicts safely");
             confirm["request_id"] = "stale";
             Check(store.Handle(confirm.ToJsonString())["error"]!["code"]!.GetValue<string>() == "revision_conflict", "stale revision");
             var beforeBytes = File.ReadAllBytes(path);
@@ -51,7 +53,7 @@ internal static class DecisionTests
             definition["question"] = "修改後的中文問題";
             var revised = store.Handle(Request(reopened, "revise", "revise-1", definition).ToJsonString());
             Check(revised["document"]!["decisions"]![0]!["version"]!.GetValue<int>() == 2, "version increments");
-            Check(revised["document"]!["decisions"]![0]!["history"]!.AsArray().Count == 3, "revision history preserved");
+            Check(revised["document"]!["decisions"]![0]!["last_request"]!["request_id"]!.GetValue<string>() == "revise-1", "only latest receipt retained");
             var raceA = Request(revised, "confirm", "race-a", new() { ["kind"] = "other", ["text"] = "中文自訂" });
             var raceB = Request(revised, "confirm", "race-b", new() { ["kind"] = "option", ["option_id"] = "both" });
             var results = new JsonObject[2];
@@ -61,7 +63,25 @@ internal static class DecisionTests
             var tampered = JsonNode.Parse(File.ReadAllText(path))!.AsObject();
             tampered["decisions"]![0]!["question"] = "外部直接改題";
             File.WriteAllText(path, tampered.ToJsonString());
-            Check(Load(store)["error"]!["code"]!.GetValue<string>() == "history_mismatch", "tampering diagnosed");
+            Check(Load(store)["ok"]!.GetValue<bool>(), "current state validates without historical snapshots");
+            var legacy = JsonNode.Parse(File.ReadAllText(fixture))!.AsObject();
+            legacy["schema_version"] = "1.0";
+            foreach (var node in legacy["decisions"]!.AsArray()) node!["history"] = new JsonArray();
+            var legacyDecision = legacy["decisions"]![0]!;
+            legacyDecision["status"] = "decided";
+            legacyDecision["answer"] = new JsonObject { ["kind"] = "option", ["option_id"] = "batch", ["confirmed_at"] = "2026-09-25T00:00:00Z" };
+            legacyDecision["history"]!.AsArray().Add(new JsonObject { ["request_id"] = "legacy", ["fingerprint"] = new string('a', 64) });
+            File.WriteAllText(path, legacy.ToJsonString());
+            var legacyBytes = File.ReadAllBytes(path);
+            var migrated = Load(store);
+            Check(migrated["ok"]!.GetValue<bool>(), "legacy load");
+            Check(legacyBytes.SequenceEqual(File.ReadAllBytes(path)), "load does not rewrite legacy file");
+            Check(migrated["document"]!["decisions"]![0]!["answer"]!["option_id"]!.GetValue<string>() == "batch", "migration retains current answer");
+            var migratedSave = store.Handle(Request(migrated, "reopen", "migrate-save", new()).ToJsonString());
+            Check(migratedSave["ok"]!.GetValue<bool>(), "legacy save");
+            var persisted = JsonNode.Parse(File.ReadAllText(path))!;
+            Check(persisted["schema_version"]!.GetValue<string>() == "1.1", "save uses simplified version");
+            Check(persisted["decisions"]!.AsArray().All(node => !node!.AsObject().ContainsKey("history")), "save removes all historical snapshots");
             File.WriteAllText(path, File.ReadAllText(fixture).Replace("\"schema_version\":", "\"schema_version\":\"1.0\",\"schema_version\":"));
             Check(!Load(store)["ok"]!.GetValue<bool>(), "duplicate JSON properties");
             File.Copy(fixture, path, true);
@@ -73,7 +93,7 @@ internal static class DecisionTests
             bad["decisions"]![0]!["unknown"] = 1;
             File.WriteAllText(path, bad.ToJsonString());
             Check(!Load(store)["ok"]!.GetValue<bool>(), "unknown fields");
-            Console.WriteLine("Decision lifecycle, conflict, receipt, history and UTF-8 checks passed.");
+            Console.WriteLine("Decision lifecycle, conflict, receipt, migration and UTF-8 checks passed.");
         }
         finally
         {

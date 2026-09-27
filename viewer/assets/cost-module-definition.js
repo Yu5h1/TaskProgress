@@ -25,6 +25,7 @@ export const COST_CAPSULE_ID = "cost";
 export function createCostModuleDefinition() {
   return {
     type: COST_MODULE_TYPE,
+    displayName: "成本分析",
     supportedSchemaVersions: ["0.1"],
     slots: ["project-summary", "task-body", "item-inline"],
     attach({ data, host }) {

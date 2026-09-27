@@ -16,6 +16,7 @@
  * Modules never reach the DOM, matching the plan's "Core 收集通過驗證的膠囊
  * 描述" rule.
  */
+import { evaluateModuleDependencies } from "./module-freshness.js";
 import { VIEWER_MODULE_SLOTS } from "./module-registry.js";
 
 /*
@@ -29,7 +30,15 @@ export function attachModules(registry, loaded = []) {
   const attached = [];
   const diagnostics = [];
 
-  for (const entry of loaded) {
+  const candidates = loaded.filter(entry => {
+    const definition = registry.get(entry.type);
+    return definition?.supportedSchemaVersions.includes(entry.schemaVersion);
+  });
+  const dependencies = evaluateModuleDependencies(candidates.map(entry => ({ ...entry,
+    dependsOn: registry.get(entry.type)?.dependsOn ?? [] })));
+  const order = [...dependencies.keys()];
+  const successful = [];
+  for (const entry of [...loaded].sort((a, b) => order.indexOf(a.type) - order.indexOf(b.type))) {
     const definition = registry.get(entry.type);
     if (!definition) {
       diagnostics.push({
@@ -47,6 +56,17 @@ export function attachModules(registry, loaded = []) {
       });
       continue;
     }
+    const dependency = dependencies.get(entry.type)?.reason === "cycle" ? dependencies.get(entry.type)
+      : evaluateModuleDependencies([...successful, { ...entry, dependsOn: definition.dependsOn ?? [] }]).get(entry.type);
+    for (const type of dependency?.excluded ?? []) {
+      diagnostics.push({ code: "dependency_excluded", type: entry.type,
+        message: `${definition.displayName ?? entry.type}：${registry.get(type)?.displayName ?? type} 無法使用，其數值未計入。` });
+    }
+    if (dependency?.stale) {
+      diagnostics.push({ code: "dependency_stale", type: entry.type,
+        message: `${definition.displayName ?? entry.type}資料待重算${dependency.reason === "cycle" ? "（模組依賴成環）" : ""}。` });
+      continue;
+    }
     // A module that throws while attaching is isolated here, not allowed to
     // take the report down: the failure boundary the plan requires is only
     // real if the host never sees the exception.
@@ -56,6 +76,7 @@ export function attachModules(registry, loaded = []) {
         slots: definition.slots,
         instance: definition.attach({ data: entry.data, host: entry.host }),
       });
+      successful.push({ ...entry, dependsOn: definition.dependsOn ?? [] });
     } catch (error) {
       diagnostics.push({
         code: "attach_failed",

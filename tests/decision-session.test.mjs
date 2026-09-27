@@ -16,9 +16,9 @@ test("confirm clears only its draft and advances unchanged sibling",()=>{
   s.complete(response); assert.equal(s.view().drafts.next.other,"中文草稿"); assert.equal(s.view().drafts.next.conflict,false);
   assert.equal(s.begin("next").expected_revision,"b");
 });
-test("external sibling history invalidates draft even if still pending",()=>{
+test("external sibling receipt invalidates draft even if still pending",()=>{
   const s=createDecisionSession(initial()); s.edit("next",{choice:"ui"}); const fresh=initial();
-  fresh.document.decisions[1].history.push({operation:"reopen"}); s.merge(fresh);
+  fresh.document.decisions[1].last_request = {request_id:"reopen",fingerprint:"changed"}; s.merge(fresh);
   assert.equal(s.view().drafts.next.conflict,true); assert.throws(()=>s.begin("next"));
   s.rebase("next"); assert.equal(s.view().drafts.next.conflict,false);
 });

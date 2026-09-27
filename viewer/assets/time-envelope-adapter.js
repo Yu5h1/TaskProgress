@@ -58,7 +58,7 @@ export function adaptLegacyTimeAnalysis(legacy, { moduleId = DEFAULT_TIME_MODULE
 
   const suppliedByAdapter = ["module_type", "module_id", "generator"];
   const approximated = [];
-  const unavailable = ["report_id", "report_revision"];
+  const unavailable = ["report_id", ...(legacy.report_revision === undefined ? ["report_revision"] : [])];
 
   const envelope = {
     module_type: TIME_MODULE_TYPE,
@@ -72,6 +72,9 @@ export function adaptLegacyTimeAnalysis(legacy, { moduleId = DEFAULT_TIME_MODULE
     generator: { ...TIME_ENVELOPE_ADAPTER },
     data: legacy,
   };
+
+  for (const field of ["report_revision", "content_revision", "source_revision", "input_modules", "excluded_modules"])
+    if (legacy[field] !== undefined) envelope[field] = structuredClone(legacy[field]);
 
   /*
    * `as_of` is the analysis clock — `analyze --as-of <ISO>` pins it so a run
@@ -99,7 +102,7 @@ export function adaptLegacyTimeAnalysis(legacy, { moduleId = DEFAULT_TIME_MODULE
     fields_unavailable: Object.freeze(unavailable),
     notes: Object.freeze([
       "identity 只驗證到 scope 層級：來源沒有 report_id，且不得由 report.json 補上。",
-      "沒有 report_revision，投影新鮮度為 freshness_unknown，不得宣稱已驗證為最新。",
+      ...(legacy.report_revision === undefined ? ["沒有 report_revision，投影新鮮度為 freshness_unknown，不得宣稱已驗證為最新。"] : []),
       "method（演算法身分）保留在 data 內，未當作 generator（工具身分）使用。",
     ]),
   });

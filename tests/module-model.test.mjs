@@ -84,8 +84,8 @@ test("the manifest schema fixes descriptor fields and the v0.1 constants", async
   );
   assert.equal(schema.properties.schema_version.const, "0.1");
   assert.deepEqual(
-    Object.keys(schema.$defs.moduleDescriptor.properties),
-    ["id", "type", "source", "optional", "visibility"],
+    Object.keys(schema.$defs.moduleDescriptor.properties).sort(),
+    ["id", "type", "source", "optional", "visibility", "depends_on"].sort(),
   );
   assert.equal(schema.$defs.moduleDescriptor.additionalProperties, false);
   assert.equal(schema.$defs.moduleDescriptor.properties.optional.const, true);

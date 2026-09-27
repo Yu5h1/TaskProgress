@@ -18,6 +18,7 @@ internal sealed record TimeAnalysisGenerationResult(
 
 internal static class TimeAnalysisGenerator
 {
+    internal static readonly string[] InputFileNames = ["report.json", "time.config.json", "time.estimates.json", "time.events.json"];
     private const string TimeSchemaVersion = "0.2";
     private const string RiskMethodName = "deterministic-capacity-feasibility";
     private const string RiskMethodVersion = "0.3";
@@ -283,6 +284,11 @@ internal static class TimeAnalysisGenerator
             ["diagnostics"] = new JsonArray(diagnostics.Select(item => item.ToJson()).ToArray())
         };
 
+        var semanticSummary = (JsonObject)summary.DeepClone();
+        if (semanticSummary["deadline"] is JsonObject semanticDeadline) semanticDeadline.Remove("evaluated_at");
+        ModuleProjection.Stamp(analysis, reportFolder.DirectoryPath, InputFileNames,
+            new JsonObject { ["method"] = analysis["method"]!.DeepClone(), ["summary"] = semanticSummary,
+                ["tasks"] = analysisTasks.DeepClone(), ["diagnostics"] = analysis["diagnostics"]!.DeepClone() });
         WriteAtomic(outputPath, analysis.ToJsonString(OutputOptions) + Environment.NewLine);
         return new TimeAnalysisGenerationResult(
             outputPath,

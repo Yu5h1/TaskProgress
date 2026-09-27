@@ -46,6 +46,9 @@ function validateDefinition(definition) {
   if (!isModuleType(definition.type)) {
     throw new TypeError(`module definition.type 無效：${JSON.stringify(definition.type)}`);
   }
+  if (definition.dependsOn !== undefined && (!Array.isArray(definition.dependsOn)
+    || definition.dependsOn.some(type => !isModuleType(type)) || new Set(definition.dependsOn).size !== definition.dependsOn.length))
+    throw new TypeError("module definition.dependsOn 必須是唯一的 module type 陣列。");
   if (!isNonEmptyStringArray(definition.supportedSchemaVersions)) {
     throw new TypeError(`module type「${definition.type}」的 supportedSchemaVersions 必須是非空字串陣列。`);
   }
@@ -91,6 +94,7 @@ export function createTrustedModuleRegistry(definitions) {
     }
     byType.set(definition.type, Object.freeze({
       ...definition,
+      dependsOn: Object.freeze([...(definition.dependsOn ?? [])]),
       supportedSchemaVersions: Object.freeze([...definition.supportedSchemaVersions]),
       slots: Object.freeze([...definition.slots]),
     }));

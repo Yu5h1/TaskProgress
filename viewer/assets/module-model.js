@@ -1,3 +1,4 @@
+import { projectionMetadataErrors, evaluateModuleDependencies } from "./module-freshness.js";
 /*
  * Phase 1 pure model for the extension-module system described in
  * Documentation/ExtensionModuleArchitecturePlan.md. Nothing here touches the
@@ -115,7 +116,7 @@ export function resolveModuleSource(source) {
 }
 
 const MANIFEST_FIELDS = new Set(["schema_version", "report_id", "scope_id", "updated_at", "modules"]);
-const DESCRIPTOR_FIELDS = new Set(["id", "type", "source", "optional", "visibility"]);
+const DESCRIPTOR_FIELDS = new Set(["id", "type", "source", "optional", "visibility", "depends_on"]);
 
 function validateDescriptor(descriptor, path, errors) {
   if (!isObject(descriptor)) {
@@ -137,13 +138,17 @@ function validateDescriptor(descriptor, path, errors) {
   if (!MODULE_VISIBILITIES.includes(descriptor.visibility)) {
     errors.push(issue("invalid_visibility", `${path}.visibility`, `${path}.visibility 不是支援的發布分類。`));
   }
-  if (!idOk || !typeOk) return null;
+  if (descriptor.depends_on !== undefined && (!Array.isArray(descriptor.depends_on)
+    || descriptor.depends_on.some(type => !isModuleType(type)) || new Set(descriptor.depends_on).size !== descriptor.depends_on.length))
+    errors.push(issue("invalid_manifest", `${path}.depends_on`, "depends_on 必須是唯一的 module type 陣列。"));
+  if (!idOk || !typeOk || errors.some(error => error.path === `${path}.depends_on`)) return null;
   return Object.freeze({
     id: descriptor.id,
     type: descriptor.type,
     source: descriptor.source,
     optional: true,
     visibility: descriptor.visibility,
+    ...(descriptor.depends_on === undefined ? {} : { depends_on: Object.freeze([...descriptor.depends_on]) }),
   });
 }
 
@@ -263,6 +268,7 @@ export function validateModuleEnvelope(
   if (envelope.report_revision !== undefined && !REPORT_REVISION_PATTERN.test(envelope.report_revision)) {
     errors.push(issue("invalid_report_revision", "report_revision", "report_revision 格式必須是 sha256:<64 hex>。"));
   }
+  for (const field of projectionMetadataErrors(envelope)) errors.push(issue("invalid_data", field, `無效的模組版本資訊：${field}`));
   requireTimestamp(envelope.generated_at, "generated_at", errors);
   if (
     !isObject(envelope.generator)
@@ -443,5 +449,12 @@ export function loadReportModules({
     });
   });
 
-  return Object.freeze({ manifestErrors: Object.freeze([]), modules: Object.freeze(modules) });
+  const dependencies = evaluateModuleDependencies(modules.filter(module => module.status === "loaded").map(module => ({
+    type: module.descriptor.type, dependsOn: module.descriptor.depends_on ?? [], data: artifacts.get(module.descriptor.source),
+  })));
+  return Object.freeze({ manifestErrors: Object.freeze([]), modules: Object.freeze(modules.map(module => {
+    const dependency = dependencies.get(module.descriptor.type);
+    return dependency ? Object.freeze({ ...module, excludedModules: Object.freeze(dependency.excluded),
+      freshness: dependency.stale ? PROJECTION_FRESHNESS.stale : module.freshness }) : module;
+  })) });
 }

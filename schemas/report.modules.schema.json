@@ -47,6 +47,13 @@
       "additionalProperties": false,
       "required": ["id", "type", "source", "optional", "visibility"],
       "properties": {
+        "depends_on": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/moduleType"
+          }
+        },
         "id": {
           "$ref": "#/$defs/id"
         },

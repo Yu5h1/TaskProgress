@@ -301,6 +301,15 @@ Phase 0 將 Descriptor identity 固定如下：
 
 ## 模組依賴與重算（2026-08-28 使用者決策）
 
+> Task ID: module-dependency-refresh
+
+本輪完成版本比對與明確分析入口的增量重算；不增加檔案監看、不變更 Cost 計價。來源內容指紋 `source_revision` 由各分析模組列出 report 與私有輸入後計算；時間分析依賴時鐘，因此每次明確分析時重新評估。`analyze` 明確要求時全算，既有自動分析入口只重算 dirty 模組，單一 scope 不擴張到其他 scope。
+
+內容雜湊由各生成器選取 method、summary、tasks、diagnostics 計算，排除輸出時間、analysis ID 及輸入時間戳。`input_modules` 只記錄分析器經共用輸入入口實際讀取的上游；`excluded_modules` 記錄未可用的依賴 type，供 Viewer 顯示未計入。舊投影缺少 metadata 時允許相容讀取，但有依賴的投影不能宣稱最新，分析時補齊。
+
+範圍約 20 個來源／Schema／測試檔；沿用已定案的依賴圖與生成器，新增共用版本比對與分析 pass。證據為定向 .NET／Node 測試及使用者完成說明核查；清單見 `checklists/module-dependency-refresh.checklist`。
+
+
 在此之前 descriptor 只表達「我是誰、我的資料在哪」，沒有任何欄位表達「我讀誰」。缺口具體造成三件事：新鮮度算不出來（上游改了下游不知道自己過期）、失敗隔離是猜的（下游在上游缺席時該顯示什麼未定義）、重算順序沒有依據（純粹是清單順序）。本節是所有擴充模組共同遵守的依賴契約；`AssessmentModuleArchitecturePlan.md` 與 `CostEstimationModulePlan.md` 引用它，不另行定義。
 
 ### 依賴由模組自己宣告，而且是軟的

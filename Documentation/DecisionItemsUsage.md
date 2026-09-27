@@ -25,7 +25,7 @@ task-progress.exe decisions validate "C:\Project\decisions\task-a.decisions"
 
 選取選項，或直接在「其他方案」輸入文字（自動選中「其他」）→「確認決策」。只有成功確認才保存。草稿僅保留本頁，重新載入或關閉可能遺失。
 
-修改已確認的答案 →「重新開啟」→ 確認 → 重新選擇答案。原答案保留在歷史。
+修改已確認的答案 →「重新開啟」→ 確認 → 重新選擇答案。目前答案會清除；版本追溯使用 Git。
 
 若顯示衝突，先核對最新問題，再選擇捨棄或保留草稿；若顯示結果未確認，使用「查核／重試原請求」，避免重複發動新操作。
 
@@ -37,7 +37,7 @@ task-progress.exe decisions validate "C:\Project\decisions\task-a.decisions"
 
 啟動本機服務 → 開啟 [Web 範例](http://127.0.0.1:8001/decisions/?scope=task-progress&task=decision-example) → 直接在「其他方案」輸入文字 → 確認「其他」自動選中 → 按「確認決策」。
 
-重新載入 → 確認答案仍在 →「重新開啟」→ 確認 → 檢查題目回到待決策且歷史保留。
+重新載入 → 確認答案仍在 →「重新開啟」→ 確認 → 檢查題目回到待決策且目前答案清空。
 
 Desktop 可雙擊操作檔，或以 `Build/win-x64/task-progress.exe decisions decisions/decision-example.decisions` 開啟。
 
@@ -68,7 +68,7 @@ Get-Content -Raw -Encoding UTF8 request.json | task-progress.exe decisions reque
 
 - `confirm`：payload 是 option 或 other 答案。需要補充條件或理由時，選「其他」並直接寫入答案；畫面不另設理由欄。
 - `reopen`：payload 為 `{}`。
-- `revise`：payload 為完整題目定義，欄位見計畫 D-01；已有歷史的問題必須走此操作。
+- `revise`：payload 為完整題目定義，欄位見計畫 D-01；既有問題使用此操作可保留衝突檢查。
 - `request` 的 exit code 0 代表已輸出 JSON，必須再檢查 `ok`；錯誤代號在 `error.code`。入口無法產生 JSON 時才回非零。
 - 重試原請求保留完全相同的 request ID 與內容。`already_applied` 回傳最新狀態，不代表題目現在仍已決策。
 

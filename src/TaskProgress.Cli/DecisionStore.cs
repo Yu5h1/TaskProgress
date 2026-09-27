@@ -1,4 +1,4 @@
-// Serializes cooperative writers and keeps decisions, history and request receipts in one atomic file.
+// Serializes cooperative writers and keeps current answers and latest request receipts in one atomic file.
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
@@ -50,18 +50,15 @@ internal sealed class DecisionStore
                 var payload = Object(request["payload"]);
                 var fingerprint = Fingerprint(request);
                 foreach (var node in Array(document, "decisions"))
-                    foreach (var eventNode in Array(Object(node), "history"))
-                    {
-                        var entry = Object(eventNode);
-                        if (Text(entry, "request_id") != requestId) continue;
-                        if (Text(entry, "fingerprint") != fingerprint) Fail("request_id_conflict", "Request id already has different content.");
-                        return Response("already_applied", document, revision, requestId);
-                    }
+                {
+                    if (Object(node)["last_request"] is not JsonObject entry || Text(entry, "request_id") != requestId) continue;
+                    if (Text(entry, "fingerprint") != fingerprint) Fail("request_id_conflict", "Request id already has different content.");
+                    return Response("already_applied", document, revision, requestId);
+                }
                 if (revision != expected) Fail("revision_conflict", "Reload and compare the changed document.");
                 var decision = Array(document, "decisions").Select(Object).FirstOrDefault(d => Text(d, "id") == decisionId)
                     ?? throw new DecisionException("decision_not_found", "Decision is missing.");
                 if (Integer(decision, "version") != version) Fail("version_conflict", "Question version changed.");
-                var before = State(decision);
                 var at = DateTimeOffset.UtcNow.ToString("O");
                 switch (operation)
                 {
@@ -88,15 +85,14 @@ internal sealed class DecisionStore
                         decision["status"] = "pending";
                         break;
                 }
-                Array(decision, "history").Add(new JsonObject
+                decision["last_request"] = new JsonObject
                 {
-                    ["request_id"] = requestId, ["fingerprint"] = fingerprint, ["operation"] = operation,
-                    ["at"] = at, ["before"] = before, ["after"] = State(decision)
-                });
+                    ["request_id"] = requestId, ["fingerprint"] = fingerprint
+                };
                 document["updated_at"] = at;
                 Validate(document);
                 var output = Encoding.UTF8.GetBytes(document.ToJsonString(Format) + "\n");
-                if (output.Length > MaxBytes) Fail("too_large", "Document and history exceed 4 MiB.");
+                if (output.Length > MaxBytes) Fail("too_large", "Document exceeds 4 MiB.");
                 var temp = path + "." + Guid.NewGuid().ToString("N") + ".tmp";
                 try
                 {

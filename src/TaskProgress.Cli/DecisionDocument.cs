@@ -1,4 +1,4 @@
-// Owns the JSON decision contract and validates its append-only state transitions.
+// Owns the JSON decision contract and validates current answers and bounded retry receipts.
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
@@ -22,6 +22,26 @@ internal static class DecisionDocument
     {
         if (Encoding.UTF8.GetByteCount(source) > MaxBytes) Fail("too_large", "Document exceeds 4 MiB.");
         var root = ParseObject(source);
+        if (Text(root, "schema_version") == "1.0")
+        {
+            foreach (var node in Array(root, "decisions"))
+            {
+                var decision = Object(node);
+                if (decision.ContainsKey("last_request")) Fail("invalid_document", "Legacy document cannot supply last_request.");
+                var history = Array(decision, "history");
+                if (history.Count > 0)
+                {
+                    var latest = Object(history[^1]);
+                    decision["last_request"] = new JsonObject
+                    {
+                        ["request_id"] = latest["request_id"]?.DeepClone(),
+                        ["fingerprint"] = latest["fingerprint"]?.DeepClone()
+                    };
+                }
+                decision.Remove("history");
+            }
+            root["schema_version"] = "1.1";
+        }
         Validate(root);
         return root;
     }
@@ -51,7 +71,7 @@ internal static class DecisionDocument
     public static void Validate(JsonObject root)
     {
         Fields(root, ["schema_version", "task_id", "updated_at", "decisions"]);
-        if (Text(root, "schema_version") != "1.0") Fail("unsupported_version", "Expected schema_version 1.0.");
+        if (Text(root, "schema_version") != "1.1") Fail("unsupported_version", "Expected schema_version 1.1.");
         Id(root, "task_id");
         Timestamp(root, "updated_at");
         var ids = new HashSet<string>();
@@ -59,34 +79,17 @@ internal static class DecisionDocument
         foreach (var node in Array(root, "decisions"))
         {
             var decision = Object(node);
-            Fields(decision, ["id", "version", "question", "context", "source_ref", "options", "recommendation", "allow_other", "status", "answer", "history"]);
+            Fields(decision, ["id", "version", "question", "context", "source_ref", "options", "recommendation", "allow_other", "status", "answer", "last_request"]);
             if (!ids.Add(Id(decision, "id"))) Fail("invalid_document", "Duplicate decision id.");
             if (!decision.ContainsKey("answer")) Fail("invalid_document", "Missing answer field.");
             ValidateState(State(decision));
-            var history = Array(decision, "history");
-            JsonObject? previous = null;
-            foreach (var eventNode in history)
+            if (decision.ContainsKey("last_request"))
             {
-                var entry = Object(eventNode);
-                Fields(entry, ["request_id", "fingerprint", "operation", "at", "before", "after"]);
-                if (!requests.Add(Text(entry, "request_id"))) Fail("invalid_document", "Duplicate request id.");
-                if (!Regex.IsMatch(Text(entry, "fingerprint"), "^[a-f0-9]{64}$")) Fail("invalid_document", "Invalid request fingerprint.");
-                Timestamp(entry, "at");
-                var before = Object(entry["before"]);
-                var after = Object(entry["after"]);
-                ValidateState(before);
-                ValidateState(after);
-                if (previous is not null && !Equal(previous, before)) Fail("history_mismatch", "History is discontinuous.");
-                if (previous is null && (Text(before, "status") != "pending" || Integer(before, "version") != 1))
-                    Fail("history_mismatch", "History must start at pending version 1.");
-                ValidateTransition(Text(entry, "operation"), before, after);
-                if (Text(entry, "operation") == "confirm" && Text(Object(after["answer"]), "confirmed_at") != Text(entry, "at"))
-                    Fail("history_mismatch", "Confirmation timestamp differs from event.");
-                previous = after;
+                var receipt = Object(decision["last_request"]);
+                Fields(receipt, ["request_id", "fingerprint"]);
+                if (!requests.Add(Text(receipt, "request_id"))) Fail("invalid_document", "Duplicate request id.");
+                if (!Regex.IsMatch(Text(receipt, "fingerprint"), "^[a-f0-9]{64}$")) Fail("invalid_document", "Invalid request fingerprint.");
             }
-            if (previous is not null && !Equal(previous, State(decision))) Fail("history_mismatch", "Current state differs from history.");
-            if (previous is null && (Text(decision, "status") != "pending" || Integer(decision, "version") != 1))
-                Fail("history_mismatch", "New decisions must be pending version 1.");
         }
     }
 
@@ -151,20 +154,6 @@ internal static class DecisionDocument
         }
         else if (status == "decided") ValidateAnswer(Object(state["answer"]), definition, true);
         else Fail("invalid_document", "Unknown decision status.");
-    }
-
-    private static void ValidateTransition(string operation, JsonObject before, JsonObject after)
-    {
-        var sameDefinition = Equal(before["definition"], after["definition"]);
-        var sameVersion = Integer(before, "version") == Integer(after, "version");
-        var valid = operation switch
-        {
-            "confirm" => sameDefinition && sameVersion && Text(before, "status") == "pending" && Text(after, "status") == "decided",
-            "reopen" => sameDefinition && sameVersion && Text(before, "status") == "decided" && Text(after, "status") == "pending",
-            "revise" => !sameDefinition && Integer(after, "version") == Integer(before, "version") + 1 && Text(after, "status") == "pending",
-            _ => false
-        };
-        if (!valid) Fail("history_mismatch", "Invalid history transition.");
     }
 
     internal static JsonObject Definition(JsonObject decision)

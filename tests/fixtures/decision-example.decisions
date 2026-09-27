@@ -1,5 +1,5 @@
 {
-  "schema_version": "1.0",
+  "schema_version": "1.1",
   "task_id": "decision-example",
   "updated_at": "2026-09-25T00:00:00+08:00",
   "decisions": [
@@ -29,8 +29,7 @@
       },
       "allow_other": true,
       "status": "pending",
-      "answer": null,
-      "history": []
+      "answer": null
     },
     {
       "id": "next",
@@ -48,8 +47,7 @@
       ],
       "allow_other": true,
       "status": "pending",
-      "answer": null,
-      "history": []
+      "answer": null
     }
   ]
 }

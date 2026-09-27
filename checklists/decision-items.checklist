@@ -4,12 +4,12 @@ Current round: `Documentation/DecisionItemsPlan.md#驗收與遷移`.
 
 本輪實作具名 JSON 決策文件與 Browser／Desktop 共用畫面；實機操作由人工確認。
 
-- [x] **1. 格式與歷史核心**
+- [x] **1. 格式與目前狀態**
   Outcome: 具名 JSON 決策文件支援驗證、確認、重開與修訂。
   Checks:
     - [x] **定向驗證**
       - Action: 執行 Decisions 核心定向測試。
-      - Expect: D-01、未知欄位、重複 ID、其他空白及歷史不一致案例通過。
+      - Expect: D-01、未知欄位、重複 ID、其他空白及舊格式轉換案例通過。
 
 - [x] **2. 保存與本機入口**
   Outcome: 精確文件保存具備 revision、互斥鎖與冪等請求。
@@ -44,5 +44,5 @@ Current round: `Documentation/DecisionItemsPlan.md#驗收與遷移`.
   Checks:
     - [ ] **操作與版面** `[manual]`
       - Action: 以範例副本在 Browser 與 Desktop 選擇其他、確認、重開，並檢查鍵盤、窄版、收合與刷新保護。
-      - Expect: 答案可保存、歷史可讀，草稿不因卡片操作遺失，鍵盤焦點與版面可用。
+      - Expect: 答案可保存，重新開啟後清空舊答案，草稿不因卡片操作遺失，鍵盤焦點與版面可用。
       - Reason: 需要使用者實機與介面判斷。

@@ -216,3 +216,17 @@ test("stale is per-call, so it never sticks to an attached module", () => {
   assert.deepEqual(collectCapsules(attached, "project-summary", null, { stale: true }).capsules, []);
   assert.equal(collectCapsules(attached, "project-summary").capsules.length, 1);
 });
+
+test("dependency attachment failure never exposes a total computed with its old value", () => {
+  const hash="sha256:"+"a".repeat(64);
+  const registry=createTrustedModuleRegistry([
+    definition("test.up", {attach:()=>{throw new Error("unusable");}}),
+    definition("test.down", {dependsOn:["test.up"]}),
+  ]);
+  const {attached,diagnostics}=attachModules(registry,[
+    loaded("test.down",{data:{content_revision:hash,input_modules:[{module_type:"test.up",content_revision:hash}]}}),
+    loaded("test.up",{data:{content_revision:hash,input_modules:[]}}),
+  ]);
+  assert.equal(attached.length,0);
+  assert.ok(diagnostics.some(d=>d.code==="dependency_excluded" && d.message.includes("未計入")));
+});

@@ -1,0 +1,54 @@
+# 模組版本與依賴重算核查
+
+Current round: `Documentation/ExtensionModuleArchitecturePlan.md#模組依賴與重算2026-08-28-使用者決策`.
+
+本輪涵蓋 M-01／M-02 的可實作部分。每項列出完成行為與自動驗證，並依使用者要求保留「完成說明核查」供勾選；不要求重做自動測試。現有 Time／Cost 尚無跨模組計價依賴，連鎖情境由測試模組驗證，本輪不新增成本公式。
+
+- [ ] **1. M-01 模組內容版本**
+  Outcome: Time／Cost 產出內容雜湊；只改產出時間不會讓內容版本變動，真正的數值或定義變更會反映於版本。
+  Checks:
+    - [x] **內容版本定向驗證**
+      - Action: 執行 .NET --modules-only 內的 ModuleRefreshTests 與 TimeAnalysisTests。
+      - Expect: JSON 欄位順序不影響雜湊，期限評估時間改變而內容不變時版本相同。
+    - [ ] **完成說明核查** `[manual]`
+      - Action: 閱讀本項 Outcome，確認版本只用於辨識資料變動，不是操作歷史。
+      - Expect: 完成行為符合你對 M-01 的期待。
+      - Reason: 依使用者要求保留完成內容的本人核查。
+
+- [ ] **2. M-01 上游版本比對**
+  Outcome: 記錄實際讀取的上游版本；上游變更、消失或恢復時辨識過期結果。舊獨立投影仍可讀，不把缺少資訊的相依投影當成最新。
+  Checks:
+    - [x] **依賴版本定向驗證**
+      - Action: 執行 module-freshness、module-model、module-registry、time-envelope-adapter 的 Node 定向測試。
+      - Expect: 直接與間接過期、缺席後恢復、舊資料及無效 metadata 均符合契約。
+      - Observed: 初次 Schema 欄位清單尚未納入 depends_on；調整 Schema 排版後又暴露欄位順序不應影響驗證。
+      - Resolved: 更新契約欄位清單並以集合順序核對後，73 項 Node 定向測試通過。
+    - [ ] **完成說明核查** `[manual]`
+      - Action: 閱讀本項 Outcome，確認上游改變後必須重新分析才可使用新結果。
+      - Expect: 完成行為符合你對資料新舊判斷的期待。
+      - Reason: 依使用者要求保留完成內容的本人核查。
+
+- [ ] **3. M-02 單輪重算與安全發布**
+  Outcome: 自動分析入口略過未變更模組；依拓樸順序每輪至多算一次。明確 analyze 仍重算，Time 仍評估時鐘。來源分析途中變動或分析失敗時不替換舊結果。
+  Checks:
+    - [x] **重算定向驗證**
+      - Action: 執行 .NET --modules-only 的 ModuleRefreshTests。
+      - Expect: 無變更略過、菱形依賴各算一次、上游失敗隔離、恢復後重算、來源變動保留舊檔及無效 metadata 重建通過。
+    - [x] **CLI 與 Schema 驗證**
+      - Action: 執行 tests/test_module_refresh.py。
+      - Expect: 新投影通過 Schema；無效輸入使 CLI 回非零，既有投影不變且無暫存殘留。
+    - [ ] **完成說明核查** `[manual]`
+      - Action: 閱讀本項 Outcome，確認重算由分析入口觸發，不持續監看檔案。
+      - Expect: 完成行為符合你對重算時機與資料保留的期待。
+      - Reason: 依使用者要求保留完成內容的本人核查。
+
+- [ ] **4. M-02 未計入提示與循環隔離**
+  Outcome: 缺席或失效的依賴顯示模組名稱與未計入提示；過期結果不啟動互動元件。循環成員停用，其他模組仍可分析。
+  Checks:
+    - [x] **Viewer 與循環定向驗證**
+      - Action: 執行 module-composition、module-freshness 測試及 .NET --modules-only，建置 Viewer UI。
+      - Expect: 初始化失敗不暴露依賴舊值；分支循環全部成員被停用、下游保留；Viewer 建置成功。
+    - [ ] **完成說明核查** `[manual]`
+      - Action: 閱讀本項 Outcome，確認缺少來源不會被解讀為完整分析，也不會讓整份報告失效。
+      - Expect: 完成行為符合你對未計入提示與失敗隔離的期待。
+      - Reason: 依使用者要求保留完成內容的本人核查。

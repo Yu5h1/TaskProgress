@@ -51,6 +51,7 @@ function formatHours(itemTime) {
 export function createTimeModuleDefinition() {
   return {
     type: TIME_MODULE_TYPE,
+    displayName: "時間分析",
     supportedSchemaVersions: ["0.2"],
     slots: ["project-summary", "task-body", "item-inline"],
     attach({ data, host }) {

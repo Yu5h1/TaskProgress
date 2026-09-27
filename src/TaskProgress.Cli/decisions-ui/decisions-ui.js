@@ -3599,8 +3599,8 @@ function Xa(e, t, n, r) {
 }
 //#endregion
 //#region experiments/editor-svelte-spike/src/DecisionApp.svelte
-var Za = /* @__PURE__ */ J("<p role=\"status\"> </p>"), Qa = /* @__PURE__ */ J("<article class=\"checklist-item\"><a> </a> <p> </p></article>"), $a = /* @__PURE__ */ J("<p>尚未建立決策文件。</p>"), eo = /* @__PURE__ */ J("<p> </p> <!> <!>", 1), to = /* @__PURE__ */ J("<button class=\"svelte-17meywc\">查核／重試原請求</button>"), no = /* @__PURE__ */ J("<p>目前沒有符合條件的決策項目。</p>"), ro = /* @__PURE__ */ J("<p class=\"decision-text svelte-17meywc\"> </p>"), io = /* @__PURE__ */ J("<p> </p>"), ao = /* @__PURE__ */ J("<div class=\"decision-description svelte-17meywc\"><!> <!></div>"), oo = /* @__PURE__ */ J("<small class=\"svelte-17meywc\"> </small>"), so = /* @__PURE__ */ J("<label class=\"decision-option svelte-17meywc\"><input type=\"radio\" class=\"svelte-17meywc\"/> <span class=\"svelte-17meywc\"> <!></span></label>"), co = /* @__PURE__ */ J("<label class=\"decision-option svelte-17meywc\"><input type=\"radio\" class=\"svelte-17meywc\"/><span class=\"svelte-17meywc\">其他</span></label> <div class=\"decision-other svelte-17meywc\"><label>其他方案</label><textarea class=\"svelte-17meywc\"></textarea></div>", 1), lo = /* @__PURE__ */ J("<fieldset class=\"svelte-17meywc\"><legend class=\"decision-visually-hidden svelte-17meywc\"> </legend> <!> <!></fieldset>"), uo = /* @__PURE__ */ J("<p class=\"decision-text svelte-17meywc\"> </p> <p class=\"decision-text svelte-17meywc\"> </p><p> </p> <button class=\"svelte-17meywc\">重新開啟</button>", 1), fo = /* @__PURE__ */ J("<button class=\"svelte-17meywc\">已核對最新題目，保留草稿</button>"), po = /* @__PURE__ */ J("<p role=\"alert\"> </p> <!>", 1), mo = /* @__PURE__ */ J("<button class=\"svelte-17meywc\">捨棄草稿</button>"), ho = /* @__PURE__ */ J("<button class=\"svelte-17meywc\">確認決策</button>"), go = /* @__PURE__ */ J("<section><p> </p><pre class=\"svelte-17meywc\"> </pre></section>"), _o = /* @__PURE__ */ J("<details><summary> </summary> <!></details>"), vo = /* @__PURE__ */ J("<div class=\"decision-content svelte-17meywc\"><!> <!> <!> <div class=\"decision-actions svelte-17meywc\"><!> <!></div> <!></div>"), yo = /* @__PURE__ */ J("<header slot=\"header\" class=\"checklist-item-header svelte-17meywc\"><h2 tabindex=\"-1\" class=\"svelte-17meywc\"> </h2><span class=\"checklist-status\"> </span></header>"), bo = /* @__PURE__ */ J("<article><!></article>"), xo = /* @__PURE__ */ J("<p role=\"alert\"> </p> <button class=\"svelte-17meywc\">捨棄此草稿</button>", 1), So = /* @__PURE__ */ J("<div class=\"decision-overview svelte-17meywc\"><p class=\"svelte-17meywc\"> </p> <p class=\"svelte-17meywc\">選擇僅保留於本頁；按「確認決策」才保存，關閉頁面會失去未確認草稿。</p></div> <div class=\"decision-controls svelte-17meywc\"><button class=\"svelte-17meywc\">下一項待決策</button> <!></div> <!> <!> <!> <!>", 1), Co = /* @__PURE__ */ J("<p>先前答案保留在歷史，這題將回到待決策。</p> <button class=\"svelte-17meywc\">取消</button> <button class=\"svelte-17meywc\">確認重新開啟</button>", 1), wo = /* @__PURE__ */ J("<main class=\"checklist-shell decisions-shell svelte-17meywc\"><header class=\"checklist-header\"><h1>決策項目</h1> <!></header> <!> <!></main> <!>", 1);
-function To(e, t) {
+var Za = /* @__PURE__ */ J("<p role=\"status\"> </p>"), Qa = /* @__PURE__ */ J("<article class=\"checklist-item\"><a> </a> <p> </p></article>"), $a = /* @__PURE__ */ J("<p>尚未建立決策文件。</p>"), eo = /* @__PURE__ */ J("<p> </p> <!> <!>", 1), to = /* @__PURE__ */ J("<button class=\"svelte-17meywc\">查核／重試原請求</button>"), no = /* @__PURE__ */ J("<p>目前沒有符合條件的決策項目。</p>"), ro = /* @__PURE__ */ J("<p class=\"decision-text svelte-17meywc\"> </p>"), io = /* @__PURE__ */ J("<p> </p>"), ao = /* @__PURE__ */ J("<div class=\"decision-description svelte-17meywc\"><!> <!></div>"), oo = /* @__PURE__ */ J("<small class=\"svelte-17meywc\"> </small>"), so = /* @__PURE__ */ J("<label class=\"decision-option svelte-17meywc\"><input type=\"radio\" class=\"svelte-17meywc\"/> <span class=\"svelte-17meywc\"> <!></span></label>"), co = /* @__PURE__ */ J("<label class=\"decision-option svelte-17meywc\"><input type=\"radio\" class=\"svelte-17meywc\"/><span class=\"svelte-17meywc\">其他</span></label> <div class=\"decision-other svelte-17meywc\"><label>其他方案</label><textarea class=\"svelte-17meywc\"></textarea></div>", 1), lo = /* @__PURE__ */ J("<fieldset class=\"svelte-17meywc\"><legend class=\"decision-visually-hidden svelte-17meywc\"> </legend> <!> <!></fieldset>"), uo = /* @__PURE__ */ J("<p class=\"decision-text svelte-17meywc\"> </p> <p class=\"decision-text svelte-17meywc\"> </p><p> </p> <button class=\"svelte-17meywc\">重新開啟</button>", 1), fo = /* @__PURE__ */ J("<button class=\"svelte-17meywc\">已核對最新題目，保留草稿</button>"), po = /* @__PURE__ */ J("<p role=\"alert\"> </p> <!>", 1), mo = /* @__PURE__ */ J("<button class=\"svelte-17meywc\">捨棄草稿</button>"), ho = /* @__PURE__ */ J("<button class=\"svelte-17meywc\">確認決策</button>"), go = /* @__PURE__ */ J("<div class=\"decision-content svelte-17meywc\"><!> <!> <!> <div class=\"decision-actions svelte-17meywc\"><!> <!></div></div>"), _o = /* @__PURE__ */ J("<header slot=\"header\" class=\"checklist-item-header svelte-17meywc\"><h2 tabindex=\"-1\" class=\"svelte-17meywc\"> </h2><span class=\"checklist-status\"> </span></header>"), vo = /* @__PURE__ */ J("<article><!></article>"), yo = /* @__PURE__ */ J("<p role=\"alert\"> </p> <button class=\"svelte-17meywc\">捨棄此草稿</button>", 1), bo = /* @__PURE__ */ J("<div class=\"decision-overview svelte-17meywc\"><p class=\"svelte-17meywc\"> </p> <p class=\"svelte-17meywc\">選擇僅保留於本頁；按「確認決策」才保存，關閉頁面會失去未確認草稿。</p></div> <div class=\"decision-controls svelte-17meywc\"><button class=\"svelte-17meywc\">下一項待決策</button> <!></div> <!> <!> <!> <!>", 1), xo = /* @__PURE__ */ J("<p>這題將清除目前答案並回到待決策，之後可重新回答。</p> <button class=\"svelte-17meywc\">取消</button> <button class=\"svelte-17meywc\">確認重新開啟</button>", 1), So = /* @__PURE__ */ J("<main class=\"checklist-shell decisions-shell svelte-17meywc\"><header class=\"checklist-header\"><h1>決策項目</h1> <!></header> <!> <!></main> <!>", 1);
+function Co(e, t) {
 	We(t, !1);
 	let n = /* @__PURE__ */ I(), r = /* @__PURE__ */ I(), i = /* @__PURE__ */ I(), a = $(t, "transport", 8), o = $(t, "onPersistenceChange", 8, () => {}), s = /* @__PURE__ */ I(), c = /* @__PURE__ */ I(), l = /* @__PURE__ */ I(), u = /* @__PURE__ */ I("載入中…"), d = /* @__PURE__ */ I(!0), f = /* @__PURE__ */ I({}), p = /* @__PURE__ */ I(), m = /* @__PURE__ */ I(null), g = /* @__PURE__ */ I(ga(ma(["pending", "decided"]), "decided")), _ = /* @__PURE__ */ I(), v = /* @__PURE__ */ I();
 	function y() {
@@ -3684,7 +3684,7 @@ function To(e, t) {
 	}), B(() => W(c), () => {
 		L(i, W(c) ? `taskprogress.decisions:${W(c).snapshot.document_key}` : null);
 	}), kn(), Di();
-	var ne = wo(), re = mn(ne), ie = R(re), T = z(R(ie), 2), E = (e) => {
+	var ne = So(), re = mn(ne), ie = R(re), T = z(R(ie), 2), E = (e) => {
 		Ua(e, {
 			get mode() {
 				return W(v), G(() => W(v).mode);
@@ -3732,7 +3732,7 @@ function To(e, t) {
 			W(l), G(() => !W(l).files.length) && e(o);
 		}), V(() => X(r, `待決策 ${W(l), G(() => W(l).pending) ?? ""}${W(l), G(() => W(l).incomplete ? "（統計不完整）" : "") ?? ""}`)), Y(e, t);
 	}, ce = (e) => {
-		var t = So(), r = mn(t), a = R(r), o = R(a);
+		var t = bo(), r = mn(t), a = R(r), o = R(a);
 		j(a), Fe(2), j(r);
 		var l = z(r, 2), u = R(l), _ = z(u, 2);
 		{
@@ -3800,7 +3800,7 @@ function To(e, t) {
 				children: pe,
 				$$slots: { default: (e, t) => {
 					let n = /* @__PURE__ */ P(() => t.item), r = /* @__PURE__ */ P(() => t.visibilityEnabled), i = /* @__PURE__ */ P(() => t.visible), a = /* @__PURE__ */ P(() => t.onVisibleChange), o = /* @__PURE__ */ P(() => (W(c), K(W(n)), G(() => Object.hasOwn(W(c).drafts, W(n).id) ? W(c).drafts[W(n).id] : null)));
-					var l = bo();
+					var l = vo();
 					let u;
 					var p = R(l);
 					{
@@ -3826,7 +3826,7 @@ function To(e, t) {
 								return K(W(n)), G(() => W(n).question);
 							},
 							children: (e, t) => {
-								var r = vo(), i = R(r), a = (e) => {
+								var r = go(), i = R(r), a = (e) => {
 									var t = ao(), r = R(t), i = (e) => {
 										var t = ro(), r = R(t, !0);
 										j(t), V(() => X(r, (K(W(n)), G(() => W(n).context)))), Y(e, t);
@@ -3926,29 +3926,12 @@ function To(e, t) {
 								};
 								Z(v, (e) => {
 									K(W(n)), G(() => W(n).status === "pending") && e(y);
-								}), j(h);
-								var S = z(h, 2), C = (e) => {
-									var t = _o(), r = R(t), i = R(r);
-									j(r), Gr(z(r, 2), 1, () => (K(W(n)), G(() => W(n).history)), Vr, (e, t) => {
-										var n = go(), r = R(n), i = R(r);
-										j(r);
-										var a = z(r), o = R(a, !0);
-										j(a), j(n), V((e) => {
-											X(i, `${W(t), G(() => W(t).at) ?? ""} · ${W(t), G(() => W(t).operation) ?? ""}`), X(o, e);
-										}, [() => (W(t), G(() => JSON.stringify({
-											before: W(t).before,
-											after: W(t).after
-										}, null, 2)))]), Y(e, n);
-									}), j(t), V(() => X(i, `歷史（${K(W(n)), G(() => W(n).history.length) ?? ""}）`)), Y(e, t);
-								};
-								Z(S, (e) => {
-									K(W(n)), G(() => W(n).history.length) && e(C);
-								}), j(r), Y(e, r);
+								}), j(h), j(r), Y(e, r);
 							},
 							$$slots: {
 								default: !0,
 								header: (e, t) => {
-									var r = yo(), i = R(r), a = R(i, !0);
+									var r = _o(), i = R(r), a = R(i, !0);
 									j(i);
 									var o = z(i), s = R(o, !0);
 									j(o), j(r), V(() => {
@@ -3966,7 +3949,7 @@ function To(e, t) {
 		Gr(z(ie, 2), 1, () => (W(c), W(n), G(() => Object.entries(W(c).drafts).filter(([e]) => !W(n).some((t) => t.id === e)))), Vr, (e, t) => {
 			var n = /* @__PURE__ */ xt(() => h(W(t), 2));
 			let r = () => W(n)[0], i = () => W(n)[1];
-			var a = xo(), o = mn(a), c = R(o);
+			var a = yo(), o = mn(a), c = R(o);
 			j(o);
 			var l = z(o, 2);
 			V(() => X(c, `已移除題目 ${r() ?? ""} 的原草稿：${i(), G(() => i().choice) ?? ""} ${i(), G(() => i().other) ?? ""}`)), q("click", l, () => {
@@ -3990,7 +3973,7 @@ function To(e, t) {
 			titleId: "decision-reopen-title",
 			onClose: () => L(m, null),
 			children: (e, t) => {
-				var n = Co(), r = z(mn(n), 2), i = z(r, 2);
+				var n = xo(), r = z(mn(n), 2), i = z(r, 2);
 				q("click", r, () => L(m, null)), q("click", i, () => {
 					let e = W(m);
 					L(m, null), ee(e, "reopen");
@@ -4008,9 +3991,9 @@ Er([
 ]);
 //#endregion
 //#region viewer/assets/decision-transport.js
-var Eo = (e) => /^[a-z0-9]+(?:[._-][a-z0-9]+)*$/.test(e ?? "") && e.length <= 100;
-function Do(e, t) {
-	if (!Eo(e) || t && !Eo(t)) throw Error("無效的 scope 或 task。");
+var wo = (e) => /^[a-z0-9]+(?:[._-][a-z0-9]+)*$/.test(e ?? "") && e.length <= 100;
+function To(e, t) {
+	if (!wo(e) || t && !wo(t)) throw Error("無效的 scope 或 task。");
 	let n = `/__taskprogress/v1/decisions/${encodeURIComponent(e)}`;
 	async function r(e, t) {
 		let n = await fetch(e, {
@@ -4029,7 +4012,7 @@ function Do(e, t) {
 		request: (e) => r(`${n}/${encodeURIComponent(t)}`, e)
 	};
 }
-function Oo(e) {
+function Eo(e) {
 	let t = /* @__PURE__ */ new Map();
 	e.addEventListener("message", (e) => {
 		let n = t.get(e.data.request_id);
@@ -4057,12 +4040,12 @@ function Oo(e) {
 }
 //#endregion
 //#region viewer/assets/foreground-refresh.js
-function ko(e, t) {
+function Do(e, t) {
 	if (!e || typeof e.addEventListener != "function" || typeof e.removeEventListener != "function") throw TypeError(`${t} 必須支援事件監聽。`);
 	return e;
 }
-function Ao({ windowTarget: e = globalThis.window, documentTarget: t = globalThis.document, canRefresh: n = () => !0, reload: r = () => e.location.reload(), schedule: i = (e) => globalThis.queueMicrotask(e) } = {}) {
-	if (ko(e, "windowTarget"), ko(t, "documentTarget"), typeof n != "function") throw TypeError("canRefresh 必須是函式。");
+function Oo({ windowTarget: e = globalThis.window, documentTarget: t = globalThis.document, canRefresh: n = () => !0, reload: r = () => e.location.reload(), schedule: i = (e) => globalThis.queueMicrotask(e) } = {}) {
+	if (Do(e, "windowTarget"), Do(t, "documentTarget"), typeof n != "function") throw TypeError("canRefresh 必須是函式。");
 	if (typeof r != "function") throw TypeError("reload 必須是函式。");
 	if (typeof i != "function") throw TypeError("schedule 必須是函式。");
 	let a = !1, o = !1, s = !1, c = !1;
@@ -4084,18 +4067,18 @@ function Ao({ windowTarget: e = globalThis.window, documentTarget: t = globalThi
 }
 //#endregion
 //#region experiments/editor-svelte-spike/src/decisions-main.js
-var jo, Mo;
+var ko, Ao;
 try {
 	let e = new URLSearchParams(location.search);
-	Mo = window.chrome?.webview ? Oo(window.chrome.webview) : Do(e.get("scope"), e.get("task"));
+	Ao = window.chrome?.webview ? Eo(window.chrome.webview) : To(e.get("scope"), e.get("task"));
 } catch (e) {
-	Mo = { load: () => Promise.reject(e) };
+	Ao = { load: () => Promise.reject(e) };
 }
-window.chrome?.webview || Ao({ canRefresh: () => !jo?.dirty && !jo?.saving && !jo?.pending }), Ir(To, {
+window.chrome?.webview || Oo({ canRefresh: () => !ko?.dirty && !ko?.saving && !ko?.pending }), Ir(Co, {
 	target: document.querySelector("#app"),
 	props: {
-		transport: Mo,
-		onPersistenceChange: (e) => jo = e
+		transport: Ao,
+		onPersistenceChange: (e) => ko = e
 	}
 });
 //#endregion

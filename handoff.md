@@ -4,7 +4,13 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
 
 - Canonical status entry: task status and progress are referenced by Task ID in `report.json`; Developer next steps, blockers, decisions, and routes are referenced by the same ID in `report.dev.json`. Do not duplicate that content here.
 
-## Current state (2026-09-25)
+## Current state (2026-09-27)
+
+- **M-01／M-02 模組版本與依賴重算已實作，核查待使用者。** Canonical Task ID module-dependency-refresh 在 Documentation/ExtensionModuleArchitecturePlan.md 的模組依賴與重算節。Time／Cost 生成 content_revision／source_revision／input_modules，Time 排除 deadline.evaluated_at 等產出時間；共用 AnalysisRefresh 比對來源與實際上游版本、拓樸單輪重算、暫存輸出驗證後原子發布；明確 analyze 失敗仍非零，auto 隔離失敗。Time 因時鐘每次評估，未改來源的 Cost 可略過。Viewer 顯示 excluded module 名稱與未計入，過期／成環不 attach。修正分支 SCC 全成員隔離。現有 Time／Cost 沒有跨模組計價依賴，連鎖以測試模組驗證，不擅自增加 Cost 新公式。
+  - **證據**：SDK 9 Debug／.NET --modules-only（依賴圖、增量、Time、Cost）、Node 73、Python 真實 CLI／Schema 1 項與 Viewer build 通過。複核提出時間戳 churn、來源漂移先發布、明確 analyze 失敗成功碼、無效 metadata 無法恢复均已修正並補測。checklists/module-dependency-refresh.checklist 有 5 項自動證據、4 項使用者要求的完成說明核查；後者留空供本人勾選。未 commit，未發布或重啟服務。
+  - **保留**：先前決策精簡的未提交修改仍屬本工作；decisions/decision-example.decisions 為使用者操作保存，未接管。
+
+- **決策移除歷史，格式 1.1。** 依使用者要求只留目前定義／答案／狀態，刪除 UI 歷史與前後快照；每題只保留 last_request 的 ID／fingerprint 支援最近一次重試及草稿衝突，較舊請求回 revision_conflict。1.0 讀取時相容轉換，讀取不落盤，成功修改才移除 history；使用者的 decisions/decision-example.decisions 未接管且 Debug validate 通過。計畫／Schema／操作指南／checklist 已同步。SDK 9 Debug 建置與 .NET 定向、Python 5、Node 9 通過；Python 初次 module 路徑錯誤，改 discover 後通過。獨立複核通過。發布初次被執行中的 EXE 占用；使用者同意更新重啟後，確認占用已解除、Publish 成功，start --no-browser 與 service status 確認 8001／PID 13916／instance ce5479696d1f4384be45c52126abdc8a，已開啟預覽。Web／Debug／Build 資產皆已更新；新版實機操作待確認。未 commit。
 
 - **篩選 hover 與選取分離。** 共用 FilterStrip 加上樣式入口，標籤間距 10px、外圍留白 4px；hover 只亮框，底色維持代表選取狀態，避免未選取標籤 hover 後看似已選取。四入口建置通過，Browser／Desktop／Debug／Build 資產同步；實際 hover 待使用者重載確認，未 commit。
 

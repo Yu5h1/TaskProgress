@@ -71,6 +71,14 @@ internal interface IAnalysisModule
     /// </summary>
     string DisplayName { get; }
 
+    string? ProjectionFileName => null;
+    IReadOnlyList<string> InputFiles => ["report.json"];
+    bool RefreshesWithClock => false;
+
+    AnalysisRunResult? GenerateWithInputs(string folderPath, AnalysisInputs inputs,
+        DateTimeOffset? asOf = null, string? outputPath = null) => Generate(folderPath, asOf, outputPath);
+
+
     /// <summary>
     ///   Whether this folder carries the inputs this module recomputes from.
     ///   False means "nothing to do", which is why a report without the module
@@ -99,6 +107,9 @@ internal sealed class TimeAnalysisModule : IAnalysisModule
     public string Type => TimeReportModuleProvider.ModuleType;
 
     public string DisplayName => "時間分析";
+    public string ProjectionFileName => "time.analysis.json";
+    public IReadOnlyList<string> InputFiles => TimeAnalysisGenerator.InputFileNames;
+    public bool RefreshesWithClock => true;
 
     public bool HasInputs(string folderPath) => TimeAnalysisGenerator.HasInputs(folderPath);
 
@@ -149,6 +160,8 @@ internal sealed class CostAnalysisModule : IAnalysisModule
     public string Type => CostReportModuleProvider.ModuleType;
 
     public string DisplayName => "成本分析";
+    public string ProjectionFileName => CostEstimationGenerator.AnalysisFileName;
+    public IReadOnlyList<string> InputFiles => CostEstimationGenerator.InputFileNames;
 
     public bool HasInputs(string folderPath) => CostEstimationGenerator.HasInputs(folderPath);
 

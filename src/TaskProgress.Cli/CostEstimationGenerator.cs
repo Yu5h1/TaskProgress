@@ -28,6 +28,7 @@ internal sealed record CostAnalysisGenerationResult(
 
 internal static class CostEstimationGenerator
 {
+    internal static readonly string[] InputFileNames = ["report.json", ConfigFileName, EstimatesFileName];
     private const string CostSchemaVersion = "0.1";
     private const string MethodName = "deterministic-cost-rollup";
     private const string MethodVersion = "0.1";
@@ -86,6 +87,7 @@ internal static class CostEstimationGenerator
 
         WriteOutput(
             outputPath,
+            reportFolder.DirectoryPath,
             reportFolder.Scope,
             asOf,
             config,
@@ -275,6 +277,7 @@ internal static class CostEstimationGenerator
 
     private static void WriteOutput(
         string outputPath,
+        string folder,
         string scope,
         DateTimeOffset asOf,
         JsonDocument? config,
@@ -361,6 +364,9 @@ internal static class CostEstimationGenerator
             ["diagnostics"] = diagnosticArray,
         };
 
+        ModuleProjection.Stamp(document, folder, InputFileNames,
+            new JsonObject { ["method"] = document["method"]!.DeepClone(), ["summary"] = summary.DeepClone(),
+                ["tasks"] = taskArray.DeepClone(), ["diagnostics"] = diagnosticArray.DeepClone() });
         try
         {
             File.WriteAllText(outputPath, document.ToJsonString(OutputOptions));

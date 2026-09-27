@@ -347,11 +347,10 @@ internal static class Program
         }
 
         var produced = new List<(string Name, IReadOnlyList<string> Details)>();
-        foreach (var module in PlanAnalysisModules(modules).Order)
-        {
-            var result = module.Generate(request.Folder, request.AsOf, request.Output);
-            if (result is not null) produced.Add((module.DisplayName, result.Details));
-        }
+        var names = modules.ToDictionary(module => module.Type, module => module.DisplayName);
+        foreach (var result in AnalysisRefresh.Run(request.Folder, PlanAnalysisModules(modules), true,
+            message => Console.Error.WriteLine($"警告：{message}"), request.AsOf, request.Output))
+            produced.Add((names[result.ModuleType], result.Details));
 
         if (produced.Count == 0)
         {
@@ -491,24 +490,9 @@ internal static class Program
     private static bool TryAutoGenerate(string folder)
     {
         var plan = PlanAnalysisModules(AnalysisModules.Production);
-        var generated = false;
-        foreach (var module in plan.Order)
-        {
-            if (!module.HasInputs(folder)) continue;
-            try
-            {
-                var result = module.Generate(folder);
-                if (result is null) continue;
-                Console.WriteLine(result.Summary);
-                generated = true;
-            }
-            catch (CliException error)
-            {
-                Console.Error.WriteLine($"警告：{module.DisplayName}自動更新失敗：{error.Message}");
-            }
-        }
-
-        return generated;
+        var results = AnalysisRefresh.Run(folder, plan, false, message => Console.Error.WriteLine($"警告：{message}"));
+        foreach (var result in results) Console.WriteLine(result.Summary);
+        return results.Count > 0;
     }
 
     /// <summary>

@@ -92,6 +92,7 @@ class DecisionProcessTests(unittest.TestCase):
             final = request({'operation':'load'})
             validator.validate(final['document'])
             self.assertEqual('真正的中文答案', final['document']['decisions'][0]['answer']['text'])
-            self.assertEqual(1,len(final['document']['decisions'][0]['history']))
+            self.assertNotIn('history', final['document']['decisions'][0])
+            self.assertIn(final['document']['decisions'][0]['last_request']['request_id'], ['process-a','process-b'])
 
 if __name__ == '__main__': unittest.main()

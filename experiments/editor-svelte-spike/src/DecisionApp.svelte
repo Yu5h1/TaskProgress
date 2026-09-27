@@ -125,9 +125,7 @@
           {#if draft}<button disabled={view.pending?.decision_id === item.id} onclick={() => { session.discard(item.id); sync(); }}>捨棄草稿</button>{/if}
           {#if item.status === "pending"}<button disabled={!!view.pending || !draft?.choice || draft?.conflict || (draft?.choice === "__other" && !draft?.other.trim())} onclick={() => send(item.id)}>確認決策</button>{/if}
           </div>
-          {#if item.history.length}<details><summary>歷史（{item.history.length}）</summary>
-            {#each item.history as entry}<section><p>{entry.at} · {entry.operation}</p><pre>{JSON.stringify({before:entry.before,after:entry.after},null,2)}</pre></section>{/each}
-          </details>{/if}
+
           </div>
         </CardDisclosure>
       </article>
@@ -139,7 +137,7 @@
   {/if}
 </main>
 <DialogShell open={!!reopenId} title="重新開啟決策？" titleId="decision-reopen-title" onClose={() => reopenId = null}>
-  <p>先前答案保留在歷史，這題將回到待決策。</p>
+  <p>這題將清除目前答案並回到待決策，之後可重新回答。</p>
   <button onclick={() => reopenId = null}>取消</button>
   <button onclick={() => { const id = reopenId; reopenId = null; send(id, "reopen"); }}>確認重新開啟</button>
 </DialogShell>
@@ -168,7 +166,7 @@
   textarea { display:block; width:100%; min-height:5rem; padding:10px 12px; box-sizing:border-box; font:inherit; resize:vertical; }
   fieldset { min-width:0; margin:0; padding:0; border:0; }
   .decision-visually-hidden { position:absolute; width:1px; height:1px; padding:0; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
-  .decision-text, pre { white-space:pre-wrap; overflow-wrap:anywhere; }
+  .decision-text { white-space:pre-wrap; overflow-wrap:anywhere; }
   .decision-actions { display:flex; flex-wrap:wrap; gap:8px; padding-top:12px; border-top:1px solid var(--line); }
   .decision-actions:empty { display:none; }
   button { margin:.4rem .4rem .4rem 0; }
