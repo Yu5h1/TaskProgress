@@ -4,7 +4,9 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
 
 - Canonical status entry: task status and progress are referenced by Task ID in `report.json`; Developer next steps, blockers, decisions, and routes are referenced by the same ID in `report.dev.json`. Do not duplicate that content here.
 
-## Current state (2026-09-27)
+## Current state (2026-09-28)
+
+- **Report 任務卡預設優先級排序修正。** `orderByCapsuleBoundary` 對無明示群組及預設剩餘群組都套用呼叫端排序；Report 已傳入 stableSortTasksByPriority，因此每組優先級生效、同級保留原順序。Checklist 未傳排序器仍保持文件順序，自由排序不變。同步 plan 與排序提示。Node viewer-filter-axes／status-order／card-order 共 23 項通過；修改為 Viewer 直接載入的 JS，本機服務已確認提供新版；獨立複核與使用者實機確認通過，未重啟服務。
 
 - **M-01／M-02 模組版本與依賴重算已實作，核查待使用者。** Canonical Task ID module-dependency-refresh 在 Documentation/ExtensionModuleArchitecturePlan.md 的模組依賴與重算節。Time／Cost 生成 content_revision／source_revision／input_modules，Time 排除 deadline.evaluated_at 等產出時間；共用 AnalysisRefresh 比對來源與實際上游版本、拓樸單輪重算、暫存輸出驗證後原子發布；明確 analyze 失敗仍非零，auto 隔離失敗。Time 因時鐘每次評估，未改來源的 Cost 可略過。Viewer 顯示 excluded module 名稱與未計入，過期／成環不 attach。修正分支 SCC 全成員隔離。現有 Time／Cost 沒有跨模組計價依賴，連鎖以測試模組驗證，不擅自增加 Cost 新公式。
   - **證據**：SDK 9 Debug／.NET --modules-only（依賴圖、增量、Time、Cost）、Node 73、Python 真實 CLI／Schema 1 項與 Viewer build 通過。複核提出時間戳 churn、來源漂移先發布、明確 analyze 失敗成功碼、無效 metadata 無法恢复均已修正並補測。checklists/module-dependency-refresh.checklist 有 5 項自動證據、4 項使用者要求的完成說明核查；後者留空供本人勾選。未 commit，未發布或重啟服務。

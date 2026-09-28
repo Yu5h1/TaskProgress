@@ -4,6 +4,7 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
+import { stableSortTasksByPriority } from "../viewer/assets/report-model.js";
 
 import {
   ITEM_STATUS_FIELDS,
@@ -147,4 +148,22 @@ test("a group can be sorted inside without disturbing the ungrouped tail", () =>
   const byRank = (list) => [...list].sort((left, right) => left.rank - right.rank);
   const ordered = orderByCapsuleBoundary(tasks, ["planned"], (t) => t.status, byRank);
   assert.deepEqual(ordered.map((t) => t.id), ["c", "a", "b"]);
+});
+
+test("task priority applies to the default group, explicit groups and remaining cards", () => {
+  const tasks = [
+    { id: "done-low", status: "done", priority: 3 },
+    { id: "pending-low", status: "planned", priority: 2 },
+    { id: "active-high", status: "in_progress", priority: 0 },
+    { id: "pending-high", status: "planned", priority: 1 },
+    { id: "done-high", status: "done", priority: 0 },
+    { id: "pending-tie", status: "planned", priority: 1 },
+    { id: "unspecified", status: "blocked" },
+  ];
+  const original = structuredClone(tasks);
+  const order = groups => orderByCapsuleBoundary(tasks, groups, t => t.status, stableSortTasksByPriority).map(t => t.id);
+  assert.deepEqual(order([]), ["active-high", "done-high", "pending-high", "pending-tie", "pending-low", "done-low", "unspecified"]);
+  assert.deepEqual(order(["planned"]), ["pending-high", "pending-tie", "pending-low", "active-high", "done-high", "done-low", "unspecified"]);
+  assert.deepEqual(order(["done", "planned"]), ["done-high", "done-low", "pending-high", "pending-tie", "pending-low", "active-high", "unspecified"]);
+  assert.deepEqual(tasks, original);
 });

@@ -54,12 +54,8 @@ export const ITEM_STATUS_FIELDS = Object.freeze({
 });
 
 /*
- * Group only what the reader asked for, and leave the rest as written.
- *
- * Anything whose status is in `groupOrder` is grouped and sorted within its
- * group; anything else keeps the data's own order and follows behind. An empty
- * `groupOrder` therefore means "change nothing", which is what 預設 leading
- * asks for.
+ * Explicit groups lead in capsule order; the remainder forms the default group.
+ * Apply the caller's ordering within every group, including the default group.
  */
 export function orderByCapsuleBoundary(
   items,
@@ -67,7 +63,7 @@ export function orderByCapsuleBoundary(
   getStatus = (item) => item.status,
   sortWithinGroup = (list) => list,
 ) {
-  if (groupOrder.length === 0) return [...items];
+  if (groupOrder.length === 0) return sortWithinGroup([...items]);
   const grouped = [];
   const rest = [];
   for (const item of items) {
@@ -75,7 +71,7 @@ export function orderByCapsuleBoundary(
   }
   return [
     ...stableSortByStatus(sortWithinGroup(grouped), groupOrder, getStatus),
-    ...rest,
+    ...sortWithinGroup(rest),
   ];
 }
 

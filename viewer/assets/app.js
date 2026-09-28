@@ -833,7 +833,7 @@ function renderFilters() {
         id: status,
         label,
         count,
-        title: "拖曳調整卡片排序；「預設」在第一顆時依報告原本的順序",
+        title: "拖曳調整群組順序；各群組（含預設）內依優先級排序",
         ariaLabel: `${label} ${count}，排序第 ${index}；可拖曳調整`,
       };
     }),
@@ -999,9 +999,8 @@ function taskListProps(tasks) {
 }
 
 function renderTasks() {
-  // 預設 marks where explicit ordering stops: the capsules to its left group
-  // the cards, with priority sorting inside each group, and everything else
-  // keeps the report's own order.
+  // Explicit status groups lead; every group, including the default remainder,
+  // orders cards by priority with stable ties.
   const orderedTasks = orderByCapsuleBoundary(
     state.tasks,
     groupingOrder(state.statusOrder),
