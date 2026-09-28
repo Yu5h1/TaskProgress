@@ -278,13 +278,16 @@ export function taskItemPriority(item) {
 }
 
 export function stableSortTasksByPriority(tasks) {
+  // Preserve completion order in done-card slots while ranking unfinished cards.
+  const completed = (tasks ?? []).filter(task => task.status === "done");
+  let completedIndex = 0;
   return [...(tasks ?? [])]
     .map((task, index) => ({ task, index }))
     .sort((left, right) => (
       taskPriority(left.task) - taskPriority(right.task)
       || left.index - right.index
     ))
-    .map(({ task }) => task);
+    .map(({ task }) => task.status === "done" ? completed[completedIndex++] : task);
 }
 
 export function stableSortTaskItemsByPriority(items) {

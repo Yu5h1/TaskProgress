@@ -833,7 +833,7 @@ function renderFilters() {
         id: status,
         label,
         count,
-        title: "拖曳調整群組順序；各群組（含預設）內依優先級排序",
+        title: "拖曳調整群組順序；未完成依優先級，已完成依完成順序（最新在上）",
         ariaLabel: `${label} ${count}，排序第 ${index}；可拖曳調整`,
       };
     }),
@@ -999,8 +999,8 @@ function taskListProps(tasks) {
 }
 
 function renderTasks() {
-  // Explicit status groups lead; every group, including the default remainder,
-  // orders cards by priority with stable ties.
+  // Explicit status groups lead; unfinished cards use priority and completed
+  // cards retain completion order, including in the default remainder.
   const orderedTasks = orderByCapsuleBoundary(
     state.tasks,
     groupingOrder(state.statusOrder),

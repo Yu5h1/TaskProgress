@@ -6,6 +6,10 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
 
 ## Current state (2026-09-28)
 
+- **完成堆疊延伸到任務卡。** Editor task status 與 CLI task.update 在非 done → done 時將卡移至 tasks 頂端，直接新增 done 同樣置頂，重複 done 不移位。Report 排序保留完成卡槽位、按來源完成順序填入；未完成卡優先級與 capsule 群組順序不變，自由排序仍最後套用。59 項 Node、11 項 Python 定向測試通過，涵蓋卡片完成／重做、重載與混合群組；未 commit。
+
+- **已完成子項目改為由新到舊堆疊。** Editor Core 的 set-item-status／move-item／add-item 與 Report CLI item.add／item.update，統一將新完成項目插入 completed_items 頂端。重複 done 不移位，重新完成回頂端，既有無完成時間資料維持原順序。TaskCard 直接照陣列顯示。Node editor-core 20、Python report-cli 10 項通過，涵蓋 undo／redo、重讀與重新完成；localhost 已確認提供新版 runtime。未 commit，使用者範例答案未動。
+
 - **Report 任務卡預設優先級排序修正。** `orderByCapsuleBoundary` 對無明示群組及預設剩餘群組都套用呼叫端排序；Report 已傳入 stableSortTasksByPriority，因此每組優先級生效、同級保留原順序。Checklist 未傳排序器仍保持文件順序，自由排序不變。同步 plan 與排序提示。Node viewer-filter-axes／status-order／card-order 共 23 項通過；修改為 Viewer 直接載入的 JS，本機服務已確認提供新版；獨立複核與使用者實機確認通過，未重啟服務。
 
 - **Schedule 資料契約與純驗證已完成，scheduler 未實作。** 使用者接續上一輪建議，先做 `Documentation/ScheduleProjectionModulePlan.md#phase-1schema-與純模型`（Task ID schedule-projection）的資料格式部分。兩份 Draft Schema 共用 module envelope；`ScheduleModel` 為 schema-validated JSON 的純語意驗證；四份 fixtures 表達平行、互斥、固定里程碑與缺工時。SDK 9 建置、.NET --schedule-only、Python Schema 3 項通過，checklist parser 通過（2 項工作、2 項自動檢查、2 項使用者核查）。初次 Python 因環境無 date-time checker 漏檢，已以標準函式庫補驗證；複核發現 item collections／明示 status、Time duration reference、cycle path 缺口均修正並補測。使用者要求先提交此階段成果；未 publish 或重啟服務，使用者範例答案未動。

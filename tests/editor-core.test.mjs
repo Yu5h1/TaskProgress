@@ -178,7 +178,7 @@ test("editor core moves a stable item between pending and completed with undo an
   });
 
   assert.equal(session.task("task-a").pending_items.length, 0);
-  assert.equal(session.task("task-a").completed_items.at(-1).id, "item-a");
+  assert.equal(session.task("task-a").completed_items[0].id, "item-a");
   assert.equal(session.derived.progress.tasks["task-a"].completed, 2);
   assert.deepEqual(session.derived.timeInvalidation, {
     stale: true,
@@ -193,8 +193,50 @@ test("editor core moves a stable item between pending and completed with undo an
   assert.equal(session.dirty, false);
 
   assert.equal(session.redo(), true);
-  assert.equal(session.task("task-a").completed_items.at(-1).id, "item-a");
+  assert.equal(session.task("task-a").completed_items[0].id, "item-a");
   assert.equal(session.derived.timeInvalidation.stale, true);
+});
+
+test("completed items stack newest first across reopen, undo, redo and reload", () => {
+  const session = createReportEditorSession(sampleReport());
+  const old = session.task("task-a").completed_items[0].id;
+  const change = (id, field, status) => session.dispatch({ type: "set-item-status", taskId: "task-a", itemId: id, field, status });
+  const ids = () => session.task("task-a").completed_items.map(item => item.id);
+  change("item-a", "pending_items", "done");
+  session.dispatch({ type: "add-item", taskId: "task-a", field: "completed_items", item: { id: "new", title: "New", status: "done", priority: 4 } });
+  assert.deepEqual(ids(), ["new", "item-a", old]);
+  change("item-a", "completed_items", "done");
+  assert.deepEqual(ids(), ["new", "item-a", old]);
+  change("item-a", "completed_items", "planned");
+  change("item-a", "pending_items", "done");
+  assert.deepEqual(ids(), ["item-a", "new", old]);
+  session.undo();
+  assert.deepEqual(ids(), ["new", old]);
+  session.redo();
+  assert.deepEqual(ids(), ["item-a", "new", old]);
+  const reloaded = createReportEditorSession(JSON.parse(JSON.stringify(session.draft)));
+  assert.deepEqual(reloaded.task("task-a").completed_items.map(item => item.id), ids());
+});
+
+test("completed task cards stack persistently and only on completion transitions", () => {
+  const session = createReportEditorSession(sampleReport());
+  session.dispatch({ type: "add-task", task: { id: "old", title: "Old", summary: "Old", status: "done", priority: 0 } });
+  const complete = value => session.dispatch({ type: "set-task-field", taskId: "task-a", field: "status", value });
+  complete("done");
+  assert.deepEqual(session.draft.tasks.map(t => t.id), ["task-a", "old"]);
+  session.dispatch({ type: "add-task", task: { id: "new", title: "New", summary: "New", status: "done", priority: 4 } });
+  complete("done");
+  assert.deepEqual(session.draft.tasks.map(t => t.id), ["new", "task-a", "old"]);
+  complete("planned");
+  complete("done");
+  assert.deepEqual(session.draft.tasks.map(t => t.id), ["task-a", "new", "old"]);
+  session.undo();
+  assert.equal(session.task("task-a").status, "planned");
+  assert.deepEqual(session.draft.tasks.map(t => t.id), ["new", "task-a", "old"]);
+  session.redo();
+  assert.equal(session.task("task-a").status, "done");
+  const reloaded = createReportEditorSession(JSON.parse(JSON.stringify(session.draft)));
+  assert.deepEqual(reloaded.draft.tasks.map(t => t.id), ["task-a", "new", "old"]);
 });
 
 test("editor core coalesces consecutive edits to the same field", () => {

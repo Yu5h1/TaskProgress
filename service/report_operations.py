@@ -34,6 +34,11 @@ def find_task(report, identity):
     return task
 
 
+def insert_item(task, field, item):
+    items = task.setdefault(field, [])
+    items.insert(0 if field == "completed_items" else len(items), item)
+
+
 def update(target, operation, name):
     allowed, removable = FIELDS[name]
     values, unset = operation.get("set", {}), operation.get("unset", [])
@@ -73,12 +78,16 @@ def apply_operations(report, overlay, operations):
                 require(isinstance(value, dict), "value must be a task object", "value")
                 require(value.get("kind") != "report_pointer", "Only ordinary tasks may be added", "value.kind")
                 require(not any(t["id"] == value.get("id") for t in report["tasks"]), "Task ID already exists", "value.id")
-                report["tasks"].append(deepcopy(value))
+                report["tasks"].insert(0 if value.get("status") == "done" else len(report["tasks"]), deepcopy(value))
                 task_id = value.get("id")
             else:
                 task = find_task(report, task_id)
                 if name == "task.update":
+                    previous_status = task.get("status")
                     update(task, operation, name)
+                    if previous_status != "done" and task.get("status") == "done":
+                        report["tasks"].remove(task)
+                        report["tasks"].insert(0, task)
                 elif name == "dev.update":
                     existing = next((t for t in (overlay or {}).get("tasks", []) if t["id"] == task_id), None)
                     target = existing if existing is not None else {"id": task_id}
@@ -96,7 +105,7 @@ def apply_operations(report, overlay, operations):
                     value = deepcopy(value)
                     value.setdefault("status", "planned")
                     key = "completed_items" if value["status"] == "done" else "pending_items"
-                    task.setdefault(key, []).append(value)
+                    insert_item(task, key, value)
                 else:
                     item_id = operation.get("item_id")
                     require(isinstance(item_id, str), "item_id must be a stable ID; string items require migration", "item_id")
@@ -108,7 +117,7 @@ def apply_operations(report, overlay, operations):
                     destination = "completed_items" if effective == "done" else "pending_items"
                     if destination != previous:
                         task[previous].remove(item)
-                        task.setdefault(destination, []).append(item)
+                        insert_item(task, destination, item)
             validate_documents(report, overlay)
             summaries.append({"op": name, "task_id": task_id, "fields": sorted(set(operation.get("set", {})) | set(operation.get("unset", [])))})
         except (ValueError, TypeError, KeyError) as error:

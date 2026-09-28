@@ -27,6 +27,12 @@ function fieldForItemStatus(status) {
   return status === "done" ? "completed_items" : "pending_items";
 }
 
+function insertTaskItem(task, field, item) {
+  task[field] ??= [];
+  if (field === "completed_items") task[field].unshift(item);
+  else task[field].push(item);
+}
+
 function cloneValue(value) {
   if (typeof structuredClone === "function") return structuredClone(value);
   return JSON.parse(JSON.stringify(value));
@@ -260,6 +266,7 @@ function createReportEditorSession(
       return [command.type, command.field].join(":");
     }
     if (command.type === "set-task-field") {
+      if (command.field === "status") return null;
       return [command.type, command.taskId, command.field].join(":");
     }
     if (command.type === "set-item-field") {
@@ -340,7 +347,13 @@ function createReportEditorSession(
         if (!TASK_FIELDS.has(command.field)) {
           throw new Error(`不支援的任務欄位「${command.field}」。`);
         }
-        findTask(draft, command.taskId)[command.field] = command.value;
+        const task = findTask(draft, command.taskId);
+        const newlyCompleted = command.field === "status" && command.value === "done" && task.status !== "done";
+        task[command.field] = command.value;
+        if (newlyCompleted) {
+          draft.tasks.splice(draft.tasks.indexOf(task), 1);
+          draft.tasks.unshift(task);
+        }
         break;
       }
       case "delete-task": {
@@ -356,7 +369,8 @@ function createReportEditorSession(
         const task = cloneValue(command.task);
         task.completed_items ??= [];
         task.pending_items ??= [];
-        draft.tasks.push(task);
+        if (task.status === "done") draft.tasks.unshift(task);
+        else draft.tasks.push(task);
         break;
       }
       case "set-item-field": {
@@ -388,7 +402,7 @@ function createReportEditorSession(
           if (sourceIndex < 0) throw new Error(`找不到子項目「${command.itemId}」。`);
           task[toField] ??= [];
           const [moved] = source.splice(sourceIndex, 1);
-          task[toField].push(moved);
+          insertTaskItem(task, toField, moved);
         }
         break;
       }
@@ -411,7 +425,7 @@ function createReportEditorSession(
           throw new Error(`子項目 ID「${command.itemId}」已存在於目標清單。`);
         }
         const [item] = source.splice(sourceIndex, 1);
-        task[command.toField].push(item);
+        insertTaskItem(task, command.toField, item);
         break;
       }
       case "delete-item": {
@@ -436,7 +450,7 @@ function createReportEditorSession(
           throw new Error(`子項目 ID「${command.item.id}」已存在。`);
         }
         task[command.field] ??= [];
-        task[command.field].push(cloneValue(command.item));
+        insertTaskItem(task, command.field, cloneValue(command.item));
         break;
       }
       default:

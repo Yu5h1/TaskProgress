@@ -47,6 +47,20 @@ class ReportCliTests(unittest.TestCase):
         execute(self.root, "apply", request)
         self.assertEqual(execute(self.root, "get", task="one")["task"]["pending_items"][1]["id"], "item")
 
+    def test_completed_items_stack_and_recompletion_moves_to_top(self):
+        def apply(operations):
+            execute(self.root, "apply", self.request(operations))
+        def status(value):
+            return {"op": "item.update", "task_id": "one", "item_id": "item", "set": {"status": value}}
+        def ids():
+            return [i["id"] for i in execute(self.root, "get", task="one")["task"]["completed_items"]]
+        apply([status("done"), {"op": "item.add", "task_id": "one", "value": {"id": "new", "title": "New", "status": "done", "priority": 4}}])
+        self.assertEqual(ids(), ["new", "item"])
+        apply([status("done")])
+        self.assertEqual(ids(), ["new", "item"])
+        apply([status("planned"), status("done")])
+        self.assertEqual(ids(), ["item", "new"])
+
     def test_noop_and_dry_run_preserve_all_bytes(self):
         before = self.snapshot()
         result = execute(self.root, "apply", self.request([{"op": "dev.update", "task_id": "one", "unset": ["next_step"]}]))
@@ -55,6 +69,20 @@ class ReportCliTests(unittest.TestCase):
         result = execute(self.root, "apply", self.request([{"op": "report.update", "set": {"title": "測試"}}]))
         self.assertFalse(result["changed"])
         self.assertEqual(before, self.snapshot())
+
+    def test_task_completion_stack(self):
+        def change(identity, status):
+            execute(self.root, "apply", self.request([{"op": "task.update", "task_id": identity, "set": {"status": status}}]))
+        def ids():
+            return [t["id"] for t in execute(self.root, "get")["report"]["tasks"]]
+        change("one", "done")
+        change("two", "done")
+        self.assertEqual(ids(), ["two", "one"])
+        change("one", "done")
+        self.assertEqual(ids(), ["two", "one"])
+        change("one", "planned")
+        change("one", "done")
+        self.assertEqual(ids(), ["one", "two"])
 
     def test_invalid_later_operation_rejects_whole_batch(self):
         before = self.snapshot()
