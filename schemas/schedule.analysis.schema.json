@@ -1,0 +1,317 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://task-progress.local/schemas/schedule.analysis.schema.json",
+  "title": "Schedule public projection",
+  "allOf": [
+    {
+      "$ref": "https://task-progress.local/schemas/module-envelope.schema.json#/$defs/envelope"
+    }
+  ],
+  "type": "object",
+  "unevaluatedProperties": false,
+  "required": [
+    "report_revision",
+    "source_revision",
+    "content_revision",
+    "input_modules"
+  ],
+  "properties": {
+    "module_type": {
+      "const": "taskprogress.schedule"
+    },
+    "schema_version": {
+      "const": "0.1"
+    },
+    "generated_at": {
+      "$ref": "#/$defs/timestamp"
+    },
+    "data": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "input_lineage",
+        "summary",
+        "works",
+        "milestones",
+        "diagnostics"
+      ],
+      "properties": {
+        "input_lineage": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "schedule_plan_revision"
+          ],
+          "properties": {
+            "schedule_plan_revision": {
+              "$ref": "https://task-progress.local/schemas/module-envelope.schema.json#/$defs/reportRevision"
+            },
+            "time_module_revision": {
+              "$ref": "https://task-progress.local/schemas/module-envelope.schema.json#/$defs/reportRevision"
+            },
+            "time_coverage": {
+              "enum": [
+                "complete",
+                "partial",
+                "none"
+              ]
+            }
+          }
+        },
+        "summary": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "scheduled_work_count",
+            "unscheduled_work_count",
+            "conflict_count"
+          ],
+          "properties": {
+            "scheduled_work_count": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 5256000
+            },
+            "unscheduled_work_count": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 5256000
+            },
+            "conflict_count": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 5256000
+            },
+            "forecast_finish_at": {
+              "$ref": "#/$defs/timestamp"
+            }
+          }
+        },
+        "works": {
+          "type": "array",
+          "maxItems": 10000,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "work_id",
+              "subject",
+              "state",
+              "resource_ids"
+            ],
+            "properties": {
+              "work_id": {
+                "$ref": "#/$defs/id"
+              },
+              "subject": {
+                "$ref": "#/$defs/subject"
+              },
+              "state": {
+                "enum": [
+                  "scheduled",
+                  "fixed",
+                  "completed",
+                  "unscheduled",
+                  "conflict"
+                ]
+              },
+              "scheduled_start_at": {
+                "$ref": "#/$defs/timestamp"
+              },
+              "scheduled_finish_at": {
+                "$ref": "#/$defs/timestamp"
+              },
+              "duration_minutes": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 5256000
+              },
+              "confidence": {
+                "enum": [
+                  "low",
+                  "medium",
+                  "high"
+                ]
+              },
+              "resource_ids": {
+                "type": "array",
+                "maxItems": 1000,
+                "items": {
+                  "$ref": "#/$defs/id"
+                },
+                "uniqueItems": true
+              }
+            },
+            "allOf": [
+              {
+                "if": {
+                  "properties": {
+                    "state": {
+                      "enum": [
+                        "scheduled",
+                        "fixed"
+                      ]
+                    }
+                  }
+                },
+                "then": {
+                  "required": [
+                    "scheduled_start_at",
+                    "scheduled_finish_at",
+                    "duration_minutes",
+                    "confidence"
+                  ]
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "state": {
+                      "const": "unscheduled"
+                    }
+                  }
+                },
+                "then": {
+                  "not": {
+                    "anyOf": [
+                      {
+                        "required": [
+                          "scheduled_start_at"
+                        ]
+                      },
+                      {
+                        "required": [
+                          "scheduled_finish_at"
+                        ]
+                      }
+                    ]
+                  }
+                }
+              }
+            ]
+          }
+        },
+        "milestones": {
+          "type": "array",
+          "maxItems": 10000,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "work_id",
+              "fixed_at",
+              "state"
+            ],
+            "properties": {
+              "work_id": {
+                "$ref": "#/$defs/id"
+              },
+              "fixed_at": {
+                "$ref": "#/$defs/timestamp"
+              },
+              "state": {
+                "enum": [
+                  "fixed",
+                  "at_risk"
+                ]
+              }
+            }
+          }
+        },
+        "diagnostics": {
+          "type": "array",
+          "maxItems": 10000,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "code"
+            ],
+            "properties": {
+              "code": {
+                "enum": [
+                  "schedule_cycle",
+                  "orphan_subject",
+                  "missing_duration",
+                  "missing_resource",
+                  "missing_capacity",
+                  "resource_overallocated",
+                  "constraint_conflict",
+                  "fixed_milestone_missed",
+                  "upstream_time_stale",
+                  "schedule_projection_stale",
+                  "missing_predecessor",
+                  "duplicate_identity",
+                  "duplicate_subject",
+                  "scope_mismatch"
+                ]
+              },
+              "work_id": {
+                "$ref": "#/$defs/id"
+              },
+              "cycle_path": {
+                "type": "array",
+                "minItems": 2,
+                "maxItems": 10001,
+                "items": { "$ref": "#/$defs/id" }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100,
+      "pattern": "^[a-z0-9]+(?:[._-][a-z0-9]+)*$"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "(Z|[+-][0-9]{2}:[0-9]{2})$"
+    },
+    "subject": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "task_id"
+          ],
+          "properties": {
+            "kind": {
+              "const": "task"
+            },
+            "task_id": {
+              "$ref": "#/$defs/id"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "task_id",
+            "item_id"
+          ],
+          "properties": {
+            "kind": {
+              "const": "item"
+            },
+            "task_id": {
+              "$ref": "#/$defs/id"
+            },
+            "item_id": {
+              "$ref": "#/$defs/id"
+            }
+          }
+        }
+      ]
+    }
+  }
+}

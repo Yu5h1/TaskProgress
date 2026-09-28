@@ -1,0 +1,77 @@
+{
+  "schema_version": "0.1",
+  "schedule_id": "sample",
+  "scope_id": "sample",
+  "timezone": "Asia/Taipei",
+  "planning_started_at": "2026-09-28T09:00:00+08:00",
+  "policy": {
+    "algorithm": "deterministic-forward",
+    "version": "0.1"
+  },
+  "resources": [
+    {
+      "id": "team",
+      "kind": "team",
+      "public_label": "team",
+      "capacity_source": {
+        "kind": "schedule_local",
+        "minutes_per_workday": 480
+      }
+    },
+    {
+      "id": "equipment",
+      "kind": "equipment",
+      "public_label": "equipment",
+      "capacity_source": {
+        "kind": "schedule_local",
+        "minutes_per_workday": 480
+      }
+    }
+  ],
+  "works": [
+    {
+      "work_id": "a",
+      "kind": "work",
+      "subject": {
+        "kind": "task",
+        "task_id": "a"
+      },
+      "duration_source": {
+        "kind": "schedule_local",
+        "likely_minutes": 120,
+        "confidence": "medium"
+      },
+      "dependencies": [],
+      "constraints": [],
+      "assignments": [
+        {
+          "resource_id": "team",
+          "allocation_percent": 100,
+          "exclusive": true
+        }
+      ]
+    },
+    {
+      "work_id": "b",
+      "kind": "work",
+      "subject": {
+        "kind": "task",
+        "task_id": "b"
+      },
+      "duration_source": {
+        "kind": "schedule_local",
+        "likely_minutes": 120,
+        "confidence": "medium"
+      },
+      "dependencies": [],
+      "constraints": [],
+      "assignments": [
+        {
+          "resource_id": "team",
+          "allocation_percent": 100,
+          "exclusive": true
+        }
+      ]
+    }
+  ]
+}

@@ -1,6 +1,8 @@
 # 排程資料與甘特圖投影計畫
 
-> 狀態：Draft 0.1；方向已定案，尚未實作。
+> Task ID: schedule-projection
+>
+> 狀態：Draft 0.1；資料分層方向已定，實際時段契約見「尚未決定」。實作狀態見 handoff。
 >
 > 與其他文件的關係：`report.json` 繼續擁有 task／item identity、狀態與進度；`time.analysis.json` 擁有工程工時、容量與期限風險；`ExtensionModuleArchitecturePlan.md` 擁有 manifest、共同 envelope、trusted registry、Viewer slots、生命週期與隔離契約。本文件只擁有 Schedule 的工作圖、日期限制、資源配置、確定性排程結果及甘特圖投影。實作狀態與排程仍記錄在 `handoff.md`。
 
@@ -505,6 +507,16 @@ Proof                 : JSON Schema fixtures、cycle／constraint／resource 純
 
 #### Phase 1：Schema 與純模型
 
+本階段先交付資料契約與語意驗證，再接實際排程計算。Schema 位於 `schemas/schedule.plan.schema.json` 與 `schemas/schedule.analysis.schema.json`；語意驗證由 `ScheduleModel` 擁有，呼叫前必須先通過 JSON Schema（包含日期時間 format 驗證）。四個輸入案例位於 `tests/fixtures/schedule/`，目前只證明資料可表達依賴、互斥、里程碑與缺估時，不宣稱已產生日期。
+
+```text
+Volume    : 本輪約 10 個檔案；新增 Schema、純驗證與定向測試
+Precedent : 沿用共同 envelope；Schedule reference validation 為獨立領域
+Proof     : Schema fixtures、純模型測試；排程結果待時段契約與 scheduler
+```
+
+Draft 容許缺少 `duration_source` 與空的 assignments，供模型產生缺資料診斷。結構錯誤由 Schema 拒絕；不存在的引用、重複 identity／active subject、循環依賴、重複資源指派與矛盾 constraint 由純模型回報。`unscheduled` 投影不得攜帶推測的開始／結束日期；scheduled／fixed 必須同時具備日期、工時與信心。共用 envelope 欄位透過 `$ref` 引用，不複製一份定義。
+
 - 建立 `schedule.plan.schema.json` 與 `schedule.analysis.schema.json`。
 - 建立 identity、reference、cycle、constraint、allocation、revision 驗證。
 - 建立無 DOM、無服務、無檔案 mutation 的 deterministic scheduler。
@@ -553,4 +565,6 @@ Proof                 : JSON Schema fixtures、cycle／constraint／resource 純
 
 ## 尚未決定
 
-無。多人技能匹配、其他 dependency type、soft milestone、baseline、實際工時回放與最佳化 solver 都是明確延後的獨立需求，不阻塞 Draft 0.1。
+- **S-01：每日容量如何對應可用時段。** `minutes_per_workday` 只能表達總量，不能判斷不同人員／設備是否同時可用。選項 A：明示可用時段，只有每日分鐘數則回報 missing_capacity；選項 B：設定共同工作日與上下班時間，再分配容量。這會影響實際開始／結束與資源互斥的計算，需先確認；目前 Schema 中的每日總量不代表已核准任何時段推算規則。
+
+多人技能匹配、其他 dependency type、soft milestone、baseline、實際工時回放與最佳化 solver 都是明確延後的獨立需求。
