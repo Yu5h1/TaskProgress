@@ -1,55 +1,69 @@
 {
-  "schema_version": "1.0",
+  "schema_version": "1.1",
   "task_id": "decision-example",
-  "updated_at": "2026-09-25T00:00:00+08:00",
+  "updated_at": "2026-09-25T16:32:45.9863290\u002B00:00",
   "decisions": [
     {
       "id": "input",
       "version": 1,
-      "question": "CLI 使用哪種輸入？",
-      "context": "這是操作範例，確認不會修改程式。",
+      "question": "CLI \u4F7F\u7528\u54EA\u7A2E\u8F38\u5165\uFF1F",
+      "context": "\u9019\u662F\u64CD\u4F5C\u7BC4\u4F8B\uFF0C\u78BA\u8A8D\u4E0D\u6703\u4FEE\u6539\u7A0B\u5F0F\u3002",
       "options": [
         {
           "id": "batch",
-          "label": "批次 JSON",
-          "description": "一次提交多項"
+          "label": "\u6279\u6B21 JSON",
+          "description": "\u4E00\u6B21\u63D0\u4EA4\u591A\u9805"
         },
         {
           "id": "short",
-          "label": "簡短命令"
+          "label": "\u7C21\u77ED\u547D\u4EE4"
         },
         {
           "id": "both",
-          "label": "兩種都提供"
+          "label": "\u5169\u7A2E\u90FD\u63D0\u4F9B"
         }
       ],
       "recommendation": {
         "option_id": "batch",
-        "reason": "先收斂修改契約"
+        "reason": "\u5148\u6536\u6582\u4FEE\u6539\u5951\u7D04"
       },
       "allow_other": true,
-      "status": "pending",
-      "answer": null,
-      "history": []
+      "status": "decided",
+      "answer": {
+        "kind": "other",
+        "text": "\u6E2C\u8A66",
+        "confirmed_at": "2026-09-25T07:38:09.7642381\u002B00:00"
+      },
+      "last_request": {
+        "request_id": "7f896bc7-86cd-416d-9f9e-e670456c8cba",
+        "fingerprint": "e16f1eac1c17abaa368419f06db5b1159d0103eef2f0c77f27d9210fcfc3ee57"
+      }
     },
     {
       "id": "next",
       "version": 1,
-      "question": "下一步先驗證什麼？",
+      "question": "\u4E0B\u4E00\u6B65\u5148\u9A57\u8B49\u4EC0\u9EBC\uFF1F",
       "options": [
         {
           "id": "conflict",
-          "label": "衝突處理"
+          "label": "\u885D\u7A81\u8655\u7406"
         },
         {
           "id": "ui",
-          "label": "畫面操作"
+          "label": "\u756B\u9762\u64CD\u4F5C"
         }
       ],
       "allow_other": true,
-      "status": "pending",
-      "answer": null,
-      "history": []
+      "status": "decided",
+      "answer": {
+        "kind": "option",
+        "option_id": "conflict",
+        "confirmed_at": "2026-09-25T16:32:45.9863290\u002B00:00"
+      },
+      "last_request": {
+        "request_id": "7eadc9e9-aaf1-43e0-ba35-971c9e3f65cb",
+        "fingerprint": "29d7740fa5cc2a03c7ce329921bbed1eba511d3cd81c82a8ba04b5c3efebab45"
+      }
     }
   ]
 }
