@@ -29,6 +29,8 @@
   // labels, not capsules: a task total is derived from its items, so there
   // is nothing to act on at this level and a control would imply otherwise.
   export let moduleTotals = [];
+  const completedPreviewCount = 3;
+  let showAllCompleted = false;
 
   const statuses = [
     { value: "planned", label: "待處理", tone: "neutral" },
@@ -190,8 +192,8 @@
       {#if group.items.length || editing}
         <section class={`detail-section ${group.className}`}>
           <h4 class="detail-heading">{group.title}</h4>
-          <ul class="detail-list">
-            {#each group.items as item (item.id)}
+          <ul class="detail-list" id={`task-${task.id}-${group.field}`}>
+            {#each group.status === "done" && !showAllCompleted ? group.items.slice(0, completedPreviewCount) : group.items as item (item.id)}
               <ItemRow
                 taskId={task.id}
                 field={group.field}
@@ -207,6 +209,18 @@
               />
             {/each}
           </ul>
+          {#if group.status === "done" && group.items.length > completedPreviewCount}
+            <button type="button" class="completed-more"
+              aria-expanded={showAllCompleted}
+              aria-controls={`task-${task.id}-${group.field}`}
+              onclick={() => showAllCompleted = !showAllCompleted}>
+              <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
+                <path d={showAllCompleted ? "M3 10l5-5 5 5" : "M3 6l5 5 5-5"}
+                  fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+              {showAllCompleted ? "收合" : `顯示更多（${group.items.length - completedPreviewCount}項）`}
+            </button>
+          {/if}
         </section>
       {/if}
     {/each}

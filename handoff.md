@@ -6,6 +6,8 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
 
 ## Current state (2026-09-29)
 
+- **已完成子項目增加 3 項預覽。** Report TaskCard 預設呈現已完成陣列前 3 項，超過時顯示置中的剩餘項數與展開／收合按鈕，待處理清單與進度不變。Viewer 資產建置與獨立複核通過（既有 a11y warnings），使用者已確認即時畫面更新。
+
 - **清單標題／標籤改為緊湊兩列。** 共用 CardList 上列為 .75rem 粗體「工作項目」與 .65rem normal 篩選標籤，下列圖示，列距 3px。Report 改由 TaskList 接收原 host 的 filterProps，Checklist／Decision 透過同一 filters slot，保留原選取／拖曳實作。四個前端入口建置及 25 項篩選／排序定向測試通過；移除一條綁定舊獨立掛載位置的測試斷言。Browser 與 Desktop 源資產已重建，實際字體與間距待使用者重載核查；未重啟服務、未發布 EXE。此輪與啟動功能一併提交；使用者決策範例保留在工作區。
 
 - **啟動入口與日誌觀察器已實作，尚未發布。** 無參數等同 start，WinExe 預設不建 Console、不開 browser；--browser 明確開啟 Viewer，--console 留在呼叫端持續讀取有界本機日誌，關閉／Ctrl+C 不取得或終止服務。TrayHost 沿用既有 output notify，worker 回已啟動／已在執行／失敗。Host 層新增日誌，不修改 Winform 或共用 LocalWebService。設計：[Documentation/TrayWorkerPlan.md#啟動入口start](Documentation/TrayWorkerPlan.md#啟動入口start)；核查：[checklists/startup-observer.checklist](checklists/startup-observer.checklist)。
