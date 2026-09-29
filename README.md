@@ -49,7 +49,7 @@ REM 或明確指定 scope
 .\Build\win-x64\task-progress.exe start
 ```
 
-`start` 會驗證所有已登記報告、以獨立 Console 啟動 LocalWebService、註冊每個 base/developer/time-analysis report，並開啟 `http://127.0.0.1:8001/`。首頁會顯示匿名化的 scope 清單，不會公開專案磁碟路徑；在服務 Console 按 `Ctrl+C` 可正常停止服務。若服務已經存在，`start` 會沿用該 process 並同步 scope，但無法替既有的背景 process 補上視窗。
+雙擊 EXE（無參數）等同 `start`：啟動 Tray 與 LocalWebService、同步所有已登記 scope，預設不開 Console 或瀏覽器。再次啟動會沿用服務並通知狀態。`start --browser` 開啟首頁；`start --console` 持續顯示服務日誌，關閉觀察窗或按 Ctrl+C 不停止服務，停止由 Tray 的 Exit 處理。`--no-browser`／`--no-open` 仍相容；命令說明使用 `--help`。啟動與觀察契約見 [TrayWorkerPlan](Documentation/TrayWorkerPlan.md#啟動入口start)。
 
 ## 自動產生時間分析
 

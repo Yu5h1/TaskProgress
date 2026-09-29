@@ -283,6 +283,8 @@ internal sealed class LocalWebServiceClient : IDisposable
     {
         var arguments = BuildServiceArguments(settings);
         if (launchMode == ServiceLaunchMode.VisibleConsole)
+            arguments = [.. arguments, "--log-console"];
+        if (launchMode == ServiceLaunchMode.VisibleConsole)
         {
             try
             {
@@ -333,6 +335,8 @@ internal sealed class LocalWebServiceClient : IDisposable
         var arguments = new List<string>
         {
             settings.EditHostScript,
+            "--log-file",
+            settings.ServiceLogFile,
             "--root",
             settings.ViewerRoot,
             "--host",

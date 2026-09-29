@@ -52,6 +52,8 @@ internal static class TrayHostLauncher
         startInfo.ArgumentList.Add(manifest);
         startInfo.ArgumentList.Add("--standalone");
         startInfo.ArgumentList.Add("--buildIcon");
+        if (arguments.Count == 0 || !arguments[0].Equals("start", StringComparison.OrdinalIgnoreCase))
+            startInfo.ArgumentList.Add("--no-notify");
         startInfo.ArgumentList.Add("--");
         foreach (var argument in arguments)
         {

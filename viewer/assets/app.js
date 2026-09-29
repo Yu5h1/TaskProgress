@@ -131,7 +131,6 @@ const elements = {
   projectProgress: document.querySelector("#project-progress"),
   diagnostics: document.querySelector("#diagnostics"),
   content: document.querySelector("#report-content"),
-  filters: document.querySelector("#status-filters"),
   taskList: document.querySelector("#task-list"),
   empty: document.querySelector("#empty-state"),
   start: document.querySelector("#start-panel"),
@@ -185,7 +184,7 @@ const state = {
   diagnosticsView: null,
   scopeDirectoryView: null,
   projectProgressView: null,
-  filtersView: null,
+  filterProps: null,
   deliverySaveConfirmationView: null,
   statusOrder: loadCapsuleOrder(),
   moduleOrder: moduleOrderControl.order,
@@ -840,7 +839,7 @@ function renderFilters() {
     order: state.statusOrder,
     selected: state.selection.selected,
     defaultLit: isDefaultLit(state.selection),
-    className: "status-filter-strip",
+    className: "status-filter-strip status-summary-filters",
     ariaLabel: "工作狀態篩選與排序",
     reorderable: true,
     onSelect: (status) => {
@@ -857,8 +856,7 @@ function renderFilters() {
       applyStatusOrder(id, targetId, placeAfter);
     },
   };
-  if (state.filtersView) state.filtersView.update(props);
-  else state.filtersView = createUiView("status-filters", elements.filters, props);
+  state.filterProps = props;
 }
 
 
@@ -971,6 +969,7 @@ function taskListProps(tasks) {
 
   return {
     tasks,
+    filters: state.filterProps,
     progress,
     moduleTotals,
     itemCapsules,

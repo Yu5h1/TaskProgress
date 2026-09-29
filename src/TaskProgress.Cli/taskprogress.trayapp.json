@@ -3,6 +3,7 @@
   "id": "task-progress",
   "displayName": "TaskProgress Local Server",
   "protocol": "trayhost-jsonlines-v1",
+  "output": { "notify": true, "clipboard": false },
   "process": {
     "executable": "task-progress.exe",
     "arguments": ["worker"],

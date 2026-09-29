@@ -106,8 +106,12 @@
   }
 </script>
 
-<div class="card-list-tools">
+<div class="card-list-controls">
+<div class="card-list-heading">
   <p class="section-kicker">工作項目</p>
+  <slot name="filters" />
+</div>
+<div class="card-list-tools">
   <button type="button" class="card-toolbar-icon" aria-label={expanded ? "全部收合" : "全部展開"}
     title={expanded ? "全部收合" : "全部展開"} onclick={() => onToggleAll(!expanded)}>
     <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
@@ -131,6 +135,7 @@
   </IconChoice>
   <VisibilityMenu mode={visibilityMode} onChoose={selectVisibility} />
   <span role="status">{notice}</span>
+</div>
 </div>
 <div class="arrangeable-cards" bind:this={root}>
   {#each ordered as item (item.id)}

@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>net9.0-windows</TargetFramework>
-    <OutputType>Exe</OutputType>
+    <OutputType>WinExe</OutputType>
     <AssemblyName>task-progress</AssemblyName>
     <RootNamespace>TaskProgress</RootNamespace>
     <ImplicitUsings>enable</ImplicitUsings>

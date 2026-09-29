@@ -25,7 +25,7 @@ TrayHost 擁有的 process 只有 `task-progress.exe worker` 一個。LocalWebSe
 
 ## 摘要
 
-TaskProgress 現在只有一次性 CLI：使用者執行 `task-progress start`，它確認服務、註冊報告、開瀏覽器，然後 process 結束。這份計畫替 `task-progress.exe` 新增第二個 process role —— 常駐的 `worker` —— 讓 Winform 的 TrayHost 能以既有的 manifest／JSON Lines 契約把它當成 owned worker 託管，並在系統匣持續顯示 LocalWebService 是否正在執行。
+TaskProgress 由短命的啟動入口與常駐 `worker` 組成。使用者雙擊或執行 `task-progress start` 時確認服務並註冊報告；只有明確指定 `--browser` 才開啟瀏覽器。常駐的 `worker` 讓 Winform 的 TrayHost 能以既有的 manifest／JSON Lines 契約把它當成 owned worker 託管，並在系統匣持續顯示 LocalWebService 是否正在執行。
 
 生命週期是綁定的：**tray 在，服務就該在；tray Exit，服務就停。** tray 圖示本身就是開關，所以選單裡不再有 Start／Stop。這也讓 standalone 選單維持 TrayApp 契約原本的 Restart／Exit 兩項，不需要為本專案破例。
 
@@ -38,7 +38,7 @@ TaskProgress 現在只有一次性 CLI：使用者執行 `task-progress start`�
 ```text
 使用者：task-progress start
 │
-├─ task-progress.exe（短命，前景 Console）
+├─ task-progress.exe（WinExe，預設無視窗）
 │  └─ 執行 Yu5h1Lib.TrayHost.exe invoke <manifest> --standalone --buildIcon -- start
 │     ├─ 查 standalone mutex → 不存在
 │     ├─ 啟動 Yu5h1Lib.TrayHost.exe host <manifest> --standalone
@@ -60,11 +60,11 @@ TaskProgress 現在只有一次性 CLI：使用者執行 `task-progress start`�
 worker 進入迴圈後，最初的 start request 才執行並回應：
 
 ```text
-invoke ──start──► TrayHost ──► worker ──► 確認服務／註冊 scope → 開 Viewer → 回傳結果
+invoke ──start──► TrayHost ──► worker ──► 確認服務／註冊 scope → 回傳結果／通知
 │
 ├─ 把該行印到 Console
-├─ 開啟 http://127.0.0.1:8001/（除非 --no-browser）
-└─ 短命 process 結束，Console 關閉
+├─ 指定 --browser 才開啟 http://127.0.0.1:8001/
+└─ 預設結束；指定 --console 則持續唯讀觀察日誌
 ```
 
 因為 ensure 是等待完成的，這一行 status 反映的已經是服務起來之後的狀態，不是啟動中的暫態。
@@ -189,12 +189,18 @@ task-progress worker
 
 ### 啟動入口：`start`
 
+> Task ID: startup-observer
+
+Volume: touches ~15 files / adds ~250 lines.
+Precedent: existing TrayHost output contract; new read-only log observer.
+Proof: targeted unit/process tests; Windows Tray/Console UX requires manual checks.
+
 ```text
-task-progress start [--no-browser]
-  → TrayHost invoke <manifest> --standalone --buildIcon -- start [--no-browser]
+task-progress [start [--browser] [--console]]
+  → TrayHost invoke <manifest> --standalone --buildIcon -- start [--browser]
   → 不存在則啟動 Host，等待 broker／worker ready
   → worker 確認服務與註冊 scope，確認服務可連線
-  → 回傳結果；未指定 --no-browser 時開啟 Viewer
+  → 回傳結果並通知；指定 --browser 時開啟 Viewer
 ```
 
 - 已存在的 TrayHost 直接接收命令；單一實例與 ready 等待由既有 `TrayAppInvoker`／TrayHost 管理，不另建輪詢或第二個啟動器。
@@ -208,9 +214,22 @@ task-progress start [--no-browser]
 
 TrayHost executable 先由 `TASK_PROGRESS_TRAY_HOST` 指定，否則向上搜尋 Winform 的 Release 輸出。一般使用者權限即可運作；agent 的沙箱外啟動流程由 TaskProgress capabilities skill 擁有。
 
+#### 日誌與觀察器
+
+TaskProgress Host 層捕捉 LocalWebService stdout／stderr 至 state 同目錄的 `.log`，不修改共用 LocalWebService。每檔約 1 MiB、最多兩份備份；檔頭 generation 供觀察器辨識輪替，完整 UTF-8 行才輸出。拒絕把日誌放在公開 Viewer root。磁碟寫入失敗不遞迴記錄自身錯誤，也不停止服務。原有 visible-console 啟動路徑會同步輸出至 Console。
+
+`--console` 留在呼叫端，定期讀取日誌與既有健康狀態；不取得服務所有權、不呼叫 shutdown。舊服務沒有日誌時提示需更新重啟。Tray、worker、LocalServer 沿用原有生命週期；不增加第二套 Tray 或服務管理器。不新增 Tray 選單與跨專案功能。
+
+CLI 保留管線輸出；Windows GUI subsystem 在互動 cmd.exe 不保證 shell 等待。需要依序執行並讀取退出碼時，使用 PowerShell 或 cmd 的 `start "" /wait task-progress.exe <命令>`。純查詢使用 `--help`，不能再以無參數列舉能力。
+
+核查清單：[startup-observer.checklist](../checklists/startup-observer.checklist)。發布時 manifest 已變更，舊 Host 須先 Exit 再啟動新版本；此操作與實機驗收分開授權。
+
 #### 驗收
 
-- start 預設開啟 Viewer，接受 no-browser／no-open，拒絕 tray、port 與未知參數。
+- 無參數與 start 預設只啟動 Tray／服務；--browser 才開啟 Viewer。接受 no-browser／no-open，拒絕 tray、port 與未知參數。
+- WinExe 不自動建立 Console；--console 附加既有 Console 或建立觀察窗，持續顯示 LocalServer 日誌。關閉／Ctrl+C 只結束觀察，服務仍由 Tray 管理。
+- 每次 start 經既有 TrayHost output notify 顯示已啟動、已在執行或失敗；Windows 通知設定可能影響顯示。
+- 管線 stdin／stdout、退出碼與 checklist／decisions 檔案啟用維持相容。
 - 服務啟動失敗回 command_failed，不印出就緒連結、不開瀏覽器；worker 仍可回答 status。
 - TrayHost 不存在時啟動並等待 ready；存在時沿用同一實例。服務停止後再次 start 可恢復。
 - checklist 開檔／validate／request 維持無 Tray 依賴。
@@ -240,7 +259,7 @@ request 的 `payload.arguments` 就是既有的 CLI 參數向量，worker 不發
 | `["open", "--scope", "<id>"]` | 開啟該 scope 的 Viewer URL |
 | `["scope", "list"]` | 列出已登記 scope |
 
-沒有 `start` 與 `stop` 操作。服務的啟動屬於 worker 啟動流程、停止屬於 worker 結束流程，兩者都由 tray 的存在與否決定；把它們再開放成 request，等於把「tray 在但服務停著」變成可達狀態。要重啟服務就用 standalone 選單既有的 `Restart` —— 它重啟 worker，服務隨之重來，不必新增任何選單項目。
+`start` 只確認服務並同步註冊；沒有獨立 `stop` request。服務的啟動屬於 worker 啟動流程、停止屬於 worker 結束流程，兩者都由 tray 的存在與否決定；把它們再開放成 request，等於把「tray 在但服務停著」變成可達狀態。要重啟服務就用 standalone 選單既有的 `Restart` —— 它重啟 worker，服務隨之重來，不必新增任何選單項目。
 
 未知的 arguments 回傳 `error.code = "unknown_operation"`，不停止 worker。單次 request 失敗（例如 port 被別的程式占用）同樣只是失敗的 response，worker 保持 `Ready`。
 

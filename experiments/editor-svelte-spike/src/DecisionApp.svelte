@@ -85,14 +85,17 @@
     </div>
     <div class="decision-controls">
     <button onclick={next} disabled={!decisions.some(d => d.status === "pending")}>下一項待決策</button>
-    <FilterStrip categories={[{id:"pending",label:"待決策"},{id:"decided",label:"已決策"}]} order={[DEFAULT_CAPSULE_ID,"pending","decided"]}
-      selected={selection.selected} defaultLit={isDefaultLit(selection)} defaultLabel="全部"
-      onSelect={id => selection = toggleTag(selection, id)} onSelectDefault={() => selection = toggleDefault(selection)} />
+
     </div>
     {#if view.pending && !view.busy}<button onclick={() => send(null, null, true)}>查核／重試原請求</button>{/if}
     {#if !decisions.some(d => selection.selected.has(d.status))}<p>目前沒有符合條件的決策項目。</p>{/if}
     <CardList bind:this={cardList} items={decisions.filter(d => selection.selected.has(d.status)).map(d => ({...d,title:d.question}))} allIds={decisions.map(d => d.id)} {storageKey}
       {expanded} onToggleAll={all} let:item let:visibilityEnabled let:visible let:onVisibleChange>
+      <svelte:fragment slot="filters">
+    <FilterStrip categories={[{id:"pending",label:"待決策"},{id:"decided",label:"已決策"}]} order={[DEFAULT_CAPSULE_ID,"pending","decided"]}
+      selected={selection.selected} defaultLit={isDefaultLit(selection)} defaultLabel="全部"
+      onSelect={id => selection = toggleTag(selection, id)} onSelectDefault={() => selection = toggleDefault(selection)} />
+      </svelte:fragment>
       {@const draft = Object.hasOwn(view.drafts, item.id) ? view.drafts[item.id] : null}
       <article class="checklist-item decision-card" class:decision-has-visibility={visibilityEnabled}>
         <CardDisclosure {visibilityEnabled} {visible} {onVisibleChange} expanded={overrides[item.id] ?? expanded}

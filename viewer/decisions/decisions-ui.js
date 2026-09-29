@@ -2637,7 +2637,7 @@ function Zi(e, t, n, r, i, a) {
 }
 //#endregion
 //#region experiments/editor-svelte-spike/src/CardList.svelte
-var Qi = /* @__PURE__ */ Pr("<path d=\"M4 5h15M4 10h8M4 15h17M4 20h11\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\" stroke-linecap=\"round\"></path>"), $i = /* @__PURE__ */ Pr("<path fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"></path><path fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\" stroke-linecap=\"round\"></path>", 1), ea = /* @__PURE__ */ Pr("<svg viewBox=\"0 0 24 24\" width=\"24\" height=\"24\" aria-hidden=\"true\"><!></svg>"), ta = /* @__PURE__ */ J("<div role=\"group\" tabindex=\"0\"><!></div>"), na = /* @__PURE__ */ J("<div class=\"card-list-tools\"><p class=\"section-kicker\">工作項目</p> <button type=\"button\" class=\"card-toolbar-icon\"><svg viewBox=\"0 0 24 24\" width=\"22\" height=\"22\" aria-hidden=\"true\"><path fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"></path></svg></button> <!> <!> <span role=\"status\"> </span></div> <div class=\"arrangeable-cards\"></div>", 1);
+var Qi = /* @__PURE__ */ Pr("<path d=\"M4 5h15M4 10h8M4 15h17M4 20h11\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\" stroke-linecap=\"round\"></path>"), $i = /* @__PURE__ */ Pr("<path fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"></path><path fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\" stroke-linecap=\"round\"></path>", 1), ea = /* @__PURE__ */ Pr("<svg viewBox=\"0 0 24 24\" width=\"24\" height=\"24\" aria-hidden=\"true\"><!></svg>"), ta = /* @__PURE__ */ J("<div role=\"group\" tabindex=\"0\"><!></div>"), na = /* @__PURE__ */ J("<div class=\"card-list-controls\"><div class=\"card-list-heading\"><p class=\"section-kicker\">工作項目</p> <!></div> <div class=\"card-list-tools\"><button type=\"button\" class=\"card-toolbar-icon\"><svg viewBox=\"0 0 24 24\" width=\"22\" height=\"22\" aria-hidden=\"true\"><path fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"></path></svg></button> <!> <!> <span role=\"status\"> </span></div></div> <div class=\"arrangeable-cards\"></div>", 1);
 function ra(e, t) {
 	We(t, !1);
 	let n = /* @__PURE__ */ I(), r = /* @__PURE__ */ I(), i = /* @__PURE__ */ I(), a = $(t, "items", 24, () => []), o = $(t, "allIds", 24, () => []), s = $(t, "storageKey", 8), c = $(t, "expanded", 8, !0), l = $(t, "onToggleAll", 8, () => {}), u = /* @__PURE__ */ I("forward"), d = [
@@ -2738,15 +2738,17 @@ function ra(e, t) {
 	}), kn();
 	var ae = { revealCard: v };
 	Di();
-	var oe = na(), se = mn(oe), ce = z(R(se), 2), le = R(ce), ue = R(le);
-	j(le), j(ce);
-	var de = z(ce, 2);
+	var oe = na(), se = mn(oe), ce = R(se);
+	Zr(z(R(ce), 2), t, "filters", {}, null), j(ce);
+	var le = z(ce, 2), ue = R(le), de = R(ue), fe = R(de);
+	j(de), j(ue);
+	var pe = z(ue, 2);
 	{
 		let e = /* @__PURE__ */ P(() => G(() => d.map((e) => ({
 			id: e,
 			label: f[e]
 		}))));
-		Li(de, {
+		Li(pe, {
 			get items() {
 				return W(e);
 			},
@@ -2773,17 +2775,17 @@ function ra(e, t) {
 			} }
 		});
 	}
-	var fe = z(de, 2);
-	Wi(fe, {
+	var me = z(pe, 2);
+	Wi(me, {
 		get mode() {
 			return W(p);
 		},
 		onChoose: g
 	});
-	var pe = z(fe, 2), me = R(pe, !0);
-	j(pe), j(se);
-	var he = z(se, 2);
-	return Gr(he, 5, () => W(i), (e) => e.id, (e, r) => {
+	var he = z(me, 2), ge = R(he, !0);
+	j(he), j(le), j(se);
+	var _e = z(se, 2);
+	return Gr(_e, 5, () => W(i), (e) => e.id, (e, r) => {
 		var i = ta();
 		let a;
 		var o = R(i);
@@ -2821,9 +2823,9 @@ function ra(e, t) {
 		}), Tr("drop", i, (e) => {
 			W(S) !== null && W(C)?.id === W(r).id && (e.preventDefault(), ie(W(S), W(r).id, W(C).after), E());
 		}), Y(e, i);
-	}), j(he), Ei(he, (e) => L(w, e), () => W(w)), V(() => {
-		Q(ce, "aria-label", c() ? "全部收合" : "全部展開"), Q(ce, "title", c() ? "全部收合" : "全部展開"), Q(ue, "d", c() ? "M5 15l7-7 7 7" : "M5 9l7 7 7-7"), X(me, W(ee));
-	}), q("click", ce, () => l()(!c())), Y(e, oe), wi(t, "revealCard", v), Ge(ae);
+	}), j(_e), Ei(_e, (e) => L(w, e), () => W(w)), V(() => {
+		Q(ue, "aria-label", c() ? "全部收合" : "全部展開"), Q(ue, "title", c() ? "全部收合" : "全部展開"), Q(fe, "d", c() ? "M5 15l7-7 7 7" : "M5 9l7 7 7-7"), X(ge, W(ee));
+	}), q("click", ue, () => l()(!c())), Y(e, oe), wi(t, "revealCard", v), Ge(ae);
 }
 Er([
 	"click",
@@ -3599,7 +3601,7 @@ function Xa(e, t, n, r) {
 }
 //#endregion
 //#region experiments/editor-svelte-spike/src/DecisionApp.svelte
-var Za = /* @__PURE__ */ J("<p role=\"status\"> </p>"), Qa = /* @__PURE__ */ J("<article class=\"checklist-item\"><a> </a> <p> </p></article>"), $a = /* @__PURE__ */ J("<p>尚未建立決策文件。</p>"), eo = /* @__PURE__ */ J("<p> </p> <!> <!>", 1), to = /* @__PURE__ */ J("<button class=\"svelte-17meywc\">查核／重試原請求</button>"), no = /* @__PURE__ */ J("<p>目前沒有符合條件的決策項目。</p>"), ro = /* @__PURE__ */ J("<p class=\"decision-text svelte-17meywc\"> </p>"), io = /* @__PURE__ */ J("<p> </p>"), ao = /* @__PURE__ */ J("<div class=\"decision-description svelte-17meywc\"><!> <!></div>"), oo = /* @__PURE__ */ J("<small class=\"svelte-17meywc\"> </small>"), so = /* @__PURE__ */ J("<label class=\"decision-option svelte-17meywc\"><input type=\"radio\" class=\"svelte-17meywc\"/> <span class=\"svelte-17meywc\"> <!></span></label>"), co = /* @__PURE__ */ J("<label class=\"decision-option svelte-17meywc\"><input type=\"radio\" class=\"svelte-17meywc\"/><span class=\"svelte-17meywc\">其他</span></label> <div class=\"decision-other svelte-17meywc\"><label>其他方案</label><textarea class=\"svelte-17meywc\"></textarea></div>", 1), lo = /* @__PURE__ */ J("<fieldset class=\"svelte-17meywc\"><legend class=\"decision-visually-hidden svelte-17meywc\"> </legend> <!> <!></fieldset>"), uo = /* @__PURE__ */ J("<p class=\"decision-text svelte-17meywc\"> </p> <p class=\"decision-text svelte-17meywc\"> </p><p> </p> <button class=\"svelte-17meywc\">重新開啟</button>", 1), fo = /* @__PURE__ */ J("<button class=\"svelte-17meywc\">已核對最新題目，保留草稿</button>"), po = /* @__PURE__ */ J("<p role=\"alert\"> </p> <!>", 1), mo = /* @__PURE__ */ J("<button class=\"svelte-17meywc\">捨棄草稿</button>"), ho = /* @__PURE__ */ J("<button class=\"svelte-17meywc\">確認決策</button>"), go = /* @__PURE__ */ J("<div class=\"decision-content svelte-17meywc\"><!> <!> <!> <div class=\"decision-actions svelte-17meywc\"><!> <!></div></div>"), _o = /* @__PURE__ */ J("<header slot=\"header\" class=\"checklist-item-header svelte-17meywc\"><h2 tabindex=\"-1\" class=\"svelte-17meywc\"> </h2><span class=\"checklist-status\"> </span></header>"), vo = /* @__PURE__ */ J("<article><!></article>"), yo = /* @__PURE__ */ J("<p role=\"alert\"> </p> <button class=\"svelte-17meywc\">捨棄此草稿</button>", 1), bo = /* @__PURE__ */ J("<div class=\"decision-overview svelte-17meywc\"><p class=\"svelte-17meywc\"> </p> <p class=\"svelte-17meywc\">選擇僅保留於本頁；按「確認決策」才保存，關閉頁面會失去未確認草稿。</p></div> <div class=\"decision-controls svelte-17meywc\"><button class=\"svelte-17meywc\">下一項待決策</button> <!></div> <!> <!> <!> <!>", 1), xo = /* @__PURE__ */ J("<p>這題將清除目前答案並回到待決策，之後可重新回答。</p> <button class=\"svelte-17meywc\">取消</button> <button class=\"svelte-17meywc\">確認重新開啟</button>", 1), So = /* @__PURE__ */ J("<main class=\"checklist-shell decisions-shell svelte-17meywc\"><header class=\"checklist-header\"><h1>決策項目</h1> <!></header> <!> <!></main> <!>", 1);
+var Za = /* @__PURE__ */ J("<p role=\"status\"> </p>"), Qa = /* @__PURE__ */ J("<article class=\"checklist-item\"><a> </a> <p> </p></article>"), $a = /* @__PURE__ */ J("<p>尚未建立決策文件。</p>"), eo = /* @__PURE__ */ J("<p> </p> <!> <!>", 1), to = /* @__PURE__ */ J("<button class=\"svelte-17meywc\">查核／重試原請求</button>"), no = /* @__PURE__ */ J("<p>目前沒有符合條件的決策項目。</p>"), ro = /* @__PURE__ */ J("<p class=\"decision-text svelte-17meywc\"> </p>"), io = /* @__PURE__ */ J("<p> </p>"), ao = /* @__PURE__ */ J("<div class=\"decision-description svelte-17meywc\"><!> <!></div>"), oo = /* @__PURE__ */ J("<small class=\"svelte-17meywc\"> </small>"), so = /* @__PURE__ */ J("<label class=\"decision-option svelte-17meywc\"><input type=\"radio\" class=\"svelte-17meywc\"/> <span class=\"svelte-17meywc\"> <!></span></label>"), co = /* @__PURE__ */ J("<label class=\"decision-option svelte-17meywc\"><input type=\"radio\" class=\"svelte-17meywc\"/><span class=\"svelte-17meywc\">其他</span></label> <div class=\"decision-other svelte-17meywc\"><label>其他方案</label><textarea class=\"svelte-17meywc\"></textarea></div>", 1), lo = /* @__PURE__ */ J("<fieldset class=\"svelte-17meywc\"><legend class=\"decision-visually-hidden svelte-17meywc\"> </legend> <!> <!></fieldset>"), uo = /* @__PURE__ */ J("<p class=\"decision-text svelte-17meywc\"> </p> <p class=\"decision-text svelte-17meywc\"> </p><p> </p> <button class=\"svelte-17meywc\">重新開啟</button>", 1), fo = /* @__PURE__ */ J("<button class=\"svelte-17meywc\">已核對最新題目，保留草稿</button>"), po = /* @__PURE__ */ J("<p role=\"alert\"> </p> <!>", 1), mo = /* @__PURE__ */ J("<button class=\"svelte-17meywc\">捨棄草稿</button>"), ho = /* @__PURE__ */ J("<button class=\"svelte-17meywc\">確認決策</button>"), go = /* @__PURE__ */ J("<div class=\"decision-content svelte-17meywc\"><!> <!> <!> <div class=\"decision-actions svelte-17meywc\"><!> <!></div></div>"), _o = /* @__PURE__ */ J("<header slot=\"header\" class=\"checklist-item-header svelte-17meywc\"><h2 tabindex=\"-1\" class=\"svelte-17meywc\"> </h2><span class=\"checklist-status\"> </span></header>"), vo = /* @__PURE__ */ J("<article><!></article>"), yo = /* @__PURE__ */ J("<p role=\"alert\"> </p> <button class=\"svelte-17meywc\">捨棄此草稿</button>", 1), bo = /* @__PURE__ */ J("<div class=\"decision-overview svelte-17meywc\"><p class=\"svelte-17meywc\"> </p> <p class=\"svelte-17meywc\">選擇僅保留於本頁；按「確認決策」才保存，關閉頁面會失去未確認草稿。</p></div> <div class=\"decision-controls svelte-17meywc\"><button class=\"svelte-17meywc\">下一項待決策</button></div> <!> <!> <!> <!>", 1), xo = /* @__PURE__ */ J("<p>這題將清除目前答案並回到待決策，之後可重新回答。</p> <button class=\"svelte-17meywc\">取消</button> <button class=\"svelte-17meywc\">確認重新開啟</button>", 1), So = /* @__PURE__ */ J("<main class=\"checklist-shell decisions-shell svelte-17meywc\"><header class=\"checklist-header\"><h1>決策項目</h1> <!></header> <!> <!></main> <!>", 1);
 function Co(e, t) {
 	We(t, !1);
 	let n = /* @__PURE__ */ I(), r = /* @__PURE__ */ I(), i = /* @__PURE__ */ I(), a = $(t, "transport", 8), o = $(t, "onPersistenceChange", 8, () => {}), s = /* @__PURE__ */ I(), c = /* @__PURE__ */ I(), l = /* @__PURE__ */ I(), u = /* @__PURE__ */ I("載入中…"), d = /* @__PURE__ */ I(!0), f = /* @__PURE__ */ I({}), p = /* @__PURE__ */ I(), m = /* @__PURE__ */ I(null), g = /* @__PURE__ */ I(ga(ma(["pending", "decided"]), "decided")), _ = /* @__PURE__ */ I(), v = /* @__PURE__ */ I();
@@ -3734,56 +3736,28 @@ function Co(e, t) {
 	}, ce = (e) => {
 		var t = bo(), r = mn(t), a = R(r), o = R(a);
 		j(a), Fe(2), j(r);
-		var l = z(r, 2), u = R(l), _ = z(u, 2);
-		{
-			let e = /* @__PURE__ */ P(() => [
-				fa,
-				"pending",
-				"decided"
-			]), t = /* @__PURE__ */ P(() => (K(ha), W(g), G(() => ha(W(g)))));
-			va(_, {
-				categories: [{
-					id: "pending",
-					label: "待決策"
-				}, {
-					id: "decided",
-					label: "已決策"
-				}],
-				get order() {
-					return W(e);
-				},
-				get selected() {
-					return W(g), G(() => W(g).selected);
-				},
-				get defaultLit() {
-					return W(t);
-				},
-				defaultLabel: "全部",
-				onSelect: (e) => L(g, ga(W(g), e)),
-				onSelectDefault: () => L(g, _a(W(g)))
-			});
-		}
+		var l = z(r, 2), u = R(l);
 		j(l);
-		var v = z(l, 2), y = (e) => {
+		var _ = z(l, 2), v = (e) => {
 			var t = to();
 			q("click", t, () => ee(null, null, !0)), Y(e, t);
 		};
-		Z(v, (e) => {
-			W(c), G(() => W(c).pending && !W(c).busy) && e(y);
+		Z(_, (e) => {
+			W(c), G(() => W(c).pending && !W(c).busy) && e(v);
 		});
-		var w = z(v, 2), ne = (e) => {
+		var y = z(_, 2), w = (e) => {
 			Y(e, no());
-		}, re = /* @__PURE__ */ xt(() => (W(n), W(g), G(() => !W(n).some((e) => W(g).selected.has(e.status)))));
-		Z(w, (e) => {
-			W(re) && e(ne);
+		}, ne = /* @__PURE__ */ xt(() => (W(n), W(g), G(() => !W(n).some((e) => W(g).selected.has(e.status)))));
+		Z(y, (e) => {
+			W(ne) && e(w);
 		});
-		var ie = z(w, 2);
+		var re = z(y, 2);
 		{
 			let e = /* @__PURE__ */ P(() => (W(n), W(g), G(() => W(n).filter((e) => W(g).selected.has(e.status)).map((e) => ({
 				...e,
 				title: e.question
 			}))))), t = /* @__PURE__ */ P(() => (W(n), G(() => W(n).map((e) => e.id))));
-			Ei(ra(ie, {
+			Ei(ra(re, {
 				get items() {
 					return W(e);
 				},
@@ -3798,155 +3772,187 @@ function Co(e, t) {
 				},
 				onToggleAll: C,
 				children: pe,
-				$$slots: { default: (e, t) => {
-					let n = /* @__PURE__ */ P(() => t.item), r = /* @__PURE__ */ P(() => t.visibilityEnabled), i = /* @__PURE__ */ P(() => t.visible), a = /* @__PURE__ */ P(() => t.onVisibleChange), o = /* @__PURE__ */ P(() => (W(c), K(W(n)), G(() => Object.hasOwn(W(c).drafts, W(n).id) ? W(c).drafts[W(n).id] : null)));
-					var l = vo();
-					let u;
-					var p = R(l);
-					{
-						let e = /* @__PURE__ */ P(() => (W(f), K(W(n)), W(d), G(() => W(f)[W(n).id] ?? W(d)))), t = /* @__PURE__ */ P(() => (K(W(n)), G(() => `body-${W(n).id}`)));
-						oa(p, {
-							get visibilityEnabled() {
-								return W(r);
-							},
-							get visible() {
-								return W(i);
-							},
-							get onVisibleChange() {
-								return W(a);
-							},
-							get expanded() {
-								return W(e);
-							},
-							onToggle: (e) => S(W(n).id, e),
-							get contentId() {
-								return W(t);
-							},
-							get label() {
-								return K(W(n)), G(() => W(n).question);
-							},
-							children: (e, t) => {
-								var r = go(), i = R(r), a = (e) => {
-									var t = ao(), r = R(t), i = (e) => {
-										var t = ro(), r = R(t, !0);
-										j(t), V(() => X(r, (K(W(n)), G(() => W(n).context)))), Y(e, t);
-									};
-									Z(r, (e) => {
-										K(W(n)), G(() => W(n).context) && e(i);
-									});
-									var a = z(r, 2), o = (e) => {
-										var t = io(), r = R(t);
-										j(t), V((e) => X(r, `建議：${e ?? ""} — ${K(W(n)), G(() => W(n).recommendation.reason) ?? ""}`), [() => (K(W(n)), G(() => W(n).options.find((e) => e.id === W(n).recommendation.option_id)?.label))]), Y(e, t);
-									};
-									Z(a, (e) => {
-										K(W(n)), G(() => W(n).recommendation) && e(o);
-									}), j(t), Y(e, t);
-								};
-								Z(i, (e) => {
-									K(W(n)), G(() => W(n).context || W(n).recommendation) && e(a);
-								});
-								var l = z(i, 2), u = (e) => {
-									var t = lo(), r = R(t), i = R(r, !0);
-									j(r);
-									var a = z(r, 2);
-									Gr(a, 1, () => (K(W(n)), G(() => W(n).options)), Vr, (e, t, r) => {
-										var i = so(), a = R(i);
-										vi(a);
-										var s = z(a, 2), c = R(s), l = z(c), u = (e) => {
-											var n = oo(), r = R(n, !0);
-											j(n), V(() => X(r, (W(t), G(() => W(t).description)))), Y(e, n);
+				$$slots: {
+					default: (e, t) => {
+						let n = /* @__PURE__ */ P(() => t.item), r = /* @__PURE__ */ P(() => t.visibilityEnabled), i = /* @__PURE__ */ P(() => t.visible), a = /* @__PURE__ */ P(() => t.onVisibleChange), o = /* @__PURE__ */ P(() => (W(c), K(W(n)), G(() => Object.hasOwn(W(c).drafts, W(n).id) ? W(c).drafts[W(n).id] : null)));
+						var l = vo();
+						let u;
+						var p = R(l);
+						{
+							let e = /* @__PURE__ */ P(() => (W(f), K(W(n)), W(d), G(() => W(f)[W(n).id] ?? W(d)))), t = /* @__PURE__ */ P(() => (K(W(n)), G(() => `body-${W(n).id}`)));
+							oa(p, {
+								get visibilityEnabled() {
+									return W(r);
+								},
+								get visible() {
+									return W(i);
+								},
+								get onVisibleChange() {
+									return W(a);
+								},
+								get expanded() {
+									return W(e);
+								},
+								onToggle: (e) => S(W(n).id, e),
+								get contentId() {
+									return W(t);
+								},
+								get label() {
+									return K(W(n)), G(() => W(n).question);
+								},
+								children: (e, t) => {
+									var r = go(), i = R(r), a = (e) => {
+										var t = ao(), r = R(t), i = (e) => {
+											var t = ro(), r = R(t, !0);
+											j(t), V(() => X(r, (K(W(n)), G(() => W(n).context)))), Y(e, t);
 										};
-										Z(l, (e) => {
-											W(t), G(() => W(t).description) && e(u);
-										}), j(s), j(i), V((e) => {
-											Q(a, "name", (K(W(n)), G(() => `answer-${W(n).id}`))), bi(a, (K(W(o)), W(t), G(() => W(o)?.choice === W(t).id))), X(c, `${e ?? ""}　${W(t), G(() => W(t).label) ?? ""}${W(t), K(W(n)), G(() => W(t).id === W(n).recommendation?.option_id ? "（建議）" : "") ?? ""} `);
-										}, [() => G(() => String.fromCharCode(65 + r))]), q("change", a, () => x(W(n).id, { choice: W(t).id })), Y(e, i);
-									});
-									var s = z(a, 2), l = (e) => {
-										var t = co(), r = mn(t), i = R(r);
-										vi(i), Fe(), j(r);
-										var a = z(r, 2), s = R(a), c = z(s);
-										at(c), j(a), V(() => {
-											Q(i, "name", (K(W(n)), G(() => `answer-${W(n).id}`))), bi(i, (K(W(o)), G(() => W(o)?.choice === "__other"))), Q(s, "for", (K(W(n)), G(() => `other-${W(n).id}`))), Q(c, "id", (K(W(n)), G(() => `other-${W(n).id}`))), yi(c, (K(W(o)), G(() => W(o)?.other ?? "")));
-										}), q("change", i, async () => {
-											x(W(n).id, { choice: "__other" }), await hr(), document.getElementById(`other-${W(n).id}`)?.focus();
-										}), q("input", c, (e) => x(W(n).id, {
-											choice: "__other",
-											other: e.currentTarget.value
-										})), Y(e, t);
+										Z(r, (e) => {
+											K(W(n)), G(() => W(n).context) && e(i);
+										});
+										var a = z(r, 2), o = (e) => {
+											var t = io(), r = R(t);
+											j(t), V((e) => X(r, `建議：${e ?? ""} — ${K(W(n)), G(() => W(n).recommendation.reason) ?? ""}`), [() => (K(W(n)), G(() => W(n).options.find((e) => e.id === W(n).recommendation.option_id)?.label))]), Y(e, t);
+										};
+										Z(a, (e) => {
+											K(W(n)), G(() => W(n).recommendation) && e(o);
+										}), j(t), Y(e, t);
 									};
-									Z(s, (e) => {
-										K(W(n)), G(() => W(n).allow_other) && e(l);
-									}), j(t), V(() => {
-										t.disabled = (W(c), K(W(n)), K(W(o)), G(() => W(c).pending?.decision_id === W(n).id || W(o)?.conflict)), X(i, (K(W(n)), G(() => W(n).question)));
-									}), Y(e, t);
-								}, d = (e) => {
-									var t = uo(), r = mn(t), i = R(r);
-									j(r);
-									var a = z(r, 2), o = R(a, !0);
-									j(a);
-									var s = z(a), l = R(s, !0);
-									j(s);
-									var u = z(s, 2);
-									V((e) => {
-										X(i, `答案：${e ?? ""}`), X(o, (K(W(n)), G(() => W(n).answer.reason ?? ""))), X(l, (K(W(n)), G(() => W(n).answer.confirmed_at))), u.disabled = (W(c), G(() => !!W(c).pending));
-									}, [() => (K(W(n)), G(() => W(n).answer.kind === "other" ? W(n).answer.text : W(n).options.find((e) => e.id === W(n).answer.option_id)?.label))]), q("click", u, () => L(m, W(n).id)), Y(e, t);
-								};
-								Z(l, (e) => {
-									K(W(n)), G(() => W(n).status === "pending") ? e(u) : e(d, -1);
-								});
-								var f = z(l, 2), p = (e) => {
-									var t = po(), r = mn(t), i = R(r);
-									j(r);
-									var a = z(r, 2), c = (e) => {
-										var t = fo();
-										q("click", t, () => {
-											W(s).rebase(W(n).id), b();
+									Z(i, (e) => {
+										K(W(n)), G(() => W(n).context || W(n).recommendation) && e(a);
+									});
+									var l = z(i, 2), u = (e) => {
+										var t = lo(), r = R(t), i = R(r, !0);
+										j(r);
+										var a = z(r, 2);
+										Gr(a, 1, () => (K(W(n)), G(() => W(n).options)), Vr, (e, t, r) => {
+											var i = so(), a = R(i);
+											vi(a);
+											var s = z(a, 2), c = R(s), l = z(c), u = (e) => {
+												var n = oo(), r = R(n, !0);
+												j(n), V(() => X(r, (W(t), G(() => W(t).description)))), Y(e, n);
+											};
+											Z(l, (e) => {
+												W(t), G(() => W(t).description) && e(u);
+											}), j(s), j(i), V((e) => {
+												Q(a, "name", (K(W(n)), G(() => `answer-${W(n).id}`))), bi(a, (K(W(o)), W(t), G(() => W(o)?.choice === W(t).id))), X(c, `${e ?? ""}　${W(t), G(() => W(t).label) ?? ""}${W(t), K(W(n)), G(() => W(t).id === W(n).recommendation?.option_id ? "（建議）" : "") ?? ""} `);
+											}, [() => G(() => String.fromCharCode(65 + r))]), q("change", a, () => x(W(n).id, { choice: W(t).id })), Y(e, i);
+										});
+										var s = z(a, 2), l = (e) => {
+											var t = co(), r = mn(t), i = R(r);
+											vi(i), Fe(), j(r);
+											var a = z(r, 2), s = R(a), c = z(s);
+											at(c), j(a), V(() => {
+												Q(i, "name", (K(W(n)), G(() => `answer-${W(n).id}`))), bi(i, (K(W(o)), G(() => W(o)?.choice === "__other"))), Q(s, "for", (K(W(n)), G(() => `other-${W(n).id}`))), Q(c, "id", (K(W(n)), G(() => `other-${W(n).id}`))), yi(c, (K(W(o)), G(() => W(o)?.other ?? "")));
+											}), q("change", i, async () => {
+												x(W(n).id, { choice: "__other" }), await hr(), document.getElementById(`other-${W(n).id}`)?.focus();
+											}), q("input", c, (e) => x(W(n).id, {
+												choice: "__other",
+												other: e.currentTarget.value
+											})), Y(e, t);
+										};
+										Z(s, (e) => {
+											K(W(n)), G(() => W(n).allow_other) && e(l);
+										}), j(t), V(() => {
+											t.disabled = (W(c), K(W(n)), K(W(o)), G(() => W(c).pending?.decision_id === W(n).id || W(o)?.conflict)), X(i, (K(W(n)), G(() => W(n).question)));
+										}), Y(e, t);
+									}, d = (e) => {
+										var t = uo(), r = mn(t), i = R(r);
+										j(r);
+										var a = z(r, 2), o = R(a, !0);
+										j(a);
+										var s = z(a), l = R(s, !0);
+										j(s);
+										var u = z(s, 2);
+										V((e) => {
+											X(i, `答案：${e ?? ""}`), X(o, (K(W(n)), G(() => W(n).answer.reason ?? ""))), X(l, (K(W(n)), G(() => W(n).answer.confirmed_at))), u.disabled = (W(c), G(() => !!W(c).pending));
+										}, [() => (K(W(n)), G(() => W(n).answer.kind === "other" ? W(n).answer.text : W(n).options.find((e) => e.id === W(n).answer.option_id)?.label))]), q("click", u, () => L(m, W(n).id)), Y(e, t);
+									};
+									Z(l, (e) => {
+										K(W(n)), G(() => W(n).status === "pending") ? e(u) : e(d, -1);
+									});
+									var f = z(l, 2), p = (e) => {
+										var t = po(), r = mn(t), i = R(r);
+										j(r);
+										var a = z(r, 2), c = (e) => {
+											var t = fo();
+											q("click", t, () => {
+												W(s).rebase(W(n).id), b();
+											}), Y(e, t);
+										};
+										Z(a, (e) => {
+											K(W(n)), G(() => W(n).status === "pending") && e(c);
+										}), V(() => X(i, `此題已變更，原草稿保留：${K(W(o)), G(() => W(o).choice) ?? ""} ${K(W(o)), G(() => W(o).other) ?? ""}`)), Y(e, t);
+									};
+									Z(f, (e) => {
+										K(W(o)), G(() => W(o)?.conflict) && e(p);
+									});
+									var h = z(f, 2), g = R(h), _ = (e) => {
+										var t = mo();
+										V(() => t.disabled = (W(c), K(W(n)), G(() => W(c).pending?.decision_id === W(n).id))), q("click", t, () => {
+											W(s).discard(W(n).id), b();
 										}), Y(e, t);
 									};
-									Z(a, (e) => {
-										K(W(n)), G(() => W(n).status === "pending") && e(c);
-									}), V(() => X(i, `此題已變更，原草稿保留：${K(W(o)), G(() => W(o).choice) ?? ""} ${K(W(o)), G(() => W(o).other) ?? ""}`)), Y(e, t);
-								};
-								Z(f, (e) => {
-									K(W(o)), G(() => W(o)?.conflict) && e(p);
-								});
-								var h = z(f, 2), g = R(h), _ = (e) => {
-									var t = mo();
-									V(() => t.disabled = (W(c), K(W(n)), G(() => W(c).pending?.decision_id === W(n).id))), q("click", t, () => {
-										W(s).discard(W(n).id), b();
-									}), Y(e, t);
-								};
-								Z(g, (e) => {
-									W(o) && e(_);
-								});
-								var v = z(g, 2), y = (e) => {
-									var t = ho();
-									V((e) => t.disabled = e, [() => (W(c), K(W(o)), G(() => !!W(c).pending || !W(o)?.choice || W(o)?.conflict || W(o)?.choice === "__other" && !W(o)?.other.trim()))]), q("click", t, () => ee(W(n).id)), Y(e, t);
-								};
-								Z(v, (e) => {
-									K(W(n)), G(() => W(n).status === "pending") && e(y);
-								}), j(h), j(r), Y(e, r);
-							},
-							$$slots: {
-								default: !0,
-								header: (e, t) => {
-									var r = _o(), i = R(r), a = R(i, !0);
-									j(i);
-									var o = z(i), s = R(o, !0);
-									j(o), j(r), V(() => {
-										Q(i, "id", (K(W(n)), G(() => `decision-${W(n).id}`))), X(a, (K(W(n)), G(() => W(n).question))), X(s, (K(W(n)), G(() => W(n).status === "pending" ? "待決策" : "已決策")));
-									}), Y(e, r);
+									Z(g, (e) => {
+										W(o) && e(_);
+									});
+									var v = z(g, 2), y = (e) => {
+										var t = ho();
+										V((e) => t.disabled = e, [() => (W(c), K(W(o)), G(() => !!W(c).pending || !W(o)?.choice || W(o)?.conflict || W(o)?.choice === "__other" && !W(o)?.other.trim()))]), q("click", t, () => ee(W(n).id)), Y(e, t);
+									};
+									Z(v, (e) => {
+										K(W(n)), G(() => W(n).status === "pending") && e(y);
+									}), j(h), j(r), Y(e, r);
+								},
+								$$slots: {
+									default: !0,
+									header: (e, t) => {
+										var r = _o(), i = R(r), a = R(i, !0);
+										j(i);
+										var o = z(i), s = R(o, !0);
+										j(o), j(r), V(() => {
+											Q(i, "id", (K(W(n)), G(() => `decision-${W(n).id}`))), X(a, (K(W(n)), G(() => W(n).question))), X(s, (K(W(n)), G(() => W(n).status === "pending" ? "待決策" : "已決策")));
+										}), Y(e, r);
+									}
 								}
-							}
-						});
+							});
+						}
+						j(l), V(() => u = si(l, 1, "checklist-item decision-card svelte-17meywc", null, u, { "decision-has-visibility": W(r) })), Y(e, l);
+					},
+					filters: (e, t) => {
+						{
+							let t = /* @__PURE__ */ P(() => [
+								fa,
+								"pending",
+								"decided"
+							]), n = /* @__PURE__ */ P(() => (K(ha), W(g), G(() => ha(W(g)))));
+							va(e, {
+								categories: [{
+									id: "pending",
+									label: "待決策"
+								}, {
+									id: "decided",
+									label: "已決策"
+								}],
+								get order() {
+									return W(t);
+								},
+								get selected() {
+									return W(g), G(() => W(g).selected);
+								},
+								get defaultLit() {
+									return W(n);
+								},
+								defaultLabel: "全部",
+								onSelect: (e) => L(g, ga(W(g), e)),
+								onSelectDefault: () => L(g, _a(W(g)))
+							});
+						}
 					}
-					j(l), V(() => u = si(l, 1, "checklist-item decision-card svelte-17meywc", null, u, { "decision-has-visibility": W(r) })), Y(e, l);
-				} },
+				},
 				$$legacy: !0
 			}), (e) => L(p, e), () => W(p));
 		}
-		Gr(z(ie, 2), 1, () => (W(c), W(n), G(() => Object.entries(W(c).drafts).filter(([e]) => !W(n).some((t) => t.id === e)))), Vr, (e, t) => {
+		Gr(z(re, 2), 1, () => (W(c), W(n), G(() => Object.entries(W(c).drafts).filter(([e]) => !W(n).some((t) => t.id === e)))), Vr, (e, t) => {
 			var n = /* @__PURE__ */ xt(() => h(W(t), 2));
 			let r = () => W(n)[0], i = () => W(n)[1];
 			var a = yo(), o = mn(a), c = R(o);

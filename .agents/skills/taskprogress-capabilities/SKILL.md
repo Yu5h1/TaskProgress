@@ -28,9 +28,10 @@ open and also check or validate authorizes only the additional action the user n
 Except for the open-only path above, use four sources. All cheap, none sufficient alone; reading source and finding no implementation
 settles nothing until all four are checked.
 
-1. `task-progress.exe` with no arguments prints every command family: service (`start`, `worker`,
+1. `task-progress.exe --help` prints every command family: service (`start`, `worker`,
    `service`), reports (`analyze`, `open`, `scope`), `checklist` (`validate`, `request`, `install`),
    `protocol`. The build sits at `Build/win-x64/task-progress.exe` and is **not** on `PATH`.
+   No arguments now means `start` (Tray/service startup); never use it for discovery.
 2. `.agents/skills/` **and** `.claude/skills/` in this repository — list both directories. Each
    `SKILL.md` is a shipped capability. A router row names the closest single match, never the whole
    surface; and `.claude/skills/` is invisible to a session rooted in another project, which is

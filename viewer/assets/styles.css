@@ -2938,10 +2938,13 @@ footer {
 .checklist-outcome { margin: 0; }
 
 .card-list-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; grid-column: 1 / -1; color: var(--ink-soft); font-size: .8rem; }
-.card-list-tools .section-kicker { margin: 0; }
-.task-workspace { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.card-list-controls { display: flex; flex-direction: column; gap: 3px; grid-column: 1 / -1; min-width: 0; }
+.card-list-heading { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; grid-column: 1 / -1; min-width: 0; }
+.card-list-heading .section-kicker { margin: 0; font-size: .75rem; font-weight: 800; white-space: nowrap; }
+.card-list-heading .filter-strip { min-width: 0; flex-wrap: wrap; overflow: visible; }
+.task-workspace { display: flex; flex-wrap: wrap; align-items: center; column-gap: 8px; row-gap: 0; }
 .task-workspace > .task-toolbar, .task-workspace > .task-list { display: contents; }
-.task-workspace .card-list-tools { order: 0; }
+.task-workspace .card-list-controls { order: 0; flex: 0 0 100%; margin-bottom: 3px; }
 .task-workspace .arrangeable-cards, .task-workspace .empty-state { order: 2; flex: 0 0 100%; }
 .card-toolbar-icon { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; padding: 4px; border: 0; border-radius: 5px; background: transparent; color: var(--color-heading); cursor: pointer; }
 .card-toolbar-icon:hover { background: var(--muted-soft); color: var(--color-accent); }
@@ -2993,3 +2996,7 @@ footer {
   outline-offset: 1px;
 }
 .status-summary-filters .filter-button.status-sortable::before { display: none; }
+
+/* Keep list headings compact without changing selection/hover colors. */
+.card-list-heading .filter-strip .filter-button { padding: 3px 7px; font-size: .65rem; font-weight: 400; }
+.card-list-heading .filter-strip { padding: 3px; }

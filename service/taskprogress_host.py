@@ -1552,11 +1552,19 @@ def _parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--analyzer-executable", required=True)
     parser.add_argument("--analyzer-assembly")
     parser.add_argument("--no-browser", action="store_true")
+    parser.add_argument("--log-file")
+    parser.add_argument("--log-console", action="store_true")
     return parser.parse_args(argv)
 
 
 def main(argv: Sequence[str] | None = None) -> int:
     args = _parse_args(argv)
+    if args.log_file:
+        if __package__:
+            from .service_log import install_service_log
+        else:
+            from service_log import install_service_log
+        install_service_log(args.log_file, args.root, console=args.log_console)
     local_web_service = _load_module(args.local_web_service)
     analyzer_command = [args.analyzer_executable]
     if args.analyzer_assembly:

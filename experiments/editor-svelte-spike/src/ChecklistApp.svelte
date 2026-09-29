@@ -269,6 +269,15 @@
       </a>
     {/if}
 
+
+
+    <section class="checklist-items" aria-label="Implementation checklist items">
+      <CardList bind:this={cardList} expanded={defaultExpanded} onToggleAll={setAllExpanded} items={filterChecklistBySelection(orderChecklistItems(view.document, capsuleOrder), selection.selected).items}
+        allIds={orderChecklistItems(view.document, capsuleOrder).items.map(item => item.id)}
+        storageKey={new URLSearchParams(location.search).has("scope")
+          ? `taskprogress.cards.checklist.v1:${location.pathname}:${new URLSearchParams(location.search).get("scope")}:${new URLSearchParams(location.search).get("task")}:${view.document.roundIdentity}`
+          : null} let:item let:visibilityEnabled let:visible let:onVisibleChange>
+      <svelte:fragment slot="filters">
     <FilterStrip
       categories={filterCategories(view.document, capsuleOrder)}
       order={capsuleOrder}
@@ -281,13 +290,7 @@
       onSelectDefault={selectDefault}
       onReorder={reorderFilter}
     />
-
-    <section class="checklist-items" aria-label="Implementation checklist items">
-      <CardList bind:this={cardList} expanded={defaultExpanded} onToggleAll={setAllExpanded} items={filterChecklistBySelection(orderChecklistItems(view.document, capsuleOrder), selection.selected).items}
-        allIds={orderChecklistItems(view.document, capsuleOrder).items.map(item => item.id)}
-        storageKey={new URLSearchParams(location.search).has("scope")
-          ? `taskprogress.cards.checklist.v1:${location.pathname}:${new URLSearchParams(location.search).get("scope")}:${new URLSearchParams(location.search).get("task")}:${view.document.roundIdentity}`
-          : null} let:item let:visibilityEnabled let:visible let:onVisibleChange>
+      </svelte:fragment>
 
         {@const fullItem = view.document.items.find(candidate => candidate.id === item.id)}
         <article class={`checklist-item checklist-${item.status}`}>

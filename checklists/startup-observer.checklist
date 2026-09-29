@@ -1,0 +1,51 @@
+# 啟動與服務觀察 Checklist
+
+Current round: `Documentation/TrayWorkerPlan.md#啟動入口start`.
+
+自動檢查記錄於已完成項目；實際通知與視窗核查保留供使用者勾選。執行人工項目前須發布本輪版本，並先保存工作、由 Tray Exit 關閉舊 Host，再啟動新版本。
+
+- [ ] **1. 啟動參數與命令列相容**
+  Outcome: start 預設不開瀏覽器，選項可組合，CLI 管線與退出碼維持可用。
+  Checks:
+    - [x] **定向 worker 與程序檢查**
+      - Action: 建置 CLI Tests，執行 --worker-only；以 subprocess capture 執行 --help、start --invalid、decisions validate；檢查 EXE PE subsystem。
+      - Expect: 測試通過，stdout／stderr 非空且退出碼為 0／1／0；EXE 為 Windows GUI subsystem。
+    - [ ] **完成說明核查** `[manual]`
+      - Action: 閱讀本項 Outcome 與已通過的自動檢查說明後勾選。
+      - Expect: 確認預設啟動、明確選項與 CLI 相容行為符合需求，不需重做自動測試。
+      - Reason: 使用者要求完成說明也保留可勾選核查。
+
+- [ ] **2. 有界本機日誌與輪替**
+  Outcome: 日誌不公開、保留量受限，觀察器辨識完整 UTF-8 行與輪替。
+  Checks:
+    - [x] **日誌定向檢查**
+      - Action: 執行 python -m unittest service.test_service_log -v 與 WorkerTests 的 LogCursor 檢查。
+      - Expect: 輪替、兩份備份、中文、Console tee、公開路徑拒絕、寫入失敗不遞迴、重複及未完整行均符合契約。
+    - [ ] **完成說明核查** `[manual]`
+      - Action: 閱讀本項 Outcome 與已通過的自動檢查說明後勾選。
+      - Expect: 確認日誌範圍與輪替行為符合需求，不需重做自動測試。
+      - Reason: 使用者要求完成說明也保留可勾選核查。
+
+- [ ] **3. 雙擊啟動與通知**
+  Outcome: 無參數啟動不閃 Console、不開 browser，Tray 通知實際服務狀態。
+  Checks:
+    - [ ] **冷啟動與再次啟動** `[manual]`
+      - Action: 在 Windows 雙擊本輪發布的 Build/win-x64/task-progress.exe → 確認通知 → 再雙擊一次。
+      - Expect: 沒有黑窗或瀏覽器；第一次顯示已啟動，第二次顯示已在執行，Tray 保持單一實例。
+      - Reason: 需要實際 Windows 桌面與通知呈現確認。
+    - [ ] **明確開啟瀏覽器** `[manual]`
+      - Action: 在專案 PowerShell 執行 .\Build\win-x64\task-progress.exe start --browser。
+      - Expect: 沿用服務並開啟 Viewer；預設 start 不開啟。
+      - Reason: 需要確認使用者預設瀏覽器與桌面行為。
+
+- [ ] **4. 觀察窗與服務生命週期分離**
+  Outcome: 觀察窗持續顯示服務訊息，關閉觀察不停止服務。
+  Checks:
+    - [ ] **觀察與離開** `[manual]`
+      - Action: 在專案 PowerShell 執行 .\Build\win-x64\task-progress.exe start --console → 在 Viewer 重載頁面 → 按 Ctrl+C → 再執行 service status。再以相同命令開啟觀察並關閉視窗，於新 PowerShell 查 service status。
+      - Expect: 日誌持續更新，兩種離開方式後服務仍 Running，Tray 仍在。
+      - Reason: 需要 Windows Console 實際關閉事件與已部署服務。
+    - [ ] **Tray 結束服務** `[manual]`
+      - Action: 完成並保存測試工作 → Tray 選單 Exit → 執行 .\Build\win-x64\task-progress.exe service status。
+      - Expect: Tray 消失且服務停止。
+      - Reason: 此操作影響使用者共用服務，須在可結束服務時執行。

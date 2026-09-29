@@ -4,7 +4,13 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
 
 - Canonical status entry: task status and progress are referenced by Task ID in `report.json`; Developer next steps, blockers, decisions, and routes are referenced by the same ID in `report.dev.json`. Do not duplicate that content here.
 
-## Current state (2026-09-28)
+## Current state (2026-09-29)
+
+- **清單標題／標籤改為緊湊兩列。** 共用 CardList 上列為 .75rem 粗體「工作項目」與 .65rem normal 篩選標籤，下列圖示，列距 3px。Report 改由 TaskList 接收原 host 的 filterProps，Checklist／Decision 透過同一 filters slot，保留原選取／拖曳實作。四個前端入口建置及 25 項篩選／排序定向測試通過；移除一條綁定舊獨立掛載位置的測試斷言。Browser 與 Desktop 源資產已重建，實際字體與間距待使用者重載核查；未重啟服務、未發布 EXE。此輪與啟動功能一併提交；使用者決策範例保留在工作區。
+
+- **啟動入口與日誌觀察器已實作，尚未發布。** 無參數等同 start，WinExe 預設不建 Console、不開 browser；--browser 明確開啟 Viewer，--console 留在呼叫端持續讀取有界本機日誌，關閉／Ctrl+C 不取得或終止服務。TrayHost 沿用既有 output notify，worker 回已啟動／已在執行／失敗。Host 層新增日誌，不修改 Winform 或共用 LocalWebService。設計：[Documentation/TrayWorkerPlan.md#啟動入口start](Documentation/TrayWorkerPlan.md#啟動入口start)；核查：[checklists/startup-observer.checklist](checklists/startup-observer.checklist)。
+  - **驗證**：SDK 9.0.315 Debug 定向建置、--worker-only、Python service_log 3 項、真實 GUI EXE 管線 --help／錯誤退出碼／決策 validate、中文 stdin request load、PE GUI subsystem、Checklist 格式均通過。獨立複核發現的 HTTP timeout 中止觀察已修正，複核通過。部分 stdio 重導向 attach 後恢復 handles；互動 cmd.exe 的 GUI wait 限制已記於設計。
+  - **下一步**：發布後由使用者完成 6 項人工核查（其中 2 項只確認已完成說明）。manifest fingerprint 已變更，更新前須 Exit 舊 TrayHost，再啟動新版。未執行隱藏啟動鏈、未停止／重啟共用服務、未 publish。decisions/decision-example.decisions 為本輪開始前使用者答案，保留不接管。Debug EXE 已更新；Build/win-x64 仍是舊版。
 
 - **完成堆疊延伸到任務卡。** Editor task status 與 CLI task.update 在非 done → done 時將卡移至 tasks 頂端，直接新增 done 同樣置頂，重複 done 不移位。Report 排序保留完成卡槽位、按來源完成順序填入；未完成卡優先級與 capsule 群組順序不變，自由排序仍最後套用。59 項 Node、11 項 Python 定向測試通過，涵蓋卡片完成／重做、重載與混合群組；未 commit。
 

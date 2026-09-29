@@ -8,45 +8,53 @@ internal static class Program
 {
     public static async Task<int> Main(string[] args)
     {
-        Console.OutputEncoding = Encoding.UTF8;
-        // `checklist request` reads a JSON body from stdin when LocalWebService
-        // pipes a browser's bridge message through the CLI. Without this,
-        // Console.In decodes redirected stdin using the system ANSI codepage —
-        // the same class of bug already found and fixed on the output side for
-        // TrayHost (see .agents/build-notes.md) — which corrupts any non-ASCII
-        // byte in the request body (Chinese `observed` text, in particular) and
-        // desyncs the JSON parser. Only guarded for redirected stdin: setting it
-        // unconditionally risks the console-codepage APIs on a real console.
-        if (Console.IsInputRedirected)
-        {
-            Console.InputEncoding = Encoding.UTF8;
-        }
         using var cancellation = new CancellationTokenSource();
-        Console.CancelKeyPress += (_, eventArgs) =>
-        {
-            eventArgs.Cancel = true;
-            cancellation.Cancel();
-        };
-
         try
         {
+            ConsoleEntry.Initialize(args);
+            Console.OutputEncoding = Encoding.UTF8;
+            // `checklist request` reads a JSON body from stdin when LocalWebService
+            // pipes a browser's bridge message through the CLI. Without this,
+            // Console.In decodes redirected stdin using the system ANSI codepage —
+            // the same class of bug already found and fixed on the output side for
+            // TrayHost (see .agents/build-notes.md) — which corrupts any non-ASCII
+            // byte in the request body (Chinese `observed` text, in particular) and
+            // desyncs the JSON parser. Only guarded for redirected stdin: setting it
+            // unconditionally risks the console-codepage APIs on a real console.
+            if (Console.IsInputRedirected)
+            {
+                Console.InputEncoding = Encoding.UTF8;
+            }
+            Console.CancelKeyPress += (_, eventArgs) =>
+            {
+                eventArgs.Cancel = true;
+                cancellation.Cancel();
+            };
+
             return await RunAsync(args, cancellation.Token);
+        }
+        catch (OperationCanceledException) when (cancellation.IsCancellationRequested)
+        {
+            return 0;
         }
         catch (CliException error)
         {
             Console.Error.WriteLine($"錯誤：{error.Message}");
+            ConsoleEntry.ShowStartupError(args, error.Message);
             return 1;
         }
         catch (Exception error)
         {
             Console.Error.WriteLine($"未預期錯誤：{error.Message}");
+            ConsoleEntry.ShowStartupError(args, error.Message);
             return 1;
         }
     }
 
     private static async Task<int> RunAsync(string[] args, CancellationToken cancellationToken)
     {
-        if (args.Length == 0 || IsHelp(args[0]))
+        if (args.Length == 0) args = ["start"];
+        if (IsHelp(args[0]))
         {
             PrintHelp();
             return 0;
@@ -259,11 +267,18 @@ internal static class Program
 
     internal static StartRequest ParseStartRequest(string[] args)
     {
-        var openBrowser = true;
+        var openBrowser = false;
+        var observe = false;
         foreach (var value in args)
         {
             switch (value.ToLowerInvariant())
             {
+                case "--browser":
+                    openBrowser = true;
+                    break;
+                case "--console":
+                    observe = true;
+                    break;
                 case "--no-browser":
                 case "--no-open":
                     openBrowser = false;
@@ -274,7 +289,7 @@ internal static class Program
                     throw new CliException($"不支援的 start 選項：{value}");
             }
         }
-        return new StartRequest(openBrowser);
+        return new StartRequest(openBrowser, observe);
     }
 
     private static AnalyzeRequest ParseAnalyzeRequest(string[] args, ScopeStore store)
@@ -387,9 +402,11 @@ internal static class Program
     /// </summary>
     private static async Task StartAsync(StartRequest request, CancellationToken cancellationToken)
     {
-        var arguments = request.OpenBrowser ? new[] { "start" } : new[] { "start", "--no-browser" };
+        var arguments = request.OpenBrowser ? new[] { "start", "--browser" } : new[] { "start" };
         var output = await TrayHostLauncher.InvokeAsync(arguments, cancellationToken);
         if (output.Length > 0) Console.WriteLine(output);
+        if (request.ObserveConsole)
+            await ServiceLogObserver.RunAsync(LauncherSettings.Create(LauncherSettings.DefaultPort), cancellationToken);
     }
 
     /// <summary>
@@ -614,7 +631,7 @@ internal static class Program
         Console.WriteLine("  task-progress.exe <report-folder> [選項]");
         Console.WriteLine();
         Console.WriteLine("命令：");
-        Console.WriteLine("  start                            透過系統匣啟動服務並載入所有已登記 scope");
+        Console.WriteLine("  start                            啟動系統匣與服務；無參數亦同，預設不開瀏覽器");
         Console.WriteLine("  worker                           以 TrayHost owned worker 常駐（由 tray 啟動，非人工執行）");
         Console.WriteLine("  analyze <report-folder>          執行所有分析模組");
         Console.WriteLine("  analyze --module <名稱>          只執行指定模組，例如 time、cost");
@@ -650,6 +667,8 @@ internal static class Program
         Console.WriteLine("  --output <path>                  指定分析輸出，需搭配 --module");
         Console.WriteLine("  --port <port>                    open／service 的連接埠，預設 8001；start 不接受");
         Console.WriteLine("  --no-browser                     不自動開啟瀏覽器");
+        Console.WriteLine("  start --browser                  啟動後開啟 Viewer");
+        Console.WriteLine("  start --console                  持續觀察服務日誌；關閉觀察不停止服務");
         Console.WriteLine("  -h, -help, --help                顯示本說明");
         Console.WriteLine();
         Console.WriteLine("範例：");
@@ -670,7 +689,7 @@ internal static class Program
         int Port,
         bool OpenBrowser);
 
-    internal sealed record StartRequest(bool OpenBrowser);
+    internal sealed record StartRequest(bool OpenBrowser, bool ObserveConsole = false);
 
     private sealed record AnalyzeRequest(
         string Folder,

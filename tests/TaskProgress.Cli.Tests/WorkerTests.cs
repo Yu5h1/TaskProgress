@@ -22,12 +22,17 @@ internal static class WorkerTests
         UnresolvableConfigurationIsReportedNotFatal();
         StdoutIsProtectedByRedirectionNotByDiscipline();
         StartOptionsRequireNoTrayFlag();
+        LogObservationHandlesPartialLinesAndRotation();
         StartFailureIsAProtocolErrorAndWorkerSurvives();
     }
 
     private static void StartOptionsRequireNoTrayFlag()
     {
-        True(TaskProgress.Program.ParseStartRequest([]).OpenBrowser, "start should open Viewer by default");
+        False(TaskProgress.Program.ParseStartRequest([]).OpenBrowser, "start must not open Viewer by default");
+        True(TaskProgress.Program.ParseStartRequest(["--browser"]).OpenBrowser, "explicit browser ignored");
+        var observer = TaskProgress.Program.ParseStartRequest(["--console", "--browser"]);
+        True(observer.ObserveConsole && observer.OpenBrowser, "observer and browser must compose");
+        False(TaskProgress.Program.ParseStartRequest([]).ObserveConsole, "default start must not observe");
         False(TaskProgress.Program.ParseStartRequest(["--no-browser"]).OpenBrowser, "no-browser was ignored");
         False(TaskProgress.Program.ParseStartRequest(["--no-open"]).OpenBrowser, "no-open was ignored");
         foreach (var args in new[] { new[] { "--tray" }, new[] { "--port", "8001" }, new[] { "unexpected" } })
@@ -39,6 +44,18 @@ internal static class WorkerTests
             }
             catch (CliException) { }
         }
+    }
+
+    private static void LogObservationHandlesPartialLinesAndRotation()
+    {
+        var cursor = new LogCursor();
+        string Read(string value) => cursor.Read(System.Text.Encoding.UTF8.GetBytes(value));
+        Equal("啟動\n", Read("# generation-1\n啟動\n尚未"), "complete lines lost");
+        Equal("", Read("# generation-1\n啟動\n尚未"), "duplicate output");
+        Equal("尚未完成\n", Read("# generation-1\n啟動\n尚未完成\n"), "partial UTF-8 line lost");
+        Equal("輪替\n", Read("# generation-2\n輪替\n"), "rotation skipped");
+        Equal("", Read(""), "empty rotation boundary failed");
+        Equal("重啟\n", Read("# generation-3\n重啟\n"), "same-size replacement skipped");
     }
 
     private static void StartFailureIsAProtocolErrorAndWorkerSurvives()

@@ -56,7 +56,6 @@ test("reordering is opt-in and off by default", () => {
 test("the task-progress host supplies its own vocabulary", () => {
   // StatusFilters used to sit between the host and the strip; the host now
   // builds its categories directly, so there is one less place to drift.
-  assert.match(app, /"status-filters"/u);
   assert.match(app, /categories: tagOrder\.map\(/u);
   assert.match(app, /STATUS_META\[status\]\?\.label/u);
   assert.match(app, /reorderable: true,/u);
