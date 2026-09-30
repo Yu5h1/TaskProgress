@@ -2958,7 +2958,7 @@ footer {
 .icon-choice-options .card-toolbar-icon { flex: 0 0 auto; }
 .icon-choice-hover, .icon-choice-options [aria-pressed="true"] { background: var(--muted-soft); color: var(--color-accent); }
 .arrangeable-card[hidden] { display: none; }
-.arrangeable-cards { display: grid; gap: 14px; grid-column: 1 / -1; min-width: 0; }
+.arrangeable-cards { display: grid; gap: 17px; grid-column: 1 / -1; min-width: 0; }
 .arrangeable-card { position: relative; min-width: 0; border-radius: 14px; }
 .card-pin {
   position: absolute;
@@ -3023,6 +3023,7 @@ footer {
 .card-list-heading .filter-strip .filter-button { padding: 3px 7px; font-size: .65rem; font-weight: 400; }
 .card-list-heading .filter-strip { padding: 3px; }
 
-.completed-more { display: flex; align-items: center; justify-content: center; gap: 4px; width: fit-content; margin: 3px auto 0; padding: 3px 0; border: 0; background: transparent; color: var(--ink-soft); font: inherit; font-size: .75rem; cursor: pointer; }
+.completed-more { display: flex; align-items: center; justify-content: center; gap: 4px; width: fit-content; margin: 3px auto 0; padding: 3px 0 0; border: 0; background: transparent; color: var(--ink-soft); font: inherit; font-size: .75rem; line-height: 14px; cursor: pointer; }
 .completed-more:hover { color: var(--color-accent); }
 .completed-more:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+.task-card:has(.card-disclosure-body:not([hidden]) .completed-more) { padding-bottom: 5px; }
