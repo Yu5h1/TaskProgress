@@ -1,0 +1,28 @@
+.expandable-text {
+  min-width: 0;
+  line-height: 1.45;
+}
+
+.expandable-text__content {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+  line-height: inherit;
+}
+
+.expandable-text__toggle {
+  display: block;
+  margin: 2px 0 0 auto;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--expandable-text-link-color, currentColor);
+  font: inherit;
+  cursor: pointer;
+}
+
+.expandable-text__toggle[hidden] { display: none; }
+.expandable-text__toggle:hover { text-decoration: underline; }
+.expandable-text__toggle:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }

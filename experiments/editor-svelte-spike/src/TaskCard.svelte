@@ -7,6 +7,7 @@
   export let onToggle = () => {};
   import DeveloperDetails from "./DeveloperDetails.svelte";
   import ItemRow from "./ItemRow.svelte";
+  import ExpandableText from "./ExpandableText.svelte";
 
   export let task;
   export let decisionCard = null;
@@ -182,7 +183,7 @@
       })}
     ></textarea>
   {:else}
-    <p class="task-summary">{task.summary}</p>
+    <div class="task-summary"><ExpandableText text={task.summary} /></div>
   {/if}
 
   <DeveloperDetails developer={task.developer ?? null} />

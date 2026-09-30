@@ -3,6 +3,7 @@
   export let visible = true;
   export let onVisibleChange = () => {};
   import CardDisclosure from "./CardDisclosure.svelte";
+  import ExpandableText from "./ExpandableText.svelte";
   export let expanded = true;
   export let onToggle = () => {};
   // A Report pointer card is read-only end to end: it takes only the pointer
@@ -70,7 +71,7 @@
   </header>
 
   {#if card}
-    <p class="task-summary">{card.summary}</p>
+    <div class="task-summary"><ExpandableText text={card.summary} /></div>
     <p
       class="pointer-card-progress"
       aria-label={`子任務完成 ${card.progress.completed}，共 ${card.progress.total}`}

@@ -6,6 +6,8 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
 
 ## Current state (2026-09-29)
 
+- **卡片說明兩行預覽模組（2026-09-30）。** TaskCard／ReportPointerCard 共用 ExpandableText，預設兩行、溢出才提供下方靠右「…更多」／「收合」，編輯 textarea 不變。原生 JS＋獨立 CSS 無報告／Svelte 相依，Svelte 僅接入；後續 Web 可攜帶兩檔移植，本輪未改 Web。契約與使用方式：Documentation/ExpandableText.md；checklists/expandable-text.checklist 留人工閱讀密度及抽離邊界核查。Viewer build、2 項生命週期定向測試與獨立複核通過；真實瀏覽器兩行幾何／按鈕位置待使用者核查。未重啟服務、未 commit。
+
 - **已完成預覽調整為 1 項（2026-09-30）。** 依使用者要求，TaskCard 預設只顯示最新一項，超過時以剩餘項數顯示置中展開／收合控制。Viewer bundle 已重建，建置通過。
 
 - **含 Report 指路卡時編輯優先級無法退出已修正（2026-09-30）。** 只讀 Web/report.json 重現：Editor Core 對 report_pointer 注入 completed_items／pending_items，adapter 又要求缺省 summary，導致 prepareSave 回 3 個錯誤，auto save 持續 dirty 而 cancelEditing 拒絕退出。normalizer 與普通任務文字檢查略過指路卡，Schema 驗證仍保留，不刪除來源既有非法欄位。新增 report-editor-pointer 回歸（auto save／flush／undo、來源保留、非法指路卡仍拒絕）；連同 editor-core／persistence-mode 共 35 項通過。Web 原檔未改，兩份直接載入的 JS 已確認 localhost 提供新版；既有頁面需先記下未儲存修改，再重載並重做該修改。未重啟服務。

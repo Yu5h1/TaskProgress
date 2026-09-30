@@ -1,0 +1,21 @@
+# 卡片說明展開元件 Checklist
+
+Current round: `Documentation/ExpandableText.md#實作契約`.
+
+- [ ] **1. 卡片說明共用兩行展開元件**
+  Outcome: 一般卡片及指路卡的長說明可收合成兩行，元件可抽離至 Web。
+  Checks:
+    - [x] **Viewer 建置**
+      - Action: 執行 npm run viewer:ui:build。
+      - Expect: 建置成功，兩種卡片接入共用元件。
+    - [x] **元件生命週期**
+      - Action: 執行 node --test tests/expandable-text.test.mjs，並獨立複核元件及兩種卡片接入。
+      - Expect: 溢出、更新、展開狀態、顯示通知與清理定向測試通過；複核無阻擋缺陷。
+    - [ ] **兩行預覽與操作** `[manual]`
+      - Action: 重新載入 Viewer，比較短說明與長說明；按長說明的「…更多」及「收合」，再調整視窗寬度。
+      - Expect: 短說明無按鈕；長說明預設兩行，可展開全文並收合；控制不遮住文字，窄視窗也正常。
+      - Reason: 由使用者確認實際閱讀密度及控制位置。
+    - [ ] **已完成模組設計核查** `[manual]`
+      - Action: 閱讀 Documentation/ExpandableText.md 的模組邊界。
+      - Expect: 確認原生 JS 與 CSS 可獨立移植，Svelte 僅為接入層，符合後續 Web 抽離需求。
+      - Reason: 使用者要求已完成的設計也提供核查入口。
