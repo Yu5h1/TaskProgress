@@ -64,6 +64,7 @@ function allItemIds(task) {
 function normalizeEditableReport(report, fallbackPriority = 4) {
   const normalized = cloneValue(report);
   normalized.tasks.forEach((task) => {
+    if (task.kind === "report_pointer") return;
     const existingIds = allItemIds(task);
     ITEM_FIELDS.forEach((field) => {
       task[field] = (task[field] ?? []).map((item, index) => {

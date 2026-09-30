@@ -18,6 +18,7 @@ function clone(value) {
 function meaningfulTextErrors(report) {
   const errors = [];
   (report.tasks ?? []).forEach((task, taskIndex) => {
+    if (task.kind === "report_pointer") return;
     for (const field of ["title", "summary"]) {
       if (!normalizeMeaningfulText(task[field])) {
         errors.push({

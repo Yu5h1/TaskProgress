@@ -6,6 +6,10 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
 
 ## Current state (2026-09-29)
 
+- **已完成預覽調整為 1 項（2026-09-30）。** 依使用者要求，TaskCard 預設只顯示最新一項，超過時以剩餘項數顯示置中展開／收合控制。Viewer bundle 已重建，建置通過。
+
+- **含 Report 指路卡時編輯優先級無法退出已修正（2026-09-30）。** 只讀 Web/report.json 重現：Editor Core 對 report_pointer 注入 completed_items／pending_items，adapter 又要求缺省 summary，導致 prepareSave 回 3 個錯誤，auto save 持續 dirty 而 cancelEditing 拒絕退出。normalizer 與普通任務文字檢查略過指路卡，Schema 驗證仍保留，不刪除來源既有非法欄位。新增 report-editor-pointer 回歸（auto save／flush／undo、來源保留、非法指路卡仍拒絕）；連同 editor-core／persistence-mode 共 35 項通過。Web 原檔未改，兩份直接載入的 JS 已確認 localhost 提供新版；既有頁面需先記下未儲存修改，再重載並重做該修改。未重啟服務。
+
 - **Report CLI 黑窗已修正並更新正式 EXE（2026-09-30）。** ReportCommand 以 CreateNoWindow 啟動 Python；report_cli 的時間分析指定 hidden。SDK 9.0.315 Debug 與單檔 Release（bin/Validation/ReportConsole/Release）皆以 tests/verify_report_console.py 通過：每版 7 次真實 get／apply／validate 的 Python GetConsoleWindow 為 0，apply 確認落盤及時間分析、validate 正常與無效輸入回 0／2；分析子程序使用 CREATE_NO_WINDOW。獨立複核通過，未修改正式報告。Build/win-x64 初次發布因 EXE 占用失敗；使用者同意更新重啟後確認舊 Tray／服務已退出，複製已驗證單檔 EXE（SHA256 與獨立發布版一致）。正式路徑重測同樣 7 次通過；start --no-browser 成功，service status 確認服務已恢復（PID 14828）。未修改正式 Report。
 
 - **已完成子項目增加 3 項預覽。** Report TaskCard 預設呈現已完成陣列前 3 項，超過時顯示置中的剩餘項數與展開／收合按鈕，待處理清單與進度不變。Viewer 資產建置與獨立複核通過（既有 a11y warnings），使用者已確認即時畫面更新。

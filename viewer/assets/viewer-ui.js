@@ -3878,7 +3878,7 @@ function ns(e, t) {
 						var n = Ho(), r = F(n), i = F(r, !0);
 						A(r);
 						var a = L(r, 2);
-						X(a, 5, () => (H(t), H(w), U(() => H(t).status === "done" && !H(w) ? H(t).items.slice(0, 3) : H(t).items)), (e) => e.id, (e, n) => {
+						X(a, 5, () => (H(t), H(w), U(() => H(t).status === "done" && !H(w) ? H(t).items.slice(0, 1) : H(t).items)), (e) => e.id, (e, n) => {
 							{
 								let r = /* @__PURE__ */ j(() => (W(v()), H(n), U(() => v().get(H(n).id) ?? [])));
 								Ro(e, {
@@ -3923,11 +3923,11 @@ function ns(e, t) {
 							A(r);
 							var a = L(r);
 							A(n), z(() => {
-								Q(n, "aria-expanded", H(w)), Q(n, "aria-controls", (W(d()), H(t), U(() => `task-${d().id}-${H(t).field}`))), Q(i, "d", H(w) ? "M3 10l5-5 5 5" : "M3 6l5 5 5-5"), J(a, ` ${H(w), H(t), U(() => H(w) ? "收合" : `顯示更多（${H(t).items.length - 3}項）`) ?? ""}`);
+								Q(n, "aria-expanded", H(w)), Q(n, "aria-controls", (W(d()), H(t), U(() => `task-${d().id}-${H(t).field}`))), Q(i, "d", H(w) ? "M3 10l5-5 5 5" : "M3 6l5 5 5-5"), J(a, ` ${H(w), H(t), U(() => H(w) ? "收合" : `顯示更多（${H(t).items.length - 1}項）`) ?? ""}`);
 							}), G("click", n, () => P(w, !H(w))), q(e, n);
 						};
 						Y(o, (e) => {
-							H(t), U(() => H(t).status === "done" && H(t).items.length > 3) && e(s);
+							H(t), U(() => H(t).status === "done" && H(t).items.length > 1) && e(s);
 						}), A(n), z(() => {
 							Z(n, 1, (H(t), U(() => `detail-section ${H(t).className}`))), J(i, (H(t), U(() => H(t).title))), Q(a, "id", (W(d()), H(t), U(() => `task-${d().id}-${H(t).field}`)));
 						}), q(e, n);

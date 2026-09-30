@@ -29,7 +29,7 @@
   // labels, not capsules: a task total is derived from its items, so there
   // is nothing to act on at this level and a control would imply otherwise.
   export let moduleTotals = [];
-  const completedPreviewCount = 3;
+  const completedPreviewCount = 1;
   let showAllCompleted = false;
 
   const statuses = [
