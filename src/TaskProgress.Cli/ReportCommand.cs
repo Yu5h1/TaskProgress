@@ -121,7 +121,7 @@ internal static class ReportCommand
             FileName = Environment.GetEnvironmentVariable("TASK_PROGRESS_PYTHON") is { Length: > 0 } python
                 ? python : "python",
             UseShellExecute = false,
-            CreateNoWindow = false,
+            CreateNoWindow = true,
             RedirectStandardInput = true,
             RedirectStandardOutput = true,
             RedirectStandardError = true,

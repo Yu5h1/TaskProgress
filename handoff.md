@@ -6,6 +6,8 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
 
 ## Current state (2026-09-29)
 
+- **Report CLI 黑窗已修正並更新正式 EXE（2026-09-30）。** ReportCommand 以 CreateNoWindow 啟動 Python；report_cli 的時間分析指定 hidden。SDK 9.0.315 Debug 與單檔 Release（bin/Validation/ReportConsole/Release）皆以 tests/verify_report_console.py 通過：每版 7 次真實 get／apply／validate 的 Python GetConsoleWindow 為 0，apply 確認落盤及時間分析、validate 正常與無效輸入回 0／2；分析子程序使用 CREATE_NO_WINDOW。獨立複核通過，未修改正式報告。Build/win-x64 初次發布因 EXE 占用失敗；使用者同意更新重啟後確認舊 Tray／服務已退出，複製已驗證單檔 EXE（SHA256 與獨立發布版一致）。正式路徑重測同樣 7 次通過；start --no-browser 成功，service status 確認服務已恢復（PID 14828）。未修改正式 Report。
+
 - **已完成子項目增加 3 項預覽。** Report TaskCard 預設呈現已完成陣列前 3 項，超過時顯示置中的剩餘項數與展開／收合按鈕，待處理清單與進度不變。Viewer 資產建置與獨立複核通過（既有 a11y warnings），使用者已確認即時畫面更新。
 
 - **清單標題／標籤改為緊湊兩列。** 共用 CardList 上列為 .75rem 粗體「工作項目」與 .65rem normal 篩選標籤，下列圖示，列距 3px。Report 改由 TaskList 接收原 host 的 filterProps，Checklist／Decision 透過同一 filters slot，保留原選取／拖曳實作。四個前端入口建置及 25 項篩選／排序定向測試通過；移除一條綁定舊獨立掛載位置的測試斷言。Browser 與 Desktop 源資產已重建，實際字體與間距待使用者重載核查；未重啟服務、未發布 EXE。此輪與啟動功能一併提交；使用者決策範例保留在工作區。

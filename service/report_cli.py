@@ -64,7 +64,7 @@ def needs_analysis(sources):
 
 
 def run_analysis(folder, command):
-    ok, detail = run_time_analysis(folder, command)
+    ok, detail = run_time_analysis(folder, command, hidden=True)
     if not ok:
         raise ReportError("analysis_failed", detail, 4)
 

@@ -96,7 +96,7 @@ task status 與明示 progress 不因單一項目完成而自行推定。若使�
 6. 沿用並擴充既有可回復交易機制，讓 Report 與 overlay 不會留下「只更新一半卻回成功」的結果。多檔案 replace 不等同所有外部讀取者都能看到原子快照；合作讀寫入口需共用鎖與回復流程。
 7. Report 變更影響已存在的分析投影時，沿用既有模組重算機制。先驗證重算及回復邊界，失敗不得留下舊分析卻宣稱完整成功；不在此修改估算判斷或擴張模組架構。
 
-一次性 Python adapter 與 HTTP 共用保存模組，由 C# 管理參數與程序邊界。沿用本專案的部署形態：EXE 搭配專案 service／schemas 檔案及已安裝 jsonschema 的 Python；不宣稱單獨複製 EXE 即可執行 Report 編輯。Python 由 TASK_PROGRESS_PYTHON 或 PATH 尋找，專案由 EXE／工作目錄的祖先或 TASK_PROGRESS_VIEWER_ROOT 定位。不安裝依賴、不啟動常駐服務；CLI 子程序使用正常可見執行方式。
+一次性 Python adapter 與 HTTP 共用保存模組，由 C# 管理參數與程序邊界。沿用本專案的部署形態：EXE 搭配專案 service／schemas 檔案及已安裝 jsonschema 的 Python；不宣稱單獨複製 EXE 即可執行 Report 編輯。Python 由 TASK_PROGRESS_PYTHON 或 PATH 尋找，專案由 EXE／工作目錄的祖先或 TASK_PROGRESS_VIEWER_ROOT 定位。不安裝依賴、不啟動常駐服務；CLI 的 Python 與時間分析子程序不建立 Console 視窗，結果及錯誤仍經 stdin／stdout／stderr 管線與 exit code 回傳；不影響 start --console 的服務觀察視窗。
 
 `--dry-run` 不寫入來源、時間戳、分析輸出或交易日誌；遇到待回復交易時回診斷，不能偷偷執行回復。它顯示預期差異與會觸發的分析，正式 apply 仍重新檢查 revision，不保證預覽後來源不變。
 

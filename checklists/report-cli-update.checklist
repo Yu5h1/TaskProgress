@@ -37,3 +37,19 @@ Current round: `Documentation/ReportCliUpdatePlan.md#第一版補充契約`.
       - Action: 更新服務後開啟 Report 編輯，修改並保存；另以 CLI 更新後確認舊 session 保存被拒絕。
       - Expect: Viewer 顯示新資料，舊 session 不覆蓋 CLI 修改。
       - Reason: 需使用者本機常駐服務及畫面操作驗收。
+
+- [ ] **5. Report CLI 無 Console 子程序**
+  Outcome: get／apply／validate 不因啟動 Python 或時間分析而彈出 Console，仍正常回傳結果並保存資料。
+  Checks:
+    - [x] **真實程序與 Console 檢查**
+      - Action: 對 Debug 及獨立發布版執行 python tests/verify_report_console.py --exe <exe>，使用暫存報告。
+      - Expect: 每版 7 次 Python 呼叫的 GetConsoleWindow 均為 0；apply 保存與時間分析成功；validate 成功及格式錯誤各回 exit 0／2，分析子程序有 CREATE_NO_WINDOW。
+      - Observed: 初版測試探針不保留 Popen 類別及範例 time config scope 不符，測試失敗。
+      - Resolved: 探針改為 Popen 子類別並使用真 backend，暫存 time config 配對 scope；Debug 與 Release 都通過。
+    - [x] **正式 EXE 再驗證**
+      - Action: 更新 Build/win-x64/task-progress.exe 後，以該路徑執行 verify_report_console.py。
+      - Expect: get／apply／validate 共 7 次均沒有 Python Console；保存、分析與 exit code 通過。
+    - [ ] **完成說明核查** `[manual]`
+      - Action: 閱讀本項 Outcome 與已通過的程序檢查結果後勾選。
+      - Expect: 確認一般 Report 操作無黑窗，start --console 仍為明確的觀察入口；不需重做自動測試。
+      - Reason: 使用者要求已完成項目也保留可勾選核查。
