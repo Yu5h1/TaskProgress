@@ -45,6 +45,7 @@ settles nothing until all four are checked.
 
 | Want | Entrance |
 |---|---|
+| Open the current task card at the top of its report | `task-progress.exe open --scope <scope-id> --pin <task-id>` (or a report folder). Check selected EXE `--help` advertises `--pin`; deployment state is in handoff.md. Uses the task ID from current context, no session argument. Contract: `Documentation/CardPin.md#cli-開啟並釘選`. |
 | View or tick a `.checklist` round in a browser | `.claude/skills/checklist/SKILL.md` — the local service's `/checklist/?scope=&task=` page in the Browser pane. Real read/write to the file, same engine as the WPF host. |
 | Write, mark, or complete a round | `.agents/skills/checklist-round/SKILL.md` — the document contract. Authorship, not viewing. |
 | Check that a `.checklist` parses | `task-progress checklist validate <file>` — console only, non-zero exit on failure, no window. |

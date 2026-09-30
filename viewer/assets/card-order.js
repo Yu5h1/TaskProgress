@@ -1,5 +1,15 @@
 import { normalizeCapsuleOrder, moveCapsuleOrder } from "./capsule-order.js";
 
+// An explicit request promotes, never toggles. A repeated request stays idempotent.
+export function promotePin(pinnedIds, id) {
+  return [id, ...pinnedIds.filter(key => key !== id)];
+}
+
+export function requestedCardPin(search, scope) {
+  const query = new URLSearchParams(search);
+  return query.get("scope") === scope ? (query.get("pin") || null) : null;
+}
+
 export function displayCards(items, order, mode, pinnedIds = []) {
   const sorted = mode === "free" ? orderCards(items, order) : mode === "reverse" ? [...items].reverse() : items;
   if (!pinnedIds.length) return sorted;

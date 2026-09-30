@@ -218,6 +218,7 @@ internal static class Program
         string? scope = null;
         var port = LauncherSettings.DefaultPort;
         var openBrowser = true;
+        string? pin = null;
 
         for (var index = 0; index < args.Length; index++)
         {
@@ -226,6 +227,11 @@ internal static class Program
             {
                 case "--scope":
                     scope = ReadOptionValue(args, ref index, value);
+                    break;
+                case "--pin":
+                    if (pin is not null) throw new CliException("--pin 不可重複指定。");
+                    pin = ReadOptionValue(args, ref index, value);
+                    if (string.IsNullOrWhiteSpace(pin)) throw new CliException("--pin 必須指定卡片 ID。");
                     break;
                 case "--port":
                     port = ParseInteger(ReadOptionValue(args, ref index, value), value, 1, 65535);
@@ -262,7 +268,7 @@ internal static class Program
             throw new CliException("請指定 report folder，或使用 --scope <scope-id>。 ");
         }
 
-        return new OpenRequest(folder, scope, port, openBrowser);
+        return new OpenRequest(folder, scope, port, openBrowser, pin);
     }
 
     internal static StartRequest ParseStartRequest(string[] args)
@@ -472,6 +478,7 @@ internal static class Program
     internal static async Task OpenAsync(OpenRequest request, CancellationToken cancellationToken)
     {
         var report = ReportFolder.Load(request.Folder);
+        report.ValidatePin(request.Pin);
         if (request.ExpectedScope is not null
             && !string.Equals(request.ExpectedScope, report.Scope, StringComparison.Ordinal))
         {
@@ -486,7 +493,7 @@ internal static class Program
         var settings = LauncherSettings.Create(request.Port);
         using var service = await LocalWebServiceClient.EnsureAsync(settings, cancellationToken);
         await service.RegisterReportAsync(report, cancellationToken);
-        var viewerUri = service.BuildViewerUri(report);
+        var viewerUri = service.BuildViewerUri(report, request.Pin);
 
         Console.WriteLine($"TaskProgress Viewer：{viewerUri}");
         Console.WriteLine($"Scope：{report.Scope}");
@@ -667,6 +674,7 @@ internal static class Program
         Console.WriteLine("  --output <path>                  指定分析輸出，需搭配 --module");
         Console.WriteLine("  --port <port>                    open／service 的連接埠，預設 8001；start 不接受");
         Console.WriteLine("  --no-browser                     不自動開啟瀏覽器");
+        Console.WriteLine("  open --pin <task-id>             開啟並釘選卡片至最上方；重複呼叫不取消");
         Console.WriteLine("  start --browser                  啟動後開啟 Viewer");
         Console.WriteLine("  start --console                  持續觀察服務日誌；關閉觀察不停止服務");
         Console.WriteLine("  -h, -help, --help                顯示本說明");
@@ -687,7 +695,8 @@ internal static class Program
         string Folder,
         string? ExpectedScope,
         int Port,
-        bool OpenBrowser);
+        bool OpenBrowser,
+        string? Pin = null);
 
     internal sealed record StartRequest(bool OpenBrowser, bool ObserveConsole = false);
 

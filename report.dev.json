@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "report_id": "task-progress-development",
-  "updated_at": "2026-09-09T01:38:09+08:00",
+  "updated_at": "2026-09-30T14:57:44.378845+00:00",
   "tasks": [
     {
       "id": "viewer-core",
@@ -352,6 +352,16 @@
           "reason": "入口是一個 HTTP POST，各語言自己接即可；helper 會變成第二個要跟 bridge 契約同步演進的東西。"
         }
       ]
+    },
+    {
+      "id": "card-pin",
+      "decisions": [
+        {
+          "reference": "Documentation/CardPin.md#cli-開啟並釘選",
+          "summary": "使用 open --pin 卡片 ID，不新增 session ID 或關聯資料；沿用瀏覽器本機 pin，最新觸發優先。"
+        }
+      ],
+      "next_step": "使用者核查 checklists/card-pin.checklist；正式入口已可用 open --scope task-progress --pin card-pin。"
     }
   ]
 }

@@ -45,6 +45,8 @@ description: Generate, update, validate, roll up, register, and locally deploy T
 
 ## Update existing Report through CLI
 
+When opening the task being worked on, use `open --scope <scope-id> --pin <task-id>` (or a report folder) if the selected EXE's `--help` advertises `--pin`. Resolve the existing card ID from current task context or `report get`; no session ID or session mapping is needed. Each navigation promotes that card to the front without toggling it off. Pin is browser-local view state, not report data. `--no-browser` prints the link; opening that link applies the pin. See [card pin contract](../../../Documentation/CardPin.md#cli-開啟並釘選) and handoff.md for deployment status.
+
 For ordinary task/item or developer-field updates, prefer the `report` command when the selected CLI's help advertises it. Read [Report CLI usage](../../../Documentation/ReportCliUsage.md) for request shape and runtime requirements. Use `get` (optionally `--task`) to obtain the current revision, then `apply --input` with ID-addressed operations; use `--dry-run` for a preview. Never invent a revision or overwrite a conflict without rereading the source. Check both the JSON `ok` value and exit code. Existing string items, pointer mutations, deletions, and new report creation remain outside this command's first version. Do not start a server for these commands.
 
 ## Generate `report.json`

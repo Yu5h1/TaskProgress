@@ -9,6 +9,7 @@
   export let tasks = [];
   export let allIds = [];
   export let cardStorageKey = null;
+  export let requestedPin = null;
   export let progress = {};
   export let editing = false;
   export let policy;
@@ -29,9 +30,17 @@
   export let decisionCards = {};
   let defaultExpanded = true;
   let expandedCards = {};
+  let appliedPin = null;
   $: disclosureKey = `taskprogress.disclosure:${cardStorageKey ?? location.href}`;
   $: restoreDisclosure(disclosureKey);
+  $: expandRequestedPin(requestedPin, disclosureKey);
+  function expandRequestedPin(id, key) {
+    if (!id || appliedPin === JSON.stringify([key, id])) return;
+    appliedPin = JSON.stringify([key, id]);
+    expandedCards = { ...expandedCards, [id]: true };
+  }
   function restoreDisclosure(key) {
+    appliedPin = null;
     const state = loadDisclosure(key);
     defaultExpanded = state.expanded;
     expandedCards = state.overrides;
@@ -40,7 +49,7 @@
   function setAllExpanded(value) { defaultExpanded = value; expandedCards = {}; saveDisclosure(disclosureKey, defaultExpanded, expandedCards); }
 </script>
 
-  <CardList pinEnabled expanded={defaultExpanded} onToggleAll={setAllExpanded} items={tasks} {allIds} storageKey={cardStorageKey} let:item={task} let:visibilityEnabled let:visible let:onVisibleChange>
+  <CardList pinEnabled {requestedPin} expanded={defaultExpanded} onToggleAll={setAllExpanded} items={tasks} {allIds} storageKey={cardStorageKey} let:item={task} let:visibilityEnabled let:visible let:onVisibleChange>
     <svelte:fragment slot="filters">
       {#if filters}<FilterStrip {...filters} />{/if}
     </svelte:fragment>

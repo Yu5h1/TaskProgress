@@ -32,6 +32,19 @@ internal sealed record ReportFolder(
         Routes.Present.Any(route =>
             string.Equals(route.FileName, fileName, StringComparison.OrdinalIgnoreCase));
 
+    /// <summary>Rejects an unknown pin before open starts analysis or a service.</summary>
+    public void ValidatePin(string? taskId)
+    {
+        if (taskId is null) return;
+        using var document = JsonDocument.Parse(File.ReadAllBytes(ReportPath));
+        if (!document.RootElement.TryGetProperty("tasks", out var tasks)
+            || tasks.ValueKind != JsonValueKind.Array
+            || !tasks.EnumerateArray().Any(task => task.ValueKind == JsonValueKind.Object
+                && task.TryGetProperty("id", out var id) && id.ValueKind == JsonValueKind.String
+                && id.GetString() == taskId))
+            throw new CliException($"找不到卡片 ID：{taskId}（scope：{Scope}）。");
+    }
+
     public static ReportFolder Load(string pathValue)
     {
         if (string.IsNullOrWhiteSpace(pathValue))

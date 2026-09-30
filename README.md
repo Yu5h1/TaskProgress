@@ -41,6 +41,7 @@ Launcher 會自動讀取資料夾內的 `report.json`，並在存在時一併載
 REM 或明確指定 scope
 .\Build\win-x64\task-progress.exe scope add yu5h1lib "C:\Project\yu5h1lib"
 .\Build\win-x64\task-progress.exe open --scope yu5h1lib
+.\Build\win-x64\task-progress.exe open --scope yu5h1lib --pin task-id
 ```
 
 要把 Launcher 當成服務入口，載入 `scopes.json` 內的所有 scope：

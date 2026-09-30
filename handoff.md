@@ -6,7 +6,11 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
 
 ## Current state (2026-09-29)
 
-- **任務卡釘選（2026-09-30）。** comment 模組已提交 cd4413e。新增 CardList opt-in pinEnabled，由 TaskList 啟用普通卡／指路卡頂部中央圖釘；最新釘選在最上，最後投影覆蓋群組／順逆／自由排序，篩選與隱藏有效。localStorage 依 cardStorageKey:pins 保存，不改 Report；釘選卡不可拖曳，取消恢復底層排序。契約 Documentation/CardPin.md；checklists/card-pin.checklist 留畫面與保存核查。6 項排序測試及 Viewer 建置通過，未重啟服務；釘選修改尚未 commit。
+- **CLI open --pin 已發布並重啟（2026-09-30）。** 入口 `open <folder>|--scope <scope> --pin <task-id>`；驗證 ID 後才執行分析／服務，產生 scope＋pin URL。Viewer 讀取請求後一次性 promote 已有本機 pin、解除隱藏並展開，URL 目標豁免狀態／子項篩選；重繪不撤銷使用者後續取消／收合。無 session 參數或關聯資料。契約 Documentation/CardPin.md#cli-開啟並釘選；report／developer 已新增 card-pin，相關兩份 skill、README、checklist 已同步。
+  - **驗證**：8 項 Node 排序測試、SDK 9 Debug、CLI --open-pin-only（無服務）、Viewer build、獨立複核及 Report validate 通過。Release single-file 已備於 bin/Validation/OpenPin/Release，help 確認新選項，既有 IL3000 warning。Browser 已核对 URL 指定卡置頂／展開、先釘另一張再重載會重新優先、取消與收合可保留；測試用額外 pin 已取消。使用者體感核查仍保留。
+  - **部署**：使用者同意更新重啟後，確認舊程序與服務已退出，Build/win-x64 換為已驗證 Release（SHA256 相同）。start --no-browser 成功；service status 確認 PID 44772、instance 888126ac4b1e4d808756d005739a8e47、18 條註冊。正式 open --scope task-progress --pin card-pin --no-browser 回正確 URL，Report validate 通過。Release 未知卡片 smoke 確認回一般 CLI 既有錯誤碼 1（最初 smoke 期待 2 是測試假設錯誤，非產品錯誤）。此輪未 commit。
+
+- **任務卡釘選已提交推送（2026-09-30，856f149）。** CardList opt-in pinEnabled，由 TaskList 啟用普通卡／指路卡頂部中央圖釘；最新釘選在最上，最後投影覆蓋群組／順逆／自由排序。localStorage 依 cardStorageKey:pins 保存，不改 Report；釘選卡不可拖曳，取消恢復底層排序。契約 Documentation/CardPin.md；checklists/card-pin.checklist 留畫面與保存核查。手動 pin 的篩選與隱藏仍有效，CLI 特例見新契約。
 
 - **卡片說明兩行預覽模組（2026-09-30）。** TaskCard／ReportPointerCard 共用 ExpandableText，預設兩行、溢出才提供第二行文字尾端的底線「…更多」／「收合」，編輯 textarea 不變。原生 JS＋獨立 CSS 無報告／Svelte 相依，Svelte 僅接入；後續 Web 可攜帶兩檔移植，本輪未改 Web。契約與使用方式：Documentation/ExpandableText.md；checklists/expandable-text.checklist 留人工閱讀密度及抽離邊界核查。Viewer build、2 項生命週期定向測試與獨立複核通過；真實瀏覽器兩行幾何／按鈕位置待使用者核查。未重啟服務、未 commit。
 

@@ -1,3 +1,4 @@
+import { requestedCardPin } from "./card-order.js";
 import {
   PRIORITY_POLICY,
   STATUS_META,
@@ -998,6 +999,7 @@ function taskListProps(tasks) {
 }
 
 function renderTasks() {
+  const requestedPin = requestedCardPin(location.search, state.report.scope_id);
   // Explicit status groups lead; unfinished cards use priority and completed
   // cards retain completion order, including in the default remainder.
   const orderedTasks = orderByCapsuleBoundary(
@@ -1014,17 +1016,18 @@ function renderTasks() {
   // it stays visible regardless of the current selection.
   const selected = state.selection.selected;
   const tasks = orderedTasks
-    .filter((task) => taskKind(task) === "report_pointer"
+    .filter((task) => task.id === requestedPin || taskKind(task) === "report_pointer"
       || taskMatchesSelection(task, selected)
       || taskHasSelectedItem(task, selected))
     .map((task) => {
       const kind = taskKind(task);
-      return kind === "report_pointer"
+      return kind === "report_pointer" || task.id === requestedPin
         ? { ...task, kind }
         : { ...filterTaskItems(task, selected), kind };
     });
 
   const props = taskListProps(tasks);
+  props.requestedPin = requestedPin;
   props.allIds = orderedTasks.map(task => task.id);
   props.cardStorageKey = `taskprogress.cards.report.v1:${location.pathname}:${state.report.scope_id}:${state.report.report_id}`;
   if (state.taskListView) state.taskListView.update(props);

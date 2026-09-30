@@ -130,12 +130,14 @@ internal sealed class LocalWebServiceClient : IDisposable
         }
     }
 
-    public Uri BuildViewerUri(ReportFolder report)
+    public Uri BuildViewerUri(ReportFolder report, string? pin = null)
     {
-        return new Uri(
-            _settings.BaseUri,
-            $"?scope={Uri.EscapeDataString(report.Scope)}");
+        return BuildViewerUri(_settings.BaseUri, report.Scope, pin);
     }
+
+    internal static Uri BuildViewerUri(Uri baseUri, string scope, string? pin) =>
+        new(baseUri, $"?scope={Uri.EscapeDataString(scope)}"
+            + (pin is null ? "" : $"&pin={Uri.EscapeDataString(pin)}"));
 
     public async Task ShutdownAsync(CancellationToken cancellationToken)
     {

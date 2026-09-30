@@ -1,6 +1,19 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { orderCards, moveVisibleCard, displayCards } from "../viewer/assets/card-order.js";
+import { orderCards, moveVisibleCard, displayCards, promotePin, requestedCardPin } from "../viewer/assets/card-order.js";
+
+test("explicit pin promotes an existing card without toggling or duplicating", () => {
+  const saved = ["b", "a", "c"];
+  assert.deepEqual(promotePin(saved, "a"), ["a", "b", "c"]);
+  assert.deepEqual(promotePin(promotePin(saved, "a"), "a"), ["a", "b", "c"]);
+  assert.deepEqual(saved, ["b", "a", "c"]);
+});
+
+test("URL pin only targets the requested scope and decodes IDs", () => {
+  assert.equal(requestedCardPin("?scope=web&pin=card%20%26%20one", "web"), "card & one");
+  assert.equal(requestedCardPin("?scope=web&pin=a", "other"), null);
+  assert.equal(requestedCardPin("?scope=web&pin=", "web"), null);
+});
 
 test("pins override every sort mode and unpin restores the underlying order", () => {
   const items = ["a", "b", "c", "d"].map(id => ({ id }));

@@ -3,14 +3,16 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-09-25T03:20:09+08:00",
+  "updated_at": "2026-09-30T14:57:44.378845+00:00",
   "tasks": [
     {
       "id": "decision-example",
       "title": "決策項目操作範例",
       "status": "in_progress",
       "summary": "供 Browser／Desktop 測試選項、其他文字、確認與重新開啟；範例答案不作為正式設計決策。",
-      "pending_items": ["完成決策畫面操作驗收"]
+      "pending_items": [
+        "完成決策畫面操作驗收"
+      ]
     },
     {
       "id": "viewer-core",
@@ -704,6 +706,38 @@
           "status": "in_progress"
         }
       ]
+    },
+    {
+      "status": "in_progress",
+      "pending_items": [
+        {
+          "status": "planned",
+          "id": "pin-user-review",
+          "title": "使用者確認圖釘及 CLI 開啟操作體感，見 card-pin.checklist"
+        }
+      ],
+      "title": "任務卡釘選與 CLI 定位",
+      "completed_items": [
+        {
+          "title": "正式 EXE 已更新重啟，Browser 已核對置頂／重複開啟／取消與收合",
+          "id": "pin-deploy",
+          "status": "done"
+        },
+        {
+          "title": "共用卡片圖釘與本機釘選排序",
+          "id": "pin-view"
+        },
+        {
+          "title": "CLI 參數、卡片 ID 驗證、URL 開啟與 Viewer 一次性釘選",
+          "id": "pin-cli"
+        },
+        {
+          "title": "8 項排序測試、CLI 純測試及 Viewer／SDK 9 建置通過",
+          "id": "pin-tests"
+        }
+      ],
+      "id": "card-pin",
+      "summary": "圖釘與 open --pin 已完成並更新正式 EXE。最新觸發優先、重複呼叫不取消；真實 Browser 已確認置頂、重載再置頂及取消／收合保留。保留使用者核查項目。"
     }
   ]
 }

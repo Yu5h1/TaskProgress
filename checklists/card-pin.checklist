@@ -12,3 +12,17 @@ Current round: `Documentation/CardPin.md#契約`.
       - Action: 重新載入 Viewer，釘選兩張卡，切換排序，再取消釘選；重新載入查看保存的狀態。
       - Expect: 頂部中央小圖釘位置合適，釘選填色；最新釘選在最上，取消恢復原排序，重載保留。
       - Reason: 使用者確認實際卡片上的圖示尺寸、位置及操作體感。
+
+- [ ] **2. CLI 開啟並釘選指定任務卡**
+  Outcome: Agent 使用 open --pin 卡片 ID 開啟報告，將該卡片重新排到最上，不需要 session 關聯。
+  Checks:
+    - [x] **CLI 與排序定向驗證**
+      - Action: SDK 9 Debug 建置並執行 TaskProgress.Cli.Tests --open-pin-only；執行 node --test tests/card-order.test.mjs 與 npm run viewer:ui:build。
+      - Expect: 參數錯誤、未知 ID、URL 編碼及排序通過；8 項 Node 測試與 Viewer 建置成功。
+    - [ ] **開啟卡片與重複釘選** `[manual]`
+      - Action: 使用新版 CLI open --scope task-progress --pin card-pin；另釘一張卡後再次開啟相同指令，確認目標展開置頂；再取消圖釘並修改其他畫面控制。
+      - Expect: 最新指令的卡片在最上，重複呼叫不取消；本頁後續重繪不重新釘選；圖示及定位符合操作需要。
+      - Reason: 確認使用者實際瀏覽器的開啟與檢視流程。
+    - [x] **正式部署與 Browser 自動核對**
+      - Action: 更新正式 EXE 並重啟服務，執行 open --scope task-progress --pin card-pin --no-browser，開啟輸出網址，另釘卡片後重載並測試取消／收合。
+      - Expect: 正式 CLI 回含 pin 的網址；目標卡置頂，重載重新優先，取消／收合不被重繪覆蓋。

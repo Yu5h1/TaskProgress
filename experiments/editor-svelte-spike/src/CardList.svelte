@@ -3,12 +3,14 @@
   import VisibilityMenu from "./VisibilityMenu.svelte";
   import { isCardVisible, chooseVisibility } from "../../../viewer/assets/card-visibility.js";
   import { tick } from "svelte";
-  import { displayCards, moveVisibleCard } from "../../../viewer/assets/card-order.js";
+  import { displayCards, moveVisibleCard, promotePin } from "../../../viewer/assets/card-order.js";
   export let items = [];
   export let allIds = [];
   export let storageKey;
   export let pinEnabled = false;
+  export let requestedPin = null;
   let pinnedIds = [];
+  let appliedPin = null;
   export let expanded = true;
   export let onToggleAll = () => {};
   let mode = "forward";
@@ -45,16 +47,33 @@
   let notice = "";
   $: load(storageKey);
   $: ordered = displayCards(items, order, mode, pinEnabled ? pinnedIds : []);
+  $: applyRequestedPin(requestedPin, storageKey, allIds, pinEnabled);
 
-  function togglePin(id) {
-    clearDrag();
-    pinnedIds = pinnedIds.includes(id) ? pinnedIds.filter(key => key !== id) : [id, ...pinnedIds];
+  function applyRequestedPin(id, key, ids, enabled) {
+    if (!enabled || !id || !ids.length) return;
+    const request = JSON.stringify([key, id]);
+    if (appliedPin === request) return;
+    appliedPin = request;
+    if (!ids.includes(id)) { notice = `找不到卡片 ID：${id}`; return; }
+    pinnedIds = promotePin(pinnedIds, id);
+    revealCard(id);
+    savePins();
+  }
+
+  function savePins() {
     if (!storageKey) { notice = "釘選僅保留於本頁"; return; }
     try { localStorage.setItem(`${storageKey}:pins`, JSON.stringify(pinnedIds)); notice = "已記住本機釘選"; }
     catch { notice = "此環境無法保存檢視設定；釘選僅保留於本頁"; }
   }
 
+  function togglePin(id) {
+    clearDrag();
+    pinnedIds = pinnedIds.includes(id) ? pinnedIds.filter(key => key !== id) : promotePin(pinnedIds, id);
+    savePins();
+  }
+
   function load(key) {
+    appliedPin = null;
     pinnedIds = [];
     if (key) {
       try {
