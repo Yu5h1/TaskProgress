@@ -2,6 +2,29 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { orderCards, moveVisibleCard, displayCards } from "../viewer/assets/card-order.js";
 
+test("pins override every sort mode and unpin restores the underlying order", () => {
+  const items = ["a", "b", "c", "d"].map(id => ({ id }));
+  const saved = ["d", "c", "b", "a"];
+  const pins = ["b", "c", "b", "gone"];
+  for (const mode of ["forward", "reverse", "free"]) {
+    const base = displayCards(items, saved, mode).map(item => item.id);
+    assert.deepEqual(displayCards(items, saved, mode, pins).map(item => item.id),
+      ["b", "c", ...base.filter(id => !["b", "c"].includes(id))]);
+    assert.deepEqual(displayCards(items, saved, mode, []).map(item => item.id), base);
+  }
+  assert.deepEqual(items.map(item => item.id), ["a", "b", "c", "d"]);
+  assert.deepEqual(pins, ["b", "c", "b", "gone"]);
+});
+
+test("pins do not resurrect filtered cards or disturb hidden/free-order slots", () => {
+  const items = [{ id: "a" }, { id: "c" }];
+  assert.deepEqual(displayCards(items, null, "forward", ["b", "c"]).map(item => item.id), ["c", "a"]);
+  const moved = moveVisibleCard(["a", "b", "c", "d"], null, ["a", "d"], "d", "a", false);
+  assert.deepEqual(moved, ["d", "b", "c", "a"]);
+  assert.deepEqual(displayCards(["a", "b", "c", "d"].map(id => ({ id })), moved, "free", ["c"])
+    .map(item => item.id), ["c", "d", "b", "a"]);
+});
+
 test("moving visible cards preserves hidden slots and source arrays", () => {
   const all = [1, 2, 3, 4, 5];
   assert.deepEqual(moveVisibleCard(all, null, [1, 3, 5], 5, 1, false), [5, 2, 1, 4, 3]);

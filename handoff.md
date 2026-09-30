@@ -6,7 +6,9 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
 
 ## Current state (2026-09-29)
 
-- **卡片說明兩行預覽模組（2026-09-30）。** TaskCard／ReportPointerCard 共用 ExpandableText，預設兩行、溢出才提供下方靠右「…更多」／「收合」，編輯 textarea 不變。原生 JS＋獨立 CSS 無報告／Svelte 相依，Svelte 僅接入；後續 Web 可攜帶兩檔移植，本輪未改 Web。契約與使用方式：Documentation/ExpandableText.md；checklists/expandable-text.checklist 留人工閱讀密度及抽離邊界核查。Viewer build、2 項生命週期定向測試與獨立複核通過；真實瀏覽器兩行幾何／按鈕位置待使用者核查。未重啟服務、未 commit。
+- **任務卡釘選（2026-09-30）。** comment 模組已提交 cd4413e。新增 CardList opt-in pinEnabled，由 TaskList 啟用普通卡／指路卡頂部中央圖釘；最新釘選在最上，最後投影覆蓋群組／順逆／自由排序，篩選與隱藏有效。localStorage 依 cardStorageKey:pins 保存，不改 Report；釘選卡不可拖曳，取消恢復底層排序。契約 Documentation/CardPin.md；checklists/card-pin.checklist 留畫面與保存核查。6 項排序測試及 Viewer 建置通過，未重啟服務；釘選修改尚未 commit。
+
+- **卡片說明兩行預覽模組（2026-09-30）。** TaskCard／ReportPointerCard 共用 ExpandableText，預設兩行、溢出才提供第二行文字尾端的底線「…更多」／「收合」，編輯 textarea 不變。原生 JS＋獨立 CSS 無報告／Svelte 相依，Svelte 僅接入；後續 Web 可攜帶兩檔移植，本輪未改 Web。契約與使用方式：Documentation/ExpandableText.md；checklists/expandable-text.checklist 留人工閱讀密度及抽離邊界核查。Viewer build、2 項生命週期定向測試與獨立複核通過；真實瀏覽器兩行幾何／按鈕位置待使用者核查。未重啟服務、未 commit。
 
 - **已完成預覽調整為 1 項（2026-09-30）。** 依使用者要求，TaskCard 預設只顯示最新一項，超過時以剩餘項數顯示置中展開／收合控制。Viewer bundle 已重建，建置通過。
 

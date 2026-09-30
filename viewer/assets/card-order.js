@@ -1,8 +1,12 @@
 import { normalizeCapsuleOrder, moveCapsuleOrder } from "./capsule-order.js";
 
-export function displayCards(items, order, mode) {
-  if (mode === "free") return orderCards(items, order);
-  return mode === "reverse" ? [...items].reverse() : items;
+export function displayCards(items, order, mode, pinnedIds = []) {
+  const sorted = mode === "free" ? orderCards(items, order) : mode === "reverse" ? [...items].reverse() : items;
+  if (!pinnedIds.length) return sorted;
+  const byId = new Map(items.map(item => [item.id, item]));
+  const pinned = new Set(pinnedIds);
+  return [...pinned].filter(id => byId.has(id)).map(id => byId.get(id))
+    .concat(sorted.filter(item => !pinned.has(item.id)));
 }
 
 export function orderCards(items, order) {

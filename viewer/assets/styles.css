@@ -2960,6 +2960,26 @@ footer {
 .arrangeable-card[hidden] { display: none; }
 .arrangeable-cards { display: grid; gap: 14px; grid-column: 1 / -1; min-width: 0; }
 .arrangeable-card { position: relative; min-width: 0; border-radius: 14px; }
+.card-pin {
+  position: absolute;
+  top: -9px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 22px;
+  padding: 2px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: var(--theme-panel-bg);
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+.card-pin:hover, .card-pin:focus-visible { border-color: currentColor; }
+.card-pin:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+.card-pin.is-pinned { color: var(--theme-accent); }
 .card-selected { outline: 2px solid var(--color-accent); outline-offset: 2px; }
 .card-drop-before::before, .card-drop-after::after { content: ""; position: absolute; left: 0; right: 0; height: 3px; background: var(--color-accent); pointer-events: none; z-index: 1; }
 .card-drop-before::before { top: -7px; }

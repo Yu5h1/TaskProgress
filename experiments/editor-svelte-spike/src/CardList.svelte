@@ -7,6 +7,8 @@
   export let items = [];
   export let allIds = [];
   export let storageKey;
+  export let pinEnabled = false;
+  let pinnedIds = [];
   export let expanded = true;
   export let onToggleAll = () => {};
   let mode = "forward";
@@ -33,7 +35,7 @@
     saveVisibility();
   }
   export function revealCard(id) { if (visibilityMode === "closed") visibilityMode = "enabled"; setVisible(id, true); }
-  $: movable = ordered.filter(item => isCardVisible(item.id, visibilityMode, hiddenIds));
+  $: movable = ordered.filter(item => isCardVisible(item.id, visibilityMode, hiddenIds) && !(pinEnabled && pinnedIds.includes(item.id)));
   let order = null;
   let selected = null;
   let armed = null;
@@ -42,9 +44,24 @@
   let root;
   let notice = "";
   $: load(storageKey);
-  $: ordered = displayCards(items, order, mode);
+  $: ordered = displayCards(items, order, mode, pinEnabled ? pinnedIds : []);
+
+  function togglePin(id) {
+    clearDrag();
+    pinnedIds = pinnedIds.includes(id) ? pinnedIds.filter(key => key !== id) : [id, ...pinnedIds];
+    if (!storageKey) { notice = "釘選僅保留於本頁"; return; }
+    try { localStorage.setItem(`${storageKey}:pins`, JSON.stringify(pinnedIds)); notice = "已記住本機釘選"; }
+    catch { notice = "此環境無法保存檢視設定；釘選僅保留於本頁"; }
+  }
 
   function load(key) {
+    pinnedIds = [];
+    if (key) {
+      try {
+        const saved = JSON.parse(localStorage.getItem(`${key}:pins`) ?? "null");
+        pinnedIds = Array.isArray(saved) ? [...new Set(saved.filter(id => typeof id === "string" || typeof id === "number"))] : [];
+      } catch {}
+    }
     visibilityMode = "disabled";
     hiddenIds = [];
     if (key) {
@@ -85,6 +102,7 @@
   }
   async function move(id, targetId, after) {
     if (mode !== "free") return;
+    if (pinEnabled && (pinnedIds.includes(id) || pinnedIds.includes(targetId))) return;
     if (id === targetId) return;
     save(moveVisibleCard(allIds, order, movable.map(item => item.id), id, targetId, after));
     selected = id;
@@ -93,11 +111,13 @@
   }
   function moveBy(id, offset) {
     const index = movable.findIndex(item => item.id === id);
+    if (index < 0) return;
     const other = movable[index + offset];
     if (other) move(id, other.id, offset > 0);
   }
   function clearDrag() { armed = null; dragging = null; target = null; }
   function dragOver(item, event) {
+    if (pinEnabled && pinnedIds.includes(item.id)) return;
     if (dragging === null || dragging === item.id) return;
     event.preventDefault();
     event.dataTransfer.dropEffect = "move";
@@ -149,7 +169,7 @@
         if (event.button !== 0) return;
         if (event.target.closest('button, a, input, textarea, select, label, [contenteditable], [role="button"], [role="checkbox"]')) return;
         selected = item.id;
-        if (mode !== "free" || event.pointerType !== "mouse") return;
+        if (mode !== "free" || event.pointerType !== "mouse" || (pinEnabled && pinnedIds.includes(item.id))) return;
         // Only layout whitespace starts a card drag; controls and text retain their normal gestures.
         if (event.target.closest('button, a, input, textarea, select, label, [contenteditable], [role="button"], [role="checkbox"], h1, h2, h3, p, span, strong, code, dt, dd, li, svg')) return;
         armed = item.id;
@@ -180,6 +200,16 @@
         move(dragging, item.id, target.after);
         clearDrag();
       }}>
+      {#if pinEnabled}
+        <button type="button" class="card-pin" class:is-pinned={pinnedIds.includes(item.id)}
+          aria-label={pinnedIds.includes(item.id) ? `取消釘選：${item.title}` : `釘選置頂：${item.title}`}
+          aria-pressed={pinnedIds.includes(item.id)} title={pinnedIds.includes(item.id) ? "取消釘選" : "釘選置頂"}
+          onclick={() => togglePin(item.id)}>
+          <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
+            <path d="M8 3h8l-1 7 4 4v2H5v-2l4-4-1-7Zm4 13v6" fill={pinnedIds.includes(item.id) ? "currentColor" : "none"} stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </button>
+      {/if}
       <slot {item} {visibilityEnabled} visible={!hiddenIds.includes(item.id)} onVisibleChange={value => setVisible(item.id, value)} />
     </div>
   {/each}

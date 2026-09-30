@@ -40,7 +40,7 @@
   function setAllExpanded(value) { defaultExpanded = value; expandedCards = {}; saveDisclosure(disclosureKey, defaultExpanded, expandedCards); }
 </script>
 
-  <CardList expanded={defaultExpanded} onToggleAll={setAllExpanded} items={tasks} {allIds} storageKey={cardStorageKey} let:item={task} let:visibilityEnabled let:visible let:onVisibleChange>
+  <CardList pinEnabled expanded={defaultExpanded} onToggleAll={setAllExpanded} items={tasks} {allIds} storageKey={cardStorageKey} let:item={task} let:visibilityEnabled let:visible let:onVisibleChange>
     <svelte:fragment slot="filters">
       {#if filters}<FilterStrip {...filters} />{/if}
     </svelte:fragment>
