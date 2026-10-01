@@ -3603,156 +3603,8 @@ function Oo(e, t) {
 	}), q(e, c), Ye();
 }
 //#endregion
-//#region experiments/editor-svelte-spike/src/ItemRow.svelte
-var ko = /* @__PURE__ */ K("<option> </option>"), Ao = /* @__PURE__ */ K("<select class=\"inline-priority-select\"></select>"), jo = /* @__PURE__ */ K("<span> </span>"), Mo = /* @__PURE__ */ K("<span class=\"item-row-priority\"><!></span>"), No = /* @__PURE__ */ K("<input class=\"inline-edit-input\" maxlength=\"500\"/>"), Po = /* @__PURE__ */ K("<span class=\"spike-item-title\"> </span>"), Fo = /* @__PURE__ */ K("<select class=\"inline-status-select\"></select>"), Io = /* @__PURE__ */ K("<span class=\"item-row-action\"><button class=\"inline-delete-button\" type=\"button\">刪除</button></span>"), Lo = /* @__PURE__ */ K("<li><span aria-hidden=\"true\"> </span> <!> <span class=\"item-row-description\"><!></span> <span class=\"item-row-utility-panel\"><span class=\"item-row-modules\"><!></span> <span class=\"item-row-status\"><!></span> <!></span></li>");
-function Ro(e, t) {
-	Je(t, !1);
-	let n = /* @__PURE__ */ N(), r = /* @__PURE__ */ N(), i = /* @__PURE__ */ N(), a = /* @__PURE__ */ N(), o = /* @__PURE__ */ N(), s = $(t, "taskId", 8), c = $(t, "field", 8), l = $(t, "item", 8), u = $(t, "editing", 8), d = $(t, "policy", 8), f = $(t, "onCommand", 8), p = $(t, "moduleCapsules", 24, () => []), m = $(t, "onModuleActivate", 8, () => {}), h = $(t, "moduleOrder", 24, () => ["time"]), g = $(t, "onModuleReorder", 8, () => {}), _ = /* @__PURE__ */ N(d().normalize(l().priority, d().fallbackValue)), v = $(t, "statuses", 24, () => []), y = /* @__PURE__ */ N(l().status ?? (c() === "completed_items" ? "done" : "planned"));
-	function b(e) {
-		e !== H(i) && f()({
-			type: "set-item-status",
-			taskId: s(),
-			field: c(),
-			itemId: l().id,
-			status: e
-		});
-	}
-	function x(e) {
-		m()(e, {
-			taskId: s(),
-			itemId: l().id,
-			itemTitle: l().title
-		});
-	}
-	R(() => (W(d()), W(l())), () => {
-		P(n, d().metadata(l().priority));
-	}), R(() => (W(d()), W(l())), () => {
-		P(r, d().format(l().priority));
-	}), R(() => (W(d()), W(l())), () => {
-		P(_, d().normalize(l().priority, d().fallbackValue));
-	}), R(() => (W(l()), W(c())), () => {
-		P(i, l().status ?? (c() === "completed_items" ? "done" : "planned"));
-	}), R(() => H(i), () => {
-		P(y, H(i));
-	}), R(() => (W(v()), H(i)), () => {
-		P(a, v().find((e) => e.value === H(i)) ?? {
-			label: H(i),
-			tone: "muted"
-		});
-	}), R(() => H(a), () => {
-		P(o, H(a).label);
-	}), Mn(), Hi();
-	var S = Lo();
-	let C;
-	var w = F(S), T = F(w, !0);
-	A(w);
-	var E = L(w, 2), ee = (e) => {
-		var t = Mo(), i = F(t), a = (e) => {
-			var t = Ao();
-			X(t, 5, () => (W(d()), U(() => d().levels)), (e) => e.value, (e, t) => {
-				var n = ko(), r = F(n, !0);
-				A(n);
-				var i = {};
-				z((e) => {
-					J(r, e), i !== (i = (H(t), U(() => H(t).value))) && (n.value = (n.__value = (H(t), U(() => H(t).value))) ?? "");
-				}, [() => (W(d()), H(t), U(() => d().format(H(t).value)))]), q(e, n);
-			}), A(t), z(() => Q(t, "aria-label", (W(l()), U(() => `設定「${l().title}」的優先級`)))), G("change", t, () => f()({
-				type: "set-item-field",
-				taskId: s(),
-				field: c(),
-				itemId: l().id,
-				property: "priority",
-				value: Number(H(_))
-			})), Ci(t, () => H(_), (e) => P(_, e)), q(e, t);
-		}, o = (e) => {
-			var t = jo(), i = F(t, !0);
-			A(t), z(() => {
-				Z(t, 1, (H(n), U(() => `priority-badge priority-${H(n).tone}`))), J(i, H(r));
-			}), q(e, t);
-		};
-		Y(i, (e) => {
-			u() ? e(a) : e(o, -1);
-		}), A(t), q(e, t);
-	};
-	Y(E, (e) => {
-		W(u()), H(i), H(n), W(d()), U(() => u() || H(i) !== "done" && H(n) && (!H(n).hidden || !d().labelsValid)) && e(ee);
-	});
-	var te = L(E, 2), D = F(te), ne = (e) => {
-		var t = No();
-		ki(t), z(() => {
-			Q(t, "aria-label", (W(l()), U(() => `編輯子項目：${l().title}`))), Q(t, "title", (W(l()), U(() => l().title))), Ai(t, (W(l()), U(() => l().title)));
-		}), G("input", t, (e) => f()({
-			type: "set-item-field",
-			taskId: s(),
-			field: c(),
-			itemId: l().id,
-			property: "title",
-			value: e.currentTarget.value
-		})), q(e, t);
-	}, re = (e) => {
-		var t = Po(), n = F(t, !0);
-		A(t), z(() => {
-			Q(t, "title", (W(l()), U(() => l().title))), J(n, (W(l()), U(() => l().title)));
-		}), q(e, t);
-	};
-	Y(D, (e) => {
-		u() ? e(ne) : e(re, -1);
-	}), A(te);
-	var ie = L(te, 2), ae = F(ie);
-	Fa(F(ae), {
-		get capsules() {
-			return p();
-		},
-		get moduleOrder() {
-			return h();
-		},
-		onActivate: x,
-		get onReorder() {
-			return g();
-		}
-	}), A(ae);
-	var oe = L(ae, 2), se = F(oe), ce = (e) => {
-		var t = Fo();
-		X(t, 5, v, (e) => e.value, (e, t) => {
-			var n = ko(), r = F(n, !0);
-			A(n);
-			var i = {};
-			z(() => {
-				J(r, (H(t), U(() => H(t).label))), i !== (i = (H(t), U(() => H(t).value))) && (n.value = (n.__value = (H(t), U(() => H(t).value))) ?? "");
-			}), q(e, n);
-		}), A(t), z(() => Q(t, "aria-label", (W(l()), U(() => `設定「${l().title}」的狀態`)))), G("change", t, () => b(H(y))), Ci(t, () => H(y), (e) => P(y, e)), q(e, t);
-	}, le = (e) => {
-		var t = jo(), n = F(t, !0);
-		A(t), z(() => {
-			Z(t, 1, (H(a), U(() => `item-status-capsule status-${H(a).tone}`))), J(n, H(o));
-		}), q(e, t);
-	};
-	Y(se, (e) => {
-		u() ? e(ce) : e(le, -1);
-	}), A(oe);
-	var ue = L(oe, 2), de = (e) => {
-		var t = Io(), n = F(t);
-		A(t), z(() => Q(n, "aria-label", (W(l()), U(() => `刪除子項目：${l().title}`)))), G("click", n, () => f()({
-			type: "delete-item",
-			taskId: s(),
-			field: c(),
-			itemId: l().id
-		})), q(e, t);
-	};
-	Y(ue, (e) => {
-		u() && e(de);
-	}), A(ie), A(S), z(() => {
-		C = Z(S, 1, "editor-item-row", null, C, { "editable-work-item": u() }), Z(w, 1, `item-row-marker item-row-marker-${H(i)}`), J(T, H(i) === "done" ? "✓" : "○");
-	}), q(e, S), Ye();
-}
-Dr([
-	"change",
-	"input",
-	"click"
-]);
-//#endregion
 //#region viewer/assets/expandable-text.js
-function zo(e, t = {}) {
+function ko(e, t = {}) {
 	let n = e.ownerDocument, r = n.defaultView, i = n.createElement("div"), a = n.createElement("span"), o = n.createElement("button"), s = n.createElement("span"), c = n.createElement("span");
 	c.className = "expandable-text__label", o.append(s, c), i.className = "expandable-text__content", o.className = "expandable-text__toggle", o.type = "button", e.classList.add("expandable-text"), i.append(a, o), e.append(i);
 	let l, u = !1, d = 0, f = !1, p = [];
@@ -3800,17 +3652,168 @@ function zo(e, t = {}) {
 }
 //#endregion
 //#region experiments/editor-svelte-spike/src/ExpandableText.svelte
-var Bo = /* @__PURE__ */ K("<div></div>");
-function Vo(e, t) {
+var Ao = /* @__PURE__ */ K("<div></div>");
+function jo(e, t) {
 	let n = $(t, "text", 8, ""), r = $(t, "lines", 8, 2), i = $(t, "moreLabel", 8, "…更多"), a = $(t, "lessLabel", 8, "收合");
-	var o = Bo();
-	ui(o, (e, t) => zo?.(e, t), () => ({
+	var o = Ao();
+	ui(o, (e, t) => ko?.(e, t), () => ({
 		text: n(),
 		lines: r(),
 		moreLabel: i(),
 		lessLabel: a()
 	})), q(e, o);
 }
+//#endregion
+//#region experiments/editor-svelte-spike/src/ItemRow.svelte
+var Mo = /* @__PURE__ */ K("<option> </option>"), No = /* @__PURE__ */ K("<select class=\"inline-priority-select\"></select>"), Po = /* @__PURE__ */ K("<span> </span>"), Fo = /* @__PURE__ */ K("<span class=\"item-row-priority\"><!></span>"), Io = /* @__PURE__ */ K("<input class=\"inline-edit-input\" maxlength=\"500\"/>"), Lo = /* @__PURE__ */ K("<div class=\"item-row-text\"><!></div>"), Ro = /* @__PURE__ */ K("<select class=\"inline-status-select\"></select>"), zo = /* @__PURE__ */ K("<span class=\"item-row-action\"><button class=\"inline-delete-button\" type=\"button\">刪除</button></span>"), Bo = /* @__PURE__ */ K("<li><span aria-hidden=\"true\"> </span> <!> <div class=\"item-row-description\"><!></div> <span class=\"item-row-utility-panel\"><span class=\"item-row-modules\"><!></span> <span class=\"item-row-status\"><!></span> <!></span></li>");
+function Vo(e, t) {
+	Je(t, !1);
+	let n = /* @__PURE__ */ N(), r = /* @__PURE__ */ N(), i = /* @__PURE__ */ N(), a = /* @__PURE__ */ N(), o = /* @__PURE__ */ N(), s = $(t, "taskId", 8), c = $(t, "field", 8), l = $(t, "item", 8), u = $(t, "editing", 8), d = $(t, "policy", 8), f = $(t, "onCommand", 8), p = $(t, "moduleCapsules", 24, () => []), m = $(t, "onModuleActivate", 8, () => {}), h = $(t, "moduleOrder", 24, () => ["time"]), g = $(t, "onModuleReorder", 8, () => {}), _ = /* @__PURE__ */ N(d().normalize(l().priority, d().fallbackValue)), v = $(t, "statuses", 24, () => []), y = /* @__PURE__ */ N(l().status ?? (c() === "completed_items" ? "done" : "planned"));
+	function b(e) {
+		e !== H(i) && f()({
+			type: "set-item-status",
+			taskId: s(),
+			field: c(),
+			itemId: l().id,
+			status: e
+		});
+	}
+	function x(e) {
+		m()(e, {
+			taskId: s(),
+			itemId: l().id,
+			itemTitle: l().title
+		});
+	}
+	R(() => (W(d()), W(l())), () => {
+		P(n, d().metadata(l().priority));
+	}), R(() => (W(d()), W(l())), () => {
+		P(r, d().format(l().priority));
+	}), R(() => (W(d()), W(l())), () => {
+		P(_, d().normalize(l().priority, d().fallbackValue));
+	}), R(() => (W(l()), W(c())), () => {
+		P(i, l().status ?? (c() === "completed_items" ? "done" : "planned"));
+	}), R(() => H(i), () => {
+		P(y, H(i));
+	}), R(() => (W(v()), H(i)), () => {
+		P(a, v().find((e) => e.value === H(i)) ?? {
+			label: H(i),
+			tone: "muted"
+		});
+	}), R(() => H(a), () => {
+		P(o, H(a).label);
+	}), Mn(), Hi();
+	var S = Bo();
+	let C;
+	var w = F(S), T = F(w, !0);
+	A(w);
+	var E = L(w, 2), ee = (e) => {
+		var t = Fo(), i = F(t), a = (e) => {
+			var t = No();
+			X(t, 5, () => (W(d()), U(() => d().levels)), (e) => e.value, (e, t) => {
+				var n = Mo(), r = F(n, !0);
+				A(n);
+				var i = {};
+				z((e) => {
+					J(r, e), i !== (i = (H(t), U(() => H(t).value))) && (n.value = (n.__value = (H(t), U(() => H(t).value))) ?? "");
+				}, [() => (W(d()), H(t), U(() => d().format(H(t).value)))]), q(e, n);
+			}), A(t), z(() => Q(t, "aria-label", (W(l()), U(() => `設定「${l().title}」的優先級`)))), G("change", t, () => f()({
+				type: "set-item-field",
+				taskId: s(),
+				field: c(),
+				itemId: l().id,
+				property: "priority",
+				value: Number(H(_))
+			})), Ci(t, () => H(_), (e) => P(_, e)), q(e, t);
+		}, o = (e) => {
+			var t = Po(), i = F(t, !0);
+			A(t), z(() => {
+				Z(t, 1, (H(n), U(() => `priority-badge priority-${H(n).tone}`))), J(i, H(r));
+			}), q(e, t);
+		};
+		Y(i, (e) => {
+			u() ? e(a) : e(o, -1);
+		}), A(t), q(e, t);
+	};
+	Y(E, (e) => {
+		W(u()), H(i), H(n), W(d()), U(() => u() || H(i) !== "done" && H(n) && (!H(n).hidden || !d().labelsValid)) && e(ee);
+	});
+	var te = L(E, 2), D = F(te), ne = (e) => {
+		var t = Io();
+		ki(t), z(() => {
+			Q(t, "aria-label", (W(l()), U(() => `編輯子項目：${l().title}`))), Q(t, "title", (W(l()), U(() => l().title))), Ai(t, (W(l()), U(() => l().title)));
+		}), G("input", t, (e) => f()({
+			type: "set-item-field",
+			taskId: s(),
+			field: c(),
+			itemId: l().id,
+			property: "title",
+			value: e.currentTarget.value
+		})), q(e, t);
+	}, re = (e) => {
+		var t = Lo();
+		jo(F(t), {
+			get text() {
+				return W(l()), U(() => l().title);
+			},
+			lines: 1
+		}), A(t), q(e, t);
+	};
+	Y(D, (e) => {
+		u() ? e(ne) : e(re, -1);
+	}), A(te);
+	var ie = L(te, 2), ae = F(ie);
+	Fa(F(ae), {
+		get capsules() {
+			return p();
+		},
+		get moduleOrder() {
+			return h();
+		},
+		onActivate: x,
+		get onReorder() {
+			return g();
+		}
+	}), A(ae);
+	var oe = L(ae, 2), se = F(oe), ce = (e) => {
+		var t = Ro();
+		X(t, 5, v, (e) => e.value, (e, t) => {
+			var n = Mo(), r = F(n, !0);
+			A(n);
+			var i = {};
+			z(() => {
+				J(r, (H(t), U(() => H(t).label))), i !== (i = (H(t), U(() => H(t).value))) && (n.value = (n.__value = (H(t), U(() => H(t).value))) ?? "");
+			}), q(e, n);
+		}), A(t), z(() => Q(t, "aria-label", (W(l()), U(() => `設定「${l().title}」的狀態`)))), G("change", t, () => b(H(y))), Ci(t, () => H(y), (e) => P(y, e)), q(e, t);
+	}, le = (e) => {
+		var t = Po(), n = F(t, !0);
+		A(t), z(() => {
+			Z(t, 1, (H(a), U(() => `item-status-capsule status-${H(a).tone}`))), J(n, H(o));
+		}), q(e, t);
+	};
+	Y(se, (e) => {
+		u() ? e(ce) : e(le, -1);
+	}), A(oe);
+	var ue = L(oe, 2), de = (e) => {
+		var t = zo(), n = F(t);
+		A(t), z(() => Q(n, "aria-label", (W(l()), U(() => `刪除子項目：${l().title}`)))), G("click", n, () => f()({
+			type: "delete-item",
+			taskId: s(),
+			field: c(),
+			itemId: l().id
+		})), q(e, t);
+	};
+	Y(ue, (e) => {
+		u() && e(de);
+	}), A(ie), A(S), z(() => {
+		C = Z(S, 1, "editor-item-row", null, C, { "editable-work-item": u() }), Z(w, 1, `item-row-marker item-row-marker-${H(i)}`), J(T, H(i) === "done" ? "✓" : "○");
+	}), q(e, S), Ye();
+}
+Dr([
+	"change",
+	"input",
+	"click"
+]);
 //#endregion
 //#region experiments/editor-svelte-spike/src/TaskCard.svelte
 var Ho = /* @__PURE__ */ K("<textarea class=\"task-summary-input\" aria-label=\"任務描述\" maxlength=\"1000\" rows=\"3\"></textarea>"), Uo = /* @__PURE__ */ K("<div class=\"task-summary\"><!></div>"), Wo = /* @__PURE__ */ K("<button type=\"button\" class=\"completed-more\"><svg viewBox=\"0 0 16 16\" width=\"14\" height=\"14\" aria-hidden=\"true\"><path fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"></path></svg> </button>"), Go = /* @__PURE__ */ K("<section><h4 class=\"detail-heading\"> </h4> <ul class=\"detail-list\"></ul> <!></section>"), Ko = /* @__PURE__ */ K("<option> </option>"), qo = /* @__PURE__ */ K("<div class=\"spike-add-form\"><input aria-label=\"新增子項目描述\" placeholder=\"新增待處理項目\" maxlength=\"500\"/> <select aria-label=\"新增子項目優先級\"></select> <button type=\"button\">新增</button> <button type=\"button\">取消</button> <p class=\"spike-field-error\" role=\"alert\"> </p></div>"), Jo = /* @__PURE__ */ K("<button class=\"spike-add-button\" type=\"button\">＋</button>"), Yo = /* @__PURE__ */ K("<div class=\"spike-add-shell\"><!></div>"), Xo = /* @__PURE__ */ K("<!> <!> <div class=\"work-columns\"><!> <section class=\"task-adder-section\"><!></section></div>", 1), Zo = /* @__PURE__ */ K("<a> </a>"), Qo = /* @__PURE__ */ K("<div class=\"time-task-status-line\"><select class=\"inline-status-select\"></select> <select class=\"inline-priority-select\"></select></div>"), $o = /* @__PURE__ */ K("<input class=\"task-title-input\" aria-label=\"任務名稱\" maxlength=\"160\"/>"), es = /* @__PURE__ */ K("<h3> </h3>"), ts = /* @__PURE__ */ K("<span> </span>"), ns = /* @__PURE__ */ K("<div class=\"task-module-totals\"></div>"), rs = /* @__PURE__ */ K("<header slot=\"header\" class=\"task-header\"><!> <div class=\"task-title-group\"><!> <div class=\"time-task-title-line\"><!></div> <!></div> <div class=\"task-header-meta\"><strong class=\"task-fraction\"> </strong> <span> </span> <code class=\"task-id\"> </code></div></header>"), is = /* @__PURE__ */ K("<article><!></article>");
@@ -3921,9 +3924,12 @@ function as(e, t) {
 					})), q(e, t);
 				}, o = (e) => {
 					var t = Uo();
-					Vo(F(t), { get text() {
-						return W(d()), U(() => d().summary);
-					} }), A(t), q(e, t);
+					jo(F(t), {
+						get text() {
+							return W(d()), U(() => d().summary);
+						},
+						lines: 2
+					}), A(t), q(e, t);
 				};
 				Y(i, (e) => {
 					m() ? e(a) : e(o, -1);
@@ -3944,7 +3950,7 @@ function as(e, t) {
 						X(a, 5, () => (H(t), H(w), U(() => H(t).status === "done" && !H(w) ? H(t).items.slice(0, 1) : H(t).items)), (e) => e.id, (e, n) => {
 							{
 								let r = /* @__PURE__ */ j(() => (W(v()), H(n), U(() => v().get(H(n).id) ?? [])));
-								Ro(e, {
+								Vo(e, {
 									get taskId() {
 										return W(d()), U(() => d().id);
 									},
@@ -4706,7 +4712,7 @@ function zs(e, t) {
 			children: (e, t) => {
 				var r = Lr(), i = I(r), a = (e) => {
 					var t = As(), r = I(t);
-					Vo(F(r), { get text() {
+					jo(F(r), { get text() {
 						return H(n), U(() => H(n).summary);
 					} }), A(r);
 					var i = L(r, 2), a = F(i);

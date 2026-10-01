@@ -32,15 +32,21 @@ internal static class TrayHostLauncher
     /// <summary>
     ///   Runs one request through the standalone tray instance, starting it
     ///   first when it is not running yet, and returns whatever the worker
-    ///   printed. A non-zero exit becomes an error the caller reports.
+    ///   printed. Exit 1 is cancellation; other non-zero exits remain errors.
     /// </summary>
-    internal static async Task<string> InvokeAsync(
+    internal static Task<InvocationResult> InvokeAsync(
         IReadOnlyList<string> arguments,
+        CancellationToken cancellationToken) =>
+        InvokeAsync(ResolveExecutable(), ResolveManifest(), arguments, RunProcessAsync, cancellationToken);
+
+    /// <summary>Forwards the manifest path without inspecting or creating its contents.</summary>
+    internal static async Task<InvocationResult> InvokeAsync(
+        string executable,
+        string manifest,
+        IReadOnlyList<string> arguments,
+        Func<ProcessStartInfo, CancellationToken, Task<ProcessResult>> runProcess,
         CancellationToken cancellationToken)
     {
-        var executable = ResolveExecutable();
-        var manifest = ResolveManifest();
-
         var startInfo = new ProcessStartInfo
         {
             FileName = executable,
@@ -52,6 +58,11 @@ internal static class TrayHostLauncher
         startInfo.ArgumentList.Add(manifest);
         startInfo.ArgumentList.Add("--standalone");
         startInfo.ArgumentList.Add("--buildIcon");
+        // TrayHost applies recovery hints only when the manifest is missing.
+        startInfo.ArgumentList.Add("--init-executable");
+        startInfo.ArgumentList.Add("task-progress.exe");
+        startInfo.ArgumentList.Add("--init-argument");
+        startInfo.ArgumentList.Add("worker");
         if (arguments.Count == 0 || !arguments[0].Equals("start", StringComparison.OrdinalIgnoreCase))
             startInfo.ArgumentList.Add("--no-notify");
         startInfo.ArgumentList.Add("--");
@@ -60,23 +71,32 @@ internal static class TrayHostLauncher
             startInfo.ArgumentList.Add(argument);
         }
 
+        var result = await runProcess(startInfo, cancellationToken);
+        if (result.ExitCode == 1) return new InvocationResult(true, string.Empty);
+        if (result.ExitCode != 0)
+        {
+            var detail = result.StandardError.Trim();
+            throw new CliException(detail.Length == 0
+                ? $"TrayHost invoke 失敗，exit code {result.ExitCode}。"
+                : $"TrayHost invoke 失敗：{detail}");
+        }
+        return new InvocationResult(false, result.StandardOutput.Trim());
+    }
+
+    /// <summary>Captures both streams and the exit code without changing process-start errors.</summary>
+    private static async Task<ProcessResult> RunProcessAsync(ProcessStartInfo startInfo, CancellationToken cancellationToken)
+    {
         using var process = Process.Start(startInfo)
-            ?? throw new CliException($"無法執行 TrayHost：{executable}");
+            ?? throw new CliException($"無法執行 TrayHost：{startInfo.FileName}");
         var standardOutput = process.StandardOutput.ReadToEndAsync(cancellationToken);
         var standardError = process.StandardError.ReadToEndAsync(cancellationToken);
         await process.WaitForExitAsync(cancellationToken);
 
-        var output = await standardOutput;
-        if (process.ExitCode != 0)
-        {
-            var detail = (await standardError).Trim();
-            throw new CliException(detail.Length == 0
-                ? $"TrayHost invoke 失敗，exit code {process.ExitCode}。"
-                : $"TrayHost invoke 失敗：{detail}");
-        }
-
-        return output.Trim();
+        return new ProcessResult(process.ExitCode, await standardOutput, await standardError);
     }
+
+    internal sealed record ProcessResult(int ExitCode, string StandardOutput, string StandardError);
+    internal sealed record InvocationResult(bool Cancelled, string Output);
 
     /// <summary>
     ///   Finds the released TrayHost the same way the Launcher finds its
@@ -110,18 +130,16 @@ internal static class TrayHostLauncher
     }
 
     /// <summary>
-    ///   Returns the TrayApp manifest that belongs to this deployment.
+    ///   Returns this deployment's manifest path; TrayHost owns missing-file initialization and validation.
     /// </summary>
     internal static string ResolveManifest()
     {
         var directory = Path.GetDirectoryName(Environment.ProcessPath) ?? AppContext.BaseDirectory;
-        var manifest = Path.Combine(directory, ManifestFileName);
-        if (!File.Exists(manifest))
-        {
-            throw new CliException($"找不到 TrayApp manifest：{manifest}");
-        }
-        return manifest;
+        return ResolveManifest(directory);
     }
+
+    /// <summary>Resolves the full path without requiring an existing file or directory.</summary>
+    internal static string ResolveManifest(string directory) => Path.GetFullPath(Path.Combine(directory, ManifestFileName));
 
     private static string? SearchUpwards(string start)
     {

@@ -183,7 +183,7 @@
       })}
     ></textarea>
   {:else}
-    <div class="task-summary"><ExpandableText text={task.summary} /></div>
+    <div class="task-summary"><ExpandableText text={task.summary} lines={2} /></div>
   {/if}
 
   <DeveloperDetails developer={task.developer ?? null} />

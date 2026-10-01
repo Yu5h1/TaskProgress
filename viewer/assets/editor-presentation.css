@@ -103,6 +103,11 @@
   overflow: hidden;
 }
 
+.item-row-text {
+  width: 100%;
+  min-width: 0;
+}
+
 .item-row-utility-panel {
   display: flex;
   flex: 0 1 auto;

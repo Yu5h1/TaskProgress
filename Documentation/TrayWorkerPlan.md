@@ -31,6 +31,25 @@ TaskProgress 由短命的啟動入口與常駐 `worker` 組成。使用者雙擊
 
 ## 目標流程
 
+### Manifest 路徑與取消契約
+
+TaskProgress 只解析並提供與自身 executable 同目錄的完整 `taskprogress.trayapp.json` 路徑。`ResolveManifest` 不以檔案存在與否阻擋呼叫，也不建立、複製、編輯或驗證 manifest 內容。
+
+TrayHost 單一擁有缺檔初始化、schema 2 草稿、Manifest Editor、Save 驗證與取消語意。缺檔時由 TrayHost 開啟編輯器；Save 驗證成功後繼續原命令。既有文件的編輯與驗證結果也由 TrayHost 決定；TaskProgress 只依取消或失敗結果處理，不提供自動覆寫或 fallback。需要具備此契約的 TrayHost 版本，不能以 TaskProgress 的純測試推定外部 binary 已支援。
+
+TaskProgress 提供自己擁有的 Worker 恢復提示：`--init-executable task-progress.exe --init-argument worker`。每次 invoke 都以 ArgumentList 將提示放在獨立 `--` 前；TrayHost 只在缺檔時用它預填 executable 與啟動參數，相對 executable 由 manifest 所在目錄解析。既有 manifest 完全忽略提示；正常 build／publish 仍攜帶專案的 canonical manifest。TaskProgress 不檢查缺檔、不寫入草稿，也不複製 TrayHost 驗證邏輯。
+
+完整呼叫為 `invoke <完整 manifest 路徑> --standalone --buildIcon --init-executable task-progress.exe --init-argument worker [--no-notify] -- <Worker request arguments>`。standalone、通知與 request payload 維持原契約。TaskProgress 的處理如下：
+
+| TrayHost 結果 | TaskProgress 行為 |
+|---|---|
+| exit 0 | 保留既有 stdout 輸出與成功流程；指定 --console 才接續觀察日誌 |
+| exit 1（關閉／Cancel Manifest Editor） | 正常傳回取消結果，TaskProgress exit 1；不輸出啟動失敗、不拋 CliException、不顯示失敗對話框、不進日誌觀察或任何 fallback |
+| 其他非零 exit | 沿用 CliException 錯誤流程，保留 stderr 詳情；stderr 空白時回報 exit code |
+| executable 解析、程序啟動或權限例外 | 沿用既有錯誤處理，不視為使用者取消 |
+
+範圍為既有 launcher 內的小幅整合修改，不新增狀態或 manifest 資料來源。Focused contract tests 以程序呼叫替身驗證缺檔／既有檔、參數與 output、不寫 manifest、取消與錯誤分流；`--tray-launcher-only` 不啟動子程序、GUI 或服務。真實缺檔編輯器、Save 後繼續、Cancel／關閉及損壞文件的 TrayHost 實機流程另外核查。
+
 以下是完整可用時的樣子。標示「需要 Winform」的部分尚未具備，其餘實作與驗證狀態見 handoff.md。
 
 ### 啟用（第一次）
@@ -228,7 +247,7 @@ CLI 保留管線輸出；Windows GUI subsystem 在互動 cmd.exe 不保證 shell
 
 - 無參數與 start 預設只啟動 Tray／服務；--browser 才開啟 Viewer。接受 no-browser／no-open，拒絕 tray、port 與未知參數。
 - WinExe 不自動建立 Console；--console 附加既有 Console 或建立觀察窗，持續顯示 LocalServer 日誌。關閉／Ctrl+C 只結束觀察，服務仍由 Tray 管理。
-- 每次 start 經既有 TrayHost output notify 顯示已啟動、已在執行或失敗；Windows 通知設定可能影響顯示。
+- 啟動通知的時機與文案由 TrayApp 擁有。TaskProgress Worker 只確認服務就緒並回傳網址或錯誤，不追蹤通知狀態，也不產生「已啟動／已在執行」通知文案；manifest 的 output 政策仍由 TrayApp 解讀。
 - 管線 stdin／stdout、退出碼與 checklist／decisions 檔案啟用維持相容。
 - 服務啟動失敗回 command_failed，不印出就緒連結、不開瀏覽器；worker 仍可回答 status。
 - TrayHost 不存在時啟動並等待 ready；存在時沿用同一實例。服務停止後再次 start 可恢復。

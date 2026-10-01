@@ -10,6 +10,8 @@
 
 ## 模組邊界
 
+任務卡摘要使用 `lines: 2`，任務卡子項文字使用 `lines: 1`，兩者共用同一個 ExpandableText 控制器與 Svelte 接入層。子項超長時「…更多」接在第一行末尾，展開後可收合；編輯模式仍顯示完整輸入欄位。
+
 - `viewer/assets/expandable-text.js`：原生 DOM 控制器，無套件或 TaskProgress 資料依賴。
 - `viewer/assets/expandable-text.css`：必要樣式，類名使用 `expandable-text` 前綴；字型、文字色繼承外層。連結色可用 `--expandable-text-link-color` 覆寫。
 - `experiments/editor-svelte-spike/src/ExpandableText.svelte`：薄接入層，使用同一控制器。

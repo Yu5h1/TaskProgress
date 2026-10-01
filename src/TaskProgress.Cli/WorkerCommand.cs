@@ -150,7 +150,6 @@ internal sealed class WorkerSession
 {
     private LauncherSettings? _settings;
     private string? _startupError;
-    private bool _startedSinceNotification;
 
     internal WorkerSession(ScopeStore store)
     {
@@ -177,7 +176,6 @@ internal sealed class WorkerSession
                 reports,
                 ServiceLaunchMode.Hidden,
                 cancellationToken);
-            _startedSinceNotification |= service.StartedNewProcess;
             _startupError = null;
         }
         catch (Exception error) when (error is not OperationCanceledException)
@@ -198,9 +196,7 @@ internal sealed class WorkerSession
             throw new CliException($"LocalWebService 啟動失敗：{_startupError}");
         using var service = await LocalWebServiceClient.TryConnectAsync(_settings, cancellationToken);
         if (service is null) throw new CliException("LocalWebService 尚未就緒。");
-        Console.WriteLine(_startedSinceNotification ? "TaskProgress 服務已啟動。" : "TaskProgress 服務已在執行。");
         Console.WriteLine($"{_settings.BaseUri}");
-        _startedSinceNotification = false;
         if (openBrowser)
             System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(
                 _settings.BaseUri.AbsoluteUri) { UseShellExecute = true });

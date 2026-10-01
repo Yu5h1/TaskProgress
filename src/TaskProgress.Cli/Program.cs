@@ -90,8 +90,7 @@ internal static class Program
             case "service":
                 return await RunServiceCommandAsync(args[1..], cancellationToken);
             case "start":
-                await StartAsync(ParseStartRequest(args[1..]), cancellationToken);
-                return 0;
+                return await StartAsync(ParseStartRequest(args[1..]), cancellationToken);
             case "worker":
                 return await WorkerCommand.RunAsync(store, cancellationToken);
             case "analyze":
@@ -406,13 +405,16 @@ internal static class Program
     ///   Uses TrayHost's existing bootstrap and readiness handshake before the
     ///   resident worker executes the start command.
     /// </summary>
-    private static async Task StartAsync(StartRequest request, CancellationToken cancellationToken)
+    internal static async Task<int> StartAsync(StartRequest request, CancellationToken cancellationToken,
+        Func<IReadOnlyList<string>, CancellationToken, Task<TrayHostLauncher.InvocationResult>>? invoke = null)
     {
         var arguments = request.OpenBrowser ? new[] { "start", "--browser" } : new[] { "start" };
-        var output = await TrayHostLauncher.InvokeAsync(arguments, cancellationToken);
-        if (output.Length > 0) Console.WriteLine(output);
+        var result = await (invoke ?? TrayHostLauncher.InvokeAsync)(arguments, cancellationToken);
+        if (result.Cancelled) return 1;
+        if (result.Output.Length > 0) Console.WriteLine(result.Output);
         if (request.ObserveConsole)
             await ServiceLogObserver.RunAsync(LauncherSettings.Create(LauncherSettings.DefaultPort), cancellationToken);
+        return 0;
     }
 
     /// <summary>

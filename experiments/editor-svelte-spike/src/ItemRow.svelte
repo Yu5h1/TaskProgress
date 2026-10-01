@@ -1,5 +1,6 @@
 <script>
   import ModuleCapsuleStrip from "./ModuleCapsuleStrip.svelte";
+  import ExpandableText from "./ExpandableText.svelte";
 
   export let taskId;
   export let field;
@@ -95,7 +96,7 @@
     </span>
   {/if}
 
-  <span class="item-row-description">
+  <div class="item-row-description">
     {#if editing}
       <input
         class="inline-edit-input"
@@ -113,9 +114,9 @@
         })}
       >
     {:else}
-      <span class="spike-item-title" title={item.title}>{item.title}</span>
+      <div class="item-row-text"><ExpandableText text={item.title} lines={1} /></div>
     {/if}
-  </span>
+  </div>
 
   <span class="item-row-utility-panel">
     <span class="item-row-modules">

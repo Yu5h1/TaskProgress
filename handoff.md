@@ -6,6 +6,16 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
 
 ## Current state (2026-09-29)
 
+- **子項共用 ExpandableText（2026-10-01）。** ItemRow 預覽接入既有原生控制器／Svelte wrapper，lines=1；TaskCard summary 明確 lines=2。保留編輯輸入與右側模組操作。2 項元件測試與一次 Viewer build 通過（既有 Svelte warnings）；bundle 已更新，實際畫面待核查。「通用浮動 toolbar」的承載操作已詢問使用者，待明確後實作，未自行增加操作。未 commit。
+
+- **啟動通知交由 TrayApp（2026-10-01）。** 移除 WorkerSession 的 _startedSinceNotification 與「服務已啟動／已在執行」文案；保留服務就緒確認、網址輸出與失敗回報。TaskProgress 沒有直接 NotifyIcon／balloon 實作。manifest output 設定及非 start 呼叫的 --no-notify 保留，通知由 TrayApp 解讀與呈現。未 publish 或啟動服務。
+
+- **TrayHost 缺檔預填已接上（2026-10-01）。** 依更新後的 Winform trayhost skill，所有 invoke 在獨立 `--` 前以 ArgumentList 提供 `--init-executable task-progress.exe --init-argument worker`；TrayHost 才決定是否缺檔並套用提示，既有 manifest 不改寫，canonical manifest 仍隨正常 build／publish 複製。取消／錯誤分流保持原契約。單次 SDK 9.0.315 Debug build（CopyRetryCount=0）及一次 --tray-launcher-only 通過，涵蓋含空格／中文的 manifest 路徑、缺檔與既有檔的參數邊界、無 manifest 寫入及原取消／錯誤測試。未 publish、啟動 GUI／服務、停止程序或修改 Winform；正式 Build/win-x64 尚未由本輪更新。真實 Editor 預填／Save／Cancel 待搭配支援初始化提示的 TrayHost Release 核查。未 commit。
+
+- **TrayHost manifest 責任邊界已調整（2026-10-01）。** ResolveManifest 只回完整路徑，取消 File.Exists 前置阻擋；TaskProgress 不產生／編輯／驗證 manifest。TrayHost exit 1 以 InvocationResult.Cancelled 傳回 StartAsync，正常 return 1，不走 Main 的錯誤／MessageBox catch，也不進 --console 觀察。其他非零 exit 仍為 CliException，保留 stderr 或 exit code，程序啟動例外沿用原流程。契約見 Documentation/TrayWorkerPlan.md#manifest-路徑與取消契約；須搭配 TrayHost 的缺檔草稿／Editor 能力。
+  - **單次驗證**：SDK 9.0.315、原 Debug 輸出、CopyRetryCount=0 建置成功；一次 --tray-launcher-only 通過（缺檔仍呼叫替身、既有內容／參數／output 保留、取消無輸出且不進 observer、其他 exit 與啟動錯誤保留、不寫 manifest）。程序邊界以委派替身測試，未啟動 TrayHost／GUI／服務。
+  - **未驗證／未執行**：真實 Manifest Editor 缺檔建立、Save 繼續原命令、Cancel／關閉及損壞文件流程；未 publish、停止程序或改 Winform。未修改 skills，現有 TaskProgress skills 不擁有 launcher 整合流程。未 commit。
+
 - **CLI open --pin 已發布並重啟（2026-09-30）。** 入口 `open <folder>|--scope <scope> --pin <task-id>`；驗證 ID 後才執行分析／服務，產生 scope＋pin URL。Viewer 讀取請求後一次性 promote 已有本機 pin、解除隱藏並展開，URL 目標豁免狀態／子項篩選；重繪不撤銷使用者後續取消／收合。無 session 參數或關聯資料。契約 Documentation/CardPin.md#cli-開啟並釘選；report／developer 已新增 card-pin，相關兩份 skill、README、checklist 已同步。
   - **驗證**：8 項 Node 排序測試、SDK 9 Debug、CLI --open-pin-only（無服務）、Viewer build、獨立複核及 Report validate 通過。Release single-file 已備於 bin/Validation/OpenPin/Release，help 確認新選項，既有 IL3000 warning。Browser 已核对 URL 指定卡置頂／展開、先釘另一張再重載會重新優先、取消與收合可保留；測試用額外 pin 已取消。使用者體感核查仍保留。
   - **部署**：使用者同意更新重啟後，確認舊程序與服務已退出，Build/win-x64 換為已驗證 Release（SHA256 相同）。start --no-browser 成功；service status 確認 PID 44772、instance 888126ac4b1e4d808756d005739a8e47、18 條註冊。正式 open --scope task-progress --pin card-pin --no-browser 回正確 URL，Report validate 通過。Release 未知卡片 smoke 確認回一般 CLI 既有錯誤碼 1（最初 smoke 期待 2 是測試假設錯誤，非產品錯誤）。此輪未 commit。

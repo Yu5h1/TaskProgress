@@ -25,5 +25,6 @@
 }
 
 .expandable-text__toggle[hidden] { display: none; }
+.expandable-text__toggle[aria-expanded="true"] { margin-inline-start: 0.5em; }
 .expandable-text__label { text-decoration: underline; }
 .expandable-text__toggle:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
