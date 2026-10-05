@@ -6,6 +6,9 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
 
 ## Current state (2026-09-29)
 
+- **Web UI 替換計畫已建立（2026-10-05）。** 入口 [Documentation/WebUiReplacementPlan.md](Documentation/WebUiReplacementPlan.md)。依 Web LibraryIntegrationPlan、NativeUIAndDataUpdatePlan、web-ui-workflow 及公開 exports 分析，結論為適合有界試接；涵蓋 40 個 Svelte 元件、16 個 Viewer regions、4 個建置入口／5 個執行場景。Web 現有 probe 不代替 TaskProgress M1／M2。未變更實作、安裝依賴、建置或啟動服務。
+  - 下一步：確認計畫中的環境／資料量、預算與依賴交付，再執行 P0 來源及資產基準盤點；保留正式 Svelte 路徑。
+
 - **子項共用 ExpandableText（2026-10-01）。** ItemRow 預覽接入既有原生控制器／Svelte wrapper，lines=1；TaskCard summary 明確 lines=2。保留編輯輸入與右側模組操作。2 項元件測試與一次 Viewer build 通過（既有 Svelte warnings）；bundle 已更新，實際畫面待核查。「通用浮動 toolbar」的承載操作已詢問使用者，待明確後實作，未自行增加操作。未 commit。
 
 - **啟動通知交由 TrayApp（2026-10-01）。** 移除 WorkerSession 的 _startedSinceNotification 與「服務已啟動／已在執行」文案；保留服務就緒確認、網址輸出與失敗回報。TaskProgress 沒有直接 NotifyIcon／balloon 實作。manifest output 設定及非 start 呼叫的 --no-notify 保留，通知由 TrayApp 解讀與呈現。未 publish 或啟動服務。
@@ -382,6 +385,8 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
   - `open <folder>` 是**加上去**，`start` 會**清掉未登記 scope 的路由**。`reports/example` 與 `reports/rooftop` 都刻意不登記，所以每次 `start` 後要用 `open` 掛回來。
 
 ## Open decisions
+
+- [Web UI 替換計畫／尚未決定](Documentation/WebUiReplacementPlan.md#尚未決定)：WUI-01 目標環境與資料量、WUI-02 成本預算、WUI-03 依賴交付。
 
 > Where each kind of statement lives: `plan.md` holds the design — what to build, why, and how it is accepted — and changes only when a design is added, revised or removed. Everything time-bound lives here: what is built, what is approved but unbuilt, what is deferred, and what is still undecided. A decision sits in this section until it is taken, then moves into `plan.md` as design and leaves this list. Writing progress into `plan.md` is what produced the drift found on 2026-08-19, where one section still claimed the shared progress summary and next-step card were unbuilt weeks after they shipped.
 
