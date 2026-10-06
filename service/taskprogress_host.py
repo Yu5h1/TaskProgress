@@ -670,8 +670,8 @@ def install_edit_api(
             return _problem(413, "request_too_large", "Decision request exceeds limit")
         try:
             payload = json.loads(body)
-            if not isinstance(payload, dict) or payload.get("operation") not in ("load", "confirm", "reopen"):
-                return _problem(422, "invalid_operation", "Browser supports load, confirm and reopen")
+            if not isinstance(payload, dict) or payload.get("operation") not in ("load", "confirm", "reopen", "clear_all"):
+                return _problem(422, "invalid_operation", "Browser supports load, confirm, reopen and clear_all")
             path = decision_path(scope, task)
             report = registered_report(scope)
             _, report_data, _ = _read_report(report)

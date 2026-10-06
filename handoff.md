@@ -6,6 +6,10 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
 
 ## Current state (2026-09-29)
 
+- **決策清除全部答案（2026-10-06）。** 目前文件新增清除全部按鈕及共用確認視窗，明示含隱藏題目、其他理由與未保存輸入；取消不寫入。`clear_all` 經既有 HTTP gate／Store 鎖與 revision 一次原子保存，首題保存唯一 receipt；session 成功才清空草稿與佇列。清除及失敗 reload 期間停用輸入，確認視窗阻止 foreground refresh。契約見 `Documentation/DecisionItemsPlan.md#d-04-清除全部答案`。
+  - 已驗證：15 項 Node、6 項 Python、C# decisions-only、決策 UI／SDK 9 Debug／Release 建置、checklist validate 與獨立複核通過。現有 CardList a11y／ReportCommand IL3000 warnings 保留。
+  - 部署候選已更新於 `bin/Validation/DecisionEditing/Release/`；正式服務未重啟，新 `clear_all` HTTP gate 與後端仍需更新重啟後生效。未操作實際決策答案。下一步依 `checklists/decision-items.checklist` 第 6 項「清除全部答案」核查真實 Browser／Desktop 取消、Escape、遮罩及清除後繼續回答。
+
 - **決策／Checklist 失焦遮罩（2026-10-06）。** 共用 `FocusShield.svelte`／`focus-shield.js`：blur／hidden 以 top-layer modal 遮蔽，window capture 消耗恢復焦點的 click 或 Enter／Space keyup；focus 本身不解鎖，Escape 不繞過。session flag 跨 Browser foreground reload 保持阻擋；不變更既有保存／草稿。8 項焦點與 foreground-refresh 測試、三入口建置、獨立複核與 checklist validate 通過；修正一條舊 pending callback wiring 測試斷言。Browser／Desktop 源資產及 Build／Debug／候選 UI 資產同步，未重啟服務。
   - 下一步：`checklists/decision-items.checklist` 第 6 項「失焦防誤觸」核查真實 Browser／WebView2、對話框與鍵盤事件順序。
 

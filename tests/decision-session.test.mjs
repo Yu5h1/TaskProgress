@@ -5,6 +5,34 @@ import {readFileSync} from "node:fs";
 import {createDecisionSession} from "../viewer/assets/decision-session.js";
 const fixture = JSON.parse(readFileSync(new URL("./fixtures/decision-example.decisions",import.meta.url)));
 const initial = () => ({ok:true, document:structuredClone(fixture), revision:"a"});
+test("clear all is serialized, locks edits and removes every draft only on success",()=>{
+  const s=createDecisionSession(initial());
+  s.edit("input",{choice:"batch"}); s.begin("input");
+  assert.throws(()=>s.beginClearAll()); s.complete({ok:false});
+  s.edit("next",{choice:"__other",other:"未保存理由"});
+  const sent=s.beginClearAll();
+  assert.deepEqual(Object.keys(sent).sort(),["expected_revision","operation","payload","request_id"]);
+  assert.equal(sent.expected_revision,"a");
+  s.edit("next",{other:"不應寫入"});
+  assert.equal(s.view().drafts.next.other,"未保存理由");
+  s.failed(); assert.deepEqual(s.retry(),sent);
+  const response=initial(); response.revision="b"; s.complete(response);
+  assert.equal(s.view().dirty,false); assert.equal(s.view().pending,null);
+  assert.equal(s.saveOperation("input"),null);
+  s.edit("input",{choice:"short"}); assert.equal(s.begin("input").expected_revision,"b");
+});
+test("rejected clear retains drafts; retry acknowledgement uses latest answers",()=>{
+  const s=createDecisionSession(initial()); s.edit("input",{choice:"__other",other:"保留理由"});
+  s.beginClearAll(); s.complete({ok:false});
+  assert.equal(s.view().drafts.input.other,"保留理由");
+  s.beginClearAll(); s.failed(); s.retry();
+  const latest=initial(); latest.revision="new"; latest.status="already_applied";
+  latest.document.decisions[1].answer={kind:"option",option_id:"ui"};
+  latest.document.decisions[1].status="decided";
+  s.complete(latest);
+  assert.equal(s.view().snapshot.document.decisions[1].answer.option_id,"ui");
+  assert.equal(s.view().dirty,false);
+});
 test("typing during a save keeps newest text and uses the acknowledged revision",()=>{
   const s=createDecisionSession(initial());
   s.edit("input",{choice:"__other",other:"第"});

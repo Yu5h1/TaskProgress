@@ -60,6 +60,14 @@ class DecisionRouteTests(unittest.TestCase):
             self.assertEqual(422, self.call('/first-task', {'operation':'confirm'}).status_code)
             self.assertEqual(1, run.call_count)
 
+    def test_clear_all_uses_same_guarded_document_route(self):
+        body = {'operation':'clear_all','request_id':'clear','expected_revision':'a','payload':{}}
+        with patch('service.taskprogress_host.subprocess.run', return_value=self.fake()) as run:
+            self.assertTrue(self.call('/first-task', body).json()['ok'])
+            self.assertEqual(2, run.call_count)
+            self.assertEqual(body, json.loads(run.call_args.kwargs['input']))
+            self.assertEqual(403, self.call('/first-task', body, headers={'origin':'https://evil.example'}).status_code)
+
     def test_linked_decisions_directory_is_rejected(self):
         resolve = Path.resolve
         def resolve_link(path, *args, **kwargs):

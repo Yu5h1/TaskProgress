@@ -50,3 +50,7 @@ Current round: `Documentation/DecisionItemsPlan.md#驗收與遷移`.
       - Action: 決策頁與 Checklist 切到其他視窗，再直接點原選項位置；亦檢查已開啟對話框、切回自動刷新及 Enter／空白鍵恢復。
       - Expect: 失焦後顯示遮罩；第一次操作只恢復介面，不改答案或 check 狀態，下一次操作才生效；原有輸入保留。
       - Reason: 需真實 Browser／Desktop 驗證視窗啟用及事件順序。
+    - [ ] **清除全部答案** `[manual]`
+      - Action: 以範例副本保存一般答案與其他理由，篩選隱藏其中一題；點清除全部，先取消並確認答案保留，再重新開啟並確認清除；完成後重載及重新回答。
+      - Expect: 視窗說明目前文件、全部題數及不可復原；取消或 Escape 不清除；確認後含隱藏題目及本頁輸入全部清空，題目仍在且可回答，重載不恢復舊答案。
+      - Reason: 需真實 Browser／Desktop 核查確認視窗、鍵盤與失焦遮罩。

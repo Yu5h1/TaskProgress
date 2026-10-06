@@ -135,7 +135,7 @@ Report 由資料夾承載專案或 scope 名稱，因此資料夾內固定使用
 Decision service 擁有 parse／validate／confirm／reopen／revise，Decision store 擁有精確檔案讀寫、revision 與原子替換。採用與 Checklist 相同的 C# 核心＋host adapter 方向；只有可獨立抽取的檔案保存機制共用，Checklist parser、manual 規則及 bridge message 不混用。
 
 - Browser 第一階段接入既有本機服務，提案入口為 `/decisions/?scope=<id>&task=<task-id>`，定位該 scope 的 `decisions/<task-id>.decisions`。task 省略時列出該目錄直接包含的決策文件與待決策摘要，不遞迴掃描；壞檔個別報錯，不使其他文件消失。路由驗證 task ID 與解析後路徑，拒絕目錄穿越及越出授權目錄的連結，不接受任意路徑。
-- Browser 的資料 transport 提供 load／confirm／reopen，request 包含文件定位、decision ID、題目 version、expected revision 與 request ID；服務回傳該文件的新 snapshot 及 revision。scope 摘要頁只聚合讀取，不提供跨文件提交。
+- Browser 的資料 transport 提供 load／confirm／reopen／clear_all；逐題修改包含 decision ID、題目 version、expected revision 與 request ID，整份清除依 D-04。服務回傳該文件的新 snapshot 及 revision。scope 摘要頁只聚合讀取，不提供跨文件提交。
 - 同一檔案的合作 writer 共用跨程序鎖，鎖內核對 revision 再保存。過期題目或檔案整筆拒絕；畫面保留草稿供人工比較，不自動覆蓋或合併答案。
 - request ID 的保存、重送及最新狀態回傳遵循 D-03。
 - 沿用 Browser 的本機授權邊界，不因新增決策路由放寬現有 gate。第一版不新增第三方寫入 token 能力；靜態公開 Viewer 不含決策檔與編輯端點。
@@ -177,6 +177,20 @@ confirm／reopen／revise 每筆邏輯請求使用唯一 request ID。每題只�
 - 回應遺失時保留原請求與草稿；重試沿用原 ID。成功回應一律提供最新 snapshot，依 D-02 合併其他草稿。
 
 驗收：確認成功後立即重送回 already_applied；同 ID 改答案拒絕。其間已 reopen 則舊確認重送回 revision_conflict，檔案維持 pending，沒有舊答案紀錄。
+
+## D-04 清除全部答案
+
+目前文件提供「清除全部答案」，先以共用 DialogShell 確認文件名稱、全部題數及不可復原。取消、Escape 或關閉不寫入；確認後清除所有答案、其他理由及本頁未保存輸入，包含被篩選或隱藏的題目。保留題目、選項與 version，狀態回 pending；之後仍可直接回答。Browser／Desktop 共用實作，scope 總覽不提供跨文件清除。
+
+- Volume：修改 Store、session、UI、HTTP gate 與定向測試，新增約 150 行；建置資產另計。
+- Precedent：沿用 Checklist 確認視窗、決策原子保存與有限最新 receipt。
+- Proof：session、Store 與 HTTP 定向測試；真實視窗焦點及取消操作留實機核查。
+
+`clear_all` 請求只含 operation、expected_revision、request_id 及空 payload，不含 decision_id／expected_version。在文件鎖內核對 revision，一次原子保存所有清除結果；不逐題送 reopen。空文件回 no_change。非空文件清除舊 receipts，再在首題寫入唯一清除 receipt，供原請求查核；該 receipt 被後續首題修改取代後，重送以 revision_conflict 安全拒絕。
+
+保存中、結果未明或衝突重新載入期間不接受新的清除。確認視窗阻止 foreground refresh；清除請求及失敗後 reload 期間暫停輸入。成功清空本頁草稿與排隊保存；失敗保留草稿，重新清除必須再次確認。未知結果沿用原請求查核，不重新產生 ID，也不重放清除前的草稿。
+
+驗收：取消不改檔；一般答案及其他理由一起清除，定義與版本不變；過期 revision 不產生部分清除；重送不再次清除新答案；清除後可繼續修改。
 
 ## 與計畫、Agent 工作流的關係
 

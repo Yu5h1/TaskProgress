@@ -29,7 +29,7 @@ export function createDecisionSession(initial) {
       return find(id).answer && find(id).allow_other && draft.choice === "__other" && !draft.other.trim() ? "reopen" : null;
     },
     edit(id, fields) {
-      if ((pending && !busy) || !find(id)) return;
+      if ((pending && !busy) || pending?.operation === "clear_all" || !find(id)) return;
       const answer = find(id).answer;
       drafts[id] ??= { base: clone(find(id)), choice: answer?.kind === "other" ? "__other" : answer?.option_id ?? "",
         other: answer?.kind === "other" ? answer.text : "", conflict: false };
@@ -44,6 +44,13 @@ export function createDecisionSession(initial) {
       draft.base = clone(current); draft.conflict = false;
     },
     merge,
+    beginClearAll() {
+      if (pending || busy) throw new Error("請先查核上一筆請求的結果。");
+      pending = { operation: "clear_all", expected_revision: snapshot.revision,
+        request_id: crypto.randomUUID(), payload: {} };
+      sentDraft = null; busy = true;
+      return clone(pending);
+    },
     begin(id, operation = "confirm") {
       if (pending || busy) throw new Error("請先查核上一筆請求的結果。");
       const decision = find(id), draft = drafts[id];
@@ -66,6 +73,10 @@ export function createDecisionSession(initial) {
     complete(response) {
       busy = false;
       if (!response.ok) { pending = null; sentDraft = null; return; }
+      if (pending?.operation === "clear_all") {
+        drafts = Object.create(null); pending = null; sentDraft = null;
+        merge(response); return;
+      }
       const id = pending?.decision_id;
       const draft = drafts[id];
       const changed = draft && sentDraft && (draft.choice !== sentDraft.choice || draft.other !== sentDraft.other);

@@ -29,6 +29,8 @@ task-progress.exe decisions validate "C:\Project\decisions\task-a.decisions"
 
 一般修改不提供捨棄草稿按鈕，直接改選或修改理由即可。若顯示衝突，先核對最新問題，再套用選擇；已移除題目的原輸入保留於提示，可關閉提示。若顯示結果未確認，使用「查核／重試原請求」，避免重複發動新操作。
 
+需要從頭回答時，點「清除全部答案」→ 核對確認視窗中的文件與題數 →「確認清除全部」。此操作會清除目前文件所有答案、其他理由與未保存輸入，包含被篩選隱藏的題目，且無法復原；題目與選項保留。取消或關閉視窗不修改資料。保存中請先等候完成；若結果未確認，先查核原請求。
+
 ## 本機操作範例
 
 > Task ID: decision-example
@@ -68,6 +70,7 @@ Get-Content -Raw -Encoding UTF8 request.json | task-progress.exe decisions reque
 
 - `confirm`：payload 是 option 或 other 答案。需要補充條件或理由時，選「其他」並直接寫入答案；畫面不另設理由欄。
 - `reopen`：相容的清除答案 API，payload 為 `{}`；UI 在其他理由無效時使用，不顯示重新開啟按鈕。
+- `clear_all`：清除整份文件答案。只傳 operation、expected_revision、request_id、`payload: {}`，不傳 decision_id 或 expected_version；衝突時整筆拒絕。UI 必須先確認，完整契約見計畫 D-04。
 - `revise`：payload 為完整題目定義，欄位見計畫 D-01；既有問題使用此操作可保留衝突檢查。
 - `request` 的 exit code 0 代表已輸出 JSON，必須再檢查 `ok`；錯誤代號在 `error.code`。入口無法產生 JSON 時才回非零。
 - 重試原請求保留完全相同的 request ID 與內容。`already_applied` 回傳最新狀態，不代表題目現在仍已決策。

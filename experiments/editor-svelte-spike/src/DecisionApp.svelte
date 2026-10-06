@@ -3,6 +3,7 @@
   import { onMount, tick } from "svelte";
   import CardList from "./CardList.svelte";
   import FocusShield from "./FocusShield.svelte";
+  import DialogShell from "./DialogShell.svelte";
   import CardDisclosure from "./CardDisclosure.svelte";
   import FilterStrip from "./FilterStrip.svelte";
   import { DEFAULT_CAPSULE_ID, createFilterSelection, loadFilterSelection, saveFilterSelection, isDefaultLit, toggleTag, toggleDefault } from "../../../viewer/assets/filter-selection.js";
@@ -17,6 +18,9 @@
   let filterKey = null;
   function setSelection(next) { selection = next; saveFilterSelection(filterKey, selection); }
   let theme, themeState, failedIds = new Set(), refreshing = false;
+  let clearOpen = false;
+  $: canClear = !!view && !view.pending && !view.busy && !refreshing &&
+    (decisions.some(d => d.answer) || view.dirty);
   const queuedIds = new Set();
   let activeCard = null, heldOrder = null, shell;
   $: visibleDecisions = decisions.filter(d => heldOrder ? heldOrder.includes(d.id) : selection.selected.has(d.status));
@@ -33,7 +37,7 @@
   function readTheme() { themeState = {mode:theme.mode,custom:theme.custom,systemScheme:theme.systemScheme}; }
   $: decisions = view?.snapshot.document.decisions ?? [];
   $: dirty = !!view?.dirty || !!view?.pending;
-  $: onPersistenceChange({ dirty, saving: !!view?.busy, pending: !!view?.pending });
+  $: onPersistenceChange({ dirty, saving: !!view?.busy, pending: !!view?.pending || clearOpen || refreshing });
   $: storageKey = view ? `taskprogress.decisions:${view.snapshot.document_key}` : null;
   const sync = () => { view = session.view(); };
   const edit = (id, fields) => { session.edit(id, fields); sync(); };
@@ -85,7 +89,7 @@
   });
   async function send(id, operation = "confirm", retry = false) {
     try {
-      const request = retry ? session.retry() : session.begin(id, operation);
+      const request = retry ? session.retry() : operation === "clear_all" ? session.beginClearAll() : session.begin(id, operation);
       if (!retry) queuedIds.delete(request.decision_id);
       sync();
       message = "保存中…";
@@ -93,7 +97,7 @@
       try { result = await transport.request(request); }
       catch (error) { session.failed(); sync(); message = `結果未確認：${error.message}`; return; }
       session.complete(result); sync();
-      message = result.ok ? "已保存；以下顯示最新狀態。" : result.error.message;
+      message = result.ok ? (request.operation === "clear_all" ? "已清除全部答案與理由，以下顯示最新狀態。" : "已保存；以下顯示最新狀態。") : result.error.message;
       if (!result.ok) {
         queuedIds.delete(request.decision_id);
         failedIds = new Set([...failedIds, request.decision_id]);
@@ -103,6 +107,10 @@
           if (fresh.ok) { session.merge(fresh); sync(); }
         } catch (error) { message = error.message; }
         finally { refreshing = false; }
+      }
+      if (request.operation === "clear_all") {
+        if (result.ok) { queuedIds.clear(); failedIds = new Set(); releaseCard(); }
+        return;
       }
       const nextId = [...queuedIds].find(key => !failedIds.has(key) && session.saveOperation(key));
       if (nextId) await send(nextId, session.saveOperation(nextId));
@@ -139,7 +147,7 @@
     </div>
     <div class="decision-controls">
     <button onclick={next} disabled={!decisions.some(d => d.status === "pending")}>下一項待決策</button>
-
+    <button onclick={() => { if (canClear) clearOpen = true; }} disabled={!canClear}>清除全部答案</button>
     </div>
     {#if view.pending && !view.busy}<button onclick={() => send(null, null, true)}>查核／重試原請求</button>{/if}
     {#if !visibleDecisions.length}<p>目前沒有符合條件的決策項目。</p>{/if}
@@ -161,7 +169,7 @@
           {#if item.context}<p class="decision-text">{item.context}</p>{/if}
           {#if item.recommendation}<p>建議：{item.options.find(o => o.id === item.recommendation.option_id)?.label} — {item.recommendation.reason}</p>{/if}
           </div>{/if}
-            <fieldset disabled={(!!view.pending && !view.busy) || draft?.conflict}>
+            <fieldset disabled={refreshing || view.pending?.operation === "clear_all" || (!!view.pending && !view.busy) || draft?.conflict}>
               <legend class="decision-visually-hidden">{item.question}</legend>
               {#each item.options as option, index}
                 <label class="decision-option"><input type="radio" name={`answer-${item.id}`} checked={choice === option.id}
@@ -174,9 +182,9 @@
                 <div class="decision-other"><label for={`other-${item.id}`}>其他方案與理由</label><textarea id={`other-${item.id}`} value={draft ? draft.other : item.answer?.kind === "other" ? item.answer.text : ""} oninput={e => changeOther(item.id, e.currentTarget.value)}></textarea></div>{/if}
             </fieldset>
           {#if draft?.conflict}<p role="alert">此題已變更，原草稿保留：{draft.choice} {draft.other}</p>
-            <button disabled={!!view.pending} onclick={() => { session.rebase(item.id); sync(); confirmSelection(item.id); }}>已核對最新題目，套用選擇</button>{/if}
+            <button disabled={refreshing || !!view.pending} onclick={() => { session.rebase(item.id); sync(); confirmSelection(item.id); }}>已核對最新題目，套用選擇</button>{/if}
           <div class="decision-actions">
-          {#if failedIds.has(item.id) && draft && !draft.conflict && !view.pending}<button onclick={() => confirmSelection(item.id)}>重試保存</button>{/if}
+          {#if failedIds.has(item.id) && draft && !draft.conflict && !view.pending}<button disabled={refreshing} onclick={() => confirmSelection(item.id)}>重試保存</button>{/if}
           </div>
 
           </div>
@@ -189,6 +197,16 @@
     {/each}
   {/if}
 </main>
+<DialogShell open={clearOpen} title="清除全部決策答案？" titleId="decision-clear-title"
+  kicker="決策項目" onClose={() => { clearOpen = false; }}>
+  <p>將清除目前文件「{view?.snapshot.document.task_id}」全部 {decisions.length} 題的答案、「其他」理由及尚未保存的輸入，包含篩選後隱藏的題目。所有題目回到待決策，題目與選項保留。</p>
+  <p>此操作無法復原。</p>
+  <form method="dialog" class="theme-dialog-actions">
+    <button type="submit" class="secondary-button">取消</button>
+    <button type="submit" class="primary-button" disabled={!canClear}
+      onclick={() => { if (canClear) send(null, "clear_all"); }}>確認清除全部</button>
+  </form>
+</DialogShell>
 <style>
   .decision-card { display:grid; grid-template-columns:auto minmax(0, 1fr); column-gap:8px; padding-inline-start:12px; }
   .decision-card.decision-has-visibility { grid-template-columns:auto auto minmax(0, 1fr); }

@@ -42,12 +42,17 @@ internal sealed class DecisionStore
                     Fail("task_mismatch", "Document task id differs from the requested task.");
                 var revision = Hash(bytes);
                 if (operation == "load") return Response("loaded", document, revision, requestId);
-                if (operation is not ("confirm" or "reopen" or "revise")) Fail("invalid_request", "Unknown operation.");
+                if (operation is not ("confirm" or "reopen" or "revise" or "clear_all")) Fail("invalid_request", "Unknown operation.");
                 requestId = Text(request, "request_id");
-                var decisionId = Id(request, "decision_id");
+                var decisionId = operation == "clear_all" ? null : Id(request, "decision_id");
                 var expected = Text(request, "expected_revision");
-                var version = Integer(request, "expected_version");
+                var version = operation == "clear_all" ? 0 : Integer(request, "expected_version");
                 var payload = Object(request["payload"]);
+                if (operation == "clear_all")
+                {
+                    Fields(request, ["operation", "expected_revision", "request_id", "payload"]);
+                    Fields(payload, []);
+                }
                 var fingerprint = Fingerprint(request);
                 foreach (var node in Array(document, "decisions"))
                 {
@@ -56,12 +61,24 @@ internal sealed class DecisionStore
                     return Response("already_applied", document, revision, requestId);
                 }
                 if (revision != expected) Fail("revision_conflict", "Reload and compare the changed document.");
-                var decision = Array(document, "decisions").Select(Object).FirstOrDefault(d => Text(d, "id") == decisionId)
+                if (operation == "clear_all" && Array(document, "decisions").Count == 0)
+                    return Response("no_change", document, revision, requestId);
+                var decision = Array(document, "decisions").Select(Object).FirstOrDefault(d => operation == "clear_all" || Text(d, "id") == decisionId)
                     ?? throw new DecisionException("decision_not_found", "Decision is missing.");
-                if (Integer(decision, "version") != version) Fail("version_conflict", "Question version changed.");
+                if (operation != "clear_all" && Integer(decision, "version") != version) Fail("version_conflict", "Question version changed.");
                 var at = DateTimeOffset.UtcNow.ToString("O");
                 switch (operation)
                 {
+                    case "clear_all":
+                        foreach (var node in Array(document, "decisions"))
+                        {
+                            var item = Object(node);
+                            item["answer"] = null;
+                            item["status"] = "pending";
+                            item.Remove("last_request");
+                        }
+                        // One receipt on the first question acknowledges the atomic document operation.
+                        break;
                     case "confirm":
                         ValidateAnswer(payload, Definition(decision), false);
                         var answer = (JsonObject)payload.DeepClone();

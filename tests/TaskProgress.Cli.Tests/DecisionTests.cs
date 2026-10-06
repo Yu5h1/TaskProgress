@@ -85,6 +85,30 @@ internal static class DecisionTests
             Check(migrated["document"]!["decisions"]![0]!["answer"]!["option_id"]!.GetValue<string>() == "batch", "migration retains current answer");
             var migratedSave = store.Handle(Request(migrated, "reopen", "migrate-save", new()).ToJsonString());
             Check(migratedSave["ok"]!.GetValue<bool>(), "legacy save");
+            var clearBase = Load(store);
+            var clearRequest = new JsonObject { ["operation"] = "clear_all", ["request_id"] = "clear-all",
+                ["expected_revision"] = clearBase["revision"]!.DeepClone(), ["payload"] = new JsonObject() };
+            var newer = store.Handle(Request(clearBase, "confirm", "before-clear", new() { ["kind"] = "other", ["text"] = "待清除理由" }).ToJsonString());
+            var beforeClear = File.ReadAllBytes(path);
+            Check(store.Handle(clearRequest.ToJsonString())["error"]!["code"]!.GetValue<string>() == "revision_conflict", "stale clear conflicts");
+            Check(beforeClear.SequenceEqual(File.ReadAllBytes(path)), "rejected clear is atomic");
+            var sibling = Request(newer, "confirm", "sibling-answer", new() { ["kind"] = "option", ["option_id"] = "ui" });
+            sibling["decision_id"] = "next"; sibling["expected_version"] = 1;
+            newer = store.Handle(sibling.ToJsonString());
+            Check(newer["ok"]!.GetValue<bool>(), "sibling answer before clear");
+            clearRequest["expected_revision"] = newer["revision"]!.DeepClone();
+            var cleared = store.Handle(clearRequest.ToJsonString());
+            Check(cleared["ok"]!.GetValue<bool>(), "clear all");
+            Check(cleared["document"]!["decisions"]!.AsArray().All(n => n!["answer"] is null && n["status"]!.GetValue<string>() == "pending"), "all answers and reasons cleared");
+            Check(DecisionDocument.Equal(DecisionDocument.Definition(newer["document"]!["decisions"]![0]!.AsObject()),
+                DecisionDocument.Definition(cleared["document"]!["decisions"]![0]!.AsObject())), "clear preserves definition");
+            var clearedBytes = File.ReadAllBytes(path);
+            Check(store.Handle(clearRequest.ToJsonString())["status"]!.GetValue<string>() == "already_applied", "clear retry receipt");
+            Check(clearedBytes.SequenceEqual(File.ReadAllBytes(path)), "clear retry does not write");
+            sibling["expected_revision"] = cleared["revision"]!.DeepClone(); sibling["request_id"] = "after-clear";
+            var afterClear = store.Handle(sibling.ToJsonString());
+            Check(afterClear["ok"]!.GetValue<bool>(), "answers editable after clear");
+            Check(store.Handle(clearRequest.ToJsonString())["document"]!["decisions"]![1]!["answer"] is not null, "retry never clears newer sibling answer");
             var persisted = JsonNode.Parse(File.ReadAllText(path))!;
             Check(persisted["schema_version"]!.GetValue<string>() == "1.1", "save uses simplified version");
             Check(persisted["decisions"]!.AsArray().All(node => !node!.AsObject().ContainsKey("history")), "save removes all historical snapshots");
