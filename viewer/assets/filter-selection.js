@@ -21,6 +21,22 @@ export function createFilterSelection(tagIds = []) {
   return Object.freeze({ tags, selected: new Set(tags) });
 }
 
+// Session-only view preferences; empty selections are intentional, not missing data.
+export function loadFilterSelection(key, tagIds, storage) {
+  const fallback = createFilterSelection(tagIds);
+  if (!key) return fallback;
+  try {
+    const saved = JSON.parse((storage ?? globalThis.sessionStorage).getItem(key));
+    if (!Array.isArray(saved) || !saved.every(id => typeof id === "string")) return fallback;
+    return Object.freeze({ tags: fallback.tags, selected: new Set(saved.filter(id => fallback.tags.includes(id))) });
+  } catch { return fallback; }
+}
+
+export function saveFilterSelection(key, selection, storage) {
+  if (!key) return;
+  try { (storage ?? globalThis.sessionStorage).setItem(key, JSON.stringify([...selection.selected])); } catch {}
+}
+
 export function isDefaultLit(selection) {
   return selection.tags.length > 0 && selection.tags.every((id) => selection.selected.has(id));
 }

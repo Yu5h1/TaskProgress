@@ -4397,158 +4397,165 @@ function xs(e, t, n, r, i, a) {
 var Ss = /* @__PURE__ */ Fr("<path d=\"M4 5h15M4 10h8M4 15h17M4 20h11\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\" stroke-linecap=\"round\"></path>"), Cs = /* @__PURE__ */ Fr("<path fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"></path><path fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\" stroke-linecap=\"round\"></path>", 1), ws = /* @__PURE__ */ Fr("<svg viewBox=\"0 0 24 24\" width=\"24\" height=\"24\" aria-hidden=\"true\"><!></svg>"), Ts = /* @__PURE__ */ K("<button type=\"button\"><svg viewBox=\"0 0 24 24\" width=\"14\" height=\"14\" aria-hidden=\"true\"><path d=\"M8 3h8l-1 7 4 4v2H5v-2l4-4-1-7Zm4 13v6\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linecap=\"round\" stroke-linejoin=\"round\"></path></svg></button>"), Es = /* @__PURE__ */ K("<div role=\"group\" tabindex=\"0\"><!> <!></div>"), Ds = /* @__PURE__ */ K("<div class=\"card-list-controls\"><div class=\"card-list-heading\"><p class=\"section-kicker\">工作項目</p> <!></div> <div class=\"card-list-tools\"><button type=\"button\" class=\"card-toolbar-icon\"><svg viewBox=\"0 0 24 24\" width=\"22\" height=\"22\" aria-hidden=\"true\"><path fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"></path></svg></button> <!> <!> <span role=\"status\"> </span></div></div> <div class=\"arrangeable-cards\"></div>", 1);
 function Os(e, t) {
 	Je(t, !1);
-	let n = /* @__PURE__ */ N(), r = /* @__PURE__ */ N(), i = /* @__PURE__ */ N(), a = $(t, "items", 24, () => []), o = $(t, "allIds", 24, () => []), s = $(t, "storageKey", 8), c = $(t, "pinEnabled", 8, !1), l = $(t, "requestedPin", 8, null), u = /* @__PURE__ */ N([]), d = null, f = $(t, "expanded", 8, !0), p = $(t, "onToggleAll", 8, () => {}), m = /* @__PURE__ */ N("forward"), h = [
+	let n = /* @__PURE__ */ N(), r = /* @__PURE__ */ N(), i = /* @__PURE__ */ N(), a = $(t, "items", 24, () => []), o = $(t, "allIds", 24, () => []), s = $(t, "storageKey", 8), c = $(t, "pinEnabled", 8, !1), l = $(t, "requestedPin", 8, null), u = $(t, "heldOrder", 8, null);
+	function d(e = a()) {
+		return ys(e, H(T), H(g), c() ? H(f) : []).map((e) => e.id);
+	}
+	let f = /* @__PURE__ */ N([]), p = null, m = $(t, "expanded", 8, !0), h = $(t, "onToggleAll", 8, () => {}), g = /* @__PURE__ */ N("forward"), _ = [
 		"forward",
 		"reverse",
 		"free"
-	], g = {
+	], v = {
 		forward: "順排",
 		reverse: "逆排",
 		free: "自由排序（可拖曳）"
-	}, _ = /* @__PURE__ */ N("disabled"), v = /* @__PURE__ */ N([]);
-	function y() {
+	}, y = /* @__PURE__ */ N("disabled"), b = /* @__PURE__ */ N([]);
+	function x() {
 		if (s()) try {
 			sessionStorage.setItem(`${s()}:visibility`, JSON.stringify({
-				mode: H(_),
-				hiddenIds: H(v)
+				mode: H(y),
+				hiddenIds: H(b)
 			}));
 		} catch {}
 	}
-	function b(e) {
-		let t = hs(H(_), H(v), e);
-		P(_, t.mode), P(v, t.hiddenIds), ue(), y();
-	}
-	function x(e, t) {
-		P(v, t ? H(v).filter((t) => t !== e) : [.../* @__PURE__ */ new Set([...H(v), e])]), ue(), y();
-	}
 	function S(e) {
-		H(_) === "closed" && P(_, "enabled"), x(e, !0);
+		let t = hs(H(y), H(b), e);
+		P(y, t.mode), P(b, t.hiddenIds), fe(), x();
 	}
-	let C = /* @__PURE__ */ N(null), w = /* @__PURE__ */ N(null), T = /* @__PURE__ */ N(null), E = /* @__PURE__ */ N(null), ee = /* @__PURE__ */ N(null), te = /* @__PURE__ */ N(), D = /* @__PURE__ */ N("");
-	function ne(e, t, n, r) {
+	function C(e, t) {
+		P(b, t ? H(b).filter((t) => t !== e) : [.../* @__PURE__ */ new Set([...H(b), e])]), fe(), x();
+	}
+	function w(e) {
+		H(y) === "closed" && P(y, "enabled"), C(e, !0);
+	}
+	let T = /* @__PURE__ */ N(null), E = /* @__PURE__ */ N(null), ee = /* @__PURE__ */ N(null), te = /* @__PURE__ */ N(null), D = /* @__PURE__ */ N(null), ne = /* @__PURE__ */ N(), re = /* @__PURE__ */ N("");
+	function ie(e, t, n, r) {
 		if (!r || !e || !n.length) return;
 		let i = JSON.stringify([t, e]);
-		if (d !== i) {
-			if (d = i, !n.includes(e)) {
-				P(D, `找不到卡片 ID：${e}`);
+		if (p !== i) {
+			if (p = i, !n.includes(e)) {
+				P(re, `找不到卡片 ID：${e}`);
 				return;
 			}
-			P(u, vs(H(u), e)), S(e), re();
+			P(f, vs(H(f), e)), w(e), ae();
 		}
 	}
-	function re() {
+	function ae() {
 		if (!s()) {
-			P(D, "釘選僅保留於本頁");
+			P(re, "釘選僅保留於本頁");
 			return;
 		}
 		try {
-			localStorage.setItem(`${s()}:pins`, JSON.stringify(H(u))), P(D, "已記住本機釘選");
+			localStorage.setItem(`${s()}:pins`, JSON.stringify(H(f))), P(re, "已記住本機釘選");
 		} catch {
-			P(D, "此環境無法保存檢視設定；釘選僅保留於本頁");
+			P(re, "此環境無法保存檢視設定；釘選僅保留於本頁");
 		}
 	}
-	function ie(e) {
-		ue(), P(u, H(u).includes(e) ? H(u).filter((t) => t !== e) : vs(H(u), e)), re();
+	function oe(e) {
+		fe(), P(f, H(f).includes(e) ? H(f).filter((t) => t !== e) : vs(H(f), e)), ae();
 	}
-	function ae(e) {
-		if (d = null, P(u, []), e) try {
+	function se(e) {
+		if (p = null, P(f, []), e) try {
 			let t = JSON.parse(localStorage.getItem(`${e}:pins`) ?? "null");
-			P(u, Array.isArray(t) ? [...new Set(t.filter((e) => typeof e == "string" || typeof e == "number"))] : []);
+			P(f, Array.isArray(t) ? [...new Set(t.filter((e) => typeof e == "string" || typeof e == "number"))] : []);
 		} catch {}
-		if (P(_, "disabled"), P(v, []), e) try {
+		if (P(y, "disabled"), P(b, []), e) try {
 			let t = JSON.parse(sessionStorage.getItem(`${e}:visibility`));
-			P(_, [
+			P(y, [
 				"enabled",
 				"closed",
 				"disabled"
-			].includes(t?.mode) ? t.mode : t?.enabled === !0 ? "enabled" : "disabled"), P(v, Array.isArray(t?.hiddenIds) ? t.hiddenIds : []);
+			].includes(t?.mode) ? t.mode : t?.enabled === !0 ? "enabled" : "disabled"), P(b, Array.isArray(t?.hiddenIds) ? t.hiddenIds : []);
 		} catch {}
-		if (P(w, null), P(T, null), P(E, null), P(ee, null), !e) {
-			P(C, null), P(m, "forward");
+		if (P(E, null), P(ee, null), P(te, null), P(D, null), !e) {
+			P(T, null), P(g, "forward");
 			return;
 		}
 		try {
 			let t = JSON.parse(localStorage.getItem(e) ?? "null");
-			P(C, Array.isArray(t) ? t : null);
+			P(T, Array.isArray(t) ? t : null);
 			let n = localStorage.getItem(`${e}:mode`);
-			P(m, h.includes(n) ? n : H(C) ? "free" : "forward");
+			P(g, _.includes(n) ? n : H(T) ? "free" : "forward");
 		} catch {
-			P(C, null), P(m, "forward");
+			P(T, null), P(g, "forward");
 		}
 	}
-	function oe(e) {
-		if (P(C, e), !s()) {
-			P(D, "順序僅保留於本頁");
+	function ce(e) {
+		if (P(T, e), !s()) {
+			P(re, "順序僅保留於本頁");
 			return;
 		}
 		try {
-			e ? localStorage.setItem(s(), JSON.stringify(e)) : localStorage.removeItem(s()), P(D, e ? "已記住本機卡片順序" : "已還原排序");
+			e ? localStorage.setItem(s(), JSON.stringify(e)) : localStorage.removeItem(s()), P(re, e ? "已記住本機卡片順序" : "已還原排序");
 		} catch {
-			P(D, "此環境無法保存檢視設定；順序僅保留於本頁");
+			P(re, "此環境無法保存檢視設定；順序僅保留於本頁");
 		}
 	}
-	function se(e) {
-		if (ue(), P(m, e), P(D, ""), s()) try {
-			localStorage.setItem(`${s()}:mode`, H(m));
+	function le(e) {
+		if (fe(), P(g, e), P(re, ""), s()) try {
+			localStorage.setItem(`${s()}:mode`, H(g));
 		} catch {
-			P(D, "此環境無法保存檢視設定；順序僅保留於本頁");
+			P(re, "此環境無法保存檢視設定；順序僅保留於本頁");
 		}
 	}
-	async function ce(e, t, n) {
-		H(m) === "free" && (c() && (H(u).includes(e) || H(u).includes(t)) || e !== t && (oe(xs(o(), H(C), H(r).map((e) => e.id), e, t, n)), P(w, e), await vr(), [...H(te).querySelectorAll("[data-card-id]")].find((t) => t.dataset.cardId === String(e))?.focus()));
+	async function ue(e, t, n) {
+		H(g) === "free" && (c() && (H(f).includes(e) || H(f).includes(t)) || e !== t && (ce(xs(o(), H(T), H(r).map((e) => e.id), e, t, n)), P(E, e), await vr(), [...H(ne).querySelectorAll("[data-card-id]")].find((t) => t.dataset.cardId === String(e))?.focus()));
 	}
-	function le(e, t) {
+	function de(e, t) {
 		let n = H(r).findIndex((t) => t.id === e);
 		if (n < 0) return;
 		let i = H(r)[n + t];
-		i && ce(e, i.id, t > 0);
+		i && ue(e, i.id, t > 0);
 	}
-	function ue() {
-		P(T, null), P(E, null), P(ee, null);
+	function fe() {
+		P(ee, null), P(te, null), P(D, null);
 	}
-	function de(e, t) {
-		if (c() && H(u).includes(e.id) || H(E) === null || H(E) === e.id) return;
+	function pe(e, t) {
+		if (c() && H(f).includes(e.id) || H(te) === null || H(te) === e.id) return;
 		t.preventDefault(), t.dataTransfer.dropEffect = "move";
 		let n = t.currentTarget.getBoundingClientRect();
-		P(ee, {
+		P(D, {
 			id: e.id,
 			after: t.clientY >= n.top + n.height / 2
 		});
 	}
-	R(() => H(_), () => {
-		P(n, H(_) === "enabled");
-	}), R(() => (W(a()), H(C), H(m), W(c()), H(u)), () => {
-		P(i, ys(a(), H(C), H(m), c() ? H(u) : []));
-	}), R(() => (H(i), H(_), H(v), W(c()), H(u)), () => {
-		P(r, H(i).filter((e) => ms(e.id, H(_), H(v)) && !(c() && H(u).includes(e.id))));
+	R(() => H(y), () => {
+		P(n, H(y) === "enabled");
+	}), R(() => (W(a()), H(T), H(g), W(c()), H(f), W(u())), () => {
+		P(i, bs(ys(a(), H(T), H(g), c() ? H(f) : []), u()));
+	}), R(() => (H(i), H(y), H(b), W(c()), H(f)), () => {
+		P(r, H(i).filter((e) => ms(e.id, H(y), H(b)) && !(c() && H(f).includes(e.id))));
 	}), R(() => W(s()), () => {
-		ae(s());
+		se(s());
 	}), R(() => (W(l()), W(s()), W(o()), W(c())), () => {
-		ne(l(), s(), o(), c());
+		ie(l(), s(), o(), c());
 	}), Mn();
-	var fe = { revealCard: S };
+	var me = {
+		orderedIds: d,
+		revealCard: w
+	};
 	Hi();
-	var pe = Ds(), me = I(pe), he = F(me);
-	ci(L(F(he), 2), t, "filters", {}, null), A(he);
-	var ge = L(he, 2), _e = F(ge), ve = F(_e), ye = F(ve);
-	A(ve), A(_e);
-	var be = L(_e, 2);
+	var he = Ds(), ge = I(he), _e = F(ge);
+	ci(L(F(_e), 2), t, "filters", {}, null), A(_e);
+	var ve = L(_e, 2), ye = F(ve), be = F(ye), xe = F(be);
+	A(be), A(ye);
+	var Se = L(ye, 2);
 	{
-		let e = /* @__PURE__ */ j(() => U(() => h.map((e) => ({
+		let e = /* @__PURE__ */ j(() => U(() => _.map((e) => ({
 			id: e,
-			label: g[e]
+			label: v[e]
 		}))));
-		ds(be, {
+		ds(Se, {
 			get items() {
 				return H(e);
 			},
 			get value() {
-				return H(m);
+				return H(g);
 			},
 			label: "排序",
 			interaction: "both",
 			orientation: "vertical",
-			onChoose: se,
+			onChoose: le,
 			$$slots: { icon: (e, t) => {
 				let n = /* @__PURE__ */ j(() => t.item);
 				var r = ws(), i = F(r), a = (e) => {
@@ -4565,17 +4572,17 @@ function Os(e, t) {
 			} }
 		});
 	}
-	var xe = L(be, 2);
-	ps(xe, {
+	var Ce = L(Se, 2);
+	ps(Ce, {
 		get mode() {
-			return H(_);
+			return H(y);
 		},
-		onChoose: b
+		onChoose: S
 	});
-	var Se = L(xe, 2), Ce = F(Se, !0);
-	A(Se), A(ge), A(me);
-	var we = L(me, 2);
-	return X(we, 5, () => H(i), (e) => e.id, (e, r) => {
+	var we = L(Ce, 2), Te = F(we, !0);
+	A(we), A(ve), A(ge);
+	var Ee = L(ge, 2);
+	return X(Ee, 5, () => H(i), (e) => e.id, (e, r) => {
 		var i = Es();
 		let a;
 		var o = F(i), s = (e) => {
@@ -4585,19 +4592,19 @@ function Os(e, t) {
 			A(i), A(t), z((e, r, i, o, s) => {
 				n = Z(t, 1, "card-pin", null, n, e), Q(t, "aria-label", r), Q(t, "aria-pressed", i), Q(t, "title", o), Q(a, "fill", s);
 			}, [
-				() => ({ "is-pinned": H(u).includes(H(r).id) }),
-				() => (H(u), H(r), U(() => H(u).includes(H(r).id) ? `取消釘選：${H(r).title}` : `釘選置頂：${H(r).title}`)),
-				() => (H(u), H(r), U(() => H(u).includes(H(r).id))),
-				() => (H(u), H(r), U(() => H(u).includes(H(r).id) ? "取消釘選" : "釘選置頂")),
-				() => (H(u), H(r), U(() => H(u).includes(H(r).id) ? "currentColor" : "none"))
-			]), G("click", t, () => ie(H(r).id)), q(e, t);
+				() => ({ "is-pinned": H(f).includes(H(r).id) }),
+				() => (H(f), H(r), U(() => H(f).includes(H(r).id) ? `取消釘選：${H(r).title}` : `釘選置頂：${H(r).title}`)),
+				() => (H(f), H(r), U(() => H(f).includes(H(r).id))),
+				() => (H(f), H(r), U(() => H(f).includes(H(r).id) ? "取消釘選" : "釘選置頂")),
+				() => (H(f), H(r), U(() => H(f).includes(H(r).id) ? "currentColor" : "none"))
+			]), G("click", t, () => oe(H(r).id)), q(e, t);
 		};
 		Y(o, (e) => {
 			c() && e(s);
 		});
 		var l = L(o, 2);
 		{
-			let e = /* @__PURE__ */ j(() => (H(v), H(r), U(() => !H(v).includes(H(r).id))));
+			let e = /* @__PURE__ */ j(() => (H(b), H(r), U(() => !H(b).includes(H(r).id))));
 			ci(l, t, "default", {
 				get item() {
 					return H(r);
@@ -4608,31 +4615,31 @@ function Os(e, t) {
 				get visible() {
 					return H(e);
 				},
-				onVisibleChange: (e) => x(H(r).id, e)
+				onVisibleChange: (e) => C(H(r).id, e)
 			}, null);
 		}
 		A(i), z((e) => {
 			Q(i, "hidden", e), a = Z(i, 1, "arrangeable-card", null, a, {
-				"card-selected": H(w) === H(r).id,
-				"card-drop-before": H(ee)?.id === H(r).id && !H(ee).after,
-				"card-drop-after": H(ee)?.id === H(r).id && H(ee).after
-			}), Q(i, "aria-label", (H(r), H(w), U(() => `${H(r).title}${H(w) === H(r).id ? "，已選取" : ""}`))), Q(i, "data-card-id", (H(r), U(() => H(r).id))), Q(i, "draggable", (H(m), H(T), H(r), U(() => H(m) === "free" && H(T) === H(r).id)));
-		}, [() => (W(ms), H(r), H(_), H(v), U(() => !ms(H(r).id, H(_), H(v))))]), G("pointerdown", i, (e) => {
-			P(T, null), e.button === 0 && (e.target.closest("button, a, input, textarea, select, label, [contenteditable], [role=\"button\"], [role=\"checkbox\"]") || (P(w, H(r).id), !(H(m) !== "free" || e.pointerType !== "mouse" || c() && H(u).includes(H(r).id)) && (e.target.closest("button, a, input, textarea, select, label, [contenteditable], [role=\"button\"], [role=\"checkbox\"], h1, h2, h3, p, span, strong, code, dt, dd, li, svg") || P(T, H(r).id))));
+				"card-selected": H(E) === H(r).id,
+				"card-drop-before": H(D)?.id === H(r).id && !H(D).after,
+				"card-drop-after": H(D)?.id === H(r).id && H(D).after
+			}), Q(i, "aria-label", (H(r), H(E), U(() => `${H(r).title}${H(E) === H(r).id ? "，已選取" : ""}`))), Q(i, "data-card-id", (H(r), U(() => H(r).id))), Q(i, "draggable", (H(g), H(ee), H(r), U(() => H(g) === "free" && H(ee) === H(r).id)));
+		}, [() => (W(ms), H(r), H(y), H(b), U(() => !ms(H(r).id, H(y), H(b))))]), G("pointerdown", i, (e) => {
+			P(ee, null), e.button === 0 && (e.target.closest("button, a, input, textarea, select, label, [contenteditable], [role=\"button\"], [role=\"checkbox\"]") || (P(E, H(r).id), !(H(g) !== "free" || e.pointerType !== "mouse" || c() && H(f).includes(H(r).id)) && (e.target.closest("button, a, input, textarea, select, label, [contenteditable], [role=\"button\"], [role=\"checkbox\"], h1, h2, h3, p, span, strong, code, dt, dd, li, svg") || P(ee, H(r).id))));
 		}), G("pointerup", i, () => {
-			P(T, null);
+			P(ee, null);
 		}), G("keydown", i, (e) => {
-			e.target === e.currentTarget && (e.key === "Enter" || e.key === " " ? (e.preventDefault(), P(w, H(r).id)) : e.key === "Escape" && P(w, null), H(m) === "free" && e.target === e.currentTarget && e.altKey && ["ArrowUp", "ArrowDown"].includes(e.key) && (e.preventDefault(), le(H(r).id, e.key === "ArrowUp" ? -1 : 1)));
+			e.target === e.currentTarget && (e.key === "Enter" || e.key === " " ? (e.preventDefault(), P(E, H(r).id)) : e.key === "Escape" && P(E, null), H(g) === "free" && e.target === e.currentTarget && e.altKey && ["ArrowUp", "ArrowDown"].includes(e.key) && (e.preventDefault(), de(H(r).id, e.key === "ArrowUp" ? -1 : 1)));
 		}), Er("dragstart", i, (e) => {
-			H(m) === "free" && H(T) === H(r).id && e.target === e.currentTarget && (P(E, H(r).id), e.dataTransfer.effectAllowed = "move", e.dataTransfer.setData("text/plain", String(H(r).id)));
-		}), Er("dragend", i, ue), Er("dragover", i, (e) => de(H(r), e)), Er("dragleave", i, (e) => {
-			e.currentTarget.contains(e.relatedTarget) || P(ee, null);
+			H(g) === "free" && H(ee) === H(r).id && e.target === e.currentTarget && (P(te, H(r).id), e.dataTransfer.effectAllowed = "move", e.dataTransfer.setData("text/plain", String(H(r).id)));
+		}), Er("dragend", i, fe), Er("dragover", i, (e) => pe(H(r), e)), Er("dragleave", i, (e) => {
+			e.currentTarget.contains(e.relatedTarget) || P(D, null);
 		}), Er("drop", i, (e) => {
-			H(E) !== null && H(ee)?.id === H(r).id && (e.preventDefault(), ce(H(E), H(r).id, H(ee).after), ue());
+			H(te) !== null && H(D)?.id === H(r).id && (e.preventDefault(), ue(H(te), H(r).id, H(D).after), fe());
 		}), q(e, i);
-	}), A(we), Vi(we, (e) => P(te, e), () => H(te)), z(() => {
-		Q(_e, "aria-label", f() ? "全部收合" : "全部展開"), Q(_e, "title", f() ? "全部收合" : "全部展開"), Q(ye, "d", f() ? "M5 15l7-7 7 7" : "M5 9l7 7 7-7"), J(Ce, H(D));
-	}), G("click", _e, () => p()(!f())), q(e, pe), zi(t, "revealCard", S), Ye(fe);
+	}), A(Ee), Vi(Ee, (e) => P(ne, e), () => H(ne)), z(() => {
+		Q(ye, "aria-label", m() ? "全部收合" : "全部展開"), Q(ye, "title", m() ? "全部收合" : "全部展開"), Q(xe, "d", m() ? "M5 15l7-7 7 7" : "M5 9l7 7 7-7"), J(Te, H(re));
+	}), G("click", ye, () => h()(!m())), q(e, he), zi(t, "orderedIds", d), zi(t, "revealCard", w), Ye(me);
 }
 Dr([
 	"click",

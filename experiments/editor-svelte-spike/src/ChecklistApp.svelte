@@ -10,6 +10,8 @@
   } from "../../../viewer/assets/checklist-editor.js";
   import {
     createFilterSelection,
+    loadFilterSelection,
+    saveFilterSelection,
     isDefaultLit,
     toggleDefault,
     toggleTag,
@@ -95,6 +97,11 @@
   const FILTER_TAGS = ["pending", "passed", "failed"];
 
   let selection = createFilterSelection(FILTER_TAGS);
+  let filterKey = null;
+  $: if (disclosureKey && filterKey !== `${disclosureKey}:filters`) {
+    filterKey = `${disclosureKey}:filters`;
+    selection = loadFilterSelection(filterKey, FILTER_TAGS);
+  }
   const filterOrder = createChecklistFilterOrder({
     supportedIds: [DEFAULT_CAPSULE_ID, ...FILTER_TAGS],
   });
@@ -102,10 +109,12 @@
 
   function selectTag(id) {
     selection = toggleTag(selection, id);
+    saveFilterSelection(filterKey, selection);
   }
 
   function selectDefault() {
     selection = toggleDefault(selection);
+    saveFilterSelection(filterKey, selection);
   }
 
   function reorderFilter(id, targetId, placeAfter) {
@@ -146,6 +155,7 @@
     cardList?.revealCard(next.workItemId);
     setItemExpanded(next.workItemId, true);
     selection = createFilterSelection(FILTER_TAGS);
+    saveFilterSelection(filterKey, selection);
     await tick();
     const target = document.getElementById(`check-${next.workItemId}-${next.checkIndex}`);
     target?.focus({ preventScroll: true });

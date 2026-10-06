@@ -4,7 +4,7 @@
   import CardList from "./CardList.svelte";
   import CardDisclosure from "./CardDisclosure.svelte";
   import FilterStrip from "./FilterStrip.svelte";
-  import { DEFAULT_CAPSULE_ID, createFilterSelection, isDefaultLit, toggleTag, toggleDefault } from "../../../viewer/assets/filter-selection.js";
+  import { DEFAULT_CAPSULE_ID, createFilterSelection, loadFilterSelection, saveFilterSelection, isDefaultLit, toggleTag, toggleDefault } from "../../../viewer/assets/filter-selection.js";
   import ThemeControl from "./ThemeControl.svelte";
   import { createThemeControl } from "../../../viewer/assets/theme-control.js";
   import { createDecisionSession } from "../../../viewer/assets/decision-session.js";
@@ -13,7 +13,22 @@
   export let onPersistenceChange = () => {};
   let session, view, summary, message = "載入中…", expanded = true, overrides = {}, cardList;
   let selection = createFilterSelection(["pending", "decided"]);
-  let theme, themeState, failedId = null, replacementId = null;
+  let filterKey = null;
+  function setSelection(next) { selection = next; saveFilterSelection(filterKey, selection); }
+  let theme, themeState, failedIds = new Set(), refreshing = false;
+  const queuedIds = new Set();
+  let activeCard = null, heldOrder = null, shell;
+  $: visibleDecisions = decisions.filter(d => heldOrder ? heldOrder.includes(d.id) : selection.selected.has(d.status));
+  function releaseCard() { activeCard = null; heldOrder = null; }
+  function trackCard(event) {
+    const card = event.target?.closest?.(".arrangeable-card");
+    if (!card || !shell?.contains(card)) { releaseCard(); return; }
+    const id = card.dataset.cardId;
+    if (activeCard === id) return;
+    activeCard = id;
+    const nextItems = decisions.filter(d => selection.selected.has(d.status) || d.id === id);
+    heldOrder = cardList?.orderedIds(nextItems) ?? nextItems.map(d => d.id);
+  }
   function readTheme() { themeState = {mode:theme.mode,custom:theme.custom,systemScheme:theme.systemScheme}; }
   $: decisions = view?.snapshot.document.decisions ?? [];
   $: dirty = !!view?.dirty || !!view?.pending;
@@ -21,16 +36,20 @@
   $: storageKey = view ? `taskprogress.decisions:${view.snapshot.document_key}` : null;
   const sync = () => { view = session.view(); };
   const edit = (id, fields) => { session.edit(id, fields); sync(); };
-  const confirmSelection = id => { const operation = session.saveOperation(id); if (operation) return send(id, operation); };
+  const confirmSelection = id => {
+    queuedIds.add(id);
+    failedIds = new Set([...failedIds].filter(key => key !== id));
+    if (refreshing) return;
+    const operation = session.saveOperation(id);
+    if (operation) return send(id, operation);
+  };
   function choose(id, choice) {
-    if (view.pending) return;
+    if (view.pending && !view.busy) return;
     edit(id, {choice});
-    if (choice !== "__other" || !view.drafts[id]?.other.trim()) return confirmSelection(id);
+    return confirmSelection(id);
   }
-  function finishOther(id, event) {
-    // Let a replacement choice win over the textarea blur.
-    const target = event.relatedTarget;
-    if (replacementId === id || target?.closest("fieldset") === event.currentTarget.closest("fieldset")) return;
+  function changeOther(id, text) {
+    edit(id, {choice: "__other", other: text});
     confirmSelection(id);
   }
   function disclose(id, value) { overrides = { ...overrides, [id]: value }; saveDisclosure(storageKey, expanded, overrides); }
@@ -41,6 +60,8 @@
       if (!result.ok) throw new Error(result.error.message);
       if (result.files) { summary = result; message = ""; return; }
       session = createDecisionSession(result); sync();
+      filterKey = `taskprogress.filters.decisions.v1:${result.document_key}`;
+      selection = loadFilterSelection(filterKey, ["pending", "decided"]);
       const saved = loadDisclosure(`taskprogress.decisions:${result.document_key}`); expanded = saved.expanded; overrides = saved.overrides;
       message = "";
     } catch (error) { message = error.message; }
@@ -50,33 +71,52 @@
     load();
     const leave = e => { if (dirty) { e.preventDefault(); e.returnValue = ""; } };
     window.addEventListener("beforeunload", leave);
-    return () => { window.removeEventListener("beforeunload", leave); theme?.destroy?.(); };
+    document.addEventListener("pointerdown", trackCard, true);
+    document.addEventListener("focusin", trackCard, true);
+    window.addEventListener("blur", releaseCard);
+    return () => {
+      window.removeEventListener("beforeunload", leave);
+      document.removeEventListener("pointerdown", trackCard, true);
+      document.removeEventListener("focusin", trackCard, true);
+      window.removeEventListener("blur", releaseCard);
+      theme?.destroy?.();
+    };
   });
   async function send(id, operation = "confirm", retry = false) {
     try {
-      const request = retry ? session.retry() : session.begin(id, operation); failedId = null; sync();
+      const request = retry ? session.retry() : session.begin(id, operation);
+      if (!retry) queuedIds.delete(request.decision_id);
+      sync();
+      message = "保存中…";
       let result;
       try { result = await transport.request(request); }
       catch (error) { session.failed(); sync(); message = `結果未確認：${error.message}`; return; }
       session.complete(result); sync();
       message = result.ok ? "已保存；以下顯示最新狀態。" : result.error.message;
       if (!result.ok) {
-        failedId = request.decision_id;
-        const fresh = await transport.load();
-        if (fresh.ok) { session.merge(fresh); sync(); }
+        queuedIds.delete(request.decision_id);
+        failedIds = new Set([...failedIds, request.decision_id]);
+        refreshing = true;
+        try {
+          const fresh = await transport.load();
+          if (fresh.ok) { session.merge(fresh); sync(); }
+        } catch (error) { message = error.message; }
+        finally { refreshing = false; }
       }
+      const nextId = [...queuedIds].find(key => !failedIds.has(key) && session.saveOperation(key));
+      if (nextId) await send(nextId, session.saveOperation(nextId));
     } catch (error) { message = error.message; }
   }
   async function next() {
     const target = decisions.find(d => d.status === "pending");
     if (!target) return;
-    if (!selection.selected.has("pending")) selection = toggleTag(selection, "pending");
+    if (!selection.selected.has("pending")) setSelection(toggleTag(selection, "pending"));
     disclose(target.id, true); await tick();
     cardList?.revealCard(target.id); await tick(); document.getElementById(`decision-${target.id}`)?.focus();
   }
 </script>
 
-<main class="checklist-shell decisions-shell">
+<main class="checklist-shell decisions-shell" bind:this={shell}>
   <header class="checklist-header"><h1>決策項目</h1>
     {#if themeState}<ThemeControl mode={themeState.mode} custom={themeState.custom} systemScheme={themeState.systemScheme}
       onModeChange={mode => { theme.setMode(mode); readTheme(); }}
@@ -93,20 +133,20 @@
   {:else if view}
     <div class="decision-overview">
     <p>待決策 {decisions.filter(d => d.status === "pending").length}／全部 {decisions.length}</p>
-    <p>選項可隨時修改，選取即保存；「其他」填寫理由後離開輸入框保存，空白則為待決策。保存失敗會保留修改供重試。</p>
+    <p>選項可隨時修改；「其他」文字一更動就自動保存，空白則為待決策。保存失敗會保留修改供重試。</p>
     </div>
     <div class="decision-controls">
     <button onclick={next} disabled={!decisions.some(d => d.status === "pending")}>下一項待決策</button>
 
     </div>
     {#if view.pending && !view.busy}<button onclick={() => send(null, null, true)}>查核／重試原請求</button>{/if}
-    {#if !decisions.some(d => selection.selected.has(d.status))}<p>目前沒有符合條件的決策項目。</p>{/if}
-    <CardList bind:this={cardList} items={decisions.filter(d => selection.selected.has(d.status)).map(d => ({...d,title:d.question}))} allIds={decisions.map(d => d.id)} {storageKey}
+    {#if !visibleDecisions.length}<p>目前沒有符合條件的決策項目。</p>{/if}
+    <CardList bind:this={cardList} items={visibleDecisions.map(d => ({...d,title:d.question}))} allIds={decisions.map(d => d.id)} {storageKey} {heldOrder}
       {expanded} onToggleAll={all} let:item let:visibilityEnabled let:visible let:onVisibleChange>
       <svelte:fragment slot="filters">
     <FilterStrip categories={[{id:"pending",label:"待決策"},{id:"decided",label:"已決策"}]} order={[DEFAULT_CAPSULE_ID,"pending","decided"]}
       selected={selection.selected} defaultLit={isDefaultLit(selection)} defaultLabel="全部"
-      onSelect={id => selection = toggleTag(selection, id)} onSelectDefault={() => selection = toggleDefault(selection)} />
+      onSelect={id => setSelection(toggleTag(selection, id))} onSelectDefault={() => setSelection(toggleDefault(selection))} />
       </svelte:fragment>
       {@const draft = Object.hasOwn(view.drafts, item.id) ? view.drafts[item.id] : null}
       {@const choice = draft ? draft.choice : item.answer?.kind === "other" ? "__other" : item.answer?.option_id ?? ""}
@@ -119,9 +159,7 @@
           {#if item.context}<p class="decision-text">{item.context}</p>{/if}
           {#if item.recommendation}<p>建議：{item.options.find(o => o.id === item.recommendation.option_id)?.label} — {item.recommendation.reason}</p>{/if}
           </div>{/if}
-            <fieldset disabled={!!view.pending || draft?.conflict}
-              onpointerdown={e => replacementId = e.target.closest(".decision-option") ? item.id : null}
-              onpointerup={() => replacementId = null} onpointercancel={() => replacementId = null}>
+            <fieldset disabled={(!!view.pending && !view.busy) || draft?.conflict}>
               <legend class="decision-visually-hidden">{item.question}</legend>
               {#each item.options as option, index}
                 <label class="decision-option"><input type="radio" name={`answer-${item.id}`} checked={choice === option.id}
@@ -130,13 +168,13 @@
                     {#if option.description}<small>{option.description}</small>{/if}</span></label>
               {/each}
               {#if item.allow_other}<label class="decision-option"><input type="radio" name={`answer-${item.id}`} checked={choice === "__other"}
-                onchange={async () => { await choose(item.id, "__other"); await tick(); document.getElementById(`other-${item.id}`)?.focus(); }} /><span>其他</span></label>
-                <div class="decision-other"><label for={`other-${item.id}`}>其他方案與理由</label><textarea id={`other-${item.id}`} value={draft ? draft.other : item.answer?.kind === "other" ? item.answer.text : ""} oninput={e => edit(item.id, {choice:"__other", other:e.currentTarget.value})} onblur={e => finishOther(item.id, e)}></textarea></div>{/if}
+                onchange={async () => { choose(item.id, "__other"); await tick(); if (activeCard === item.id) document.getElementById(`other-${item.id}`)?.focus(); }} /><span>其他</span></label>
+                <div class="decision-other"><label for={`other-${item.id}`}>其他方案與理由</label><textarea id={`other-${item.id}`} value={draft ? draft.other : item.answer?.kind === "other" ? item.answer.text : ""} oninput={e => changeOther(item.id, e.currentTarget.value)}></textarea></div>{/if}
             </fieldset>
           {#if draft?.conflict}<p role="alert">此題已變更，原草稿保留：{draft.choice} {draft.other}</p>
             <button disabled={!!view.pending} onclick={() => { session.rebase(item.id); sync(); confirmSelection(item.id); }}>已核對最新題目，套用選擇</button>{/if}
           <div class="decision-actions">
-          {#if failedId === item.id && draft && !draft.conflict && !view.pending}<button onclick={() => confirmSelection(item.id)}>重試保存</button>{/if}
+          {#if failedIds.has(item.id) && draft && !draft.conflict && !view.pending}<button onclick={() => confirmSelection(item.id)}>重試保存</button>{/if}
           </div>
 
           </div>

@@ -6,6 +6,15 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
 
 ## Current state (2026-09-29)
 
+- **其他文字逐次輸入保存（2026-10-06）。** DecisionApp 以 input 觸發保存，取消 blur 保存與保存中鎖定欄位；單一請求串行，session 保留在途請求後的新文字並以新 revision 接續。明確失敗逐卡保留重試，待送集合不包含已失敗草稿；拒絕後 reload 期間只排隊，避免舊 snapshot 覆蓋新保存。13 項 Node 決策測試與資產建置通過；候選資產同步。正式後端仍待先前更新重啟。
+  - 下一步：部署後依 `checklists/decision-items.checklist` 第 6 項確認連續輸入、清空、保存完成後刷新及失敗重試。
+
+- **篩選標籤改存分頁 session（2026-10-06）。** Report／Decision／Checklist 接入共用 `loadFilterSelection`／`saveFilterSelection`；依來源／文件隔離，reload／foreground refresh 保留部分選取及空集合，損壞或 storage 拒絕不阻擋頁面。26 項篩選／Checklist／決策測試及四入口建置通過。
+  - 下一步：重新載入新版後切換標籤，再切離／切回及重新載入，核查 session 保留；不同 scope／文件各自記錄。
+
+- **決策卡離焦才篩選／排序（2026-10-06）。** DecisionApp 以 pointerdown／focusin 保留正在操作清單的可見 ID 與順序；同卡片輸入、換選項與保存不重排。移到另一卡片先重算最新清單，再保留新卡片；外部操作／視窗離焦解除。CardList 提供暫時 heldOrder 與正常 orderedIds 投影，其他呼叫端未啟用保留行為。19 項決策／排序 Node 測試、四入口建置、checklist 格式與獨立複核通過；候選決策資產同步。正式後端仍待先前的部署。
+  - 下一步：`checklists/decision-items.checklist` 第 6 項驗證 pending-only 下保存留位、同卡片切換欄位、跨卡片／外部／Tab 離焦後更新。
+
 - **決策移除捨棄草稿（2026-10-06）。** 一般卡片只保留失敗時的重試保存，移除 discard 按鈕及失焦例外；已移除題目的不可提交輸入仍可透過關閉提示解除。11 項決策 Node 測試及 Browser／Desktop 資產建置通過；部署候選資產同步，正式後端部署仍依下列持續編輯項目的狀態。
   - 下一步：`checklists/decision-items.checklist` 第 6 項核查實際介面。
 

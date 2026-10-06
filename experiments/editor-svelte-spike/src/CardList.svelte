@@ -3,12 +3,16 @@
   import VisibilityMenu from "./VisibilityMenu.svelte";
   import { isCardVisible, chooseVisibility } from "../../../viewer/assets/card-visibility.js";
   import { tick } from "svelte";
-  import { displayCards, moveVisibleCard, promotePin } from "../../../viewer/assets/card-order.js";
+  import { displayCards, orderCards, moveVisibleCard, promotePin } from "../../../viewer/assets/card-order.js";
   export let items = [];
   export let allIds = [];
   export let storageKey;
   export let pinEnabled = false;
   export let requestedPin = null;
+  export let heldOrder = null;
+  export function orderedIds(nextItems = items) {
+    return displayCards(nextItems, order, mode, pinEnabled ? pinnedIds : []).map(item => item.id);
+  }
   let pinnedIds = [];
   let appliedPin = null;
   export let expanded = true;
@@ -46,7 +50,7 @@
   let root;
   let notice = "";
   $: load(storageKey);
-  $: ordered = displayCards(items, order, mode, pinEnabled ? pinnedIds : []);
+  $: ordered = orderCards(displayCards(items, order, mode, pinEnabled ? pinnedIds : []), heldOrder);
   $: applyRequestedPin(requestedPin, storageKey, allIds, pinEnabled);
 
   function applyRequestedPin(id, key, ids, enabled) {

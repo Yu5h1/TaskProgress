@@ -5,6 +5,35 @@ import {readFileSync} from "node:fs";
 import {createDecisionSession} from "../viewer/assets/decision-session.js";
 const fixture = JSON.parse(readFileSync(new URL("./fixtures/decision-example.decisions",import.meta.url)));
 const initial = () => ({ok:true, document:structuredClone(fixture), revision:"a"});
+test("typing during a save keeps newest text and uses the acknowledged revision",()=>{
+  const s=createDecisionSession(initial());
+  s.edit("input",{choice:"__other",other:"第"});
+  const first=s.begin("input");
+  s.edit("input",{other:"第一段完整文字"});
+  assert.equal(s.saveOperation("input"),null);
+  const response=initial(); response.revision="b";
+  Object.assign(response.document.decisions[0],{status:"decided",answer:{...first.payload,confirmed_at:"now"}});
+  s.complete(response);
+  assert.equal(s.view().drafts.input.other,"第一段完整文字");
+  assert.equal(s.view().drafts.input.conflict,false);
+  const next=s.begin("input");
+  assert.equal(next.expected_revision,"b");
+  assert.equal(next.payload.text,"第一段完整文字");
+  s.edit("input",{other:""});
+  response.revision="c"; response.document.decisions[0].answer.text=next.payload.text;
+  s.complete(response);
+  assert.equal(s.saveOperation("input"),"reopen");
+});
+test("ambiguous saves retry original payload without losing later typing",()=>{
+  const s=createDecisionSession(initial());
+  s.edit("input",{choice:"__other",other:"原文"}); const sent=s.begin("input");
+  s.edit("input",{other:"後續文字"}); s.failed();
+  assert.deepEqual(s.retry(),sent);
+  const response=initial(); response.revision="b";
+  Object.assign(response.document.decisions[0],{status:"decided",answer:sent.payload});
+  s.complete(response);
+  assert.equal(s.begin("input").payload.text,"後續文字");
+});
 test("saved answers remain editable and clearing other retains the incomplete selection",()=>{
   const data=initial(); Object.assign(data.document.decisions[0],{status:"decided",answer:{kind:"other",text:"原理由"}});
   const s=createDecisionSession(data);

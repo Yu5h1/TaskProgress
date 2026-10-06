@@ -38,6 +38,8 @@ import { createThemeControl } from "./theme-control.js";
 import {
   DEFAULT_CAPSULE_ID,
   createFilterSelection,
+  loadFilterSelection,
+  saveFilterSelection,
   groupingOrder,
   isDefaultLit,
   toggleDefault,
@@ -166,6 +168,7 @@ const state = {
   // Seeded with every status: an empty set is a deliberate "show nothing", and
   // starting there would open the screen with no cards at all.
   selection: createFilterSelection(supportedStatuses),
+  filterStorageKey: null,
   diagnostics: [],
   developerAvailable: false,
   timeAnalysis: null,
@@ -845,11 +848,13 @@ function renderFilters() {
     reorderable: true,
     onSelect: (status) => {
       state.selection = toggleTag(state.selection, status);
+      saveFilterSelection(state.filterStorageKey, state.selection);
       renderFilters();
       renderTasks();
     },
     onSelectDefault: () => {
       state.selection = toggleDefault(state.selection);
+      saveFilterSelection(state.filterStorageKey, state.selection);
       renderFilters();
       renderTasks();
     },
@@ -1412,6 +1417,11 @@ async function main() {
 
     const merged = mergeReports(report, developerReport);
     state.report = report;
+    const filterKey = `taskprogress.filters.report.v1:${new URL(request.reportSource, location.href).href}:${report.scope_id}:${report.report_id}`;
+    if (state.filterStorageKey !== filterKey) {
+      state.selection = loadFilterSelection(filterKey, supportedStatuses);
+      state.filterStorageKey = filterKey;
+    }
     state.persistedReport = structuredClone(report);
     state.developerReport = developerReport;
     state.tasks = merged.tasks;

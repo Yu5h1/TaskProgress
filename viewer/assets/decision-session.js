@@ -4,7 +4,7 @@ const canonical = value => value && typeof value === "object"
   ? Array.isArray(value) ? value.map(canonical) : Object.fromEntries(Object.keys(value).sort().map(k => [k, canonical(value[k])])) : value;
 const same = (a, b) => JSON.stringify(canonical(a)) === JSON.stringify(canonical(b));
 export function createDecisionSession(initial) {
-  let snapshot = clone(initial), drafts = Object.create(null), pending = null, busy = false;
+  let snapshot = clone(initial), drafts = Object.create(null), pending = null, sentDraft = null, busy = false;
   const find = id => snapshot.document.decisions.find(d => d.id === id);
   function view() { return { snapshot: clone(snapshot), drafts: clone(drafts), pending: clone(pending), busy, dirty: Object.keys(drafts).length > 0 }; }
   function merge(next) {
@@ -29,7 +29,7 @@ export function createDecisionSession(initial) {
       return find(id).answer && find(id).allow_other && draft.choice === "__other" && !draft.other.trim() ? "reopen" : null;
     },
     edit(id, fields) {
-      if (pending || !find(id)) return;
+      if ((pending && !busy) || !find(id)) return;
       const answer = find(id).answer;
       drafts[id] ??= { base: clone(find(id)), choice: answer?.kind === "other" ? "__other" : answer?.option_id ?? "",
         other: answer?.kind === "other" ? answer.text : "", conflict: false };
@@ -57,6 +57,7 @@ export function createDecisionSession(initial) {
       }
       pending = { operation, decision_id: id, expected_revision: snapshot.revision,
         expected_version: decision.version, request_id: crypto.randomUUID(), payload };
+      sentDraft = draft ? clone(draft) : null;
       busy = true;
       return clone(pending);
     },
@@ -64,15 +65,25 @@ export function createDecisionSession(initial) {
     failed() { busy = false; },
     complete(response) {
       busy = false;
-      if (!response.ok) { pending = null; return; }
-      const clearing = pending?.operation === "reopen" ? pending.decision_id : null;
-      const preserved = clearing && drafts[clearing] ? clone(drafts[clearing]) : null;
+      if (!response.ok) { pending = null; sentDraft = null; return; }
+      const id = pending?.decision_id;
+      const draft = drafts[id];
+      const changed = draft && sentDraft && (draft.choice !== sentDraft.choice || draft.other !== sentDraft.other);
+      const preserved = draft && (changed || pending?.operation === "reopen") ? clone(draft) : null;
       if (pending) delete drafts[pending.decision_id];
-      pending = null;
+      pending = null; sentDraft = null;
       merge(response);
-      if (preserved && find(clearing)?.status === "pending") {
-        preserved.base = clone(find(clearing)); preserved.conflict = false;
-        drafts[clearing] = preserved;
+      if (preserved) {
+        const current = find(id);
+        // Only our answer changed; a concurrent question revision must still require review.
+        const definition = value => {
+          if (!value) return null;
+          const { answer, status, last_request, ...rest } = value;
+          return rest;
+        };
+        preserved.conflict = !current || !same(definition(preserved.base), definition(current));
+        if (!preserved.conflict) preserved.base = clone(current);
+        drafts[id] = preserved;
       }
     }
   };
