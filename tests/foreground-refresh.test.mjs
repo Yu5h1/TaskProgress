@@ -125,5 +125,5 @@ test("Report and Checklist Browser wire the shared lifecycle at host boundaries"
   }
   assert.doesNotMatch(checklistDesktop, /installForegroundRefresh/u);
   assert.match(checklistApp, /export let onPersistenceChange = \(\) => \{\}/u);
-  assert.match(checklistApp, /\$: onPersistenceChange\(view\)/u);
+  assert.match(checklistApp, /\$: onPersistenceChange\(view \? \{ \.\.\.view, pending: view\.pending \|\| resetOpen \|\| resetBusy \} : view\)/u);
 });

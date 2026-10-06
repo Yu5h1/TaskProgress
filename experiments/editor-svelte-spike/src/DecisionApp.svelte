@@ -2,6 +2,7 @@
   // Hosts decision content in the same card and dialog components as Checklist.
   import { onMount, tick } from "svelte";
   import CardList from "./CardList.svelte";
+  import FocusShield from "./FocusShield.svelte";
   import CardDisclosure from "./CardDisclosure.svelte";
   import FilterStrip from "./FilterStrip.svelte";
   import { DEFAULT_CAPSULE_ID, createFilterSelection, loadFilterSelection, saveFilterSelection, isDefaultLit, toggleTag, toggleDefault } from "../../../viewer/assets/filter-selection.js";
@@ -116,6 +117,7 @@
   }
 </script>
 
+<FocusShield />
 <main class="checklist-shell decisions-shell" bind:this={shell}>
   <header class="checklist-header"><h1>決策項目</h1>
     {#if themeState}<ThemeControl mode={themeState.mode} custom={themeState.custom} systemScheme={themeState.systemScheme}

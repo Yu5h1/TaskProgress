@@ -22,6 +22,7 @@
   import { createThemeControl } from "../../../viewer/assets/theme-control.js";
   import CardDisclosure from "./CardDisclosure.svelte";
   import CardList from "./CardList.svelte";
+  import FocusShield from "./FocusShield.svelte";
   import DialogShell from "./DialogShell.svelte";
   import FilterStrip from "./FilterStrip.svelte";
   import MarkerBox from "./MarkerBox.svelte";
@@ -241,6 +242,7 @@
   }
 </script>
 
+<FocusShield />
 <main class="checklist-page">
   <header class="checklist-header">
     <div>

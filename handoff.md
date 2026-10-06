@@ -6,6 +6,9 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
 
 ## Current state (2026-09-29)
 
+- **決策／Checklist 失焦遮罩（2026-10-06）。** 共用 `FocusShield.svelte`／`focus-shield.js`：blur／hidden 以 top-layer modal 遮蔽，window capture 消耗恢復焦點的 click 或 Enter／Space keyup；focus 本身不解鎖，Escape 不繞過。session flag 跨 Browser foreground reload 保持阻擋；不變更既有保存／草稿。8 項焦點與 foreground-refresh 測試、三入口建置、獨立複核與 checklist validate 通過；修正一條舊 pending callback wiring 測試斷言。Browser／Desktop 源資產及 Build／Debug／候選 UI 資產同步，未重啟服務。
+  - 下一步：`checklists/decision-items.checklist` 第 6 項「失焦防誤觸」核查真實 Browser／WebView2、對話框與鍵盤事件順序。
+
 - **其他文字逐次輸入保存（2026-10-06）。** DecisionApp 以 input 觸發保存，取消 blur 保存與保存中鎖定欄位；單一請求串行，session 保留在途請求後的新文字並以新 revision 接續。明確失敗逐卡保留重試，待送集合不包含已失敗草稿；拒絕後 reload 期間只排隊，避免舊 snapshot 覆蓋新保存。13 項 Node 決策測試與資產建置通過；候選資產同步。正式後端仍待先前更新重啟。
   - 下一步：部署後依 `checklists/decision-items.checklist` 第 6 項確認連續輸入、清空、保存完成後刷新及失敗重試。
 
