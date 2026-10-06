@@ -14,7 +14,7 @@
   export let onPersistenceChange = () => {};
   let session, view, summary, message = "載入中…", expanded = true, overrides = {}, cardList, reopenId = null;
   let selection = toggleTag(createFilterSelection(["pending", "decided"]), "decided");
-  let theme, themeState;
+  let theme, themeState, failedId = null, replacementId = null;
   function readTheme() { themeState = {mode:theme.mode,custom:theme.custom,systemScheme:theme.systemScheme}; }
   $: decisions = view?.snapshot.document.decisions ?? [];
   $: dirty = !!view?.dirty || !!view?.pending;
@@ -22,6 +22,19 @@
   $: storageKey = view ? `taskprogress.decisions:${view.snapshot.document_key}` : null;
   const sync = () => { view = session.view(); };
   const edit = (id, fields) => { session.edit(id, fields); sync(); };
+  const confirmSelection = id => { if (session.canConfirm(id)) return send(id); };
+  function choose(id, choice) {
+    if (view.pending) return;
+    edit(id, {choice});
+    if (choice !== "__other") confirmSelection(id);
+  }
+  function finishOther(id, event) {
+    // Let a replacement choice or an explicit discard win over the textarea blur.
+    const target = event.relatedTarget;
+    if (replacementId === id || target?.closest("fieldset") === event.currentTarget.closest("fieldset") ||
+        target?.dataset.decisionDiscard === id) return;
+    confirmSelection(id);
+  }
   function disclose(id, value) { overrides = { ...overrides, [id]: value }; saveDisclosure(storageKey, expanded, overrides); }
   function all(value) { expanded = value; overrides = {}; saveDisclosure(storageKey, expanded, overrides); }
   async function load() {
@@ -43,13 +56,14 @@
   });
   async function send(id, operation = "confirm", retry = false) {
     try {
-      const request = retry ? session.retry() : session.begin(id, operation); sync();
+      const request = retry ? session.retry() : session.begin(id, operation); failedId = null; sync();
       let result;
       try { result = await transport.request(request); }
       catch (error) { session.failed(); sync(); message = `結果未確認：${error.message}`; return; }
       session.complete(result); sync();
       message = result.ok ? "已保存；以下顯示最新狀態。" : result.error.message;
       if (!result.ok) {
+        failedId = request.decision_id;
         const fresh = await transport.load();
         if (fresh.ok) { session.merge(fresh); sync(); }
       }
@@ -81,7 +95,7 @@
   {:else if view}
     <div class="decision-overview">
     <p>待決策 {decisions.filter(d => d.status === "pending").length}／全部 {decisions.length}</p>
-    <p>選擇僅保留於本頁；按「確認決策」才保存，關閉頁面會失去未確認草稿。</p>
+    <p>選取選項即自動保存；「其他」需填寫理由，離開輸入框時保存。空白或保存失敗仍為待決策。</p>
     </div>
     <div class="decision-controls">
     <button onclick={next} disabled={!decisions.some(d => d.status === "pending")}>下一項待決策</button>
@@ -107,26 +121,28 @@
           {#if item.recommendation}<p>建議：{item.options.find(o => o.id === item.recommendation.option_id)?.label} — {item.recommendation.reason}</p>{/if}
           </div>{/if}
           {#if item.status === "pending"}
-            <fieldset disabled={view.pending?.decision_id === item.id || draft?.conflict}>
+            <fieldset disabled={!!view.pending || draft?.conflict}
+              onpointerdown={e => replacementId = e.target.closest(".decision-option") ? item.id : null}
+              onpointerup={() => replacementId = null} onpointercancel={() => replacementId = null}>
               <legend class="decision-visually-hidden">{item.question}</legend>
               {#each item.options as option, index}
                 <label class="decision-option"><input type="radio" name={`answer-${item.id}`} checked={draft?.choice === option.id}
-                  onchange={() => edit(item.id, {choice: option.id})} />
+                  onchange={() => choose(item.id, option.id)} />
                   <span>{String.fromCharCode(65 + index)}　{option.label}{option.id === item.recommendation?.option_id ? "（建議）" : ""}
                     {#if option.description}<small>{option.description}</small>{/if}</span></label>
               {/each}
               {#if item.allow_other}<label class="decision-option"><input type="radio" name={`answer-${item.id}`} checked={draft?.choice === "__other"}
-                onchange={async () => { edit(item.id, {choice:"__other"}); await tick(); document.getElementById(`other-${item.id}`)?.focus(); }} /><span>其他</span></label>
-                <div class="decision-other"><label for={`other-${item.id}`}>其他方案</label><textarea id={`other-${item.id}`} value={draft?.other ?? ""} oninput={e => edit(item.id, {choice:"__other", other:e.currentTarget.value})}></textarea></div>{/if}
+                onchange={async () => { choose(item.id, "__other"); await tick(); document.getElementById(`other-${item.id}`)?.focus(); }} /><span>其他</span></label>
+                <div class="decision-other"><label for={`other-${item.id}`}>其他方案與理由</label><textarea id={`other-${item.id}`} value={draft?.other ?? ""} oninput={e => edit(item.id, {choice:"__other", other:e.currentTarget.value})} onblur={e => finishOther(item.id, e)}></textarea></div>{/if}
             </fieldset>
           {:else}<p class="decision-text">答案：{item.answer.kind === "other" ? item.answer.text : item.options.find(o => o.id === item.answer.option_id)?.label}</p>
             <p class="decision-text">{item.answer.reason ?? ""}</p><p>{item.answer.confirmed_at}</p>
             <button disabled={!!view.pending} onclick={() => reopenId = item.id}>重新開啟</button>{/if}
           {#if draft?.conflict}<p role="alert">此題已變更，原草稿保留：{draft.choice} {draft.other}</p>
-            {#if item.status === "pending"}<button onclick={() => { session.rebase(item.id); sync(); }}>已核對最新題目，保留草稿</button>{/if}{/if}
+            {#if item.status === "pending"}<button disabled={!!view.pending} onclick={() => { session.rebase(item.id); sync(); confirmSelection(item.id); }}>已核對最新題目，套用選擇</button>{/if}{/if}
           <div class="decision-actions">
-          {#if draft}<button disabled={view.pending?.decision_id === item.id} onclick={() => { session.discard(item.id); sync(); }}>捨棄草稿</button>{/if}
-          {#if item.status === "pending"}<button disabled={!!view.pending || !draft?.choice || draft?.conflict || (draft?.choice === "__other" && !draft?.other.trim())} onclick={() => send(item.id)}>確認決策</button>{/if}
+          {#if failedId === item.id && draft && !draft.conflict && !view.pending}<button onclick={() => confirmSelection(item.id)}>重試保存</button>{/if}
+          {#if draft}<button data-decision-discard={item.id} disabled={view.pending?.decision_id === item.id} onclick={() => { session.discard(item.id); sync(); }}>捨棄草稿</button>{/if}
           </div>
 
           </div>

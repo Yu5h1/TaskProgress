@@ -16,6 +16,12 @@ export function createDecisionSession(initial) {
   }
   return {
     view,
+    canConfirm(id) {
+      const draft = drafts[id], decision = find(id);
+      return !pending && !busy && decision?.status === "pending" && !!draft && !draft.conflict &&
+        (draft.choice === "__other" ? decision.allow_other && !!draft.other.trim() :
+          decision.options.some(option => option.id === draft.choice));
+    },
     edit(id, fields) {
       if (pending?.decision_id === id || find(id)?.status !== "pending") return;
       drafts[id] ??= { base: clone(find(id)), choice: "", other: "", conflict: false };

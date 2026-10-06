@@ -43,6 +43,6 @@ Current round: `Documentation/DecisionItemsPlan.md#驗收與遷移`.
   Outcome: Browser 與 Desktop 的決策操作符合畫面與草稿契約。
   Checks:
     - [ ] **操作與版面** `[manual]`
-      - Action: 以範例副本在 Browser 與 Desktop 選擇其他、確認、重開，並檢查鍵盤、窄版、收合與刷新保護。
-      - Expect: 答案可保存，重新開啟後清空舊答案，草稿不因卡片操作遺失，鍵盤焦點與版面可用。
+      - Action: 以範例副本在 Browser 與 Desktop 選取一般選項，再重開並填寫其他理由、離開輸入框，並檢查鍵盤、窄版、收合與刷新保護。
+      - Expect: 一般選項立即保存；其他空白不確認，填寫理由並離開輸入框自動保存；沒有確認決策按鈕；重新開啟後清空舊答案，草稿不因卡片操作遺失，鍵盤焦點與版面可用。
       - Reason: 需要使用者實機與介面判斷。

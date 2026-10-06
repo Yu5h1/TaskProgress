@@ -5,6 +5,20 @@ import {readFileSync} from "node:fs";
 import {createDecisionSession} from "../viewer/assets/decision-session.js";
 const fixture = JSON.parse(readFileSync(new URL("./fixtures/decision-example.decisions",import.meta.url)));
 const initial = () => ({ok:true, document:structuredClone(fixture), revision:"a"});
+test("selection is ready without confirmation; other requires nonblank text",()=>{
+  const s=createDecisionSession(initial());
+  assert.equal(s.canConfirm("input"),false);
+  s.edit("input",{choice:"batch"}); assert.equal(s.canConfirm("input"),true);
+  s.edit("input",{choice:"__other",other:"　 \n"}); assert.equal(s.canConfirm("input"),false);
+  s.edit("input",{other:"需要支援離線"}); assert.equal(s.canConfirm("input"),true);
+  assert.deepEqual(s.begin("input").payload,{kind:"other",text:"需要支援離線"});
+  s.edit("next",{choice:"ui"}); assert.equal(s.canConfirm("next"),false);
+  s.failed(); assert.equal(s.canConfirm("input"),false);
+  s.complete({ok:false}); assert.equal(s.canConfirm("input"),true);
+  const fresh=initial(); fresh.document.decisions[0].version++;
+  s.merge(fresh); assert.equal(s.canConfirm("input"),false);
+  s.rebase("input"); assert.equal(s.canConfirm("input"),true);
+});
 test("prototype property names are valid decision ids",()=>{
   const data=initial(); data.document.decisions[0].id="constructor";
   const s=createDecisionSession(data); s.edit("constructor",{choice:"batch"});

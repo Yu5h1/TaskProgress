@@ -23,7 +23,7 @@ task-progress.exe decisions validate "C:\Project\decisions\task-a.decisions"
 - scope 總覽：`/decisions/?scope=<scope-id>`。
 - 本機 Report 卡片會顯示對應文件的待決策數量與連結。
 
-選取選項，或直接在「其他方案」輸入文字（自動選中「其他」）→「確認決策」。只有成功確認才保存。草稿僅保留本頁，重新載入或關閉可能遺失。
+選取一般選項 → 自動保存。選「其他」或直接在「其他方案與理由」輸入文字 → 填寫理由 → 離開輸入框，自動保存。未選擇或只有空白理由仍為待決策；保存失敗保留草稿並顯示錯誤。未保存草稿僅保留本頁，重新載入或關閉可能遺失。
 
 修改已確認的答案 →「重新開啟」→ 確認 → 重新選擇答案。目前答案會清除；版本追溯使用 Git。
 
@@ -35,7 +35,7 @@ task-progress.exe decisions validate "C:\Project\decisions\task-a.decisions"
 
 操作檔：[decisions/decision-example.decisions](../decisions/decision-example.decisions)。此檔與測試 fixture 分開，答案僅供驗收，不作為正式設計決策。
 
-啟動本機服務 → 開啟 [Web 範例](http://127.0.0.1:8001/decisions/?scope=task-progress&task=decision-example) → 直接在「其他方案」輸入文字 → 確認「其他」自動選中 → 按「確認決策」。
+啟動本機服務 → 開啟 [Web 範例](http://127.0.0.1:8001/decisions/?scope=task-progress&task=decision-example) → 直接在「其他方案與理由」填寫理由 → 確認「其他」自動選中 → 離開輸入框，確認自動保存。
 
 重新載入 → 確認答案仍在 →「重新開啟」→ 確認 → 檢查題目回到待決策且目前答案清空。
 
