@@ -6,6 +6,10 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
 
 ## Current state (2026-09-29)
 
+- **清除視窗與重試流程修復並部署（2026-10-06）。** DecisionApp 確認 submit 先透過 DialogShell slot close 關閉，再送 clear_all，取消亦走同一關閉／焦點恢復路徑。HTTP transport 僅將已知寫入前拒絕的 problem code 轉成明確失敗，避免舊服務 invalid_operation 永久卡 pending；timeout／decision_request_failed／無效回應仍保留原請求。按鈕改「查詢／重送保存操作／清除操作」，already_applied 說明顯示最新狀態而非復原。
+  - 驗證：17 項 Node、四入口建置、獨立複核及正式 EXE 暫存文件 clear_all／already_applied smoke 通過；未更動真實答案。Browser／Desktop 視窗實際取消與焦點留 checklist 手動核查。
+  - 使用者明確允許更新重啟。更新時已無 TaskProgress worker；正式 EXE 與候選 SHA256 相同（1D358A15694A1D7417D110DE4626F8300DAA8B0FBCE2607B779AE6F49BD10B6B），保留原 manifest。start 後 status／health 確認 worker 57880、服務 32464、instance 211ec9a44edd47ce9007a2061a53f93b、18 條註冊。下方舊版待部署項目已由此更新解除。使用者已回報修復成功；未逐項確認的其他手動檢查仍保留。
+
 - **決策清除全部答案（2026-10-06）。** 目前文件新增清除全部按鈕及共用確認視窗，明示含隱藏題目、其他理由與未保存輸入；取消不寫入。`clear_all` 經既有 HTTP gate／Store 鎖與 revision 一次原子保存，首題保存唯一 receipt；session 成功才清空草稿與佇列。清除及失敗 reload 期間停用輸入，確認視窗阻止 foreground refresh。契約見 `Documentation/DecisionItemsPlan.md#d-04-清除全部答案`。
   - 已驗證：15 項 Node、6 項 Python、C# decisions-only、決策 UI／SDK 9 Debug／Release 建置、checklist validate 與獨立複核通過。現有 CardList a11y／ReportCommand IL3000 warnings 保留。
   - 部署候選已更新於 `bin/Validation/DecisionEditing/Release/`；正式服務未重啟，新 `clear_all` HTTP gate 與後端仍需更新重啟後生效。未操作實際決策答案。下一步依 `checklists/decision-items.checklist` 第 6 項「清除全部答案」核查真實 Browser／Desktop 取消、Escape、遮罩及清除後繼續回答。

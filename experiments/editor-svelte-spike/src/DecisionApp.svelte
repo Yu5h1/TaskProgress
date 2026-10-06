@@ -95,9 +95,9 @@
       message = "保存中…";
       let result;
       try { result = await transport.request(request); }
-      catch (error) { session.failed(); sync(); message = `結果未確認：${error.message}`; return; }
+      catch (error) { session.failed(); sync(); message = `尚未收到操作結果：${error.message}。請查詢／重送同一筆操作；這不會復原舊答案。`; return; }
       session.complete(result); sync();
-      message = result.ok ? (request.operation === "clear_all" ? "已清除全部答案與理由，以下顯示最新狀態。" : "已保存；以下顯示最新狀態。") : result.error.message;
+      message = result.ok ? (result.status === "already_applied" ? "原操作已完成；以下顯示目前最新狀態。" : request.operation === "clear_all" ? "已清除全部答案與理由，以下顯示最新狀態。" : "已保存；以下顯示最新狀態。") : result.error.message;
       if (!result.ok) {
         queuedIds.delete(request.decision_id);
         failedIds = new Set([...failedIds, request.decision_id]);
@@ -149,7 +149,7 @@
     <button onclick={next} disabled={!decisions.some(d => d.status === "pending")}>下一項待決策</button>
     <button onclick={() => { if (canClear) clearOpen = true; }} disabled={!canClear}>清除全部答案</button>
     </div>
-    {#if view.pending && !view.busy}<button onclick={() => send(null, null, true)}>查核／重試原請求</button>{/if}
+    {#if view.pending && !view.busy}<button onclick={() => send(null, null, true)}>{view.pending.operation === "clear_all" ? "查詢／重送清除操作" : "查詢／重送保存操作"}</button>{/if}
     {#if !visibleDecisions.length}<p>目前沒有符合條件的決策項目。</p>{/if}
     <CardList bind:this={cardList} items={visibleDecisions.map(d => ({...d,title:d.question}))} allIds={decisions.map(d => d.id)} {storageKey} {heldOrder}
       {expanded} onToggleAll={all} let:item let:visibilityEnabled let:visible let:onVisibleChange>
@@ -198,13 +198,17 @@
   {/if}
 </main>
 <DialogShell open={clearOpen} title="清除全部決策答案？" titleId="decision-clear-title"
-  kicker="決策項目" onClose={() => { clearOpen = false; }}>
+  kicker="決策項目" onClose={() => { clearOpen = false; }} let:close>
   <p>將清除目前文件「{view?.snapshot.document.task_id}」全部 {decisions.length} 題的答案、「其他」理由及尚未保存的輸入，包含篩選後隱藏的題目。所有題目回到待決策，題目與選項保留。</p>
   <p>此操作無法復原。</p>
-  <form method="dialog" class="theme-dialog-actions">
-    <button type="submit" class="secondary-button">取消</button>
-    <button type="submit" class="primary-button" disabled={!canClear}
-      onclick={() => { if (canClear) send(null, "clear_all"); }}>確認清除全部</button>
+  <form class="theme-dialog-actions" onsubmit={event => {
+    event.preventDefault();
+    if (!canClear) return;
+    close();
+    send(null, "clear_all");
+  }}>
+    <button type="button" class="secondary-button" onclick={close}>取消</button>
+    <button type="submit" class="primary-button" disabled={!canClear}>確認清除全部</button>
   </form>
 </DialogShell>
 <style>

@@ -108,6 +108,6 @@
       <span aria-hidden="true">×</span>
     </button>
   </div>
-  <slot />
+  <slot close={requestClose} />
 </dialog>
 {/if}

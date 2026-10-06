@@ -2671,7 +2671,7 @@ function da(e, t) {
 		var v = L(f, 2), y = F(v, !0);
 		A(v), A(d);
 		var b = L(d, 2);
-		A(l), ci(L(l, 2), t, "default", {}, null), A(n), Vi(n, (e) => P(u, e), () => H(u)), ui(n, (e) => p?.(e)), z(() => {
+		A(l), ci(L(l, 2), t, "default", { close: h }, null), A(n), Vi(n, (e) => P(u, e), () => H(u)), ui(n, (e) => p?.(e)), z(() => {
 			Z(n, 1, pi(i() ? `theme-dialog ${i()}` : "theme-dialog")), Q(n, "id", r()), Q(n, "aria-labelledby", s()), J(_, a()), Q(v, "id", s()), J(y, o()), Q(b, "aria-label", c());
 		}), Er("close", n, m), G("click", n, g), G("click", b, h), q(e, n);
 	};

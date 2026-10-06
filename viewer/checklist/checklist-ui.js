@@ -3713,7 +3713,7 @@ function Co(e, t) {
 		var v = z(f, 2), y = R(v, !0);
 		M(v), M(d);
 		var b = z(d, 2);
-		M(l), Yr(z(l, 2), t, "default", {}, null), M(n), Ci(n, (e) => L(u, e), () => W(u)), Xr(n, (e) => p?.(e)), V(() => {
+		M(l), Yr(z(l, 2), t, "default", { close: h }, null), M(n), Ci(n, (e) => L(u, e), () => W(u)), Xr(n, (e) => p?.(e)), V(() => {
 			ai(n, 1, $r(i() ? `theme-dialog ${i()}` : "theme-dialog")), Q(n, "id", r()), Q(n, "aria-labelledby", s()), X(_, a()), Q(v, "id", s()), X(y, o()), Q(b, "aria-label", c());
 		}), Cr("close", n, m), q("click", n, g), q("click", b, h), Y(e, n);
 	};
