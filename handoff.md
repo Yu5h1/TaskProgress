@@ -6,6 +6,9 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
 
 ## Current state (2026-09-29)
 
+- **焦點恢復改為僅防滑鼠誤點（2026-10-06）。** 移除 FocusShield 暗幕與 Enter／Space 解鎖；鍵盤立即正常操作。focus-shield.js 以失焦時按下或 focus 後 100ms 內的滑鼠事件辨識可能的啟用手勢，攔至 click／auxclick／cancel 後放行。觸控相容 mouse 鏈放行；session v2 僅保存 100ms deadline，跨 foreground reload 不延長且不留下鎖。純網頁仍有快速正常點擊誤擋／延遲啟用漏擋邊界，契約見 plan.md 焦點操作段落。
+  - 16 項焦點與 foreground-refresh 定向測試、三入口建置通過；真實 Alt＋Tab／滑鼠啟用順序依 `checklists/decision-items.checklist` 第 6 項核查。未改答案與後端；Browser 資產及正式 Desktop UI 同步，重新整理／重開可載入。使用者已回報操作成功；未逐項確認的其他手動檢查仍保留。
+
 - **清除視窗與重試流程修復並部署（2026-10-06）。** DecisionApp 確認 submit 先透過 DialogShell slot close 關閉，再送 clear_all，取消亦走同一關閉／焦點恢復路徑。HTTP transport 僅將已知寫入前拒絕的 problem code 轉成明確失敗，避免舊服務 invalid_operation 永久卡 pending；timeout／decision_request_failed／無效回應仍保留原請求。按鈕改「查詢／重送保存操作／清除操作」，already_applied 說明顯示最新狀態而非復原。
   - 驗證：17 項 Node、四入口建置、獨立複核及正式 EXE 暫存文件 clear_all／already_applied smoke 通過；未更動真實答案。Browser／Desktop 視窗實際取消與焦點留 checklist 手動核查。
   - 使用者明確允許更新重啟。更新時已無 TaskProgress worker；正式 EXE 與候選 SHA256 相同（1D358A15694A1D7417D110DE4626F8300DAA8B0FBCE2607B779AE6F49BD10B6B），保留原 manifest。start 後 status／health 確認 worker 57880、服務 32464、instance 211ec9a44edd47ce9007a2061a53f93b、18 條註冊。下方舊版待部署項目已由此更新解除。使用者已回報修復成功；未逐項確認的其他手動檢查仍保留。

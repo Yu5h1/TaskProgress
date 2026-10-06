@@ -1,47 +1,75 @@
-// Activation is consumed even when focus returns before the first pointer event.
 import test from "node:test";
 import assert from "node:assert/strict";
 import { installFocusShield } from "../viewer/assets/focus-shield.js";
-function fixture(cache = new Map()) {
+function fixture(initialFocus = true) {
   const win = new EventTarget(), doc = new EventTarget();
-  let focused = true, blocked;
-  doc.visibilityState = "visible";
-  doc.hasFocus = () => focused;
-  const storage = { getItem:k=>cache.get(k), setItem:(k,v)=>cache.set(k,v), removeItem:k=>cache.delete(k) };
-  const dispose = installFocusShield({ windowTarget:win, documentTarget:doc, storage, key:"test", onChange:v=>blocked=v });
-  function event(type, fields = {}) {
-    const e = new Event(type,{cancelable:true}); Object.assign(e, fields); win.dispatchEvent(e); return e.defaultPrevented;
-  }
-  return {cache, win, doc, dispose, event, blocked:()=>blocked, focus:v=>focused=v};
+  let focused = initialFocus, time = 0;
+  doc.visibilityState = "visible"; doc.hasFocus = () => focused;
+  const dispose = installFocusShield({windowTarget:win, documentTarget:doc, now:()=>time});
+  const event = (type, fields={}) => {
+    const e=new Event(type,{cancelable:true}); Object.assign(e,fields); win.dispatchEvent(e); return e.defaultPrevented;
+  };
+  const click = () => [event("pointerdown",{pointerType:"mouse"}),event("mousedown"),event("pointerup",{pointerType:"mouse"}),event("mouseup"),event("click",{detail:1})];
+  return {win,doc,event,click,dispose,advance:ms=>time+=ms,leave:()=>{focused=false;event("blur");},enter:()=>{focused=true;event("focus");}};
 }
-test("blur shields writes and consumes a returning click, next click works",()=>{
-  const f=fixture(); assert.equal(f.blocked(),false);
-  let saves=0;
-  f.win.addEventListener("click",()=>saves++);
-  f.focus(false); f.event("blur"); assert.equal(f.blocked(),true);
-  assert.equal(f.event("input"),true);
-  f.focus(true); f.event("focus"); assert.equal(f.blocked(),true);
-  assert.equal(f.event("pointerdown",{button:0}),true);
-  assert.equal(f.event("pointerup",{button:0}),true);
-  assert.equal(f.event("click",{button:0}),true);
-  assert.equal(saves,0);
-  assert.equal(f.blocked(),false);
-  assert.equal(f.event("click",{button:0}),false);
-  assert.equal(saves,1);
+test("focus-first activation consumes one mouse sequence, following click works",()=>{
+  const f=fixture(); f.leave(); f.enter();
+  assert.deepEqual(f.click(),[true,true,true,true,true]);
+  assert.deepEqual(f.click(),[false,false,false,false,false]); f.dispose();
+});
+test("pointer-first activation stays blocked even during a long press",()=>{
+  const f=fixture(); f.leave(); assert.equal(f.event("pointerdown",{pointerType:"mouse"}),true);
+  f.enter(); f.advance(1000); assert.equal(f.event("mousedown"),true);
+  assert.equal(f.event("mouseup"),true); assert.equal(f.event("click",{detail:1}),true);
+  assert.deepEqual(f.click(),[false,false,false,false,false]); f.dispose();
+});
+test("Alt-Tab return needs no unlocking; keyboard and later mouse work",()=>{
+  const f=fixture(); f.leave(); f.enter();
+  for (const type of ["keydown","keyup","beforeinput","input","change","submit"]) assert.equal(f.event(type,{key:"a"}),false);
+  assert.deepEqual(f.click(),[false,false,false,false,false]); f.dispose();
+});
+test("focus window expires without swallowing the next click",()=>{
+  const f=fixture(); f.leave(); f.enter(); f.advance(101);
+  assert.deepEqual(f.click(),[false,false,false,false,false]); f.dispose();
+});
+test("Enter Space and assistive clicks are never unlock gestures",()=>{
+  const f=fixture(); f.leave(); f.enter();
+  assert.equal(f.event("click",{detail:0}),false);
+  for (const key of ["Enter"," "]) {assert.equal(f.event("keydown",{key}),false);assert.equal(f.event("keyup",{key}),false);}
   f.dispose();
 });
-test("keyboard activation is consumed through keyup, hidden clicks cannot unlock",()=>{
-  const f=fixture(); f.doc.visibilityState="hidden"; f.doc.dispatchEvent(new Event("visibilitychange"));
-  f.event("click",{button:0}); assert.equal(f.blocked(),true);
-  f.doc.visibilityState="visible";
-  assert.equal(f.event("keydown",{key:"a"}),true); assert.equal(f.blocked(),true);
-  assert.equal(f.event("keydown",{key:"Enter"}),true); assert.equal(f.blocked(),true);
-  assert.equal(f.event("keyup",{key:"Enter"}),true); assert.equal(f.blocked(),false);
+test("reload in focused page has no persisted lock and touch is unaffected",()=>{
+  const old=fixture(); old.leave(); old.dispose(); const f=fixture();
+  assert.deepEqual(f.click(),[false,false,false,false,false]);
+  f.leave(); f.enter(); assert.equal(f.event("pointerdown",{pointerType:"touch"}),false);
+  assert.equal(f.event("click",{pointerType:"touch",detail:1}),false); f.dispose();
+});
+test("background mount arms only activation, disposal removes interception",()=>{
+  const f=fixture(false); f.enter(); assert.deepEqual(f.click(),[true,true,true,true,true]);
+  f.leave(); f.enter(); f.dispose(); assert.deepEqual(f.click(),[false,false,false,false,false]);
+});
+test("cancelled pointer cannot leave subsequent mouse gestures blocked",()=>{
+  const f=fixture(); f.leave(); f.enter(); assert.equal(f.event("pointerdown",{pointerType:"mouse"}),true);
+  assert.equal(f.event("pointercancel",{pointerType:"mouse"}),true);
+  assert.deepEqual(f.click(),[false,false,false,false,false]); f.dispose();
+});
+test("touch compatibility mouse events pass through",()=>{
+  const f=fixture(); f.leave(); f.enter();
+  assert.equal(f.event("pointerdown",{pointerType:"touch"}),false);
+  for (const type of ["pointerup","mousedown","mouseup","click"]) assert.equal(f.event(type,{detail:1}),false);
   f.dispose();
 });
-test("foreground reload keeps shield armed; disposal removes listeners",()=>{
-  const f=fixture(); f.event("blur"); f.dispose();
-  const next=fixture(f.cache); assert.equal(next.blocked(),true);
-  next.event("click",{button:0}); assert.equal(next.blocked(),false);
-  next.dispose(); assert.equal(next.event("blur"),false); assert.equal(next.blocked(),false);
+test("activation click tail is guarded even if host omitted down",()=>{
+  const f=fixture(); f.leave(); f.enter(); assert.equal(f.event("click",{detail:1}),true);
+  assert.equal(f.event("click",{detail:1}),false); f.dispose();
+});
+test("foreground reload carries only an expiring timestamp, never a lock",()=>{
+  let time=1000; const cache=new Map();
+  const storage={getItem:k=>cache.get(k),setItem:(k,v)=>cache.set(k,v),removeItem:k=>cache.delete(k)};
+  const win=new EventTarget(),doc=new EventTarget();doc.hasFocus=()=>true;doc.visibilityState="visible";
+  const install=()=>installFocusShield({windowTarget:win,documentTarget:doc,storage,key:"test",now:()=>time});
+  const click=()=>{const e=new Event("click",{cancelable:true});e.detail=1;win.dispatchEvent(e);return e.defaultPrevented;};
+  let dispose=install();win.dispatchEvent(new Event("blur"));win.dispatchEvent(new Event("focus"));dispose();
+  time+=20;dispose=install();assert.equal(click(),true);dispose();
+  cache.set("test","1100");time=1101;dispose=install();assert.equal(click(),false);dispose();
 });
