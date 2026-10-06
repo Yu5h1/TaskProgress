@@ -36,6 +36,12 @@ internal static class DecisionTests
             confirm["payload"]!["option_id"] = "short";
             Check(store.Handle(confirm.ToJsonString())["error"]!["code"]!.GetValue<string>() == "request_id_conflict", "receipt mismatch");
             confirm["payload"]!["option_id"] = "batch";
+            var changed = store.Handle(Request(success, "confirm", "change-option", new() { ["kind"] = "option", ["option_id"] = "short" }).ToJsonString());
+            Check(changed["ok"]!.GetValue<bool>(), "answered option stays editable");
+            Check(changed["document"]!["decisions"]![0]!["answer"]!["option_id"]!.GetValue<string>() == "short", "replacement answer saved");
+            var changedOther = store.Handle(Request(changed, "confirm", "change-other", new() { ["kind"] = "other", ["text"] = "需要其他方案" }).ToJsonString());
+            Check(changedOther["ok"]!.GetValue<bool>(), "answered option can become other");
+            success = changedOther;
             var reopened = store.Handle(Request(success, "reopen", "reopen-1", new()).ToJsonString());
             Check(reopened["ok"]!.GetValue<bool>(), "reopen");
             Check(reopened["document"]!["decisions"]![0]!["answer"] is null, "reopen clears answer");

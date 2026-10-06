@@ -63,7 +63,6 @@ internal sealed class DecisionStore
                 switch (operation)
                 {
                     case "confirm":
-                        if (Text(decision, "status") != "pending") Fail("invalid_transition", "Decision is already answered.");
                         ValidateAnswer(payload, Definition(decision), false);
                         var answer = (JsonObject)payload.DeepClone();
                         answer["confirmed_at"] = at;

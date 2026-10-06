@@ -5,28 +5,27 @@
   import CardDisclosure from "./CardDisclosure.svelte";
   import FilterStrip from "./FilterStrip.svelte";
   import { DEFAULT_CAPSULE_ID, createFilterSelection, isDefaultLit, toggleTag, toggleDefault } from "../../../viewer/assets/filter-selection.js";
-  import DialogShell from "./DialogShell.svelte";
   import ThemeControl from "./ThemeControl.svelte";
   import { createThemeControl } from "../../../viewer/assets/theme-control.js";
   import { createDecisionSession } from "../../../viewer/assets/decision-session.js";
   import { loadDisclosure, saveDisclosure } from "../../../viewer/assets/card-disclosure-state.js";
   export let transport;
   export let onPersistenceChange = () => {};
-  let session, view, summary, message = "載入中…", expanded = true, overrides = {}, cardList, reopenId = null;
-  let selection = toggleTag(createFilterSelection(["pending", "decided"]), "decided");
+  let session, view, summary, message = "載入中…", expanded = true, overrides = {}, cardList;
+  let selection = createFilterSelection(["pending", "decided"]);
   let theme, themeState, failedId = null, replacementId = null;
   function readTheme() { themeState = {mode:theme.mode,custom:theme.custom,systemScheme:theme.systemScheme}; }
   $: decisions = view?.snapshot.document.decisions ?? [];
   $: dirty = !!view?.dirty || !!view?.pending;
-  $: onPersistenceChange({ dirty, saving: !!view?.busy, pending: !!reopenId || !!view?.pending });
+  $: onPersistenceChange({ dirty, saving: !!view?.busy, pending: !!view?.pending });
   $: storageKey = view ? `taskprogress.decisions:${view.snapshot.document_key}` : null;
   const sync = () => { view = session.view(); };
   const edit = (id, fields) => { session.edit(id, fields); sync(); };
-  const confirmSelection = id => { if (session.canConfirm(id)) return send(id); };
+  const confirmSelection = id => { const operation = session.saveOperation(id); if (operation) return send(id, operation); };
   function choose(id, choice) {
     if (view.pending) return;
     edit(id, {choice});
-    if (choice !== "__other") confirmSelection(id);
+    if (choice !== "__other" || !view.drafts[id]?.other.trim()) return confirmSelection(id);
   }
   function finishOther(id, event) {
     // Let a replacement choice or an explicit discard win over the textarea blur.
@@ -50,7 +49,7 @@
   onMount(() => {
     theme = createThemeControl(); readTheme();
     load();
-    const leave = e => { if (dirty || reopenId) { e.preventDefault(); e.returnValue = ""; } };
+    const leave = e => { if (dirty) { e.preventDefault(); e.returnValue = ""; } };
     window.addEventListener("beforeunload", leave);
     return () => { window.removeEventListener("beforeunload", leave); theme?.destroy?.(); };
   });
@@ -95,7 +94,7 @@
   {:else if view}
     <div class="decision-overview">
     <p>待決策 {decisions.filter(d => d.status === "pending").length}／全部 {decisions.length}</p>
-    <p>選取選項即自動保存；「其他」需填寫理由，離開輸入框時保存。空白或保存失敗仍為待決策。</p>
+    <p>選項可隨時修改，選取即保存；「其他」填寫理由後離開輸入框保存，空白則為待決策。保存失敗會保留修改供重試。</p>
     </div>
     <div class="decision-controls">
     <button onclick={next} disabled={!decisions.some(d => d.status === "pending")}>下一項待決策</button>
@@ -111,6 +110,7 @@
       onSelect={id => selection = toggleTag(selection, id)} onSelectDefault={() => selection = toggleDefault(selection)} />
       </svelte:fragment>
       {@const draft = Object.hasOwn(view.drafts, item.id) ? view.drafts[item.id] : null}
+      {@const choice = draft ? draft.choice : item.answer?.kind === "other" ? "__other" : item.answer?.option_id ?? ""}
       <article class="checklist-item decision-card" class:decision-has-visibility={visibilityEnabled}>
         <CardDisclosure {visibilityEnabled} {visible} {onVisibleChange} expanded={overrides[item.id] ?? expanded}
           onToggle={value => disclose(item.id, value)} contentId={`body-${item.id}`} label={item.question}>
@@ -120,26 +120,22 @@
           {#if item.context}<p class="decision-text">{item.context}</p>{/if}
           {#if item.recommendation}<p>建議：{item.options.find(o => o.id === item.recommendation.option_id)?.label} — {item.recommendation.reason}</p>{/if}
           </div>{/if}
-          {#if item.status === "pending"}
             <fieldset disabled={!!view.pending || draft?.conflict}
               onpointerdown={e => replacementId = e.target.closest(".decision-option") ? item.id : null}
               onpointerup={() => replacementId = null} onpointercancel={() => replacementId = null}>
               <legend class="decision-visually-hidden">{item.question}</legend>
               {#each item.options as option, index}
-                <label class="decision-option"><input type="radio" name={`answer-${item.id}`} checked={draft?.choice === option.id}
+                <label class="decision-option"><input type="radio" name={`answer-${item.id}`} checked={choice === option.id}
                   onchange={() => choose(item.id, option.id)} />
                   <span>{String.fromCharCode(65 + index)}　{option.label}{option.id === item.recommendation?.option_id ? "（建議）" : ""}
                     {#if option.description}<small>{option.description}</small>{/if}</span></label>
               {/each}
-              {#if item.allow_other}<label class="decision-option"><input type="radio" name={`answer-${item.id}`} checked={draft?.choice === "__other"}
-                onchange={async () => { choose(item.id, "__other"); await tick(); document.getElementById(`other-${item.id}`)?.focus(); }} /><span>其他</span></label>
-                <div class="decision-other"><label for={`other-${item.id}`}>其他方案與理由</label><textarea id={`other-${item.id}`} value={draft?.other ?? ""} oninput={e => edit(item.id, {choice:"__other", other:e.currentTarget.value})} onblur={e => finishOther(item.id, e)}></textarea></div>{/if}
+              {#if item.allow_other}<label class="decision-option"><input type="radio" name={`answer-${item.id}`} checked={choice === "__other"}
+                onchange={async () => { await choose(item.id, "__other"); await tick(); document.getElementById(`other-${item.id}`)?.focus(); }} /><span>其他</span></label>
+                <div class="decision-other"><label for={`other-${item.id}`}>其他方案與理由</label><textarea id={`other-${item.id}`} value={draft ? draft.other : item.answer?.kind === "other" ? item.answer.text : ""} oninput={e => edit(item.id, {choice:"__other", other:e.currentTarget.value})} onblur={e => finishOther(item.id, e)}></textarea></div>{/if}
             </fieldset>
-          {:else}<p class="decision-text">答案：{item.answer.kind === "other" ? item.answer.text : item.options.find(o => o.id === item.answer.option_id)?.label}</p>
-            <p class="decision-text">{item.answer.reason ?? ""}</p><p>{item.answer.confirmed_at}</p>
-            <button disabled={!!view.pending} onclick={() => reopenId = item.id}>重新開啟</button>{/if}
           {#if draft?.conflict}<p role="alert">此題已變更，原草稿保留：{draft.choice} {draft.other}</p>
-            {#if item.status === "pending"}<button disabled={!!view.pending} onclick={() => { session.rebase(item.id); sync(); confirmSelection(item.id); }}>已核對最新題目，套用選擇</button>{/if}{/if}
+            <button disabled={!!view.pending} onclick={() => { session.rebase(item.id); sync(); confirmSelection(item.id); }}>已核對最新題目，套用選擇</button>{/if}
           <div class="decision-actions">
           {#if failedId === item.id && draft && !draft.conflict && !view.pending}<button onclick={() => confirmSelection(item.id)}>重試保存</button>{/if}
           {#if draft}<button data-decision-discard={item.id} disabled={view.pending?.decision_id === item.id} onclick={() => { session.discard(item.id); sync(); }}>捨棄草稿</button>{/if}
@@ -155,11 +151,6 @@
     {/each}
   {/if}
 </main>
-<DialogShell open={!!reopenId} title="重新開啟決策？" titleId="decision-reopen-title" onClose={() => reopenId = null}>
-  <p>這題將清除目前答案並回到待決策，之後可重新回答。</p>
-  <button onclick={() => reopenId = null}>取消</button>
-  <button onclick={() => { const id = reopenId; reopenId = null; send(id, "reopen"); }}>確認重新開啟</button>
-</DialogShell>
 <style>
   .decision-card { display:grid; grid-template-columns:auto minmax(0, 1fr); column-gap:8px; padding-inline-start:12px; }
   .decision-card.decision-has-visibility { grid-template-columns:auto auto minmax(0, 1fr); }

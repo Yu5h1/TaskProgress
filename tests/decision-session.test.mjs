@@ -5,6 +5,22 @@ import {readFileSync} from "node:fs";
 import {createDecisionSession} from "../viewer/assets/decision-session.js";
 const fixture = JSON.parse(readFileSync(new URL("./fixtures/decision-example.decisions",import.meta.url)));
 const initial = () => ({ok:true, document:structuredClone(fixture), revision:"a"});
+test("saved answers remain editable and clearing other retains the incomplete selection",()=>{
+  const data=initial(); Object.assign(data.document.decisions[0],{status:"decided",answer:{kind:"other",text:"原理由"}});
+  const s=createDecisionSession(data);
+  s.edit("input",{other:"新理由"});
+  assert.equal(s.view().drafts.input.choice,"__other");
+  assert.equal(s.saveOperation("input"),"confirm");
+  assert.equal(s.begin("input").payload.text,"新理由");
+  const updated=structuredClone(data); updated.revision="b"; updated.document.decisions[0].answer.text="新理由";
+  s.complete(updated);
+  s.edit("input",{other:" "}); assert.equal(s.saveOperation("input"),"reopen");
+  s.begin("input","reopen"); const cleared=initial(); cleared.revision="c"; s.complete(cleared);
+  assert.equal(s.view().drafts.input.choice,"__other");
+  assert.equal(s.view().drafts.input.conflict,false);
+  assert.equal(s.saveOperation("input"),null);
+  s.edit("input",{choice:"short"}); assert.equal(s.begin("input").payload.option_id,"short");
+});
 test("selection is ready without confirmation; other requires nonblank text",()=>{
   const s=createDecisionSession(initial());
   assert.equal(s.canConfirm("input"),false);
@@ -44,6 +60,10 @@ test("uncertain request retains identity and latest retry snapshot wins",()=>{
 test("removed option needs a new explicit selection",()=>{
   const s=createDecisionSession(initial()); s.edit("input",{choice:"batch"}); const next=initial(); next.document.decisions[0].options.shift();
   s.merge(next); s.rebase("input"); assert.equal(s.view().drafts.input.choice,""); assert.throws(()=>s.begin("input"));
+  next.document.decisions[0].answer={kind:"option",option_id:"short"};
+  next.document.decisions[0].status="decided";
+  s.merge(next); s.rebase("input");
+  assert.equal(s.saveOperation("input"),null);
 });
 test("blank other cannot submit and rejected request keeps draft",()=>{
   const s=createDecisionSession(initial()); s.edit("input",{choice:"__other",other:" "}); assert.throws(()=>s.begin("input"));

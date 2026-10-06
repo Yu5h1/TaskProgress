@@ -18,19 +18,27 @@ export function createDecisionSession(initial) {
     view,
     canConfirm(id) {
       const draft = drafts[id], decision = find(id);
-      return !pending && !busy && decision?.status === "pending" && !!draft && !draft.conflict &&
+      return !pending && !busy && !!decision && !!draft && !draft.conflict &&
         (draft.choice === "__other" ? decision.allow_other && !!draft.other.trim() :
           decision.options.some(option => option.id === draft.choice));
     },
+    saveOperation(id) {
+      const draft = drafts[id];
+      if (pending || busy || !draft || draft.conflict || !find(id)) return null;
+      if (this.canConfirm(id)) return "confirm";
+      return find(id).answer && find(id).allow_other && draft.choice === "__other" && !draft.other.trim() ? "reopen" : null;
+    },
     edit(id, fields) {
-      if (pending?.decision_id === id || find(id)?.status !== "pending") return;
-      drafts[id] ??= { base: clone(find(id)), choice: "", other: "", conflict: false };
+      if (pending || !find(id)) return;
+      const answer = find(id).answer;
+      drafts[id] ??= { base: clone(find(id)), choice: answer?.kind === "other" ? "__other" : answer?.option_id ?? "",
+        other: answer?.kind === "other" ? answer.text : "", conflict: false };
       Object.assign(drafts[id], fields);
     },
     discard(id) { if (pending?.decision_id !== id) delete drafts[id]; },
     rebase(id) {
       const current = find(id), draft = drafts[id];
-      if (!draft || !current || current.status !== "pending") return;
+      if (!draft || !current) return;
       if (draft.choice !== "__other" && !current.options.some(o => o.id === draft.choice)) draft.choice = "";
       if (draft.choice === "__other" && !current.allow_other) draft.choice = "";
       draft.base = clone(current); draft.conflict = false;
@@ -57,9 +65,15 @@ export function createDecisionSession(initial) {
     complete(response) {
       busy = false;
       if (!response.ok) { pending = null; return; }
+      const clearing = pending?.operation === "reopen" ? pending.decision_id : null;
+      const preserved = clearing && drafts[clearing] ? clone(drafts[clearing]) : null;
       if (pending) delete drafts[pending.decision_id];
       pending = null;
       merge(response);
+      if (preserved && find(clearing)?.status === "pending") {
+        preserved.base = clone(find(clearing)); preserved.conflict = false;
+        drafts[clearing] = preserved;
+      }
     }
   };
 }
