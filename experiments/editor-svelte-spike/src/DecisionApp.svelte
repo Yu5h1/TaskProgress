@@ -180,7 +180,7 @@
               {/each}
               {#if item.allow_other}<label class="decision-option"><input type="radio" name={`answer-${item.id}`} checked={choice === "__other"}
                 onclick={async event => { const selected = choose(item.id, "__other"); event.currentTarget.checked = selected === "__other"; await tick(); if (selected === "__other" && activeCard === item.id) document.getElementById(`other-${item.id}`)?.focus(); }} /><span>其他</span></label>
-                <div class="decision-other"><label for={`other-${item.id}`}>其他方案與理由</label><textarea id={`other-${item.id}`} value={draft ? draft.other : item.answer?.kind === "other" ? item.answer.text : ""} oninput={e => changeOther(item.id, e.currentTarget.value)}></textarea></div>{/if}
+                <div class="decision-other"><label for={`other-${item.id}`}>其他方案與理由</label><textarea id={`other-${item.id}`} disabled={choice !== "__other"} value={draft ? draft.other : item.answer?.kind === "other" ? item.answer.text : ""} oninput={e => changeOther(item.id, e.currentTarget.value)}></textarea></div>{/if}
             </fieldset>
           {#if draft?.conflict}<p role="alert">此題已變更，原草稿保留：{draft.choice} {draft.other}</p>
             <button disabled={refreshing || !!view.pending} onclick={() => { session.rebase(item.id); sync(); confirmSelection(item.id); }}>已核對最新題目，套用選擇</button>{/if}
@@ -235,6 +235,7 @@
   .decision-option small { display:block; margin-top:2px; color:var(--muted); }
   .decision-other { display:grid; gap:6px; margin-top:14px; margin-inline-start:calc(1rem + 10px); }
   textarea { display:block; width:100%; min-height:5rem; padding:10px 12px; box-sizing:border-box; font:inherit; resize:vertical; }
+  textarea:disabled { color:var(--muted); -webkit-text-fill-color:var(--muted); background:var(--panel); border-color:var(--line); opacity:1; cursor:not-allowed; }
   fieldset { min-width:0; margin:0; padding:0; border:0; }
   .decision-visually-hidden { position:absolute; width:1px; height:1px; padding:0; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
   .decision-text { white-space:pre-wrap; overflow-wrap:anywhere; }

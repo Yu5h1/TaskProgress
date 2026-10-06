@@ -3741,7 +3741,7 @@ function eo(e) {
 				n = Object.create(null), r = null, i = null, c(e);
 				return;
 			}
-			let t = r?.decision_id, s = n[t], l = s && i && (s.choice !== i.choice || s.other !== i.other), u = s && (l || r?.operation === "reopen" && (!s.cleared || s.other)) ? Za(s) : null;
+			let t = r?.decision_id, s = n[t], l = s && i && (s.choice !== i.choice || s.other !== i.other), u = s && (l || s.choice !== "__other" && s.other || r?.operation === "reopen" && (!s.cleared || s.other)) ? Za(s) : null;
 			if (r && delete n[r.decision_id], r = null, i = null, c(e), u) {
 				let e = o(t), r = (e) => {
 					if (!e) return null;
@@ -4081,7 +4081,7 @@ function To(e, t) {
 										vi(i), Me(), P(r);
 										var a = V(r, 2), c = B(a), l = V(c);
 										rt(l), P(a), H(() => {
-											Q(i, "name", (q(G(n)), K(() => `answer-${G(n).id}`))), bi(i, G(s) === "__other"), Q(c, "for", (q(G(n)), K(() => `other-${G(n).id}`))), Q(l, "id", (q(G(n)), K(() => `other-${G(n).id}`))), yi(l, (q(G(o)), q(G(n)), K(() => G(o) ? G(o).other : G(n).answer?.kind === "other" ? G(n).answer.text : "")));
+											Q(i, "name", (q(G(n)), K(() => `answer-${G(n).id}`))), bi(i, G(s) === "__other"), Q(c, "for", (q(G(n)), K(() => `other-${G(n).id}`))), Q(l, "id", (q(G(n)), K(() => `other-${G(n).id}`))), l.disabled = G(s) !== "__other", yi(l, (q(G(o)), q(G(n)), K(() => G(o) ? G(o).other : G(n).answer?.kind === "other" ? G(n).answer.text : "")));
 										}), J("click", i, async (e) => {
 											let t = re(G(n).id, "__other");
 											e.currentTarget.checked = t === "__other", await mr(), t === "__other" && G(E) === G(n).id && document.getElementById(`other-${G(n).id}`)?.focus();

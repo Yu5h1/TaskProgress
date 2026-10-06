@@ -93,7 +93,8 @@ export function createDecisionSession(initial) {
       const id = pending?.decision_id;
       const draft = drafts[id];
       const changed = draft && sentDraft && (draft.choice !== sentDraft.choice || draft.other !== sentDraft.other);
-      const preserved = draft && (changed || (pending?.operation === "reopen" && (!draft.cleared || draft.other))) ? clone(draft) : null;
+      const preserved = draft && (changed || (draft.choice !== "__other" && draft.other) ||
+        (pending?.operation === "reopen" && (!draft.cleared || draft.other))) ? clone(draft) : null;
       if (pending) delete drafts[pending.decision_id];
       pending = null; sentDraft = null;
       merge(response);

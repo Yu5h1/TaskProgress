@@ -194,3 +194,12 @@ test("reviewing an already cleared answer drops only empty drafts",()=>{
     if(text) assert.equal(s.view().drafts.input.other,text);
   }
 });
+test("switching to a saved standard option keeps inactive other text for reselecting",()=>{
+  const data=initial();Object.assign(data.document.decisions[0],{status:"decided",answer:{kind:"other",text:"不要消失"}});
+  const s=createDecisionSession(data);s.select("input","short");s.begin("input");
+  const saved=initial();saved.revision="b";Object.assign(saved.document.decisions[0],{status:"decided",answer:{kind:"option",option_id:"short"}});
+  s.complete(saved);assert.equal(s.view().drafts.input.choice,"short");assert.equal(s.view().drafts.input.other,"不要消失");
+  s.select("input","short");s.begin("input","reopen");const cleared=initial();cleared.revision="c";s.complete(cleared);
+  assert.equal(s.view().drafts.input.choice,"");assert.equal(s.view().drafts.input.other,"不要消失");
+  s.select("input","__other");assert.equal(s.begin("input").payload.text,"不要消失");
+});
