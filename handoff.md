@@ -6,6 +6,9 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
 
 ## Current state (2026-09-29)
 
+- **決策移除捨棄草稿（2026-10-06）。** 一般卡片只保留失敗時的重試保存，移除 discard 按鈕及失焦例外；已移除題目的不可提交輸入仍可透過關閉提示解除。11 項決策 Node 測試及 Browser／Desktop 資產建置通過；部署候選資產同步，正式後端部署仍依下列持續編輯項目的狀態。
+  - 下一步：`checklists/decision-items.checklist` 第 6 項核查實際介面。
+
 - **決策持續可編輯（2026-10-06）。** `DecisionApp` 永遠顯示選項與理由、預填目前答案，預設顯示全部；移除重新開啟及其對話框。`DecisionStore.confirm` 可直接替換已回答答案；空白 Other 使用既有清除 API 回 pending，保留本頁輸入。11 項 Node、C# decisions-only、SDK 9 Debug／Release 與決策資產建置通過；移除選項的衝突不會清除最新答案。正式 EXE 仍被常駐程序占用，新版位於 `bin/Validation/DecisionEditing/Release/`，待使用者允許更新重啟；Browser 源資產已更新，後端仍須部署。
   - 下一步：更新正式 EXE 後核查 `checklists/decision-items.checklist` 第 6 項的直接改選、修改／清空理由與刷新保存。
 

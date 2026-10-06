@@ -28,10 +28,9 @@
     if (choice !== "__other" || !view.drafts[id]?.other.trim()) return confirmSelection(id);
   }
   function finishOther(id, event) {
-    // Let a replacement choice or an explicit discard win over the textarea blur.
+    // Let a replacement choice win over the textarea blur.
     const target = event.relatedTarget;
-    if (replacementId === id || target?.closest("fieldset") === event.currentTarget.closest("fieldset") ||
-        target?.dataset.decisionDiscard === id) return;
+    if (replacementId === id || target?.closest("fieldset") === event.currentTarget.closest("fieldset")) return;
     confirmSelection(id);
   }
   function disclose(id, value) { overrides = { ...overrides, [id]: value }; saveDisclosure(storageKey, expanded, overrides); }
@@ -138,7 +137,6 @@
             <button disabled={!!view.pending} onclick={() => { session.rebase(item.id); sync(); confirmSelection(item.id); }}>已核對最新題目，套用選擇</button>{/if}
           <div class="decision-actions">
           {#if failedId === item.id && draft && !draft.conflict && !view.pending}<button onclick={() => confirmSelection(item.id)}>重試保存</button>{/if}
-          {#if draft}<button data-decision-discard={item.id} disabled={view.pending?.decision_id === item.id} onclick={() => { session.discard(item.id); sync(); }}>捨棄草稿</button>{/if}
           </div>
 
           </div>
@@ -147,7 +145,7 @@
     </CardList>
     {#each Object.entries(view.drafts).filter(([id]) => !decisions.some(d => d.id === id)) as [id, draft]}
       <p role="alert">已移除題目 {id} 的原草稿：{draft.choice} {draft.other}</p>
-      <button onclick={() => { session.discard(id); sync(); }}>捨棄此草稿</button>
+      <button onclick={() => { session.discard(id); sync(); }}>關閉已移除題目提示</button>
     {/each}
   {/if}
 </main>
