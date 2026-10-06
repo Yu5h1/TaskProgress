@@ -26,6 +26,7 @@ export function createDecisionSession(initial) {
       const draft = drafts[id];
       if (pending || busy || !draft || draft.conflict || !find(id)) return null;
       if (this.canConfirm(id)) return "confirm";
+      if (find(id).answer && draft.cleared && !draft.choice) return "reopen";
       return find(id).answer && find(id).allow_other && draft.choice === "__other" && !draft.other.trim() ? "reopen" : null;
     },
     edit(id, fields) {
@@ -33,15 +34,27 @@ export function createDecisionSession(initial) {
       const answer = find(id).answer;
       drafts[id] ??= { base: clone(find(id)), choice: answer?.kind === "other" ? "__other" : answer?.option_id ?? "",
         other: answer?.kind === "other" ? answer.text : "", conflict: false };
-      Object.assign(drafts[id], fields);
+      Object.assign(drafts[id], { cleared: false }, fields);
+      if (drafts[id].cleared && !drafts[id].other && !answer && pending?.decision_id !== id) delete drafts[id];
+    },
+    select(id, choice) {
+      if ((pending && !busy) || pending?.operation === "clear_all" || !find(id) || drafts[id]?.conflict) return;
+      const answer = find(id).answer;
+      const current = drafts[id]?.choice ?? (answer?.kind === "other" ? "__other" : answer?.option_id ?? "");
+      const next = current === choice ? "" : choice;
+      this.edit(id, next ? { choice: next } : { choice: "", cleared: true });
+      return next;
     },
     discard(id) { if (pending?.decision_id !== id) delete drafts[id]; },
     rebase(id) {
       const current = find(id), draft = drafts[id];
       if (!draft || !current) return;
-      if (draft.choice !== "__other" && !current.options.some(o => o.id === draft.choice)) draft.choice = "";
-      if (draft.choice === "__other" && !current.allow_other) draft.choice = "";
+      if (draft.choice && ((draft.choice !== "__other" && !current.options.some(o => o.id === draft.choice)) ||
+          (draft.choice === "__other" && !current.allow_other))) {
+        draft.choice = ""; draft.cleared = false;
+      }
       draft.base = clone(current); draft.conflict = false;
+      if (draft.cleared && !draft.other && !current.answer) delete drafts[id];
     },
     merge,
     beginClearAll() {
@@ -80,7 +93,7 @@ export function createDecisionSession(initial) {
       const id = pending?.decision_id;
       const draft = drafts[id];
       const changed = draft && sentDraft && (draft.choice !== sentDraft.choice || draft.other !== sentDraft.other);
-      const preserved = draft && (changed || pending?.operation === "reopen") ? clone(draft) : null;
+      const preserved = draft && (changed || (pending?.operation === "reopen" && (!draft.cleared || draft.other))) ? clone(draft) : null;
       if (pending) delete drafts[pending.decision_id];
       pending = null; sentDraft = null;
       merge(response);
@@ -94,7 +107,7 @@ export function createDecisionSession(initial) {
         };
         preserved.conflict = !current || !same(definition(preserved.base), definition(current));
         if (!preserved.conflict) preserved.base = clone(current);
-        drafts[id] = preserved;
+        if (!(preserved.cleared && !preserved.other && !preserved.conflict && !current.answer)) drafts[id] = preserved;
       }
     }
   };

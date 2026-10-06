@@ -6,6 +6,8 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
 
 ## Current state (2026-09-29)
 
+- **重點已選選項可取消（2026-10-06）。** DecisionApp radio 改 click，session.select 判斷重點目前選項，取消時清空 choice 並透過明確 cleared 標記送 reopen，保留 other 文字於本頁草稿，重選可沿用；成功僅移除空文字的乾淨草稿；在途 confirm 後取消保留到最新 revision 再清除，rebase 失效選項不自動清答案；明確取消意圖經核對後可套用。24 項決策 Node 測試與決策 UI 建置通過，Browser／正式 Desktop 資產同步；實際 radio／label／鍵盤互動待實機核查。
+
 - **焦點恢復改為僅防滑鼠誤點（2026-10-06）。** 移除 FocusShield 暗幕與 Enter／Space 解鎖；鍵盤立即正常操作。focus-shield.js 以失焦時按下或 focus 後 100ms 內的滑鼠事件辨識可能的啟用手勢，攔至 click／auxclick／cancel 後放行。觸控相容 mouse 鏈放行；session v2 僅保存 100ms deadline，跨 foreground reload 不延長且不留下鎖。純網頁仍有快速正常點擊誤擋／延遲啟用漏擋邊界，契約見 plan.md 焦點操作段落。
   - 16 項焦點與 foreground-refresh 定向測試、三入口建置通過；真實 Alt＋Tab／滑鼠啟用順序依 `checklists/decision-items.checklist` 第 6 項核查。未改答案與後端；Browser 資產及正式 Desktop UI 同步，重新整理／重開可載入。使用者已回報操作成功；未逐項確認的其他手動檢查仍保留。
 

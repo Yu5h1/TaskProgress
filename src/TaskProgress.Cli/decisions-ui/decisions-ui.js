@@ -3663,7 +3663,7 @@ function eo(e) {
 		},
 		saveOperation(e) {
 			let t = n[e];
-			return r || a || !t || t.conflict || !o(e) ? null : this.canConfirm(e) ? "confirm" : o(e).answer && o(e).allow_other && t.choice === "__other" && !t.other.trim() ? "reopen" : null;
+			return r || a || !t || t.conflict || !o(e) ? null : this.canConfirm(e) ? "confirm" : o(e).answer && t.cleared && !t.choice || o(e).answer && o(e).allow_other && t.choice === "__other" && !t.other.trim() ? "reopen" : null;
 		},
 		edit(e, t) {
 			if (r && !a || r?.operation === "clear_all" || !o(e)) return;
@@ -3673,14 +3673,22 @@ function eo(e) {
 				choice: i?.kind === "other" ? "__other" : i?.option_id ?? "",
 				other: i?.kind === "other" ? i.text : "",
 				conflict: !1
-			}, Object.assign(n[e], t);
+			}, Object.assign(n[e], { cleared: !1 }, t), n[e].cleared && !n[e].other && !i && r?.decision_id !== e && delete n[e];
+		},
+		select(e, t) {
+			if (r && !a || r?.operation === "clear_all" || !o(e) || n[e]?.conflict) return;
+			let i = o(e).answer, s = (n[e]?.choice ?? (i?.kind === "other" ? "__other" : i?.option_id ?? "")) === t ? "" : t;
+			return this.edit(e, s ? { choice: s } : {
+				choice: "",
+				cleared: !0
+			}), s;
 		},
 		discard(e) {
 			r?.decision_id !== e && delete n[e];
 		},
 		rebase(e) {
 			let t = o(e), r = n[e];
-			!r || !t || (r.choice !== "__other" && !t.options.some((e) => e.id === r.choice) && (r.choice = ""), r.choice === "__other" && !t.allow_other && (r.choice = ""), r.base = Za(t), r.conflict = !1);
+			!r || !t || (r.choice && (r.choice !== "__other" && !t.options.some((e) => e.id === r.choice) || r.choice === "__other" && !t.allow_other) && (r.choice = "", r.cleared = !1), r.base = Za(t), r.conflict = !1, r.cleared && !r.other && !t.answer && delete n[e]);
 		},
 		merge: c,
 		beginClearAll() {
@@ -3733,14 +3741,14 @@ function eo(e) {
 				n = Object.create(null), r = null, i = null, c(e);
 				return;
 			}
-			let t = r?.decision_id, s = n[t], l = s && i && (s.choice !== i.choice || s.other !== i.other), u = s && (l || r?.operation === "reopen") ? Za(s) : null;
+			let t = r?.decision_id, s = n[t], l = s && i && (s.choice !== i.choice || s.other !== i.other), u = s && (l || r?.operation === "reopen" && (!s.cleared || s.other)) ? Za(s) : null;
 			if (r && delete n[r.decision_id], r = null, i = null, c(e), u) {
 				let e = o(t), r = (e) => {
 					if (!e) return null;
 					let { answer: t, status: n, last_request: r, ...i } = e;
 					return i;
 				};
-				u.conflict = !e || !$a(r(u.base), r(e)), u.conflict || (u.base = Za(e)), n[t] = u;
+				u.conflict = !e || !$a(r(u.base), r(e)), u.conflict || (u.base = Za(e)), u.cleared && !u.other && !u.conflict && !e.answer || (n[t] = u);
 			}
 		}
 	};
@@ -3816,7 +3824,8 @@ function To(e, t) {
 		if (t) return ce(e, t);
 	};
 	function re(e, t) {
-		if (!(G(u).pending && !G(u).busy)) return te(e, { choice: t }), ne(e);
+		let n = G(l).select(e, t);
+		return j(), ne(e), n;
 	}
 	function ie(e, t) {
 		te(e, {
@@ -4063,7 +4072,9 @@ function To(e, t) {
 											G(t), K(() => G(t).description) && e(u);
 										}), P(o), P(i), H((e) => {
 											Q(a, "name", (q(G(n)), K(() => `answer-${G(n).id}`))), bi(a, (q(G(s)), G(t), K(() => G(s) === G(t).id))), Z(c, `${e ?? ""}　${G(t), K(() => G(t).label) ?? ""}${G(t), q(G(n)), K(() => G(t).id === G(n).recommendation?.option_id ? "（建議）" : "") ?? ""} `);
-										}, [() => K(() => String.fromCharCode(65 + r))]), J("change", a, () => re(G(n).id, G(t).id)), X(e, i);
+										}, [() => K(() => String.fromCharCode(65 + r))]), J("click", a, (e) => {
+											e.currentTarget.checked = re(G(n).id, G(t).id) === G(t).id;
+										}), X(e, i);
 									});
 									var m = V(p, 2), h = (e) => {
 										var t = ho(), r = fn(t), i = B(r);
@@ -4071,8 +4082,9 @@ function To(e, t) {
 										var a = V(r, 2), c = B(a), l = V(c);
 										rt(l), P(a), H(() => {
 											Q(i, "name", (q(G(n)), K(() => `answer-${G(n).id}`))), bi(i, G(s) === "__other"), Q(c, "for", (q(G(n)), K(() => `other-${G(n).id}`))), Q(l, "id", (q(G(n)), K(() => `other-${G(n).id}`))), yi(l, (q(G(o)), q(G(n)), K(() => G(o) ? G(o).other : G(n).answer?.kind === "other" ? G(n).answer.text : "")));
-										}), J("change", i, async () => {
-											re(G(n).id, "__other"), await mr(), G(E) === G(n).id && document.getElementById(`other-${G(n).id}`)?.focus();
+										}), J("click", i, async (e) => {
+											let t = re(G(n).id, "__other");
+											e.currentTarget.checked = t === "__other", await mr(), t === "__other" && G(E) === G(n).id && document.getElementById(`other-${G(n).id}`)?.focus();
 										}), J("input", l, (e) => ie(G(n).id, e.currentTarget.value)), X(e, t);
 									};
 									Br(m, (e) => {
@@ -4193,11 +4205,7 @@ function To(e, t) {
 		} }
 	}), X(e, de), He();
 }
-Tr([
-	"click",
-	"change",
-	"input"
-]);
+Tr(["click", "input"]);
 //#endregion
 //#region viewer/assets/decision-transport.js
 var Eo = (e) => /^[a-z0-9]+(?:[._-][a-z0-9]+)*$/.test(e ?? "") && e.length <= 100;

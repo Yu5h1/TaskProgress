@@ -49,9 +49,10 @@
     if (operation) return send(id, operation);
   };
   function choose(id, choice) {
-    if (view.pending && !view.busy) return;
-    edit(id, {choice});
-    return confirmSelection(id);
+    const selected = session.select(id, choice);
+    sync();
+    confirmSelection(id);
+    return selected;
   }
   function changeOther(id, text) {
     edit(id, {choice: "__other", other: text});
@@ -173,12 +174,12 @@
               <legend class="decision-visually-hidden">{item.question}</legend>
               {#each item.options as option, index}
                 <label class="decision-option"><input type="radio" name={`answer-${item.id}`} checked={choice === option.id}
-                  onchange={() => choose(item.id, option.id)} />
+                  onclick={event => { event.currentTarget.checked = choose(item.id, option.id) === option.id; }} />
                   <span>{String.fromCharCode(65 + index)}　{option.label}{option.id === item.recommendation?.option_id ? "（建議）" : ""}
                     {#if option.description}<small>{option.description}</small>{/if}</span></label>
               {/each}
               {#if item.allow_other}<label class="decision-option"><input type="radio" name={`answer-${item.id}`} checked={choice === "__other"}
-                onchange={async () => { choose(item.id, "__other"); await tick(); if (activeCard === item.id) document.getElementById(`other-${item.id}`)?.focus(); }} /><span>其他</span></label>
+                onclick={async event => { const selected = choose(item.id, "__other"); event.currentTarget.checked = selected === "__other"; await tick(); if (selected === "__other" && activeCard === item.id) document.getElementById(`other-${item.id}`)?.focus(); }} /><span>其他</span></label>
                 <div class="decision-other"><label for={`other-${item.id}`}>其他方案與理由</label><textarea id={`other-${item.id}`} value={draft ? draft.other : item.answer?.kind === "other" ? item.answer.text : ""} oninput={e => changeOther(item.id, e.currentTarget.value)}></textarea></div>{/if}
             </fieldset>
           {#if draft?.conflict}<p role="alert">此題已變更，原草稿保留：{draft.choice} {draft.other}</p>

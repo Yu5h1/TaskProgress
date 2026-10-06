@@ -127,3 +127,70 @@ test("blank other cannot submit and rejected request keeps draft",()=>{
   s.edit("input",{other:"方案"}); s.begin("input"); s.complete({ok:false});
   assert.equal(s.view().drafts.input.other,"方案"); assert.equal(s.view().pending,null);
 });
+test("clicking a saved choice again clears its answer but retains other text",()=>{
+  for (const answer of [{kind:"option",option_id:"batch"},{kind:"other",text:"原理由"}]) {
+    const data=initial(); Object.assign(data.document.decisions[0],{status:"decided",answer});
+    const s=createDecisionSession(data),choice=answer.kind==="other"?"__other":"batch";
+    assert.equal(s.select("input",choice),""); assert.equal(s.saveOperation("input"),"reopen");
+    assert.equal(s.view().drafts.input.other,answer.text ?? "");
+    s.begin("input","reopen"); const cleared=initial();cleared.revision="b";s.complete(cleared);
+    assert.equal(s.view().dirty,answer.kind === "other");
+    if (answer.kind === "other") {
+      assert.equal(s.view().drafts.input.choice,"");
+      assert.equal(s.view().drafts.input.other,answer.text);
+      assert.equal(s.saveOperation("input"),null);
+      s.select("input","__other"); assert.equal(s.begin("input").payload.text,answer.text);
+      continue;
+    }
+    assert.equal(s.select("input","short"),"short");
+    assert.equal(s.saveOperation("input"),"confirm");
+  }
+});
+test("deselection during save queues a clear against the acknowledged revision",()=>{
+  const s=createDecisionSession(initial());s.select("input","batch");s.begin("input");
+  s.select("input","batch");
+  const saved=initial();saved.revision="b";Object.assign(saved.document.decisions[0],{status:"decided",answer:{kind:"option",option_id:"batch"}});
+  s.complete(saved); assert.equal(s.saveOperation("input"),"reopen");
+  const request=s.begin("input","reopen");assert.equal(request.expected_revision,"b");
+  s.select("input","short");const cleared=initial();cleared.revision="c";s.complete(cleared);
+  assert.equal(s.view().drafts.input.choice,"short");assert.equal(s.saveOperation("input"),"confirm");
+});
+test("cancel incomplete other locally without a save; invalidated choices never imply clear",()=>{
+  const s=createDecisionSession(initial());s.select("input","__other");s.select("input","__other");
+  assert.equal(s.view().dirty,false);assert.equal(s.saveOperation("input"),null);
+  s.select("input","batch");const changed=initial();changed.document.decisions[0].options.shift();
+  Object.assign(changed.document.decisions[0],{status:"decided",answer:{kind:"option",option_id:"short"}});
+  s.merge(changed);s.rebase("input");assert.equal(s.saveOperation("input"),null);
+});
+test("cancelling blank other during reopen leaves no dirty draft after acknowledgement",()=>{
+  const data=initial();Object.assign(data.document.decisions[0],{status:"decided",answer:{kind:"option",option_id:"batch"}});
+  const s=createDecisionSession(data);s.select("input","__other");s.begin("input","reopen");s.select("input","__other");
+  const cleared=initial();cleared.revision="b";s.complete(cleared);
+  assert.equal(s.view().dirty,false);assert.equal(s.saveOperation("input"),null);
+});
+test("explicitly reviewing a deselection conflict retains the user's clear intent",()=>{
+  const data=initial();Object.assign(data.document.decisions[0],{status:"decided",answer:{kind:"option",option_id:"batch"}});
+  const s=createDecisionSession(data);s.select("input","batch");s.begin("input","reopen");s.complete({ok:false});
+  const changed=structuredClone(data);changed.revision="b";changed.document.decisions[0].answer.option_id="short";
+  s.merge(changed);assert.equal(s.saveOperation("input"),null);
+  s.rebase("input");assert.equal(s.saveOperation("input"),"reopen");
+});
+test("deselect during other autosave retains the newest text through clear and retry",()=>{
+  const s=createDecisionSession(initial());s.edit("input",{choice:"__other",other:"保留文字"});const sent=s.begin("input");
+  s.select("input","__other");
+  const saved=initial();saved.revision="b";Object.assign(saved.document.decisions[0],{status:"decided",answer:sent.payload});
+  s.complete(saved);assert.equal(s.saveOperation("input"),"reopen");
+  const clear=s.begin("input","reopen");s.failed();assert.deepEqual(s.retry(),clear);
+  const cleared=initial();cleared.revision="c";s.complete(cleared);
+  assert.equal(s.view().drafts.input.choice,"");assert.equal(s.view().drafts.input.other,"保留文字");
+  assert.equal(s.saveOperation("input"),null);s.select("input","__other");assert.equal(s.begin("input").payload.text,"保留文字");
+});
+test("reviewing an already cleared answer drops only empty drafts",()=>{
+  for (const text of ["","保留文字"]) {
+    const data=initial();Object.assign(data.document.decisions[0],{status:"decided",answer:text?{kind:"other",text}:{kind:"option",option_id:"batch"}});
+    const s=createDecisionSession(data);s.select("input",text?"__other":"batch");
+    const fresh=initial();fresh.revision="b";s.merge(fresh);s.rebase("input");
+    assert.equal(s.view().dirty,!!text);assert.equal(s.saveOperation("input"),null);
+    if(text) assert.equal(s.view().drafts.input.other,text);
+  }
+});
