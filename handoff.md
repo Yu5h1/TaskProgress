@@ -6,6 +6,8 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
 
 ## Current state (2026-09-29)
 
+- **服務 PID 重用修復並部署（2026-10-07）。** Launcher 新增程序身分 sidecar 與跨程序啟動鎖；契約見 `Documentation/TrayWorkerPlan.md#服務程序身分與過期狀態`。定向 `--service-identity-only` 測試與 Release publish 通過，獨立複核無阻擋。使用者退出 tray 後已替換正式 EXE，候選／正式 SHA256 相同（EEFA292E9F21DA4FB199934B5304CF7CC5BAEEC6D269A4279E2927876954FD08）。正式 start 自動備份舊 state 並成功恢復；status／health 確認服務 PID 37424、18 條註冊，Report HTTP 200；receipt 的程序啟動時間／路徑與實際 Python 程序一致。原 PID 32464 仍為 conhost，未終止；未改真實報告／答案。使用者已確認 Report 恢復正常。未實際重開機測試，PID 重用與並行行為由定向測試覆蓋。
+
 - **卡片內控制操作同步選取（2026-10-07）。** 共用 CardList 在主要 pointerdown 先選取卡片，再排除控制項拖曳；focusin／input 也同步選取，支援 Tab 進入輸入框。四入口建置通過，Browser／正式 Desktop UI 已同步；原有控制項拖曳排除、鍵盤輸入與決策保存不變。實際卡片外框與鍵盤操作待使用者核查。
 
 - **未選其他時理由停用保留（2026-10-07）。** textarea 僅在選取其他時可編輯，未選時灰色呈現並保留本頁文字；session 也保留改選普通選項保存後的其他文字，避免該路徑丟失。25 項決策 Node 與決策 UI build 通過，Browser／正式 Desktop UI 同步；重新整理／重開載入。文字仍為本頁草稿，非持久保存的未選答案。
@@ -515,7 +517,7 @@ Each needs the user's answer before the work it blocks can be specced. Nothing h
 - C# discovers the repo's `viewer/` root, searches upward for the sibling LocalWebService, starts `localHost.py` in control mode when absent, or reuses the matching process on the selected port. `start` uses Win32 `CREATE_NEW_CONSOLE` for a dedicated visible Python console.
 - Control integration: public versioned health identifies the service; bearer-authenticated status verifies instance/root; POST files registers exact base/developer/time-analysis reports; authorized shutdown via `service stop`.
 - Local URL: `http://127.0.0.1:8001/?scope=<id>` always sufficient; Viewer auto-discovers the Developer route on loopback; `&dev=none` forces base-only. Multiple scopes share one process/port.
-- Safety: state/health/instance/port/root must agree; stale state removed only when its PID is gone; foreign ports/route conflicts fail without takeover; missing developer reports remove that scope's developer route.
+- Safety: state/health/instance/port/root must agree; stale state handling follows `Documentation/TrayWorkerPlan.md#服務程序身分與過期狀態`; foreign ports/route conflicts fail without takeover; missing developer reports remove that scope's developer route.
 - Commands: `start`, direct report folder, `open --scope`, `scope add/remove/list`, `service status/stop`, `protocol install/uninstall`. `start` validates every stored scope before service mutation, registers all reports, removes stale routes, writes a path-free catalog, opens the Viewer root. `scope add <folder>` derives kebab-case scope from folder name. Default port 8001; `--no-browser`, `--port` supported.
 - Discovery overrides: `TASK_PROGRESS_VIEWER_ROOT`, `TASK_PROGRESS_LOCAL_WEB_SERVICE`, `TASK_PROGRESS_PYTHON`, `TASK_PROGRESS_HOME`, `TASK_PROGRESS_SERVICE_STATE`.
 - Published output: `Build/win-x64/task-progress.exe`, self-contained single file. `Publish.cmd` runs `dotnet publish`, validates exit code + output, pauses for double-click use. Last republish 2026-07-24 with v0.3 risk method, `analyze` command, automatic input refresh.

@@ -23,6 +23,14 @@ Yu5h1Lib.TrayHost.exe（Winform 專案擁有）
 
 TrayHost 擁有的 process 只有 `task-progress.exe worker` 一個。LocalWebService 是 worker 的子孫 process，TrayHost 既不啟動也不終止它；tray 看到的伺服器狀態，全部是 worker 回報的觀測結果。依賴方向固定為 TrayHost → worker → LocalWebService，反向沒有依賴。
 
+## 服務程序身分與過期狀態
+
+TaskProgress 的 `LocalWebServiceClient` 負責判斷能否重用或啟動服務；TrayHost 只管理 worker。PID 可被作業系統重用，不能單憑 PID 存在認定服務仍在。LocalWebService 實際執行檔可能是 Python，不要求名稱為 task-progress.exe。
+
+TaskProgress 在新服務通過 health、instance、授權及 edit-host 驗證後，依 state 的實際服務 PID 保存 `<state file>.process.json`，記錄 instance、PID、程序啟動 UTC ticks 與完整執行檔路徑。此 sidecar 由 TaskProgress 擁有，不改 LocalWebService 的 state schema；程序啟動時間比開機日期更精確，也能辨識同次開機內的 PID 重用。
+
+啟動流程以 state 路徑衍生的跨程序 mutex 包住重新探測、回收、啟動與身分保存。health 無法驗證時，先確認埠未被占用，再查核原程序；確認程序不存在或身分已不同，才將舊 state 改名為同目錄唯一 `.stale-*` 備份。舊版缺少 sidecar 時，只有程序不存在，或目前程序啟動晚於 state 最後寫入時間一秒以上，才視為過期。權限不足、原程序仍在、時間證據不足或埠被占用皆保留狀態並回報錯誤，不終止外來程序。新服務 PID 由作業系統分配。
+
 ## 摘要
 
 TaskProgress 由短命的啟動入口與常駐 `worker` 組成。使用者雙擊或執行 `task-progress start` 時確認服務並註冊報告；只有明確指定 `--browser` 才開啟瀏覽器。常駐的 `worker` 讓 Winform 的 TrayHost 能以既有的 manifest／JSON Lines 契約把它當成 owned worker 託管，並在系統匣持續顯示 LocalWebService 是否正在執行。

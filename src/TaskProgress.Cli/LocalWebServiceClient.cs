@@ -50,16 +50,21 @@ internal sealed class LocalWebServiceClient : IDisposable
 
     public bool StartedNewProcess { get; }
 
-    public static async Task<LocalWebServiceClient> EnsureAsync(
+    public static Task<LocalWebServiceClient> EnsureAsync(
         LauncherSettings settings,
         CancellationToken cancellationToken,
         ServiceLaunchMode launchMode = ServiceLaunchMode.Hidden)
+        => ServiceProcessIdentity.WithStartupLockAsync(settings.StateFile,
+            () => EnsureLockedAsync(settings, cancellationToken, launchMode), cancellationToken);
+
+    private static async Task<LocalWebServiceClient> EnsureLockedAsync(
+        LauncherSettings settings, CancellationToken cancellationToken, ServiceLaunchMode launchMode)
     {
         var health = await ProbeHealthAsync(settings, cancellationToken);
         var startedNewProcess = false;
         if (health is null)
         {
-            PrepareStateFileForStart(settings);
+            ServiceProcessIdentity.Prepare(settings.StateFile, settings.Port);
             ChecklistEndpointDirectory.Prepare(settings.EndpointsDirectory);
             using var process = StartService(settings, launchMode);
             health = await WaitForHealthAsync(settings, process, cancellationToken);
@@ -70,6 +75,12 @@ internal sealed class LocalWebServiceClient : IDisposable
         try
         {
             await client.VerifyEditHostAsync(cancellationToken);
+            if (startedNewProcess)
+            {
+                var identity = ServiceProcessIdentity.Read(client.State.ProcessId)
+                    ?? throw new CliException("LocalWebService 服務程序已退出。");
+                ServiceProcessIdentity.Save(settings.StateFile, client.State, identity);
+            }
             return client;
         }
         catch
@@ -383,43 +394,6 @@ internal sealed class LocalWebServiceClient : IDisposable
             || health.ApiVersion != 1)
         {
             throw new CliException("TaskProgress 本機編輯 Host health 回應不相容。 ");
-        }
-    }
-
-    private static void PrepareStateFileForStart(LauncherSettings settings)
-    {
-        if (!File.Exists(settings.StateFile))
-        {
-            return;
-        }
-
-        var state = LocalWebServiceState.Load(settings.StateFile);
-        if (IsProcessRunning(state.ProcessId))
-        {
-            throw new CliException(
-                $"LocalWebService state file 屬於仍在執行的 PID {state.ProcessId}，不會覆寫：{settings.StateFile}");
-        }
-
-        try
-        {
-            File.Delete(settings.StateFile);
-        }
-        catch (Exception error) when (error is IOException or UnauthorizedAccessException)
-        {
-            throw new CliException($"無法移除過期的 LocalWebService state file：{error.Message}");
-        }
-    }
-
-    private static bool IsProcessRunning(int processId)
-    {
-        try
-        {
-            using var process = Process.GetProcessById(processId);
-            return !process.HasExited;
-        }
-        catch (ArgumentException)
-        {
-            return false;
         }
     }
 
