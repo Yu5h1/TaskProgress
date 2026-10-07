@@ -190,13 +190,15 @@
       onpointerdown={event => {
         armed = null;
         if (event.button !== 0) return;
-        if (event.target.closest('button, a, input, textarea, select, label, [contenteditable], [role="button"], [role="checkbox"]')) return;
         selected = item.id;
+        if (event.target.closest('button, a, input, textarea, select, label, [contenteditable], [role="button"], [role="checkbox"]')) return;
         if (mode !== "free" || event.pointerType !== "mouse" || (pinEnabled && pinnedIds.includes(item.id))) return;
         // Only layout whitespace starts a card drag; controls and text retain their normal gestures.
         if (event.target.closest('button, a, input, textarea, select, label, [contenteditable], [role="button"], [role="checkbox"], h1, h2, h3, p, span, strong, code, dt, dd, li, svg')) return;
         armed = item.id;
       }}
+      onfocusin={() => { selected = item.id; }}
+      oninput={() => { selected = item.id; }}
       onpointerup={() => { armed = null; }}
       onkeydown={event => {
         if (event.target !== event.currentTarget) return;

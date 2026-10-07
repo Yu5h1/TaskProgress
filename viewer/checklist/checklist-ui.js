@@ -3598,7 +3598,11 @@ function vo(e, t) {
 				"card-drop-after": W(D)?.id === W(r).id && W(D).after
 			}), Q(i, "aria-label", (W(r), W(E), G(() => `${W(r).title}${W(E) === W(r).id ? "，已選取" : ""}`))), Q(i, "data-card-id", (W(r), G(() => W(r).id))), Q(i, "draggable", (W(g), W(ee), W(r), G(() => W(g) === "free" && W(ee) === W(r).id)));
 		}, [() => (K(ao), W(r), W(y), W(b), G(() => !ao(W(r).id, W(y), W(b))))]), q("pointerdown", i, (e) => {
-			L(ee, null), e.button === 0 && (e.target.closest("button, a, input, textarea, select, label, [contenteditable], [role=\"button\"], [role=\"checkbox\"]") || (L(E, W(r).id), !(W(g) !== "free" || e.pointerType !== "mouse" || c() && W(f).includes(W(r).id)) && (e.target.closest("button, a, input, textarea, select, label, [contenteditable], [role=\"button\"], [role=\"checkbox\"], h1, h2, h3, p, span, strong, code, dt, dd, li, svg") || L(ee, W(r).id))));
+			L(ee, null), e.button === 0 && (L(E, W(r).id), !e.target.closest("button, a, input, textarea, select, label, [contenteditable], [role=\"button\"], [role=\"checkbox\"]") && (W(g) !== "free" || e.pointerType !== "mouse" || c() && W(f).includes(W(r).id) || e.target.closest("button, a, input, textarea, select, label, [contenteditable], [role=\"button\"], [role=\"checkbox\"], h1, h2, h3, p, span, strong, code, dt, dd, li, svg") || L(ee, W(r).id)));
+		}), q("focusin", i, () => {
+			L(E, W(r).id);
+		}), q("input", i, () => {
+			L(E, W(r).id);
 		}), q("pointerup", i, () => {
 			L(ee, null);
 		}), q("keydown", i, (e) => {
@@ -3617,6 +3621,8 @@ function vo(e, t) {
 wr([
 	"click",
 	"pointerdown",
+	"focusin",
+	"input",
 	"pointerup",
 	"keydown"
 ]);

@@ -6,6 +6,8 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
 
 ## Current state (2026-09-29)
 
+- **卡片內控制操作同步選取（2026-10-07）。** 共用 CardList 在主要 pointerdown 先選取卡片，再排除控制項拖曳；focusin／input 也同步選取，支援 Tab 進入輸入框。四入口建置通過，Browser／正式 Desktop UI 已同步；原有控制項拖曳排除、鍵盤輸入與決策保存不變。實際卡片外框與鍵盤操作待使用者核查。
+
 - **未選其他時理由停用保留（2026-10-07）。** textarea 僅在選取其他時可編輯，未選時灰色呈現並保留本頁文字；session 也保留改選普通選項保存後的其他文字，避免該路徑丟失。25 項決策 Node 與決策 UI build 通過，Browser／正式 Desktop UI 同步；重新整理／重開載入。文字仍為本頁草稿，非持久保存的未選答案。
 
 - **重點已選選項可取消（2026-10-06）。** DecisionApp radio 改 click，session.select 判斷重點目前選項，取消時清空 choice 並透過明確 cleared 標記送 reopen，保留 other 文字於本頁草稿，重選可沿用；成功僅移除空文字的乾淨草稿；在途 confirm 後取消保留到最新 revision 再清除，rebase 失效選項不自動清答案；明確取消意圖經核對後可套用。24 項決策 Node 測試與決策 UI 建置通過，Browser／正式 Desktop 資產同步；實際 radio／label／鍵盤互動待實機核查。
