@@ -109,14 +109,10 @@ function reduce(document, command) {
   return document;
 }
 
-// The saved state travels with the draft so a save can submit exactly the manual
-// checks the reader actually changed, in either direction.
+// Revision and the saved comparison baseline belong to the session, never history.
 function normalize(document) {
-  const normalized = structuredClone(document);
-  normalized.items.forEach((item) => item.checks.forEach((check) => {
-    check.persistedStatus = check.status;
-    check.persistedObserved = check.observed ?? null;
-  }));
+  const normalized = derive(document);
+  delete normalized.revision;
   return normalized;
 }
 
@@ -184,14 +180,16 @@ export function createChecklistEditorSession(document, options = {}) {
   // The source revision follows the last saved document, not the draft: Undo can
   // restore an older draft, and that older draft must still be written against
   // the revision the file actually has now.
-  let revision = document.revision;
-  const transaction = createEditorTransaction(normalize(document), {
+  let persisted = structuredClone(document);
+  const transaction = createEditorTransaction(document, {
+    normalize,
     derive,
     historyLimit: options.historyLimit,
   });
 
   function snapshot() {
     const document = structuredClone(transaction.derived);
+    document.revision = persisted.revision;
     return Object.freeze({
       document,
       summary: summarizeChecklist(document),
@@ -214,8 +212,9 @@ export function createChecklistEditorSession(document, options = {}) {
     transaction.derived.items.forEach((item) => item.checks.forEach((check) => {
       if (!check.isManual) return;
       const observed = String(check.observed ?? "").trim();
-      const persistedObserved = String(check.persistedObserved ?? "").trim();
-      if (check.status === check.persistedStatus && observed === persistedObserved) return;
+      const savedCheck = findCheck(persisted, item.id, check.index).check;
+      const persistedObserved = String(savedCheck.observed ?? "").trim();
+      if (check.status === savedCheck.status && observed === persistedObserved) return;
       if (check.status === "failed" && !observed) {
         errors.push({
           code: "observed_required",
@@ -236,7 +235,7 @@ export function createChecklistEditorSession(document, options = {}) {
       errors.push({ code: "empty_change", message: "沒有可儲存的實機檢查結果。" });
     }
     return Object.freeze({
-      revision,
+      revision: persisted.revision,
       results,
       errors,
     });
@@ -250,8 +249,9 @@ export function createChecklistEditorSession(document, options = {}) {
     redo() { transaction.redo(); return snapshot(); },
     discard() { transaction.discard(); return snapshot(); },
     commit(savedDocument) {
-      revision = savedDocument.revision;
-      transaction.commit(normalize(savedDocument), { keepHistory: true });
+      const next = structuredClone(savedDocument);
+      transaction.commit(next, { keepHistory: true });
+      persisted = next;
       return snapshot();
     },
   });

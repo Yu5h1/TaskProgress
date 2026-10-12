@@ -6,6 +6,11 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
 
 ## Current state (2026-09-29)
 
+- **共用編輯歷史（2026-10-12）。** Report 已改接 Checklist 使用的 transaction；單一實作位於 `viewer/assets/editor-transaction-runtime.js`，ESM 入口保持 `editor-transaction.js`。契約與驗收見 `Documentation/EditorHistory.md`、`checklists/editor-history.checklist`。Undo／Redo／commit 截斷文字合併，失敗不發布部分草稿或歷史；Checklist 保存基準及 revision 留在 session，修復保存→Undo→Redo 漏送結果。
+  - 驗證：57 項定向 Node 測試通過；Checklist Browser／Desktop bundles 建置成功，保留既有 CardList a11y warnings。獨立複核確認四項驗收均符合，無待修問題。Desktop JS 已同步正式 `Build/win-x64/checklist-ui/` 且 SHA256 相同；未重啟服務、未改真實 Report／Checklist 結果，未操作實際 UI。Classic runtime 只維持載入契約，退役 Demo 的 UI 未恢復。
+  - 載入新版：Browser 重新整理／Desktop 重開；歷史仍限目前 session。時間設定與原生輸入框快捷鍵範圍未擴張。
+  - 維護驗證未完成：正式 EXE 的 `checklist validate checklists/editor-history.checklist` 未輸出且等待未結束，已中止等待；文件格式未取得 parser 成功確認。程式測試與資產建置結果不受影響，CLI 原因未追查。
+
 - **未選其他可暫時編輯（2026-10-07）。** DecisionApp 灰色欄位改為 readonly，focus／click 暫時允許編輯，欄位／視窗 blur 恢復；輸入只改本頁 other 草稿並保留既有取消標記，只有選取其他才觸發保存。20 項 session 測試與決策 UI build 通過，Browser／正式 Desktop 資產已同步。獨立複核及 checklist 格式驗證通過；實機焦點操作見 `checklists/decision-items.checklist` 第 6 項。
 
 - **服務 PID 重用修復並部署（2026-10-07）。** Launcher 新增程序身分 sidecar 與跨程序啟動鎖；契約見 `Documentation/TrayWorkerPlan.md#服務程序身分與過期狀態`。定向 `--service-identity-only` 測試與 Release publish 通過，獨立複核無阻擋。使用者退出 tray 後已替換正式 EXE，候選／正式 SHA256 相同（EEFA292E9F21DA4FB199934B5304CF7CC5BAEEC6D269A4279E2927876954FD08）。正式 start 自動備份舊 state 並成功恢復；status／health 確認服務 PID 37424、18 條註冊，Report HTTP 200；receipt 的程序啟動時間／路徑與實際 Python 程序一致。原 PID 32464 仍為 conhost，未終止；未改真實報告／答案。使用者已確認 Report 恢復正常。未實際重開機測試，PID 重用與並行行為由定向測試覆蓋。

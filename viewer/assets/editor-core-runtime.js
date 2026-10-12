@@ -1,5 +1,6 @@
 (function initializeTaskProgressEditorCoreRuntime(global) {
 function createEditorCore({
+  createEditorTransaction = global.TaskProgressEditorTransactionRuntime?.createEditorTransaction,
   calculateProjectProgress,
   calculateTaskProgress,
   validateReport,
@@ -8,8 +9,9 @@ if (
   typeof calculateProjectProgress !== "function"
   || typeof calculateTaskProgress !== "function"
   || typeof validateReport !== "function"
+  || typeof createEditorTransaction !== "function"
 ) {
-  throw new TypeError("Editor Core 需要 progress 與 validation 純函式。");
+  throw new TypeError("Editor Core 需要 transaction、progress 與 validation 純函式。");
 }
 
 const ITEM_FIELDS = Object.freeze(["completed_items", "pending_items"]);
@@ -252,15 +254,11 @@ function createReportEditorSession(
   persistedReport,
   { fallbackPriority = 4, historyLimit = 100 } = {},
 ) {
-  let persisted = cloneValue(persistedReport);
-  let draft = normalizeEditableReport(persisted, fallbackPriority);
-  let baseline = cloneValue(draft);
-  let derived = deriveReportEditorState(baseline, draft);
-  const undoStack = [];
-  const redoStack = [];
-  const stableHistoryLimit = Number.isInteger(historyLimit) && historyLimit > 0
-    ? historyLimit
-    : 100;
+  const transaction = createEditorTransaction(persistedReport, {
+    normalize: (report) => normalizeEditableReport(report, fallbackPriority),
+    derive: (draft, baseline) => deriveReportEditorState(baseline, draft),
+    historyLimit,
+  });
 
   function commandMergeKey(command) {
     if (command.type === "set-report-field") {
@@ -282,52 +280,14 @@ function createReportEditorSession(
     return "";
   }
 
-  function historyState() {
-    const undoEntry = undoStack.at(-1) ?? null;
-    const redoEntry = redoStack.at(-1) ?? null;
-    return Object.freeze({
-      canUndo: Boolean(undoEntry),
-      canRedo: Boolean(redoEntry),
-      undoDepth: undoStack.length,
-      redoDepth: redoStack.length,
-      undoCommandType: undoEntry?.command.type ?? null,
-      redoCommandType: redoEntry?.command.type ?? null,
-    });
-  }
-
-  function clearHistory() {
-    undoStack.length = 0;
-    redoStack.length = 0;
-  }
-
-  function recordHistory(beforeDraft, command) {
-    const afterDraft = cloneValue(draft);
-    const mergeKey = commandMergeKey(command);
-    const previous = undoStack.at(-1);
-    if (mergeKey && previous?.mergeKey === mergeKey) {
-      previous.after = afterDraft;
-      previous.command = cloneValue(command);
-      if (reportSignature(previous.before) === reportSignature(previous.after)) {
-        undoStack.pop();
-      }
-    } else {
-      undoStack.push({
-        before: beforeDraft,
-        after: afterDraft,
-        command: cloneValue(command),
-        mergeKey,
-      });
-      if (undoStack.length > stableHistoryLimit) undoStack.shift();
-    }
-    redoStack.length = 0;
-  }
-
   function dispatch(command) {
     if (!command || typeof command !== "object") {
       throw new TypeError("Editor command 必須是物件。");
     }
-    const beforeDraft = cloneValue(draft);
-    const before = reportSignature(beforeDraft);
+    return transaction.apply(command, reduce, commandMergeKey(command));
+  }
+
+  function reduce(draft, command) {
     switch (command.type) {
       /*
        * Unwritten is a legal state for a report-level field, and the report
@@ -457,77 +417,45 @@ function createReportEditorSession(
       default:
         throw new Error(`不支援的 Editor command「${command.type}」。`);
     }
-    const changed = before !== reportSignature(draft);
-    if (changed) {
-      recordHistory(beforeDraft, command);
-      derived = deriveReportEditorState(baseline, draft);
-    }
-    return changed;
-  }
-
-  function undo() {
-    const entry = undoStack.pop();
-    if (!entry) return false;
-    redoStack.push(entry);
-    draft = cloneValue(entry.before);
-    derived = deriveReportEditorState(baseline, draft);
-    return true;
-  }
-
-  function redo() {
-    const entry = redoStack.pop();
-    if (!entry) return false;
-    undoStack.push(entry);
-    draft = cloneValue(entry.after);
-    derived = deriveReportEditorState(baseline, draft);
-    return true;
-  }
-
-  function discard() {
-    draft = normalizeEditableReport(persisted, fallbackPriority);
-    baseline = cloneValue(draft);
-    clearHistory();
-    derived = deriveReportEditorState(baseline, draft);
     return draft;
   }
 
+  function discard() {
+    transaction.discard();
+    return transaction.draft;
+  }
+
   function commit(savedReport, { keepHistory = false } = {}) {
-    persisted = cloneValue(savedReport);
-    if (keepHistory) {
-      draft = normalizeEditableReport(persisted, fallbackPriority);
-      baseline = cloneValue(draft);
-      derived = deriveReportEditorState(baseline, draft);
-      return draft;
-    }
-    return discard();
+    transaction.commit(savedReport, { keepHistory });
+    return transaction.draft;
   }
 
   function prepareSave(updatedAt) {
-    const prepared = cloneValue(draft);
+    const prepared = cloneValue(transaction.draft);
     prepared.updated_at = updatedAt;
     return prepared;
   }
 
   function createTaskId(prefix) {
-    return nextStableId(prefix, new Set(draft.tasks.map((task) => task.id)));
+    return nextStableId(prefix, new Set(transaction.draft.tasks.map((task) => task.id)));
   }
 
   function createItemId(taskId, prefix) {
-    return nextStableId(prefix, allItemIds(findTask(draft, taskId)));
+    return nextStableId(prefix, allItemIds(findTask(transaction.draft, taskId)));
   }
 
   return Object.freeze({
     get draft() {
-      return draft;
+      return transaction.draft;
     },
     get derived() {
-      return derived;
+      return transaction.derived;
     },
     get dirty() {
-      return derived.dirty;
+      return transaction.dirty;
     },
     get history() {
-      return historyState();
+      return transaction.history;
     },
     commit,
     createItemId,
@@ -535,14 +463,14 @@ function createReportEditorSession(
     discard,
     dispatch,
     prepareSave,
-    redo,
+    redo: transaction.redo,
     task(taskId) {
-      return findTask(draft, taskId);
+      return findTask(transaction.draft, taskId);
     },
-    validate(report = draft) {
+    validate(report = transaction.draft) {
       return validateReport(report);
     },
-    undo,
+    undo: transaction.undo,
   });
 }
 

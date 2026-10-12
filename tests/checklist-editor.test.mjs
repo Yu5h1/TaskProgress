@@ -145,7 +145,7 @@ test("a saved manual result stays revisable through the whole marker cycle", () 
   assert.equal(session.prepareSave().errors[0].code, "observed_required");
 });
 
-test("Checklist transport exposes only load and save", async () => {
+test("Checklist transport exposes only load, save and reset", async () => {
   const listeners = new Map();
   const sent = [];
   const webview = {
@@ -159,7 +159,7 @@ test("Checklist transport exposes only load and save", async () => {
     data: { version: 1, id: sent[0].id, type: "result", payload: documentFixture() },
   });
   assert.equal((await load).fileName, "task-a.checklist");
-  assert.deepEqual(Object.keys(transport).sort(), ["load", "save"]);
+  assert.deepEqual(Object.keys(transport).sort(), ["load", "reset", "save"]);
 });
 
 test("Checklist Svelte source reuses SaveBar and never requests a path", async () => {
@@ -171,7 +171,7 @@ test("Checklist Svelte source reuses SaveBar and never requests a path", async (
   assert.match(app, /import SaveBar from "\.\/SaveBar\.svelte"/u);
   assert.match(app, /createChecklistEditorSession/u);
   assert.doesNotMatch(app, /fetch\(|localStorage/u);
-  assert.match(bridge, /new Set\(\["load", "save"\]\)/u);
+  assert.match(bridge, /new Set\(\["load", "save", "reset"\]\)/u);
   assert.doesNotMatch(bridge, /path/u);
   assert.match(host, /RejectUnknown\(payload, "save payload", "revision", "results"\)/u);
 });

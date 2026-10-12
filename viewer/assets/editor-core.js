@@ -1,3 +1,4 @@
+import { createEditorTransaction } from "./editor-transaction.js";
 import "./editor-core-runtime.js";
 import {
   calculateProjectProgress,
@@ -6,6 +7,7 @@ import {
 } from "./report-model.js";
 
 const core = globalThis.TaskProgressEditorCoreRuntime.createEditorCore({
+  createEditorTransaction,
   calculateProjectProgress,
   calculateTaskProgress,
   validateReport,

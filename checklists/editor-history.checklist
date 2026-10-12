@@ -1,0 +1,30 @@
+# 共用編輯歷史 Checklist
+
+Current round: `Documentation/EditorHistory.md#驗收`.
+
+本輪只涵蓋 Report／Checklist 共用歷史核心與既有保存行為。
+
+- [x] **1. 共用歷史核心**
+  Outcome: 兩種 session 共用 transaction，合併、分支、上限及失敗保留行為正確。
+  Checks:
+    - [x] **核心與 session 回歸**
+      - Action: 執行 editor-transaction、editor-core、checklist-editor、persistence-mode、report-editor-pointer 與 report-summary 定向 Node 測試。
+      - Expect: 全部通過；復原與重做維持衍生資料，自動保存及錯誤流程不丟失歷史。
+      - Observed: 初次測試暴露 Checklist 重做漏送結果；另有兩個 reset transport 舊斷言及一個重做後合併舊斷言不符現行契約。
+      - Resolved: 將保存基準與 revision 留在 session，更新既有 reset 能力及新的合併邊界斷言；修正後同組 57 項全部通過。
+
+- [x] **2. 更新執行資產**
+  Depends on: 1.
+  Outcome: Browser 與 Desktop Checklist 使用新版共用實作，Report ES module 可直接載入。
+  Checks:
+    - [x] **Checklist 資產建置**
+      - Action: 執行 checklist:browser:build 與 checklist:ui:build。
+      - Expect: 兩個建置成功，輸出資產包含新版 transaction。
+
+- [x] **3. 獨立複核**
+  Depends on: 1, 2.
+  Outcome: 實作符合共用契約，未增加第二套歷史 owner 或改變保存責任。
+  Checks:
+    - [x] **契約與差異審查**
+      - Action: 由未參與實作的 reviewer 依 Documentation/EditorHistory.md 與 diff 複核。
+      - Expect: 驗收條件全部符合，沒有未處理的阻擋問題。

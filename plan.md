@@ -482,6 +482,8 @@ LocalWebService 是正式 Web 路線的一部分，不因 Desktop Host 出現而
 
 #### 編輯持久化模式與 Checklist 標記（2026-08-15 決策）
 
+共用草稿與 Undo／Redo 的責任、合併邊界及驗收契約見 [編輯歷史](Documentation/EditorHistory.md)。
+
 具寫入 capability 的介面共用 `auto`／`cautious` 兩種 persistence mode；這是儲存策略，不取代公開 Viewer 的唯讀能力邊界，也不建立第二套 Editor Core。
 
 - 預設為 `auto`。離散操作立即提交；文字輸入在最後一次有效輸入後短暫 debounce 再提交。Undo／Redo 也是新的修改，沿用同一自動提交流程。

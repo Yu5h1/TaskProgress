@@ -263,8 +263,10 @@ test("editor core coalesces consecutive edits to the same field", () => {
     field: "summary",
     value: "Summary A",
   });
-  assert.equal(session.history.undoDepth, 0);
+  assert.equal(session.history.undoDepth, 2, "typing after redo is a separate action");
   assert.equal(session.dirty, false);
+  session.undo();
+  assert.equal(session.task("task-a").summary, "Changed");
 });
 
 test("editor core clears redo on a divergent command and clears history on lifecycle reset", () => {
@@ -381,6 +383,9 @@ test("editor core runtime works as a classic script for the file Demo", async ()
   );
   const context = vm.createContext({ structuredClone });
   context.globalThis = context;
+  vm.runInContext(await readFile(
+    new URL("../viewer/assets/editor-transaction-runtime.js", import.meta.url), "utf8",
+  ), context);
   vm.runInContext(source, context);
 
   const runtimeCore = context.TaskProgressEditorCoreRuntime.createEditorCore({
