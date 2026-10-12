@@ -19,6 +19,7 @@
   function setSelection(next) { selection = next; saveFilterSelection(filterKey, selection); }
   let theme, themeState, failedIds = new Set(), refreshing = false;
   let clearOpen = false;
+  let editingOther = null;
   $: canClear = !!view && !view.pending && !view.busy && !refreshing &&
     (decisions.some(d => d.answer) || view.dirty);
   const queuedIds = new Set();
@@ -55,9 +56,11 @@
     return selected;
   }
   function changeOther(id, text) {
-    edit(id, {choice: "__other", other: text});
-    confirmSelection(id);
+    const draft = view.drafts[id];
+    edit(id, {other: text, cleared: draft?.cleared ?? false});
+    if (view.drafts[id]?.choice === "__other") confirmSelection(id);
   }
+  function leaveOther() { editingOther = null; }
   function disclose(id, value) { overrides = { ...overrides, [id]: value }; saveDisclosure(storageKey, expanded, overrides); }
   function all(value) { expanded = value; overrides = {}; saveDisclosure(storageKey, expanded, overrides); }
   async function load() {
@@ -80,11 +83,13 @@
     document.addEventListener("pointerdown", trackCard, true);
     document.addEventListener("focusin", trackCard, true);
     window.addEventListener("blur", releaseCard);
+    window.addEventListener("blur", leaveOther);
     return () => {
       window.removeEventListener("beforeunload", leave);
       document.removeEventListener("pointerdown", trackCard, true);
       document.removeEventListener("focusin", trackCard, true);
       window.removeEventListener("blur", releaseCard);
+      window.removeEventListener("blur", leaveOther);
       theme?.destroy?.();
     };
   });
@@ -144,7 +149,7 @@
   {:else if view}
     <div class="decision-overview">
     <p>待決策 {decisions.filter(d => d.status === "pending").length}／全部 {decisions.length}</p>
-    <p>選項可隨時修改；「其他」文字一更動就自動保存，空白則為待決策。保存失敗會保留修改供重試。</p>
+    <p>選項可隨時修改；選取「其他」後，文字更動會自動保存，空白則為待決策。未選取時可點擊文字欄編輯本頁草稿。保存失敗會保留修改供重試。</p>
     </div>
     <div class="decision-controls">
     <button onclick={next} disabled={!decisions.some(d => d.status === "pending")}>下一項待決策</button>
@@ -180,7 +185,9 @@
               {/each}
               {#if item.allow_other}<label class="decision-option"><input type="radio" name={`answer-${item.id}`} checked={choice === "__other"}
                 onclick={async event => { const selected = choose(item.id, "__other"); event.currentTarget.checked = selected === "__other"; await tick(); if (selected === "__other" && activeCard === item.id) document.getElementById(`other-${item.id}`)?.focus(); }} /><span>其他</span></label>
-                <div class="decision-other"><label for={`other-${item.id}`}>其他方案與理由</label><textarea id={`other-${item.id}`} disabled={choice !== "__other"} value={draft ? draft.other : item.answer?.kind === "other" ? item.answer.text : ""} oninput={e => changeOther(item.id, e.currentTarget.value)}></textarea></div>{/if}
+                <div class="decision-other"><label for={`other-${item.id}`}>其他方案與理由</label><textarea id={`other-${item.id}`} readonly={choice !== "__other" && editingOther !== item.id}
+                  onfocus={() => { editingOther = item.id; }} onclick={() => { editingOther = item.id; }} onblur={leaveOther}
+                  value={draft ? draft.other : item.answer?.kind === "other" ? item.answer.text : ""} oninput={e => changeOther(item.id, e.currentTarget.value)}></textarea></div>{/if}
             </fieldset>
           {#if draft?.conflict}<p role="alert">此題已變更，原草稿保留：{draft.choice} {draft.other}</p>
             <button disabled={refreshing || !!view.pending} onclick={() => { session.rebase(item.id); sync(); confirmSelection(item.id); }}>已核對最新題目，套用選擇</button>{/if}
@@ -235,7 +242,9 @@
   .decision-option small { display:block; margin-top:2px; color:var(--muted); }
   .decision-other { display:grid; gap:6px; margin-top:14px; margin-inline-start:calc(1rem + 10px); }
   textarea { display:block; width:100%; min-height:5rem; padding:10px 12px; box-sizing:border-box; font:inherit; resize:vertical; }
-  textarea:disabled { color:var(--muted); -webkit-text-fill-color:var(--muted); background:var(--panel); border-color:var(--line); opacity:1; cursor:not-allowed; }
+  textarea:read-only, textarea:disabled { color:var(--muted); -webkit-text-fill-color:var(--muted); background:var(--panel); border-color:var(--line); opacity:1; }
+  textarea:read-only { cursor:text; }
+  textarea:disabled { cursor:not-allowed; }
   fieldset { min-width:0; margin:0; padding:0; border:0; }
   .decision-visually-hidden { position:absolute; width:1px; height:1px; padding:0; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
   .decision-text { white-space:pre-wrap; overflow-wrap:anywhere; }

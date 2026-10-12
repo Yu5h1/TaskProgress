@@ -6,6 +6,8 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
 
 ## Current state (2026-09-29)
 
+- **未選其他可暫時編輯（2026-10-07）。** DecisionApp 灰色欄位改為 readonly，focus／click 暫時允許編輯，欄位／視窗 blur 恢復；輸入只改本頁 other 草稿並保留既有取消標記，只有選取其他才觸發保存。20 項 session 測試與決策 UI build 通過，Browser／正式 Desktop 資產已同步。獨立複核及 checklist 格式驗證通過；實機焦點操作見 `checklists/decision-items.checklist` 第 6 項。
+
 - **服務 PID 重用修復並部署（2026-10-07）。** Launcher 新增程序身分 sidecar 與跨程序啟動鎖；契約見 `Documentation/TrayWorkerPlan.md#服務程序身分與過期狀態`。定向 `--service-identity-only` 測試與 Release publish 通過，獨立複核無阻擋。使用者退出 tray 後已替換正式 EXE，候選／正式 SHA256 相同（EEFA292E9F21DA4FB199934B5304CF7CC5BAEEC6D269A4279E2927876954FD08）。正式 start 自動備份舊 state 並成功恢復；status／health 確認服務 PID 37424、18 條註冊，Report HTTP 200；receipt 的程序啟動時間／路徑與實際 Python 程序一致。原 PID 32464 仍為 conhost，未終止；未改真實報告／答案。使用者已確認 Report 恢復正常。未實際重開機測試，PID 重用與並行行為由定向測試覆蓋。
 
 - **卡片內控制操作同步選取（2026-10-07）。** 共用 CardList 在主要 pointerdown 先選取卡片，再排除控制項拖曳；focusin／input 也同步選取，支援 Tab 進入輸入框。四入口建置通過，Browser／正式 Desktop UI 已同步；原有控制項拖曳排除、鍵盤輸入與決策保存不變。實際卡片外框與鍵盤操作待使用者核查。
