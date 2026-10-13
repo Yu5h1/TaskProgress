@@ -87,6 +87,19 @@ Minimal shape:
 }
 ```
 
+## Inline links in report descriptions
+
+When a task summary or completed/pending item description benefits from navigation, write `[label](URL)` in its existing string field (an object item's `title`, or a legacy string item). Labels are free text: `下載`, `影片`, `教學`, and `前往` are examples, not fixed controls. Links can appear anywhere in a sentence; keep the surrounding text meaningful. Do not put link syntax into IDs or assume other report fields render it.
+
+For local Checklist and Decision pages, resolve the actual registered scope and existing file stem before composing a root-relative URL:
+
+- `[驗收清單](/checklist/?scope=<scope-id>&task=<task-id>)` → `checklists/<task-id>.checklist`.
+- `[決策細節](/decisions/?scope=<scope-id>&task=<task-id>)` → `decisions/<task-id>.decisions`.
+
+Use an actual HTTP(S) URL for downloads, videos, or external documentation. Supported URL forms also include page-relative paths and `#fragment`; encode spaces. Relative URLs resolve against the Viewer page, not the report file's folder. This is inline-link support, not full Markdown: bare URLs, images, and HTML are not rendered as links. The label `下載` does not force a download. Existing field length limits include the stored syntax.
+
+Before adding a link, verify its target from available evidence; the Viewer does not validate these destinations or show the decision `source_ref` warnings. Keep local-only Checklist/Decision links out of a public report unless that deployment actually provides those routes; do not substitute a localhost URL as a public destination. For supported rendering and disclosure behavior, read [Inline report links](../../../Documentation/InlineReportLinks.md).
+
 ## Generate optional `time.analysis.json`
 
 - Do not create time data merely because the Viewer supports it. Create or refresh it when the user requests time estimates or deadline risk, or when the target already maintains the sidecar.
