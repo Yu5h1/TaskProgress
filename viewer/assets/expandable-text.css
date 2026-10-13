@@ -1,4 +1,5 @@
 .expandable-text {
+  position: relative;
   min-width: 0;
   line-height: 1.45;
 }
@@ -28,3 +29,20 @@
 .expandable-text__toggle[aria-expanded="true"] { margin-inline-start: 0.5em; }
 .expandable-text__label { text-decoration: underline; }
 .expandable-text__toggle:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
+
+.expandable-text__link {
+  color: var(--expandable-text-link-color, currentColor);
+  text-decoration: underline;
+  cursor: pointer;
+}
+.expandable-text__link[hidden] { display: none; }
+.expandable-text__link:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
+.expandable-text__measure {
+  position: absolute;
+  height: 0;
+  overflow: hidden;
+  top: 0;
+  left: 0;
+  visibility: hidden;
+  pointer-events: none;
+}

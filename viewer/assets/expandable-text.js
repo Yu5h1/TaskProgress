@@ -1,4 +1,5 @@
-/** Framework-independent plain-text disclosure. Owns the children of an empty host. */
+/** Framework-independent text disclosure with safe inline links. Owns an empty host's children. */
+import { inlineUnits } from "./inline-links.js";
 export function expandableText(host, options = {}) {
   const doc = host.ownerDocument;
   const win = doc.defaultView;
@@ -15,11 +16,44 @@ export function expandableText(host, options = {}) {
   host.classList.add("expandable-text");
   content.append(textNode, button);
   host.append(content);
+  const meter = doc.createElement("div");
+  const meterText = doc.createElement("span");
+  const meterButton = doc.createElement("button");
+  meter.className = "expandable-text__content expandable-text__measure";
+  meter.setAttribute("aria-hidden", "true");
+  meter.inert = true;
+  meterButton.className = "expandable-text__toggle";
+  meter.append(meterText, meterButton);
+  host.append(meter);
   let settings;
   let expanded = false;
   let frame = 0;
   let destroyed = false;
-  let characters = [];
+  let pieces = [], visibleNodes = [], measuringNodes = [], unitCount = 0;
+
+  function createNodes(parent) {
+    parent.replaceChildren();
+    return pieces.map(piece => {
+      const node = doc.createElement(piece.href ? "a" : "span");
+      if (piece.href) {
+        node.className = "expandable-text__link";
+        node.setAttribute("href", piece.href);
+        node.setAttribute("rel", "noopener noreferrer");
+        node.textContent = piece.text;
+      }
+      parent.append(node);
+      return node;
+    });
+  }
+
+  function showPrefix(nodes, count) {
+    pieces.forEach((piece, index) => {
+      const take = Math.max(0, Math.min(count, piece.units.length));
+      count -= take;
+      if (piece.href) nodes[index].hidden = !take;
+      else nodes[index].textContent = piece.units.slice(0, take).join("");
+    });
+  }
 
   function render() {
     const caption = String(expanded ? settings.lessLabel : settings.moreLabel);
@@ -27,6 +61,7 @@ export function expandableText(host, options = {}) {
     prefix.textContent = ellipsis;
     label.textContent = caption.slice(ellipsis.length);
     button.setAttribute("aria-expanded", String(expanded));
+    meterButton.textContent = caption;
   }
 
   function measure() {
@@ -34,28 +69,32 @@ export function expandableText(host, options = {}) {
     if (!content.getClientRects().length || !content.clientWidth) return;
     const lineHeight = parseFloat(win.getComputedStyle(content).lineHeight);
     const limit = lineHeight * settings.lines + 1;
-    // Measure full text without the control, then reserve its actual inline width.
-    textNode.textContent = settings.text;
-    // Remove from line flow without hiding a focused toggle during measurement.
-    button.style.position = "absolute";
-    const overflowing = content.scrollHeight > limit;
-    button.style.position = "";
+    // Measure offscreen so resizing cannot detach or temporarily hide a focused link.
+    meter.style.width = `${content.clientWidth}px`;
+    showPrefix(measuringNodes, unitCount);
+    meterButton.hidden = true;
+    const overflowing = meter.scrollHeight > limit;
+    meterButton.hidden = !overflowing;
     button.hidden = !overflowing;
+    if (overflowing && visibleNodes.some((node, index) => pieces[index].href && node === doc.activeElement)) {
+      expanded = true;
+      render();
+    }
     if (!overflowing && expanded) {
       expanded = false;
       render();
     }
     if (overflowing && !expanded) {
       let low = 0;
-      let high = characters.length;
+      let high = unitCount;
       while (low < high) {
         const middle = Math.ceil((low + high) / 2);
-        textNode.textContent = characters.slice(0, middle).join("").replace(/[ \t]+$/u, "");
-        if (content.scrollHeight <= limit) low = middle;
+        showPrefix(measuringNodes, middle);
+        if (meter.scrollHeight <= limit) low = middle;
         else high = middle - 1;
       }
-      textNode.textContent = characters.slice(0, low).join("").replace(/[ \t]+$/u, "");
-    }
+      showPrefix(visibleNodes, low);
+    } else showPrefix(visibleNodes, unitCount);
   }
 
   function schedule() {
@@ -65,13 +104,16 @@ export function expandableText(host, options = {}) {
   function update(next = {}) {
     const text = String(next.text ?? "");
     const lines = Number.isInteger(next.lines) && next.lines > 0 ? next.lines : 2;
-    if (!settings || settings.text !== text || settings.lines !== lines) expanded = false;
+    const textChanged = !settings || settings.text !== text;
+    if (textChanged || settings.lines !== lines) expanded = false;
     settings = { text, lines, moreLabel: next.moreLabel ?? "…更多", lessLabel: next.lessLabel ?? "收合" };
-    // Keep emoji and combined characters intact at the truncation boundary.
-    characters = typeof Intl.Segmenter === "function"
-      ? Array.from(new Intl.Segmenter(undefined, { granularity: "grapheme" }).segment(text), part => part.segment)
-      : Array.from(text);
-    textNode.textContent = text;
+    if (textChanged) {
+      pieces = inlineUnits(text);
+      unitCount = pieces.reduce((total, piece) => total + piece.units.length, 0);
+      visibleNodes = createNodes(textNode);
+      measuringNodes = createNodes(meterText);
+      showPrefix(visibleNodes, unitCount);
+    }
     render();
     schedule();
   }
@@ -97,6 +139,7 @@ export function expandableText(host, options = {}) {
       doc.fonts?.removeEventListener("loadingdone", schedule);
       button.removeEventListener("click", toggle);
       content.remove();
+      meter.remove();
       host.classList.remove("expandable-text");
     },
   };

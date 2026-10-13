@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { expandableText } from "../viewer/assets/expandable-text.js";
+import { parseInlineLinks, inlineUnits } from "../viewer/assets/inline-links.js";
 
 function fixture(text = "a".repeat(60)) {
   const frames = new Map();
@@ -11,14 +12,20 @@ function fixture(text = "a".repeat(60)) {
     attributes = {};
     classList = { add() {}, remove() {} };
     children = [];
-    clientWidth = 100;
+    width = 100;
+    get clientWidth() { return this.style.width ? parseFloat(this.style.width) : this.width; }
+    set clientWidth(value) { this.width = value; }
+    get textContent() { return this.children.length ? this.children.map(child => child.textContent).join("") : this.text ?? ""; }
+    set textContent(value) { this.children = []; this.text = value; }
+    get visibleText() { return this.hidden ? "" : this.children.length ? this.children.map(child => child.visibleText).join("") : this.text ?? ""; }
     get scrollHeight() {
       if (!this.children.length) return 0;
       const [text, button] = this.children;
-      return Math.ceil((Array.from(text.textContent ?? "").length + (button.hidden || button.style.position === "absolute" ? 0 : 5)) / (this.clientWidth / 5)) * 20;
+      return Math.ceil((Array.from(text.visibleText ?? "").length + (button.hidden || button.style.position === "absolute" ? 0 : 5)) / (this.clientWidth / 5)) * 20;
     }
     getClientRects() { return this.clientWidth ? [{}] : []; }
     append(...children) { this.children.push(...children); }
+    replaceChildren(...children) { this.children = children; }
     setAttribute(key, value) { this.attributes[key] = value; }
     remove() { this.removed = true; }
   }
@@ -46,7 +53,7 @@ function fixture(text = "a".repeat(60)) {
     frames.clear();
     pending.forEach(callback => callback());
   }
-  return { control, content, textNode, button, observer, fonts, frames, flush };
+  return { control, content, textNode, button, observer, fonts, frames, flush, document: host.ownerDocument };
 }
 
 test("inline truncation reserves control width, expands full text and resets on resize/update", () => {
@@ -70,6 +77,46 @@ test("inline truncation reserves control width, expands full text and resets on 
   f.flush();
   assert.equal(f.textNode.textContent, "new");
   assert.equal(f.button.hidden, true);
+  f.control.destroy();
+});
+
+test("inline labels navigate to safe URLs while markup and unsafe schemes stay literal", () => {
+  assert.deepEqual(parseInlineLinks("待決策 [前往](/decisions/?scope=ux&task=ux-foundation) 然後 [檢查](https://example.com/a(b)#c)"), [
+    {text:"待決策 "}, {text:"前往",href:"/decisions/?scope=ux&task=ux-foundation"},
+    {text:" 然後 "}, {text:"檢查",href:"https://example.com/a(b)#c"}
+  ]);
+  for (const value of ["[x](javascript:alert(1))", "[x](data:text/html,test)", "[x](file:///C:/test)", "![x](https://example.com)", "<a href='x'>raw</a>", "[x](java\tscript:foo)"]) {
+    assert.deepEqual(parseInlineLinks(value), [{text:value}]);
+  }
+  assert.deepEqual(inlineUnits("👨‍👩‍👧‍👦[前往](#task)").map(part => part.units), [["👨‍👩‍👧‍👦"], ["前往"]]);
+});
+
+test("links remain atomic across truncation and anchors survive identical updates", () => {
+  const f = fixture("a".repeat(34) + "[前往](/checklist/?scope=ux&task=x)" + "b".repeat(40));
+  f.flush();
+  const link = f.textNode.children[1];
+  assert.equal(link.attributes.href, "/checklist/?scope=ux&task=x");
+  assert.equal(link.hidden, true);
+  assert.equal(f.textNode.visibleText, "a".repeat(34));
+  f.button.dispatchEvent(new Event("click")); f.flush();
+  assert.equal(link.hidden, false);
+  f.control.update({text:"a".repeat(34) + "[前往](/checklist/?scope=ux&task=x)" + "b".repeat(40)});
+  assert.equal(f.textNode.children[1], link);
+  f.content.clientWidth = 50; f.observer.callback(); f.flush();
+  assert.equal(link.hidden, false);
+  f.control.destroy();
+});
+
+test("resizing preserves a focused link even when it no longer fits the collapsed prefix", () => {
+  const f = fixture("a[前往](/decisions/?scope=ux&task=x)" + "b".repeat(60));
+  f.flush();
+  const link = f.textNode.children[1];
+  assert.equal(link.hidden, false);
+  f.document.activeElement = link;
+  f.content.clientWidth = 5; f.observer.callback(); f.flush();
+  assert.equal(link.hidden, false);
+  assert.equal(f.document.activeElement, link);
+  assert.equal(f.button.attributes["aria-expanded"], "true");
   f.control.destroy();
 });
 test("hidden reveal, resize/font notifications and disposal", () => {

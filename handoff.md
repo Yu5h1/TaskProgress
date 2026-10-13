@@ -6,6 +6,8 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
 
 ## Current state (2026-09-29)
 
+- **Report 描述行內連結（2026-10-13）。** 契約 `Documentation/InlineReportLinks.md`，驗收 `checklists/report-inline-links.checklist`。ExpandableText 共用解析 `[文字](URL)`，摘要／子項／指路卡使用原生底線 anchor；安全協定與相對 URL、文字 literal fallback；offscreen inert 測量不動焦點節點，連結作完整收合單位。5 項定向 Node 測試、Viewer build、checklist 格式及獨立複核通過，現有 a11y warnings 保留。Browser 重新整理載入，不需重啟；未改實際 Report 內容。實機導覽與排版待核查。
+
 - **決策來源開啟與警告（2026-10-13）。** 契約見 `Documentation/DecisionItemsPlan.md#來源連結與警告` 與 D-01。DecisionSources 相對文件定位、檔案／Markdown 錨點檢查；Browser／Desktop 共用 source read 與 DialogShell 原文定位，失效可重新檢查。validate 警告不改 exit 0；使用者確認 source_ref-only revise 保留版本／答案，仍更新 revision／receipt。來源限 scope 內 Markdown／txt，拒絕越界／reparse／大檔；常見標題語法有支援，非完整 Markdown renderer。
   - C# decisions-only（含來源與版本例外）、25 項 Node、6 項 HTTP route、UI build、checklist validate、Release publish 及獨立複核通過。初次 C#／Python 測試被 sandbox 阻擋檔案原子替換／相鄰原始碼讀取，正常使用者權限重跑成功；修正測試 Setext 行號期望後通過。既有 CardList a11y／IL3000 warning 保留。
   - 使用者退出 tray 後正式 EXE 與 UI 已同步，候選 `bin/Validation/DecisionSources/Release/`，SHA256 `9BDF106BF6F11AF34BE203CE6C2AECDCC957272882FD28F57AE874F2F482D9DE`。start／status 成功，服務 PID 13552、19 條註冊；正式 HTTP load/source 確認 UX 7 題缺檔＋3 題缺錨點，決策頁 HTTP 200。未修改 UX 文件／答案；實際 Browser／Desktop 標題捲動與焦點仍待 checklist 第 6 項核查。

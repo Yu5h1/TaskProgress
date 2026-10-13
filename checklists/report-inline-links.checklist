@@ -1,0 +1,18 @@
+# Report 描述行內連結 Checklist
+
+Current round: `Documentation/InlineReportLinks.md#驗收`.
+
+- [x] **1. 行內解析與收合**
+  Outcome: 描述支援安全連結並保留原有文字展開行為。
+  Checks:
+    - [x] **定向程式驗證**
+      - Action: 執行 expandable-text 定向測試與 Viewer UI build。
+      - Expect: URL 協定、字面 HTML、多連結、原子截斷、焦點保留與既有展開案例通過，Viewer 建置成功。
+
+- [ ] **2. Report 實機操作**
+  Outcome: 描述中任意位置的簡短連結可正常導覽。
+  Checks:
+    - [ ] **行內連結與更多** `[manual]`
+      - Action: 在測試報告的摘要與子項描述中加入文件範例，檢查底線，點擊前往，再以窄視窗操作更多與收合，並以 Tab／Enter 操作連結。
+      - Expect: 可前往對應 Checklist／Decision；連結不啟動卡片拖曳，收合不截成部分連結，鍵盤焦點可見且穩定。
+      - Reason: 需要實際瀏覽器確認字寬、導覽及焦點外觀。
