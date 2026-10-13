@@ -67,22 +67,32 @@ it — build the URL by hand instead. Three preconditions, in order:
    an empty report is never mistaken for real tracked progress.
 3. Ensure the service is running using [Ensure the Checklist service](#ensure-the-checklist-service).
 
-Then open `http://127.0.0.1:8001/checklist/?scope=<scope-id>&task=<stem>` — `preview_start` carrying
-the URL when the Browser pane is closed, otherwise navigate the tab already active. Confirm what
-landed with `get_page_text`; a navigation that silently failed looks identical to one that worked
-until the page is read.
+Then use the confirmed service port to open `/checklist/?scope=<scope-id>&task=<stem>` in the
+Browser pane. Use the available browser tools to navigate the existing relevant tab, or create
+one when needed. Read the loaded URL and page content to confirm the requested round actually
+loaded; a successful navigation call alone is insufficient.
 
 ## Ensure the Checklist service
 
-Opening a Checklist includes starting its required service when stopped; the user has authorized
-this automatic startup for the Checklist navigation workflow. Do not stop merely to ask whether
-to start it.
+This is the shared service-readiness procedure for opening Checklist and Report pages. Opening
+either includes starting its required service when stopped. It does not authorize stopping or
+replacing a running service. Report route synchronization is described in
+[the Report skill](../task-progress-report/SKILL.md#start-or-synchronize-the-shared-viewer).
 
 1. Resolve `Build/win-x64/task-progress.exe` from the TaskProgress repository, not the consuming
    project's working directory; use its absolute path because it is not on PATH.
 2. Run `task-progress.exe service status` (with `--port <port>` when explicitly requested).
    Reuse a running service. A status error or a foreign service is not evidence that it is stopped:
-   report that error instead of taking over or restarting it.
+   report that error instead of taking over or restarting it. Status performs a service connection
+   and identity check; do not substitute TrayHost liveness, a PID, an occupied port, or a state file.
+   The current CLI reports a connected service with its URL, PID, Instance, Viewer root, and
+   registration count; it does not print a literal `Running`. Both connected and not-started status
+   can exit 0, so inspect the output. The not-started message means no compatible connection was
+   established; a health timeout can produce it too. Before startup, check TCP listeners for the
+   requested port (default 8001), for example by filtering a successful
+   `Get-NetTCPConnection -State Listen` result by `LocalPort`. If any listener remains, or the
+   listener check fails, report unavailable/unknown status and stop; do not treat it as stopped.
+   Proceed only when status reports not-started and the port has no listener.
 3. When status reports no running service, use the agent tool's supported approval mechanism to
    run `task-progress.exe start` outside the sandbox, as the current ordinary Windows user,
    once, and wait for completion. In Codex, request `sandbox_permissions: "require_escalated"`;
@@ -102,5 +112,8 @@ to start it.
    or a startup error. If startup fails, the service remains unavailable, or its port does not
    match an explicitly requested port, report the actual error or mismatch and stop; do not loop,
    restart another service, or provide an unverified link as ready.
-5. Provide a clickable `/checklist/?scope=<scope-id>&task=<stem>` link and open it in the Browser
-   pane when requested. Encode the scope and task query values. Confirm the page after navigation.
+5. Use the confirmed service URL/port to open the requested page in the Browser pane and provide
+   a clickable link. Encode scope and task query values. For Checklist use
+   `/checklist/?scope=<scope-id>&task=<stem>`; for Report follow its skill to obtain the Viewer URL.
+   Read the loaded URL and page content. Report a load/parse error without claiming success or
+   falling back to another UI; allow at most one startup attempt per invocation.

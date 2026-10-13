@@ -45,7 +45,7 @@ description: Generate, update, validate, roll up, register, and locally deploy T
 
 ## Update existing Report through CLI
 
-When opening the task being worked on, use `open --scope <scope-id> --pin <task-id>` (or a report folder) if the selected EXE's `--help` advertises `--pin`. Resolve the existing card ID from current task context or `report get`; no session ID or session mapping is needed. Each navigation promotes that card to the front without toggling it off. Pin is browser-local view state, not report data. `--no-browser` prints the link; opening that link applies the pin. See [card pin contract](../../../Documentation/CardPin.md#cli-開啟並釘選) and handoff.md for deployment status.
+When opening the task being worked on, use `open --scope <scope-id> --pin <task-id>` (or a report folder) if the selected EXE's `--help` advertises `--pin`. Resolve the existing card ID from current task context or `report get`; no session ID or session mapping is needed. Each navigation promotes that card to the front without toggling it off. Pin is browser-local view state, not report data. First follow [the shared service-readiness procedure](../taskprogress-capabilities/SKILL.md#ensure-the-checklist-service). Carry the confirmed port through every `open` and subsequent `service status` command with `--port <port>` when it differs from the default. For the Browser pane, add `--no-browser` to obtain the link without opening the system browser; opening that link applies the pin. This option still performs the normal open operation (including route registration and any automatic analysis refresh). Confirm service status after the command, then navigate the pane and read the loaded URL and page content. See [card pin contract](../../../Documentation/CardPin.md#cli-開啟並釘選) and handoff.md for deployment status.
 
 For ordinary task/item or developer-field updates, prefer the `report` command when the selected CLI's help advertises it. Read [Report CLI usage](../../../Documentation/ReportCliUsage.md) for request shape and runtime requirements. Use `get` (optionally `--task`) to obtain the current revision, then `apply --input` with ID-addressed operations; use `--dry-run` for a preview. Never invent a revision or overwrite a conflict without rereading the source. Check both the JSON `ok` value and exit code. Existing string items, pointer mutations, deletions, and new report creation remain outside this command's first version. Do not start a server for these commands.
 
@@ -143,11 +143,13 @@ Before adding a link, verify its target from available evidence; the Viewer does
   - direct unfinished estimate totals, remaining capacity, capacity balance, feasibility ratio, `evaluated_at`, work progress, time progress, pressure, risk basis, boundary state, and urgency reproduce for the same clock value;
    - only `public_label` is projected for capacity exceptions.
 6. Confirm factual consistency with the source task documents and current repository/test state.
-7. Launch the actual Viewer when `<task-progress-exe>` exists:
+7. When `<task-progress-exe>` exists, follow [the shared service-readiness procedure](../taskprogress-capabilities/SKILL.md#ensure-the-checklist-service), then obtain the actual Viewer URL:
 
 ```powershell
-& "<task-progress-exe>" "<project-root>"
+& "<task-progress-exe>" open "<project-root>" --no-browser
 ```
+
+   For a confirmed nondefault port, append `--port <port>` to `open` and every subsequent `service status` call. Confirm service status again after the command. Open the returned URL in the Browser pane using the available browser tools, reusing the relevant tab when present. Read the loaded URL and page content; do not treat command success as page-load evidence.
 
 8. Verify the generated URL uses `?scope=<scope-id>`, the Viewer loads, and no validation diagnostic appears. If `report.dev.json` is absent, confirm no `dev=` query and no Developer overlay. If `time.analysis.json` is absent, confirm the Viewer shows no time placeholders; if present, confirm the delivery capsule, item hours, and three detail tabs appear.
    For estimate-only analysis, confirm the neutral `交付日未定 ›` capsule, project/task/item estimates, and engineering details appear without a risk lamp, countdown, capacity tab, or deadline refresh.
@@ -168,28 +170,17 @@ Only register when the user requests it because this changes the user's local Ta
 
 ## Start or synchronize the shared Viewer
 
-After registering or refreshing one or more scopes, synchronize all registered workspaces:
+For opening an existing Report, first follow [the shared service-readiness procedure](../taskprogress-capabilities/SKILL.md#ensure-the-checklist-service). It owns status checks, ordinary-user unsandboxed startup, readiness evidence, and failure handling. A live TrayHost alone is insufficient.
+
+When registration or route changes require synchronization of all registered scopes, check status first, then run this command once in the same ordinary-user unsandboxed context used by that procedure:
 
 ```powershell
-& "<task-progress-exe>" start
+& "<task-progress-exe>" start --no-browser
 ```
 
-`start` must:
+`start` invokes TrayHost and its resident worker, ensures the service, validates registered reports, synchronizes exact report routes and the sanitized scope catalog, and removes stale routes. It does not regenerate analysis snapshots. It defaults to no browser; `--browser` explicitly opens the system browser. It does not create an independent service Console. `--console` is a log observer, not a different service host. The startup contract is owned by [TrayWorkerPlan](../../../Documentation/TrayWorkerPlan.md#啟動入口start).
 
-- Read every scope from the shared `scopes.json`.
-- Validate every registered report before changing service routes.
-- Start LocalWebService in an independent visible Console when no matching service is running.
-- Register each base/developer/time-analysis report, remove stale routes for scopes no longer registered, and publish a sanitized scope catalog without local paths.
-- Open `http://127.0.0.1:8001/`, where the user can select any registered scope.
-
-Use `start --no-browser` when only synchronization is needed. If a compatible service is already running, `start` reuses it and cannot add a Console window retroactively. When the user explicitly wants a visible Console, check status first; obtain confirmation before stopping an existing service, then run:
-
-```powershell
-& "<task-progress-exe>" service stop
-& "<task-progress-exe>" start
-```
-
-Press `Ctrl+C` in the LocalWebService Console for normal shutdown, or use `service stop`. Do not treat a state file alone as proof that the service is running; use `service status` or the health endpoint.
+Confirm service status after synchronization before opening a URL. If the readiness procedure already ran `start` for the same unchanged registry, do not run it again. On an error or foreign service, report the failure and stop; do not stop/restart the service or loop startup to make navigation work. If synchronization alone was requested, no Browser navigation is needed. Otherwise obtain the Report URL with `open --no-browser` as above, open it in the pane, and verify the loaded page.
 
 The Chrome bookmark form is:
 
