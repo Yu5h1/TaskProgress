@@ -1694,6 +1694,8 @@ ItemRow 是每張任務卡內的一筆子項目。這份矩陣已於 2026-08-02 
 
 #### 優先級資料與排序
 
+子項目的排序接線、同級陣列位置操作與 skill 更新見 [Report 子項目排序與更新計畫](Documentation/ReportItemOrderingPlan.md)。該文件中的 CLI 位置操作為待實作擴充。
+
 - 優先級是 task 與 item 各自的資料屬性，不是狀態過濾器，也不得從 `title`／itemName 前綴解析。兩層只保存 `priority: 0 | 1 | 2 | 3 | 4`；共享 `viewer/assets/priority-policy.js` 統一提供 minimum、maximum、預設值、名稱、格式與色彩語意。
 - 目前投影為「立即、優先、一般、次要、未指定」；只有標籤設定失效時才顯示 `P0` 到 `Pmax`。task、`completed_items` 與 `pending_items` 繼續相容缺少 priority 的舊資料；缺少欄位與新建任務／子項目都使用 `4`「未指定」，只有使用者明確選擇才保存較高優先級。
 - 正常預覽不為「未指定」建立標籤，但編輯下拉保留「未指定」。共享 policy 必須確認 minimum 到 maximum 每個整數都有唯一且非空白的標籤；任一標籤設定不完整時，暫停隱藏規則，任務卡、子項目與編輯下拉統一只顯示 `P0` 到 `Pmax`，不得影響原始數值、排序或儲存。

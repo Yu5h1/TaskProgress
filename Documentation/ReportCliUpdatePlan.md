@@ -131,7 +131,7 @@ task status 與明示 progress 不因單一項目完成而自行推定。若使�
 ## 第一版補充契約
 
 - `task.add` 使用 `value` 提供完整普通任務；`item.add` 使用 `task_id` 與 `value` 提供具 ID 項目，省略 status 時為 planned。新增內容仍須通過 Schema。
-- `item.update` 的定位欄位為 `task_id`＋`item_id`。跨完成／待辦陣列移動時附加至目標陣列末端，同陣列保留位置；不提供 unset status，避免含糊的狀態回退。
+- `item.update` 的定位欄位為 `task_id`＋`item_id`。轉入 completed_items 時置頂，轉入 pending_items 時附加至末端，同陣列保留位置；不提供 unset status，避免含糊的狀態回退。指定未完成項目位置的擴充見 [子項目排序計畫](ReportItemOrderingPlan.md#cli-位置操作設計)。
 - `dev.update` 不覆蓋 claim；指定 next_step 時移除同一 overlay 的舊 next_steps。只有實際新增內容才建立缺少的 overlay，清除不存在欄位為 no-op。
 - 每批 1–1000 操作，請求最多 4 MiB；Report 與 overlay 各最多 1 MiB。UTF-8 JSON 拒絕重複欄位與 NaN／Infinity。
 - revision 包含 Report、overlay、time.config／estimates／events／analysis 與私有 local 狀態的原始位元組或缺少狀態。CLI get 不恢復交易；有待回復交易時，get／validate／dry-run 回 recovery_required，明確 apply 在鎖內先恢復再檢查 revision。
