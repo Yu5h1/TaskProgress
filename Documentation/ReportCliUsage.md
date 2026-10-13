@@ -69,6 +69,41 @@ task-progress.exe report apply "C:\Project" --input changes.json
 
 後面的操作可引用同批新增的 ID。舊字串子項必須先另行遷移為具 ID 物件，不能用顯示文字或陣列位置定位。第一版不提供刪除、改名 ID 或修改指路卡。
 
+## 子項目位置與狀態
+
+未完成子項目顯示時先依 priority，再依陣列順序；全部未指定（缺省或 4）時就是陣列順序。位置操作不改 priority，也不保證不同優先級的項目在畫面相鄰。
+
+`item.add` 可帶 position，`item.move` 必須帶 position；before／after 二選一，以同一任務 pending_items 內既有穩定 ID 為參照。以下操作放入同一份 apply 請求，仍依前述 get → dry-run → apply 流程提交：
+
+```json
+[
+  {
+    "op": "item.add",
+    "task_id": "feature-b",
+    "value": { "id": "design", "title": "確認設計", "status": "planned" },
+    "position": { "before": "implementation" }
+  },
+  {
+    "op": "item.move",
+    "task_id": "feature-b",
+    "item_id": "implementation",
+    "position": { "after": "design" }
+  },
+  {
+    "op": "item.update",
+    "task_id": "feature-b",
+    "item_id": "design",
+    "set": { "status": "in_progress" }
+  }
+]
+```
+
+省略 position 的新增操作：非 done 加在 pending_items 尾端；done 加在 completed_items 頂端。`item.update` 改成 done 時自動轉入完成清單頂端，恢復為其他狀態時轉入待處理清單尾端，可再以 item.move 排位。重複 done 不移位，重複相同位置為 no-op。
+
+不接受已完成項目移位、done 新增時指定 position、自身或跨任務參照、不存在的 ID、標題與數字索引。位置錯誤拒絕整批保存。move 不變更其他欄位；結果 changes 的 item_id 定位子項目，fields 中的 position 表示位置操作，不含參照值。
+
+位置操作由專案的 `service/report_operations.py` 提供；CLI `--help` 列出 item.move／position 的版本包含相應說明。部署須配套同版 service 與 schemas；可用 `python service/report_cli.py --help` 確認實際後端入口，並用 dry-run 驗證請求。舊後端不支援時先更新，不以手改 JSON 繞過。
+
 ## stdin 與結果
 
 ```powershell

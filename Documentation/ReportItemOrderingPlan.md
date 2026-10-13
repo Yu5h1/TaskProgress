@@ -2,7 +2,7 @@
 
 > Task ID: report-item-ordering
 >
-> 本文件定義待實作的子項目排序與 CLI 位置操作；實作進度由 handoff.md 記錄。既有 CLI 交易契約由 [Report CLI 計畫](ReportCliUpdatePlan.md) 擁有。
+> 本文件定義子項目排序與 CLI 位置操作；實作與部署進度由 handoff.md 記錄。既有 CLI 交易契約由 [Report CLI 計畫](ReportCliUpdatePlan.md) 擁有。
 
 ## 系統階層與關係
 
@@ -22,9 +22,9 @@ TaskProgress Report
 使用者可以同時表達工作的重要程度與同級工作的先後順序。全部未指定優先級時，只需安排陣列位置，不必為了移動位置提高 priority。
 
 - [priority policy](../viewer/assets/priority-policy.js) 定義 0 立即、1 優先、2 一般、3 次要、4 未指定；缺省為 4，預覽隱藏未指定標籤。
-- [report model](../viewer/assets/report-model.js) 已有 `stableSortTaskItemsByPriority`；目前 [TaskCard](../experiments/editor-svelte-spike/src/TaskCard.svelte) 直接使用陣列，尚未接入此排序。
-- [Report operations](../service/report_operations.py) 已支援 item.add／item.update；未完成新增至尾端，完成新增或轉入時置頂，尚無指定位置操作。
-- 子項目 status 與 priority 驗證已存在；[report skill](../.agents/skills/task-progress-report/SKILL.md) 尚缺子項目生命週期與順序指引。
+- [report model](../viewer/assets/report-model.js) 擁有 `stableSortTaskItemsByPriority`；[TaskCard](../experiments/editor-svelte-spike/src/TaskCard.svelte) 共用此排序。
+- [Report operations](../service/report_operations.py) 擁有新增、狀態更新與位置操作；省略位置時未完成新增至尾端，完成新增或轉入時置頂。
+- 子項目 status 與 priority 由既有 schema 驗證；[report skill](../.agents/skills/task-progress-report/SKILL.md) 提供子項目生命週期與順序指引。
 
 UX session 曾否寫入 priority 5 及其實際錯誤畫面尚未重現，不作為本計畫的已驗證事故。
 
@@ -38,7 +38,7 @@ UX session 曾否寫入 priority 5 及其實際錯誤畫面尚未重現，不作
 
 ## CLI 位置操作設計
 
-以下為待新增的請求契約，不能當作現行 CLI 用法。
+操作範例與執行入口見 [Report CLI 用法](ReportCliUsage.md#子項目位置與狀態)。
 
 | 操作 | 擴充 |
 |---|---|
@@ -60,7 +60,7 @@ UX session 曾否寫入 priority 5 及其實際錯誤畫面尚未重現，不作
 3. **文件與 skill。** 在 [Report CLI 用法](ReportCliUsage.md) 集中描述新操作；skill 只寫 priority 語意、排序規則及工作生命週期，引用操作文件。開始處理設 in_progress、受阻設 blocked、完成並驗證後設 done；恢復工作依事實更新。一般具 ID 子項目更新使用 CLI；保留新建報告、舊字串遷移等既有不支援範圍，禁止捏造 revision。
 4. **驗證與交付。** 依下節形成執行用 checklist；按 skill 撰寫流程驗證修改後的 skill 格式與連結，更新 handoff 的部署狀態與驗證限制。
 
-本輪只交付計畫與文件修正。後續功能工作預估為中型，約 8–12 個原始碼、測試與文件檔案，另有產生的 bundle；新增約 200–350 行，刪除量預估低於 30 行。排序與交易已有先例，位置操作為既有請求契約擴充。驗證需要定向 Node／Python 測試及 Browser 實際顯示核查；不另建 CLI 框架或資料 owner。
+功能工作預估為中型，約 8–12 個原始碼、測試與文件檔案，另有產生的 bundle；新增約 200–350 行，刪除量預估低於 30 行。排序與交易已有先例，位置操作為既有請求契約擴充。驗證需要定向 Node／Python 測試及 Browser 實際顯示核查；不另建 CLI 框架或資料 owner。
 
 ## 驗收條件
 

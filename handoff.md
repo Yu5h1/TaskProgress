@@ -6,8 +6,9 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
 
 ## Current state (2026-09-29)
 
-- **Report 子項目排序計畫（2026-10-13）。** 已整理 [更新計畫](Documentation/ReportItemOrderingPlan.md)：未完成項目 priority 穩定排序、同級陣列順序、CLI 插入／移動位置及 skill 工作生命週期。現有 TaskCard 尚未接入子項目排序函式；現有 CLI 沒有 position／item.move。本輪只新增計畫與路由，並修正 ReportCliUpdatePlan 的完成項目插入位置描述；未修改功能、skill、真實 Report 或部署資產。
-  - 計畫連結、路由錨點與 diff whitespace 檢查通過；獨立只讀複核未發現需修正問題。未執行功能測試。
+- **Report 子項目排序與位置操作（2026-10-13）。** [契約](Documentation/ReportItemOrderingPlan.md)、[驗收](checklists/report-item-ordering.checklist)。TaskCard 接入未完成項目 priority 穩定排序，同級保留來源陣列順序；完成堆疊不變。Report 後端支援 item.add position 與 item.move；同 task pending ID before／after、no-op、批次驗證與 revision／交易沿用既有 owner。skill 補上子項目 priority、status 生命週期及 CLI 位置用法。
+  - 48 項定向 Node、15 項 Python、Release build、Viewer build、skill 格式／連結、checklist parser 及獨立複核通過。SSR 測試修正 alias／runtime 後以編輯模式驗證，Browser 對正式 bundle 確認混合 B／A／C、全未指定 C／A／B、完成最新／最早。Python 與隔離站台遇 sandbox 權限限制，正常使用者執行通過；既有 UI warnings／單檔 IL3000 warning 保留。未改真實 Report。
+  - Python backend 及正式 Viewer bundle 已更新。CLI 單檔候選位於 `bin/Validation/ReportItemOrdering/Publish/task-progress.exe`；候選 help 支援新說明。正式 EXE 被既有 worker PID 21368 占用，複製失敗，未終止／重啟 worker；CLI 功能使用 repo backend，正式 EXE help 仍舊版。既有 Browser 重新整理載入 Viewer 新版。
 
 - **Report／Checklist 開啟流程 skill（2026-10-13）。** `.agents/skills/taskprogress-capabilities/SKILL.md#ensure-the-checklist-service` 統一服務就緒判定；Report skill 改為引用此流程，以 `open --no-browser` 取得連結後在面板開啟並讀頁確認。已對照 CLI 原始碼，移除舊 Console 啟動描述，兩份 skill 格式驗證通過。未啟停服務或執行真實頁面驗證；下次開啟 Report／Checklist 時依此流程確認。
 
@@ -428,7 +429,7 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
 - **Single-writer artifacts and shared resources in this project (2026-08-22).** The general rule is in `../.agents/skills/agent-work-route/SKILL.md`; these are the instances here. One writer at a time: `viewer/assets/viewer-ui.js` (a 155 kB build product under version control, so two agents rebuilding it after separate `.svelte` edits produce a conflict no merge can resolve — and `verify-bundle` fails on the result), `src/TaskProgress.Cli/packages.lock.json` (see the `dotnet run` gotcha below), each individual `checklists/<task-id>.checklist`, and `handoff.md`／`plan.md`／`report.json`／`report.dev.json`. Different Checklist files may have different owners, but that does not grant source-file ownership. Not partitioned by worktree: the edit host on `127.0.0.1:8001` is a single process that `LocalWebServiceClient.EnsureAsync` reuses rather than duplicates, so restarting it invalidates every other session's token, and `src/TaskProgress.Cli/bin/Release/**` is one output directory. Because `.svelte` sources produce the committed bundle, an agent editing any of them holds the bundle too.
 - Active claim: none.
 - **Next steps:**
-  - **Report 子項目排序與位置操作。** 從 [工作拆分](Documentation/ReportItemOrderingPlan.md#工作拆分) 接續，建立執行 checklist，完成 Viewer／CLI 後再同步 skill 與發布能力。
+  - **同步 CLI help。** 使用者退出既有 worker 後，將 `bin/Validation/ReportItemOrdering/Publish/task-progress.exe` 同步至 `Build/win-x64/task-progress.exe`，核對 SHA256 與 `--help` 的 item.move／position 說明。功能與驗收已完成，不需重跑整輪。
   - **Foreground Source Refresh：完成 Preview Panel 人工驗收。** 分別開啟 Browser Report 與 Browser Checklist：乾淨狀態下離開面板、由外部修改來源、返回時應各只刷新一次並顯示新資料；再以未提交／儲存中狀態返回，確認不刷新、不丟草稿。通過後勾選 `checklists/foreground-source-refresh.checklist` 的 `[manual]` check，並把 `item-viewer-core-foreground-refresh` 移至 completed。
   - **Tray 顯示服務狀態等四項已轉為需求，不是本專案的工作**，見 `Documentation/TrayWorkerPlan.md#對-winform-的需求`。
   - **第三方 Checklist 單項寫入：階段 2／3 已實作、完整驗收依使用者指示後排。** 待驗收項目見 `checklists/third-party-checklist-write.checklist`。Browser 清空按鈕與確認框亦已實作、待驗收；階段 4 入口表待入口驗收／部署狀態明確後補上，避免把未運行的能力當成已可用。

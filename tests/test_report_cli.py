@@ -1,11 +1,13 @@
 """Focused in-process checks for Report operations and recoverable CLI transactions."""
 import json
+import io
 import tempfile
 import unittest
+from contextlib import redirect_stdout
 from pathlib import Path
 from unittest.mock import patch
 
-from service.report_cli import execute, ReportError
+from service.report_cli import execute, main, ReportError
 from service.report_store import LocalFileTransaction, TRANSACTION_JOURNAL, strict_json
 
 
@@ -151,6 +153,99 @@ class ReportCliTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             execute(self.root, "validate")
         self.assertEqual(before, self.snapshot())
+
+    def test_position_add_move_dry_run_noop_and_lifecycle(self):
+        def apply(operations, **options):
+            return execute(self.root, "apply", self.request(operations), **options)
+        def move(identity, position):
+            return {"op": "item.move", "task_id": "one", "item_id": identity, "position": position}
+        def ids():
+            return [i if isinstance(i, str) else i["id"]
+                    for i in execute(self.root, "get", task="one")["task"]["pending_items"]]
+        operations = [
+            {"op": "item.add", "task_id": "one", "value": {"id": "a", "title": "A", "priority": 4}, "position": {"before": "item"}},
+            {"op": "item.add", "task_id": "one", "value": {"id": "b", "title": "B", "priority": 1}, "position": {"after": "a"}},
+            move("item", {"before": "a"}),
+        ]
+        before = self.snapshot()
+        self.assertTrue(apply(operations, dry_run=True)["changed"])
+        self.assertEqual(before, self.snapshot())
+        result = apply(operations)
+        self.assertEqual(ids(), ["legacy", "item", "a", "b"])
+        self.assertEqual(result["changes"][-1], {"op": "item.move", "task_id": "one", "item_id": "item", "fields": ["position"]})
+        before = self.snapshot()
+        self.assertFalse(apply([move("item", {"before": "a"})])["changed"])
+        self.assertEqual(before, self.snapshot())
+        apply([move("item", {"after": "b"})])
+        self.assertEqual(ids(), ["legacy", "a", "b", "item"])
+        for status in ("in_progress", "done"):
+            apply([{"op": "item.update", "task_id": "one", "item_id": "item", "set": {"status": status}}])
+        apply([{"op": "item.update", "task_id": "one", "item_id": "item", "set": {"status": "in_progress"}},
+               move("item", {"before": "a"})])
+        task = execute(self.root, "get", task="one")["task"]
+        self.assertEqual(ids(), ["legacy", "item", "a", "b"])
+        self.assertEqual(task["completed_items"], [])
+        self.assertEqual(task["pending_items"][1], {"id": "item", "title": "項目", "status": "in_progress"})
+        self.assertEqual(task["pending_items"][3]["priority"], 1)
+
+    def test_invalid_positions_and_priority_reject_entire_batch(self):
+        execute(self.root, "apply", self.request([
+            {"op": "item.add", "task_id": "one", "value": {"id": "done", "title": "Done", "status": "done"}},
+            {"op": "item.add", "task_id": "two", "value": {"id": "elsewhere", "title": "Other"}},
+        ]))
+        positions = [None, 0, "item", {}, {"before": "item", "after": "item"},
+                     {"index": 0}, {"before": 0}, {"before": ""}, {"before": "missing"},
+                     {"after": "elsewhere"}, {"after": "done"}, {"before": "legacy"}, {"before": "項目"}]
+        invalid = [{"op": "item.add", "task_id": "one", "value": {"id": "new", "title": "New"}, "position": p} for p in positions]
+        invalid += [
+            {"op": "item.move", "task_id": "one", "item_id": "item", "position": {"before": "item"}},
+            {"op": "item.move", "task_id": "one", "item_id": "item"},
+            {"op": "item.move", "task_id": "one", "item_id": "done", "position": {"before": "item"}},
+            {"op": "item.add", "task_id": "one", "value": {"id": "new", "title": "New", "status": "done"}, "position": {"before": "item"}},
+            {"op": "item.update", "task_id": "one", "item_id": "item", "set": {"priority": 5}},
+        ]
+        before = self.snapshot()
+        for operation in invalid:
+            with self.subTest(operation=operation):
+                with self.assertRaises(ReportError) as caught:
+                    execute(self.root, "apply", self.request([
+                        {"op": "report.update", "set": {"title": "Must roll back"}}, operation]))
+                self.assertEqual(caught.exception.operation_index, 1)
+                self.assertEqual(before, self.snapshot())
+
+    def test_move_rejects_stale_revision(self):
+        request = self.request([{"op": "item.move", "task_id": "one", "item_id": "item", "position": {"after": "other"}}])
+        execute(self.root, "apply", self.request([{"op": "item.add", "task_id": "one", "value": {"id": "other", "title": "Other"}}]))
+        before = self.snapshot()
+        with self.assertRaises(ReportError) as caught:
+            execute(self.root, "apply", request)
+        self.assertEqual(caught.exception.exit_code, 3)
+        self.assertEqual(before, self.snapshot())
+
+    def test_command_entry_get_dry_run_apply_and_readback(self):
+        def command(action, request=None, dry_run=False):
+            output = io.StringIO()
+            source = io.TextIOWrapper(io.BytesIO(json.dumps(request).encode("utf-8")), encoding="utf-8")
+            with patch("sys.stdin", source), redirect_stdout(output):
+                code = main([action, "--folder", str(self.root), *(["--dry-run"] if dry_run else [])])
+            return code, json.loads(output.getvalue())
+        code, current = command("get")
+        self.assertEqual(code, 0)
+        request = {"version": "1", "expected_revision": current["revision"], "operations": [
+            {"op": "item.add", "task_id": "one", "value": {"id": "first", "title": "第一項"}, "position": {"before": "item"}},
+            {"op": "item.move", "task_id": "one", "item_id": "item", "position": {"after": "first"}},
+        ]}
+        before = self.snapshot()
+        code, preview = command("apply", request, dry_run=True)
+        self.assertEqual(code, 0)
+        self.assertTrue(preview["ok"])
+        self.assertEqual(before, self.snapshot())
+        code, saved = command("apply", request)
+        self.assertEqual(code, 0)
+        self.assertTrue(saved["changed"])
+        code, current = command("get")
+        self.assertEqual(current["revision"], saved["revision"])
+        self.assertEqual([i["id"] for i in current["report"]["tasks"][0]["pending_items"] if isinstance(i, dict)], ["first", "item"])
 
 
 if __name__ == "__main__":

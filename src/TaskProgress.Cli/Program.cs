@@ -648,6 +648,7 @@ internal static class Program
         Console.WriteLine("  report get <folder> [--task <id>] 取得 Report／任務及來源 revision，輸出 JSON");
         Console.WriteLine("  report validate <folder>        驗證 Report 與 developer overlay，輸出 JSON");
         Console.WriteLine("  report apply <folder> --input <file|-> [--dry-run]  提交操作；- 使用 UTF-8 stdin");
+        Console.WriteLine("    item.add 可帶 position；item.move 以 position.before／after 指定待處理子項目 ID");
         Console.WriteLine("  report <動作> --scope <id>       以已登記 scope 取代 folder；exit code 0／2／3／4");
         Console.WriteLine("  checklist <task.checklist>       開啟本機 WPF Checklist 編輯器");
         Console.WriteLine("  checklist validate <file>        僅驗證文件格式並輸出到 stdout，不開視窗");

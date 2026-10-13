@@ -1,0 +1,38 @@
+# Report 子項目排序與更新 Checklist
+
+Current round: `Documentation/ReportItemOrderingPlan.md#驗收條件`.
+
+本輪涵蓋未完成子項目排序、CLI 位置操作及使用指引。
+
+- [x] **1. 未完成子項目穩定排序**
+  Outcome: 未完成項目依 priority 與原陣列順序顯示，完成堆疊保持不變。
+  Checks:
+    - [x] **排序與編輯往返**
+      - Action: 執行 report-item-ordering 與相關 editor 定向 Node 測試。
+      - Expect: 實際 TaskCard 接線、同級與缺省順序、priority 編輯及 Undo／Redo 驗證通過。
+      - Observed: 初始 SSR 測試缺少 alias、混用 Svelte runtime，且預覽文字由 Browser action 產生，無法由 SSR 觀察。
+      - Resolved: 統一 SSR runtime 與 alias，以實際編輯模式渲染測試排序；4 項排序／pointer 測試及 44 項 model／editor-core 測試通過，預覽另由 Browser 核查。
+    - [x] **正式 Viewer**
+      - Action: 重建 Viewer bundle，於 Browser 使用測試資料查看子項目順序。
+      - Expect: 正式 bundle 顯示混合 priority 與全未指定順序正確，已完成順序不受影響。
+      - Observed: sandbox 內測試服務未能提供連線，Browser 回 connection refused。
+      - Resolved: 正常使用者權限啟動隔離 8127 測試站，Browser 確認混合 B／A／C、全未指定 C／A／B、完成最新／最早順序。Viewer build 通過，保留既有 warnings。
+
+- [x] **2. CLI 新增與移動位置**
+  Outcome: CLI 以 stable ID 安排未完成陣列位置並維持交易保護。
+  Checks:
+    - [x] **位置與交易往返**
+      - Action: 執行 Report CLI 定向 Python 測試，含位置新增、移動、生命週期、dry-run、no-op、非法位置與 revision 衝突。
+      - Expect: 有效操作保存正確，無效操作與 dry-run 不改來源，完成堆疊及既有交易測試通過。
+      - Observed: 初次測試命令未找到非 package 的 tests；改用 discover 後 sandbox 暫存路徑 resolve 被拒絕。
+      - Resolved: 以 discover 及正常使用者權限執行 15 項 Report CLI 測試通過，包含 main 命令入口與同批恢復／移動。
+    - [x] **CLI 發布契約**
+      - Action: 建置 CLI 並核對 help、Report backend 定位與實際 Python 命令入口。
+      - Expect: help 描述位置操作，命令入口沿用同一已驗證 backend，沒有第二套保存流程。
+
+- [x] **3. 子項目更新指引**
+  Outcome: skill 正確引導 priority、status 與 CLI 陣列位置更新。
+  Checks:
+    - [x] **skill 格式與操作入口**
+      - Action: 執行 skill 格式驗證並核對新增指引連結與 CLI 用法。
+      - Expect: 格式及連結有效，支援範圍、生命週期、位置與優先級的區別符合實作。

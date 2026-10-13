@@ -39,6 +39,23 @@ def insert_item(task, field, item):
     items.insert(0 if field == "completed_items" else len(items), item)
 
 
+def place_pending_item(task, item, position, *, moving=False):
+    require(isinstance(position, dict) and len(position) == 1
+            and set(position) <= {"before", "after"},
+            "position requires exactly one before or after item ID", "position")
+    relation, anchor_id = next(iter(position.items()))
+    require(isinstance(anchor_id, str) and bool(anchor_id.strip()),
+            "Position anchor must be a stable item ID", "position")
+    require(anchor_id != item["id"], "An item cannot be its own position anchor", "position")
+    items = task.get("pending_items", [])
+    anchor = next((candidate for candidate in items
+                   if isinstance(candidate, dict) and candidate.get("id") == anchor_id), None)
+    require(anchor is not None, "Position anchor must belong to this task's pending_items", "position")
+    if moving:
+        items.remove(item)
+    items.insert(items.index(anchor) + (relation == "after"), item)
+
+
 def update(target, operation, name):
     allowed, removable = FIELDS[name]
     values, unset = operation.get("set", {}), operation.get("unset", [])
@@ -61,14 +78,16 @@ def apply_operations(report, overlay, operations):
         try:
             require(isinstance(operation, dict), "Operation must be an object")
             name = operation.get("op")
-            require(isinstance(name, str) and name in {*FIELDS, "task.add", "item.add"}, "Unknown operation", "op")
+            require(isinstance(name, str) and name in {*FIELDS, "task.add", "item.add", "item.move"}, "Unknown operation", "op")
             keys = {"op", "set", "unset"}
             if name != "report.update":
                 keys.add("task_id")
             if name == "item.update":
                 keys.add("item_id")
             if name in {"task.add", "item.add"}:
-                keys = {"op", "task_id", "value"} if name == "item.add" else {"op", "value"}
+                keys = {"op", "task_id", "value", "position"} if name == "item.add" else {"op", "value"}
+            if name == "item.move":
+                keys = {"op", "task_id", "item_id", "position"}
             require(set(operation) <= keys, "Unknown operation property")
             task_id = operation.get("task_id")
             if name == "report.update":
@@ -105,21 +124,35 @@ def apply_operations(report, overlay, operations):
                     value = deepcopy(value)
                     value.setdefault("status", "planned")
                     key = "completed_items" if value["status"] == "done" else "pending_items"
-                    insert_item(task, key, value)
+                    if "position" in operation:
+                        require(key == "pending_items", "Completed items cannot specify a position", "position")
+                        place_pending_item(task, value, operation["position"])
+                    else:
+                        insert_item(task, key, value)
                 else:
                     item_id = operation.get("item_id")
                     require(isinstance(item_id, str), "item_id must be a stable ID; string items require migration", "item_id")
                     found = [(key, item) for key in ("completed_items", "pending_items") for item in task.get(key, []) if isinstance(item, dict) and item.get("id") == item_id]
                     require(len(found) == 1, "Item ID was not found; legacy string items require migration", "item_id")
                     previous, item = found[0]
-                    update(item, operation, name)
-                    effective = item.get("status", "done" if previous == "completed_items" else "planned")
-                    destination = "completed_items" if effective == "done" else "pending_items"
-                    if destination != previous:
-                        task[previous].remove(item)
-                        insert_item(task, destination, item)
+                    if name == "item.move":
+                        require(previous == "pending_items", "Only pending items can be moved", "item_id")
+                        place_pending_item(task, item, operation.get("position"), moving=True)
+                    else:
+                        update(item, operation, name)
+                        effective = item.get("status", "done" if previous == "completed_items" else "planned")
+                        destination = "completed_items" if effective == "done" else "pending_items"
+                        if destination != previous:
+                            task[previous].remove(item)
+                            insert_item(task, destination, item)
             validate_documents(report, overlay)
-            summaries.append({"op": name, "task_id": task_id, "fields": sorted(set(operation.get("set", {})) | set(operation.get("unset", [])))})
+            fields = set(operation.get("set", {})) | set(operation.get("unset", []))
+            if "position" in operation:
+                fields.add("position")
+            summary = {"op": name, "task_id": task_id, "fields": sorted(fields)}
+            if name.startswith("item."):
+                summary["item_id"] = operation["value"]["id"] if name == "item.add" else operation["item_id"]
+            summaries.append(summary)
         except (ValueError, TypeError, KeyError) as error:
             if not isinstance(error, ReportError):
                 error = ReportError("invalid_operation", str(error), field=getattr(error, "field", "$"))

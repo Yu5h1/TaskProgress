@@ -51,6 +51,7 @@ C# `ReportCommand` 負責參數與一次性 Python 程序。`service/report_stor
 | `task.update` | 更新 title、summary、status、priority、progress；ID 不可變 |
 | `item.add` | 在指定任務新增具 ID 的項目 |
 | `item.update` | 依 task ID＋item ID 更新 title、status、priority |
+| `item.move` | 依 task ID＋item ID 與 position 調整未完成子項目陣列位置；契約見 [子項目排序](ReportItemOrderingPlan.md#cli-位置操作設計) |
 | `dev.update` | 更新指定任務的 next_step、blockers、decisions、routes |
 
 更新只套用列出的欄位。省略代表保留；清除可選欄位使用明確 `unset` 清單，拒絕對同一欄位同時 set 與 unset。未知操作與未知欄位一律拒絕。`claim` 是協作狀態的投影，第一版不提供任意修改入口。

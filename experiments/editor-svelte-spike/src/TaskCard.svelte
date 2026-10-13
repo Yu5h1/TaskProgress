@@ -7,6 +7,7 @@
   export let onToggle = () => {};
   import DeveloperDetails from "./DeveloperDetails.svelte";
   import ItemRow from "./ItemRow.svelte";
+  import { stableSortTaskItemsByPriority } from "../../../viewer/assets/report-model.js";
   import ExpandableText from "./ExpandableText.svelte";
 
   export let task;
@@ -54,7 +55,7 @@
       title: "待處理",
       className: "pending-work",
       field: "pending_items",
-      items: task.pending_items ?? [],
+      items: stableSortTaskItemsByPriority(task.pending_items),
     },
   ];
   $: orderedGroups = [...workGroups].sort((left, right) => {
