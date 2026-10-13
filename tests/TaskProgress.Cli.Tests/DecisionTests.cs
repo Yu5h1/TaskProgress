@@ -29,7 +29,7 @@ internal static class DecisionTests
             Check(ChecklistFileRegistration.BuildLaunchCommand(@"C:\tools checklist build\task-progress.exe", "decisions") == "\"C:\\tools checklist build\\task-progress.exe\" decisions \"%1\"", "registration keeps executable path");
             var confirm = Request(initial, "confirm", "confirm-1", new() { ["kind"] = "option", ["option_id"] = "batch" });
             var success = store.Handle(confirm.ToJsonString());
-            Check(success["status"]!.GetValue<string>() == "applied", "confirm");
+            Check(success["status"]?.GetValue<string>() == "applied", "confirm: " + success.ToJsonString());
             var repeated = store.Handle(confirm.ToJsonString());
             Check(repeated["status"]!.GetValue<string>() == "already_applied", "latest receipt retry");
             Check(!repeated["document"]!["decisions"]![0]!.AsObject().ContainsKey("history"), "no history persisted");
@@ -41,7 +41,16 @@ internal static class DecisionTests
             Check(changed["document"]!["decisions"]![0]!["answer"]!["option_id"]!.GetValue<string>() == "short", "replacement answer saved");
             var changedOther = store.Handle(Request(changed, "confirm", "change-other", new() { ["kind"] = "other", ["text"] = "需要其他方案" }).ToJsonString());
             Check(changedOther["ok"]!.GetValue<bool>(), "answered option can become other");
-            success = changedOther;
+            var movedDefinition = DecisionDocument.Definition(changedOther["document"]!["decisions"]![0]!.AsObject());
+            movedDefinition["source_ref"] = "plan.md#current";
+            var moveRequest = Request(changedOther, "revise", "move-source", movedDefinition);
+            var moved = store.Handle(moveRequest.ToJsonString());
+            Check(moved["document"]!["decisions"]![0]!["version"]!.GetValue<int>() == 1, "source relocation retains version");
+            Check(DecisionDocument.Equal(moved["document"]!["decisions"]![0]!["answer"], changedOther["document"]!["decisions"]![0]!["answer"]), "source relocation retains answer and timestamp");
+            Check(moved["document"]!["decisions"]![0]!["status"]!.GetValue<string>() == "decided", "source relocation retains status");
+            Check(moved["revision"]!.GetValue<string>() != changedOther["revision"]!.GetValue<string>(), "source relocation advances file revision");
+            Check(store.Handle(moveRequest.ToJsonString())["status"]!.GetValue<string>() == "already_applied", "source relocation supports retry receipt");
+            success = moved;
             var reopened = store.Handle(Request(success, "reopen", "reopen-1", new()).ToJsonString());
             Check(reopened["ok"]!.GetValue<bool>(), "reopen");
             Check(reopened["document"]!["decisions"]![0]!["answer"] is null, "reopen clears answer");

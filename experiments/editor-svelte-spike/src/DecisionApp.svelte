@@ -19,6 +19,22 @@
   function setSelection(next) { selection = next; saveFilterSelection(filterKey, selection); }
   let theme, themeState, failedIds = new Set(), refreshing = false;
   let clearOpen = false;
+  let sourceOpen = false, sourcePreview = null, sourceMessage = "", sourceRequest = 0, sourceOverrides = {};
+  function closeSource() { sourceOpen = false; sourceRequest++; }
+  async function openSource(id) {
+    const request = ++sourceRequest;
+    sourceOpen = true; sourcePreview = null; sourceMessage = "載入來源…";
+    try {
+      const result = await transport.request({operation: "source", decision_id: id});
+      if (request !== sourceRequest) return;
+      if (!result.ok) throw new Error(result.error?.message ?? "無法讀取來源");
+      sourcePreview = result.source;
+      sourceOverrides = {...sourceOverrides, [id]: {...result.source, revision: view.snapshot.revision, content: undefined}};
+      sourceMessage = result.source.status === "available" ? "" : result.source.message;
+      await tick();
+      document.getElementById(`source-line-${result.source.line}`)?.scrollIntoView({block: "center"});
+    } catch (error) { if (request === sourceRequest) sourceMessage = `無法讀取來源：${error.message}`; }
+  }
   let editingOther = null;
   $: canClear = !!view && !view.pending && !view.busy && !refreshing &&
     (decisions.some(d => d.answer) || view.dirty);
@@ -38,7 +54,7 @@
   function readTheme() { themeState = {mode:theme.mode,custom:theme.custom,systemScheme:theme.systemScheme}; }
   $: decisions = view?.snapshot.document.decisions ?? [];
   $: dirty = !!view?.dirty || !!view?.pending;
-  $: onPersistenceChange({ dirty, saving: !!view?.busy, pending: !!view?.pending || clearOpen || refreshing });
+  $: onPersistenceChange({ dirty, saving: !!view?.busy, pending: !!view?.pending || clearOpen || sourceOpen || refreshing });
   $: storageKey = view ? `taskprogress.decisions:${view.snapshot.document_key}` : null;
   const sync = () => { view = session.view(); };
   const edit = (id, fields) => { session.edit(id, fields); sync(); };
@@ -171,6 +187,18 @@
           onToggle={value => disclose(item.id, value)} contentId={`body-${item.id}`} label={item.question}>
           <header slot="header" class="checklist-item-header"><h2 id={`decision-${item.id}`} tabindex="-1">{item.question}</h2><span class="checklist-status">{item.status === "pending" ? "待決策" : "已決策"}</span></header>
           <div class="decision-content">
+          {#if item.source_ref}
+            {@const override = sourceOverrides[item.id]}
+            {@const source = override?.reference === item.source_ref && override?.revision === view.snapshot.revision ? override : view.snapshot.sources?.[item.id]}
+            <div class="decision-source">
+              {#if source?.status === "available"}
+                <button type="button" class="source-link" onclick={() => openSource(item.id)}>來源：{item.source_ref}</button>
+              {:else}
+                <span>{source?.message ?? "來源尚未檢查，請更新並重啟服務"}</span><small>{item.source_ref}</small>
+                {#if source}<button type="button" class="source-link" onclick={() => openSource(item.id)}>重新檢查來源</button>{/if}
+              {/if}
+            </div>
+          {/if}
           {#if item.context || item.recommendation}<div class="decision-description">
           {#if item.context}<p class="decision-text">{item.context}</p>{/if}
           {#if item.recommendation}<p>建議：{item.options.find(o => o.id === item.recommendation.option_id)?.label} — {item.recommendation.reason}</p>{/if}
@@ -205,6 +233,13 @@
     {/each}
   {/if}
 </main>
+<DialogShell open={sourceOpen} title="決策來源" titleId="decision-source-title" onClose={closeSource}>
+  {#if sourcePreview}<p class="decision-text">{sourcePreview.reference}</p>{/if}
+  {#if sourceMessage}<p role="status">{sourceMessage}</p>{/if}
+  {#if sourcePreview?.status === "available"}
+    <pre class="source-content" aria-label="來源文件內容">{#each sourcePreview.content.replace(/\r\n/g, "\n").split("\n") as line, index}<span id={`source-line-${index + 1}`} class:source-target={index + 1 === sourcePreview.line}>{line || " "}{"\n"}</span>{/each}</pre>
+  {/if}
+</DialogShell>
 <DialogShell open={clearOpen} title="清除全部決策答案？" titleId="decision-clear-title"
   kicker="決策項目" onClose={() => { clearOpen = false; }} let:close>
   <p>將清除目前文件「{view?.snapshot.document.task_id}」全部 {decisions.length} 題的答案、「其他」理由及尚未保存的輸入，包含篩選後隱藏的題目。所有題目回到待決策，題目與選項保留。</p>
@@ -230,6 +265,12 @@
   .decision-card > :global(.card-disclosure-body) { grid-column:-2 / -1; grid-row:2; min-width:0; }
   .decision-content { display:grid; gap:20px; min-width:0; padding:4px 18px 18px; line-height:1.45; }
   .decision-description { display:grid; gap:4px; }
+  .decision-source { display:grid; gap:4px; overflow-wrap:anywhere; }
+  .decision-source small { color:var(--muted); }
+  .decision-source .source-link { padding:0; border:0; background:none; color:var(--accent); text-align:start; text-decoration:underline; cursor:pointer; overflow-wrap:anywhere; }
+  .source-content { max-height:60vh; overflow:auto; white-space:pre-wrap; overflow-wrap:anywhere; }
+  .source-content span { display:block; }
+  .source-target { background:var(--panel); border-inline-start:3px solid var(--accent); }
   .decision-overview { display:grid; gap:4px; margin:10px 0 18px; }
   .decision-overview p { margin:0; }
   .decision-controls { display:grid; justify-items:start; gap:12px; margin-bottom:20px; }

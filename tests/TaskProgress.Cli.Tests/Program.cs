@@ -11,7 +11,7 @@ internal static class Program
         if (args.Contains("--open-pin-only")) { OpenPinTests.Run(); return 0; }
         if (args.Contains("--schedule-only")) { ScheduleModelTests.Run(); return 0; }
         if (args.Contains("--modules-only")) { ModuleDependencyTests.Run(); ModuleRefreshTests.Run(); CostEstimationTests.Run(); TimeAnalysisTests.Run(); return 0; }
-        if (args.Contains("--decisions-only")) { DecisionTests.Run(); return 0; }
+        if (args.Contains("--decisions-only")) { DecisionTests.Run(); DecisionSourceTests.Run(); return 0; }
         if (args.Contains("--time-only"))
         {
             TimeAnalysisTests.Run();

@@ -42,6 +42,15 @@ internal sealed class DecisionStore
                     Fail("task_mismatch", "Document task id differs from the requested task.");
                 var revision = Hash(bytes);
                 if (operation == "load") return Response("loaded", document, revision, requestId);
+                if (operation == "source")
+                {
+                    Fields(request, ["operation", "decision_id", "request_id"]);
+                    var sourceId = Id(request, "decision_id");
+                    var sourceDecision = Array(document, "decisions").Select(Object).FirstOrDefault(d => Text(d, "id") == sourceId)
+                        ?? throw new DecisionException("decision_not_found", "Decision is missing.");
+                    return new JsonObject { ["ok"] = true, ["request_id"] = requestId,
+                        ["source"] = DecisionSources.Read(path, Text(sourceDecision, "source_ref"), true) };
+                }
                 if (operation is not ("confirm" or "reopen" or "revise" or "clear_all")) Fail("invalid_request", "Unknown operation.");
                 requestId = Text(request, "request_id");
                 var decisionId = operation == "clear_all" ? null : Id(request, "decision_id");
@@ -95,10 +104,18 @@ internal sealed class DecisionStore
                     case "revise":
                         ValidateDefinition(payload);
                         if (Equal(payload, Definition(decision))) return Response("no_change", document, revision, requestId);
+                        var previousMeaning = Definition(decision);
+                        var nextMeaning = (JsonObject)payload.DeepClone();
+                        previousMeaning.Remove("source_ref");
+                        nextMeaning.Remove("source_ref");
+                        var sourceOnly = Equal(previousMeaning, nextMeaning);
                         SetDefinition(decision, payload);
-                        decision["version"] = checked(version + 1);
-                        decision["answer"] = null;
-                        decision["status"] = "pending";
+                        if (!sourceOnly)
+                        {
+                            decision["version"] = checked(version + 1);
+                            decision["answer"] = null;
+                            decision["status"] = "pending";
+                        }
                         break;
                 }
                 decision["last_request"] = new JsonObject
@@ -133,6 +150,7 @@ internal sealed class DecisionStore
     {
         ["ok"] = true, ["status"] = status, ["request_id"] = requestId,
         ["document_key"] = Hash(Encoding.UTF8.GetBytes(OperatingSystem.IsWindows() ? path.ToUpperInvariant() : path)),
-        ["document"] = document, ["revision"] = revision
+        ["document"] = document, ["revision"] = revision,
+        ["sources"] = DecisionSources.InspectAll(path, document)
     };
 }

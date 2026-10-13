@@ -79,7 +79,7 @@ Report 由資料夾承載專案或 scope 名稱，因此資料夾內固定使用
       "version": 1,
       "question": "Report CLI 第一版提供哪種輸入方式？",
       "context": "批次 JSON 適合 Agent；簡短命令方便手動操作。",
-      "source_ref": "Documentation/ReportCliUpdatePlan.md",
+      "source_ref": "../Documentation/ReportCliUpdatePlan.md",
       "options": [
         { "id": "batch", "label": "批次 JSON", "description": "一次提交多項修改" },
         { "id": "short", "label": "簡短命令", "description": "一行更新一個目標" },
@@ -144,13 +144,22 @@ Decision service 擁有 parse／validate／confirm／reopen／revise，Decision 
 
 Report 導航與資料載入失敗要分開顯示。卡片待決策數量由對應 `.decisions` 文件計算，scope 總數由直接列出的文件聚合，不複製寫進 report.json。來源無法讀取時顯示統計不完整，不把錯誤當零項。文件 revision、鎖與呈現狀態皆按文件隔離；task query 是文件定位，授權仍由 host 的 scope／精確路徑檢查負責。
 
+## 來源連結與警告
+
+`source_ref` 以 `.decisions` 所在目錄為基準，例如 `decisions/example.decisions` 的 `../plan.md#已定` 指向同 scope 的計畫。Browser／Desktop 共用 DecisionStore 的 `sources` 檢查結果；可用來源顯示可點擊入口，在共用對話框開啟文件原文並定位、標示目標標題行。內容以文字呈現，不執行 HTML 或腳本。
+
+支援 scope 內的 `.md`、`.markdown` 與 `.txt`；Markdown 支援 ATX／Setext 標題、中文與 URL 編碼錨點、常見行內格式及重複標題 `-1`、`-2`。文字檔不提供標題錨點。錨點使用小寫標題 slug，移除標點並將空白改為連字號；程式碼區塊中的標題不計入。此定位器不是完整 Markdown renderer，不支援自訂 HTML anchor。`decisions` 目錄下的文件以其父目錄為 scope 邊界，其他獨立文件以自身目錄為邊界；拒絕越界、絕對路徑、連結檔案與超過 4 MiB 的來源。
+
+載入與點擊時重新查核；失效來源顯示「來源已失效」及原因，不保留無反應的開啟入口，另提供重新檢查。讀取請求只接受 decision ID，目標由目前文件解析，不接受瀏覽器指定任意路徑。檢查結果為回應資訊，不寫入 `.decisions`。CLI `decisions validate` 將警告（題目 ID、引用及原因）輸出至 stderr；僅來源失效仍回 exit 0，文件格式錯誤維持失敗。來源移除不影響既有答案，歷史內容由 Git 追溯。
+
 ## D-01 題目修訂契約
 
 `revise` 給 Agent 更新完整題目定義，使用既有一次性 request adapter 與精確文件路徑。請求包含 decision ID、expected revision、expected version、request ID 及新定義；不提供題目編輯畫面。
 
 - 定義欄位為 question、context、source_ref、options、recommendation、allow_other；ID、答案與請求識別由後端管理。
 - 在同一鎖與保存操作內驗證定義、version 加一、status 設為 pending、answer 設為 null；不保存舊定義或答案。
-- 任一定義欄位變更皆適用；完全相同則回 no_change，不改 version、時間戳或檔案。
+- 例外：只新增、修改或移除 source_ref，視為引用維護，保留 version、status、answer 與 confirmed_at；仍更新文件 revision、updated_at 與最新請求 receipt，沿用衝突與重送保護。完全相同則回 no_change，不改 version、時間戳或檔案。
+- 來源搬家可指向新位置（例如 `../plan.md`）。若新來源改變題意或決策依據，作者必須同步修訂 question／context 等定義，走正式升版；系統不以文件內容自動推測語意是否相同。
 - confirm 接受 pending 與 decided，直接保存或替換答案；reopen 保留相容 API，供 UI 在答案變成無效時清除舊答案，保留定義與 version；revise 可用於任一狀態。
 - 驗證只核對目前格式、狀態與答案。整份文件 revision 及題目 version 仍防止舊請求覆寫新資料。
 

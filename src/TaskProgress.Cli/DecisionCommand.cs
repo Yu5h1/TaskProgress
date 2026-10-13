@@ -16,6 +16,10 @@ internal static class DecisionCommand
         if (args.Length == 2 && args[0] == "validate")
         {
             var response = new DecisionStore(args[1]).Handle("{\"operation\":\"load\"}");
+            if (response["sources"] is JsonObject sources)
+                foreach (var source in sources)
+                    if (source.Value?["status"]?.GetValue<string>() == "invalid")
+                        Console.Error.WriteLine($"警告 [{source.Key}] {source.Value["message"]!.GetValue<string>()} ({source.Value["reference"]!.GetValue<string>()})");
             Console.WriteLine(response.ToJsonString());
             return response["ok"]?.GetValue<bool>() == true ? 0 : 1;
         }
