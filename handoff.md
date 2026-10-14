@@ -6,6 +6,9 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
 
 ## Current state (2026-09-29)
 
+- **決策 Undo／Redo 與預設篩選（2026-10-15）。** 契約見 `Documentation/EditorHistory.md#決策歷史`，驗收 `checklists/decision-history.checklist`。Decision session 接入既有 editor transaction，選擇／取消／其他文字可復原重做，保存後保留歷史；清除全部為一步，復原逐題以最新 revision 保存。保存中、結果不明、衝突阻止歷史操作，外部變動清除過期歷史。新分頁預設隱藏已決策，既有分頁篩選保留。
+  - 中斷後檢查並修正跨題保存期間取消再選回原值殘留 dirty 草稿；50 項定向 Node 測試、Decision Browser／Desktop 共用資產建置、checklist parser 及獨立複核通過，保留既有 CardList a11y warnings。正式 Desktop 資產已同步，JS hash 與 Browser 相同；Browser 重新整理／Desktop 重開載入，未重啟服務。實際按鈕與離焦篩選互動待 checklist 第 2 項手動確認；歷史不跨重新整理／重開。
+
 - **Report 子項目排序與位置操作（2026-10-13）。** [契約](Documentation/ReportItemOrderingPlan.md)、[驗收](checklists/report-item-ordering.checklist)。TaskCard 接入未完成項目 priority 穩定排序，同級保留來源陣列順序；完成堆疊不變。Report 後端支援 item.add position 與 item.move；同 task pending ID before／after、no-op、批次驗證與 revision／交易沿用既有 owner。skill 補上子項目 priority、status 生命週期及 CLI 位置用法。
   - 48 項定向 Node、15 項 Python、Release build、Viewer build、skill 格式／連結、checklist parser 及獨立複核通過。SSR 測試修正 alias／runtime 後以編輯模式驗證，Browser 對正式 bundle 確認混合 B／A／C、全未指定 C／A／B、完成最新／最早。Python 與隔離站台遇 sandbox 權限限制，正常使用者執行通過；既有 UI warnings／單檔 IL3000 warning 保留。未改真實 Report。
   - Python backend 及正式 Viewer bundle 已更新。CLI 單檔候選位於 `bin/Validation/ReportItemOrdering/Publish/task-progress.exe`；候選 help 支援新說明。正式 EXE 被既有 worker PID 21368 占用，複製失敗，未終止／重啟 worker；CLI 功能使用 repo backend，正式 EXE help 仍舊版。既有 Browser 重新整理載入 Viewer 新版。

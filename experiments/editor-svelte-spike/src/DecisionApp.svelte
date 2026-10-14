@@ -6,7 +6,7 @@
   import DialogShell from "./DialogShell.svelte";
   import CardDisclosure from "./CardDisclosure.svelte";
   import FilterStrip from "./FilterStrip.svelte";
-  import { DEFAULT_CAPSULE_ID, createFilterSelection, loadFilterSelection, saveFilterSelection, isDefaultLit, toggleTag, toggleDefault } from "../../../viewer/assets/filter-selection.js";
+  import { DEFAULT_CAPSULE_ID, loadFilterSelection, saveFilterSelection, isDefaultLit, toggleTag, toggleDefault } from "../../../viewer/assets/filter-selection.js";
   import ThemeControl from "./ThemeControl.svelte";
   import { createThemeControl } from "../../../viewer/assets/theme-control.js";
   import { createDecisionSession } from "../../../viewer/assets/decision-session.js";
@@ -14,7 +14,7 @@
   export let transport;
   export let onPersistenceChange = () => {};
   let session, view, summary, message = "載入中…", expanded = true, overrides = {}, cardList;
-  let selection = createFilterSelection(["pending", "decided"]);
+  let selection = loadFilterSelection(null, ["pending", "decided"], undefined, ["pending"]);
   let filterKey = null;
   function setSelection(next) { selection = next; saveFilterSelection(filterKey, selection); }
   let theme, themeState, failedIds = new Set(), refreshing = false;
@@ -76,6 +76,15 @@
     edit(id, {other: text, cleared: draft?.cleared ?? false});
     if (view.drafts[id]?.choice === "__other") confirmSelection(id);
   }
+  async function traverseHistory(direction) {
+    if (refreshing || clearOpen || sourceOpen) return;
+    const ids = session[direction]();
+    sync();
+    for (const id of ids) { queuedIds.add(id); failedIds.delete(id); }
+    failedIds = new Set(failedIds);
+    const nextId = [...queuedIds].find(id => !failedIds.has(id) && session.saveOperation(id));
+    if (nextId) await send(nextId, session.saveOperation(nextId));
+  }
   function leaveOther() { editingOther = null; }
   function disclose(id, value) { overrides = { ...overrides, [id]: value }; saveDisclosure(storageKey, expanded, overrides); }
   function all(value) { expanded = value; overrides = {}; saveDisclosure(storageKey, expanded, overrides); }
@@ -86,7 +95,7 @@
       if (result.files) { summary = result; message = ""; return; }
       session = createDecisionSession(result); sync();
       filterKey = `taskprogress.filters.decisions.v1:${result.document_key}`;
-      selection = loadFilterSelection(filterKey, ["pending", "decided"]);
+      selection = loadFilterSelection(filterKey, ["pending", "decided"], undefined, ["pending"]);
       const saved = loadDisclosure(`taskprogress.decisions:${result.document_key}`); expanded = saved.expanded; overrides = saved.overrides;
       message = "";
     } catch (error) { message = error.message; }
@@ -168,6 +177,8 @@
     <p>選項可隨時修改；選取「其他」後，文字更動會自動保存，空白則為待決策。未選取時可點擊文字欄編輯本頁草稿。保存失敗會保留修改供重試。</p>
     </div>
     <div class="decision-controls">
+    <button onclick={() => traverseHistory("undo")} disabled={refreshing || clearOpen || sourceOpen || !view.history.canUndo}>復原（{view.history.undoDepth}）</button>
+    <button onclick={() => traverseHistory("redo")} disabled={refreshing || clearOpen || sourceOpen || !view.history.canRedo}>重做（{view.history.redoDepth}）</button>
     <button onclick={next} disabled={!decisions.some(d => d.status === "pending")}>下一項待決策</button>
     <button onclick={() => { if (canClear) clearOpen = true; }} disabled={!canClear}>清除全部答案</button>
     </div>
@@ -243,7 +254,7 @@
 <DialogShell open={clearOpen} title="清除全部決策答案？" titleId="decision-clear-title"
   kicker="決策項目" onClose={() => { clearOpen = false; }} let:close>
   <p>將清除目前文件「{view?.snapshot.document.task_id}」全部 {decisions.length} 題的答案、「其他」理由及尚未保存的輸入，包含篩選後隱藏的題目。所有題目回到待決策，題目與選項保留。</p>
-  <p>此操作無法復原。</p>
+  <p>清除成功後可在本頁按「復原」還原；重新整理或離開頁面後，歷史不會保留。</p>
   <form class="theme-dialog-actions" onsubmit={event => {
     event.preventDefault();
     if (!canClear) return;

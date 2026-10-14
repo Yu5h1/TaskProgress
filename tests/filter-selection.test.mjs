@@ -95,3 +95,15 @@ test("預設 marks where explicit ordering stops", () => {
   assert.deepEqual(groupingOrder(["failed", "planned"]), ["failed", "planned"]);
   assert.deepEqual(groupingOrder([]), []);
 });
+
+ test("pending-only defaults retain the full vocabulary and explicit session selections", async () => {
+  const {loadFilterSelection} = await import("../viewer/assets/filter-selection.js");
+  const storage = {getItem: () => null};
+  let value = loadFilterSelection("decisions", ["pending","decided"], storage, ["pending"]);
+  assert.deepEqual([...value.selected], ["pending"]);
+  assert.deepEqual(value.tags, ["pending","decided"]);
+  value = loadFilterSelection("decisions", value.tags, {getItem: () => '["decided"]'}, ["pending"]);
+  assert.deepEqual([...value.selected], ["decided"]);
+  value = loadFilterSelection("decisions", value.tags, {getItem: () => '[]'}, ["pending"]);
+  assert.equal(value.selected.size, 0);
+ });

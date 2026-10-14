@@ -23,7 +23,7 @@ function h(e, t) {
 	for (let r of e) if (n.push(r), n.length === t) break;
 	return n;
 }
-var g = 1024, _ = 2048, v = 4096, y = 8192, b = 16384, x = 32768, S = 1 << 25, C = 65536, w = 1 << 19, T = 1 << 20, E = 1 << 25, D = 65536, ee = 1 << 21, O = 1 << 22, te = 1 << 23, k = Symbol("$state"), ne = Symbol("legacy props"), re = Symbol(""), ie = Symbol("attributes"), ae = Symbol("class"), oe = Symbol("style"), se = Symbol("text"), ce = Symbol("form reset"), le = new class extends Error {
+var g = 1024, _ = 2048, v = 4096, y = 8192, b = 16384, x = 32768, S = 1 << 25, C = 65536, w = 1 << 19, T = 1 << 20, E = 1 << 25, D = 65536, ee = 1 << 21, te = 1 << 22, O = 1 << 23, k = Symbol("$state"), ne = Symbol("legacy props"), re = Symbol(""), ie = Symbol("attributes"), ae = Symbol("class"), oe = Symbol("style"), se = Symbol("text"), ce = Symbol("form reset"), le = new class extends Error {
 	name = "StaleReactionError";
 	message = "The reaction that called `getAbortSignal()` was re-run or destroyed";
 }(), ue = !!globalThis.document?.contentType && /* @__PURE__ */ globalThis.document.contentType.includes("xml");
@@ -199,7 +199,7 @@ function Je() {
 }
 function Ye(e) {
 	var t = U;
-	if (t === null) return H.f |= te, e;
+	if (t === null) return H.f |= O, e;
 	if (!(t.f & 32768) && !(t.f & 4)) throw e;
 	Xe(e, t);
 }
@@ -558,7 +558,7 @@ function yt(e, t, n) {
 			s.add(n), c.async_deriveds.set(t, n);
 		}
 		let u = (e, t = void 0) => {
-			l?.(), s.delete(n), t !== vt && (c.activate(), t ? (a.f |= te, Xt(a, t)) : (a.f & 8388608 && (a.f ^= te), Xt(a, e)), c.deactivate());
+			l?.(), s.delete(n), t !== vt && (c.activate(), t ? (a.f |= O, Xt(a, t)) : (a.f & 8388608 && (a.f ^= O), Xt(a, e)), c.deactivate());
 		};
 		n.promise.then(u, (e) => u(null, e || "unknown"));
 	}), Sn(() => {
@@ -1267,7 +1267,7 @@ function kn() {
 	});
 }
 function An(e) {
-	return bn(O | w, e);
+	return bn(te | w, e);
 }
 function jn(e, t = 0) {
 	return bn(8 | t, e);
@@ -1449,7 +1449,7 @@ function dr(e) {
 			if (t !== null) for (let e of t) e.rv = ar;
 			nr !== null && (r === null ? r = nr : r.push(...nr));
 		}
-		return e.f & 8388608 && (e.f ^= te), d;
+		return e.f & 8388608 && (e.f ^= O), d;
 	} catch (e) {
 		return Ye(e);
 	} finally {
@@ -2411,7 +2411,7 @@ function Li(e, t) {
 			R(S, null);
 		}
 	}
-	function O(e) {
+	function te(e) {
 		if (["Enter", " "].includes(e.key) && W(S) === null && R(_, !1), e.key === "Tab" && W(h)) {
 			w(!0);
 			return;
@@ -2433,7 +2433,7 @@ function Li(e, t) {
 		let n = [...W(p).querySelectorAll("button")], r = n.indexOf(document.activeElement);
 		n[e.key === "Home" ? 0 : e.key === "End" ? n.length - 1 : (r + (e.key === t[0] ? -1 : 1) + n.length) % n.length]?.focus();
 	}
-	function te() {
+	function O() {
 		W(S) !== null && R(_, !0), w(W(d)?.contains(document.activeElement));
 	}
 	Ai(() => clearTimeout(W(m))), On(() => (K(i()), K(a())), () => {
@@ -2444,8 +2444,8 @@ function Li(e, t) {
 	var k = Ii();
 	Tr("pointerdown", rn, (e) => {
 		W(d)?.contains(e.target) || w();
-	}), Tr("resize", rn, te), Tr("blur", rn, te), Tr("scroll", an, (e) => {
-		W(p)?.contains(e.target) || te();
+	}), Tr("resize", rn, O), Tr("blur", rn, O), Tr("scroll", an, (e) => {
+		W(p)?.contains(e.target) || O();
 	}, !0);
 	var ne = z(k);
 	let re;
@@ -2462,7 +2462,7 @@ function Li(e, t) {
 				return W(n);
 			} }, null), N(r), V((e) => {
 				i = si(r, 1, "card-toolbar-icon", null, i, e), Q(r, "data-choice", (W(n), G(() => W(n).id))), Q(r, "aria-label", (W(n), G(() => W(n).label))), Q(r, "title", (W(n), G(() => W(n).label))), Q(r, "aria-pressed", (W(n), K(a()), G(() => W(n).kind === "action" ? void 0 : W(n).id === a())));
-			}, [() => ({ "icon-choice-hover": W(v) === String(W(n).id) })]), q("keydown", r, O), q("click", r, () => T(W(n).id)), Y(e, r);
+			}, [() => ({ "icon-choice-hover": W(v) === String(W(n).id) })]), q("keydown", r, te), q("click", r, () => T(W(n).id)), Y(e, r);
 		}), N(n), Ei(n, (e) => R(p, e), () => W(p)), V(() => {
 			i = si(n, 1, "icon-choice-options", null, i, { vertical: c() === "vertical" }), Q(n, "aria-label", `${o()}選項`), s = li(n, "", s, {
 				left: `${W(y)}px`,
@@ -2477,13 +2477,13 @@ function Li(e, t) {
 		Q(k, "aria-label", o()), Q(ne, "aria-label", (K(o()), W(n), G(() => `${o()}：${W(n)?.label ?? ""}`))), Q(ne, "aria-expanded", s() === "cycle" ? void 0 : W(h)), Q(ne, "title", (K(o()), W(n), K(s()), G(() => `${o()}：${W(n)?.label ?? ""}；${s() === "both" ? "點擊切換，長按選擇" : s() === "cycle" ? "點擊切換" : "點擊或長按選擇"}`))), ne.disabled = !W(n), re = li(ne, "", re, { "touch-action": s() === "cycle" ? "auto" : "none" });
 	}), q("focusout", k, (e) => {
 		W(d).contains(e.relatedTarget) || w();
-	}), q("keydown", ne, O), q("pointerdown", ne, (e) => {
+	}), q("keydown", ne, te), q("pointerdown", ne, (e) => {
 		e.button === 0 && (R(_, !1), !(s() === "cycle" || W(h)) && (R(S, e.pointerId), W(f).setPointerCapture(W(S)), clearTimeout(W(m)), R(m, setTimeout(() => {
 			R(g, !0), E();
 		}, 300))));
 	}), q("pointermove", ne, (e) => {
 		W(g) && R(v, D(e));
-	}), q("pointerup", ne, ee), Tr("pointercancel", ne, te), q("click", ne, () => {
+	}), q("pointerup", ne, ee), Tr("pointercancel", ne, O), q("click", ne, () => {
 		if (W(_)) {
 			R(_, !1);
 			return;
@@ -2677,7 +2677,7 @@ function aa(e, t) {
 	function w(e) {
 		W(y) === "closed" && R(y, "enabled"), C(e, !0);
 	}
-	let T = /* @__PURE__ */ L(null), E = /* @__PURE__ */ L(null), D = /* @__PURE__ */ L(null), ee = /* @__PURE__ */ L(null), O = /* @__PURE__ */ L(null), te = /* @__PURE__ */ L(), k = /* @__PURE__ */ L("");
+	let T = /* @__PURE__ */ L(null), E = /* @__PURE__ */ L(null), D = /* @__PURE__ */ L(null), ee = /* @__PURE__ */ L(null), te = /* @__PURE__ */ L(null), O = /* @__PURE__ */ L(), k = /* @__PURE__ */ L("");
 	function ne(e, t, n, r) {
 		if (!r || !e || !n.length) return;
 		let i = JSON.stringify([t, e]);
@@ -2716,7 +2716,7 @@ function aa(e, t) {
 				"disabled"
 			].includes(t?.mode) ? t.mode : t?.enabled === !0 ? "enabled" : "disabled"), R(b, Array.isArray(t?.hiddenIds) ? t.hiddenIds : []);
 		} catch {}
-		if (R(E, null), R(D, null), R(ee, null), R(O, null), !e) {
+		if (R(E, null), R(D, null), R(ee, null), R(te, null), !e) {
 			R(T, null), R(g, "forward");
 			return;
 		}
@@ -2748,7 +2748,7 @@ function aa(e, t) {
 		}
 	}
 	async function ce(e, t, n) {
-		W(g) === "free" && (c() && (W(f).includes(e) || W(f).includes(t)) || e !== t && (oe(Qi(o(), W(T), W(r).map((e) => e.id), e, t, n)), R(E, e), await hr(), [...W(te).querySelectorAll("[data-card-id]")].find((t) => t.dataset.cardId === String(e))?.focus()));
+		W(g) === "free" && (c() && (W(f).includes(e) || W(f).includes(t)) || e !== t && (oe(Qi(o(), W(T), W(r).map((e) => e.id), e, t, n)), R(E, e), await hr(), [...W(O).querySelectorAll("[data-card-id]")].find((t) => t.dataset.cardId === String(e))?.focus()));
 	}
 	function le(e, t) {
 		let n = W(r).findIndex((t) => t.id === e);
@@ -2757,13 +2757,13 @@ function aa(e, t) {
 		i && ce(e, i.id, t > 0);
 	}
 	function ue() {
-		R(D, null), R(ee, null), R(O, null);
+		R(D, null), R(ee, null), R(te, null);
 	}
 	function de(e, t) {
 		if (c() && W(f).includes(e.id) || W(ee) === null || W(ee) === e.id) return;
 		t.preventDefault(), t.dataTransfer.dropEffect = "move";
 		let n = t.currentTarget.getBoundingClientRect();
-		R(O, {
+		R(te, {
 			id: e.id,
 			after: t.clientY >= n.top + n.height / 2
 		});
@@ -2870,8 +2870,8 @@ function aa(e, t) {
 		N(i), V((e) => {
 			Q(i, "hidden", e), a = si(i, 1, "arrangeable-card", null, a, {
 				"card-selected": W(E) === W(r).id,
-				"card-drop-before": W(O)?.id === W(r).id && !W(O).after,
-				"card-drop-after": W(O)?.id === W(r).id && W(O).after
+				"card-drop-before": W(te)?.id === W(r).id && !W(te).after,
+				"card-drop-after": W(te)?.id === W(r).id && W(te).after
 			}), Q(i, "aria-label", (W(r), W(E), G(() => `${W(r).title}${W(E) === W(r).id ? "，已選取" : ""}`))), Q(i, "data-card-id", (W(r), G(() => W(r).id))), Q(i, "draggable", (W(g), W(D), W(r), G(() => W(g) === "free" && W(D) === W(r).id)));
 		}, [() => (K(Gi), W(r), W(y), W(b), G(() => !Gi(W(r).id, W(y), W(b))))]), q("pointerdown", i, (e) => {
 			R(D, null), e.button === 0 && (R(E, W(r).id), !e.target.closest("button, a, input, textarea, select, label, [contenteditable], [role=\"button\"], [role=\"checkbox\"]") && (W(g) !== "free" || e.pointerType !== "mouse" || c() && W(f).includes(W(r).id) || e.target.closest("button, a, input, textarea, select, label, [contenteditable], [role=\"button\"], [role=\"checkbox\"], h1, h2, h3, p, span, strong, code, dt, dd, li, svg") || R(D, W(r).id)));
@@ -2886,11 +2886,11 @@ function aa(e, t) {
 		}), Tr("dragstart", i, (e) => {
 			W(g) === "free" && W(D) === W(r).id && e.target === e.currentTarget && (R(ee, W(r).id), e.dataTransfer.effectAllowed = "move", e.dataTransfer.setData("text/plain", String(W(r).id)));
 		}), Tr("dragend", i, ue), Tr("dragover", i, (e) => de(W(r), e)), Tr("dragleave", i, (e) => {
-			e.currentTarget.contains(e.relatedTarget) || R(O, null);
+			e.currentTarget.contains(e.relatedTarget) || R(te, null);
 		}), Tr("drop", i, (e) => {
-			W(ee) !== null && W(O)?.id === W(r).id && (e.preventDefault(), ce(W(ee), W(r).id, W(O).after), ue());
+			W(ee) !== null && W(te)?.id === W(r).id && (e.preventDefault(), ce(W(ee), W(r).id, W(te).after), ue());
 		}), Y(e, i);
-	}), N(we), Ei(we, (e) => R(te, e), () => W(te)), V(() => {
+	}), N(we), Ei(we, (e) => R(O, e), () => W(O)), V(() => {
 		Q(_e, "aria-label", m() ? "全部收合" : "全部展開"), Q(_e, "title", m() ? "全部收合" : "全部展開"), Q(ye, "d", m() ? "M5 15l7-7 7 7" : "M5 9l7 7 7-7"), X(Ce, W(k));
 	}), q("click", _e, () => h()(!m())), Y(e, pe), wi(t, "orderedIds", d), wi(t, "revealCard", w), Ue(fe);
 }
@@ -3128,7 +3128,7 @@ function _a(e, t) {
 			placeAfter: u.placeAfter
 		});
 	}
-	function O(e) {
+	function te(e) {
 		if (!u || u.pointerId !== e.pointerId) return;
 		let t = u;
 		u = null, e.currentTarget.releasePointerCapture?.(e.pointerId), m(), t.active && t.targetId && v(t.id, t.targetId, t.placeAfter), setTimeout(() => {
@@ -3138,8 +3138,8 @@ function _a(e, t) {
 	On(() => (K(n()), W(d)), () => {
 		n() && W(d) && p();
 	}), kn(), Di();
-	var te = ga();
-	Gr(te, 5, n, (e) => e.id, (e, t) => {
+	var O = ga();
+	Gr(O, 5, n, (e) => e.id, (e, t) => {
 		let n = /* @__PURE__ */ F(() => (W(t), G(() => W(t).sortable !== !1)));
 		var r = ha(), i = z(r), a = z(i, !0);
 		N(i);
@@ -3174,13 +3174,13 @@ function _a(e, t) {
 		}), q("pointermove", r, function(...e) {
 			(W(n) ? (e) => ee(W(t), e) : null)?.apply(this, e);
 		}), q("pointerup", r, function(...e) {
-			(W(n) ? O : null)?.apply(this, e);
+			(W(n) ? te : null)?.apply(this, e);
 		}), Tr("pointercancel", r, function(...e) {
-			(W(n) ? O : null)?.apply(this, e);
+			(W(n) ? te : null)?.apply(this, e);
 		}), Y(e, r);
-	}), N(te), Ei(te, (e) => R(f, e), () => W(f)), V(() => {
-		si(te, 1, `horizontal-capsule-strip ${r()}`), Q(te, "aria-label", i());
-	}), Y(e, te), Ue();
+	}), N(O), Ei(O, (e) => R(f, e), () => W(f)), V(() => {
+		si(O, 1, `horizontal-capsule-strip ${r()}`), Q(O, "aria-label", i());
+	}), Y(e, O), Ue();
 }
 Er([
 	"click",
@@ -3202,17 +3202,20 @@ function ba(e = []) {
 		selected: new Set(t)
 	});
 }
-function xa(e, t, n) {
-	let r = ba(t);
-	if (!e) return r;
+function xa(e, t, n, r = t) {
+	let i = ba(t), a = Object.freeze({
+		tags: i.tags,
+		selected: new Set(r.filter((e) => i.tags.includes(e)))
+	});
+	if (!e) return a;
 	try {
 		let t = JSON.parse((n ?? globalThis.sessionStorage).getItem(e));
-		return !Array.isArray(t) || !t.every((e) => typeof e == "string") ? r : Object.freeze({
-			tags: r.tags,
-			selected: new Set(t.filter((e) => r.tags.includes(e)))
+		return !Array.isArray(t) || !t.every((e) => typeof e == "string") ? a : Object.freeze({
+			tags: a.tags,
+			selected: new Set(t.filter((e) => a.tags.includes(e)))
 		});
 	} catch {
-		return r;
+		return a;
 	}
 }
 function Sa(e, t, n) {
@@ -3557,15 +3560,15 @@ function Ya(e, t) {
 	}), On(() => W(r), () => {
 		R(i, W(r).length ? `注意：${W(r).join("；")}。仍可套用，但可能較難閱讀。` : "目前的文字與背景色彩對比符合 4.5:1。");
 	}), kn(), Di();
-	var ee = Ja(), O = pn(ee), te = B(z(O), 2);
-	Gr(te, 5, () => u, (e) => e.value, (e, t) => {
+	var ee = Ja(), te = pn(ee), O = B(z(te), 2);
+	Gr(O, 5, () => u, (e) => e.value, (e, t) => {
 		var n = Ga(), r = z(n, !0);
 		N(n);
 		var i = {};
 		V(() => {
 			X(r, (W(t), G(() => W(t).label))), i !== (i = (W(t), G(() => W(t).value))) && (n.value = (n.__value = (W(t), G(() => W(t).value))) ?? "");
 		}), Y(e, n);
-	}), N(te), N(O), la(B(O, 2), {
+	}), N(O), N(te), la(B(te, 2), {
 		get open() {
 			return W(f);
 		},
@@ -3603,7 +3606,7 @@ function Ya(e, t) {
 			}), q("change", s, C), q("click", b, () => y(Fa(W(h)))), q("click", x, E), q("click", S, D), Y(e, a);
 		},
 		$$slots: { default: !0 }
-	}), q("change", te, b), fi(te, () => W(m), (e) => R(m, e)), Y(e, ee), Ue();
+	}), q("change", O, b), fi(O, () => W(m), (e) => R(m, e)), Y(e, ee), Ue();
 }
 Er([
 	"change",
@@ -3641,45 +3644,156 @@ function Xa({ root: e = globalThis.document?.documentElement, storage: t = globa
 	};
 }
 //#endregion
-//#region viewer/assets/decision-session.js
-var Za = (e) => structuredClone(e), Qa = (e) => e && typeof e == "object" ? Array.isArray(e) ? e.map(Qa) : Object.fromEntries(Object.keys(e).sort().map((t) => [t, Qa(e[t])])) : e, $a = (e, t) => JSON.stringify(Qa(e)) === JSON.stringify(Qa(t));
-function eo(e) {
-	let t = Za(e), n = Object.create(null), r = null, i = null, a = !1, o = (e) => t.document.decisions.find((t) => t.id === e);
-	function s() {
+//#region viewer/assets/editor-transaction-runtime.js
+(function(e) {
+	let t = (e) => structuredClone(e), n = (e) => JSON.stringify(e);
+	function r(e, { derive: r = () => ({}), normalize: i = (e) => e, historyLimit: a = 100 } = {}) {
+		let o, s, c, l, u = [], d = [], f = Number.isInteger(a) && a > 0 ? a : 100, p = !1;
+		function m() {
+			return Object.freeze({
+				canUndo: u.length > 0,
+				canRedo: d.length > 0,
+				undoDepth: u.length,
+				redoDepth: d.length,
+				undoCommandType: u.at(-1)?.command.type ?? null,
+				redoCommandType: d.at(-1)?.command.type ?? null
+			});
+		}
+		function h(e, i, a = "") {
+			if (!e || typeof e != "object" || typeof i != "function") throw TypeError("Editor transaction 需要 command 與 reducer。");
+			let o = t(c), m = t(i(t(c), e));
+			if (n(o) === n(m)) return !1;
+			let h = r(m, s), g = {
+				before: o,
+				after: t(m),
+				command: t(e),
+				mergeKey: a
+			}, _ = u.at(-1);
+			return p && a && _?.mergeKey === a ? (g.before = _.before, u.pop(), n(g.before) !== n(g.after) && u.push(g)) : (u.push(g), u.length > f && u.shift()), d.length = 0, p = !0, c = m, l = h, !0;
+		}
+		function g(e, n, i) {
+			let a = e.at(-1);
+			if (!a) return !1;
+			let o = t(a[i]), u = r(o, s);
+			return e.pop(), n.push(a), c = o, l = u, p = !1, !0;
+		}
+		function _(e, n = !1) {
+			let a = t(e), f = t(i(t(a))), m = t(f), h = r(f, m);
+			o = a, s = m, c = f, l = h, n || (u.length = 0, d.length = 0), p = !1;
+		}
+		return _(e), Object.freeze({
+			get draft() {
+				return c;
+			},
+			get derived() {
+				return l;
+			},
+			get dirty() {
+				return n(c) !== n(s);
+			},
+			get history() {
+				return m();
+			},
+			apply: h,
+			undo() {
+				return g(u, d, "before");
+			},
+			redo() {
+				return g(d, u, "after");
+			},
+			discard() {
+				_(o);
+			},
+			commit(e, { keepHistory: t = !1 } = {}) {
+				_(e, t);
+			}
+		});
+	}
+	e.TaskProgressEditorTransactionRuntime = Object.freeze({ createEditorTransaction: r });
+})(globalThis);
+//#endregion
+//#region viewer/assets/editor-transaction.js
+var { createEditorTransaction: Za } = globalThis.TaskProgressEditorTransactionRuntime, Qa = (e) => structuredClone(e), $a = (e) => e && typeof e == "object" ? Array.isArray(e) ? e.map($a) : Object.fromEntries(Object.keys(e).sort().map((t) => [t, $a(e[t])])) : e, eo = (e, t) => JSON.stringify($a(e)) === JSON.stringify($a(t));
+function to(e) {
+	let t = Qa(e), n = Object.create(null), r = null, i = null, a = !1, o = (e) => t.document.decisions.find((t) => t.id === e), s = (e) => ({
+		choice: e.answer?.kind === "other" ? "__other" : e.answer?.option_id ?? "",
+		other: e.answer?.kind === "other" ? e.answer.text : ""
+	}), c = () => Object.fromEntries(t.document.decisions.map((e) => [e.id, {
+		choice: n[e.id]?.choice ?? (e.answer?.kind === "other" ? "__other" : e.answer?.option_id ?? ""),
+		other: n[e.id]?.other ?? (e.answer?.kind === "other" ? e.answer.text : "")
+	}])), l = Za(c());
+	function u(e) {
+		let t = n[e], i = o(e);
+		t && i && !t.conflict && r?.decision_id !== e && eo({
+			choice: t.choice,
+			other: t.other
+		}, s(i)) && delete n[e];
+	}
+	let d = () => !!r || a || Object.values(n).some((e) => e.conflict);
+	function f(e) {
+		if (d()) return [];
+		let t = c();
+		if (!l[e]()) return [];
+		let r = [];
+		for (let [e, i] of Object.entries(l.draft)) eo(t[e], i) || (n[e] = {
+			base: Qa(o(e)),
+			...Qa(i),
+			cleared: !i.choice,
+			conflict: !1
+		}, eo(i, s(o(e))) && delete n[e], r.push(e));
+		return r;
+	}
+	function p() {
 		return {
-			snapshot: Za(t),
-			drafts: Za(n),
-			pending: Za(r),
+			history: {
+				...l.history,
+				canUndo: !d() && l.history.canUndo,
+				canRedo: !d() && l.history.canRedo
+			},
+			snapshot: Qa(t),
+			drafts: Qa(n),
+			pending: Qa(r),
 			busy: a,
 			dirty: Object.keys(n).length > 0
 		};
 	}
-	function c(e) {
+	function m(e, r = !1) {
+		let i = !eo(t.document, e.document);
 		for (let [t, r] of Object.entries(n)) {
 			let n = e.document.decisions.find((e) => e.id === t);
-			r.conflict = !n || !$a(r.base, n);
+			r.conflict = !n || !eo(r.base, n);
 		}
-		t = Za(e);
+		t = Qa(e), i && !r && l.commit(c());
 	}
 	return {
-		view: s,
+		view: p,
+		undo: () => f("undo"),
+		redo: () => f("redo"),
 		canConfirm(e) {
 			let t = n[e], i = o(e);
 			return !r && !a && !!i && !!t && !t.conflict && (t.choice === "__other" ? i.allow_other && !!t.other.trim() : i.options.some((e) => e.id === t.choice));
 		},
 		saveOperation(e) {
 			let t = n[e];
-			return r || a || !t || t.conflict || !o(e) ? null : this.canConfirm(e) ? "confirm" : o(e).answer && t.cleared && !t.choice || o(e).answer && o(e).allow_other && t.choice === "__other" && !t.other.trim() ? "reopen" : null;
+			if (r || a || !t || t.conflict || !o(e)) return null;
+			if (this.canConfirm(e)) {
+				let n = o(e).answer;
+				return (t.choice === "__other" ? n?.kind === "other" && n.text === t.other : n?.kind === "option" && n.option_id === t.choice) ? null : "confirm";
+			}
+			return o(e).answer && t.cleared && !t.choice || o(e).answer && o(e).allow_other && t.choice === "__other" && !t.other.trim() ? "reopen" : null;
 		},
 		edit(e, t) {
 			if (r && !a || r?.operation === "clear_all" || !o(e)) return;
 			let i = o(e).answer;
 			n[e] ??= {
-				base: Za(o(e)),
+				base: Qa(o(e)),
 				choice: i?.kind === "other" ? "__other" : i?.option_id ?? "",
 				other: i?.kind === "other" ? i.text : "",
 				conflict: !1
-			}, Object.assign(n[e], { cleared: !1 }, t), n[e].cleared && !n[e].other && !i && r?.decision_id !== e && delete n[e];
+			}, Object.assign(n[e], { cleared: !1 }, t), n[e].cleared && !n[e].other && !i && r?.decision_id !== e && delete n[e], u(e), l.apply({
+				type: Object.hasOwn(t, "choice") ? "select" : "other",
+				id: e
+			}, () => c(), Object.hasOwn(t, "choice") ? "" : `other:${e}`);
 		},
 		select(e, t) {
 			if (r && !a || r?.operation === "clear_all" || !o(e) || n[e]?.conflict) return;
@@ -3690,13 +3804,13 @@ function eo(e) {
 			}), s;
 		},
 		discard(e) {
-			r?.decision_id !== e && delete n[e];
+			r?.decision_id !== e && (delete n[e], l.commit(c()));
 		},
 		rebase(e) {
 			let t = o(e), r = n[e];
-			!r || !t || (r.choice && (r.choice !== "__other" && !t.options.some((e) => e.id === r.choice) || r.choice === "__other" && !t.allow_other) && (r.choice = "", r.cleared = !1), r.base = Za(t), r.conflict = !1, r.cleared && !r.other && !t.answer && delete n[e]);
+			!r || !t || (r.choice && (r.choice !== "__other" && !t.options.some((e) => e.id === r.choice) || r.choice === "__other" && !t.allow_other) && (r.choice = "", r.cleared = !1), r.base = Qa(t), r.conflict = !1, r.cleared && !r.other && !t.answer && delete n[e], l.commit(c()));
 		},
-		merge: c,
+		merge: m,
 		beginClearAll() {
 			if (r || a) throw Error("請先查核上一筆請求的結果。");
 			return r = {
@@ -3704,7 +3818,7 @@ function eo(e) {
 				expected_revision: t.revision,
 				request_id: crypto.randomUUID(),
 				payload: {}
-			}, i = null, a = !0, Za(r);
+			}, i = null, a = !0, Qa(r);
 		},
 		begin(e, s = "confirm") {
 			if (r || a) throw Error("請先查核上一筆請求的結果。");
@@ -3729,11 +3843,11 @@ function eo(e) {
 				expected_version: c.version,
 				request_id: crypto.randomUUID(),
 				payload: u
-			}, i = l ? Za(l) : null, a = !0, Za(r);
+			}, i = l ? Qa(l) : null, a = !0, Qa(r);
 		},
 		retry() {
 			if (!r || a) throw Error("沒有待查核請求。");
-			return a = !0, Za(r);
+			return a = !0, Qa(r);
 		},
 		failed() {
 			a = !1;
@@ -3743,25 +3857,32 @@ function eo(e) {
 				r = null, i = null;
 				return;
 			}
+			let s = Qa(t.document);
+			for (let e of s.decisions) (r?.operation === "clear_all" || e.id === r?.decision_id) && (e.answer = r?.operation === "confirm" ? Qa(r.payload) : null, e.status = e.answer ? "decided" : "pending");
+			let d = (e) => e.decisions.map(({ last_request: e, answer: t, ...n }) => ({
+				...n,
+				answer: t ? Object.fromEntries(Object.entries(t).filter(([e]) => e !== "confirmed_at")) : null
+			})), f = eo(d(s), d(e.document));
 			if (r?.operation === "clear_all") {
-				n = Object.create(null), r = null, i = null, c(e);
+				n = Object.create(null), r = null, i = null, m(e, !0), f && l.apply({ type: "clear_all" }, () => c()), l.commit(c(), { keepHistory: f });
 				return;
 			}
-			let t = r?.decision_id, s = n[t], l = s && i && (s.choice !== i.choice || s.other !== i.other), u = s && (l || s.choice !== "__other" && s.other || r?.operation === "reopen" && (!s.cleared || s.other)) ? Za(s) : null;
-			if (r && delete n[r.decision_id], r = null, i = null, c(e), u) {
-				let e = o(t), r = (e) => {
+			let p = r?.decision_id, h = n[p], g = h && i && (h.choice !== i.choice || h.other !== i.other), _ = h && (g || h.choice !== "__other" && h.other || r?.operation === "reopen" && (!h.cleared || h.other)) ? Qa(h) : null;
+			if (r && delete n[r.decision_id], r = null, i = null, m(e, !0), _) {
+				let e = o(p), t = (e) => {
 					if (!e) return null;
 					let { answer: t, status: n, last_request: r, ...i } = e;
 					return i;
 				};
-				u.conflict = !e || !$a(r(u.base), r(e)), u.conflict || (u.base = Za(e)), u.cleared && !u.other && !u.conflict && !e.answer || (n[t] = u);
+				_.conflict = !e || !eo(t(_.base), t(e)) || !eo(d({ decisions: [s.decisions.find((e) => e.id === p)] }), d({ decisions: [e] })), _.conflict || (_.base = Qa(e)), _.cleared && !_.other && !_.conflict && !e.answer || (n[p] = _);
 			}
+			u(p), l.commit(c(), { keepHistory: f });
 		}
 	};
 }
 //#endregion
 //#region viewer/assets/card-disclosure-state.js
-function to(e, t) {
+function no(e, t) {
 	try {
 		let n = JSON.parse((t ?? globalThis.sessionStorage).getItem(e));
 		if (typeof n?.expanded != "boolean") return {
@@ -3780,7 +3901,7 @@ function to(e, t) {
 		};
 	}
 }
-function no(e, t, n, r) {
+function ro(e, t, n, r) {
 	try {
 		(r ?? globalThis.sessionStorage).setItem(e, JSON.stringify({
 			expanded: t,
@@ -3790,15 +3911,15 @@ function no(e, t, n, r) {
 }
 //#endregion
 //#region experiments/editor-svelte-spike/src/DecisionApp.svelte
-var ro = /* @__PURE__ */ J("<p role=\"status\"> </p>"), io = /* @__PURE__ */ J("<article class=\"checklist-item\"><a> </a> <p> </p></article>"), ao = /* @__PURE__ */ J("<p>尚未建立決策文件。</p>"), oo = /* @__PURE__ */ J("<p> </p> <!> <!>", 1), so = /* @__PURE__ */ J("<button class=\"svelte-17meywc\"> </button>"), co = /* @__PURE__ */ J("<p>目前沒有符合條件的決策項目。</p>"), lo = /* @__PURE__ */ J("<button type=\"button\" class=\"source-link svelte-17meywc\"> </button>"), uo = /* @__PURE__ */ J("<button type=\"button\" class=\"source-link svelte-17meywc\">重新檢查來源</button>"), fo = /* @__PURE__ */ J("<span> </span><small class=\"svelte-17meywc\"> </small> <!>", 1), po = /* @__PURE__ */ J("<div class=\"decision-source svelte-17meywc\"><!></div>"), mo = /* @__PURE__ */ J("<p class=\"decision-text svelte-17meywc\"> </p>"), ho = /* @__PURE__ */ J("<p> </p>"), go = /* @__PURE__ */ J("<div class=\"decision-description svelte-17meywc\"><!> <!></div>"), _o = /* @__PURE__ */ J("<small class=\"svelte-17meywc\"> </small>"), vo = /* @__PURE__ */ J("<label class=\"decision-option svelte-17meywc\"><input type=\"radio\" class=\"svelte-17meywc\"/> <span class=\"svelte-17meywc\"> <!></span></label>"), yo = /* @__PURE__ */ J("<label class=\"decision-option svelte-17meywc\"><input type=\"radio\" class=\"svelte-17meywc\"/><span class=\"svelte-17meywc\">其他</span></label> <div class=\"decision-other svelte-17meywc\"><label>其他方案與理由</label><textarea class=\"svelte-17meywc\"></textarea></div>", 1), bo = /* @__PURE__ */ J("<p role=\"alert\"> </p> <button class=\"svelte-17meywc\">已核對最新題目，套用選擇</button>", 1), xo = /* @__PURE__ */ J("<button class=\"svelte-17meywc\">重試保存</button>"), So = /* @__PURE__ */ J("<div class=\"decision-content svelte-17meywc\"><!> <!> <fieldset class=\"svelte-17meywc\"><legend class=\"decision-visually-hidden svelte-17meywc\"> </legend> <!> <!></fieldset> <!> <div class=\"decision-actions svelte-17meywc\"><!></div></div>"), Co = /* @__PURE__ */ J("<header slot=\"header\" class=\"checklist-item-header svelte-17meywc\"><h2 tabindex=\"-1\" class=\"svelte-17meywc\"> </h2><span class=\"checklist-status\"> </span></header>"), wo = /* @__PURE__ */ J("<article><!></article>"), To = /* @__PURE__ */ J("<p role=\"alert\"> </p> <button class=\"svelte-17meywc\">關閉已移除題目提示</button>", 1), Eo = /* @__PURE__ */ J("<div class=\"decision-overview svelte-17meywc\"><p class=\"svelte-17meywc\"> </p> <p class=\"svelte-17meywc\">選項可隨時修改；選取「其他」後，文字更動會自動保存，空白則為待決策。未選取時可點擊文字欄編輯本頁草稿。保存失敗會保留修改供重試。</p></div> <div class=\"decision-controls svelte-17meywc\"><button class=\"svelte-17meywc\">下一項待決策</button> <button class=\"svelte-17meywc\">清除全部答案</button></div> <!> <!> <!> <!>", 1), Do = /* @__PURE__ */ J("<span> </span>"), Oo = /* @__PURE__ */ J("<pre class=\"source-content svelte-17meywc\" aria-label=\"來源文件內容\"></pre>"), ko = /* @__PURE__ */ J("<!> <!> <!>", 1), Ao = /* @__PURE__ */ J("<p> </p> <p>此操作無法復原。</p> <form class=\"theme-dialog-actions\"><button type=\"button\" class=\"secondary-button svelte-17meywc\">取消</button> <button type=\"submit\" class=\"primary-button svelte-17meywc\">確認清除全部</button></form>", 1), jo = /* @__PURE__ */ J("<!> <main class=\"checklist-shell decisions-shell svelte-17meywc\"><header class=\"checklist-header\"><h1>決策項目</h1> <!></header> <!> <!></main> <!> <!>", 1);
-function Mo(e, t) {
+var io = /* @__PURE__ */ J("<p role=\"status\"> </p>"), ao = /* @__PURE__ */ J("<article class=\"checklist-item\"><a> </a> <p> </p></article>"), oo = /* @__PURE__ */ J("<p>尚未建立決策文件。</p>"), so = /* @__PURE__ */ J("<p> </p> <!> <!>", 1), co = /* @__PURE__ */ J("<button class=\"svelte-17meywc\"> </button>"), lo = /* @__PURE__ */ J("<p>目前沒有符合條件的決策項目。</p>"), uo = /* @__PURE__ */ J("<button type=\"button\" class=\"source-link svelte-17meywc\"> </button>"), fo = /* @__PURE__ */ J("<button type=\"button\" class=\"source-link svelte-17meywc\">重新檢查來源</button>"), po = /* @__PURE__ */ J("<span> </span><small class=\"svelte-17meywc\"> </small> <!>", 1), mo = /* @__PURE__ */ J("<div class=\"decision-source svelte-17meywc\"><!></div>"), ho = /* @__PURE__ */ J("<p class=\"decision-text svelte-17meywc\"> </p>"), go = /* @__PURE__ */ J("<p> </p>"), _o = /* @__PURE__ */ J("<div class=\"decision-description svelte-17meywc\"><!> <!></div>"), vo = /* @__PURE__ */ J("<small class=\"svelte-17meywc\"> </small>"), yo = /* @__PURE__ */ J("<label class=\"decision-option svelte-17meywc\"><input type=\"radio\" class=\"svelte-17meywc\"/> <span class=\"svelte-17meywc\"> <!></span></label>"), bo = /* @__PURE__ */ J("<label class=\"decision-option svelte-17meywc\"><input type=\"radio\" class=\"svelte-17meywc\"/><span class=\"svelte-17meywc\">其他</span></label> <div class=\"decision-other svelte-17meywc\"><label>其他方案與理由</label><textarea class=\"svelte-17meywc\"></textarea></div>", 1), xo = /* @__PURE__ */ J("<p role=\"alert\"> </p> <button class=\"svelte-17meywc\">已核對最新題目，套用選擇</button>", 1), So = /* @__PURE__ */ J("<button class=\"svelte-17meywc\">重試保存</button>"), Co = /* @__PURE__ */ J("<div class=\"decision-content svelte-17meywc\"><!> <!> <fieldset class=\"svelte-17meywc\"><legend class=\"decision-visually-hidden svelte-17meywc\"> </legend> <!> <!></fieldset> <!> <div class=\"decision-actions svelte-17meywc\"><!></div></div>"), wo = /* @__PURE__ */ J("<header slot=\"header\" class=\"checklist-item-header svelte-17meywc\"><h2 tabindex=\"-1\" class=\"svelte-17meywc\"> </h2><span class=\"checklist-status\"> </span></header>"), To = /* @__PURE__ */ J("<article><!></article>"), Eo = /* @__PURE__ */ J("<p role=\"alert\"> </p> <button class=\"svelte-17meywc\">關閉已移除題目提示</button>", 1), Do = /* @__PURE__ */ J("<div class=\"decision-overview svelte-17meywc\"><p class=\"svelte-17meywc\"> </p> <p class=\"svelte-17meywc\">選項可隨時修改；選取「其他」後，文字更動會自動保存，空白則為待決策。未選取時可點擊文字欄編輯本頁草稿。保存失敗會保留修改供重試。</p></div> <div class=\"decision-controls svelte-17meywc\"><button class=\"svelte-17meywc\"> </button> <button class=\"svelte-17meywc\"> </button> <button class=\"svelte-17meywc\">下一項待決策</button> <button class=\"svelte-17meywc\">清除全部答案</button></div> <!> <!> <!> <!>", 1), Oo = /* @__PURE__ */ J("<span> </span>"), ko = /* @__PURE__ */ J("<pre class=\"source-content svelte-17meywc\" aria-label=\"來源文件內容\"></pre>"), Ao = /* @__PURE__ */ J("<!> <!> <!>", 1), jo = /* @__PURE__ */ J("<p> </p> <p>清除成功後可在本頁按「復原」還原；重新整理或離開頁面後，歷史不會保留。</p> <form class=\"theme-dialog-actions\"><button type=\"button\" class=\"secondary-button svelte-17meywc\">取消</button> <button type=\"submit\" class=\"primary-button svelte-17meywc\">確認清除全部</button></form>", 1), Mo = /* @__PURE__ */ J("<!> <main class=\"checklist-shell decisions-shell svelte-17meywc\"><header class=\"checklist-header\"><h1>決策項目</h1> <!></header> <!> <!></main> <!> <!>", 1);
+function No(e, t) {
 	He(t, !1);
-	let n = /* @__PURE__ */ L(), r = /* @__PURE__ */ L(), i = /* @__PURE__ */ L(), a = /* @__PURE__ */ L(), o = /* @__PURE__ */ L(), s = $(t, "transport", 8), c = $(t, "onPersistenceChange", 8, () => {}), l = /* @__PURE__ */ L(), u = /* @__PURE__ */ L(), d = /* @__PURE__ */ L(), f = /* @__PURE__ */ L("載入中…"), p = /* @__PURE__ */ L(!0), m = /* @__PURE__ */ L({}), g = /* @__PURE__ */ L(), _ = /* @__PURE__ */ L(ba(["pending", "decided"])), v = null;
+	let n = /* @__PURE__ */ L(), r = /* @__PURE__ */ L(), i = /* @__PURE__ */ L(), a = /* @__PURE__ */ L(), o = /* @__PURE__ */ L(), s = $(t, "transport", 8), c = $(t, "onPersistenceChange", 8, () => {}), l = /* @__PURE__ */ L(), u = /* @__PURE__ */ L(), d = /* @__PURE__ */ L(), f = /* @__PURE__ */ L("載入中…"), p = /* @__PURE__ */ L(!0), m = /* @__PURE__ */ L({}), g = /* @__PURE__ */ L(), _ = /* @__PURE__ */ L(xa(null, ["pending", "decided"], void 0, ["pending"])), v = null;
 	function y(e) {
 		R(_, e), Sa(v, W(_));
 	}
-	let b = /* @__PURE__ */ L(), x = /* @__PURE__ */ L(), S = /* @__PURE__ */ L(/* @__PURE__ */ new Set()), C = /* @__PURE__ */ L(!1), w = /* @__PURE__ */ L(!1), T = /* @__PURE__ */ L(!1), E = /* @__PURE__ */ L(null), D = /* @__PURE__ */ L(""), ee = 0, O = /* @__PURE__ */ L({});
-	function te() {
+	let b = /* @__PURE__ */ L(), x = /* @__PURE__ */ L(), S = /* @__PURE__ */ L(/* @__PURE__ */ new Set()), C = /* @__PURE__ */ L(!1), w = /* @__PURE__ */ L(!1), T = /* @__PURE__ */ L(!1), E = /* @__PURE__ */ L(null), D = /* @__PURE__ */ L(""), ee = 0, te = /* @__PURE__ */ L({});
+	function O() {
 		R(T, !1), ee++;
 	}
 	async function k(e) {
@@ -3811,8 +3932,8 @@ function Mo(e, t) {
 			});
 			if (t !== ee) return;
 			if (!n.ok) throw Error(n.error?.message ?? "無法讀取來源");
-			R(E, n.source), R(O, {
-				...W(O),
+			R(E, n.source), R(te, {
+				...W(te),
 				[e]: {
 					...n.source,
 					revision: W(u).snapshot.revision,
@@ -3853,7 +3974,7 @@ function Mo(e, t) {
 	}, pe = (e) => {
 		if (re.add(e), R(S, new Set([...W(S)].filter((t) => t !== e))), W(C)) return;
 		let t = W(l).saveOperation(e);
-		if (t) return be(e, t);
+		if (t) return xe(e, t);
 	};
 	function me(e, t) {
 		let n = W(l).select(e, t);
@@ -3866,19 +3987,28 @@ function Mo(e, t) {
 			cleared: n?.cleared ?? !1
 		}), W(u).drafts[e]?.choice === "__other" && pe(e);
 	}
-	function ge() {
+	async function ge(e) {
+		if (W(C) || W(w) || W(T)) return;
+		let t = W(l)[e]();
+		ue();
+		for (let e of t) re.add(e), W(S).delete(e);
+		R(S, new Set(W(S)));
+		let n = [...re].find((e) => !W(S).has(e) && W(l).saveOperation(e));
+		n && await xe(n, W(l).saveOperation(n));
+	}
+	function _e() {
 		R(ne, null);
 	}
-	function _e(e, t) {
+	function ve(e, t) {
 		R(m, {
 			...W(m),
 			[e]: t
-		}), no(W(o), W(p), W(m));
+		}), ro(W(o), W(p), W(m));
 	}
-	function ve(e) {
-		R(p, e), R(m, {}), no(W(o), W(p), W(m));
+	function ye(e) {
+		R(p, e), R(m, {}), ro(W(o), W(p), W(m));
 	}
-	async function ye() {
+	async function be() {
 		try {
 			let e = await s().load();
 			if (!e.ok) throw Error(e.error.message);
@@ -3886,23 +4016,23 @@ function Mo(e, t) {
 				R(d, e), R(f, "");
 				return;
 			}
-			R(l, eo(e)), ue(), v = `taskprogress.filters.decisions.v1:${e.document_key}`, R(_, xa(v, ["pending", "decided"]));
-			let t = to(`taskprogress.decisions:${e.document_key}`);
+			R(l, to(e)), ue(), v = `taskprogress.filters.decisions.v1:${e.document_key}`, R(_, xa(v, ["pending", "decided"], void 0, ["pending"]));
+			let t = no(`taskprogress.decisions:${e.document_key}`);
 			R(p, t.expanded), R(m, t.overrides), R(f, "");
 		} catch (e) {
 			R(f, e.message);
 		}
 	}
 	ki(() => {
-		R(b, Xa()), le(), ye();
+		R(b, Xa()), le(), be();
 		let e = (e) => {
 			W(a) && (e.preventDefault(), e.returnValue = "");
 		};
-		return window.addEventListener("beforeunload", e), document.addEventListener("pointerdown", ce, !0), document.addEventListener("focusin", ce, !0), window.addEventListener("blur", se), window.addEventListener("blur", ge), () => {
-			window.removeEventListener("beforeunload", e), document.removeEventListener("pointerdown", ce, !0), document.removeEventListener("focusin", ce, !0), window.removeEventListener("blur", se), window.removeEventListener("blur", ge), W(b)?.destroy?.();
+		return window.addEventListener("beforeunload", e), document.addEventListener("pointerdown", ce, !0), document.addEventListener("focusin", ce, !0), window.addEventListener("blur", se), window.addEventListener("blur", _e), () => {
+			window.removeEventListener("beforeunload", e), document.removeEventListener("pointerdown", ce, !0), document.removeEventListener("focusin", ce, !0), window.removeEventListener("blur", se), window.removeEventListener("blur", _e), W(b)?.destroy?.();
 		};
 	});
-	async function be(e, t = "confirm", n = !1) {
+	async function xe(e, t = "confirm", n = !1) {
 		try {
 			let r = n ? W(l).retry() : t === "clear_all" ? W(l).beginClearAll() : W(l).begin(e, t);
 			n || re.delete(r.decision_id), ue(), R(f, "保存中…");
@@ -3929,14 +4059,14 @@ function Mo(e, t) {
 				return;
 			}
 			let a = [...re].find((e) => !W(S).has(e) && W(l).saveOperation(e));
-			a && await be(a, W(l).saveOperation(a));
+			a && await xe(a, W(l).saveOperation(a));
 		} catch (e) {
 			R(f, e.message);
 		}
 	}
-	async function xe() {
+	async function Se() {
 		let e = W(i).find((e) => e.status === "pending");
-		e && (W(_).selected.has("pending") || y(wa(W(_), "pending")), _e(e.id, !0), await hr(), W(g)?.revealCard(e.id), await hr(), document.getElementById(`decision-${e.id}`)?.focus());
+		e && (W(_).selected.has("pending") || y(wa(W(_), "pending")), ve(e.id, !0), await hr(), W(g)?.revealCard(e.id), await hr(), document.getElementById(`decision-${e.id}`)?.focus());
 	}
 	On(() => W(u), () => {
 		R(i, W(u)?.snapshot.document.decisions ?? []);
@@ -3955,9 +4085,9 @@ function Mo(e, t) {
 	}), On(() => W(u), () => {
 		R(o, W(u) ? `taskprogress.decisions:${W(u).snapshot.document_key}` : null);
 	}), kn(), Di();
-	var Se = jo(), Ce = pn(Se);
-	sa(Ce, {});
-	var we = B(Ce, 2), A = z(we), Te = B(z(A), 2), Ee = (e) => {
+	var Ce = Mo(), we = pn(Ce);
+	sa(we, {});
+	var A = B(we, 2), Te = z(A), Ee = B(z(Te), 2), De = (e) => {
 		Ya(e, {
 			get mode() {
 				return W(x), G(() => W(x).mode);
@@ -3976,22 +4106,22 @@ function Mo(e, t) {
 			}
 		});
 	};
-	Z(Te, (e) => {
-		W(x) && e(Ee);
-	}), N(A);
-	var De = B(A, 2), Oe = (e) => {
-		var t = ro(), n = z(t, !0);
+	Z(Ee, (e) => {
+		W(x) && e(De);
+	}), N(Te);
+	var Oe = B(Te, 2), ke = (e) => {
+		var t = io(), n = z(t, !0);
 		N(t), V(() => X(n, W(f))), Y(e, t);
 	};
-	Z(De, (e) => {
-		W(f) && e(Oe);
+	Z(Oe, (e) => {
+		W(f) && e(ke);
 	});
-	var ke = B(De, 2), j = (e) => {
-		var t = oo(), n = pn(t), r = z(n);
+	var j = B(Oe, 2), Ae = (e) => {
+		var t = so(), n = pn(t), r = z(n);
 		N(n);
 		var i = B(n, 2);
 		Gr(i, 1, () => (W(d), G(() => W(d).files)), Vr, (e, t) => {
-			var n = io(), r = z(n), i = z(r, !0);
+			var n = ao(), r = z(n), i = z(r, !0);
 			N(r);
 			var a = B(r, 2), o = z(a, !0);
 			N(a), N(n), V((e) => {
@@ -3999,36 +4129,40 @@ function Mo(e, t) {
 			}, [() => (W(d), W(t), G(() => `?scope=${encodeURIComponent(W(d).scope_id)}&task=${encodeURIComponent(W(t).task_id)}`))]), Y(e, n);
 		});
 		var a = B(i, 2), o = (e) => {
-			Y(e, ao());
+			Y(e, oo());
 		};
 		Z(a, (e) => {
 			W(d), G(() => !W(d).files.length) && e(o);
 		}), V(() => X(r, `待決策 ${W(d), G(() => W(d).pending) ?? ""}${W(d), G(() => W(d).incomplete ? "（統計不完整）" : "") ?? ""}`)), Y(e, t);
-	}, Ae = (e) => {
-		var t = Eo(), a = pn(t), s = z(a), c = z(s);
+	}, M = (e) => {
+		var t = Do(), a = pn(t), s = z(a), c = z(s);
 		N(s), Ne(2), N(a);
-		var d = B(a, 2), f = z(d), v = B(f, 2);
+		var d = B(a, 2), f = z(d), v = z(f);
+		N(f);
+		var b = B(f, 2), x = z(b);
+		N(b);
+		var E = B(b, 2), D = B(E, 2);
 		N(d);
-		var b = B(d, 2), x = (e) => {
-			var t = so(), n = z(t, !0);
-			N(t), V(() => X(n, (W(u), G(() => W(u).pending.operation === "clear_all" ? "查詢／重送清除操作" : "查詢／重送保存操作")))), q("click", t, () => be(null, null, !0)), Y(e, t);
+		var ee = B(d, 2), O = (e) => {
+			var t = co(), n = z(t, !0);
+			N(t), V(() => X(n, (W(u), G(() => W(u).pending.operation === "clear_all" ? "查詢／重送清除操作" : "查詢／重送保存操作")))), q("click", t, () => xe(null, null, !0)), Y(e, t);
 		};
-		Z(b, (e) => {
-			W(u), G(() => W(u).pending && !W(u).busy) && e(x);
+		Z(ee, (e) => {
+			W(u), G(() => W(u).pending && !W(u).busy) && e(O);
 		});
-		var T = B(b, 2), E = (e) => {
-			Y(e, co());
+		var re = B(ee, 2), oe = (e) => {
+			Y(e, lo());
 		};
-		Z(T, (e) => {
-			W(r), G(() => !W(r).length) && e(E);
+		Z(re, (e) => {
+			W(r), G(() => !W(r).length) && e(oe);
 		});
-		var D = B(T, 2);
+		var se = B(re, 2);
 		{
 			let e = /* @__PURE__ */ F(() => (W(r), G(() => W(r).map((e) => ({
 				...e,
 				title: e.question
 			}))))), t = /* @__PURE__ */ F(() => (W(i), G(() => W(i).map((e) => e.id))));
-			Ei(aa(D, {
+			Ei(aa(se, {
 				get items() {
 					return W(e);
 				},
@@ -4044,12 +4178,12 @@ function Mo(e, t) {
 				get expanded() {
 					return W(p);
 				},
-				onToggleAll: ve,
+				onToggleAll: ye,
 				children: de,
 				$$slots: {
 					default: (e, t) => {
 						let n = /* @__PURE__ */ F(() => t.item), r = /* @__PURE__ */ F(() => t.visibilityEnabled), i = /* @__PURE__ */ F(() => t.visible), a = /* @__PURE__ */ F(() => t.onVisibleChange), o = /* @__PURE__ */ F(() => (W(u), K(W(n)), G(() => Object.hasOwn(W(u).drafts, W(n).id) ? W(u).drafts[W(n).id] : null))), s = /* @__PURE__ */ F(() => (K(W(o)), K(W(n)), G(() => W(o) ? W(o).choice : W(n).answer?.kind === "other" ? "__other" : W(n).answer?.option_id ?? "")));
-						var c = wo();
+						var c = To();
 						let d;
 						var f = z(c);
 						{
@@ -4067,7 +4201,7 @@ function Mo(e, t) {
 								get expanded() {
 									return W(e);
 								},
-								onToggle: (e) => _e(W(n).id, e),
+								onToggle: (e) => ve(W(n).id, e),
 								get contentId() {
 									return W(t);
 								},
@@ -4075,18 +4209,18 @@ function Mo(e, t) {
 									return K(W(n)), G(() => W(n).question);
 								},
 								children: (e, t) => {
-									var r = So(), i = z(r), a = (e) => {
-										let t = /* @__PURE__ */ F(() => (W(O), K(W(n)), G(() => W(O)[W(n).id]))), r = /* @__PURE__ */ F(() => (K(W(t)), K(W(n)), W(u), G(() => W(t)?.reference === W(n).source_ref && W(t)?.revision === W(u).snapshot.revision ? W(t) : W(u).snapshot.sources?.[W(n).id])));
-										var i = po(), a = z(i), o = (e) => {
-											var t = lo(), r = z(t);
+									var r = Co(), i = z(r), a = (e) => {
+										let t = /* @__PURE__ */ F(() => (W(te), K(W(n)), G(() => W(te)[W(n).id]))), r = /* @__PURE__ */ F(() => (K(W(t)), K(W(n)), W(u), G(() => W(t)?.reference === W(n).source_ref && W(t)?.revision === W(u).snapshot.revision ? W(t) : W(u).snapshot.sources?.[W(n).id])));
+										var i = mo(), a = z(i), o = (e) => {
+											var t = uo(), r = z(t);
 											N(t), V(() => X(r, `來源：${K(W(n)), G(() => W(n).source_ref) ?? ""}`)), q("click", t, () => k(W(n).id)), Y(e, t);
 										}, s = (e) => {
-											var t = fo(), i = pn(t), a = z(i, !0);
+											var t = po(), i = pn(t), a = z(i, !0);
 											N(i);
 											var o = B(i), s = z(o, !0);
 											N(o);
 											var c = B(o, 2), l = (e) => {
-												var t = uo();
+												var t = fo();
 												q("click", t, () => k(W(n).id)), Y(e, t);
 											};
 											Z(c, (e) => {
@@ -4103,15 +4237,15 @@ function Mo(e, t) {
 										K(W(n)), G(() => W(n).source_ref) && e(a);
 									});
 									var c = B(i, 2), d = (e) => {
-										var t = go(), r = z(t), i = (e) => {
-											var t = mo(), r = z(t, !0);
+										var t = _o(), r = z(t), i = (e) => {
+											var t = ho(), r = z(t, !0);
 											N(t), V(() => X(r, (K(W(n)), G(() => W(n).context)))), Y(e, t);
 										};
 										Z(r, (e) => {
 											K(W(n)), G(() => W(n).context) && e(i);
 										});
 										var a = B(r, 2), o = (e) => {
-											var t = ho(), r = z(t);
+											var t = go(), r = z(t);
 											N(t), V((e) => X(r, `建議：${e ?? ""} — ${K(W(n)), G(() => W(n).recommendation.reason) ?? ""}`), [() => (K(W(n)), G(() => W(n).options.find((e) => e.id === W(n).recommendation.option_id)?.label))]), Y(e, t);
 										};
 										Z(a, (e) => {
@@ -4125,10 +4259,10 @@ function Mo(e, t) {
 									N(p);
 									var h = B(p, 2);
 									Gr(h, 1, () => (K(W(n)), G(() => W(n).options)), Vr, (e, t, r) => {
-										var i = vo(), a = z(i);
+										var i = yo(), a = z(i);
 										vi(a);
 										var o = B(a, 2), c = z(o), l = B(c), u = (e) => {
-											var n = _o(), r = z(n, !0);
+											var n = vo(), r = z(n, !0);
 											N(n), V(() => X(r, (W(t), G(() => W(t).description)))), Y(e, n);
 										};
 										Z(l, (e) => {
@@ -4140,7 +4274,7 @@ function Mo(e, t) {
 										}), Y(e, i);
 									});
 									var g = B(h, 2), _ = (e) => {
-										var t = yo(), r = pn(t), i = z(r);
+										var t = bo(), r = pn(t), i = z(r);
 										vi(i), Ne(), N(r);
 										var a = B(r, 2), c = z(a), l = B(c);
 										it(l), N(a), V(() => {
@@ -4152,13 +4286,13 @@ function Mo(e, t) {
 											R(ne, W(n).id);
 										}), q("click", l, () => {
 											R(ne, W(n).id);
-										}), Tr("blur", l, ge), q("input", l, (e) => he(W(n).id, e.currentTarget.value)), Y(e, t);
+										}), Tr("blur", l, _e), q("input", l, (e) => he(W(n).id, e.currentTarget.value)), Y(e, t);
 									};
 									Z(g, (e) => {
 										K(W(n)), G(() => W(n).allow_other) && e(_);
 									}), N(f);
 									var v = B(f, 2), y = (e) => {
-										var t = bo(), r = pn(t), i = z(r);
+										var t = xo(), r = pn(t), i = z(r);
 										N(r);
 										var a = B(r, 2);
 										V(() => {
@@ -4171,7 +4305,7 @@ function Mo(e, t) {
 										K(W(o)), G(() => W(o)?.conflict) && e(y);
 									});
 									var b = B(v, 2), x = z(b), w = (e) => {
-										var t = xo();
+										var t = So();
 										V(() => t.disabled = W(C)), q("click", t, () => pe(W(n).id)), Y(e, t);
 									}, T = /* @__PURE__ */ bt(() => (W(S), K(W(n)), K(W(o)), W(u), G(() => W(S).has(W(n).id) && W(o) && !W(o).conflict && !W(u).pending)));
 									Z(x, (e) => {
@@ -4183,7 +4317,7 @@ function Mo(e, t) {
 								$$slots: {
 									default: !0,
 									header: (e, t) => {
-										var r = Co(), i = z(r), a = z(i, !0);
+										var r = wo(), i = z(r), a = z(i, !0);
 										N(i);
 										var o = B(i), s = z(o, !0);
 										N(o), N(r), V(() => {
@@ -4229,51 +4363,51 @@ function Mo(e, t) {
 				$$legacy: !0
 			}), (e) => R(g, e), () => W(g));
 		}
-		Gr(B(D, 2), 1, () => (W(u), W(i), G(() => Object.entries(W(u).drafts).filter(([e]) => !W(i).some((t) => t.id === e)))), Vr, (e, t) => {
+		Gr(B(se, 2), 1, () => (W(u), W(i), G(() => Object.entries(W(u).drafts).filter(([e]) => !W(i).some((t) => t.id === e)))), Vr, (e, t) => {
 			var n = /* @__PURE__ */ bt(() => h(W(t), 2));
 			let r = () => W(n)[0], i = () => W(n)[1];
-			var a = To(), o = pn(a), s = z(o);
+			var a = Eo(), o = pn(a), s = z(o);
 			N(o);
 			var c = B(o, 2);
 			V(() => X(s, `已移除題目 ${r() ?? ""} 的原草稿：${i(), G(() => i().choice) ?? ""} ${i(), G(() => i().other) ?? ""}`)), q("click", c, () => {
 				W(l).discard(r()), ue();
 			}), Y(e, a);
 		}), V((e, t) => {
-			X(c, `待決策 ${e ?? ""}／全部 ${W(i), G(() => W(i).length) ?? ""}`), f.disabled = t, v.disabled = !W(n);
-		}, [() => (W(i), G(() => W(i).filter((e) => e.status === "pending").length)), () => (W(i), G(() => !W(i).some((e) => e.status === "pending")))]), q("click", f, xe), q("click", v, () => {
+			X(c, `待決策 ${e ?? ""}／全部 ${W(i), G(() => W(i).length) ?? ""}`), f.disabled = (W(C), W(w), W(T), W(u), G(() => W(C) || W(w) || W(T) || !W(u).history.canUndo)), X(v, `復原（${W(u), G(() => W(u).history.undoDepth) ?? ""}）`), b.disabled = (W(C), W(w), W(T), W(u), G(() => W(C) || W(w) || W(T) || !W(u).history.canRedo)), X(x, `重做（${W(u), G(() => W(u).history.redoDepth) ?? ""}）`), E.disabled = t, D.disabled = !W(n);
+		}, [() => (W(i), G(() => W(i).filter((e) => e.status === "pending").length)), () => (W(i), G(() => !W(i).some((e) => e.status === "pending")))]), q("click", f, () => ge("undo")), q("click", b, () => ge("redo")), q("click", E, Se), q("click", D, () => {
 			W(n) && R(w, !0);
 		}), Y(e, t);
 	};
-	Z(ke, (e) => {
-		W(d) ? e(j) : W(u) && e(Ae, 1);
-	}), N(we), Ei(we, (e) => R(oe, e), () => W(oe));
-	var M = B(we, 2);
-	la(M, {
+	Z(j, (e) => {
+		W(d) ? e(Ae) : W(u) && e(M, 1);
+	}), N(A), Ei(A, (e) => R(oe, e), () => W(oe));
+	var je = B(A, 2);
+	la(je, {
 		get open() {
 			return W(T);
 		},
 		title: "決策來源",
 		titleId: "decision-source-title",
-		onClose: te,
+		onClose: O,
 		children: (e, t) => {
-			var n = ko(), r = pn(n), i = (e) => {
-				var t = mo(), n = z(t, !0);
+			var n = Ao(), r = pn(n), i = (e) => {
+				var t = ho(), n = z(t, !0);
 				N(t), V(() => X(n, (W(E), G(() => W(E).reference)))), Y(e, t);
 			};
 			Z(r, (e) => {
 				W(E) && e(i);
 			});
 			var a = B(r, 2), o = (e) => {
-				var t = ro(), n = z(t, !0);
+				var t = io(), n = z(t, !0);
 				N(t), V(() => X(n, W(D))), Y(e, t);
 			};
 			Z(a, (e) => {
 				W(D) && e(o);
 			});
 			var s = B(a, 2), c = (e) => {
-				var t = Oo();
+				var t = ko();
 				Gr(t, 5, () => (W(E), G(() => W(E).content.replace(/\r\n/g, "\n").split("\n"))), Vr, (e, t, n) => {
-					var r = Do();
+					var r = Oo();
 					Q(r, "id", `source-line-${n + 1}`);
 					let i;
 					var a = z(r);
@@ -4288,7 +4422,7 @@ function Mo(e, t) {
 			}), Y(e, n);
 		},
 		$$slots: { default: !0 }
-	}), la(B(M, 2), {
+	}), la(B(je, 2), {
 		get open() {
 			return W(w);
 		},
@@ -4301,25 +4435,25 @@ function Mo(e, t) {
 		children: de,
 		$$slots: { default: (e, t) => {
 			let r = /* @__PURE__ */ F(() => t.close);
-			var a = Ao(), o = pn(a), s = z(o);
+			var a = jo(), o = pn(a), s = z(o);
 			N(o);
 			var c = B(o, 4), l = z(c), d = B(l, 2);
 			N(c), V(() => {
 				X(s, `將清除目前文件「${W(u), G(() => W(u)?.snapshot.document.task_id) ?? ""}」全部 ${W(i), G(() => W(i).length) ?? ""} 題的答案、「其他」理由及尚未保存的輸入，包含篩選後隱藏的題目。所有題目回到待決策，題目與選項保留。`), d.disabled = !W(n);
 			}), Tr("submit", c, (e) => {
-				e.preventDefault(), W(n) && (W(r)(), be(null, "clear_all"));
+				e.preventDefault(), W(n) && (W(r)(), xe(null, "clear_all"));
 			}), q("click", l, function(...e) {
 				W(r)?.apply(this, e);
 			}), Y(e, a);
 		} }
-	}), Y(e, Se), Ue();
+	}), Y(e, Ce), Ue();
 }
 Er(["click", "input"]);
 //#endregion
 //#region viewer/assets/decision-transport.js
-var No = (e) => /^[a-z0-9]+(?:[._-][a-z0-9]+)*$/.test(e ?? "") && e.length <= 100;
-function Po(e, t) {
-	if (!No(e) || t && !No(t)) throw Error("無效的 scope 或 task。");
+var Po = (e) => /^[a-z0-9]+(?:[._-][a-z0-9]+)*$/.test(e ?? "") && e.length <= 100;
+function Fo(e, t) {
+	if (!Po(e) || t && !Po(t)) throw Error("無效的 scope 或 task。");
 	let n = `/__taskprogress/v1/decisions/${encodeURIComponent(e)}`;
 	async function r(e, t) {
 		let n = await fetch(e, {
@@ -4359,7 +4493,7 @@ function Po(e, t) {
 		request: (e) => r(`${n}/${encodeURIComponent(t)}`, e)
 	};
 }
-function Fo(e) {
+function Io(e) {
 	let t = /* @__PURE__ */ new Map();
 	e.addEventListener("message", (e) => {
 		let n = t.get(e.data.request_id);
@@ -4387,12 +4521,12 @@ function Fo(e) {
 }
 //#endregion
 //#region viewer/assets/foreground-refresh.js
-function Io(e, t) {
+function Lo(e, t) {
 	if (!e || typeof e.addEventListener != "function" || typeof e.removeEventListener != "function") throw TypeError(`${t} 必須支援事件監聽。`);
 	return e;
 }
-function Lo({ windowTarget: e = globalThis.window, documentTarget: t = globalThis.document, canRefresh: n = () => !0, reload: r = () => e.location.reload(), schedule: i = (e) => globalThis.queueMicrotask(e) } = {}) {
-	if (Io(e, "windowTarget"), Io(t, "documentTarget"), typeof n != "function") throw TypeError("canRefresh 必須是函式。");
+function Ro({ windowTarget: e = globalThis.window, documentTarget: t = globalThis.document, canRefresh: n = () => !0, reload: r = () => e.location.reload(), schedule: i = (e) => globalThis.queueMicrotask(e) } = {}) {
+	if (Lo(e, "windowTarget"), Lo(t, "documentTarget"), typeof n != "function") throw TypeError("canRefresh 必須是函式。");
 	if (typeof r != "function") throw TypeError("reload 必須是函式。");
 	if (typeof i != "function") throw TypeError("schedule 必須是函式。");
 	let a = !1, o = !1, s = !1, c = !1;
@@ -4414,18 +4548,18 @@ function Lo({ windowTarget: e = globalThis.window, documentTarget: t = globalThi
 }
 //#endregion
 //#region experiments/editor-svelte-spike/src/decisions-main.js
-var Ro, zo;
+var zo, Bo;
 try {
 	let e = new URLSearchParams(location.search);
-	zo = window.chrome?.webview ? Fo(window.chrome.webview) : Po(e.get("scope"), e.get("task"));
+	Bo = window.chrome?.webview ? Io(window.chrome.webview) : Fo(e.get("scope"), e.get("task"));
 } catch (e) {
-	zo = { load: () => Promise.reject(e) };
+	Bo = { load: () => Promise.reject(e) };
 }
-window.chrome?.webview || Lo({ canRefresh: () => !Ro?.dirty && !Ro?.saving && !Ro?.pending }), Ir(Mo, {
+window.chrome?.webview || Ro({ canRefresh: () => !zo?.dirty && !zo?.saving && !zo?.pending }), Ir(No, {
 	target: document.querySelector("#app"),
 	props: {
-		transport: zo,
-		onPersistenceChange: (e) => Ro = e
+		transport: Bo,
+		onPersistenceChange: (e) => zo = e
 	}
 });
 //#endregion

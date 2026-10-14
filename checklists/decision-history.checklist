@@ -1,0 +1,24 @@
+# 決策歷史 Checklist
+
+Current round: `Documentation/EditorHistory.md#決策歷史`.
+
+本輪涵蓋決策接入共用歷史與待決策預設篩選。
+
+- [x] **1. 歷史與保存契約**
+  Outcome: 選擇、文字與清除全部可復原重做，保存使用最新 revision。
+  Checks:
+    - [x] **定向測試**
+      - Action: 執行 decision-session、filter-selection 與 editor-transaction Node 測試。
+      - Expect: 全部通過，保存、重送、外部變更與分頁偏好有覆蓋。
+
+- [ ] **2. 決策頁面**
+  Depends on: 1.
+  Outcome: Browser／Desktop 共用新版決策頁面，按鈕和篩選符合契約。
+  Checks:
+    - [x] **共用資產建置**
+      - Action: 執行 npm run decisions:ui:build。
+      - Expect: 成功產生 Browser 與 Desktop 資產。
+    - [ ] **實際操作** `[manual]`
+      - Action: 在測試決策文件選取答案 → 離焦 → 復原 → 重做；切換已決策標籤並重新整理。
+      - Expect: 保存後可復原與重做；新分頁預設隱藏已決策，既有篩選選擇在重新整理後保留。
+      - Reason: 需要核查實際滑鼠焦點與卡片延遲篩選的互動。

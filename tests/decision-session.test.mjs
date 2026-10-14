@@ -203,3 +203,130 @@ test("switching to a saved standard option keeps inactive other text for reselec
   assert.equal(s.view().drafts.input.choice,"");assert.equal(s.view().drafts.input.other,"不要消失");
   s.select("input","__other");assert.equal(s.begin("input").payload.text,"不要消失");
 });
+
+function save(s, id) {
+  const request = s.begin(id, s.saveOperation(id));
+  const response = s.view().snapshot;
+  response.revision += "+";
+  const d = response.document.decisions.find(d => d.id === id);
+  d.answer = request.operation === "confirm" ? {...request.payload, confirmed_at:"now"} : null;
+  d.status = d.answer ? "decided" : "pending";
+  s.complete(response);
+  return request;
+}
+test("saved selection undo and redo use current revisions and branch history", () => {
+  const s = createDecisionSession(initial());
+  s.select("input", "batch"); save(s, "input");
+  assert.equal(s.view().history.undoDepth, 1);
+  assert.deepEqual(s.undo(), ["input"]);
+  assert.equal(s.saveOperation("input"), "reopen");
+  assert.equal(save(s, "input").expected_revision, "a+");
+  assert.equal(s.view().history.canRedo, true);
+  assert.deepEqual(s.redo(), ["input"]);
+  assert.equal(save(s, "input").payload.option_id, "batch");
+  s.undo(); save(s, "input"); s.select("input", "short");
+  assert.equal(s.view().history.canRedo, false);
+});
+test("undo preserves inactive other text and typing during autosave history", () => {
+  const s = createDecisionSession(initial());
+  s.edit("input", {choice:"__other", other:"first"});
+  const request = s.begin("input");
+  s.edit("input", {other:"newest"});
+  assert.deepEqual(s.undo(), []);
+  const response = initial(); response.revision = "b";
+  Object.assign(response.document.decisions[0], {answer:request.payload,status:"decided"});
+  s.complete(response); save(s, "input");
+  s.select("input", "__other"); save(s, "input");
+  assert.deepEqual(s.undo(), ["input"]);
+  assert.equal(s.view().drafts.input.other, "newest");
+  assert.equal(save(s, "input").payload.text, "newest");
+  s.undo();
+  assert.equal(s.view().drafts.input.other, "first");
+});
+test("clear all is one history action and restores each answer through current revisions", () => {
+  const s = createDecisionSession(initial());
+  s.select("input", "batch"); save(s,"input");
+  s.select("next", "ui"); save(s,"next");
+  const depth = s.view().history.undoDepth;
+  s.beginClearAll();
+  const response = initial(); response.revision = "cleared";
+  s.complete(response);
+  assert.equal(s.view().history.undoDepth, depth + 1);
+  const ids = s.undo();
+  assert.deepEqual(ids, ["input", "next"]);
+  assert.equal(save(s, "input").expected_revision, "cleared");
+  assert.equal(save(s, "next").expected_revision, "cleared+");
+  assert.equal(s.view().history.canRedo, true);
+  assert.deepEqual(s.redo(), ["input", "next"]);
+  save(s,"input"); save(s,"next");
+  assert.ok(s.view().snapshot.document.decisions.every(d => !d.answer));
+});
+test("uncertain save blocks history; remote changes invalidate old history", () => {
+  const s = createDecisionSession(initial());
+  s.select("input","batch"); s.begin("input"); s.failed();
+  assert.equal(s.view().history.canUndo, false);
+  assert.deepEqual(s.undo(), []);
+  s.retry();
+  const newer = initial(); newer.revision = "remote";
+  Object.assign(newer.document.decisions[0], {answer:{kind:"option",option_id:"short"},status:"decided"});
+  s.complete(newer);
+  assert.equal(s.view().history.canUndo, false);
+  s.select("input","batch"); save(s,"input");
+  const revised = s.view().snapshot; revised.document.decisions[0].version++;
+  s.merge(revised);
+  assert.equal(s.view().history.undoDepth, 0);
+});
+test("unsaved other typing merges; failed clear does not enter history", () => {
+  const s = createDecisionSession(initial());
+  s.edit("input",{other:"a"}); s.edit("input",{other:"ab"});
+  assert.equal(s.view().history.undoDepth, 1);
+  s.beginClearAll(); s.complete({ok:false});
+  assert.equal(s.view().history.undoDepth, 1);
+  s.undo(); assert.equal(s.view().drafts.input, undefined);
+  assert.equal(s.view().dirty, false);
+  assert.equal(s.saveOperation("input"), null);
+});
+
+test("retry with a remote answer does not automatically submit later in-flight edits", () => {
+  const s = createDecisionSession(initial());
+  s.select("input", "batch"); s.begin("input");
+  s.select("input", "short"); s.failed(); s.retry();
+  const response = initial(); response.revision = "external"; response.status = "already_applied";
+  Object.assign(response.document.decisions[0], {answer:{kind:"other",text:"external answer"},status:"decided"});
+  s.complete(response);
+  assert.equal(s.view().drafts.input.choice,"short");
+  assert.equal(s.view().drafts.input.conflict,true);
+  assert.equal(s.saveOperation("input"),null);
+  assert.equal(s.view().history.canUndo,false);
+  s.rebase("input");
+  assert.equal(s.saveOperation("input"),"confirm");
+});
+
+test("inactive other text undo and redo never resubmit an unchanged saved option", () => {
+  const s = createDecisionSession(initial());
+  s.select("input", "batch"); save(s, "input");
+  s.edit("input", {other:"local text"});
+  assert.equal(s.saveOperation("input"),null);
+  s.undo(); assert.equal(s.view().drafts.input, undefined);
+  assert.equal(s.view().dirty, false);
+  assert.equal(s.saveOperation("input"),null);
+  s.redo(); assert.equal(s.view().drafts.input.other, "local text");
+  assert.equal(s.saveOperation("input"),null);
+  assert.equal(s.view().snapshot.revision,"a+");
+});
+
+test("returning a sibling to its saved answer during autosave leaves no dirty draft", () => {
+  const s = createDecisionSession(initial());
+  s.select("next", "ui"); save(s, "next");
+  s.select("input", "batch");
+  const request = s.begin("input");
+  s.select("next", "ui"); s.select("next", "ui");
+  assert.equal(s.view().drafts.next, undefined);
+  const response = s.view().snapshot; response.revision += "+";
+  Object.assign(response.document.decisions[0], {answer: request.payload, status: "decided"});
+  s.complete(response);
+  assert.equal(s.saveOperation("next"), null);
+  assert.equal(s.view().dirty, false);
+  assert.deepEqual(s.undo(), ["next"]);
+  assert.equal(s.saveOperation("next"), "reopen");
+});

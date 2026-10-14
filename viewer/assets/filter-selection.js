@@ -22,8 +22,9 @@ export function createFilterSelection(tagIds = []) {
 }
 
 // Session-only view preferences; empty selections are intentional, not missing data.
-export function loadFilterSelection(key, tagIds, storage) {
-  const fallback = createFilterSelection(tagIds);
+export function loadFilterSelection(key, tagIds, storage, defaultSelected = tagIds) {
+  const all = createFilterSelection(tagIds);
+  const fallback = Object.freeze({ tags: all.tags, selected: new Set(defaultSelected.filter(id => all.tags.includes(id))) });
   if (!key) return fallback;
   try {
     const saved = JSON.parse((storage ?? globalThis.sessionStorage).getItem(key));
