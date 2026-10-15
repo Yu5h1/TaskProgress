@@ -1,0 +1,31 @@
+# 歷史工具模組 Checklist
+
+Current round: `Documentation/EditorHistory.md#歷史工具模組`.
+
+本輪只涵蓋共用歷史工具與決策頁接入。
+
+- [x] **1. 核心與轉接契約**
+  Outcome: 紀錄由共用核心管理，清除歷史不改內容與保存基準。
+  Checks:
+    - [x] **定向驗證**
+      - Action: 執行 editor-transaction、decision-session、history-tools Node 測試。
+      - Expect: 紀錄順序、合併、分支、清除與 session 隔離測試通過，工具元件無編譯警告。
+
+- [ ] **2. 工具介面**
+  Depends on: 1.
+  Outcome: 決策頁提供三圖示膠囊與可查看、可清除的歷史面板。
+  Checks:
+    - [x] **共用資產建置**
+      - Action: 執行 npm run decisions:ui:build。
+      - Expect: Browser／Desktop 產生一致的決策資產。
+    - [ ] **實際互動** `[manual]`
+      - Action: 在測試決策頁選答案 → 開啟歷史 → 復原一步 → 重做一步；清除歷史先取消、再確認，並以 Escape 關閉面板。
+      - Expect: 顯示操作名稱與目前位置；取消不清紀錄，確認只清紀錄且答案保留；關閉後焦點回到歷史圖示。
+      - Reason: 需要實際確認圖示辨識、焦點與操作感受。
+
+- [x] **3. 亮暗主題配色**
+  Outcome: 歷史工具與決策頁背景、文字使用同一組主題色。
+  Checks:
+    - [x] **主題接線與實際頁面**
+      - Action: 執行 history-tools 與 theme-model 測試、重建決策及 Checklist 資產，並於 Browser 切換亮暗主題查看膠囊與歷史面板。
+      - Expect: 主題變數皆有定義；亮色深字淺底，暗色淺字深底；測試後還原原本偏好，答案不變。

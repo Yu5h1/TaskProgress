@@ -42,6 +42,31 @@ Report 的復原按鈕原本就有應用程式的歷史功能；輸入框的瀏�
 
 本輪不增加快捷鍵、不接管輸入框原生 Undo、不建立跨 session 永久歷史、不擴大時間設定的 Undo 範圍，也不重啟服務或恢復已退役 Demo 的 UI。Classic runtime 測試僅保護載入契約。
 
+## 歷史工具模組
+
+> Task ID: history-tools
+
+```text
+編輯器 host（目前為決策頁）
+├─ session adapter：操作名稱、可用狀態、保存與衝突
+├─ HistoryTools：復原／重做／歷史三圖示膠囊
+│  └─ DialogShell：紀錄面板、焦點與關閉
+└─ editor transaction：唯一歷史堆疊、逐步還原、清除紀錄
+```
+
+第一版面板依操作順序列出「已套用」「可重做」與目前位置。只提供逐步復原／重做，紀錄列不觸發跳轉；合併輸入仍是一筆，分支修改移除可重做紀錄。歷史最多保留既有的 100 步，列表起點代表仍保留的歷史範圍，不保證是最初載入狀態。
+
+「清除歷史」先在面板內確認，僅移除 undo／redo 紀錄，保留目前內容、未保存草稿與最後保存基準；不發送保存、不清除答案，也不是放棄修改。保存中、結果不明或衝突時不允許清除。面板開啟時仍可查看紀錄，頁面背景刷新暫停。
+
+### 搬移邊界
+
+- `viewer/assets/editor-transaction-runtime.js` 保持無 DOM 的唯一核心，ESM 入口仍為 `editor-transaction.js`。`historyEntries` 回傳依時間排列的 `{id, command, applied}` 副本，不公開前後文件快照；`clearHistory()` 只清堆疊並截斷輸入合併。
+- `experiments/editor-svelte-spike/src/HistoryTools.svelte` 接收 `history`（`entries: [{id, label, applied}]`、兩個 depth、`canUndo/canRedo/canClear`）、`disabled`、`onUndo/onRedo/onClear/onOpenChange` 及唯一 `id`。不讀取決策、HTTP、storage 或 session，不自行維護另一份歷史。回呼與更新後狀態由 host 提供。
+- UI 依賴 Svelte 與現有 `DialogShell`，以 `--history-*` CSS 變數提供外觀覆寫；目前配色回退至 TaskProgress theme。未來移至 Web 時保留資料／回呼契約，將 UI 包裝與 dialog/theme 轉接至 Web 的對應元件，不搬入決策保存與題目語意。
+- `decision-session.js` 將核心 command 轉成題目與選項名稱，並管制 pending/conflict；`DecisionApp` 只轉接 callback、自動保存與面板開啟狀態。目前先接決策頁，Report／Checklist 的既有 UI 不在本輪更換。
+
+驗收：清除歷史不改內容或 dirty／revision；合併、Undo／Redo、分支與清除後新操作的紀錄順序正確；三個圖示都有可讀名稱與停用狀態；面板取消／Escape 不清除紀錄。工作量中等，使用既有核心與 dialog，不新增永久歷史、任意跳轉或 Web 庫依賴。
+
 ## 決策歷史
 
 > Task ID: decision-history

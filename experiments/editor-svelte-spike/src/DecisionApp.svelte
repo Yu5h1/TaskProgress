@@ -4,6 +4,7 @@
   import CardList from "./CardList.svelte";
   import FocusShield from "./FocusShield.svelte";
   import DialogShell from "./DialogShell.svelte";
+  import HistoryTools from "./HistoryTools.svelte";
   import CardDisclosure from "./CardDisclosure.svelte";
   import FilterStrip from "./FilterStrip.svelte";
   import { DEFAULT_CAPSULE_ID, loadFilterSelection, saveFilterSelection, isDefaultLit, toggleTag, toggleDefault } from "../../../viewer/assets/filter-selection.js";
@@ -19,6 +20,7 @@
   function setSelection(next) { selection = next; saveFilterSelection(filterKey, selection); }
   let theme, themeState, failedIds = new Set(), refreshing = false;
   let clearOpen = false;
+  let historyOpen = false;
   let sourceOpen = false, sourcePreview = null, sourceMessage = "", sourceRequest = 0, sourceOverrides = {};
   function closeSource() { sourceOpen = false; sourceRequest++; }
   async function openSource(id) {
@@ -54,7 +56,7 @@
   function readTheme() { themeState = {mode:theme.mode,custom:theme.custom,systemScheme:theme.systemScheme}; }
   $: decisions = view?.snapshot.document.decisions ?? [];
   $: dirty = !!view?.dirty || !!view?.pending;
-  $: onPersistenceChange({ dirty, saving: !!view?.busy, pending: !!view?.pending || clearOpen || sourceOpen || refreshing });
+  $: onPersistenceChange({ dirty, saving: !!view?.busy, pending: !!view?.pending || clearOpen || sourceOpen || historyOpen || refreshing });
   $: storageKey = view ? `taskprogress.decisions:${view.snapshot.document_key}` : null;
   const sync = () => { view = session.view(); };
   const edit = (id, fields) => { session.edit(id, fields); sync(); };
@@ -177,8 +179,9 @@
     <p>選項可隨時修改；選取「其他」後，文字更動會自動保存，空白則為待決策。未選取時可點擊文字欄編輯本頁草稿。保存失敗會保留修改供重試。</p>
     </div>
     <div class="decision-controls">
-    <button onclick={() => traverseHistory("undo")} disabled={refreshing || clearOpen || sourceOpen || !view.history.canUndo}>復原（{view.history.undoDepth}）</button>
-    <button onclick={() => traverseHistory("redo")} disabled={refreshing || clearOpen || sourceOpen || !view.history.canRedo}>重做（{view.history.redoDepth}）</button>
+    <HistoryTools id="decision-history" history={view.history} disabled={refreshing || clearOpen || sourceOpen}
+      onUndo={() => traverseHistory("undo")} onRedo={() => traverseHistory("redo")}
+      onClear={() => { session.clearHistory(); sync(); }} onOpenChange={value => { historyOpen = value; }} />
     <button onclick={next} disabled={!decisions.some(d => d.status === "pending")}>下一項待決策</button>
     <button onclick={() => { if (canClear) clearOpen = true; }} disabled={!canClear}>清除全部答案</button>
     </div>
@@ -278,10 +281,10 @@
   .decision-description { display:grid; gap:4px; }
   .decision-source { display:grid; gap:4px; overflow-wrap:anywhere; }
   .decision-source small { color:var(--muted); }
-  .decision-source .source-link { padding:0; border:0; background:none; color:var(--accent); text-align:start; text-decoration:underline; cursor:pointer; overflow-wrap:anywhere; }
+  .decision-source .source-link { padding:0; border:0; background:none; color:var(--color-accent); text-align:start; text-decoration:underline; cursor:pointer; overflow-wrap:anywhere; }
   .source-content { max-height:60vh; overflow:auto; white-space:pre-wrap; overflow-wrap:anywhere; }
   .source-content span { display:block; }
-  .source-target { background:var(--panel); border-inline-start:3px solid var(--accent); }
+  .source-target { background:var(--color-panel-bg); border-inline-start:3px solid var(--color-accent); }
   .decision-overview { display:grid; gap:4px; margin:10px 0 18px; }
   .decision-overview p { margin:0; }
   .decision-controls { display:grid; justify-items:start; gap:12px; margin-bottom:20px; }
@@ -293,8 +296,8 @@
   .decision-option span { min-width:0; overflow-wrap:anywhere; }
   .decision-option small { display:block; margin-top:2px; color:var(--muted); }
   .decision-other { display:grid; gap:6px; margin-top:14px; margin-inline-start:calc(1rem + 10px); }
-  textarea { display:block; width:100%; min-height:5rem; padding:10px 12px; box-sizing:border-box; font:inherit; resize:vertical; }
-  textarea:read-only, textarea:disabled { color:var(--muted); -webkit-text-fill-color:var(--muted); background:var(--panel); border-color:var(--line); opacity:1; }
+  textarea { display:block; width:100%; min-height:5rem; padding:10px 12px; box-sizing:border-box; font:inherit; resize:vertical; color:var(--color-item-text); background:var(--color-panel-bg); border:1px solid var(--color-border); }
+  textarea:read-only, textarea:disabled { color:var(--muted); -webkit-text-fill-color:var(--muted); background:var(--color-panel-bg); border-color:var(--line); opacity:1; }
   textarea:read-only { cursor:text; }
   textarea:disabled { cursor:not-allowed; }
   fieldset { min-width:0; margin:0; padding:0; border:0; }
@@ -302,7 +305,7 @@
   .decision-text { white-space:pre-wrap; overflow-wrap:anywhere; }
   .decision-actions { display:flex; flex-wrap:wrap; gap:8px; padding-top:12px; border-top:1px solid var(--line); }
   .decision-actions:empty { display:none; }
-  button { margin:.4rem .4rem .4rem 0; }
+  button { margin:.4rem .4rem .4rem 0; color:var(--color-item-text); background:var(--color-panel-bg); border:1px solid var(--color-border); border-radius:6px; padding:6px 12px; }
   .decision-content button { justify-self:start; margin:0; }
   .decisions-shell { max-width:1000px; margin:auto; padding:1rem; }
 </style>

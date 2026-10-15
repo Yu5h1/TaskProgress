@@ -2384,8 +2384,11 @@ function Ai(e, t, n, r) {
 (function(e) {
 	let t = (e) => structuredClone(e), n = (e) => JSON.stringify(e);
 	function r(e, { derive: r = () => ({}), normalize: i = (e) => e, historyLimit: a = 100 } = {}) {
-		let o, s, c, l, u = [], d = [], f = Number.isInteger(a) && a > 0 ? a : 100, p = !1;
-		function m() {
+		let o, s, c, l, u = [], d = [], f = Number.isInteger(a) && a > 0 ? a : 100, p = !1, m = 1;
+		function h() {
+			u.length = 0, d.length = 0, p = !1;
+		}
+		function g() {
 			return Object.freeze({
 				canUndo: u.length > 0,
 				canRedo: d.length > 0,
@@ -2395,29 +2398,29 @@ function Ai(e, t, n, r) {
 				redoCommandType: d.at(-1)?.command.type ?? null
 			});
 		}
-		function h(e, i, a = "") {
+		function _(e, i, a = "") {
 			if (!e || typeof e != "object" || typeof i != "function") throw TypeError("Editor transaction 需要 command 與 reducer。");
-			let o = t(c), m = t(i(t(c), e));
-			if (n(o) === n(m)) return !1;
-			let h = r(m, s), g = {
+			let o = t(c), h = t(i(t(c), e));
+			if (n(o) === n(h)) return !1;
+			let g = r(h, s), _ = {
 				before: o,
-				after: t(m),
+				after: t(h),
 				command: t(e),
 				mergeKey: a
-			}, _ = u.at(-1);
-			return p && a && _?.mergeKey === a ? (g.before = _.before, u.pop(), n(g.before) !== n(g.after) && u.push(g)) : (u.push(g), u.length > f && u.shift()), d.length = 0, p = !0, c = m, l = h, !0;
+			}, v = u.at(-1);
+			return _.id = p && a && v?.mergeKey === a ? v.id : m++, p && a && v?.mergeKey === a ? (_.before = v.before, u.pop(), n(_.before) !== n(_.after) && u.push(_)) : (u.push(_), u.length > f && u.shift()), d.length = 0, p = !0, c = h, l = g, !0;
 		}
-		function g(e, n, i) {
+		function v(e, n, i) {
 			let a = e.at(-1);
 			if (!a) return !1;
 			let o = t(a[i]), u = r(o, s);
 			return e.pop(), n.push(a), c = o, l = u, p = !1, !0;
 		}
-		function _(e, n = !1) {
-			let a = t(e), f = t(i(t(a))), m = t(f), h = r(f, m);
-			o = a, s = m, c = f, l = h, n || (u.length = 0, d.length = 0), p = !1;
+		function y(e, n = !1) {
+			let a = t(e), u = t(i(t(a))), d = t(u), f = r(u, d);
+			o = a, s = d, c = u, l = f, n || h(), p = !1;
 		}
-		return _(e), Object.freeze({
+		return y(e), Object.freeze({
 			get draft() {
 				return c;
 			},
@@ -2428,20 +2431,32 @@ function Ai(e, t, n, r) {
 				return n(c) !== n(s);
 			},
 			get history() {
-				return m();
+				return g();
 			},
-			apply: h,
+			get historyEntries() {
+				return [...u.map((e) => ({
+					id: e.id,
+					command: t(e.command),
+					applied: !0
+				})), ...[...d].reverse().map((e) => ({
+					id: e.id,
+					command: t(e.command),
+					applied: !1
+				}))];
+			},
+			clearHistory: h,
+			apply: _,
 			undo() {
-				return g(u, d, "before");
+				return v(u, d, "before");
 			},
 			redo() {
-				return g(d, u, "after");
+				return v(d, u, "after");
 			},
 			discard() {
-				_(o);
+				y(o);
 			},
 			commit(e, { keepHistory: t = !1 } = {}) {
-				_(e, t);
+				y(e, t);
 			}
 		});
 	}
@@ -2460,17 +2475,20 @@ function Pi(e = []) {
 		selected: new Set(t)
 	});
 }
-function Fi(e, t, n) {
-	let r = Pi(t);
-	if (!e) return r;
+function Fi(e, t, n, r = t) {
+	let i = Pi(t), a = Object.freeze({
+		tags: i.tags,
+		selected: new Set(r.filter((e) => i.tags.includes(e)))
+	});
+	if (!e) return a;
 	try {
 		let t = JSON.parse((n ?? globalThis.sessionStorage).getItem(e));
-		return !Array.isArray(t) || !t.every((e) => typeof e == "string") ? r : Object.freeze({
-			tags: r.tags,
-			selected: new Set(t.filter((e) => r.tags.includes(e)))
+		return !Array.isArray(t) || !t.every((e) => typeof e == "string") ? a : Object.freeze({
+			tags: a.tags,
+			selected: new Set(t.filter((e) => a.tags.includes(e)))
 		});
 	} catch {
-		return r;
+		return a;
 	}
 }
 function Ii(e, t, n) {

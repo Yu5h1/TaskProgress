@@ -10,6 +10,40 @@ const reduce = (draft, command) => ({ ...draft, value: command.value });
 const edit = (tx, value, key = "") => tx.apply({ type: "set", value }, reduce, key);
 const state = tx => structuredClone({ draft: tx.draft, derived: tx.derived, dirty: tx.dirty, history: tx.history });
 
+test("history metadata follows merged edits and traversal without exposing snapshots", () => {
+  const tx = createEditorTransaction({ value: "" });
+  edit(tx, "a", "text");
+  const firstId = tx.historyEntries[0].id;
+  edit(tx, "ab", "text");
+  assert.equal(tx.historyEntries[0].id, firstId);
+  edit(tx, "c"); edit(tx, "d");
+  const ids = tx.historyEntries.map(entry => entry.id);
+  tx.undo(); tx.undo();
+  assert.deepEqual(tx.historyEntries.map(entry => entry.id), ids);
+  assert.deepEqual(tx.historyEntries.map(entry => entry.applied), [true, false, false]);
+  const entries = tx.historyEntries;
+  assert.equal("before" in entries[0], false);
+  entries[0].command.value = "mutated"; entries.pop();
+  assert.equal(tx.historyEntries[0].command.value, "ab");
+  tx.redo(); assert.equal(tx.draft.value, "c");
+  edit(tx, "branch");
+  assert.equal(tx.historyEntries.some(entry => entry.id === ids[2]), false);
+});
+
+test("clearing history preserves dirty content, derived state and the saved baseline", () => {
+  const tx = createEditorTransaction({ value: "saved" }, { derive: draft => ({ length: draft.value.length }) });
+  edit(tx, "a"); edit(tx, "ab"); tx.undo();
+  const before = state(tx);
+  tx.clearHistory();
+  assert.deepEqual(tx.draft, before.draft);
+  assert.deepEqual(tx.derived, before.derived);
+  assert.equal(tx.dirty, true);
+  assert.deepEqual(tx.historyEntries, []);
+  assert.equal(tx.undo(), false); assert.equal(tx.redo(), false);
+  edit(tx, "new"); tx.undo(); assert.equal(tx.draft.value, "a");
+  tx.discard(); assert.equal(tx.draft.value, "saved");
+});
+
 test("empty history is inert; typing merges and returning to the starting value removes the step", () => {
   const tx = createEditorTransaction({ value: "" });
   assert.equal(tx.undo(), false);

@@ -6,6 +6,10 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
 
 ## Current state (2026-09-29)
 
+- **歷史工具模組（2026-10-15）。** 契約 `Documentation/EditorHistory.md#歷史工具模組`；驗收 `checklists/history-tools.checklist`。新增受控 `HistoryTools.svelte`，決策頁使用復原／重做／歷史三圖示膠囊；面板顯示紀錄與目前位置，清除需確認且只清歷史。核心提供 metadata 副本及 clearHistory，保留單一堆疊；題目標籤、保存與衝突仍屬 decision adapter。搬移至 Web 的介面／依賴已記錄，未修改 Web 或擴大其他編輯器 UI。
+  - 主題修正：膠囊的無效 `--panel/--accent` fallback、共用頁面的 `--page` 改接既有 `--color-*`；決策按鈕／文字欄與歷史工具明確配對背景文字。11 項主題／工具測試及決策＋Checklist 3 入口建置通過，正式 Desktop 資產同步。Browser 實際確認亮暗 body／膠囊／dialog 色彩與關閉回焦，還原原本 system 偏好，未改答案。服務一般使用者 status 正常，sandbox 連線誤報未啟動，未重啟服務。
+  - 43 項核心／session／元件定向測試、1 項 classic runtime 檢查、資產建置、checklist parser 與獨立複核通過。正式 Desktop 資產已同步，JS hash 與 Browser 一致；未重啟服務。下一步：Browser 重新整理／Desktop 重開，依 checklist 第 2 項核查三圖示、清除確認與 Escape 回焦；實機尚未驗證。
+
 - **決策 Undo／Redo 與預設篩選（2026-10-15）。** 契約見 `Documentation/EditorHistory.md#決策歷史`，驗收 `checklists/decision-history.checklist`。Decision session 接入既有 editor transaction，選擇／取消／其他文字可復原重做，保存後保留歷史；清除全部為一步，復原逐題以最新 revision 保存。保存中、結果不明、衝突阻止歷史操作，外部變動清除過期歷史。新分頁預設隱藏已決策，既有分頁篩選保留。
   - 中斷後檢查並修正跨題保存期間取消再選回原值殘留 dirty 草稿；50 項定向 Node 測試、Decision Browser／Desktop 共用資產建置、checklist parser 及獨立複核通過，保留既有 CardList a11y warnings。正式 Desktop 資產已同步，JS hash 與 Browser 相同；Browser 重新整理／Desktop 重開載入，未重啟服務。實際按鈕與離焦篩選互動待 checklist 第 2 項手動確認；歷史不跨重新整理／重開。
 

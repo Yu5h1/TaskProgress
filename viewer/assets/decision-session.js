@@ -36,7 +36,18 @@ export function createDecisionSession(initial) {
     }
     return changed;
   }
+  const historyLabel = command => {
+    if (command.type === "clear_all") return "清除全部答案";
+    const title = find(command.id)?.question ?? command.id;
+    if (command.type === "other") return `${title}：編輯其他文字`;
+    if (!command.choice) return `${title}：取消選取`;
+    const option = command.choice === "__other" ? "其他" :
+      find(command.id)?.options.find(option => option.id === command.choice)?.label ?? command.choice;
+    return `${title}：選擇「${option}」`;
+  };
   function view() { return { history: { ...history.history,
+    entries: history.historyEntries.map(entry => ({ id: entry.id, label: historyLabel(entry.command), applied: entry.applied })),
+    canClear: !historyBlocked() && (history.history.canUndo || history.history.canRedo),
     canUndo: !historyBlocked() && history.history.canUndo,
     canRedo: !historyBlocked() && history.history.canRedo }, snapshot: clone(snapshot), drafts: clone(drafts), pending: clone(pending), busy, dirty: Object.keys(drafts).length > 0 }; }
   function merge(next, ownSave = false) {
@@ -52,6 +63,11 @@ export function createDecisionSession(initial) {
     view,
     undo: () => traverse("undo"),
     redo: () => traverse("redo"),
+    clearHistory() {
+      if (historyBlocked()) return false;
+      history.clearHistory();
+      return true;
+    },
     canConfirm(id) {
       const draft = drafts[id], decision = find(id);
       return !pending && !busy && !!decision && !!draft && !draft.conflict &&
@@ -79,7 +95,8 @@ export function createDecisionSession(initial) {
       Object.assign(drafts[id], { cleared: false }, fields);
       if (drafts[id].cleared && !drafts[id].other && !answer && pending?.decision_id !== id) delete drafts[id];
       removeCleanDraft(id);
-      history.apply({ type: Object.hasOwn(fields, "choice") ? "select" : "other", id }, () => project(),
+      history.apply({ type: Object.hasOwn(fields, "choice") ? "select" : "other", id,
+        ...(Object.hasOwn(fields, "choice") ? { choice: fields.choice } : {}) }, () => project(),
         Object.hasOwn(fields, "choice") ? "" : `other:${id}`);
     },
     select(id, choice) {

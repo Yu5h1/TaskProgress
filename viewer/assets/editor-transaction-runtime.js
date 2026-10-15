@@ -15,6 +15,13 @@
     const redoStack = [];
     const limit = Number.isInteger(historyLimit) && historyLimit > 0 ? historyLimit : 100;
     let canMerge = false;
+    let nextEntryId = 1;
+
+    function clearHistory() {
+      undoStack.length = 0;
+      redoStack.length = 0;
+      canMerge = false;
+    }
 
     function history() {
       return Object.freeze({
@@ -38,6 +45,7 @@
       const nextDerived = derive(next, baseline);
       const entry = { before, after: clone(next), command: clone(command), mergeKey };
       const previous = undoStack.at(-1);
+      entry.id = canMerge && mergeKey && previous?.mergeKey === mergeKey ? previous.id : nextEntryId++;
       if (canMerge && mergeKey && previous?.mergeKey === mergeKey) {
         entry.before = previous.before;
         undoStack.pop();
@@ -77,8 +85,7 @@
       draft = next;
       derived = nextDerived;
       if (!keepHistory) {
-        undoStack.length = 0;
-        redoStack.length = 0;
+        clearHistory();
       }
       // A completed save is also a boundary between separate typing actions.
       canMerge = false;
@@ -90,6 +97,12 @@
       get derived() { return derived; },
       get dirty() { return signature(draft) !== signature(baseline); },
       get history() { return history(); },
+      // Public metadata only: callers never receive mutable document snapshots.
+      get historyEntries() {
+        return [...undoStack.map(entry => ({ id: entry.id, command: clone(entry.command), applied: true })),
+          ...[...redoStack].reverse().map(entry => ({ id: entry.id, command: clone(entry.command), applied: false }))];
+      },
+      clearHistory,
       apply,
       undo() { return restore(undoStack, redoStack, "before"); },
       redo() { return restore(redoStack, undoStack, "after"); },

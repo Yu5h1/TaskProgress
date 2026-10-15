@@ -214,6 +214,28 @@ function save(s, id) {
   s.complete(response);
   return request;
 }
+
+test("history labels and clearing stay separate from decision answers and local text", () => {
+  const s = createDecisionSession(initial());
+  s.select("input", "batch"); save(s, "input");
+  s.edit("input", {other: "local note"});
+  assert.match(s.view().history.entries[0].label, /CLI 使用哪種輸入.*批次 JSON/u);
+  assert.match(s.view().history.entries[1].label, /編輯其他文字/u);
+  const before = s.view();
+  assert.equal(s.clearHistory(), true);
+  const after = s.view();
+  assert.deepEqual(after.snapshot, before.snapshot);
+  assert.deepEqual(after.drafts, before.drafts);
+  assert.equal(after.dirty, before.dirty);
+  assert.deepEqual(after.history.entries, []);
+  assert.equal(after.history.canClear, false);
+  assert.equal(s.saveOperation("input"), null);
+  s.select("input", "batch");
+  assert.match(s.view().history.entries[0].label, /取消選取/u);
+  s.begin("input", "reopen");
+  assert.equal(s.clearHistory(), false);
+  s.failed(); assert.equal(s.clearHistory(), false);
+});
 test("saved selection undo and redo use current revisions and branch history", () => {
   const s = createDecisionSession(initial());
   s.select("input", "batch"); save(s, "input");

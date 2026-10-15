@@ -4,7 +4,7 @@
 body {
   min-width: 0;
   margin: 0;
-  background: var(--page);
+  background: var(--color-page-bg);
 }
 
 /* The page stacks header, summary, next step and items; gap owns the spacing so
@@ -195,7 +195,7 @@ body {
   resize: vertical;
   padding: 9px 10px;
   color: var(--ink);
-  background: var(--page);
+  background: var(--color-page-bg);
   border: 1px solid var(--color-danger-border);
   border-radius: 8px;
   font: inherit;
