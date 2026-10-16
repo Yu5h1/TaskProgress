@@ -51,10 +51,12 @@ test("bottom-left footer pairs the existing TaskProgress brand-mark icon with Ta
   const footerBlock = html.match(/<footer>[\s\S]*?<\/footer>/u)?.[0] ?? "";
   assert.match(
     footerBlock,
-    /<span class="footer-brand">\s*<span class="brand-mark" aria-hidden="true"><span><\/span><span><\/span><span><\/span><\/span>\s*<span>TaskProgress Viewer<\/span>\s*<\/span>/u,
+    /<span class="footer-brand">[\s\S]*?<span class="brand-mark" aria-hidden="true"><span><\/span><span><\/span><span><\/span><\/span>[\s\S]*?<span class="footer-brand-text"><strong>TaskProgress<\/strong>\s*<span>Viewer<\/span><\/span>/u,
   );
   assert.match(footerBlock, /id="viewer-mode-label"/u);
   assert.match(styles, /\.footer-brand\s*\{[\s\S]*?display:\s*inline-flex;[\s\S]*?align-items:\s*center;/u);
+  assert.match(styles, /\.footer-brand-text strong\s*\{[\s\S]*?font-weight:\s*750;/u);
+  assert.match(styles, /\.footer-brand-text span\s*\{[\s\S]*?font-weight:\s*400;/u);
 });
 
 test("header report title truncates with ellipsis and protects header controls on narrow viewports", async () => {
