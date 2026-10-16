@@ -11,14 +11,14 @@ Current round: `Documentation/EditorHistory.md#歷史工具模組`.
       - Action: 執行 editor-transaction、decision-session、history-tools Node 測試。
       - Expect: 紀錄順序、合併、分支、清除與 session 隔離測試通過，工具元件無編譯警告。
 
-- [ ] **2. 工具介面**
+- [x] **2. 工具介面**
   Depends on: 1.
   Outcome: 決策頁提供三圖示膠囊與可查看、可清除的歷史面板。
   Checks:
     - [x] **共用資產建置**
       - Action: 執行 npm run decisions:ui:build。
       - Expect: Browser／Desktop 產生一致的決策資產。
-    - [ ] **實際互動** `[manual]`
+    - [x] **實際互動** `[manual]`
       - Action: 在測試決策頁選答案 → 開啟歷史 → 復原一步 → 重做一步；清除歷史先取消、再確認，並以 Escape 關閉面板。
       - Expect: 顯示操作名稱與目前位置；取消不清紀錄，確認只清紀錄且答案保留；關閉後焦點回到歷史圖示。
       - Reason: 需要實際確認圖示辨識、焦點與操作感受。
