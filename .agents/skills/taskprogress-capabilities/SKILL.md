@@ -1,120 +1,113 @@
 ---
 name: taskprogress-capabilities
-description: Find the TaskProgress entrance that already exists — a CLI verb, a page the local service serves, or a documented skill — before building anything against a `.checklist` file, a report, or a scope. Use when work in any project touches TaskProgress data, or before answering that some TaskProgress capability is missing.
+description: Find the TaskProgress entrance that already exists — a CLI verb, a page the local service serves, or a documented skill — before building anything against a `.checklist` or `.decisions` file, a report, or a scope. Use when work in any project touches TaskProgress data, or before answering that some TaskProgress capability is missing.
 ---
 
 # TaskProgress capabilities
 
 An **entrance** is a shipped way in: a CLI verb, a page the local service serves, a documented
-skill. TaskProgress has more entrances than any single router row names, and the failure this skill
-exists to stop is building a substitute for one that already ships — or telling the user a
-capability is absent after reading only the source.
+skill. TaskProgress has more entrances than any single router row names. This skill exists to stop
+two failures: building a substitute for an entrance that already ships, and telling the user a
+capability is absent after reading only part of the source.
 
 ## Open-only requests
 
-When the user asks only to open or show an existing `.checklist`, treat that as navigation, not
-inspection or round execution. Use the recorded entrance below and perform only the routing needed
-to reach it, such as resolving the requested file or scope, checking whether the required service
-is available, and navigating the Browser pane.
+When the user asks only to open or show an existing `.checklist` or `.decisions` file, treat that
+as navigation. Resolve the file and scope, [ensure the service](#ensure-the-checklist-service),
+and navigate the Browser pane — nothing more.
 
-Do not enumerate the whole capability surface, inspect the checklist contents for mistakes, run
-`checklist validate` or `checklist request`, execute any checks, change markers, or diagnose the
-document. If the opened UI itself reports a parse or load error, relay that observed error and stop;
-inspect, validate, or troubleshoot only after the user explicitly asks for that work. A request to
-open and also check or validate authorizes only the additional action the user named.
+Do not enumerate the capability surface, inspect the document for mistakes, run `validate` or
+`request`, execute checks, change markers or answers, or diagnose the document. If the opened page
+reports a parse or load error, relay that error and stop. A request to open and also check or
+validate authorizes only the additional action the user named.
 
 ## Enumerate the entrances first
 
-Except for the open-only path above, use four sources. All cheap, none sufficient alone; reading source and finding no implementation
-settles nothing until all four are checked.
+For anything other than open-only, check all four sources before concluding a capability is
+missing. Each is cheap; none is sufficient alone.
 
-1. `task-progress.exe --help` prints every command family: service (`start`, `worker`,
-   `service`), reports (`analyze`, `open`, `scope`), `checklist` (`validate`, `request`, `install`),
-   `protocol`. The build sits at `Build/win-x64/task-progress.exe` and is **not** on `PATH`.
-   No arguments now means `start` (Tray/service startup); never use it for discovery.
-2. `.agents/skills/` **and** `.claude/skills/` in this repository — list both directories. Each
-   `SKILL.md` is a shipped capability. A router row names the closest single match, never the whole
-   surface; and `.claude/skills/` is invisible to a session rooted in another project, which is
-   exactly where this goes wrong.
-3. `handoff.md`'s `## Current state`, newest entry first. A capability that shipped days ago may
-   exist nowhere else yet.
-4. The Artifact list (`action: "list"` on the Artifact tool). A working prototype from an earlier
-   session is still something shipped, and still something the user remembers.
+1. The CLI catalog: `PrintHelp()` in `src/TaskProgress.Cli/Program.cs`. Read the source; do not
+   run the EXE to discover usage. It is a WinExe, a missing argument or subcommand `--help` opens a
+   usage dialog on the user's screen, and no arguments means `start`. Families: `start`/`worker`,
+   `analyze`, `report` (`get`/`validate`/`apply`), `checklist`, `decisions`, `open`, `scope`,
+   `service`, `protocol`. The build is `Build/win-x64/task-progress.exe` and is **not** on `PATH`.
+2. `.agents/skills/` **and** `.claude/skills/` in this repository. `.claude/skills/` is invisible
+   to a session rooted in another project, which is exactly where entrances get missed.
+3. `handoff.md`'s `## Current state`, newest entry first. A capability shipped days ago may exist
+   nowhere else yet.
+4. The Artifact list (`action: "list"` on the Artifact tool). A prototype from an earlier session
+   is still something the user remembers.
 
-## The entrances, last verified 2026-09-04
+## The entrances (verified against source 2026-10-16)
 
 | Want | Entrance |
 |---|---|
-| Open the current task card at the top of its report | `task-progress.exe open --scope <scope-id> --pin <task-id>` (or a report folder). Check selected EXE `--help` advertises `--pin`; deployment state is in handoff.md. Uses the task ID from current context, no session argument. Contract: `Documentation/CardPin.md#cli-開啟並釘選`. |
-| View or tick a `.checklist` round in a browser | `.claude/skills/checklist/SKILL.md` — the local service's `/checklist/?scope=&task=` page in the Browser pane. Real read/write to the file, same engine as the WPF host. |
-| Write, mark, or complete a round | `.agents/skills/checklist-round/SKILL.md` — the document contract. Authorship, not viewing. |
-| Check that a `.checklist` parses | `task-progress checklist validate <file>` — console only, non-zero exit on failure, no window. |
-| Edit a round without a browser | `task-progress checklist <file>` — the native WPF host. A different entrance from the browser page; the browser skill forbids falling back to it. |
-| Put clickable links inside Report task summaries or item descriptions | `[label](URL)` via the existing description string; follow [report authoring guidance](../task-progress-report/SKILL.md#inline-links-in-report-descriptions). Supports arbitrary labels and existing Checklist/Decision URLs. |
-| Bind Checklist or Decision documents directly to Report tasks or items | `"document_ref": { "kind": "checklist"|"decision", "scope_id": "...", "task": "..." }` in `report.json`; follow [Bind Checklist and Decision documents](../task-progress-report/SKILL.md#bind-checklist-and-decision-documents-document_ref). Automatically derives done status and renders inline document badges in Viewer. |
+| Open a task card pinned to the top of its report | `task-progress.exe open --scope <scope-id> --pin <task-id>` (or a report folder). See [Update existing Report through CLI](../task-progress-report/SKILL.md#update-existing-report-through-cli). |
+| View or tick a `.checklist` round in a browser | `.claude/skills/checklist/SKILL.md` — the service's `/checklist/?scope=&task=` page in the Browser pane. Same read/write engine as the desktop host. |
+| Write, mark, or complete a round | `.agents/skills/checklist-round/SKILL.md` — the document contract. |
+| Check that a `.checklist` parses | `task-progress checklist validate <file>` — console only, non-zero exit on failure. |
+| View or answer a `.decisions` file in a browser | `/decisions/?scope=<scope-id>&task=<stem>` (one file) or `/decisions/?scope=<scope-id>` (scope overview) in the Browser pane. Behavior: [DecisionItemsUsage](../../../Documentation/DecisionItemsUsage.md#browser-與-report). |
+| Ask the user or record answers in a `.decisions` file without a browser | `task-progress decisions request --file <file>` (UTF-8 stdin `load`, then `confirm`/`reopen`/`revise` with the loaded revision); `decisions validate <file>` to check it. Request shapes: [DecisionItemsUsage](../../../Documentation/DecisionItemsUsage.md#agent-與本機請求). |
+| Open a document outside the Browser pane | `task-progress checklist <file>` / `decisions <file>` — opens the service page in the system browser when the route is available, otherwise the native desktop editor. Not a fallback for a Browser-pane request. |
+| Put clickable links inside Report descriptions | `[label](URL)` in the existing string; see [Inline links](../task-progress-report/SKILL.md#inline-links-in-report-descriptions). |
+| Let a Checklist or Decision drive a Report task or item's completion | `document_ref` on the task or object item; see [Bind Checklist and Decision documents](../task-progress-report/SKILL.md#bind-checklist-and-decision-documents-document_ref). |
+| Update report tasks and items | `task-progress report get|validate|apply`; see [the Report skill](../task-progress-report/SKILL.md#update-existing-report-through-cli). |
 | Report generation, time, cost, deadline risk | `.agents/skills/task-progress-report/SKILL.md`. |
 | Ports, mounts, and routing for the local service | `LocalWebService`'s `skills/local-web-service/SKILL.md`. |
+
+Checklist and Decision pages show an "擁有者" link back to the same scope's Report on their own;
+it needs no `document_ref` ([DocumentOwnerReport](../../../Documentation/DocumentOwnerReport.md)).
 
 ## Reaching the browser entrance from another project
 
 `/checklist` lives in `.claude/skills/`, so a session rooted in a consuming project cannot invoke
 it — build the URL by hand instead. Three preconditions, in order:
 
-1. The project carries `checklists/<task-id>.checklist`.
+1. The project carries `checklists/<stem>.checklist` or `decisions/<stem>.decisions`.
 2. The project is a registered scope: `task-progress scope list` to check, `scope add <scope-id>
    <folder>` to add. `scope add` requires a `report.json` in that folder; a minimal
    `{"schema_version":"1.0","report_id":"…","scope_id":"…","title":"…","updated_at":"…","tasks":[]}`
    satisfies it without adopting TaskProgress reporting for that project. Say so when adding one, so
    an empty report is never mistaken for real tracked progress.
-3. Ensure the service is running using [Ensure the Checklist service](#ensure-the-checklist-service).
+3. The service is running per [Ensure the Checklist service](#ensure-the-checklist-service).
 
-Then use the confirmed service port to open `/checklist/?scope=<scope-id>&task=<stem>` in the
-Browser pane. Use the available browser tools to navigate the existing relevant tab, or create
-one when needed. Read the loaded URL and page content to confirm the requested round actually
-loaded; a successful navigation call alone is insufficient.
+Then open `/checklist/?scope=<scope-id>&task=<stem>` (or `/decisions/…`) on the confirmed port in
+the Browser pane, reusing the relevant tab. Read the loaded URL and page content to confirm the
+requested document loaded; a successful navigation call alone is insufficient.
 
 ## Ensure the Checklist service
 
-This is the shared service-readiness procedure for opening Checklist and Report pages. Opening
-either includes starting its required service when stopped. It does not authorize stopping or
-replacing a running service. Report route synchronization is described in
+The shared service-readiness procedure for opening Checklist, Decision, and Report pages. Opening
+one includes starting the service when stopped. It does not authorize stopping or replacing a
+running service. Report route synchronization is in
 [the Report skill](../task-progress-report/SKILL.md#start-or-synchronize-the-shared-viewer).
 
 1. Resolve `Build/win-x64/task-progress.exe` from the TaskProgress repository, not the consuming
-   project's working directory; use its absolute path because it is not on PATH.
-2. Run `task-progress.exe service status` (with `--port <port>` when explicitly requested).
-   Reuse a running service. A status error or a foreign service is not evidence that it is stopped:
-   report that error instead of taking over or restarting it. Status performs a service connection
-   and identity check; do not substitute TrayHost liveness, a PID, an occupied port, or a state file.
-   The current CLI reports a connected service with its URL, PID, Instance, Viewer root, and
-   registration count; it does not print a literal `Running`. Both connected and not-started status
-   can exit 0, so inspect the output. The not-started message means no compatible connection was
-   established; a health timeout can produce it too. Before startup, check TCP listeners for the
-   requested port (default 8001), for example by filtering a successful
-   `Get-NetTCPConnection -State Listen` result by `LocalPort`. If any listener remains, or the
-   listener check fails, report unavailable/unknown status and stop; do not treat it as stopped.
-   Proceed only when status reports not-started and the port has no listener.
-3. When status reports no running service, use the agent tool's supported approval mechanism to
-   run `task-progress.exe start` outside the sandbox, as the current ordinary Windows user,
-   once, and wait for completion. In Codex, request `sandbox_permissions: "require_escalated"`;
-   this requests unsandboxed execution, not Windows administrator elevation. Do not launch the
-   persistent TrayHost/worker inside the sandbox: startup writes application state outside the
-   workspace, including scope/catalog JSON. Do not use `RunAs`, change ACLs, or weaken pipe security.
-   If approved unsandboxed execution is unavailable or denied, explain the limitation and give
-   the user the absolute EXE command to run in a normal terminal; resume after they start it.
-   Do not work around a denial through another launcher. Do not add `--tray` (removed) or `--port`
-   (unsupported by start); the current worker uses `LauncherSettings.DefaultPort`.
-   This requires a published CLI/worker with the default-tray start contract. After updating
-   binaries, the user must exit an old resident worker before using the new commands; do not
-   automatically terminate it or retry the obsolete `--tray` option.
-4. Check service status again in the ordinary-user context and require a confirmed Running
-   service before using its URL/port for the Checklist link. Exit code 0 or a "tray ready" message
-   alone is insufficient: the tray can respond successfully while the service reports Stopped
-   or a startup error. If startup fails, the service remains unavailable, or its port does not
-   match an explicitly requested port, report the actual error or mismatch and stop; do not loop,
-   restart another service, or provide an unverified link as ready.
-5. Use the confirmed service URL/port to open the requested page in the Browser pane and provide
-   a clickable link. Encode scope and task query values. For Checklist use
-   `/checklist/?scope=<scope-id>&task=<stem>`; for Report follow its skill to obtain the Viewer URL.
-   Read the loaded URL and page content. Report a load/parse error without claiming success or
-   falling back to another UI; allow at most one startup attempt per invocation.
+   project's working directory; use its absolute path.
+2. Run `task-progress.exe service status` (with `--port <port>` when explicitly requested). It
+   connects to the service and checks its identity; do not substitute TrayHost liveness, a PID, an
+   occupied port, or a state file.
+   - **Connected**: output shows URL, PID, Instance, Viewer root, and registration count (there is
+     no literal `Running`). Reuse it.
+   - **Not started**: both outcomes can exit 0, so read the output. A health timeout can also
+     produce not-started. Before startup, check TCP listeners on the port (default 8001), e.g. a
+     successful `Get-NetTCPConnection -State Listen` filtered by `LocalPort`. If a listener remains
+     or the check fails, report unavailable/unknown and stop.
+   - **Error or foreign service**: report it; do not take over or restart.
+3. Only when status is not-started and the port has no listener, run `task-progress.exe start`
+   once, outside the sandbox, as the current ordinary Windows user, using the agent tool's approval
+   mechanism (in Codex, `sandbox_permissions: "require_escalated"` — unsandboxed, not administrator).
+   Startup writes scope/catalog state outside the workspace, so never launch the resident
+   TrayHost/worker inside the sandbox. Do not use `RunAs`, change ACLs, or weaken pipe security.
+   If unsandboxed execution is unavailable or denied, give the user the absolute EXE command to run
+   in a normal terminal and resume after they start it; do not route around a denial through
+   another launcher. `start` takes neither `--tray` nor `--port`; the worker uses
+   `LauncherSettings.DefaultPort`. An old resident worker from an earlier build must be exited by
+   the user before new commands work; do not terminate it automatically.
+4. Run `service status` again in the ordinary-user context and require the connected output from
+   step 2. Exit code 0 or a "tray ready" message alone is insufficient. If startup fails, the
+   service stays unavailable, or its port differs from an explicitly requested port, report the
+   actual error and stop: no loops, no second startup, no unverified link.
+5. Open the page on the confirmed port in the Browser pane and give a clickable link, URL-encoding
+   scope and task values. Read the loaded URL and page content. Report a load or parse error
+   without claiming success or falling back to another UI.

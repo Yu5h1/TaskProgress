@@ -1,6 +1,6 @@
 ---
 name: task-progress-report
-description: Generate, update, validate, roll up, register, and locally deploy TaskProgress report.json, optional report.dev.json, and optional time.analysis.json for Yu5h1Lib scopes. Bind Checklist and Decision documents via document_ref for dynamic completion status projection. Use when an agent is asked to create or refresh project or multi-project workspace progress, synthesize a portfolio report from routed child scopes or deliverables, bind checklists or decisions to report items, estimate task or item time, publish deadline risk, onboard another workspace, prepare or register a scope, synchronize the shared all-scope localhost Viewer, or verify TaskProgress report data locally.
+description: Generate, update, validate, roll up, register, and locally deploy TaskProgress report.json, optional report.dev.json, and optional time.analysis.json for Yu5h1Lib scopes. Use when an agent is asked to create or refresh project or multi-project workspace progress, synthesize a portfolio report from routed child scopes or deliverables, bind checklists or decisions to report items, estimate task or item time, publish deadline risk, onboard another workspace, prepare or register a scope, synchronize the shared all-scope localhost Viewer, or verify TaskProgress report data locally.
 ---
 
 # TaskProgress report workflow
@@ -9,9 +9,7 @@ description: Generate, update, validate, roll up, register, and locally deploy T
 
 - Treat the directory containing the shared `.agents` folder as `<yu5h1lib-root>`.
 - Treat `<yu5h1lib-root>\TaskProgress` as `<task-progress-root>`.
-- Resolve `<task-progress-exe>` from the first existing path:
-  1. `<task-progress-root>\Build\win-x64\task-progress.exe`
-  2. `<task-progress-root>\artifacts\win-x64\task-progress.exe`
+- Treat `<task-progress-root>\Build\win-x64\task-progress.exe` (the `Publish.cmd` output) as `<task-progress-exe>`. It is not on `PATH`. Take command shapes from this skill, [Report CLI usage](../../../Documentation/ReportCliUsage.md), or `PrintHelp()` in `src/TaskProgress.Cli/Program.cs`; never probe with missing arguments or subcommand `--help`, which opens a usage dialog on the user's screen.
 - Place another project's reports at the project root:
   - `<project-root>\report.json`
   - `<project-root>\report.dev.json` only when developer details exist or the user requests it.
@@ -45,9 +43,9 @@ description: Generate, update, validate, roll up, register, and locally deploy T
 
 ## Update existing Report through CLI
 
-When opening the task being worked on, use `open --scope <scope-id> --pin <task-id>` (or a report folder) if the selected EXE's `--help` advertises `--pin`. Resolve the existing card ID from current task context or `report get`; no session ID or session mapping is needed. Each navigation promotes that card to the front without toggling it off. Pin is browser-local view state, not report data. First follow [the shared service-readiness procedure](../taskprogress-capabilities/SKILL.md#ensure-the-checklist-service). Carry the confirmed port through every `open` and subsequent `service status` command with `--port <port>` when it differs from the default. For the Browser pane, add `--no-browser` to obtain the link without opening the system browser; opening that link applies the pin. This option still performs the normal open operation (including route registration and any automatic analysis refresh). Confirm service status after the command, then navigate the pane and read the loaded URL and page content. See [card pin contract](../../../Documentation/CardPin.md#cli-開啟並釘選) and handoff.md for deployment status.
+To open the task being worked on, first follow [the shared service-readiness procedure](../taskprogress-capabilities/SKILL.md#ensure-the-checklist-service), then run `open --scope <scope-id> --pin <task-id> --no-browser` (or a report folder instead of `--scope`). Take the card ID from current task context or `report get`; no session mapping is needed. `--no-browser` returns the link without opening the system browser but still registers routes and refreshes analysis as a normal `open` does; opening that link in the Browser pane applies the pin. Pin promotes the card to the front, never toggles it off, and is browser-local view state, not report data. Pass `--port <port>` to `open` and every later `service status` when the confirmed port is not the default. Confirm status after the command, then read the loaded URL and page content. Contract: [card pin](../../../Documentation/CardPin.md#cli-開啟並釘選).
 
-For ordinary task/item or developer-field updates supported by the selected CLI, use the `report` command instead of hand-editing JSON. Read [Report CLI usage](../../../Documentation/ReportCliUsage.md) for request shape and runtime requirements. Use `get` (optionally `--task`) to obtain the current revision, then `apply --input --dry-run` with ID-addressed operations, followed by `apply --input`. Never invent a revision or overwrite a conflict without rereading the source. Check both the JSON `ok` value and exit code. Existing string items, pointer mutations, deletions, and new report creation remain outside this command's first version. Do not start a server for these commands.
+For task, item, and developer-field updates, use the `report` command instead of hand-editing JSON; [Report CLI usage](../../../Documentation/ReportCliUsage.md) owns request shapes and runtime requirements. Run `report get` (optionally `--task`) for the current revision, then `report apply --input <file> --dry-run` with ID-addressed operations, then the same without `--dry-run`. Never invent a revision or overwrite a conflict without rereading. Check both the JSON `ok` value and the exit code. The command does not cover legacy string items, pointer mutations, deletions, new report creation, or changing `document_ref` on an existing entry (see [binding](#bind-checklist-and-decision-documents-document_ref)). It needs no running server.
 
 ## Maintain child items
 
@@ -98,10 +96,10 @@ Minimal shape:
 
 When a task summary or completed/pending item description benefits from navigation, write `[label](URL)` in its existing string field (an object item's `title`, or a legacy string item). Labels are free text: `下載`, `影片`, `教學`, and `前往` are examples, not fixed controls. Links can appear anywhere in a sentence; keep the surrounding text meaningful. Do not put link syntax into IDs or assume other report fields render it.
 
-When generating or updating a task summary or completed/pending item description that mentions a specific Checklist or Decision, make that reference an inline `[label](URL)` link to its file's page rather than leaving only a name or path. Resolve the existing file and its owning registered scope first; use that file's stem as `task`, which need not match the Report task ID. For local pages, compose a root-relative URL and URL-encode each query value:
+When a summary or item description you author or update mentions a specific Checklist or Decision, make the mention an inline link to its page rather than a bare name or path. A document that decides the entry's completion is bound with [`document_ref`](#bind-checklist-and-decision-documents-document_ref) instead, and the Viewer renders its link itself. Resolve the existing file and its owning registered scope first; use the file's stem as `task`, which need not match the Report task ID. Compose a root-relative URL and URL-encode each query value:
 
-- `[驗收清單](/checklist/?scope=<scope-id>&task=<task-id>)` → `checklists/<task-id>.checklist`.
-- `[決策細節](/decisions/?scope=<scope-id>&task=<task-id>)` → `decisions/<task-id>.decisions`.
+- `[驗收清單](/checklist/?scope=<scope-id>&task=<stem>)` → `checklists/<stem>.checklist`.
+- `[決策細節](/decisions/?scope=<scope-id>&task=<stem>)` → `decisions/<stem>.decisions`.
 
 Use a meaningful label such as the checklist name or decision topic. Route through these pages, not a Windows filesystem path or `file://` URL. If the mention is generic or the target cannot be verified, retain plain text and report an unresolved specific target; do not invent a link or create a file just to supply one. Apply this rule to the descriptions being authored or updated, without rewriting unrelated Report entries.
 
@@ -111,36 +109,32 @@ Before adding a link, verify its target from available evidence; the Viewer does
 
 ## Bind Checklist and Decision documents (document_ref)
 
-When a task or child item's verification is backed by a `.checklist` or `.decisions` file, attach a `document_ref` object directly to the task or object item in `report.json`:
+Bind a `.checklist` or `.decisions` file when finishing that document is what finishes a task or object item. The Viewer then derives the entry's displayed completion from the document. To merely mention a document, use an [inline link](#inline-links-in-report-descriptions).
 
 ```json
-"document_ref": {
-  "kind": "checklist",
-  "scope_id": "<scope-id>",
-  "task": "<stem>"
-}
+"document_ref": { "kind": "checklist", "scope_id": "<scope-id>", "task": "<stem>" }
 ```
 
-- **Shape & fields**:
-  - `kind`: `"checklist"` or `"decision"` (required).
-  - `scope_id`: the registered scope ID owning the target document (required).
-  - `task` or `stem`: the filename stem of `<scopeRoot>/checklists/<stem>.checklist` or `<scopeRoot>/decisions/<stem>.decisions` (required). Either `task` or `stem` is valid; `task` matches the document URL query parameter `?task=<stem>`.
-  - Supported on standard tasks (`tasks[]`) and object items (`pending_items[]` / `completed_items[]`). Legacy string items must be converted to stable item objects (`{ "id": "<id>", "title": "<title>", "document_ref": { ... } }`) to bind a document.
-- **Dynamic status projection in Viewer**:
-  - The Viewer queries bound documents asynchronously on initial load and foreground return (silent refresh).
-  - **Checklist rule**: When the document has at least one check and **all** checks have passed (`[x]`), the projected status becomes `done`. If any check remains unchecked, failed, or reopened, or if the file contains no checks, the item retains its stored raw status (e.g. `planned`, `in_progress`).
-  - **Decision rule**: When the document has at least one decision and **all** decisions are answered with valid selections, the projected status becomes `done`. If any decision is unanswered or missing custom text, the item retains its stored raw status.
-  - **Authority and immutability**:
-    - Raw stored `done` and `archive` are permanent and never overridden or reverted by document projection.
-    - Items projected as `done` are dynamically presented under `completed_items` in the UI and counted towards task/project completion progress.
-    - If document fetching fails (e.g. missing file or transport failure), the source is marked unavailable without crashing report projection or halting other tasks.
-    - Saving a report through the Viewer never writes back dynamically projected statuses into `report.json`; persistent report state remains untouched.
-- **UI presentation**:
-  - The Viewer renders an inline type badge (`Checklist` or `Decision`) with an icon alongside the item or summary comments.
-  - Clicking the badge opens `/checklist/?scope=<scope-id>&task=<stem>` or `/decisions/?scope=<scope-id>&task=<stem>` in the browser.
-- **Distinction from inline text links**:
-  - `[label](URL)` in markdown text provides manual, prose navigation links only.
-  - `document_ref` establishes automated machine-readable traceability, driving live status projection and official document-owner bidirectional links.
+- `kind` is `checklist` (→ `<scope-root>/checklists/<stem>.checklist`) or `decision`, singular (→ `<scope-root>/decisions/<stem>.decisions`).
+- `scope_id` is the registered scope that owns the file. It may differ from the report's own scope when both are served by the same local service.
+- `task` names the file stem, matching the page's `?task=` query; `stem` is an accepted alias. Write `task`. The stem need not equal the Report task ID.
+- Allowed on ordinary tasks and on object items. A legacy string item must first become `{ "id", "title" }` with a stable ID.
+- Writing it: `task.add` and `item.add` accept `document_ref` inside `value`. The `report` command cannot add, change, or remove it on an existing entry; edit `report.json` directly, then run `report validate` (see [Validate](#validate-before-reporting-completion)).
+
+How the Viewer projects it (`viewer/assets/document-binding.js`):
+
+- It reads each bound document on load and on foreground return, through the service's Checklist and Decision routes.
+- **Checklist complete**: at least one check, and every nested check `[x]`, `[manual]` checks included.
+- **Decision complete**: at least one decision, and every decision answered. Unanswered, or 「其他」 with an empty reason, is pending.
+- A complete document shows the entry as `done`: a bound item moves to the completed list and counts toward progress. Otherwise the stored status shows unchanged.
+- Projection only raises to `done`. A stored `done` or `archive` always wins, so reopening the document does not reopen an entry stored as `done`. Keep a bound entry's stored status truthful to the work (`planned`, `in_progress`, `blocked`) and let the document supply completion; store `done` only when completion is final regardless of the document.
+- The projection is display-only. Saving from the Viewer never writes it back to `report.json`, and a refresh is skipped while the editor holds unsaved changes.
+- A missing file, unknown scope, or transport failure marks that entry's source unavailable; the rest of the report renders normally.
+- The entry shows a `Checklist` or `Decision` source link beside its text, opening the document page.
+
+Separate, unbound behavior: on a local Viewer, a task whose ID equals a `decisions/<task-id>.decisions` stem in the report's own scope also shows that file's pending-decision count. Document pages link back to their scope's Report by scope alone. Neither needs `document_ref`.
+
+The bound routes exist only on the local service. Keep `document_ref` out of a report published elsewhere unless that deployment serves `/checklist/` and `/decisions/`; otherwise every bound entry shows an unavailable source.
 
 ## Generate optional `time.analysis.json`
 
@@ -172,24 +166,17 @@ When a task or child item's verification is backed by a `.checklist` or `.decisi
 
 ## Validate before reporting completion
 
-1. Parse `report.json` and parse `report.dev.json` when present.
-2. Validate every property against the matching schema, including allowed values, ID patterns, required fields, lengths, and `additionalProperties: false`.
-3. Confirm task IDs are unique.
-4. If `report.dev.json` exists, confirm:
-   - `schema_version` and `report_id` match the base report.
-   - every overlay task ID exists in the base report.
-5. If `time.analysis.json` exists, confirm:
+1. Run `& "<task-progress-exe>" report validate "<project-root>"` (or `--scope <scope-id>`) and require `ok: true` with exit code 0. It checks `report.json` against its schema and, when present, `report.dev.json` against its schema plus matching `schema_version`/`report_id` and known, unduplicated overlay task IDs. When the EXE is unavailable, perform those checks by hand: parse both files and validate allowed values, ID patterns, required fields, lengths, and `additionalProperties: false`.
+2. Confirm task IDs are unique.
+3. If `time.analysis.json` exists, confirm:
    - it satisfies Draft 0.2 and has the same `scope_id` as `report.json`;
    - every analyzed task/item resolves to a stable base-report ID;
    - item totals, task totals, project total, estimate composition, capacity profile, and capacity timeline are arithmetically consistent;
-  - direct unfinished estimate totals, remaining capacity, capacity balance, feasibility ratio, `evaluated_at`, work progress, time progress, pressure, risk basis, boundary state, and urgency reproduce for the same clock value;
+   - direct unfinished estimate totals, remaining capacity, capacity balance, feasibility ratio, `evaluated_at`, work progress, time progress, pressure, risk basis, boundary state, and urgency reproduce for the same clock value;
    - only `public_label` is projected for capacity exceptions.
-6. If any task or item specifies `document_ref`, confirm:
-   - `kind` is `"checklist"` or `"decision"`;
-   - `scope_id` and `task` (or `stem`) are valid IDs;
-   - `<scopeRoot>/checklists/<stem>.checklist` or `<scopeRoot>/decisions/<stem>.decisions` exists on disk.
-7. Confirm factual consistency with the source task documents and current repository/test state.
-8. When `<task-progress-exe>` exists, follow [the shared service-readiness procedure](../taskprogress-capabilities/SKILL.md#ensure-the-checklist-service), then obtain the actual Viewer URL:
+4. For every `document_ref`, confirm `scope_id` is a registered scope (`scope list`) and its `checklists/<stem>.checklist` or `decisions/<stem>.decisions` exists. Schema validation checks neither.
+5. Confirm factual consistency with the source task documents and current repository/test state.
+6. When `<task-progress-exe>` exists, follow [the shared service-readiness procedure](../taskprogress-capabilities/SKILL.md#ensure-the-checklist-service), then obtain the actual Viewer URL:
 
 ```powershell
 & "<task-progress-exe>" open "<project-root>" --no-browser
@@ -197,9 +184,10 @@ When a task or child item's verification is backed by a `.checklist` or `.decisi
 
    For a confirmed nondefault port, append `--port <port>` to `open` and every subsequent `service status` call. Confirm service status again after the command. Open the returned URL in the Browser pane using the available browser tools, reusing the relevant tab when present. Read the loaded URL and page content; do not treat command success as page-load evidence.
 
-9. Verify the generated URL uses `?scope=<scope-id>`, the Viewer loads, and no validation diagnostic appears. If `report.dev.json` is absent, confirm no `dev=` query and no Developer overlay. If `time.analysis.json` is absent, confirm the Viewer shows no time placeholders; if present, confirm the delivery capsule, item hours, and three detail tabs appear.
+7. Verify the generated URL uses `?scope=<scope-id>`, the Viewer loads, and no validation diagnostic appears. If `report.dev.json` is absent, confirm no `dev=` query and no Developer overlay. If `time.analysis.json` is absent, confirm the Viewer shows no time placeholders; if present, confirm the delivery capsule, item hours, and three detail tabs appear.
    For estimate-only analysis, confirm the neutral `交付日未定 ›` capsule, project/task/item estimates, and engineering details appear without a risk lamp, countdown, capacity tab, or deadline refresh.
-10. Report the files written and the validation performed. Do not claim Viewer validation if only JSON parsing was performed.
+   With `document_ref`, confirm each bound entry shows its source link and the completion its document implies, with no unavailable source.
+8. Report the files written and the validation performed. Do not claim Viewer validation if only JSON parsing was performed.
 
 ## Register a reusable local scope
 

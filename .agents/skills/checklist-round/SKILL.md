@@ -49,8 +49,6 @@ Do not create a later checklist-only commit merely to mark work already carried
 by an earlier implementation commit. This co-commit rule changes how the file is
 versioned; it does not make "update the checklist" a checklist item.
 
-When tracked in a Report, bind the checklist via `document_ref` (`kind: "checklist"`, `scope_id`, `task: "<task-id>"`) on the corresponding task or item in `report.json`. The Viewer automatically projects its completion when all checks in the file pass.
-
 ### Document header
 
 Every `.checklist` file opens with the same three lines, in this order:
@@ -226,3 +224,12 @@ old items with the new unchecked list; Git history owns the replaced round. A
 genuinely independent goal receives a new task ID and a new file instead. State
 the one-round boundary in the file's own opening lines so it stays self-limiting
 wherever it is read.
+
+### Report binding
+
+When a Report task or item is finished exactly when this round is, bind it with
+`document_ref` (`kind: "checklist"`, the owning `scope_id`, `task: "<task-id>"`).
+The Viewer then shows the entry done once every check is `[x]`; replacing the
+round with unchecked items takes that display away again unless the entry's
+stored status is already `done`. Field rules, how to write the binding, and the
+projection contract belong to [the Report skill](../task-progress-report/SKILL.md#bind-checklist-and-decision-documents-document_ref).

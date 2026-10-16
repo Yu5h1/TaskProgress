@@ -10,8 +10,8 @@ stem, never a path and never a `.checklist` filename.
 
 This is the browser entrance and the only one it may use: the local service plus
 the in-app Browser pane. Never fall back to `task-progress checklist <file>`,
-which opens the WPF desktop host — a different entrance, and not the one asked
-for here. A page that will not load is reported, not routed around.
+which opens the system browser or the native desktop editor — a different
+entrance, and not the one asked for here. A page that will not load is reported, not routed around.
 
 ## Resolve the name
 
@@ -38,8 +38,8 @@ The page is `http://127.0.0.1:<port>/checklist/?scope=<scope-id>&task=<stem>`.
 `task-progress` for this repository. Before navigating, follow
 `.agents/skills/taskprogress-capabilities/SKILL.md#ensure-the-checklist-service`:
 reuse the running service, or follow that procedure's approved unsandboxed startup and manual
-fallback when stopped. Require confirmed Running status. Use the confirmed port for the URL and provide
-a clickable link to the resolved round.
+fallback when stopped. Require the connected status that procedure describes. Use the confirmed
+port for the URL and provide a clickable link to the resolved round.
 
 Read the pane's tab list first (`tabs_context`) and pick the tool by what it
 reports. With the pane open, navigate the existing active tab by its id —
@@ -58,8 +58,8 @@ not.
 ## When it does not load
 
 A failed navigation has two unrelated causes, and they are told apart before
-anything is reported. Run `task-progress service status` — it reads the state
-file and does not touch the tray. When status confirms the service is running,
+anything is reported. Run `task-progress service status`, read per that same
+procedure. When status confirms the service is connected,
 retry the pane with `preview_start`; report any remaining load error. When it is
 stopped, use the same service-startup procedure above, at most once per invocation,
 then retry navigation after availability is confirmed. Report a failed startup
