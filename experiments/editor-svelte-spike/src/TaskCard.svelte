@@ -189,7 +189,7 @@
         {#if task.sourceRef.available}
           <a class="document-source-link" href={task.sourceRef.href} title={`開啟 ${task.sourceRef.kind}: ${task.sourceRef.task}`}>
             <span class="source-icon" aria-hidden="true">{task.sourceRef.kind === "checklist" ? "📋" : "⚖"}</span>
-            <span class="source-label">{task.sourceRef.task}</span>
+            <span class="source-label">{task.sourceRef.label}</span>
           </a>
         {:else}
           <span class="document-source-link source-unavailable" title={task.sourceRef.error ?? "來源無法讀取"}>

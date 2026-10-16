@@ -3808,7 +3808,7 @@ function Ko(e, t) {
 				A(n);
 				var i = L(n, 2), a = F(i, !0);
 				A(i), A(t), z(() => {
-					Q(t, "href", (W(l()), U(() => l().sourceRef.href))), Q(t, "title", (W(l()), U(() => `開啟 ${l().sourceRef.kind}: ${l().sourceRef.task}`))), J(r, (W(l()), U(() => l().sourceRef.kind === "checklist" ? "📋" : "⚖"))), J(a, (W(l()), U(() => l().sourceRef.task)));
+					Q(t, "href", (W(l()), U(() => l().sourceRef.href))), Q(t, "title", (W(l()), U(() => `開啟 ${l().sourceRef.kind}: ${l().sourceRef.task}`))), J(r, (W(l()), U(() => l().sourceRef.kind === "checklist" ? "📋" : "⚖"))), J(a, (W(l()), U(() => l().sourceRef.label)));
 				}), q(e, t);
 			}, i = (e) => {
 				var t = Vo();
@@ -4114,7 +4114,7 @@ function _s(e, t) {
 							A(n);
 							var i = L(n, 2), a = F(i, !0);
 							A(i), A(t), z(() => {
-								Q(t, "href", (W(d()), U(() => d().sourceRef.href))), Q(t, "title", (W(d()), U(() => `開啟 ${d().sourceRef.kind}: ${d().sourceRef.task}`))), J(r, (W(d()), U(() => d().sourceRef.kind === "checklist" ? "📋" : "⚖"))), J(a, (W(d()), U(() => d().sourceRef.task)));
+								Q(t, "href", (W(d()), U(() => d().sourceRef.href))), Q(t, "title", (W(d()), U(() => `開啟 ${d().sourceRef.kind}: ${d().sourceRef.task}`))), J(r, (W(d()), U(() => d().sourceRef.kind === "checklist" ? "📋" : "⚖"))), J(a, (W(d()), U(() => d().sourceRef.label)));
 							}), q(e, t);
 						}, i = (e) => {
 							var t = es();

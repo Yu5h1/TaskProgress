@@ -234,6 +234,7 @@ test("projectTasksWithBindings partitions completed items and updates progress",
   assert.equal(projected[0].completed_items[0].id, "item-1");
   assert.equal(projected[0].completed_items[0].status, "done");
   assert.equal(projected[0].completed_items[0].sourceRef.completed, true);
+  assert.equal(projected[0].completed_items[0].sourceRef.label, "Checklist");
   assert.equal(projected[0].completed_items[0].sourceRef.href, "/checklist/?scope=alpha&task=chk-1");
 
   // item-2 remained in pending_items
@@ -243,6 +244,7 @@ test("projectTasksWithBindings partitions completed items and updates progress",
   // task-2 status derived to done because its bound decision completed!
   assert.equal(projected[1].status, "done");
   assert.equal(projected[1].sourceRef.completed, true);
+  assert.equal(projected[1].sourceRef.label, "Decision");
   assert.equal(projected[1].sourceRef.href, "/decisions/?scope=alpha&task=dec-1");
 
   // Project progress calculation reflects the derived completions
