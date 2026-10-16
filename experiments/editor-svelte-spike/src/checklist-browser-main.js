@@ -31,6 +31,7 @@ function resolveTransport() {
   }
 }
 
+let refreshApp = null;
 let persistenceView = null;
 
 installForegroundRefresh({
@@ -39,12 +40,20 @@ installForegroundRefresh({
     && !persistenceView?.saving
     && !persistenceView?.pending
   ),
+  reload: async () => {
+    if (refreshApp) {
+      await refreshApp();
+    }
+  },
 });
 
 mount(ChecklistApp, {
   target: document.querySelector("#app"),
   props: {
     transport: resolveTransport(),
+    bindRefresh: (fn) => {
+      refreshApp = fn;
+    },
     onPersistenceChange: (next) => {
       persistenceView = next;
     },

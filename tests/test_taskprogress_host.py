@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import subprocess
 import tempfile
 import unittest
 from pathlib import Path
@@ -1266,6 +1267,55 @@ class ChecklistRequestRouteTests(unittest.TestCase):
         self.assertEqual(200, saved.status_code, saved.text)
         self.assertEqual("result", saved.json()["type"])
         self.assertIn("[x]", self.checklist_path.read_text(encoding="utf-8"))
+
+    def test_checklist_load_caching_and_id_isolation(self) -> None:
+        real_run = subprocess.run
+        with patch("service.taskprogress_host.subprocess.run", side_effect=real_run) as mocked_run:
+            first = self.client.post(
+                "/__taskprogress/v1/checklists/secure-test/first-task",
+                headers=self.request_headers(),
+                json={"version": 1, "id": "req-alpha", "type": "load"},
+            )
+            self.assertEqual(200, first.status_code)
+            body1 = first.json()
+            self.assertEqual("req-alpha", body1["id"])
+            self.assertEqual(1, mocked_run.call_count)
+
+            # Second load should hit cache and NOT invoke subprocess.run
+            second = self.client.post(
+                "/__taskprogress/v1/checklists/secure-test/first-task",
+                headers=self.request_headers(),
+                json={"version": 1, "id": "req-beta", "type": "load"},
+            )
+            self.assertEqual(200, second.status_code)
+            body2 = second.json()
+            self.assertEqual("req-beta", body2["id"])
+            self.assertEqual(1, mocked_run.call_count, "Cached load must not invoke CLI")
+            self.assertEqual(body1["payload"]["revision"], body2["payload"]["revision"])
+
+    def test_checklist_cache_invalidation_on_file_modification(self) -> None:
+        real_run = subprocess.run
+        with patch("service.taskprogress_host.subprocess.run", side_effect=real_run) as mocked_run:
+            first = self.client.post(
+                "/__taskprogress/v1/checklists/secure-test/first-task",
+                headers=self.request_headers(),
+                json={"version": 1, "id": "c1", "type": "load"},
+            )
+            self.assertEqual(1, mocked_run.call_count)
+
+            # Touch file with new content
+            import time
+            time.sleep(0.01)
+            content = self.checklist_path.read_text(encoding="utf-8")
+            self.checklist_path.write_text(content + "\n<!-- comment -->\n", encoding="utf-8")
+
+            second = self.client.post(
+                "/__taskprogress/v1/checklists/secure-test/first-task",
+                headers=self.request_headers(),
+                json={"version": 1, "id": "c2", "type": "load"},
+            )
+            self.assertEqual(200, second.status_code)
+            self.assertEqual(2, mocked_run.call_count, "File modification must invalidate cache")
 
 
 if __name__ == "__main__":

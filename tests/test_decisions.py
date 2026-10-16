@@ -84,6 +84,49 @@ class DecisionRouteTests(unittest.TestCase):
             self.assertEqual(422, self.call('/first-task').status_code)
             run.assert_not_called()
 
+    def test_load_caching_and_source_invalidation(self):
+        folder = self.root / 'decisions'
+        folder.mkdir(exist_ok=True)
+        dec_file = folder / 'first-task.decisions'
+        dec_file.write_text('{}')
+        doc_dir = self.root
+        src_file = doc_dir / 'source.md'
+        src_file.write_text('# Heading\nsome text', encoding='utf-8')
+
+        doc = copy.deepcopy(FIXTURE)
+        doc['task_id'] = 'first-task'
+        doc['decisions'][0]['source_ref'] = '../source.md#heading'
+
+        call_count = 0
+        def fake_run(command, **kwargs):
+            nonlocal call_count
+            call_count += 1
+            return subprocess.CompletedProcess(command, 0, json.dumps({'ok':True,'document':doc,'revision':f'rev-{call_count}'}).encode(), b'')
+
+        with patch('service.taskprogress_host.subprocess.run', side_effect=fake_run):
+            # First load: cache miss
+            res1 = self.call('/first-task', {'operation':'load', 'request_id':'req-1'}).json()
+            self.assertTrue(res1['ok'])
+            self.assertEqual('req-1', res1.get('request_id'))
+            self.assertEqual(1, call_count)
+
+            # Second load: cache hit, no CLI invocation, preserves new request_id
+            res2 = self.call('/first-task', {'operation':'load', 'request_id':'req-2'}).json()
+            self.assertTrue(res2['ok'])
+            self.assertEqual('req-2', res2.get('request_id'))
+            self.assertEqual(1, call_count, "Second load must hit cache")
+
+            # Modify referenced source markdown file
+            import time
+            time.sleep(0.01)
+            src_file.write_text('# Heading\nmodified text', encoding='utf-8')
+
+            # Third load: source fingerprint changed, cache miss
+            res3 = self.call('/first-task', {'operation':'load', 'request_id':'req-3'}).json()
+            self.assertTrue(res3['ok'])
+            self.assertEqual('req-3', res3.get('request_id'))
+            self.assertEqual(2, call_count, "Modified source markdown must invalidate decision cache")
+
 class DecisionProcessTests(unittest.TestCase):
     def test_schema_fixture_and_two_real_processes_compete(self):
         schema = json.loads((ROOT / 'schemas/decisions.schema.json').read_text())

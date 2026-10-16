@@ -123,10 +123,25 @@ export function deriveBoundItemStatus(originalStatus, evaluation) {
   return originalStatus ?? "planned";
 }
 
+export const DEFAULT_DOCUMENT_BINDING_CONCURRENCY = 4;
+
+async function mapConcurrent(items, limit, fn) {
+  const boundedLimit = Math.max(1, Number.isInteger(limit) && limit > 0 ? limit : DEFAULT_DOCUMENT_BINDING_CONCURRENCY);
+  let index = 0;
+  const workers = Array.from({ length: Math.min(boundedLimit, items.length) }, async () => {
+    while (index < items.length) {
+      const currentIndex = index++;
+      await fn(items[currentIndex], currentIndex);
+    }
+  });
+  await Promise.all(workers);
+}
+
 /**
  * Evaluates all unique document bindings referenced in a task list.
  */
 export async function evaluateAllDocumentBindings(tasks, options = {}) {
+  const { concurrency = DEFAULT_DOCUMENT_BINDING_CONCURRENCY, ...bindingOptions } = options;
   const refsByKey = new Map();
 
   for (const task of tasks ?? []) {
@@ -146,12 +161,11 @@ export async function evaluateAllDocumentBindings(tasks, options = {}) {
   }
 
   const evaluations = new Map();
-  await Promise.all(
-    Array.from(refsByKey.entries()).map(async ([key, ref]) => {
-      const result = await fetchDocumentBinding(ref, options);
-      evaluations.set(key, result);
-    }),
-  );
+  const entries = Array.from(refsByKey.entries());
+  await mapConcurrent(entries, concurrency, async ([key, ref]) => {
+    const result = await fetchDocumentBinding(ref, bindingOptions);
+    evaluations.set(key, result);
+  });
 
   return evaluations;
 }

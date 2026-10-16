@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-10-16T15:47:49.871Z",
+  "updated_at": "2026-10-16T16:27:48.646Z",
   "tasks": [
     {
       "id": "document-refresh-optimization",
@@ -16,7 +16,8 @@
         "scope_id": "task-progress",
         "task": "document-refresh-optimization"
       },
-      "pending_items": [
+      "pending_items": [],
+      "completed_items": [
         {
           "id": "item-doc-refresh-lifecycle",
           "title": "修正前景刷新生命週期：支援非同步 reload、finally 安全恢復可刷新狀態與同次回焦去重",
@@ -42,8 +43,7 @@
           "title": "Report 綁定讀取並行限制與端到端效能量測：加入前端並行上限，量測首次/命中/單檔變更耗時與 CLI 啟動次數",
           "priority": 2
         }
-      ],
-      "completed_items": []
+      ]
     },
     {
       "id": "decision-example",

@@ -14,6 +14,7 @@
   import { loadDisclosure, saveDisclosure } from "../../../viewer/assets/card-disclosure-state.js";
   export let transport;
   export let onPersistenceChange = () => {};
+  export let bindRefresh = () => {};
   let ownerReport = null;
   let session, view, summary, message = "載入中…", expanded = true, overrides = {}, cardList;
   let selection = loadFilterSelection(null, ["pending", "decided"], undefined, ["pending"]);
@@ -104,6 +105,32 @@
       message = "";
     } catch (error) { message = error.message; }
   }
+  async function refresh() {
+    if (dirty || view?.busy || clearOpen || sourceOpen || historyOpen || refreshing) return;
+    refreshing = true;
+    try {
+      const result = await transport.load();
+      if (!result.ok) throw new Error(result.error?.message ?? "無法載入決策文件");
+      if (result.files) {
+        summary = result;
+        return;
+      }
+      if (!session) {
+        session = createDecisionSession(result);
+        sync();
+        return;
+      }
+      if (result.revision !== view?.snapshot?.revision) {
+        session.merge(result);
+        sync();
+      }
+    } catch (error) {
+      console.warn("Decision foreground refresh failed:", error);
+    } finally {
+      refreshing = false;
+    }
+  }
+  $: bindRefresh(refresh);
   onMount(() => {
     theme = createThemeControl(); readTheme();
     load();

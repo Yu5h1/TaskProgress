@@ -33,7 +33,7 @@ export function installForegroundRefresh({
   let disposed = false;
 
   function arm() {
-    if (disposed || refreshing) return;
+    if (disposed) return;
     armed = true;
   }
 
@@ -46,7 +46,21 @@ export function installForegroundRefresh({
     armed = false;
     if (canRefresh() !== true) return;
     refreshing = true;
-    reload();
+    let maybePromise;
+    try {
+      maybePromise = reload();
+    } catch {
+      refreshing = false;
+      return;
+    }
+    if (maybePromise && typeof maybePromise.then === "function") {
+      return maybePromise
+        .catch(() => {})
+        .finally(() => {
+          refreshing = false;
+        });
+    }
+    refreshing = false;
   }
 
   function request() {

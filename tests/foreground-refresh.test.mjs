@@ -127,3 +127,89 @@ test("Report and Checklist Browser wire the shared lifecycle at host boundaries"
   assert.match(checklistApp, /export let onPersistenceChange = \(\) => \{\}/u);
   assert.match(checklistApp, /\$: onPersistenceChange\(view \? \{ \.\.\.view, pending: view\.pending \|\| resetOpen \|\| resetBusy \} : view\)/u);
 });
+
+test("sequential leave and return cycles continue to refresh", () => {
+  const page = fixture();
+  for (let i = 1; i <= 3; i++) {
+    page.windowTarget.dispatch("blur");
+    page.windowTarget.dispatch("focus");
+    page.flush();
+    assert.equal(page.reloads(), i, `cycle ${i} triggers reload`);
+  }
+});
+
+test("async reload prevents concurrent execution and restores refreshing state in finally", async () => {
+  const windowTarget = new FakeEventTarget();
+  const documentTarget = new FakeEventTarget();
+  documentTarget.visibilityState = "visible";
+  const scheduled = [];
+  let reloads = 0;
+  let resolveReload = null;
+
+  installForegroundRefresh({
+    windowTarget,
+    documentTarget,
+    reload: () => {
+      reloads += 1;
+      return new Promise((resolve) => {
+        resolveReload = resolve;
+      });
+    },
+    schedule: (cb) => scheduled.push(cb),
+  });
+
+  windowTarget.dispatch("blur");
+  windowTarget.dispatch("focus");
+  while (scheduled.length) scheduled.shift()();
+  assert.equal(reloads, 1);
+
+  windowTarget.dispatch("focus");
+  while (scheduled.length) scheduled.shift()();
+  assert.equal(reloads, 1, "in-flight reload guards against concurrent start");
+
+  resolveReload();
+  await Promise.resolve();
+  await Promise.resolve();
+
+  windowTarget.dispatch("blur");
+  windowTarget.dispatch("focus");
+  while (scheduled.length) scheduled.shift()();
+  assert.equal(reloads, 2, "restores refreshing state in finally");
+  resolveReload();
+});
+
+test("async reload rejection restores refreshing state in finally so subsequent cycle can retry", async () => {
+  const windowTarget = new FakeEventTarget();
+  const documentTarget = new FakeEventTarget();
+  documentTarget.visibilityState = "visible";
+  const scheduled = [];
+  let reloads = 0;
+  let shouldFail = true;
+
+  installForegroundRefresh({
+    windowTarget,
+    documentTarget,
+    reload: () => {
+      reloads += 1;
+      if (shouldFail) {
+        return Promise.reject(new Error("network failure"));
+      }
+      return Promise.resolve();
+    },
+    schedule: (cb) => scheduled.push(cb),
+  });
+
+  windowTarget.dispatch("blur");
+  windowTarget.dispatch("focus");
+  while (scheduled.length) scheduled.shift()();
+  assert.equal(reloads, 1);
+  await Promise.resolve();
+  await Promise.resolve();
+
+  shouldFail = false;
+  windowTarget.dispatch("blur");
+  windowTarget.dispatch("focus");
+  while (scheduled.length) scheduled.shift()();
+  assert.equal(reloads, 2, "failure in cycle 1 allows retry in cycle 2");
+});
+

@@ -37,6 +37,7 @@
   */
   export let transport = null;
   export let onPersistenceChange = () => {};
+  export let bindRefresh = () => {};
 
   let persistence = null;
   let view = null;
@@ -66,6 +67,24 @@
     view = persistence.snapshot();
     message = view.message;
   }
+
+  async function refresh() {
+    if (!transport || !view || view.dirty || view.saving || view.pending || resetOpen || resetBusy) return;
+    try {
+      const document = await transport.load();
+      if (!document || !document.revision) return;
+      if (document.revision === view.document.revision) return;
+      const cautious = view.cautious;
+      installDocument(document);
+      if (cautious && persistence) {
+        await persistence.setCautious(true);
+      }
+    } catch (error) {
+      console.warn("Checklist foreground refresh failed:", error);
+    }
+  }
+
+  $: bindRefresh(refresh);
 
   function openReset() {
     if (!canReset) return;

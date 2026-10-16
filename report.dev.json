@@ -1,11 +1,11 @@
 {
   "schema_version": "1.0",
   "report_id": "task-progress-development",
-  "updated_at": "2026-10-16T15:47:49.871Z",
+  "updated_at": "2026-10-16T16:27:48.646Z",
   "tasks": [
     {
       "id": "document-refresh-optimization",
-      "next_step": "優先修正 viewer/assets/foreground-refresh.js 的 refreshing 旗標重置與 Promise 支援，並撰寫定向測試。",
+      "next_step": "程式實作與定向驗證已全數完成；待使用者進行第 5 項實機核查：在瀏覽器切換焦點確認 Report 與 Checklist 無白屏重載且即時就地刷新。",
       "decisions": [
         {
           "summary": "Checklist 與 Decision 的 load 結果依檔案指紋 (path, mtime, size) 於記憶體有界快取，寫入路徑 (save/reset) 立即失效；回傳時嚴格隔離 request id。",

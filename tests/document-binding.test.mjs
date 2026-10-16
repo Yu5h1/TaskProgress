@@ -277,3 +277,33 @@ test("projectTasksWithBindings marks unavailable sourceRef on error without halt
   assert.equal(projected[0].sourceRef.error, "HTTP 404");
   assert.equal(projected[0].sourceRef.completed, false);
 });
+
+test("evaluateAllDocumentBindings caps active concurrent requests", async () => {
+  let active = 0;
+  let maxActive = 0;
+
+  const mockCreateChecklist = () => ({
+    load: async () => {
+      active += 1;
+      maxActive = Math.max(maxActive, active);
+      await new Promise((resolve) => setTimeout(resolve, 10));
+      active -= 1;
+      return { items: [] };
+    },
+  });
+
+  const tasks = Array.from({ length: 12 }, (_, i) => ({
+    id: `task-${i}`,
+    title: `Task ${i}`,
+    status: "planned",
+    document_ref: { kind: "checklist", scope_id: "scope-1", task: `doc-${i}` },
+  }));
+
+  const evaluations = await evaluateAllDocumentBindings(tasks, {
+    concurrency: 3,
+    createChecklistTransport: mockCreateChecklist,
+  });
+
+  assert.equal(evaluations.size, 12);
+  assert.equal(maxActive, 3, "Max active requests must not exceed configured concurrency limit of 3");
+});

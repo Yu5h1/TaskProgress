@@ -4,44 +4,54 @@ Current round: `plan.md#文件讀取效能與前景局部刷新優化`.
 
 本輪優化 TaskProgress 的文件讀取與前景刷新效能：解決大量綁定文件並行啟動 CLI 程序、事件迴圈阻塞與白屏重載問題，實作前景刷新非同步生命週期、後端有界 mtime 快取與 CLI 並行限制，以及 Checklist/Decision/Report 局部非同步刷新。
 
-- [ ] **1. 修正前景刷新生命週期控制器**
+- [x] **1. 修正前景刷新生命週期控制器**
   Outcome: viewer/assets/foreground-refresh.js 支援非同步 reload callback，在 finally 恢復可刷新狀態，並防止同次回焦重複執行。
   Checks:
-    - [ ] **非同步 reload 與 finally 狀態恢復**
+    - [x] **非同步 reload 與 finally 狀態恢復**
       - Action: 執行 foreground-refresh.test.mjs 單元測試。
       - Expect: refreshing 在非同步 reload 結束後安全恢復 false；後續離開並回焦時仍能持續刷新；同次回焦多次事件去重；失敗可重試。
+      - Observed: 修正前 refreshing 旗標在第一次刷新後未被重置為 false，導致後續回焦無法再觸發；且非同步 reload 未等待完成。
+      - Resolved: 支援 Promise 回呼並在 finally 安全復原 refreshing = false，避免 unhandledRejection；定向測試 8 項全數通過。
 
-- [ ] **2. 解除後端事件迴圈阻塞並限制 CLI 並行數**
+- [x] **2. 解除後端事件迴圈阻塞並限制 CLI 並行數**
   Depends on: 1.
   Outcome: service/taskprogress_host.py 的 Checklist CLI 改以 asyncio.to_thread 移出事件迴圈，並使用全域 Semaphore 限制子程序並行數。
   Checks:
-    - [ ] **Checklist 非同步執行與並行限制**
+    - [x] **Checklist 非同步執行與並行限制**
       - Action: 執行後端並行測試與定向健康檢查。
       - Expect: Checklist CLI 請求不阻塞事件迴圈；大量並行請求受 Semaphore 限制排隊，不瞬間耗盡系統程序資源。
+      - Observed: Checklist 原本在 async handler 中直接以同步 subprocess.run 執行，會卡住 FastAPI 事件迴圈，且多分頁同時回焦會造成 CLR 子程序爆量。
+      - Resolved: 改為 await asyncio.to_thread 並以全域 cli_semaphore 限制並行上限為 4；後端單元測試通過。
 
-- [ ] **3. 實作後端有界 load 快取與 Singleflight 請求聚合**
+- [x] **3. 實作後端有界 load 快取與 Singleflight 請求聚合**
   Depends on: 2.
   Outcome: 僅快取成功且可驗證的讀取結果，以 (path, mtime, size) 判定重用，嚴格隔離請求 id，寫入與外部異動精準失效。
   Checks:
-    - [ ] **快取命中、ID 隔離與精準失效**
+    - [x] **快取命中、ID 隔離與精準失效**
       - Action: 執行負載快取定向測試。
       - Expect: 檔案未變動時命中快取且耗時 < 5ms、不啟動 CLI；回應正確使用本次請求之 id／request_id；寫入操作（save/reset）或檔案變更後快取立即更新或失效；Decision 來源檢查正確聯動。
+      - Observed: 每次讀取皆重新發起 CLR CLI 子程序；無檔案指紋快取與 Singleflight 去重機制。
+      - Resolved: 實作 OrderedDict 128 條目 LRU 快取與 Singleflight Future 聚合；驗證檔案未變命中耗時 2.17ms、CLI 呼叫 0 次；寫入與來源 Markdown 異動即刻失效快取；請求 ID 嚴格隔離無洩漏。
 
-- [ ] **4. Checklist 與 Decision 互動頁面局部靜默刷新**
+- [x] **4. Checklist 與 Decision 互動頁面局部靜默刷新**
   Depends on: 3.
   Outcome: checklist-browser-main.js 與 decisions-main.js 在回焦時以 revision 比對執行局部更新，取代整頁 location.reload()。
   Checks:
-    - [ ] **無感局部更新與狀態保留**
+    - [x] **無感局部更新與狀態保留**
       - Action: 執行互動頁面回焦測試並建置 bundles。
       - Expect: 來源 revision 未變時不重建 session、不銷毀 DOM、保留 Undo/Redo 歷史、展開與滾動位置；有草稿或操作中時不覆蓋。
+      - Observed: 原先回焦直接執行 location.reload() 造成全頁閃爍重載、卡片重新掛載與滾動焦點遺失。
+      - Resolved: 接入 bindRefresh 與非同步局部更新；未變更 revision 時 0 DOM 異動並完整保留 Undo/Redo 及滾動選取；建置 bundles 成功。
 
 - [ ] **5. Report 綁定並行限制與端到端效能量測**
   Depends on: 4.
   Outcome: viewer/assets/document-binding.js 加入並行請求限制，並量測記錄首次讀取、命中快取與單檔變更之耗時與 CLI 啟動次數。
   Checks:
-    - [ ] **前端並行調節與測試驗證**
+    - [x] **前端並行調節與測試驗證**
       - Action: 執行全部相關單元測試與 Report 整合測試。
       - Expect: 23+ 份綁定文件平滑載入，舊請求不覆蓋新畫面，全部自動化測試通過。
+      - Observed: 前端 Promise.all 一次發射全數 23 份文件請求，造成突發網路並行流量。
+      - Resolved: 加入 mapConcurrent 限制並行數為 4（DEFAULT_DOCUMENT_BINDING_CONCURRENCY）；定向測試 20 項及 Python 51 項全數通過。
     - [ ] **實機讀取效能與前景切換核查** `[manual]`
       - Action: 在瀏覽器開啟 Report 與 Checklist 頁面，於終端機/編輯器與瀏覽器間來回切換焦點，確認無白屏重載且極速就地更新。
       - Expect: 切換回焦時無卡頓白屏，Checklist 互動狀態保留，Report 進度即時反映。

@@ -23,56 +23,56 @@ function h(e, t) {
 	for (let r of e) if (n.push(r), n.length === t) break;
 	return n;
 }
-var g = 1024, _ = 2048, v = 4096, y = 8192, b = 16384, x = 32768, S = 1 << 25, C = 65536, w = 1 << 19, T = 1 << 20, ee = 1 << 25, E = 65536, D = 1 << 21, O = 1 << 22, k = 1 << 23, A = Symbol("$state"), te = Symbol("legacy props"), ne = Symbol(""), re = Symbol("attributes"), ie = Symbol("class"), ae = Symbol("style"), oe = Symbol("text"), se = Symbol("form reset"), ce = new class extends Error {
+var g = 1024, _ = 2048, v = 4096, y = 8192, b = 16384, x = 32768, S = 1 << 25, C = 65536, w = 1 << 19, T = 1 << 20, E = 1 << 25, ee = 65536, te = 1 << 21, D = 1 << 22, O = 1 << 23, k = Symbol("$state"), ne = Symbol("legacy props"), re = Symbol(""), ie = Symbol("attributes"), ae = Symbol("class"), oe = Symbol("style"), se = Symbol("text"), ce = Symbol("form reset"), le = new class extends Error {
 	name = "StaleReactionError";
 	message = "The reaction that called `getAbortSignal()` was re-run or destroyed";
-}(), le = !!globalThis.document?.contentType && /* @__PURE__ */ globalThis.document.contentType.includes("xml");
+}(), ue = !!globalThis.document?.contentType && /* @__PURE__ */ globalThis.document.contentType.includes("xml");
 //#endregion
 //#region node_modules/svelte/src/internal/shared/errors.js
-function ue() {
+function de() {
 	throw Error("https://svelte.dev/e/invalid_default_snippet");
 }
-function de(e) {
+function fe(e) {
 	throw Error("https://svelte.dev/e/lifecycle_outside_component");
 }
 //#endregion
 //#region node_modules/svelte/src/internal/client/errors.js
-function fe() {
+function pe() {
 	throw Error("https://svelte.dev/e/async_derived_orphan");
 }
-function pe(e, t, n) {
+function me(e, t, n) {
 	throw Error("https://svelte.dev/e/each_key_duplicate");
 }
-function me(e) {
+function he(e) {
 	throw Error("https://svelte.dev/e/effect_in_teardown");
 }
-function he() {
+function ge() {
 	throw Error("https://svelte.dev/e/effect_in_unowned_derived");
 }
-function ge(e) {
+function _e(e) {
 	throw Error("https://svelte.dev/e/effect_orphan");
 }
-function _e() {
+function ve() {
 	throw Error("https://svelte.dev/e/effect_update_depth_exceeded");
 }
-function ve(e) {
+function ye(e) {
 	throw Error("https://svelte.dev/e/props_invalid_value");
 }
-function ye() {
+function be() {
 	throw Error("https://svelte.dev/e/state_descriptors_fixed");
 }
-function be() {
+function xe() {
 	throw Error("https://svelte.dev/e/state_prototype_fixed");
 }
-function xe() {
+function Se() {
 	throw Error("https://svelte.dev/e/state_unsafe_mutation");
 }
-function Se() {
+function Ce() {
 	throw Error("https://svelte.dev/e/svelte_boundary_reset_onerror");
 }
 //#endregion
 //#region node_modules/svelte/src/constants.js
-var Ce = {}, we = Symbol("uninitialized"), Te = "http://www.w3.org/1999/xhtml";
+var we = {}, A = Symbol("uninitialized"), Te = "http://www.w3.org/1999/xhtml";
 function Ee() {
 	console.warn("https://svelte.dev/e/derived_inert");
 }
@@ -93,7 +93,7 @@ function Ae(e) {
 }
 var M;
 function je(e) {
-	if (e === null) throw De(), Ce;
+	if (e === null) throw De(), we;
 	return M = e;
 }
 function Me() {
@@ -101,7 +101,7 @@ function Me() {
 }
 function N(e) {
 	if (j) {
-		if (/* @__PURE__ */ fn(M) !== null) throw De(), Ce;
+		if (/* @__PURE__ */ fn(M) !== null) throw De(), we;
 		M = e;
 	}
 }
@@ -125,7 +125,7 @@ function Pe(e = !0) {
 	}
 }
 function Fe(e) {
-	if (!e || e.nodeType !== 8) throw De(), Ce;
+	if (!e || e.nodeType !== 8) throw De(), we;
 	return e.data;
 }
 //#endregion
@@ -199,7 +199,7 @@ function Je() {
 }
 function Ye(e) {
 	var t = U;
-	if (t === null) return H.f |= k, e;
+	if (t === null) return H.f |= O, e;
 	if (!(t.f & 32768) && !(t.f & 4)) throw e;
 	Xe(e, t);
 }
@@ -232,7 +232,7 @@ function $e(e) {
 //#endregion
 //#region node_modules/svelte/src/internal/client/reactivity/utils.js
 function et(e) {
-	if (e !== null) for (let t of e) !(t.f & 2) || !(t.f & 65536) || (t.f ^= E, et(t.deps));
+	if (e !== null) for (let t of e) !(t.f & 2) || !(t.f & 65536) || (t.f ^= ee, et(t.deps));
 }
 function tt(e, t, n) {
 	e.f & 2048 ? t.add(e) : e.f & 4096 && n.add(e), et(e.deps), Qe(e, g);
@@ -257,7 +257,7 @@ var at = !1;
 function ot() {
 	at || (at = !0, document.addEventListener("reset", (e) => {
 		Promise.resolve().then(() => {
-			if (!e.defaultPrevented) for (let t of e.target.elements) t[se]?.();
+			if (!e.defaultPrevented) for (let t of e.target.elements) t[ce]?.();
 		});
 	}, { capture: !0 }));
 }
@@ -274,8 +274,8 @@ function st(e) {
 }
 function ct(e, t, n, r = n) {
 	e.addEventListener(t, () => st(n));
-	let i = e[se];
-	e[se] = i ? () => {
+	let i = e[ce];
+	e[ce] = i ? () => {
 		i(), r(!0);
 	} : () => r(!0), ot();
 }
@@ -355,7 +355,7 @@ var ft = class {
 				ke();
 				return;
 			}
-			t = !0, n && Se(), this.#s !== null && Bn(this.#s, () => {
+			t = !0, n && Ce(), this.#s !== null && Bn(this.#s, () => {
 				this.#s = null;
 			}), this.#S(() => {
 				this.#b();
@@ -528,7 +528,7 @@ function _t(e) {
 		fn: e,
 		reactions: null,
 		rv: 0,
-		v: we,
+		v: A,
 		wv: 0,
 		parent: U,
 		ac: null
@@ -538,14 +538,14 @@ var vt = Symbol("obsolete");
 /*#__NO_SIDE_EFFECTS__*/
 function yt(e, t, n) {
 	let r = U;
-	r === null && fe();
-	var i = void 0, a = qt(we), o = !H, s = /* @__PURE__ */ new Set();
+	r === null && pe();
+	var i = void 0, a = qt(A), o = !H, s = /* @__PURE__ */ new Set();
 	return An(() => {
 		var t = U, n = m();
 		i = n.promise;
 		try {
 			Promise.resolve(e()).then(n.resolve, (e) => {
-				e !== ce && n.reject(e);
+				e !== le && n.reject(e);
 			}).finally(ht);
 		} catch (e) {
 			n.reject(e), ht();
@@ -558,7 +558,7 @@ function yt(e, t, n) {
 			s.add(n), c.async_deriveds.set(t, n);
 		}
 		let u = (e, t = void 0) => {
-			l?.(), s.delete(n), t !== vt && (c.activate(), t ? (a.f |= k, Xt(a, t)) : (a.f & 8388608 && (a.f ^= k), Xt(a, e)), c.deactivate());
+			l?.(), s.delete(n), t !== vt && (c.activate(), t ? (a.f |= O, Xt(a, t)) : (a.f & 8388608 && (a.f ^= O), Xt(a, e)), c.deactivate());
 		};
 		n.promise.then(u, (e) => u(null, e || "unknown"));
 	}), Sn(() => {
@@ -592,10 +592,10 @@ function xt(e) {
 }
 function St(e) {
 	var t, n = U, r = e.parent;
-	if (!qn && r !== null && e.v !== we && r.f & 24576) return Ee(), e.v;
+	if (!qn && r !== null && e.v !== A && r.f & 24576) return Ee(), e.v;
 	Zn(r);
 	try {
-		e.f &= ~E, xt(e), t = dr(e);
+		e.f &= ~ee, xt(e), t = dr(e);
 	} finally {
 		Zn(n);
 	}
@@ -611,7 +611,7 @@ function Ct(e) {
 }
 function wt(e) {
 	if (e.effects !== null) for (let t of e.effects) (t.teardown || t.ac) && (t.teardown?.(), t.ac !== null && st(() => {
-		t.ac.abort(ce), t.ac = null;
+		t.ac.abort(le), t.ac = null;
 	}), t.fn !== null && (t.teardown = d), pr(t, 0), Fn(t));
 }
 function Tt(e) {
@@ -766,7 +766,7 @@ var Et = null, I = null, Dt = null, Ot = null, kt = null, At = !1, jt = !1, Mt =
 		for (var t = 0; t < e.length; t += 1) tt(e[t], this.#u, this.#d);
 	}
 	capture(e, t, n = !1) {
-		e.v !== we && !this.previous.has(e) && this.previous.set(e, e.v), e.f & 8388608 || (this.current.set(e, [t, n]), Ot?.set(e, t)), this.is_fork || (e.v = t);
+		e.v !== A && !this.previous.has(e) && this.previous.set(e, e.v), e.f & 8388608 || (this.current.set(e, [t, n]), Ot?.set(e, t)), this.is_fork || (e.v = t);
 	}
 	activate() {
 		I = this;
@@ -869,7 +869,7 @@ function Lt(e) {
 }
 function Rt() {
 	try {
-		_e();
+		ve();
 	} catch (e) {
 		Xe(e, kt);
 	}
@@ -937,7 +937,7 @@ function Yt(e, t) {
 	return R(e, G(() => W(e))), t;
 }
 function R(e, t, n = !1) {
-	return H !== null && (!Yn || H.f & 131072) && We() && H.f & 4325394 && (Qn === null || !Qn.has(e)) && xe(), Xt(e, n ? en(t) : t, Nt);
+	return H !== null && (!Yn || H.f & 131072) && We() && H.f & 4325394 && (Qn === null || !Qn.has(e)) && Se(), Xt(e, n ? en(t) : t, Nt);
 }
 function Xt(e, t, n = null) {
 	if (!e.equals(t)) {
@@ -977,7 +977,7 @@ function $t(e, t, n) {
 			if (l && Qe(s, t), c & 131072) Wt.add(s);
 			else if (c & 2) {
 				var u = s;
-				Ot?.delete(u), c & 65536 || (c & 512 && (U === null || !(U.f & 2097152)) && (s.f |= E), $t(u, v, n));
+				Ot?.delete(u), c & 65536 || (c & 512 && (U === null || !(U.f & 2097152)) && (s.f |= ee), $t(u, v, n));
 			} else if (l) {
 				var d = s;
 				c & 16 && zt !== null && zt.add(d), n === null ? Vt(d) : n.push(d);
@@ -986,7 +986,7 @@ function $t(e, t, n) {
 	}
 }
 function en(t) {
-	if (typeof t != "object" || !t || A in t) return t;
+	if (typeof t != "object" || !t || k in t) return t;
 	let n = l(t);
 	if (n !== s && n !== c) return t;
 	var r = /* @__PURE__ */ new Map(), i = e(t), o = /* @__PURE__ */ Jt(0), u = null, d = or, f = (e) => {
@@ -998,7 +998,7 @@ function en(t) {
 	};
 	return i && r.set("length", /* @__PURE__ */ Jt(t.length, u)), new Proxy(t, {
 		defineProperty(e, t, n) {
-			(!("value" in n) || n.configurable === !1 || n.enumerable === !1 || n.writable === !1) && ye();
+			(!("value" in n) || n.configurable === !1 || n.enumerable === !1 || n.writable === !1) && be();
 			var i = r.get(t);
 			return i === void 0 ? f(() => {
 				var e = /* @__PURE__ */ Jt(n.value, u);
@@ -1009,18 +1009,18 @@ function en(t) {
 			var n = r.get(t);
 			if (n === void 0) {
 				if (t in e) {
-					let e = f(() => /* @__PURE__ */ Jt(we, u));
+					let e = f(() => /* @__PURE__ */ Jt(A, u));
 					r.set(t, e), Qt(o);
 				}
-			} else R(n, we), Qt(o);
+			} else R(n, A), Qt(o);
 			return !0;
 		},
 		get(e, n, i) {
-			if (n === A) return t;
+			if (n === k) return t;
 			var o = r.get(n), s = n in e;
-			if (o === void 0 && (!s || a(e, n)?.writable) && (o = f(() => /* @__PURE__ */ Jt(en(s ? e[n] : we), u)), r.set(n, o)), o !== void 0) {
+			if (o === void 0 && (!s || a(e, n)?.writable) && (o = f(() => /* @__PURE__ */ Jt(en(s ? e[n] : A), u)), r.set(n, o)), o !== void 0) {
 				var c = W(o);
-				return c === we ? void 0 : c;
+				return c === A ? void 0 : c;
 			}
 			return Reflect.get(e, n, i);
 		},
@@ -1031,7 +1031,7 @@ function en(t) {
 				i && (n.value = W(i));
 			} else if (n === void 0) {
 				var a = r.get(t), o = a?.v;
-				if (a !== void 0 && o !== we) return {
+				if (a !== void 0 && o !== A) return {
 					enumerable: !0,
 					configurable: !0,
 					value: o,
@@ -1041,19 +1041,19 @@ function en(t) {
 			return n;
 		},
 		has(e, t) {
-			if (t === A) return !0;
-			var n = r.get(t), i = n !== void 0 && n.v !== we || Reflect.has(e, t);
-			return (n !== void 0 || U !== null && (!i || a(e, t)?.writable)) && (n === void 0 && (n = f(() => /* @__PURE__ */ Jt(i ? en(e[t]) : we, u)), r.set(t, n)), W(n) === we) ? !1 : i;
+			if (t === k) return !0;
+			var n = r.get(t), i = n !== void 0 && n.v !== A || Reflect.has(e, t);
+			return (n !== void 0 || U !== null && (!i || a(e, t)?.writable)) && (n === void 0 && (n = f(() => /* @__PURE__ */ Jt(i ? en(e[t]) : A, u)), r.set(t, n)), W(n) === A) ? !1 : i;
 		},
 		set(e, t, n, s) {
 			var c = r.get(t), l = t in e;
 			if (i && t === "length") for (var d = n; d < c.v; d += 1) {
 				var p = r.get(d + "");
-				p === void 0 ? d in e && (p = f(() => /* @__PURE__ */ Jt(we, u)), r.set(d + "", p)) : R(p, we);
+				p === void 0 ? d in e && (p = f(() => /* @__PURE__ */ Jt(A, u)), r.set(d + "", p)) : R(p, A);
 			}
 			if (c === void 0) (!l || a(e, t)?.writable) && (c = f(() => /* @__PURE__ */ Jt(void 0, u)), R(c, en(n)), r.set(t, c));
 			else {
-				l = c.v !== we;
+				l = c.v !== A;
 				var m = f(() => en(n));
 				R(c, m);
 			}
@@ -1071,19 +1071,19 @@ function en(t) {
 			W(o);
 			var t = Reflect.ownKeys(e).filter((e) => {
 				var t = r.get(e);
-				return t === void 0 || t.v !== we;
+				return t === void 0 || t.v !== A;
 			});
-			for (var [n, i] of r) i.v !== we && !(n in e) && t.push(n);
+			for (var [n, i] of r) i.v !== A && !(n in e) && t.push(n);
 			return t;
 		},
 		setPrototypeOf() {
-			be();
+			xe();
 		}
 	});
 }
 function tn(e) {
 	try {
-		if (typeof e == "object" && e && A in e) return e[A];
+		if (typeof e == "object" && e && k in e) return e[k];
 	} catch {}
 	return e;
 }
@@ -1095,7 +1095,7 @@ function ln() {
 	if (rn === void 0) {
 		rn = window, an = document, on = /Firefox/.test(navigator.userAgent);
 		var e = Element.prototype, t = Node.prototype, n = Text.prototype;
-		sn = a(t, "firstChild").get, cn = a(t, "nextSibling").get, u(e) && (e[ie] = void 0, e[re] = null, e[ae] = void 0, e.__e = void 0), u(n) && (n[oe] = void 0);
+		sn = a(t, "firstChild").get, cn = a(t, "nextSibling").get, u(e) && (e[ae] = void 0, e[ie] = null, e[oe] = void 0, e.__e = void 0), u(n) && (n[se] = void 0);
 	}
 }
 function un(e = "") {
@@ -1163,7 +1163,7 @@ function _n(e) {
 //#endregion
 //#region node_modules/svelte/src/internal/client/reactivity/effects.js
 function vn(e) {
-	U === null && (H === null && ge(e), he()), qn && me(e);
+	U === null && (H === null && _e(e), ge()), qn && he(e);
 }
 function yn(e, t) {
 	var n = t.last;
@@ -1267,7 +1267,7 @@ function kn() {
 	});
 }
 function An(e) {
-	return bn(O | w, e);
+	return bn(D | w, e);
 }
 function jn(e, t = 0) {
 	return bn(8 | t, e);
@@ -1302,7 +1302,7 @@ function Fn(e, t = !1) {
 	for (e.first = e.last = null; n !== null;) {
 		let e = n.ac;
 		e !== null && st(() => {
-			e.abort(ce);
+			e.abort(le);
 		});
 		var r = n.next;
 		n.f & 64 ? n.parent = null : Ln(n, t), n = r;
@@ -1411,7 +1411,7 @@ function cr() {
 function lr(e) {
 	var t = e.f;
 	if (t & 2048) return !0;
-	if (t & 2 && (e.f &= ~E), t & 4096) {
+	if (t & 2 && (e.f &= ~ee), t & 4096) {
 		for (var n = e.deps, r = n.length, i = 0; i < r; i++) {
 			var a = n[i];
 			if (lr(a) && Ct(a), a.wv > e.wv) return !0;
@@ -1430,10 +1430,10 @@ function ur(e, t, n = !0) {
 function dr(e) {
 	var t = er, n = tr, r = nr, i = H, a = Qn, o = P, s = Yn, c = or, l = e.f;
 	er = null, tr = 0, nr = null, H = l & 96 ? null : e, Qn = null, Ve(e.ctx), Yn = !1, or = ++ar, e.ac !== null && (st(() => {
-		e.ac.abort(ce);
+		e.ac.abort(le);
 	}), e.ac = null);
 	try {
-		e.f |= D;
+		e.f |= te;
 		var u = e.fn, d = u();
 		e.f |= x;
 		var f = e.deps, p = I?.is_fork;
@@ -1449,11 +1449,11 @@ function dr(e) {
 			if (t !== null) for (let e of t) e.rv = ar;
 			nr !== null && (r === null ? r = nr : r.push(...nr));
 		}
-		return e.f & 8388608 && (e.f ^= k), d;
+		return e.f & 8388608 && (e.f ^= O), d;
 	} catch (e) {
 		return Ye(e);
 	} finally {
-		e.f ^= D, er = t, tr = n, nr = r, H = i, Qn = a, Ve(o), Yn = s, or = c;
+		e.f ^= te, er = t, tr = n, nr = r, H = i, Qn = a, Ve(o), Yn = s, or = c;
 	}
 }
 function fr(e, r) {
@@ -1467,8 +1467,8 @@ function fr(e, r) {
 	}
 	if (i === null && r.f & 2 && (er === null || !n.call(er, r))) {
 		var s = r;
-		s.f & 512 && (s.f ^= 512, s.f &= ~E), s.v !== we && $e(s), s.ac !== null && st(() => {
-			s.ac.abort(ce), s.ac = null, Qe(s, _);
+		s.f & 512 && (s.f ^= 512, s.f &= ~ee), s.v !== A && $e(s), s.ac !== null && st(() => {
+			s.ac.abort(le), s.ac = null, Qe(s, _);
 		}), wt(s), pr(s, 0);
 	}
 }
@@ -1523,7 +1523,7 @@ function gr(e) {
 	if (e.f |= 512, e.deps !== null) for (let t of e.deps) (t.reactions ??= []).push(e), t.f & 2 && !(t.f & 512) && (Tt(t), gr(t));
 }
 function _r(e) {
-	if (e.v === we) return !0;
+	if (e.v === A) return !0;
 	if (e.deps === null) return !1;
 	for (let t of e.deps) if (Gt.has(t) || t.f & 2 && _r(t)) return !0;
 	return !1;
@@ -1538,10 +1538,10 @@ function G(e) {
 }
 function K(e) {
 	if (!(typeof e != "object" || !e || e instanceof EventTarget)) {
-		if (A in e) vr(e);
+		if (k in e) vr(e);
 		else if (!Array.isArray(e)) for (let t in e) {
 			let n = e[t];
-			typeof n == "object" && n && A in n && vr(n);
+			typeof n == "object" && n && k in n && vr(n);
 		}
 	}
 }
@@ -1713,7 +1713,7 @@ function Y(e, t) {
 }
 function X(e, t) {
 	var n = t == null ? "" : typeof t == "object" ? `${t}` : t;
-	n !== (e[oe] ??= e.nodeValue) && (e[oe] = n, e.nodeValue = `${n}`);
+	n !== (e[se] ??= e.nodeValue) && (e[se] = n, e.nodeValue = `${n}`);
 }
 function Ir(e, t) {
 	return Rr(e, t);
@@ -1726,7 +1726,7 @@ function Rr(e, { target: t, anchor: n, props: i = {}, events: a, context: o, int
 		dt(s, { pending: () => {} }, (t) => {
 			He({});
 			var n = P;
-			if (o && (n.c = o), a && (i.$$events = a), j && Mr(t, null), l = e(t, i) || {}, j && (U.nodes.end = M, M === null || M.nodeType !== 8 || M.data !== "]")) throw De(), Ce;
+			if (o && (n.c = o), a && (i.$$events = a), j && Mr(t, null), l = e(t, i) || {}, j && (U.nodes.end = M, M === null || M.nodeType !== 8 || M.data !== "]")) throw De(), we;
 			Ue();
 		}, c);
 		var u = /* @__PURE__ */ new Set(), d = (e) => {
@@ -1875,7 +1875,7 @@ function Ur(e, t, n = !0) {
 	}
 	for (var i = 0; i < t.length; i++) {
 		var a = t[i];
-		r?.has(a) ? (a.f |= ee, Wn(a, document.createDocumentFragment())) : Ln(t[i], n);
+		r?.has(a) ? (a.f |= E, Wn(a, document.createDocumentFragment())) : Ln(t[i], n);
 	}
 }
 var Wr;
@@ -1891,7 +1891,7 @@ function Gr(t, n, i, a, o, s = null) {
 		return e(t) ? t : t == null ? [] : r(t);
 	}), p, m = /* @__PURE__ */ new Map(), h = !0;
 	function g(e) {
-		v.effect.f & 16384 || (v.pending.delete(e), v.fallback = d, qr(v, p, c, n, a), d !== null && (p.length === 0 ? d.f & 33554432 ? (d.f ^= ee, Yr(d, null, c)) : Hn(d) : Bn(d, () => {
+		v.effect.f & 16384 || (v.pending.delete(e), v.fallback = d, qr(v, p, c, n, a), d !== null && (p.length === 0 ? d.f & 33554432 ? (d.f ^= E, Yr(d, null, c)) : Hn(d) : Bn(d, () => {
 			d = null;
 		})));
 	}
@@ -1907,9 +1907,9 @@ function Gr(t, n, i, a, o, s = null) {
 			for (var r = /* @__PURE__ */ new Set(), u = I, v = hn(), y = 0; y < e; y += 1) {
 				j && M.nodeType === 8 && M.data === "]" && (c = M, t = !0, Ae(!1));
 				var b = p[y], x = a(b, y), S = h ? null : l.get(x);
-				S ? (S.v && Xt(S.v, b), S.i && Xt(S.i, y), v && u.unskip_effect(S.e)) : (S = Jr(l, h ? c : Wr ??= un(), b, x, y, o, n, i), h || (S.e.f |= ee), l.set(x, S)), r.add(x);
+				S ? (S.v && Xt(S.v, b), S.i && Xt(S.i, y), v && u.unskip_effect(S.e)) : (S = Jr(l, h ? c : Wr ??= un(), b, x, y, o, n, i), h || (S.e.f |= E), l.set(x, S)), r.add(x);
 			}
-			if (e === 0 && s && !d && (h ? d = Nn(() => s(c)) : (d = Nn(() => s(Wr ??= un())), d.f |= ee)), e > r.size && pe("", "", ""), j && e > 0 && je(Pe()), !h) if (m.set(u, r), v) {
+			if (e === 0 && s && !d && (h ? d = Nn(() => s(c)) : (d = Nn(() => s(Wr ??= un())), d.f |= E)), e > r.size && me("", "", ""), j && e > 0 && je(Pe()), !h) if (m.set(u, r), v) {
 				for (let [e, t] of l) r.has(e) || u.skip_effect(t.e);
 				u.oncommit(g), u.ondiscard(_);
 			} else g(u);
@@ -1932,7 +1932,7 @@ function qr(e, t, n, i, a) {
 	if (o) for (v = 0; v < s; v += 1) h = t[v], g = a(h, v), _ = c.get(g).e, _.f & 33554432 || (_.nodes?.a?.measure(), (f ??= /* @__PURE__ */ new Set()).add(_));
 	for (v = 0; v < s; v += 1) {
 		if (h = t[v], g = a(h, v), _ = c.get(g).e, e.outrogroups !== null) for (let t of e.outrogroups) t.pending.delete(_), t.done.delete(_);
-		if (_.f & 8192 && (Hn(_), o && (_.nodes?.a?.unfix(), (f ??= /* @__PURE__ */ new Set()).delete(_))), _.f & 33554432) if (_.f ^= ee, _ === l) Yr(_, null, n);
+		if (_.f & 8192 && (Hn(_), o && (_.nodes?.a?.unfix(), (f ??= /* @__PURE__ */ new Set()).delete(_))), _.f & 33554432) if (_.f ^= E, _ === l) Yr(_, null, n);
 		else {
 			var y = d ? d.next : l;
 			_ === e.effect.last && (e.effect.last = _.prev), _.prev && (_.prev.next = _.next), _.next && (_.next.prev = _.prev), Xr(e, d, _), Xr(e, _, y), Yr(_, y, n), d = _, p = [], m = [], l = Kr(d.next);
@@ -1965,12 +1965,12 @@ function qr(e, t, n, i, a) {
 		for (; l !== null;) !(l.f & 8192) && l !== e.fallback && w.push(l), l = Kr(l.next);
 		var T = w.length;
 		if (T > 0) {
-			var E = i & 4 && s === 0 ? n : null;
+			var ee = i & 4 && s === 0 ? n : null;
 			if (o) {
 				for (v = 0; v < T; v += 1) w[v].nodes?.a?.measure();
 				for (v = 0; v < T; v += 1) w[v].nodes?.a?.fix();
 			}
-			Hr(e, w, E);
+			Hr(e, w, ee);
 		}
 	}
 	o && qe(() => {
@@ -2096,10 +2096,10 @@ function oi(e, t) {
 //#endregion
 //#region node_modules/svelte/src/internal/client/dom/elements/class.js
 function si(e, t, n, r, i, a) {
-	var o = e[ie];
+	var o = e[ae];
 	if (j || o !== n || o === void 0) {
 		var s = ri(n, r, a);
-		(!j || s !== e.getAttribute("class")) && (s == null ? e.removeAttribute("class") : t ? e.className = s : e.setAttribute("class", s)), e[ie] = n;
+		(!j || s !== e.getAttribute("class")) && (s == null ? e.removeAttribute("class") : t ? e.className = s : e.setAttribute("class", s)), e[ae] = n;
 	} else if (a && i !== a) for (var c in a) {
 		var l = !!a[c];
 		(i == null || l !== !!i[c]) && e.classList.toggle(c, l);
@@ -2115,10 +2115,10 @@ function ci(e, t = {}, n, r) {
 	}
 }
 function li(e, t, n, r) {
-	var i = e[ae];
+	var i = e[oe];
 	if (j || i !== t) {
 		var a = oi(t, r);
-		(!j || a !== e.getAttribute("style")) && (a == null ? e.removeAttribute("style") : e.style.cssText = a), e[ae] = t;
+		(!j || a !== e.getAttribute("style")) && (a == null ? e.removeAttribute("style") : e.style.cssText = a), e[oe] = t;
 	} else r && (Array.isArray(r) ? (ci(e, n?.[0], r[0]), ci(e, n?.[1], r[1], "important")) : ci(e, n, r));
 	return r;
 }
@@ -2178,7 +2178,7 @@ function pi(e) {
 }
 //#endregion
 //#region node_modules/svelte/src/internal/client/dom/elements/attributes.js
-var mi = Symbol("is custom element"), hi = Symbol("is html"), gi = le ? "link" : "LINK", _i = le ? "progress" : "PROGRESS";
+var mi = Symbol("is custom element"), hi = Symbol("is html"), gi = ue ? "link" : "LINK", _i = ue ? "progress" : "PROGRESS";
 function vi(e) {
 	if (j) {
 		var t = !1, n = () => {
@@ -2193,7 +2193,7 @@ function vi(e) {
 				}
 			}
 		};
-		e[se] = n, qe(n), ot();
+		e[ce] = n, qe(n), ot();
 	}
 }
 function yi(e, t) {
@@ -2206,10 +2206,10 @@ function bi(e, t) {
 }
 function Q(e, t, n, r) {
 	var i = xi(e);
-	j && (i[t] = e.getAttribute(t), t === "src" || t === "srcset" || t === "href" && e.nodeName === gi) || i[t] !== (i[t] = n) && (t === "loading" && (e[ne] = n), n == null ? e.removeAttribute(t) : typeof n != "string" && Ci(e).includes(t) ? e[t] = n : e.setAttribute(t, n));
+	j && (i[t] = e.getAttribute(t), t === "src" || t === "srcset" || t === "href" && e.nodeName === gi) || i[t] !== (i[t] = n) && (t === "loading" && (e[re] = n), n == null ? e.removeAttribute(t) : typeof n != "string" && Ci(e).includes(t) ? e[t] = n : e.setAttribute(t, n));
 }
 function xi(e) {
-	return e[re] ??= {
+	return e[ie] ??= {
 		[mi]: e.nodeName.includes("-"),
 		[hi]: e.namespaceURI === Te
 	};
@@ -2236,7 +2236,7 @@ function wi(e, t, n) {
 //#endregion
 //#region node_modules/svelte/src/internal/client/dom/elements/bindings/this.js
 function Ti(e, t) {
-	return e === t || e?.[A] === t;
+	return e === t || e?.[k] === t;
 }
 function Ei(e = {}, t, n, r) {
 	var i = P.r, a = U;
@@ -2293,11 +2293,11 @@ function $(e, t, n, r) {
 	var i = !ze || !!(n & 2), o = !!(n & 8), s = !!(n & 16), c = r, l = !0, u = void 0, d = () => s && i ? (u ??= /* @__PURE__ */ _t(r), W(u)) : (l && (l = !1, c = s ? G(r) : r), c);
 	let f;
 	if (o) {
-		var p = A in e || te in e;
+		var p = k in e || ne in e;
 		f = a(e, t)?.set ?? (p && t in e ? (n) => e[t] = n : void 0);
 	}
 	var m, h = !1;
-	o ? [m, h] = rt(() => e[t]) : m = e[t], m === void 0 && r !== void 0 && (m = d(), f && (i && ve(t), f(m)));
+	o ? [m, h] = rt(() => e[t]) : m = e[t], m === void 0 && r !== void 0 && (m = d(), f && (i && ye(t), f(m)));
 	var g = i ? () => {
 		var n = e[t];
 		return n === void 0 ? d() : (l = !0, n);
@@ -2324,13 +2324,13 @@ function $(e, t, n, r) {
 	});
 }
 function ki(e) {
-	P === null && de("onMount"), ze && P.l !== null ? ji(P).m.push(e) : Cn(() => {
+	P === null && fe("onMount"), ze && P.l !== null ? ji(P).m.push(e) : Cn(() => {
 		let t = G(e);
 		if (typeof t == "function") return t;
 	});
 }
 function Ai(e) {
-	P === null && de("onDestroy"), ki(() => () => G(e));
+	P === null && fe("onDestroy"), ki(() => () => G(e));
 }
 function ji(e) {
 	var t = e.l;
@@ -2387,7 +2387,7 @@ function Li(e, t) {
 	function T(e) {
 		w(!0), u()(e);
 	}
-	async function ee(e = !1) {
+	async function E(e = !1) {
 		if (!W(r).length) return;
 		R(h, !0), R(x, !1);
 		let t = ++C;
@@ -2395,14 +2395,14 @@ function Li(e, t) {
 		let n = W(f).getBoundingClientRect(), i = W(p).getBoundingClientRect(), o = [...W(p).querySelectorAll("button")], s = o.find((e) => e.dataset.choice === String(a())) ?? o[0], u = s.getBoundingClientRect();
 		l() === "aligned" ? (R(y, n.left + n.width / 2 - (u.left - i.left + u.width / 2)), R(b, n.top + n.height / 2 - (u.top - i.top + u.height / 2))) : c() === "horizontal" ? (R(y, n.right + 4), W(y) + i.width > window.innerWidth - 4 && R(y, n.left - i.width - 4), R(b, n.top + (n.height - i.height) / 2)) : (R(y, n.left + (n.width - i.width) / 2), R(b, n.bottom + 4), W(b) + i.height > window.innerHeight - 4 && R(b, n.top - i.height - 4)), R(y, Math.max(4, Math.min(W(y), window.innerWidth - i.width - 4))), R(b, Math.max(4, Math.min(W(b), window.innerHeight - i.height - 4))), R(x, !0), await hr(), e && W(h) && t === C && s.focus({ preventScroll: !0 });
 	}
-	function E(e) {
+	function ee(e) {
 		let t = document.elementFromPoint(e.clientX, e.clientY)?.closest("[data-choice]");
 		return t && W(p)?.contains(t) ? t.dataset.choice : null;
 	}
-	function D(e) {
+	function te(e) {
 		if (clearTimeout(W(m)), W(S) !== null) {
 			if (W(g)) {
-				let t = E(e);
+				let t = ee(e);
 				R(_, !0), t === null ? w(!0) : T(W(r).find((e) => String(e.id) === t).id);
 			} else {
 				let t = W(f).getBoundingClientRect();
@@ -2411,7 +2411,7 @@ function Li(e, t) {
 			R(S, null);
 		}
 	}
-	function O(e) {
+	function D(e) {
 		if (["Enter", " "].includes(e.key) && W(S) === null && R(_, !1), e.key === "Tab" && W(h)) {
 			w(!0);
 			return;
@@ -2427,13 +2427,13 @@ function Li(e, t) {
 			"End"
 		].includes(e.key)) return;
 		if (e.preventDefault(), !W(h)) {
-			ee(!0);
+			E(!0);
 			return;
 		}
 		let n = [...W(p).querySelectorAll("button")], r = n.indexOf(document.activeElement);
 		n[e.key === "Home" ? 0 : e.key === "End" ? n.length - 1 : (r + (e.key === t[0] ? -1 : 1) + n.length) % n.length]?.focus();
 	}
-	function k() {
+	function O() {
 		W(S) !== null && R(_, !0), w(W(d)?.contains(document.activeElement));
 	}
 	Ai(() => clearTimeout(W(m))), On(() => (K(i()), K(a())), () => {
@@ -2441,18 +2441,18 @@ function Li(e, t) {
 	}), On(() => (K(i()), K(a()), K(l())), () => {
 		R(r, Ni(i(), a(), l()));
 	}), kn(), Di();
-	var A = Ii();
+	var k = Ii();
 	Tr("pointerdown", rn, (e) => {
 		W(d)?.contains(e.target) || w();
-	}), Tr("resize", rn, k), Tr("blur", rn, k), Tr("scroll", an, (e) => {
-		W(p)?.contains(e.target) || k();
+	}), Tr("resize", rn, O), Tr("blur", rn, O), Tr("scroll", an, (e) => {
+		W(p)?.contains(e.target) || O();
 	}, !0);
-	var te = z(A);
-	let ne;
-	Zr(z(te), t, "icon", { get item() {
+	var ne = z(k);
+	let re;
+	Zr(z(ne), t, "icon", { get item() {
 		return W(n);
-	} }, null), N(te), Ei(te, (e) => R(f, e), () => W(f));
-	var re = B(te, 2), ie = (e) => {
+	} }, null), N(ne), Ei(ne, (e) => R(f, e), () => W(f));
+	var ie = B(ne, 2), ae = (e) => {
 		var n = Fi();
 		let i, s;
 		Gr(n, 5, () => W(r), (e) => e.id, (e, n) => {
@@ -2462,7 +2462,7 @@ function Li(e, t) {
 				return W(n);
 			} }, null), N(r), V((e) => {
 				i = si(r, 1, "card-toolbar-icon", null, i, e), Q(r, "data-choice", (W(n), G(() => W(n).id))), Q(r, "aria-label", (W(n), G(() => W(n).label))), Q(r, "title", (W(n), G(() => W(n).label))), Q(r, "aria-pressed", (W(n), K(a()), G(() => W(n).kind === "action" ? void 0 : W(n).id === a())));
-			}, [() => ({ "icon-choice-hover": W(v) === String(W(n).id) })]), q("keydown", r, O), q("click", r, () => T(W(n).id)), Y(e, r);
+			}, [() => ({ "icon-choice-hover": W(v) === String(W(n).id) })]), q("keydown", r, D), q("click", r, () => T(W(n).id)), Y(e, r);
 		}), N(n), Ei(n, (e) => R(p, e), () => W(p)), V(() => {
 			i = si(n, 1, "icon-choice-options", null, i, { vertical: c() === "vertical" }), Q(n, "aria-label", `${o()}選項`), s = li(n, "", s, {
 				left: `${W(y)}px`,
@@ -2471,19 +2471,19 @@ function Li(e, t) {
 			});
 		}), Y(e, n);
 	};
-	Z(re, (e) => {
-		W(h) && e(ie);
-	}), N(A), Ei(A, (e) => R(d, e), () => W(d)), V(() => {
-		Q(A, "aria-label", o()), Q(te, "aria-label", (K(o()), W(n), G(() => `${o()}：${W(n)?.label ?? ""}`))), Q(te, "aria-expanded", s() === "cycle" ? void 0 : W(h)), Q(te, "title", (K(o()), W(n), K(s()), G(() => `${o()}：${W(n)?.label ?? ""}；${s() === "both" ? "點擊切換，長按選擇" : s() === "cycle" ? "點擊切換" : "點擊或長按選擇"}`))), te.disabled = !W(n), ne = li(te, "", ne, { "touch-action": s() === "cycle" ? "auto" : "none" });
-	}), q("focusout", A, (e) => {
+	Z(ie, (e) => {
+		W(h) && e(ae);
+	}), N(k), Ei(k, (e) => R(d, e), () => W(d)), V(() => {
+		Q(k, "aria-label", o()), Q(ne, "aria-label", (K(o()), W(n), G(() => `${o()}：${W(n)?.label ?? ""}`))), Q(ne, "aria-expanded", s() === "cycle" ? void 0 : W(h)), Q(ne, "title", (K(o()), W(n), K(s()), G(() => `${o()}：${W(n)?.label ?? ""}；${s() === "both" ? "點擊切換，長按選擇" : s() === "cycle" ? "點擊切換" : "點擊或長按選擇"}`))), ne.disabled = !W(n), re = li(ne, "", re, { "touch-action": s() === "cycle" ? "auto" : "none" });
+	}), q("focusout", k, (e) => {
 		W(d).contains(e.relatedTarget) || w();
-	}), q("keydown", te, O), q("pointerdown", te, (e) => {
+	}), q("keydown", ne, D), q("pointerdown", ne, (e) => {
 		e.button === 0 && (R(_, !1), !(s() === "cycle" || W(h)) && (R(S, e.pointerId), W(f).setPointerCapture(W(S)), clearTimeout(W(m)), R(m, setTimeout(() => {
-			R(g, !0), ee();
+			R(g, !0), E();
 		}, 300))));
-	}), q("pointermove", te, (e) => {
-		W(g) && R(v, E(e));
-	}), q("pointerup", te, D), Tr("pointercancel", te, k), q("click", te, () => {
+	}), q("pointermove", ne, (e) => {
+		W(g) && R(v, ee(e));
+	}), q("pointerup", ne, te), Tr("pointercancel", ne, O), q("click", ne, () => {
 		if (W(_)) {
 			R(_, !1);
 			return;
@@ -2492,12 +2492,12 @@ function Li(e, t) {
 			w(!0);
 			return;
 		}
-		if (s() === "picker") ee(!0);
+		if (s() === "picker") E(!0);
 		else {
 			let e = Mi(i(), a());
 			e !== void 0 && u()(e);
 		}
-	}), Y(e, A), Ue();
+	}), Y(e, k), Ue();
 }
 Er([
 	"focusout",
@@ -2669,41 +2669,41 @@ function aa(e, t) {
 	}
 	function S(e) {
 		let t = Ki(W(y), W(b), e);
-		R(y, t.mode), R(b, t.hiddenIds), le(), x();
+		R(y, t.mode), R(b, t.hiddenIds), ue(), x();
 	}
 	function C(e, t) {
-		R(b, t ? W(b).filter((t) => t !== e) : [.../* @__PURE__ */ new Set([...W(b), e])]), le(), x();
+		R(b, t ? W(b).filter((t) => t !== e) : [.../* @__PURE__ */ new Set([...W(b), e])]), ue(), x();
 	}
 	function w(e) {
 		W(y) === "closed" && R(y, "enabled"), C(e, !0);
 	}
-	let T = /* @__PURE__ */ L(null), ee = /* @__PURE__ */ L(null), E = /* @__PURE__ */ L(null), D = /* @__PURE__ */ L(null), O = /* @__PURE__ */ L(null), k = /* @__PURE__ */ L(), A = /* @__PURE__ */ L("");
-	function te(e, t, n, r) {
+	let T = /* @__PURE__ */ L(null), E = /* @__PURE__ */ L(null), ee = /* @__PURE__ */ L(null), te = /* @__PURE__ */ L(null), D = /* @__PURE__ */ L(null), O = /* @__PURE__ */ L(), k = /* @__PURE__ */ L("");
+	function ne(e, t, n, r) {
 		if (!r || !e || !n.length) return;
 		let i = JSON.stringify([t, e]);
 		if (p !== i) {
 			if (p = i, !n.includes(e)) {
-				R(A, `找不到卡片 ID：${e}`);
+				R(k, `找不到卡片 ID：${e}`);
 				return;
 			}
-			R(f, Yi(W(f), e)), w(e), ne();
+			R(f, Yi(W(f), e)), w(e), re();
 		}
 	}
-	function ne() {
+	function re() {
 		if (!s()) {
-			R(A, "釘選僅保留於本頁");
+			R(k, "釘選僅保留於本頁");
 			return;
 		}
 		try {
-			localStorage.setItem(`${s()}:pins`, JSON.stringify(W(f))), R(A, "已記住本機釘選");
+			localStorage.setItem(`${s()}:pins`, JSON.stringify(W(f))), R(k, "已記住本機釘選");
 		} catch {
-			R(A, "此環境無法保存檢視設定；釘選僅保留於本頁");
+			R(k, "此環境無法保存檢視設定；釘選僅保留於本頁");
 		}
 	}
-	function re(e) {
-		le(), R(f, W(f).includes(e) ? W(f).filter((t) => t !== e) : Yi(W(f), e)), ne();
-	}
 	function ie(e) {
+		ue(), R(f, W(f).includes(e) ? W(f).filter((t) => t !== e) : Yi(W(f), e)), re();
+	}
+	function ae(e) {
 		if (p = null, R(f, []), e) try {
 			let t = JSON.parse(localStorage.getItem(`${e}:pins`) ?? "null");
 			R(f, Array.isArray(t) ? [...new Set(t.filter((e) => typeof e == "string" || typeof e == "number"))] : []);
@@ -2716,7 +2716,7 @@ function aa(e, t) {
 				"disabled"
 			].includes(t?.mode) ? t.mode : t?.enabled === !0 ? "enabled" : "disabled"), R(b, Array.isArray(t?.hiddenIds) ? t.hiddenIds : []);
 		} catch {}
-		if (R(ee, null), R(E, null), R(D, null), R(O, null), !e) {
+		if (R(E, null), R(ee, null), R(te, null), R(D, null), !e) {
 			R(T, null), R(g, "forward");
 			return;
 		}
@@ -2729,41 +2729,41 @@ function aa(e, t) {
 			R(T, null), R(g, "forward");
 		}
 	}
-	function ae(e) {
+	function oe(e) {
 		if (R(T, e), !s()) {
-			R(A, "順序僅保留於本頁");
+			R(k, "順序僅保留於本頁");
 			return;
 		}
 		try {
-			e ? localStorage.setItem(s(), JSON.stringify(e)) : localStorage.removeItem(s()), R(A, e ? "已記住本機卡片順序" : "已還原排序");
+			e ? localStorage.setItem(s(), JSON.stringify(e)) : localStorage.removeItem(s()), R(k, e ? "已記住本機卡片順序" : "已還原排序");
 		} catch {
-			R(A, "此環境無法保存檢視設定；順序僅保留於本頁");
+			R(k, "此環境無法保存檢視設定；順序僅保留於本頁");
 		}
 	}
-	function oe(e) {
-		if (le(), R(g, e), R(A, ""), s()) try {
+	function se(e) {
+		if (ue(), R(g, e), R(k, ""), s()) try {
 			localStorage.setItem(`${s()}:mode`, W(g));
 		} catch {
-			R(A, "此環境無法保存檢視設定；順序僅保留於本頁");
+			R(k, "此環境無法保存檢視設定；順序僅保留於本頁");
 		}
 	}
-	async function se(e, t, n) {
-		W(g) === "free" && (c() && (W(f).includes(e) || W(f).includes(t)) || e !== t && (ae(Qi(o(), W(T), W(r).map((e) => e.id), e, t, n)), R(ee, e), await hr(), [...W(k).querySelectorAll("[data-card-id]")].find((t) => t.dataset.cardId === String(e))?.focus()));
+	async function ce(e, t, n) {
+		W(g) === "free" && (c() && (W(f).includes(e) || W(f).includes(t)) || e !== t && (oe(Qi(o(), W(T), W(r).map((e) => e.id), e, t, n)), R(E, e), await hr(), [...W(O).querySelectorAll("[data-card-id]")].find((t) => t.dataset.cardId === String(e))?.focus()));
 	}
-	function ce(e, t) {
+	function le(e, t) {
 		let n = W(r).findIndex((t) => t.id === e);
 		if (n < 0) return;
 		let i = W(r)[n + t];
-		i && se(e, i.id, t > 0);
+		i && ce(e, i.id, t > 0);
 	}
-	function le() {
-		R(E, null), R(D, null), R(O, null);
+	function ue() {
+		R(ee, null), R(te, null), R(D, null);
 	}
-	function ue(e, t) {
-		if (c() && W(f).includes(e.id) || W(D) === null || W(D) === e.id) return;
+	function de(e, t) {
+		if (c() && W(f).includes(e.id) || W(te) === null || W(te) === e.id) return;
 		t.preventDefault(), t.dataTransfer.dropEffect = "move";
 		let n = t.currentTarget.getBoundingClientRect();
-		R(O, {
+		R(D, {
 			id: e.id,
 			after: t.clientY >= n.top + n.height / 2
 		});
@@ -2775,26 +2775,26 @@ function aa(e, t) {
 	}), On(() => (W(i), W(y), W(b), K(c()), W(f)), () => {
 		R(r, W(i).filter((e) => Gi(e.id, W(y), W(b)) && !(c() && W(f).includes(e.id))));
 	}), On(() => K(s()), () => {
-		ie(s());
+		ae(s());
 	}), On(() => (K(l()), K(s()), K(o()), K(c())), () => {
-		te(l(), s(), o(), c());
+		ne(l(), s(), o(), c());
 	}), kn();
-	var de = {
+	var fe = {
 		orderedIds: d,
 		revealCard: w
 	};
 	Di();
-	var fe = ia(), pe = pn(fe), me = z(pe);
-	Zr(B(z(me), 2), t, "filters", {}, null), N(me);
-	var he = B(me, 2), ge = z(he), _e = z(ge), ve = z(_e);
-	N(_e), N(ge);
-	var ye = B(ge, 2);
+	var pe = ia(), me = pn(pe), he = z(me);
+	Zr(B(z(he), 2), t, "filters", {}, null), N(he);
+	var ge = B(he, 2), _e = z(ge), ve = z(_e), ye = z(ve);
+	N(ve), N(_e);
+	var be = B(_e, 2);
 	{
 		let e = /* @__PURE__ */ F(() => G(() => _.map((e) => ({
 			id: e,
 			label: v[e]
 		}))));
-		Li(ye, {
+		Li(be, {
 			get items() {
 				return W(e);
 			},
@@ -2804,7 +2804,7 @@ function aa(e, t) {
 			label: "排序",
 			interaction: "both",
 			orientation: "vertical",
-			onChoose: oe,
+			onChoose: se,
 			$$slots: { icon: (e, t) => {
 				let n = /* @__PURE__ */ F(() => t.item);
 				var r = ta(), i = z(r), a = (e) => {
@@ -2821,17 +2821,17 @@ function aa(e, t) {
 			} }
 		});
 	}
-	var be = B(ye, 2);
-	Wi(be, {
+	var xe = B(be, 2);
+	Wi(xe, {
 		get mode() {
 			return W(y);
 		},
 		onChoose: S
 	});
-	var xe = B(be, 2), Se = z(xe, !0);
-	N(xe), N(he), N(pe);
-	var Ce = B(pe, 2);
-	return Gr(Ce, 5, () => W(i), (e) => e.id, (e, r) => {
+	var Se = B(xe, 2), Ce = z(Se, !0);
+	N(Se), N(ge), N(me);
+	var we = B(me, 2);
+	return Gr(we, 5, () => W(i), (e) => e.id, (e, r) => {
 		var i = ra();
 		let a;
 		var o = z(i), s = (e) => {
@@ -2846,7 +2846,7 @@ function aa(e, t) {
 				() => (W(f), W(r), G(() => W(f).includes(W(r).id))),
 				() => (W(f), W(r), G(() => W(f).includes(W(r).id) ? "取消釘選" : "釘選置頂")),
 				() => (W(f), W(r), G(() => W(f).includes(W(r).id) ? "currentColor" : "none"))
-			]), q("click", t, () => re(W(r).id)), Y(e, t);
+			]), q("click", t, () => ie(W(r).id)), Y(e, t);
 		};
 		Z(o, (e) => {
 			c() && e(s);
@@ -2869,30 +2869,30 @@ function aa(e, t) {
 		}
 		N(i), V((e) => {
 			Q(i, "hidden", e), a = si(i, 1, "arrangeable-card", null, a, {
-				"card-selected": W(ee) === W(r).id,
-				"card-drop-before": W(O)?.id === W(r).id && !W(O).after,
-				"card-drop-after": W(O)?.id === W(r).id && W(O).after
-			}), Q(i, "aria-label", (W(r), W(ee), G(() => `${W(r).title}${W(ee) === W(r).id ? "，已選取" : ""}`))), Q(i, "data-card-id", (W(r), G(() => W(r).id))), Q(i, "draggable", (W(g), W(E), W(r), G(() => W(g) === "free" && W(E) === W(r).id)));
+				"card-selected": W(E) === W(r).id,
+				"card-drop-before": W(D)?.id === W(r).id && !W(D).after,
+				"card-drop-after": W(D)?.id === W(r).id && W(D).after
+			}), Q(i, "aria-label", (W(r), W(E), G(() => `${W(r).title}${W(E) === W(r).id ? "，已選取" : ""}`))), Q(i, "data-card-id", (W(r), G(() => W(r).id))), Q(i, "draggable", (W(g), W(ee), W(r), G(() => W(g) === "free" && W(ee) === W(r).id)));
 		}, [() => (K(Gi), W(r), W(y), W(b), G(() => !Gi(W(r).id, W(y), W(b))))]), q("pointerdown", i, (e) => {
-			R(E, null), e.button === 0 && (R(ee, W(r).id), !e.target.closest("button, a, input, textarea, select, label, [contenteditable], [role=\"button\"], [role=\"checkbox\"]") && (W(g) !== "free" || e.pointerType !== "mouse" || c() && W(f).includes(W(r).id) || e.target.closest("button, a, input, textarea, select, label, [contenteditable], [role=\"button\"], [role=\"checkbox\"], h1, h2, h3, p, span, strong, code, dt, dd, li, svg") || R(E, W(r).id)));
+			R(ee, null), e.button === 0 && (R(E, W(r).id), !e.target.closest("button, a, input, textarea, select, label, [contenteditable], [role=\"button\"], [role=\"checkbox\"]") && (W(g) !== "free" || e.pointerType !== "mouse" || c() && W(f).includes(W(r).id) || e.target.closest("button, a, input, textarea, select, label, [contenteditable], [role=\"button\"], [role=\"checkbox\"], h1, h2, h3, p, span, strong, code, dt, dd, li, svg") || R(ee, W(r).id)));
 		}), q("focusin", i, () => {
-			R(ee, W(r).id);
+			R(E, W(r).id);
 		}), q("input", i, () => {
-			R(ee, W(r).id);
+			R(E, W(r).id);
 		}), q("pointerup", i, () => {
-			R(E, null);
+			R(ee, null);
 		}), q("keydown", i, (e) => {
-			e.target === e.currentTarget && (e.key === "Enter" || e.key === " " ? (e.preventDefault(), R(ee, W(r).id)) : e.key === "Escape" && R(ee, null), W(g) === "free" && e.target === e.currentTarget && e.altKey && ["ArrowUp", "ArrowDown"].includes(e.key) && (e.preventDefault(), ce(W(r).id, e.key === "ArrowUp" ? -1 : 1)));
+			e.target === e.currentTarget && (e.key === "Enter" || e.key === " " ? (e.preventDefault(), R(E, W(r).id)) : e.key === "Escape" && R(E, null), W(g) === "free" && e.target === e.currentTarget && e.altKey && ["ArrowUp", "ArrowDown"].includes(e.key) && (e.preventDefault(), le(W(r).id, e.key === "ArrowUp" ? -1 : 1)));
 		}), Tr("dragstart", i, (e) => {
-			W(g) === "free" && W(E) === W(r).id && e.target === e.currentTarget && (R(D, W(r).id), e.dataTransfer.effectAllowed = "move", e.dataTransfer.setData("text/plain", String(W(r).id)));
-		}), Tr("dragend", i, le), Tr("dragover", i, (e) => ue(W(r), e)), Tr("dragleave", i, (e) => {
-			e.currentTarget.contains(e.relatedTarget) || R(O, null);
+			W(g) === "free" && W(ee) === W(r).id && e.target === e.currentTarget && (R(te, W(r).id), e.dataTransfer.effectAllowed = "move", e.dataTransfer.setData("text/plain", String(W(r).id)));
+		}), Tr("dragend", i, ue), Tr("dragover", i, (e) => de(W(r), e)), Tr("dragleave", i, (e) => {
+			e.currentTarget.contains(e.relatedTarget) || R(D, null);
 		}), Tr("drop", i, (e) => {
-			W(D) !== null && W(O)?.id === W(r).id && (e.preventDefault(), se(W(D), W(r).id, W(O).after), le());
+			W(te) !== null && W(D)?.id === W(r).id && (e.preventDefault(), ce(W(te), W(r).id, W(D).after), ue());
 		}), Y(e, i);
-	}), N(Ce), Ei(Ce, (e) => R(k, e), () => W(k)), V(() => {
-		Q(ge, "aria-label", m() ? "全部收合" : "全部展開"), Q(ge, "title", m() ? "全部收合" : "全部展開"), Q(ve, "d", m() ? "M5 15l7-7 7 7" : "M5 9l7 7 7-7"), X(Se, W(A));
-	}), q("click", ge, () => h()(!m())), Y(e, fe), wi(t, "orderedIds", d), wi(t, "revealCard", w), Ue(de);
+	}), N(we), Ei(we, (e) => R(O, e), () => W(O)), V(() => {
+		Q(_e, "aria-label", m() ? "全部收合" : "全部展開"), Q(_e, "title", m() ? "全部收合" : "全部展開"), Q(ye, "d", m() ? "M5 15l7-7 7 7" : "M5 9l7 7 7-7"), X(Ce, W(k));
+	}), q("click", _e, () => h()(!m())), Y(e, pe), wi(t, "orderedIds", d), wi(t, "revealCard", w), Ue(fe);
 }
 Er([
 	"click",
@@ -3197,12 +3197,12 @@ function Da(e, t) {
 		let n = W(s), r = g(t.currentTarget, t.clientX);
 		m(), v(n, e.id, r);
 	}
-	function ee() {
+	function E() {
 		m(), setTimeout(() => {
 			l = !1;
 		}, 0);
 	}
-	function E(e, t) {
+	function ee(e, t) {
 		e.sortable !== !1 && t.pointerType !== "mouse" && t.button === 0 && (u = {
 			pointerId: t.pointerId,
 			id: e.id,
@@ -3213,7 +3213,7 @@ function Da(e, t) {
 			placeAfter: !1
 		}, t.currentTarget.setPointerCapture?.(t.pointerId));
 	}
-	function D(e, t) {
+	function te(e, t) {
 		if (!u || u.pointerId !== t.pointerId) return;
 		let n = t.clientX - u.startX, r = t.clientY - u.startY;
 		if (!u.active) {
@@ -3231,7 +3231,7 @@ function Da(e, t) {
 			placeAfter: u.placeAfter
 		});
 	}
-	function O(e) {
+	function D(e) {
 		if (!u || u.pointerId !== e.pointerId) return;
 		let t = u;
 		u = null, e.currentTarget.releasePointerCapture?.(e.pointerId), m(), t.active && t.targetId && v(t.id, t.targetId, t.placeAfter), setTimeout(() => {
@@ -3241,8 +3241,8 @@ function Da(e, t) {
 	On(() => (K(n()), W(d)), () => {
 		n() && W(d) && p();
 	}), kn(), Di();
-	var k = Ea();
-	Gr(k, 5, n, (e) => e.id, (e, t) => {
+	var O = Ea();
+	Gr(O, 5, n, (e) => e.id, (e, t) => {
 		let n = /* @__PURE__ */ F(() => (W(t), G(() => W(t).sortable !== !1)));
 		var r = Ta(), i = z(r), a = z(i, !0);
 		N(i);
@@ -3271,19 +3271,19 @@ function Da(e, t) {
 		}), Tr("drop", r, function(...e) {
 			(W(n) ? (e) => T(W(t), e) : null)?.apply(this, e);
 		}), Tr("dragend", r, function(...e) {
-			(W(n) ? ee : null)?.apply(this, e);
+			(W(n) ? E : null)?.apply(this, e);
 		}), q("pointerdown", r, function(...e) {
-			(W(n) ? (e) => E(W(t), e) : null)?.apply(this, e);
+			(W(n) ? (e) => ee(W(t), e) : null)?.apply(this, e);
 		}), q("pointermove", r, function(...e) {
-			(W(n) ? (e) => D(W(t), e) : null)?.apply(this, e);
+			(W(n) ? (e) => te(W(t), e) : null)?.apply(this, e);
 		}), q("pointerup", r, function(...e) {
-			(W(n) ? O : null)?.apply(this, e);
+			(W(n) ? D : null)?.apply(this, e);
 		}), Tr("pointercancel", r, function(...e) {
-			(W(n) ? O : null)?.apply(this, e);
+			(W(n) ? D : null)?.apply(this, e);
 		}), Y(e, r);
-	}), N(k), Ei(k, (e) => R(f, e), () => W(f)), V(() => {
-		si(k, 1, `horizontal-capsule-strip ${r()}`), Q(k, "aria-label", i());
-	}), Y(e, k), Ue();
+	}), N(O), Ei(O, (e) => R(f, e), () => W(f)), V(() => {
+		si(O, 1, `horizontal-capsule-strip ${r()}`), Q(O, "aria-label", i());
+	}), Y(e, O), Ue();
 }
 Er([
 	"click",
@@ -3643,10 +3643,10 @@ function ao(e, t) {
 			[e.key]: n.value.toLowerCase()
 		});
 	}
-	function ee() {
+	function E() {
 		R(m, a()), S();
 	}
-	function E() {
+	function ee() {
 		let e = W(p).find((e) => e && !e.checkValidity());
 		if (e) {
 			e.reportValidity();
@@ -3663,15 +3663,15 @@ function ao(e, t) {
 	}), On(() => W(r), () => {
 		R(i, W(r).length ? `注意：${W(r).join("；")}。仍可套用，但可能較難閱讀。` : "目前的文字與背景色彩對比符合 4.5:1。");
 	}), kn(), Di();
-	var D = io(), O = pn(D), k = B(z(O), 2);
-	Gr(k, 5, () => u, (e) => e.value, (e, t) => {
+	var te = io(), D = pn(te), O = B(z(D), 2);
+	Gr(O, 5, () => u, (e) => e.value, (e, t) => {
 		var n = to(), r = z(n, !0);
 		N(n);
 		var i = {};
 		V(() => {
 			X(r, (W(t), G(() => W(t).label))), i !== (i = (W(t), G(() => W(t).value))) && (n.value = (n.__value = (W(t), G(() => W(t).value))) ?? "");
 		}), Y(e, n);
-	}), N(k), N(O), la(B(O, 2), {
+	}), N(O), N(D), la(B(D, 2), {
 		get open() {
 			return W(f);
 		},
@@ -3680,7 +3680,7 @@ function ao(e, t) {
 		kicker: "Custom theme",
 		title: "自訂 Viewer 顏色",
 		closeLabel: "關閉自訂主題",
-		onClose: ee,
+		onClose: E,
 		children: (e, t) => {
 			var a = ro(), o = B(pn(a), 2), s = B(z(o), 2), c = z(s);
 			c.value = c.__value = "light";
@@ -3706,10 +3706,10 @@ function ao(e, t) {
 			var v = B(f, 2), b = z(v), x = B(b, 4), S = B(x, 2);
 			N(v), V(() => {
 				u !== (u = W(h)) && (s.value = (s.__value = W(h)) ?? "", ui(s, W(h))), m = si(f, 1, "theme-dialog-status", null, m, { "theme-status-warning": W(r).length > 0 }), X(_, W(i));
-			}), q("change", s, C), q("click", b, () => y(Ga(W(h)))), q("click", x, ee), q("click", S, E), Y(e, a);
+			}), q("change", s, C), q("click", b, () => y(Ga(W(h)))), q("click", x, E), q("click", S, ee), Y(e, a);
 		},
 		$$slots: { default: !0 }
-	}), q("change", k, b), fi(k, () => W(m), (e) => R(m, e)), Y(e, D), Ue();
+	}), q("change", O, b), fi(O, () => W(m), (e) => R(m, e)), Y(e, te), Ue();
 }
 Er([
 	"change",
@@ -4047,17 +4047,17 @@ function mo(e, t, n, r) {
 var ho = /* @__PURE__ */ J("<p class=\"document-owner\">擁有者：<a> </a></p>"), go = /* @__PURE__ */ J("<p role=\"status\"> </p>"), _o = /* @__PURE__ */ J("<article class=\"checklist-item\"><a> </a> <p> </p></article>"), vo = /* @__PURE__ */ J("<p>尚未建立決策文件。</p>"), yo = /* @__PURE__ */ J("<p> </p> <!> <!>", 1), bo = /* @__PURE__ */ J("<button class=\"svelte-17meywc\"> </button>"), xo = /* @__PURE__ */ J("<p>目前沒有符合條件的決策項目。</p>"), So = /* @__PURE__ */ J("<button type=\"button\" class=\"source-link svelte-17meywc\"> </button>"), Co = /* @__PURE__ */ J("<button type=\"button\" class=\"source-link svelte-17meywc\">重新檢查來源</button>"), wo = /* @__PURE__ */ J("<span> </span><small class=\"svelte-17meywc\"> </small> <!>", 1), To = /* @__PURE__ */ J("<div class=\"decision-source svelte-17meywc\"><!></div>"), Eo = /* @__PURE__ */ J("<p class=\"decision-text svelte-17meywc\"> </p>"), Do = /* @__PURE__ */ J("<p> </p>"), Oo = /* @__PURE__ */ J("<div class=\"decision-description svelte-17meywc\"><!> <!></div>"), ko = /* @__PURE__ */ J("<small class=\"svelte-17meywc\"> </small>"), Ao = /* @__PURE__ */ J("<label class=\"decision-option svelte-17meywc\"><input type=\"radio\" class=\"svelte-17meywc\"/> <span class=\"svelte-17meywc\"> <!></span></label>"), jo = /* @__PURE__ */ J("<label class=\"decision-option svelte-17meywc\"><input type=\"radio\" class=\"svelte-17meywc\"/><span class=\"svelte-17meywc\">其他</span></label> <div class=\"decision-other svelte-17meywc\"><label>其他方案與理由</label><textarea class=\"svelte-17meywc\"></textarea></div>", 1), Mo = /* @__PURE__ */ J("<p role=\"alert\"> </p> <button class=\"svelte-17meywc\">已核對最新題目，套用選擇</button>", 1), No = /* @__PURE__ */ J("<button class=\"svelte-17meywc\">重試保存</button>"), Po = /* @__PURE__ */ J("<div class=\"decision-content svelte-17meywc\"><!> <!> <fieldset class=\"svelte-17meywc\"><legend class=\"decision-visually-hidden svelte-17meywc\"> </legend> <!> <!></fieldset> <!> <div class=\"decision-actions svelte-17meywc\"><!></div></div>"), Fo = /* @__PURE__ */ J("<header slot=\"header\" class=\"checklist-item-header svelte-17meywc\"><h2 tabindex=\"-1\" class=\"svelte-17meywc\"> </h2><span class=\"checklist-status\"> </span></header>"), Io = /* @__PURE__ */ J("<article><!></article>"), Lo = /* @__PURE__ */ J("<p role=\"alert\"> </p> <button class=\"svelte-17meywc\">關閉已移除題目提示</button>", 1), Ro = /* @__PURE__ */ J("<div class=\"decision-overview svelte-17meywc\"><p class=\"svelte-17meywc\"> </p> <p class=\"svelte-17meywc\">選項可隨時修改；選取「其他」後，文字更動會自動保存，空白則為待決策。未選取時可點擊文字欄編輯本頁草稿。保存失敗會保留修改供重試。</p></div> <div class=\"decision-controls svelte-17meywc\"><!> <button class=\"svelte-17meywc\">下一項待決策</button> <button class=\"svelte-17meywc\">清除全部答案</button></div> <!> <!> <!> <!>", 1), zo = /* @__PURE__ */ J("<span> </span>"), Bo = /* @__PURE__ */ J("<pre class=\"source-content svelte-17meywc\" aria-label=\"來源文件內容\"></pre>"), Vo = /* @__PURE__ */ J("<!> <!> <!>", 1), Ho = /* @__PURE__ */ J("<p> </p> <p>清除成功後可在本頁按「復原」還原；重新整理或離開頁面後，歷史不會保留。</p> <form class=\"theme-dialog-actions\"><button type=\"button\" class=\"secondary-button svelte-17meywc\">取消</button> <button type=\"submit\" class=\"primary-button svelte-17meywc\">確認清除全部</button></form>", 1), Uo = /* @__PURE__ */ J("<!> <main class=\"checklist-shell decisions-shell svelte-17meywc\"><header class=\"checklist-header\"><div><h1>決策項目</h1> <!></div> <!></header> <!> <!></main> <!> <!>", 1);
 function Wo(e, t) {
 	He(t, !1);
-	let n = /* @__PURE__ */ L(), r = /* @__PURE__ */ L(), i = /* @__PURE__ */ L(), a = /* @__PURE__ */ L(), o = /* @__PURE__ */ L(), s = $(t, "transport", 8), c = $(t, "onPersistenceChange", 8, () => {}), l = /* @__PURE__ */ L(null), u = /* @__PURE__ */ L(), d = /* @__PURE__ */ L(), f = /* @__PURE__ */ L(), p = /* @__PURE__ */ L("載入中…"), m = /* @__PURE__ */ L(!0), g = /* @__PURE__ */ L({}), _ = /* @__PURE__ */ L(), v = /* @__PURE__ */ L(ja(null, ["pending", "decided"], void 0, ["pending"])), y = null;
-	function b(e) {
-		R(v, e), Ma(y, W(v));
+	let n = /* @__PURE__ */ L(), r = /* @__PURE__ */ L(), i = /* @__PURE__ */ L(), a = /* @__PURE__ */ L(), o = /* @__PURE__ */ L(), s = $(t, "transport", 8), c = $(t, "onPersistenceChange", 8, () => {}), l = $(t, "bindRefresh", 8, () => {}), u = /* @__PURE__ */ L(null), d = /* @__PURE__ */ L(), f = /* @__PURE__ */ L(), p = /* @__PURE__ */ L(), m = /* @__PURE__ */ L("載入中…"), g = /* @__PURE__ */ L(!0), _ = /* @__PURE__ */ L({}), v = /* @__PURE__ */ L(), y = /* @__PURE__ */ L(ja(null, ["pending", "decided"], void 0, ["pending"])), b = null;
+	function x(e) {
+		R(y, e), Ma(b, W(y));
 	}
-	let x = /* @__PURE__ */ L(), S = /* @__PURE__ */ L(), C = /* @__PURE__ */ L(/* @__PURE__ */ new Set()), w = /* @__PURE__ */ L(!1), T = /* @__PURE__ */ L(!1), ee = /* @__PURE__ */ L(!1), E = /* @__PURE__ */ L(!1), D = /* @__PURE__ */ L(null), O = /* @__PURE__ */ L(""), k = 0, A = /* @__PURE__ */ L({});
-	function te() {
-		R(E, !1), k++;
+	let S = /* @__PURE__ */ L(), C = /* @__PURE__ */ L(), w = /* @__PURE__ */ L(/* @__PURE__ */ new Set()), T = /* @__PURE__ */ L(!1), E = /* @__PURE__ */ L(!1), ee = /* @__PURE__ */ L(!1), te = /* @__PURE__ */ L(!1), D = /* @__PURE__ */ L(null), O = /* @__PURE__ */ L(""), k = 0, ne = /* @__PURE__ */ L({});
+	function re() {
+		R(te, !1), k++;
 	}
-	async function ne(e) {
+	async function ie(e) {
 		let t = ++k;
-		R(E, !0), R(D, null), R(O, "載入來源…");
+		R(te, !0), R(D, null), R(O, "載入來源…");
 		try {
 			let n = await s().request({
 				operation: "source",
@@ -4065,11 +4065,11 @@ function Wo(e, t) {
 			});
 			if (t !== k) return;
 			if (!n.ok) throw Error(n.error?.message ?? "無法讀取來源");
-			R(D, n.source), R(A, {
-				...W(A),
+			R(D, n.source), R(ne, {
+				...W(ne),
 				[e]: {
 					...n.source,
-					revision: W(d).snapshot.revision,
+					revision: W(f).snapshot.revision,
 					content: void 0
 				}
 			}), R(O, n.source.status === "available" ? "" : n.source.message), await hr(), document.getElementById(`source-line-${n.source.line}`)?.scrollIntoView({ block: "center" });
@@ -4077,253 +4077,277 @@ function Wo(e, t) {
 			t === k && R(O, `無法讀取來源：${e.message}`);
 		}
 	}
-	let re = /* @__PURE__ */ L(null), ie = /* @__PURE__ */ new Set(), ae = /* @__PURE__ */ L(null), oe = /* @__PURE__ */ L(null), se = /* @__PURE__ */ L();
-	function ce() {
-		R(ae, null), R(oe, null);
+	let ae = /* @__PURE__ */ L(null), oe = /* @__PURE__ */ new Set(), se = /* @__PURE__ */ L(null), ce = /* @__PURE__ */ L(null), le = /* @__PURE__ */ L();
+	function ue() {
+		R(se, null), R(ce, null);
 	}
-	function le(e) {
+	function fe(e) {
 		let t = e.target?.closest?.(".arrangeable-card");
-		if (!t || !W(se)?.contains(t)) {
-			ce();
+		if (!t || !W(le)?.contains(t)) {
+			ue();
 			return;
 		}
 		let n = t.dataset.cardId;
-		if (W(ae) === n) return;
-		R(ae, n);
-		let r = W(i).filter((e) => W(v).selected.has(e.status) || e.id === n);
-		R(oe, W(_)?.orderedIds(r) ?? r.map((e) => e.id));
+		if (W(se) === n) return;
+		R(se, n);
+		let r = W(i).filter((e) => W(y).selected.has(e.status) || e.id === n);
+		R(ce, W(v)?.orderedIds(r) ?? r.map((e) => e.id));
 	}
-	function de() {
-		R(S, {
-			mode: W(x).mode,
-			custom: W(x).custom,
-			systemScheme: W(x).systemScheme
+	function pe() {
+		R(C, {
+			mode: W(S).mode,
+			custom: W(S).custom,
+			systemScheme: W(S).systemScheme
 		});
 	}
-	let fe = () => {
-		R(d, W(u).view());
-	}, pe = (e, t) => {
-		W(u).edit(e, t), fe();
-	}, me = (e) => {
-		if (ie.add(e), R(C, new Set([...W(C)].filter((t) => t !== e))), W(w)) return;
-		let t = W(u).saveOperation(e);
-		if (t) return Se(e, t);
+	let me = () => {
+		R(f, W(d).view());
+	}, he = (e, t) => {
+		W(d).edit(e, t), me();
+	}, ge = (e) => {
+		if (oe.add(e), R(w, new Set([...W(w)].filter((t) => t !== e))), W(T)) return;
+		let t = W(d).saveOperation(e);
+		if (t) return A(e, t);
 	};
-	function he(e, t) {
-		let n = W(u).select(e, t);
-		return fe(), me(e), n;
+	function _e(e, t) {
+		let n = W(d).select(e, t);
+		return me(), ge(e), n;
 	}
-	function ge(e, t) {
-		let n = W(d).drafts[e];
-		pe(e, {
+	function ve(e, t) {
+		let n = W(f).drafts[e];
+		he(e, {
 			other: t,
 			cleared: n?.cleared ?? !1
-		}), W(d).drafts[e]?.choice === "__other" && me(e);
+		}), W(f).drafts[e]?.choice === "__other" && ge(e);
 	}
-	async function _e(e) {
-		if (W(w) || W(T) || W(E)) return;
-		let t = W(u)[e]();
-		fe();
-		for (let e of t) ie.add(e), W(C).delete(e);
-		R(C, new Set(W(C)));
-		let n = [...ie].find((e) => !W(C).has(e) && W(u).saveOperation(e));
-		n && await Se(n, W(u).saveOperation(n));
+	async function ye(e) {
+		if (W(T) || W(E) || W(te)) return;
+		let t = W(d)[e]();
+		me();
+		for (let e of t) oe.add(e), W(w).delete(e);
+		R(w, new Set(W(w)));
+		let n = [...oe].find((e) => !W(w).has(e) && W(d).saveOperation(e));
+		n && await A(n, W(d).saveOperation(n));
 	}
-	function ve() {
-		R(re, null);
+	function be() {
+		R(ae, null);
 	}
-	function ye(e, t) {
-		R(g, {
-			...W(g),
+	function xe(e, t) {
+		R(_, {
+			...W(_),
 			[e]: t
-		}), mo(W(o), W(m), W(g));
+		}), mo(W(o), W(g), W(_));
 	}
-	function be(e) {
-		R(m, e), R(g, {}), mo(W(o), W(m), W(g));
+	function Se(e) {
+		R(g, e), R(_, {}), mo(W(o), W(g), W(_));
 	}
-	async function xe() {
+	async function Ce() {
 		try {
 			let e = await s().load();
 			if (!e.ok) throw Error(e.error.message);
 			if (s().loadOwnerReport?.().then((e) => {
-				R(l, e);
+				R(u, e);
 			}).catch(() => {}), e.files) {
-				R(f, e), R(p, "");
+				R(p, e), R(m, "");
 				return;
 			}
-			R(u, fo(e)), fe(), y = `taskprogress.filters.decisions.v1:${e.document_key}`, R(v, ja(y, ["pending", "decided"], void 0, ["pending"]));
+			R(d, fo(e)), me(), b = `taskprogress.filters.decisions.v1:${e.document_key}`, R(y, ja(b, ["pending", "decided"], void 0, ["pending"]));
 			let t = po(`taskprogress.decisions:${e.document_key}`);
-			R(m, t.expanded), R(g, t.overrides), R(p, "");
+			R(g, t.expanded), R(_, t.overrides), R(m, "");
 		} catch (e) {
-			R(p, e.message);
+			R(m, e.message);
+		}
+	}
+	async function we() {
+		if (!(W(a) || W(f)?.busy || W(E) || W(te) || W(ee) || W(T))) {
+			R(T, !0);
+			try {
+				let e = await s().load();
+				if (!e.ok) throw Error(e.error?.message ?? "無法載入決策文件");
+				if (e.files) {
+					R(p, e);
+					return;
+				}
+				if (!W(d)) {
+					R(d, fo(e)), me();
+					return;
+				}
+				e.revision !== W(f)?.snapshot?.revision && (W(d).merge(e), me());
+			} catch (e) {
+				console.warn("Decision foreground refresh failed:", e);
+			} finally {
+				R(T, !1);
+			}
 		}
 	}
 	ki(() => {
-		R(x, oo()), de(), xe();
+		R(S, oo()), pe(), Ce();
 		let e = (e) => {
 			W(a) && (e.preventDefault(), e.returnValue = "");
 		};
-		return window.addEventListener("beforeunload", e), document.addEventListener("pointerdown", le, !0), document.addEventListener("focusin", le, !0), window.addEventListener("blur", ce), window.addEventListener("blur", ve), () => {
-			window.removeEventListener("beforeunload", e), document.removeEventListener("pointerdown", le, !0), document.removeEventListener("focusin", le, !0), window.removeEventListener("blur", ce), window.removeEventListener("blur", ve), W(x)?.destroy?.();
+		return window.addEventListener("beforeunload", e), document.addEventListener("pointerdown", fe, !0), document.addEventListener("focusin", fe, !0), window.addEventListener("blur", ue), window.addEventListener("blur", be), () => {
+			window.removeEventListener("beforeunload", e), document.removeEventListener("pointerdown", fe, !0), document.removeEventListener("focusin", fe, !0), window.removeEventListener("blur", ue), window.removeEventListener("blur", be), W(S)?.destroy?.();
 		};
 	});
-	async function Se(e, t = "confirm", n = !1) {
+	async function A(e, t = "confirm", n = !1) {
 		try {
-			let r = n ? W(u).retry() : t === "clear_all" ? W(u).beginClearAll() : W(u).begin(e, t);
-			n || ie.delete(r.decision_id), fe(), R(p, "保存中…");
+			let r = n ? W(d).retry() : t === "clear_all" ? W(d).beginClearAll() : W(d).begin(e, t);
+			n || oe.delete(r.decision_id), me(), R(m, "保存中…");
 			let i;
 			try {
 				i = await s().request(r);
 			} catch (e) {
-				W(u).failed(), fe(), R(p, `尚未收到操作結果：${e.message}。請查詢／重送同一筆操作；這不會復原舊答案。`);
+				W(d).failed(), me(), R(m, `尚未收到操作結果：${e.message}。請查詢／重送同一筆操作；這不會復原舊答案。`);
 				return;
 			}
-			if (W(u).complete(i), fe(), R(p, i.ok ? i.status === "already_applied" ? "原操作已完成；以下顯示目前最新狀態。" : r.operation === "clear_all" ? "已清除全部答案與理由，以下顯示最新狀態。" : "已保存；以下顯示最新狀態。" : i.error.message), !i.ok) {
-				ie.delete(r.decision_id), R(C, /* @__PURE__ */ new Set([...W(C), r.decision_id])), R(w, !0);
+			if (W(d).complete(i), me(), R(m, i.ok ? i.status === "already_applied" ? "原操作已完成；以下顯示目前最新狀態。" : r.operation === "clear_all" ? "已清除全部答案與理由，以下顯示最新狀態。" : "已保存；以下顯示最新狀態。" : i.error.message), !i.ok) {
+				oe.delete(r.decision_id), R(w, /* @__PURE__ */ new Set([...W(w), r.decision_id])), R(T, !0);
 				try {
 					let e = await s().load();
-					e.ok && (W(u).merge(e), fe());
+					e.ok && (W(d).merge(e), me());
 				} catch (e) {
-					R(p, e.message);
+					R(m, e.message);
 				} finally {
-					R(w, !1);
+					R(T, !1);
 				}
 			}
 			if (r.operation === "clear_all") {
-				i.ok && (ie.clear(), R(C, /* @__PURE__ */ new Set()), ce());
+				i.ok && (oe.clear(), R(w, /* @__PURE__ */ new Set()), ue());
 				return;
 			}
-			let a = [...ie].find((e) => !W(C).has(e) && W(u).saveOperation(e));
-			a && await Se(a, W(u).saveOperation(a));
+			let a = [...oe].find((e) => !W(w).has(e) && W(d).saveOperation(e));
+			a && await A(a, W(d).saveOperation(a));
 		} catch (e) {
-			R(p, e.message);
+			R(m, e.message);
 		}
 	}
-	async function Ce() {
+	async function Te() {
 		let e = W(i).find((e) => e.status === "pending");
-		e && (W(v).selected.has("pending") || b(Pa(W(v), "pending")), ye(e.id, !0), await hr(), W(_)?.revealCard(e.id), await hr(), document.getElementById(`decision-${e.id}`)?.focus());
+		e && (W(y).selected.has("pending") || x(Pa(W(y), "pending")), xe(e.id, !0), await hr(), W(v)?.revealCard(e.id), await hr(), document.getElementById(`decision-${e.id}`)?.focus());
 	}
-	On(() => W(d), () => {
-		R(i, W(d)?.snapshot.document.decisions ?? []);
-	}), On(() => (W(d), W(w), W(i)), () => {
-		R(n, !!W(d) && !W(d).pending && !W(d).busy && !W(w) && (W(i).some((e) => e.answer) || W(d).dirty));
-	}), On(() => (W(i), W(oe), W(v)), () => {
-		R(r, W(i).filter((e) => W(oe) ? W(oe).includes(e.id) : W(v).selected.has(e.status)));
-	}), On(() => W(d), () => {
-		R(a, !!W(d)?.dirty || !!W(d)?.pending);
-	}), On(() => (K(c()), W(a), W(d), W(T), W(E), W(ee), W(w)), () => {
+	On(() => W(f), () => {
+		R(i, W(f)?.snapshot.document.decisions ?? []);
+	}), On(() => (W(f), W(T), W(i)), () => {
+		R(n, !!W(f) && !W(f).pending && !W(f).busy && !W(T) && (W(i).some((e) => e.answer) || W(f).dirty));
+	}), On(() => (W(i), W(ce), W(y)), () => {
+		R(r, W(i).filter((e) => W(ce) ? W(ce).includes(e.id) : W(y).selected.has(e.status)));
+	}), On(() => W(f), () => {
+		R(a, !!W(f)?.dirty || !!W(f)?.pending);
+	}), On(() => (K(c()), W(a), W(f), W(E), W(te), W(ee), W(T)), () => {
 		c()({
 			dirty: W(a),
-			saving: !!W(d)?.busy,
-			pending: !!W(d)?.pending || W(T) || W(E) || W(ee) || W(w)
+			saving: !!W(f)?.busy,
+			pending: !!W(f)?.pending || W(E) || W(te) || W(ee) || W(T)
 		});
-	}), On(() => W(d), () => {
-		R(o, W(d) ? `taskprogress.decisions:${W(d).snapshot.document_key}` : null);
+	}), On(() => W(f), () => {
+		R(o, W(f) ? `taskprogress.decisions:${W(f).snapshot.document_key}` : null);
+	}), On(() => K(l()), () => {
+		l()(we);
 	}), kn(), Di();
-	var we = Uo(), Te = pn(we);
-	sa(Te, {});
-	var Ee = B(Te, 2), De = z(Ee), Oe = z(De), ke = B(z(Oe), 2), j = (e) => {
+	var Ee = Uo(), De = pn(Ee);
+	sa(De, {});
+	var Oe = B(De, 2), ke = z(Oe), j = z(ke), Ae = B(z(j), 2), M = (e) => {
 		var t = ho(), n = B(z(t)), r = z(n, !0);
 		N(n), N(t), V(() => {
-			Q(n, "href", (W(l), G(() => W(l).href))), X(r, (W(l), G(() => W(l).title)));
+			Q(n, "href", (W(u), G(() => W(u).href))), X(r, (W(u), G(() => W(u).title)));
 		}), Y(e, t);
 	};
-	Z(ke, (e) => {
-		W(l) && e(j);
-	}), N(Oe);
-	var Ae = B(Oe, 2), M = (e) => {
+	Z(Ae, (e) => {
+		W(u) && e(M);
+	}), N(j);
+	var je = B(j, 2), Me = (e) => {
 		ao(e, {
 			get mode() {
-				return W(S), G(() => W(S).mode);
+				return W(C), G(() => W(C).mode);
 			},
 			get custom() {
-				return W(S), G(() => W(S).custom);
+				return W(C), G(() => W(C).custom);
 			},
 			get systemScheme() {
-				return W(S), G(() => W(S).systemScheme);
+				return W(C), G(() => W(C).systemScheme);
 			},
 			onModeChange: (e) => {
-				W(x).setMode(e), de();
+				W(S).setMode(e), pe();
 			},
 			onApplyCustom: (e) => {
-				W(x).applyCustom(e), de();
+				W(S).applyCustom(e), pe();
 			}
 		});
 	};
-	Z(Ae, (e) => {
-		W(S) && e(M);
-	}), N(De);
-	var je = B(De, 2), Me = (e) => {
-		var t = go(), n = z(t, !0);
-		N(t), V(() => X(n, W(p))), Y(e, t);
-	};
 	Z(je, (e) => {
-		W(p) && e(Me);
+		W(C) && e(Me);
+	}), N(ke);
+	var Pe = B(ke, 2), Fe = (e) => {
+		var t = go(), n = z(t, !0);
+		N(t), V(() => X(n, W(m))), Y(e, t);
+	};
+	Z(Pe, (e) => {
+		W(m) && e(Fe);
 	});
-	var Pe = B(je, 2), Fe = (e) => {
+	var Ie = B(Pe, 2), Le = (e) => {
 		var t = yo(), n = pn(t), r = z(n);
 		N(n);
 		var i = B(n, 2);
-		Gr(i, 1, () => (W(f), G(() => W(f).files)), Vr, (e, t) => {
+		Gr(i, 1, () => (W(p), G(() => W(p).files)), Vr, (e, t) => {
 			var n = _o(), r = z(n), i = z(r, !0);
 			N(r);
 			var a = B(r, 2), o = z(a, !0);
 			N(a), N(n), V((e) => {
 				Q(r, "href", e), X(i, (W(t), G(() => W(t).task_id))), X(o, (W(t), G(() => W(t).error ?? `待決策 ${W(t).pending}／全部 ${W(t).total}`)));
-			}, [() => (W(f), W(t), G(() => `?scope=${encodeURIComponent(W(f).scope_id)}&task=${encodeURIComponent(W(t).task_id)}`))]), Y(e, n);
+			}, [() => (W(p), W(t), G(() => `?scope=${encodeURIComponent(W(p).scope_id)}&task=${encodeURIComponent(W(t).task_id)}`))]), Y(e, n);
 		});
 		var a = B(i, 2), o = (e) => {
 			Y(e, vo());
 		};
 		Z(a, (e) => {
-			W(f), G(() => !W(f).files.length) && e(o);
-		}), V(() => X(r, `待決策 ${W(f), G(() => W(f).pending) ?? ""}${W(f), G(() => W(f).incomplete ? "（統計不完整）" : "") ?? ""}`)), Y(e, t);
-	}, Ie = (e) => {
+			W(p), G(() => !W(p).files.length) && e(o);
+		}), V(() => X(r, `待決策 ${W(p), G(() => W(p).pending) ?? ""}${W(p), G(() => W(p).incomplete ? "（統計不完整）" : "") ?? ""}`)), Y(e, t);
+	}, Re = (e) => {
 		var t = Ro(), a = pn(t), s = z(a), c = z(s);
 		N(s), Ne(2), N(a);
-		var l = B(a, 2), f = z(l);
+		var l = B(a, 2), u = z(l);
 		{
-			let e = /* @__PURE__ */ F(() => W(w) || W(T) || W(E));
-			ya(f, {
+			let e = /* @__PURE__ */ F(() => W(T) || W(E) || W(te));
+			ya(u, {
 				id: "decision-history",
 				get history() {
-					return W(d), G(() => W(d).history);
+					return W(f), G(() => W(f).history);
 				},
 				get disabled() {
 					return W(e);
 				},
-				onUndo: () => _e("undo"),
-				onRedo: () => _e("redo"),
+				onUndo: () => ye("undo"),
+				onRedo: () => ye("redo"),
 				onClear: () => {
-					W(u).clearHistory(), fe();
+					W(d).clearHistory(), me();
 				},
 				onOpenChange: (e) => {
 					R(ee, e);
 				}
 			});
 		}
-		var p = B(f, 2), y = B(p, 2);
+		var p = B(u, 2), m = B(p, 2);
 		N(l);
-		var x = B(l, 2), S = (e) => {
+		var b = B(l, 2), S = (e) => {
 			var t = bo(), n = z(t, !0);
-			N(t), V(() => X(n, (W(d), G(() => W(d).pending.operation === "clear_all" ? "查詢／重送清除操作" : "查詢／重送保存操作")))), q("click", t, () => Se(null, null, !0)), Y(e, t);
+			N(t), V(() => X(n, (W(f), G(() => W(f).pending.operation === "clear_all" ? "查詢／重送清除操作" : "查詢／重送保存操作")))), q("click", t, () => A(null, null, !0)), Y(e, t);
 		};
-		Z(x, (e) => {
-			W(d), G(() => W(d).pending && !W(d).busy) && e(S);
+		Z(b, (e) => {
+			W(f), G(() => W(f).pending && !W(f).busy) && e(S);
 		});
-		var D = B(x, 2), O = (e) => {
+		var C = B(b, 2), D = (e) => {
 			Y(e, xo());
 		};
-		Z(D, (e) => {
-			W(r), G(() => !W(r).length) && e(O);
+		Z(C, (e) => {
+			W(r), G(() => !W(r).length) && e(D);
 		});
-		var k = B(D, 2);
+		var O = B(C, 2);
 		{
 			let e = /* @__PURE__ */ F(() => (W(r), G(() => W(r).map((e) => ({
 				...e,
 				title: e.question
 			}))))), t = /* @__PURE__ */ F(() => (W(i), G(() => W(i).map((e) => e.id))));
-			Ei(aa(k, {
+			Ei(aa(O, {
 				get items() {
 					return W(e);
 				},
@@ -4334,22 +4358,22 @@ function Wo(e, t) {
 					return W(o);
 				},
 				get heldOrder() {
-					return W(oe);
+					return W(ce);
 				},
 				get expanded() {
-					return W(m);
+					return W(g);
 				},
-				onToggleAll: be,
-				children: ue,
+				onToggleAll: Se,
+				children: de,
 				$$slots: {
 					default: (e, t) => {
-						let n = /* @__PURE__ */ F(() => t.item), r = /* @__PURE__ */ F(() => t.visibilityEnabled), i = /* @__PURE__ */ F(() => t.visible), a = /* @__PURE__ */ F(() => t.onVisibleChange), o = /* @__PURE__ */ F(() => (W(d), K(W(n)), G(() => Object.hasOwn(W(d).drafts, W(n).id) ? W(d).drafts[W(n).id] : null))), s = /* @__PURE__ */ F(() => (K(W(o)), K(W(n)), G(() => W(o) ? W(o).choice : W(n).answer?.kind === "other" ? "__other" : W(n).answer?.option_id ?? "")));
+						let n = /* @__PURE__ */ F(() => t.item), r = /* @__PURE__ */ F(() => t.visibilityEnabled), i = /* @__PURE__ */ F(() => t.visible), a = /* @__PURE__ */ F(() => t.onVisibleChange), o = /* @__PURE__ */ F(() => (W(f), K(W(n)), G(() => Object.hasOwn(W(f).drafts, W(n).id) ? W(f).drafts[W(n).id] : null))), s = /* @__PURE__ */ F(() => (K(W(o)), K(W(n)), G(() => W(o) ? W(o).choice : W(n).answer?.kind === "other" ? "__other" : W(n).answer?.option_id ?? "")));
 						var c = Io();
 						let l;
-						var f = z(c);
+						var u = z(c);
 						{
-							let e = /* @__PURE__ */ F(() => (W(g), K(W(n)), W(m), G(() => W(g)[W(n).id] ?? W(m)))), t = /* @__PURE__ */ F(() => (K(W(n)), G(() => `body-${W(n).id}`)));
-							Sa(f, {
+							let e = /* @__PURE__ */ F(() => (W(_), K(W(n)), W(g), G(() => W(_)[W(n).id] ?? W(g)))), t = /* @__PURE__ */ F(() => (K(W(n)), G(() => `body-${W(n).id}`)));
+							Sa(u, {
 								get visibilityEnabled() {
 									return W(r);
 								},
@@ -4362,7 +4386,7 @@ function Wo(e, t) {
 								get expanded() {
 									return W(e);
 								},
-								onToggle: (e) => ye(W(n).id, e),
+								onToggle: (e) => xe(W(n).id, e),
 								get contentId() {
 									return W(t);
 								},
@@ -4371,10 +4395,10 @@ function Wo(e, t) {
 								},
 								children: (e, t) => {
 									var r = Po(), i = z(r), a = (e) => {
-										let t = /* @__PURE__ */ F(() => (W(A), K(W(n)), G(() => W(A)[W(n).id]))), r = /* @__PURE__ */ F(() => (K(W(t)), K(W(n)), W(d), G(() => W(t)?.reference === W(n).source_ref && W(t)?.revision === W(d).snapshot.revision ? W(t) : W(d).snapshot.sources?.[W(n).id])));
+										let t = /* @__PURE__ */ F(() => (W(ne), K(W(n)), G(() => W(ne)[W(n).id]))), r = /* @__PURE__ */ F(() => (K(W(t)), K(W(n)), W(f), G(() => W(t)?.reference === W(n).source_ref && W(t)?.revision === W(f).snapshot.revision ? W(t) : W(f).snapshot.sources?.[W(n).id])));
 										var i = To(), a = z(i), o = (e) => {
 											var t = So(), r = z(t);
-											N(t), V(() => X(r, `來源：${K(W(n)), G(() => W(n).source_ref) ?? ""}`)), q("click", t, () => ne(W(n).id)), Y(e, t);
+											N(t), V(() => X(r, `來源：${K(W(n)), G(() => W(n).source_ref) ?? ""}`)), q("click", t, () => ie(W(n).id)), Y(e, t);
 										}, s = (e) => {
 											var t = wo(), i = pn(t), a = z(i, !0);
 											N(i);
@@ -4382,7 +4406,7 @@ function Wo(e, t) {
 											N(o);
 											var c = B(o, 2), l = (e) => {
 												var t = Co();
-												q("click", t, () => ne(W(n).id)), Y(e, t);
+												q("click", t, () => ie(W(n).id)), Y(e, t);
 											};
 											Z(c, (e) => {
 												W(r) && e(l);
@@ -4416,7 +4440,7 @@ function Wo(e, t) {
 									Z(c, (e) => {
 										K(W(n)), G(() => W(n).context || W(n).recommendation) && e(l);
 									});
-									var f = B(c, 2), p = z(f), m = z(p, !0);
+									var u = B(c, 2), p = z(u), m = z(p, !0);
 									N(p);
 									var h = B(p, 2);
 									Gr(h, 1, () => (K(W(n)), G(() => W(n).options)), Vr, (e, t, r) => {
@@ -4431,7 +4455,7 @@ function Wo(e, t) {
 										}), N(o), N(i), V((e) => {
 											Q(a, "name", (K(W(n)), G(() => `answer-${W(n).id}`))), bi(a, (K(W(s)), W(t), G(() => W(s) === W(t).id))), X(c, `${e ?? ""}　${W(t), G(() => W(t).label) ?? ""}${W(t), K(W(n)), G(() => W(t).id === W(n).recommendation?.option_id ? "（建議）" : "") ?? ""} `);
 										}, [() => G(() => String.fromCharCode(65 + r))]), q("click", a, (e) => {
-											e.currentTarget.checked = he(W(n).id, W(t).id) === W(t).id;
+											e.currentTarget.checked = _e(W(n).id, W(t).id) === W(t).id;
 										}), Y(e, i);
 									});
 									var g = B(h, 2), _ = (e) => {
@@ -4439,27 +4463,27 @@ function Wo(e, t) {
 										vi(i), Ne(), N(r);
 										var a = B(r, 2), c = z(a), l = B(c);
 										it(l), N(a), V(() => {
-											Q(i, "name", (K(W(n)), G(() => `answer-${W(n).id}`))), bi(i, W(s) === "__other"), Q(c, "for", (K(W(n)), G(() => `other-${W(n).id}`))), Q(l, "id", (K(W(n)), G(() => `other-${W(n).id}`))), l.readOnly = (K(W(s)), W(re), K(W(n)), G(() => W(s) !== "__other" && W(re) !== W(n).id)), yi(l, (K(W(o)), K(W(n)), G(() => W(o) ? W(o).other : W(n).answer?.kind === "other" ? W(n).answer.text : "")));
+											Q(i, "name", (K(W(n)), G(() => `answer-${W(n).id}`))), bi(i, W(s) === "__other"), Q(c, "for", (K(W(n)), G(() => `other-${W(n).id}`))), Q(l, "id", (K(W(n)), G(() => `other-${W(n).id}`))), l.readOnly = (K(W(s)), W(ae), K(W(n)), G(() => W(s) !== "__other" && W(ae) !== W(n).id)), yi(l, (K(W(o)), K(W(n)), G(() => W(o) ? W(o).other : W(n).answer?.kind === "other" ? W(n).answer.text : "")));
 										}), q("click", i, async (e) => {
-											let t = he(W(n).id, "__other");
-											e.currentTarget.checked = t === "__other", await hr(), t === "__other" && W(ae) === W(n).id && document.getElementById(`other-${W(n).id}`)?.focus();
+											let t = _e(W(n).id, "__other");
+											e.currentTarget.checked = t === "__other", await hr(), t === "__other" && W(se) === W(n).id && document.getElementById(`other-${W(n).id}`)?.focus();
 										}), Tr("focus", l, () => {
-											R(re, W(n).id);
+											R(ae, W(n).id);
 										}), q("click", l, () => {
-											R(re, W(n).id);
-										}), Tr("blur", l, ve), q("input", l, (e) => ge(W(n).id, e.currentTarget.value)), Y(e, t);
+											R(ae, W(n).id);
+										}), Tr("blur", l, be), q("input", l, (e) => ve(W(n).id, e.currentTarget.value)), Y(e, t);
 									};
 									Z(g, (e) => {
 										K(W(n)), G(() => W(n).allow_other) && e(_);
-									}), N(f);
-									var v = B(f, 2), y = (e) => {
+									}), N(u);
+									var v = B(u, 2), y = (e) => {
 										var t = Mo(), r = pn(t), i = z(r);
 										N(r);
 										var a = B(r, 2);
 										V(() => {
-											X(i, `此題已變更，原草稿保留：${K(W(o)), G(() => W(o).choice) ?? ""} ${K(W(o)), G(() => W(o).other) ?? ""}`), a.disabled = (W(w), W(d), G(() => W(w) || !!W(d).pending));
+											X(i, `此題已變更，原草稿保留：${K(W(o)), G(() => W(o).choice) ?? ""} ${K(W(o)), G(() => W(o).other) ?? ""}`), a.disabled = (W(T), W(f), G(() => W(T) || !!W(f).pending));
 										}), q("click", a, () => {
-											W(u).rebase(W(n).id), fe(), me(W(n).id);
+											W(d).rebase(W(n).id), me(), ge(W(n).id);
 										}), Y(e, t);
 									};
 									Z(v, (e) => {
@@ -4467,12 +4491,12 @@ function Wo(e, t) {
 									});
 									var b = B(v, 2), x = z(b), S = (e) => {
 										var t = No();
-										V(() => t.disabled = W(w)), q("click", t, () => me(W(n).id)), Y(e, t);
-									}, T = /* @__PURE__ */ bt(() => (W(C), K(W(n)), K(W(o)), W(d), G(() => W(C).has(W(n).id) && W(o) && !W(o).conflict && !W(d).pending)));
+										V(() => t.disabled = W(T)), q("click", t, () => ge(W(n).id)), Y(e, t);
+									}, C = /* @__PURE__ */ bt(() => (W(w), K(W(n)), K(W(o)), W(f), G(() => W(w).has(W(n).id) && W(o) && !W(o).conflict && !W(f).pending)));
 									Z(x, (e) => {
-										W(T) && e(S);
+										W(C) && e(S);
 									}), N(b), N(r), V(() => {
-										f.disabled = (W(w), W(d), K(W(o)), G(() => W(w) || W(d).pending?.operation === "clear_all" || !!W(d).pending && !W(d).busy || W(o)?.conflict)), X(m, (K(W(n)), G(() => W(n).question)));
+										u.disabled = (W(T), W(f), K(W(o)), G(() => W(T) || W(f).pending?.operation === "clear_all" || !!W(f).pending && !W(f).busy || W(o)?.conflict)), X(m, (K(W(n)), G(() => W(n).question)));
 									}), Y(e, r);
 								},
 								$$slots: {
@@ -4496,7 +4520,7 @@ function Wo(e, t) {
 								Oa,
 								"pending",
 								"decided"
-							]), n = /* @__PURE__ */ F(() => (K(Na), W(v), G(() => Na(W(v)))));
+							]), n = /* @__PURE__ */ F(() => (K(Na), W(y), G(() => Na(W(y)))));
 							Ia(e, {
 								categories: [{
 									id: "pending",
@@ -4509,47 +4533,47 @@ function Wo(e, t) {
 									return W(t);
 								},
 								get selected() {
-									return W(v), G(() => W(v).selected);
+									return W(y), G(() => W(y).selected);
 								},
 								get defaultLit() {
 									return W(n);
 								},
 								defaultLabel: "全部",
-								onSelect: (e) => b(Pa(W(v), e)),
-								onSelectDefault: () => b(Fa(W(v)))
+								onSelect: (e) => x(Pa(W(y), e)),
+								onSelectDefault: () => x(Fa(W(y)))
 							});
 						}
 					}
 				},
 				$$legacy: !0
-			}), (e) => R(_, e), () => W(_));
+			}), (e) => R(v, e), () => W(v));
 		}
-		Gr(B(k, 2), 1, () => (W(d), W(i), G(() => Object.entries(W(d).drafts).filter(([e]) => !W(i).some((t) => t.id === e)))), Vr, (e, t) => {
+		Gr(B(O, 2), 1, () => (W(f), W(i), G(() => Object.entries(W(f).drafts).filter(([e]) => !W(i).some((t) => t.id === e)))), Vr, (e, t) => {
 			var n = /* @__PURE__ */ bt(() => h(W(t), 2));
 			let r = () => W(n)[0], i = () => W(n)[1];
 			var a = Lo(), o = pn(a), s = z(o);
 			N(o);
 			var c = B(o, 2);
 			V(() => X(s, `已移除題目 ${r() ?? ""} 的原草稿：${i(), G(() => i().choice) ?? ""} ${i(), G(() => i().other) ?? ""}`)), q("click", c, () => {
-				W(u).discard(r()), fe();
+				W(d).discard(r()), me();
 			}), Y(e, a);
 		}), V((e, t) => {
-			X(c, `待決策 ${e ?? ""}／全部 ${W(i), G(() => W(i).length) ?? ""}`), p.disabled = t, y.disabled = !W(n);
-		}, [() => (W(i), G(() => W(i).filter((e) => e.status === "pending").length)), () => (W(i), G(() => !W(i).some((e) => e.status === "pending")))]), q("click", p, Ce), q("click", y, () => {
-			W(n) && R(T, !0);
+			X(c, `待決策 ${e ?? ""}／全部 ${W(i), G(() => W(i).length) ?? ""}`), p.disabled = t, m.disabled = !W(n);
+		}, [() => (W(i), G(() => W(i).filter((e) => e.status === "pending").length)), () => (W(i), G(() => !W(i).some((e) => e.status === "pending")))]), q("click", p, Te), q("click", m, () => {
+			W(n) && R(E, !0);
 		}), Y(e, t);
 	};
-	Z(Pe, (e) => {
-		W(f) ? e(Fe) : W(d) && e(Ie, 1);
-	}), N(Ee), Ei(Ee, (e) => R(se, e), () => W(se));
-	var Le = B(Ee, 2);
-	la(Le, {
+	Z(Ie, (e) => {
+		W(p) ? e(Le) : W(f) && e(Re, 1);
+	}), N(Oe), Ei(Oe, (e) => R(le, e), () => W(le));
+	var ze = B(Oe, 2);
+	la(ze, {
 		get open() {
-			return W(E);
+			return W(te);
 		},
 		title: "決策來源",
 		titleId: "decision-source-title",
-		onClose: te,
+		onClose: re,
 		children: (e, t) => {
 			var n = Vo(), r = pn(n), i = (e) => {
 				var t = Eo(), n = z(t, !0);
@@ -4583,31 +4607,31 @@ function Wo(e, t) {
 			}), Y(e, n);
 		},
 		$$slots: { default: !0 }
-	}), la(B(Le, 2), {
+	}), la(B(ze, 2), {
 		get open() {
-			return W(T);
+			return W(E);
 		},
 		title: "清除全部決策答案？",
 		titleId: "decision-clear-title",
 		kicker: "決策項目",
 		onClose: () => {
-			R(T, !1);
+			R(E, !1);
 		},
-		children: ue,
+		children: de,
 		$$slots: { default: (e, t) => {
 			let r = /* @__PURE__ */ F(() => t.close);
 			var a = Ho(), o = pn(a), s = z(o);
 			N(o);
 			var c = B(o, 4), l = z(c), u = B(l, 2);
 			N(c), V(() => {
-				X(s, `將清除目前文件「${W(d), G(() => W(d)?.snapshot.document.task_id) ?? ""}」全部 ${W(i), G(() => W(i).length) ?? ""} 題的答案、「其他」理由及尚未保存的輸入，包含篩選後隱藏的題目。所有題目回到待決策，題目與選項保留。`), u.disabled = !W(n);
+				X(s, `將清除目前文件「${W(f), G(() => W(f)?.snapshot.document.task_id) ?? ""}」全部 ${W(i), G(() => W(i).length) ?? ""} 題的答案、「其他」理由及尚未保存的輸入，包含篩選後隱藏的題目。所有題目回到待決策，題目與選項保留。`), u.disabled = !W(n);
 			}), Tr("submit", c, (e) => {
-				e.preventDefault(), W(n) && (W(r)(), Se(null, "clear_all"));
+				e.preventDefault(), W(n) && (W(r)(), A(null, "clear_all"));
 			}), q("click", l, function(...e) {
 				W(r)?.apply(this, e);
 			}), Y(e, a);
 		} }
-	}), Y(e, we), Ue();
+	}), Y(e, Ee), Ue();
 }
 Er(["click", "input"]), (function(e) {
 	let t = [
@@ -4830,10 +4854,22 @@ function es({ windowTarget: e = globalThis.window, documentTarget: t = globalThi
 	if (typeof i != "function") throw TypeError("schedule 必須是函式。");
 	let a = !1, o = !1, s = !1, c = !1;
 	function l() {
-		c || s || (a = !0);
+		c || (a = !0);
 	}
 	function u() {
-		o = !1, !(c || s || !a) && (a = !1, n() === !0 && (s = !0, r()));
+		if (o = !1, c || s || !a || (a = !1, n() !== !0)) return;
+		s = !0;
+		let e;
+		try {
+			e = r();
+		} catch {
+			s = !1;
+			return;
+		}
+		if (e && typeof e.then == "function") return e.catch(() => {}).finally(() => {
+			s = !1;
+		});
+		s = !1;
 	}
 	function d() {
 		c || s || o || !a || (o = !0, i(u));
@@ -4847,18 +4883,26 @@ function es({ windowTarget: e = globalThis.window, documentTarget: t = globalThi
 }
 //#endregion
 //#region experiments/editor-svelte-spike/src/decisions-main.js
-var ts, ns;
+var ts = null, ns, rs;
 try {
 	let e = new URLSearchParams(location.search);
-	ns = window.chrome?.webview ? Qo(window.chrome.webview) : Zo(e.get("scope"), e.get("task"));
+	rs = window.chrome?.webview ? Qo(window.chrome.webview) : Zo(e.get("scope"), e.get("task"));
 } catch (e) {
-	ns = { load: () => Promise.reject(e) };
+	rs = { load: () => Promise.reject(e) };
 }
-window.chrome?.webview || es({ canRefresh: () => !ts?.dirty && !ts?.saving && !ts?.pending }), Ir(Wo, {
+window.chrome?.webview || es({
+	canRefresh: () => !ns?.dirty && !ns?.saving && !ns?.pending,
+	reload: async () => {
+		ts && await ts();
+	}
+}), Ir(Wo, {
 	target: document.querySelector("#app"),
 	props: {
-		transport: ns,
-		onPersistenceChange: (e) => ts = e
+		transport: rs,
+		bindRefresh: (e) => {
+			ts = e;
+		},
+		onPersistenceChange: (e) => ns = e
 	}
 });
 //#endregion

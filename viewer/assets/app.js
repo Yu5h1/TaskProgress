@@ -1053,7 +1053,9 @@ function renderTasks() {
       || taskHasSelectedItem(task, selected))
     .map((task) => {
       const kind = taskKind(task);
-      return kind === "report_pointer" || task.id === requestedPin
+      return kind === "report_pointer"
+        ? { ...task, kind }
+        : task.id === requestedPin
         ? { ...task, kind }
         : { ...filterTaskItems(task, selected), kind };
     });
@@ -1684,6 +1686,20 @@ async function refreshForegroundSilently() {
       }
     }
 
+    if (!state.report || state.report.scope_id !== report.scope_id || state.report.report_id !== report.report_id) {
+      return;
+    }
+    if (state.editor.editing && (
+      state.editor.persistenceView?.dirty
+      || state.editor.persistenceView?.saving
+      || state.editor.persistenceView?.pending
+      || state.editor.previewing
+      || state.editor.timeSettingsPending
+      || state.editor.confirmingDeliverySave
+    )) {
+      return;
+    }
+
     state.report = report;
     state.persistedReport = structuredClone(report);
     state.developerReport = developerReport;
@@ -1707,9 +1723,7 @@ installForegroundRefresh({
     && !state.editor.timeSettingsPending
     && !state.editor.confirmingDeliverySave
   ),
-  reload: () => {
-    void refreshForegroundSilently();
-  },
+  reload: () => refreshForegroundSilently(),
 });
 window.addEventListener("popstate", () => {
   void main();
