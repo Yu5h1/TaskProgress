@@ -98,10 +98,12 @@ Minimal shape:
 
 When a task summary or completed/pending item description benefits from navigation, write `[label](URL)` in its existing string field (an object item's `title`, or a legacy string item). Labels are free text: `下載`, `影片`, `教學`, and `前往` are examples, not fixed controls. Links can appear anywhere in a sentence; keep the surrounding text meaningful. Do not put link syntax into IDs or assume other report fields render it.
 
-For local Checklist and Decision pages, resolve the actual registered scope and existing file stem before composing a root-relative URL:
+When generating or updating a task summary or completed/pending item description that mentions a specific Checklist or Decision, make that reference an inline `[label](URL)` link to its file's page rather than leaving only a name or path. Resolve the existing file and its owning registered scope first; use that file's stem as `task`, which need not match the Report task ID. For local pages, compose a root-relative URL and URL-encode each query value:
 
 - `[驗收清單](/checklist/?scope=<scope-id>&task=<task-id>)` → `checklists/<task-id>.checklist`.
 - `[決策細節](/decisions/?scope=<scope-id>&task=<task-id>)` → `decisions/<task-id>.decisions`.
+
+Use a meaningful label such as the checklist name or decision topic. Route through these pages, not a Windows filesystem path or `file://` URL. If the mention is generic or the target cannot be verified, retain plain text and report an unresolved specific target; do not invent a link or create a file just to supply one. Apply this rule to the descriptions being authored or updated, without rewriting unrelated Report entries.
 
 Use an actual HTTP(S) URL for downloads, videos, or external documentation. Supported URL forms also include page-relative paths and `#fragment`; encode spaces. Relative URLs resolve against the Viewer page, not the report file's folder. This is inline-link support, not full Markdown: bare URLs, images, and HTML are not rendered as links. The label `下載` does not force a download. Existing field length limits include the stored syntax.
 
