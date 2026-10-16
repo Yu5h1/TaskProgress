@@ -14,6 +14,7 @@
   import { loadDisclosure, saveDisclosure } from "../../../viewer/assets/card-disclosure-state.js";
   export let transport;
   export let onPersistenceChange = () => {};
+  let ownerReport = null;
   let session, view, summary, message = "載入中…", expanded = true, overrides = {}, cardList;
   let selection = loadFilterSelection(null, ["pending", "decided"], undefined, ["pending"]);
   let filterKey = null;
@@ -94,6 +95,7 @@
     try {
       const result = await transport.load();
       if (!result.ok) throw new Error(result.error.message);
+      transport.loadOwnerReport?.().then(owner => { ownerReport = owner; }).catch(() => {});
       if (result.files) { summary = result; message = ""; return; }
       session = createDecisionSession(result); sync();
       filterKey = `taskprogress.filters.decisions.v1:${result.document_key}`;
@@ -160,7 +162,9 @@
 
 <FocusShield />
 <main class="checklist-shell decisions-shell" bind:this={shell}>
-  <header class="checklist-header"><h1>決策項目</h1>
+  <header class="checklist-header"><div><h1>決策項目</h1>
+    {#if ownerReport}<p class="document-owner">擁有者：<a href={ownerReport.href}>{ownerReport.title}</a></p>{/if}
+    </div>
     {#if themeState}<ThemeControl mode={themeState.mode} custom={themeState.custom} systemScheme={themeState.systemScheme}
       onModeChange={mode => { theme.setMode(mode); readTheme(); }}
       onApplyCustom={palette => { theme.applyCustom(palette); readTheme(); }} />{/if}

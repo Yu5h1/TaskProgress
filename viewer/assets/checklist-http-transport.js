@@ -4,6 +4,7 @@
 // channel differs: a postMessage round trip there, one POST here to the
 // scope+task-id route `checklist request --file <path>` sits behind. The
 // screen that consumes this transport does not know which one it got.
+import { loadOwnerReport } from "./owner-report.js";
 const PROTOCOL_VERSION = 1;
 const ALLOWED_REQUEST_TYPES = new Set(["load", "save", "reset"]);
 
@@ -73,6 +74,7 @@ export function createChecklistHttpTransport({
   }
 
   return Object.freeze({
+    loadOwnerReport: () => loadOwnerReport(scope, fetchImpl),
     load: () => request("load"),
     save: (payload) => request("save", payload),
     reset: (payload = {}) => request("reset", payload),

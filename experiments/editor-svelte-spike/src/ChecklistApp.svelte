@@ -42,6 +42,7 @@
   let view = null;
   let loading = true;
   let failure = "";
+  let ownerReport = null;
   let message = "正在載入 Checklist…";
 
   let resetOpen = false;
@@ -189,6 +190,7 @@
       if (!transport) throw new Error("Checklist 介面需要由 host 提供 transport。");
       const document = await transport.load();
       installDocument(document);
+      transport.loadOwnerReport?.().then(owner => { ownerReport = owner; }).catch(() => {});
     } catch (error) {
       failure = error instanceof Error ? error.message : "Checklist 載入失敗。";
       message = failure;
@@ -247,6 +249,7 @@
   <header class="checklist-header">
     <div>
       <h1>{view?.document.fileName ?? "TaskProgress Checklist"}</h1>
+      {#if ownerReport}<p class="document-owner">擁有者：<a href={ownerReport.href}>{ownerReport.title}</a></p>{/if}
       {#if view}<details class="checklist-round"><summary>本輪依據</summary><p>{view.document.roundIdentity}</p></details>{/if}
     </div>
     {#if themeControl}

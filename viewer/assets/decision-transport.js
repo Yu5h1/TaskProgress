@@ -1,4 +1,5 @@
 // Adapts HTTP or WebView messages to the same decision response contract.
+import { loadOwnerReport } from "./owner-report.js";
 const segment = value => /^[a-z0-9]+(?:[._-][a-z0-9]+)*$/.test(value ?? "") && value.length <= 100;
 export function createDecisionHttpTransport(scope, task) {
   if (!segment(scope) || (task && !segment(task))) throw new Error("無效的 scope 或 task。");
@@ -24,7 +25,8 @@ export function createDecisionHttpTransport(scope, task) {
     }
     return response.json();
   }
-  return { load: () => task ? post(`${base}/${encodeURIComponent(task)}`, { operation: "load" }) : post(base, {}),
+  return { loadOwnerReport: () => loadOwnerReport(scope),
+    load: () => task ? post(`${base}/${encodeURIComponent(task)}`, { operation: "load" }) : post(base, {}),
     request: body => post(`${base}/${encodeURIComponent(task)}`, body) };
 }
 export function createDecisionDesktopTransport(webview) {

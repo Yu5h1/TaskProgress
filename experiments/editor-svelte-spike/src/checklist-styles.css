@@ -38,6 +38,9 @@ body {
   font-size: clamp(1.45rem, 3vw, 2rem);
 }
 
+.document-owner { margin: 4px 0 0; font-size: .85rem; color: var(--color-secondary-text); }
+.document-owner a { color: var(--color-accent); text-decoration: underline; overflow-wrap: anywhere; }
+
 .checklist-round,
 .checklist-notice {
   color: var(--muted);

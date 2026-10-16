@@ -6,6 +6,9 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
 
 ## Current state (2026-09-29)
 
+- **Checklist／Decision 擁有者 Report（2026-10-16）。** 契約 `Documentation/DocumentOwnerReport.md`，驗收 `checklists/document-owner-report.checklist`。HTTP transport 共用 `owner-report.js` 查詢同 scope 報告，頁面標題下顯示名稱連結返回 Report；查詢失敗不阻塞文件，獨立 Desktop 不推測擁有者。
+  - 11 項定向測試、三個 UI 建置與 checklist parser 通過；保留既有 CardList a11y warnings。獨立複核發現 Checklist 初始查詢接線錯誤後已修正並重建，Browser 確認初始載入顯示正確 Report 名稱與 URL。下一步：重新整理兩種網頁，依 checklist 第 2 項確認排版、點擊及鍵盤導覽。未改真實 Report 或答案，未重啟服務。
+
 - **統一檔案開啟入口與 Web／Desktop 自動分流（2026-10-16）。** 新增 `DocumentOpenRouter` 並擴充 `LocalWebServiceClient`：`task-progress <file.checklist|file.decisions>` 依副檔名分派，舊 `checklist <file>`、`decisions <file>` 轉入同一流程；新版檔案關聯改用 `"<exe>" "%1"`。先執行既有路徑與文件格式驗證，再以有限逾時探測本機服務、確認 edit-host 身分並比對已註冊 `/reports/<scope>/report.json` 對應的 `<scopeRoot>/checklists/<stem>.checklist` 或 `<scopeRoot>/decisions/<stem>.decisions` 實體完整路徑；吻合時開啟預設瀏覽器（URL query 編碼、依實際 host/port），服務停止／逾時／路由不符則開啟本地 Desktop 應用。
   - 定向測試：`--document-open-only`、`--decisions-only`、`--pure` 與 `TaskProgress.Checklist.Tests`（260 checks）全部通過。使用者已手動完成正式 `Build/win-x64/task-progress.exe` 發布。實機雙擊檔案關聯、真實瀏覽器／WPF 視窗開啟可由正式 EXE 核查。
 
