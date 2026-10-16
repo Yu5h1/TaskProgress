@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-10-16T13:20:27.548Z",
+  "updated_at": "2026-10-16T14:19:00.162Z",
   "tasks": [
     {
       "id": "decision-example",
@@ -818,7 +818,7 @@
       "id": "unowned-documents",
       "title": "無主 Checklist／Decision",
       "status": "in_progress",
-      "priority": 2,
+      "priority": 0,
       "summary": "集中管理目前尚未歸屬特定功能任務卡的驗收 Checklist 與決策文件，各子項目明確綁定對應文件並動態推導其驗收進度。",
       "completed_items": [],
       "pending_items": [

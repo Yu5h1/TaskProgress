@@ -28,11 +28,11 @@ This round adds one Browser-host lifecycle rule shared by the Report Viewer and 
       - Observed: The existing CI stale guard rebuilt only the Viewer UI and Desktop Checklist bundles, leaving the committed Browser Checklist bundle unchecked.
       - Resolved: CI and its contract test now rebuild and compare both Checklist host bundles; both were rebuilt after the lifecycle fixes.
 
-- [ ] **3. Verify external changes in the Preview Panel**
+- [x] **3. Verify external changes in the Preview Panel**
   Depends on: 2.
   Outcome: Returning to a clean Report or Checklist preview shows external source changes, while an unsafe editing state is preserved.
   Checks:
-    - [ ] **Preview Panel focus behaviour** `[manual]`
+    - [x] **Preview Panel focus behaviour** `[manual]`
       - Action: Open one Report and one Checklist in the Browser Preview Panel; leave the panel, modify each source externally, then return once with a clean page and once while the page has an unsaved or pending edit.
       - Expect: Each clean return reloads once and shows the external change; the unsafe return does not reload or discard the in-memory edit.
       - Reason: Requires the user's Codex Preview Panel focus lifecycle and direct confirmation that a draft remains visible.
