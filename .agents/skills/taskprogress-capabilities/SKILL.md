@@ -51,6 +51,7 @@ settles nothing until all four are checked.
 | Check that a `.checklist` parses | `task-progress checklist validate <file>` — console only, non-zero exit on failure, no window. |
 | Edit a round without a browser | `task-progress checklist <file>` — the native WPF host. A different entrance from the browser page; the browser skill forbids falling back to it. |
 | Put clickable links inside Report task summaries or item descriptions | `[label](URL)` via the existing description string; follow [report authoring guidance](../task-progress-report/SKILL.md#inline-links-in-report-descriptions). Supports arbitrary labels and existing Checklist/Decision URLs. |
+| Bind Checklist or Decision documents directly to Report tasks or items | `"document_ref": { "kind": "checklist"|"decision", "scope_id": "...", "task": "..." }` in `report.json`; follow [Bind Checklist and Decision documents](../task-progress-report/SKILL.md#bind-checklist-and-decision-documents-document_ref). Automatically derives done status and renders inline document badges in Viewer. |
 | Report generation, time, cost, deadline risk | `.agents/skills/task-progress-report/SKILL.md`. |
 | Ports, mounts, and routing for the local service | `LocalWebService`'s `skills/local-web-service/SKILL.md`. |
 

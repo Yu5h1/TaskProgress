@@ -49,6 +49,8 @@ Do not create a later checklist-only commit merely to mark work already carried
 by an earlier implementation commit. This co-commit rule changes how the file is
 versioned; it does not make "update the checklist" a checklist item.
 
+When tracked in a Report, bind the checklist via `document_ref` (`kind: "checklist"`, `scope_id`, `task: "<task-id>"`) on the corresponding task or item in `report.json`. The Viewer automatically projects its completion when all checks in the file pass.
+
 ### Document header
 
 Every `.checklist` file opens with the same three lines, in this order:
