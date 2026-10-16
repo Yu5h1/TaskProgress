@@ -6,6 +6,9 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
 
 ## Current state (2026-09-29)
 
+- **統一檔案開啟入口與 Web／Desktop 自動分流（2026-10-16）。** 新增 `DocumentOpenRouter` 並擴充 `LocalWebServiceClient`：`task-progress <file.checklist|file.decisions>` 依副檔名分派，舊 `checklist <file>`、`decisions <file>` 轉入同一流程；新版檔案關聯改用 `"<exe>" "%1"`。先執行既有路徑與文件格式驗證，再以有限逾時探測本機服務、確認 edit-host 身分並比對已註冊 `/reports/<scope>/report.json` 對應的 `<scopeRoot>/checklists/<stem>.checklist` 或 `<scopeRoot>/decisions/<stem>.decisions` 實體完整路徑；吻合時開啟預設瀏覽器（URL query 編碼、依實際 host/port），服務停止／逾時／路由不符則開啟本地 Desktop 應用。
+  - 定向測試：`--document-open-only`、`--decisions-only`、`--pure` 與 `TaskProgress.Checklist.Tests`（260 checks）全部通過。使用者已手動完成正式 `Build/win-x64/task-progress.exe` 發布。實機雙擊檔案關聯、真實瀏覽器／WPF 視窗開啟可由正式 EXE 核查。
+
 - **Report 檔案提及連結規則（2026-10-16）。** `.agents/skills/task-progress-report/SKILL.md#inline-links-in-report-descriptions` 已將具體 Checklist／Decision 提及改為必要行內連結，依已核實檔案與所屬 scope 建立頁面路由。下一次撰寫或更新描述時套用；本次未回填實際 Report。
 
 - **歷史工具模組（2026-10-15）。** 契約 `Documentation/EditorHistory.md#歷史工具模組`；驗收 `checklists/history-tools.checklist`。新增受控 `HistoryTools.svelte`，決策頁使用復原／重做／歷史三圖示膠囊；面板顯示紀錄與目前位置，清除需確認且只清歷史。核心提供 metadata 副本及 clearHistory，保留單一堆疊；題目標籤、保存與衝突仍屬 decision adapter。搬移至 Web 的介面／依賴已記錄，未修改 Web 或擴大其他編輯器 UI。

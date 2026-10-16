@@ -9,6 +9,7 @@ internal static class Program
         if (args.Contains("--service-identity-only")) { ServiceIdentityTests.Run(); return 0; }
         if (args.Contains("--tray-launcher-only")) { await TrayHostLauncherTests.RunAsync(); return 0; }
         if (args.Contains("--open-pin-only")) { OpenPinTests.Run(); return 0; }
+        if (args.Contains("--document-open-only")) { await DocumentOpenTests.RunAsync(); return 0; }
         if (args.Contains("--schedule-only")) { ScheduleModelTests.Run(); return 0; }
         if (args.Contains("--modules-only")) { ModuleDependencyTests.Run(); ModuleRefreshTests.Run(); CostEstimationTests.Run(); TimeAnalysisTests.Run(); return 0; }
         if (args.Contains("--decisions-only")) { DecisionTests.Run(); DecisionSourceTests.Run(); return 0; }
@@ -29,6 +30,7 @@ internal static class Program
         WorkerTests.Run();
         ModuleDependencyTests.Run();
         TimeAnalysisTests.Run();
+        await DocumentOpenTests.RunAsync();
 
         if (args.Contains("--pure"))
         {

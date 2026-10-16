@@ -26,7 +26,7 @@ internal static class DecisionTests
             Check(initial["ok"]!.GetValue<bool>(), "load fixture");
             Check(store.Handle("{\"operation\":\"load\"}", "different-task")["error"]!["code"]!.GetValue<string>() == "task_mismatch", "task identity checked inside lock");
             Check(!store.Handle("{\"operation\":\"load\",\"operation\":\"load\"}")["ok"]!.GetValue<bool>(), "duplicate request properties");
-            Check(ChecklistFileRegistration.BuildLaunchCommand(@"C:\tools checklist build\task-progress.exe", "decisions") == "\"C:\\tools checklist build\\task-progress.exe\" decisions \"%1\"", "registration keeps executable path");
+            Check(DecisionFileRegistration.BuildLaunchCommand(@"C:\tools checklist build\task-progress.exe") == "\"C:\\tools checklist build\\task-progress.exe\" \"%1\"", "registration keeps executable path");
             var confirm = Request(initial, "confirm", "confirm-1", new() { ["kind"] = "option", ["option_id"] = "batch" });
             var success = store.Handle(confirm.ToJsonString());
             Check(success["status"]?.GetValue<string>() == "applied", "confirm: " + success.ToJsonString());

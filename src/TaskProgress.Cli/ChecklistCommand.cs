@@ -3,7 +3,15 @@ namespace TaskProgress;
 
 internal static class ChecklistCommand
 {
-    public static int Run(string[] args)
+    public static int Run(string[] args) =>
+        RunWithCallbacks(args, null, null, null, null);
+
+    internal static int RunWithCallbacks(
+        string[] args,
+        Action<Uri>? openBrowser,
+        Action<string>? openDesktop,
+        Action<string>? reportError,
+        TimeSpan? probeTimeout)
     {
         ArgumentNullException.ThrowIfNull(args);
         // Three commands, two error edges. The window command is normally
@@ -23,15 +31,25 @@ internal static class ChecklistCommand
             return Request(args[1..]);
         }
 
-        return Run(args, ChecklistDesktopHost.Run, ChecklistErrorDialog.Show);
+        return Run(
+            args,
+            openDesktop ?? ChecklistDesktopHost.Run,
+            reportError ?? ChecklistErrorDialog.Show,
+            openBrowser,
+            probeTimeout);
     }
 
-    internal static int Run(string[] args, Action<string> openWindow, Action<string> reportError)
+    internal static int Run(
+        string[] args,
+        Action<string> openWindow,
+        Action<string> reportError,
+        Action<Uri>? openBrowser = null,
+        TimeSpan? probeTimeout = null)
     {
         ArgumentNullException.ThrowIfNull(reportError);
         try
         {
-            return Run(args, openWindow);
+            return Run(args, openWindow, openBrowser, probeTimeout);
         }
         catch (CliException error)
         {
@@ -43,7 +61,11 @@ internal static class ChecklistCommand
         }
     }
 
-    internal static int Run(string[] args, Action<string> openWindow)
+    internal static int Run(
+        string[] args,
+        Action<string> openWindow,
+        Action<Uri>? openBrowser = null,
+        TimeSpan? probeTimeout = null)
     {
         ArgumentNullException.ThrowIfNull(args);
         ArgumentNullException.ThrowIfNull(openWindow);
@@ -53,7 +75,9 @@ internal static class ChecklistCommand
             args,
             openWindow,
             ChecklistFileRegistration.Install,
-            () => uninstalled = ChecklistFileRegistration.Uninstall());
+            () => uninstalled = ChecklistFileRegistration.Uninstall(),
+            openBrowser,
+            probeTimeout);
 
         if (string.Equals(operation, "install", StringComparison.OrdinalIgnoreCase))
         {
@@ -72,33 +96,32 @@ internal static class ChecklistCommand
         string[] args,
         Action<string> openWindow,
         Action installAssociation,
-        Func<bool> uninstallAssociation)
+        Func<bool> uninstallAssociation,
+        Action<Uri>? openBrowser = null,
+        TimeSpan? probeTimeout = null)
     {
         ArgumentNullException.ThrowIfNull(args);
         ArgumentNullException.ThrowIfNull(openWindow);
         ArgumentNullException.ThrowIfNull(installAssociation);
         ArgumentNullException.ThrowIfNull(uninstallAssociation);
-        if (args.Length != 1)
-        {
-            throw new CliException("用法：task-progress checklist <task.checklist>|install|uninstall");
-        }
-
-        if (string.Equals(args[0], "install", StringComparison.OrdinalIgnoreCase))
+        if (args.Length == 1 && string.Equals(args[0], "install", StringComparison.OrdinalIgnoreCase))
         {
             installAssociation();
             return 0;
         }
 
-        if (string.Equals(args[0], "uninstall", StringComparison.OrdinalIgnoreCase))
+        if (args.Length == 1 && string.Equals(args[0], "uninstall", StringComparison.OrdinalIgnoreCase))
         {
             _ = uninstallAssociation();
             return 0;
         }
 
-        var path = ChecklistDocumentStore.ValidatePath(args[0]);
-        _ = new ChecklistDocumentStore().Load(path);
-        openWindow(path);
-        return 0;
+        return DocumentOpenRouter.OpenAsync(
+            args,
+            DocumentKind.Checklist,
+            openBrowser,
+            (_, path) => openWindow(path),
+            probeTimeout).GetAwaiter().GetResult();
     }
 
     // Reports the parser's verdict on stdout and nothing else: no window, no

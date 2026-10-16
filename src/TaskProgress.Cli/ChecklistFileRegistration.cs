@@ -8,9 +8,9 @@ internal static class ChecklistFileRegistration
     internal const string ProgId = "TaskProgress.Checklist";
     private const string ClassesPath = @"Software\Classes";
 
-    public static void Install() => Install(FileExtension, ProgId, "checklist");
+    public static void Install() => Install(FileExtension, ProgId);
 
-    internal static void Install(string fileExtension, string progId, string command)
+    internal static void Install(string fileExtension, string progId)
     {
         EnsureWindows();
         var processPath = CurrentProcessPath();
@@ -31,7 +31,7 @@ internal static class ChecklistFileRegistration
         icon?.SetValue(null, $"\"{processPath}\",0");
 
         using var openCommand = fileType.CreateSubKey(@"shell\open\command", writable: true);
-        openCommand?.SetValue(null, BuildLaunchCommand(processPath, command));
+        openCommand?.SetValue(null, BuildLaunchCommand(processPath));
     }
 
     public static bool Uninstall() => Uninstall(FileExtension, ProgId);
@@ -66,7 +66,7 @@ internal static class ChecklistFileRegistration
         return true;
     }
 
-    internal static string BuildLaunchCommand(string processPath, string command = "checklist")
+    internal static string BuildLaunchCommand(string processPath)
     {
         if (string.IsNullOrWhiteSpace(processPath))
         {
@@ -76,8 +76,7 @@ internal static class ChecklistFileRegistration
         {
             throw new CliException("請使用發布後的 task-progress.exe 註冊 .checklist 檔案關聯。 ");
         }
-        if (command is not ("checklist" or "decisions")) throw new CliException("Unknown file command.");
-        return $"\"{processPath}\" {command} \"%1\"";
+        return $"\"{processPath}\" \"%1\"";
     }
 
     private static string CurrentProcessPath() => Environment.ProcessPath

@@ -150,6 +150,205 @@ internal sealed class LocalWebServiceClient : IDisposable
         new(baseUri, $"?scope={Uri.EscapeDataString(scope)}"
             + (pin is null ? "" : $"&pin={Uri.EscapeDataString(pin)}"));
 
+    internal static Uri BuildDocumentUri(Uri baseUri, DocumentKind kind, string scope, string taskStem)
+    {
+        var route = kind switch
+        {
+            DocumentKind.Checklist => "checklist/",
+            DocumentKind.Decisions => "decisions/",
+            _ => throw new ArgumentOutOfRangeException(nameof(kind)),
+        };
+        return new Uri(
+            baseUri,
+            $"{route}?scope={Uri.EscapeDataString(scope)}&task={Uri.EscapeDataString(taskStem)}");
+    }
+
+    internal static async Task<Uri?> TryResolveDocumentUriAsync(
+        DocumentKind kind,
+        string fullPath,
+        int port,
+        TimeSpan? probeTimeout = null,
+        CancellationToken cancellationToken = default)
+    {
+        LauncherSettings settings;
+        try
+        {
+            settings = LauncherSettings.Create(port);
+        }
+        catch (CliException)
+        {
+            return null;
+        }
+
+        return await TryResolveDocumentUriAsync(
+            settings,
+            kind,
+            fullPath,
+            probeTimeout,
+            cancellationToken);
+    }
+
+    internal static async Task<Uri?> TryResolveDocumentUriAsync(
+        LauncherSettings settings,
+        DocumentKind kind,
+        string fullPath,
+        TimeSpan? probeTimeout = null,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(fullPath) || HasReparsePoint(fullPath))
+        {
+            return null;
+        }
+
+        using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        timeout.CancelAfter(probeTimeout ?? ProbeTimeout);
+        try
+        {
+            using var client = await TryConnectAsync(settings, timeout.Token);
+            if (client is null)
+            {
+                return null;
+            }
+
+            await client.VerifyEditHostAsync(timeout.Token);
+            var files = await client.ListFilesAsync(timeout.Token);
+            var serviceBaseUri = new Uri($"http://{client.State.Host}:{client.State.Port}/");
+            return TryMatchRegisteredDocumentUri(serviceBaseUri, kind, fullPath, files);
+        }
+        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+        {
+            return null;
+        }
+        catch (Exception error) when (error is CliException
+            or HttpRequestException
+            or IOException
+            or JsonException
+            or UnauthorizedAccessException
+            or UriFormatException)
+        {
+            return null;
+        }
+    }
+
+    internal static Uri? TryMatchRegisteredDocumentUri(
+        Uri serviceBaseUri,
+        DocumentKind kind,
+        string fullPath,
+        IReadOnlyList<FileRegistration> registrations)
+    {
+        if (string.IsNullOrWhiteSpace(fullPath))
+        {
+            return null;
+        }
+
+        var targetFullPath = Path.GetFullPath(fullPath);
+        if (!File.Exists(targetFullPath) || HasReparsePoint(targetFullPath))
+        {
+            return null;
+        }
+
+        var (subdirectory, extension) = kind switch
+        {
+            DocumentKind.Checklist => ("checklists", ChecklistFileRegistration.FileExtension),
+            DocumentKind.Decisions => ("decisions", DecisionFileRegistration.FileExtension),
+            _ => throw new ArgumentOutOfRangeException(nameof(kind)),
+        };
+
+        if (!string.Equals(Path.GetExtension(targetFullPath), extension, StringComparison.OrdinalIgnoreCase))
+        {
+            return null;
+        }
+
+        var targetDirectory = Path.GetDirectoryName(targetFullPath);
+        if (string.IsNullOrEmpty(targetDirectory))
+        {
+            return null;
+        }
+
+        var targetFileName = Path.GetFileName(targetFullPath);
+        var actualFileName = new DirectoryInfo(targetDirectory)
+            .EnumerateFiles()
+            .FirstOrDefault(entry => string.Equals(entry.Name, targetFileName, StringComparison.OrdinalIgnoreCase))
+            ?.Name
+            ?? targetFileName;
+        var stem = Path.GetFileNameWithoutExtension(actualFileName);
+        if (string.IsNullOrWhiteSpace(stem))
+        {
+            return null;
+        }
+
+        var matchedScopes = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var registration in registrations)
+        {
+            if (!TryReadReportJsonRouteScope(registration.UrlPath, out var scope)
+                || string.IsNullOrWhiteSpace(registration.FilePath))
+            {
+                continue;
+            }
+
+            string reportFullPath;
+            try
+            {
+                reportFullPath = Path.GetFullPath(registration.FilePath);
+            }
+            catch (Exception error) when (error is ArgumentException or NotSupportedException or PathTooLongException)
+            {
+                continue;
+            }
+
+            if (!File.Exists(reportFullPath) || HasReparsePoint(reportFullPath))
+            {
+                continue;
+            }
+
+            var scopeRoot = Path.GetDirectoryName(reportFullPath);
+            if (string.IsNullOrEmpty(scopeRoot))
+            {
+                continue;
+            }
+
+            var routeDirectory = Path.GetFullPath(Path.Combine(scopeRoot, subdirectory));
+            if (!string.Equals(
+                    Path.TrimEndingDirectorySeparator(targetDirectory),
+                    Path.TrimEndingDirectorySeparator(routeDirectory),
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            var routeFilePath = Path.GetFullPath(Path.Combine(routeDirectory, $"{stem}{extension}"));
+            if (!string.Equals(targetFullPath, routeFilePath, StringComparison.OrdinalIgnoreCase)
+                || !File.Exists(routeFilePath)
+                || HasReparsePoint(routeFilePath))
+            {
+                continue;
+            }
+
+            matchedScopes.Add(scope);
+        }
+
+        if (matchedScopes.Count != 1)
+        {
+            return null;
+        }
+
+        return BuildDocumentUri(serviceBaseUri, kind, matchedScopes.Single(), stem);
+    }
+
+    internal static bool HasReparsePoint(string path)
+    {
+        for (FileSystemInfo? current = new FileInfo(Path.GetFullPath(path));
+             current is not null;
+             current = current is FileInfo file ? file.Directory : ((DirectoryInfo)current).Parent)
+        {
+            if (current.Exists && (current.Attributes & FileAttributes.ReparsePoint) != 0)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public async Task ShutdownAsync(CancellationToken cancellationToken)
     {
         using var response = await _http.PostAsync(ShutdownPath, null, cancellationToken);
@@ -510,6 +709,28 @@ internal sealed class LocalWebServiceClient : IDisposable
         }
     }
 
+    private static bool TryReadReportJsonRouteScope(string urlPath, out string scope)
+    {
+        scope = string.Empty;
+        var segments = urlPath.Trim('/').Split('/');
+        if (segments.Length != 3
+            || !string.Equals(segments[0], "reports", StringComparison.Ordinal)
+            || !string.Equals(segments[2], CoreReportModuleProvider.ReportFileName, StringComparison.Ordinal))
+        {
+            return false;
+        }
+
+        try
+        {
+            scope = ScopeId.Validate(segments[1]);
+            return true;
+        }
+        catch (CliException)
+        {
+            return false;
+        }
+    }
+
     private async Task<IReadOnlyList<FileRegistration>> ListFilesAsync(
         CancellationToken cancellationToken)
     {
@@ -607,7 +828,7 @@ internal sealed class LocalWebServiceClient : IDisposable
         public FileRegistration[] Files { get; init; } = [];
     }
 
-    private sealed record FileRegistration
+    internal sealed record FileRegistration
     {
         [JsonPropertyName("id")]
         public string Id { get; init; } = string.Empty;

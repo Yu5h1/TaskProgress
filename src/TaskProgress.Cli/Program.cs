@@ -51,7 +51,13 @@ internal static class Program
         }
     }
 
-    private static async Task<int> RunAsync(string[] args, CancellationToken cancellationToken)
+    internal static async Task<int> RunAsync(
+        string[] args,
+        CancellationToken cancellationToken,
+        Action<Uri>? openBrowser = null,
+        Action<DocumentKind, string>? openDesktop = null,
+        Action<string>? reportError = null,
+        TimeSpan? probeTimeout = null)
     {
         if (args.Length == 0) args = ["start"];
         if (IsHelp(args[0]))
@@ -64,13 +70,17 @@ internal static class Program
         // it does not preserve the `checklist` command inserted by our own
         // Registry installer. Both activation forms must reach the same exact-
         // file validation and error-dialog boundary.
-        if (IsDirectChecklistActivation(args))
+        if (DocumentOpenRouter.IsDirectActivation(args))
         {
-            return ChecklistCommand.Run(args);
+            return DocumentOpenRouter.Run(
+                args,
+                null,
+                openBrowser,
+                openDesktop,
+                reportError,
+                probeTimeout,
+                cancellationToken);
         }
-
-        if (args.Length == 1 && args[0].EndsWith(".decisions", StringComparison.OrdinalIgnoreCase))
-            return DecisionCommand.Run(args);
 
         var store = new ScopeStore();
         if (Uri.TryCreate(args[0], UriKind.Absolute, out var activationUri)
@@ -99,9 +109,19 @@ internal static class Program
             case "report":
                 return await ReportCommand.RunAsync(args[1..], store, cancellationToken);
             case "checklist":
-                return ChecklistCommand.Run(args[1..]);
+                return ChecklistCommand.RunWithCallbacks(
+                    args[1..],
+                    openBrowser,
+                    openDesktop is null ? null : path => openDesktop(DocumentKind.Checklist, path),
+                    reportError,
+                    probeTimeout);
             case "decisions":
-                return DecisionCommand.Run(args[1..]);
+                return DecisionCommand.Run(
+                    args[1..],
+                    openBrowser,
+                    openDesktop is null ? null : path => openDesktop(DocumentKind.Decisions, path),
+                    reportError,
+                    probeTimeout);
             case "open":
                 await OpenAsync(ParseOpenRequest(args[1..], store), cancellationToken);
                 return 0;
@@ -625,11 +645,10 @@ internal static class Program
     private static bool IsHelp(string value) => value is "--help" or "-help" or "-h" or "help";
 
     internal static bool IsDirectChecklistActivation(string[] args) =>
-        args.Length == 1
-        && string.Equals(
-            Path.GetExtension(args[0]),
-            ChecklistFileRegistration.FileExtension,
-            StringComparison.OrdinalIgnoreCase);
+        DocumentOpenRouter.IsDirectChecklistActivation(args);
+
+    internal static bool IsDirectDocumentActivation(string[] args) =>
+        DocumentOpenRouter.IsDirectActivation(args);
 
     private static void PrintHelp()
     {
@@ -637,6 +656,7 @@ internal static class Program
         Console.WriteLine();
         Console.WriteLine("用法：");
         Console.WriteLine("  task-progress.exe <命令> [參數] [選項]");
+        Console.WriteLine("  task-progress.exe <file.checklist|file.decisions> [--port <port>]");
         Console.WriteLine("  task-progress.exe <report-folder> [選項]");
         Console.WriteLine();
         Console.WriteLine("命令：");
@@ -650,9 +670,9 @@ internal static class Program
         Console.WriteLine("  report apply <folder> --input <file|-> [--dry-run]  提交操作；- 使用 UTF-8 stdin");
         Console.WriteLine("    item.add 可帶 position；item.move 以 position.before／after 指定待處理子項目 ID");
         Console.WriteLine("  report <動作> --scope <id>       以已登記 scope 取代 folder；exit code 0／2／3／4");
-        Console.WriteLine("  checklist <task.checklist>       開啟本機 WPF Checklist 編輯器");
+        Console.WriteLine("  checklist <task.checklist>       開啟 Checklist（服務路由可用時開網頁，否則開啟本機編輯器）");
         Console.WriteLine("  checklist validate <file>        僅驗證文件格式並輸出到 stdout，不開視窗");
-        Console.WriteLine("  decisions <file.decisions>      開啟具名決策文件（Desktop）");
+        Console.WriteLine("  decisions <file.decisions>      開啟決策文件（服務路由可用時開網頁，否則開啟本機編輯器）");
         Console.WriteLine("  decisions validate <file>        驗證決策 JSON 與歷史，輸出 JSON");
         Console.WriteLine("  decisions request --file <file>  stdin 接收 load/confirm/reopen/revise，stdout 回 JSON；檢查 ok 欄位");
         Console.WriteLine("  decisions install|uninstall      管理目前使用者的 .decisions 檔案關聯");

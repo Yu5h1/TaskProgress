@@ -3,6 +3,10 @@ namespace TaskProgress;
 
 internal static class DecisionFileRegistration
 {
-    public static void Install() => ChecklistFileRegistration.Install(".decisions", "TaskProgress.Decisions", "decisions");
-    public static bool Uninstall() => ChecklistFileRegistration.Uninstall(".decisions", "TaskProgress.Decisions");
+    public const string FileExtension = ".decisions";
+    internal const string ProgId = "TaskProgress.Decisions";
+
+    public static void Install() => ChecklistFileRegistration.Install(FileExtension, ProgId);
+    public static bool Uninstall() => ChecklistFileRegistration.Uninstall(FileExtension, ProgId);
+    internal static string BuildLaunchCommand(string processPath) => ChecklistFileRegistration.BuildLaunchCommand(processPath);
 }

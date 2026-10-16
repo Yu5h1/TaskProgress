@@ -327,10 +327,15 @@ internal static partial class Program
             True(!installed, "Checklist association uninstall did not dispatch install");
             True(uninstalled, "Checklist association uninstall dispatch");
             Equal(
-                "\"C:\\Program Files\\TaskProgress\\task-progress.exe\" checklist \"%1\"",
+                "\"C:\\Program Files\\TaskProgress\\task-progress.exe\" \"%1\"",
                 ChecklistFileRegistration.BuildLaunchCommand(
                     @"C:\Program Files\TaskProgress\task-progress.exe"),
                 "Checklist association launch command");
+            Equal(
+                "\"C:\\Program Files\\TaskProgress\\task-progress.exe\" \"%1\"",
+                DecisionFileRegistration.BuildLaunchCommand(
+                    @"C:\Program Files\TaskProgress\task-progress.exe"),
+                "Decisions association launch command");
             True(
                 ChecklistDesktopHost.CreateRuntimeMissingError("missing")
                     .Message.Contains("Evergreen Runtime", StringComparison.Ordinal),
