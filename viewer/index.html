@@ -25,10 +25,7 @@
     <a class="skip-link" href="#main-content">跳至主要內容</a>
     <div class="page-shell editor-layout-shell">
       <header class="site-header">
-        <a class="brand" href="./" aria-label="TaskProgress Viewer 首頁">
-          <span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></span>
-          <span>TaskProgress</span>
-        </a>
+        <a class="brand" id="report-title" href="./" title="正在載入報告…">正在載入報告…</a>
         <div class="header-actions">
           <div class="mode-badge" id="mode-badge" hidden>Developer overlay</div>
           <!-- Mount point only. The shared ModeToggle component renders the
@@ -48,17 +45,13 @@
 
       <main id="main-content">
         <section class="hero" aria-labelledby="report-title">
-          <div>
-            <p class="eyebrow" id="scope-label">唯讀任務報告</p>
-            <div class="project-title-line">
-              <h1 id="report-title">正在載入報告…</h1>
-              <!-- Mount point only. The shared TimeSummaryButton component
-                   renders the pill itself. -->
-              <div class="time-summary-dock" id="time-summary-dock" hidden></div>
-            </div>
+          <div class="project-title-line">
             <!-- Mount point only. The shared ReportSummary component renders
                  the line itself, in preview and in edit. -->
             <div id="report-summary"></div>
+            <!-- Mount point only. The shared TimeSummaryButton component
+                 renders the pill itself. -->
+            <div class="time-summary-dock" id="time-summary-dock" hidden></div>
           </div>
           <dl class="report-meta" id="report-meta" hidden>
             <div>
@@ -108,7 +101,10 @@
       </main>
 
       <footer>
-        <span>TaskProgress Viewer</span>
+        <span class="footer-brand">
+          <span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></span>
+          <span>TaskProgress Viewer</span>
+        </span>
         <span id="viewer-mode-label">Viewer is read-only</span>
       </footer>
     </div>

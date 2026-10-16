@@ -267,7 +267,9 @@ code {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 12px;
   min-height: 50px;
+  min-width: 0;
 }
 
 .header-actions,
@@ -278,6 +280,7 @@ code {
 }
 
 .header-actions {
+  flex: 0 0 auto;
   gap: 8px;
 }
 
@@ -505,11 +508,28 @@ code {
   display: inline-flex;
   align-items: center;
   gap: 8px;
+  min-width: 0;
   color: var(--ink);
   font-weight: 750;
   font-size: 0.86rem;
   letter-spacing: -0.02em;
   text-decoration: none;
+}
+
+#report-title.brand {
+  display: block;
+  flex: 0 1 auto;
+  max-width: 100%;
+  overflow: hidden;
+  color: var(--color-heading);
+  font-size: clamp(0.95rem, 1.8vw, 1.15rem);
+  line-height: 1.3;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.site-header:has(.editor-mode-dock:not([hidden])) #report-title.brand {
+  max-width: calc(50% - 56px);
 }
 
 .brand-mark {
@@ -603,7 +623,7 @@ h1 {
 
 .hero-summary {
   max-width: 680px;
-  margin-top: 5px;
+  margin-top: 0;
   margin-bottom: 0;
   color: var(--ink-soft);
   font-size: 0.82rem;
@@ -1033,7 +1053,7 @@ h1 {
   display: block;
   width: 100%;
   max-width: 680px;
-  margin-top: 5px;
+  margin-top: 0;
   padding: 6px 9px;
   font-size: 0.82rem;
   line-height: 1.4;
@@ -1617,6 +1637,7 @@ section.developer-details .developer-summary {
 
 footer {
   display: flex;
+  align-items: center;
   justify-content: space-between;
   gap: 20px;
   margin-top: 30px;
@@ -1624,6 +1645,17 @@ footer {
   color: var(--muted);
   border-top: 1px solid var(--color-line-subtle);
   font-size: 0.78rem;
+}
+
+.footer-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.footer-brand .brand-mark {
+  flex: 0 0 auto;
 }
 
 .edit-save-bar {
@@ -2101,6 +2133,7 @@ footer {
   }
 
   footer:not(.edit-save-bar) {
+    align-items: flex-start;
     flex-direction: column;
   }
 }
@@ -2119,8 +2152,13 @@ footer {
   gap: 8px 12px;
 }
 
-.project-title-line h1 {
+.project-title-line h1,
+.project-title-line > #report-summary {
   min-width: 0;
+}
+
+.project-title-line > #report-summary {
+  flex: 1 1 320px;
 }
 
 .time-summary-button,

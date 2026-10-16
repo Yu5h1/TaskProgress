@@ -127,7 +127,6 @@ function attachedModule(type) {
 const elements = {
   title: document.querySelector("#report-title"),
   summary: document.querySelector("#report-summary"),
-  scope: document.querySelector("#scope-label"),
   meta: document.querySelector("#report-meta"),
   updatedAt: document.querySelector("#updated-at"),
   reportId: document.querySelector("#report-id"),
@@ -225,6 +224,11 @@ let reportSummaryView = null;
  * the same place; the host supplies the sentence and, in edit mode, the field
  * behind it, and never writes text into the node itself.
  */
+function setReportTitle(title) {
+  elements.title.textContent = title;
+  elements.title.title = title;
+}
+
 function renderReportSummary(props) {
   if (reportSummaryView) reportSummaryView.update(props);
   else reportSummaryView = createUiView("report-summary", elements.summary, props);
@@ -1045,7 +1049,7 @@ function renderTasks() {
 function renderReport() {
   const { report } = state;
   document.title = `${report.title} — TaskProgress`;
-  elements.title.textContent = report.title;
+  setReportTitle(report.title);
   renderReportSummary({
     text: reportSummaryText(report),
     editable: state.editor.editing && Boolean(state.editor.session),
@@ -1058,7 +1062,6 @@ function renderReport() {
       );
     },
   });
-  elements.scope.textContent = report.scope_id;
   elements.updatedAt.textContent = formatTime(report.updated_at);
   elements.reportId.textContent = report.report_id;
   elements.meta.hidden = false;
@@ -1080,6 +1083,8 @@ function renderReport() {
 }
 
 async function discoverLocalEditor(scope) {
+  state.editor.available = false;
+  viewModeToggleView?.update({ available: false });
   if (!scope) return;
   state.editor.scope = scope;
   state.editor.client = createEditHostClient({ scope });
@@ -1309,9 +1314,9 @@ function renderScopeDirectory(scopes) {
 }
 
 async function showStart() {
-  elements.title.textContent = "TaskProgress Viewer";
+  document.title = "TaskProgress Viewer";
+  setReportTitle("TaskProgress Viewer");
   renderReportSummary({ text: "每個連結只載入指定 scope 的唯讀報告。" });
-  elements.scope.textContent = "尚未指定 report 或 scope";
   elements.startKicker.textContent = "Link-first viewer";
   elements.startTitle.textContent = "從報告連結開始";
   elements.startDescription.textContent = "本機 ?scope= 會自動載入存在的 Developer report；公開網站只載入基本報告。可用 &dev=none 強制停用 Developer overlay。";
@@ -1326,9 +1331,8 @@ async function showStart() {
   try {
     const scopes = await loadScopeCatalog();
     if (!scopes || scopes.length === 0) return;
-    elements.title.textContent = "TaskProgress Scopes";
+    setReportTitle("TaskProgress Scopes");
     renderReportSummary({ text: "選擇已由本機 Launcher 載入的任務報告。" });
-    elements.scope.textContent = `本機服務 · ${scopes.length} 個 scope`;
     elements.startKicker.textContent = "Local scope directory";
     elements.startTitle.textContent = "已註冊的 Scope";
     elements.startDescription.textContent = "這份清單只包含 scope ID，不會公開本機資料夾路徑。";
@@ -1344,9 +1348,8 @@ async function showStart() {
 }
 
 function showFatal(message, details = []) {
-  elements.title.textContent = "報告無法載入";
+  setReportTitle("報告無法載入");
   renderReportSummary({ text: "請檢查連結與資料格式後再試一次。" });
-  elements.scope.textContent = "資料診斷";
   elements.content.hidden = true;
   elements.projectProgress.hidden = true;
   elements.timeSummaryButton.hidden = true;
@@ -1358,6 +1361,8 @@ function showFatal(message, details = []) {
 }
 
 async function main() {
+  state.diagnostics = [];
+  setReportTitle("正在載入報告…");
   renderReportSummary({ text: "資料會由目前連結自動載入。" });
   const params = new URLSearchParams(window.location.search);
   let request;
@@ -1619,5 +1624,8 @@ installForegroundRefresh({
     && !state.editor.timeSettingsPending
     && !state.editor.confirmingDeliverySave
   ),
+});
+window.addEventListener("popstate", () => {
+  void main();
 });
 main();
