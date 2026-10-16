@@ -14,7 +14,12 @@
         {
           "id": "item-decision-example-todo-1",
           "title": "完成決策畫面操作驗收",
-          "priority": 4
+          "priority": 4,
+          "document_ref": {
+            "kind": "decision",
+            "scope_id": "task-progress",
+            "task": "decision-example"
+          }
         }
       ],
       "completed_items": []
@@ -81,7 +86,12 @@
         {
           "id": "item-viewer-core-foreground-refresh",
           "title": "Browser Report／Checklist 已完成離開後回到前景時的整頁刷新、同次 focus／visibility 去重，以及 dirty／saving／pending 保護；待 Preview Panel 實機確認乾淨狀態刷新與未提交草稿保留",
-          "priority": 2
+          "priority": 2,
+          "document_ref": {
+            "kind": "checklist",
+            "scope_id": "task-progress",
+            "task": "foreground-source-refresh"
+          }
         },
         {
           "id": "item-viewer-core-pointer-ref-route",
@@ -587,7 +597,12 @@
         {
           "id": "item-extension-modules-done-1",
           "title": "完成擴充資訊模組架構計畫，確認 report.json 保持核心穩定、time 作為第一個參考模組，並隔離外部交易與合約系統",
-          "priority": 4
+          "priority": 4,
+          "document_ref": {
+            "kind": "checklist",
+            "scope_id": "task-progress",
+            "task": "extension-modules"
+          }
         },
         {
           "id": "item-extension-modules-inline-strip",
@@ -708,7 +723,12 @@
           "id": "item-third-party-checklist-write-reset-ui",
           "title": "驗收已實作的 Browser 清空按鈕與確認框；Browser／Desktop Checklist bundles 已重建",
           "priority": 3,
-          "status": "in_progress"
+          "status": "in_progress",
+          "document_ref": {
+            "kind": "checklist",
+            "scope_id": "task-progress",
+            "task": "third-party-checklist-write"
+          }
         }
       ]
     },
@@ -718,7 +738,12 @@
         {
           "status": "planned",
           "id": "pin-user-review",
-          "title": "使用者確認圖釘及 CLI 開啟操作體感，見 card-pin.checklist"
+          "title": "使用者確認圖釘及 CLI 開啟操作體感，見 card-pin.checklist",
+          "document_ref": {
+            "kind": "checklist",
+            "scope_id": "task-progress",
+            "task": "card-pin"
+          }
         }
       ],
       "title": "任務卡釘選與 CLI 定位",
@@ -788,6 +813,196 @@
         }
       ],
       "pending_items": []
+    },
+    {
+      "id": "unowned-documents",
+      "title": "無主 Checklist／Decision",
+      "status": "in_progress",
+      "priority": 2,
+      "summary": "集中管理目前尚未歸屬特定功能任務卡的驗收 Checklist 與決策文件，各子項目明確綁定對應文件並動態推導其驗收進度。",
+      "completed_items": [],
+      "pending_items": [
+        {
+          "id": "item-unowned-card-arrangement",
+          "title": "卡片選取與換位 Checklist",
+          "priority": 2,
+          "document_ref": {
+            "kind": "checklist",
+            "scope_id": "task-progress",
+            "task": "card-arrangement"
+          }
+        },
+        {
+          "id": "item-unowned-card-disclosure",
+          "title": "卡片收合與展開 Checklist",
+          "priority": 2,
+          "document_ref": {
+            "kind": "checklist",
+            "scope_id": "task-progress",
+            "task": "card-disclosure"
+          }
+        },
+        {
+          "id": "item-unowned-card-visibility",
+          "title": "卡片可見性與應用版清空 Checklist",
+          "priority": 2,
+          "document_ref": {
+            "kind": "checklist",
+            "scope_id": "task-progress",
+            "task": "card-visibility"
+          }
+        },
+        {
+          "id": "item-unowned-decision-history",
+          "title": "決策歷史 Undo／Redo Checklist",
+          "priority": 2,
+          "document_ref": {
+            "kind": "checklist",
+            "scope_id": "task-progress",
+            "task": "decision-history"
+          }
+        },
+        {
+          "id": "item-unowned-decision-items",
+          "title": "決策項目功能驗收 Checklist",
+          "priority": 2,
+          "document_ref": {
+            "kind": "checklist",
+            "scope_id": "task-progress",
+            "task": "decision-items"
+          }
+        },
+        {
+          "id": "item-unowned-default-tray-start",
+          "title": "預設 Tray 啟動入口 Checklist",
+          "priority": 2,
+          "document_ref": {
+            "kind": "checklist",
+            "scope_id": "task-progress",
+            "task": "default-tray-start"
+          }
+        },
+        {
+          "id": "item-unowned-duplicate-maintenance-convergence",
+          "title": "重複維護收斂 Checklist",
+          "priority": 2,
+          "document_ref": {
+            "kind": "checklist",
+            "scope_id": "task-progress",
+            "task": "duplicate-maintenance-convergence"
+          }
+        },
+        {
+          "id": "item-unowned-editor-history",
+          "title": "共用編輯歷史 Core Checklist",
+          "priority": 2,
+          "document_ref": {
+            "kind": "checklist",
+            "scope_id": "task-progress",
+            "task": "editor-history"
+          }
+        },
+        {
+          "id": "item-unowned-expandable-text",
+          "title": "卡片說明展開元件 Checklist",
+          "priority": 2,
+          "document_ref": {
+            "kind": "checklist",
+            "scope_id": "task-progress",
+            "task": "expandable-text"
+          }
+        },
+        {
+          "id": "item-unowned-icon-choice",
+          "title": "IconChoice 元件 Checklist",
+          "priority": 2,
+          "document_ref": {
+            "kind": "checklist",
+            "scope_id": "task-progress",
+            "task": "icon-choice"
+          }
+        },
+        {
+          "id": "item-unowned-module-dependency-refresh",
+          "title": "模組版本與依賴重算核查 Checklist",
+          "priority": 2,
+          "document_ref": {
+            "kind": "checklist",
+            "scope_id": "task-progress",
+            "task": "module-dependency-refresh"
+          }
+        },
+        {
+          "id": "item-unowned-per-task-checklists",
+          "title": "多任務檔案配置 Checklist",
+          "priority": 2,
+          "document_ref": {
+            "kind": "checklist",
+            "scope_id": "task-progress",
+            "task": "per-task-checklists"
+          }
+        },
+        {
+          "id": "item-unowned-report-cli-update",
+          "title": "Report CLI 修改命令 Checklist",
+          "priority": 2,
+          "document_ref": {
+            "kind": "checklist",
+            "scope_id": "task-progress",
+            "task": "report-cli-update"
+          }
+        },
+        {
+          "id": "item-unowned-report-inline-links",
+          "title": "Report 描述行內連結 Checklist",
+          "priority": 2,
+          "document_ref": {
+            "kind": "checklist",
+            "scope_id": "task-progress",
+            "task": "report-inline-links"
+          }
+        },
+        {
+          "id": "item-unowned-report-item-ordering",
+          "title": "Report 子項目排序與更新 Checklist",
+          "priority": 2,
+          "document_ref": {
+            "kind": "checklist",
+            "scope_id": "task-progress",
+            "task": "report-item-ordering"
+          }
+        },
+        {
+          "id": "item-unowned-schedule-projection",
+          "title": "Schedule 資料契約 Checklist",
+          "priority": 2,
+          "document_ref": {
+            "kind": "checklist",
+            "scope_id": "task-progress",
+            "task": "schedule-projection"
+          }
+        },
+        {
+          "id": "item-unowned-scope-analysis-boundary",
+          "title": "Scope 分析邊界 Checklist",
+          "priority": 2,
+          "document_ref": {
+            "kind": "checklist",
+            "scope_id": "task-progress",
+            "task": "scope-analysis-boundary"
+          }
+        },
+        {
+          "id": "item-unowned-startup-observer",
+          "title": "啟動與服務觀察 Checklist",
+          "priority": 2,
+          "document_ref": {
+            "kind": "checklist",
+            "scope_id": "task-progress",
+            "task": "startup-observer"
+          }
+        }
+      ]
     }
   ]
 }

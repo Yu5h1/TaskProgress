@@ -383,6 +383,10 @@
           "reason": "明確綁定、避免文字正則解析脆性、保存隔離草稿。"
         }
       ]
+    },
+    {
+      "id": "unowned-documents",
+      "next_step": "逐項核查無主 Checklist 與 Decision 之驗收項目，或在建立對應功能任務卡時移轉歸屬。"
     }
   ]
 }
