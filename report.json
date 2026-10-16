@@ -747,7 +747,7 @@
     {
       "id": "document-binding",
       "title": "Checklist／Decision 與 Report 項目完成狀態連動",
-      "status": "in_progress",
+      "status": "done",
       "priority": 1,
       "summary": "Report 任務與子項目支援明確綁定 Checklist 或 Decision 文件，於 Viewer 載入時依驗收與決策結果推導完成狀態，並在註解開頭提供底線來源連結。",
       "completed_items": [
@@ -770,12 +770,10 @@
             "scope_id": "task-progress",
             "task": "decision-example"
           }
-        }
-      ],
-      "pending_items": [
+        },
         {
           "id": "item-binding-checklist-partial",
-          "title": "綁定尚未全數通過的 Checklist 驗證維持待處理狀態",
+          "title": "綁定驗證文件時依檔案結果動態推導待處理或完成",
           "priority": 2,
           "document_ref": {
             "kind": "checklist",
@@ -788,7 +786,8 @@
           "title": "未綁定文件的既有項目保持原有狀態與行為",
           "priority": 3
         }
-      ]
+      ],
+      "pending_items": []
     }
   ]
 }

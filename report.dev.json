@@ -365,7 +365,7 @@
     },
     {
       "id": "document-binding",
-      "next_step": "在 Viewer 介面實測歷史工具（已通過）與決策範例之自動連動完成，核對來源底線連結點擊導覽。",
+      "next_step": "已完成 Checklist／Decision 狀態連動、來源底線連結點擊導覽與各項情境驗證。",
       "decisions": [
         {
           "summary": "Report 項目狀態連動第一版採讀取時推導，不回寫原始 report.json；Checklist 與 Decision 依全數通過／全數決策為唯一完成條件。",
