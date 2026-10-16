@@ -3896,6 +3896,9 @@ function fo(e) {
 	}
 	return {
 		view: m,
+		updateSources(e) {
+			t.sources = co(e);
+		},
 		undo: () => f("undo"),
 		redo: () => f("redo"),
 		clearHistory() {
@@ -4172,7 +4175,7 @@ function Wo(e, t) {
 					R(d, fo(e)), me();
 					return;
 				}
-				e.revision !== W(f)?.snapshot?.revision && (W(d).merge(e), me());
+				e.revision === W(f)?.snapshot?.revision ? uo(e.sources, W(f)?.snapshot?.sources) || (typeof W(d).updateSources == "function" ? W(d).updateSources(e.sources) : W(d).merge(e), R(ne, {}), me()) : (W(d).merge(e), R(ne, {}), me());
 			} catch (e) {
 				console.warn("Decision foreground refresh failed:", e);
 			} finally {

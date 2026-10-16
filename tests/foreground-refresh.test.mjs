@@ -213,3 +213,71 @@ test("async reload rejection restores refreshing state in finally so subsequent 
   assert.equal(reloads, 2, "failure in cycle 1 allows retry in cycle 2");
 });
 
+test("Checklist refresh guards against in-flight draft creation and state changes", async () => {
+  const checklistApp = await readFile(
+    new URL("../experiments/editor-svelte-spike/src/ChecklistApp.svelte", import.meta.url),
+    "utf8"
+  );
+
+  // Verifies that refresh captures initial session identity and revision
+  assert.match(checklistApp, /const initialPersistence = persistence/u);
+  assert.match(checklistApp, /const initialRevision = view\?\.document\?\.revision/u);
+
+  // Verifies that refresh checks session identity, revision, dirty, saving, pending, reset before applying
+  assert.match(checklistApp, /persistence !== initialPersistence/u);
+  assert.match(checklistApp, /view\.document\?\.revision !== initialRevision/u);
+  assert.match(checklistApp, /view\.dirty \|\| view\.saving \|\| view\.pending \|\| resetOpen \|\| resetBusy/u);
+});
+
+test("Checklist in-flight draft scenario preserves user draft when load returns different revision", async () => {
+  let installedDocument = null;
+  let view = {
+    document: { revision: "rev-1" },
+    dirty: false,
+    saving: false,
+    pending: false,
+  };
+  let persistence = { id: "session-1" };
+  let resetOpen = false;
+  let resetBusy = false;
+
+  let resolveLoad = null;
+  const transport = {
+    load: () => new Promise((resolve) => {
+      resolveLoad = resolve;
+    }),
+  };
+
+  async function simulatedRefresh() {
+    if (!transport || !view || view.dirty || view.saving || view.pending || resetOpen || resetBusy) return;
+    const initialPersistence = persistence;
+    const initialRevision = view?.document?.revision;
+    try {
+      const document = await transport.load();
+      if (!document || !document.revision) return;
+      if (!persistence || persistence !== initialPersistence || !view) return;
+      if (view.document?.revision !== initialRevision) return;
+      if (view.dirty || view.saving || view.pending || resetOpen || resetBusy) return;
+      if (document.revision === initialRevision) return;
+      installedDocument = document;
+    } catch {
+      // ignore
+    }
+  }
+
+  // 1. Start refresh when clean
+  const refreshPromise = simulatedRefresh();
+
+  // 2. While load is in-flight, user edits and creates a draft
+  view.dirty = true;
+
+  // 3. Load returns with a new remote revision
+  resolveLoad({ revision: "rev-2", items: [] });
+  await refreshPromise;
+
+  // 4. In-flight response must be discarded; draft not overwritten!
+  assert.equal(installedDocument, null, "In-flight response must not install new document over user draft");
+  assert.equal(view.dirty, true, "User draft state must be preserved");
+});
+
+

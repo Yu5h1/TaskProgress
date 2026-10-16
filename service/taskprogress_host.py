@@ -126,6 +126,24 @@ def _extract_decision_source_paths(doc_path: Path, doc_data: dict[str, Any]) -> 
     return sorted(sources)
 
 
+def _is_standard_checklist_load(req_data: Any) -> bool:
+    if not isinstance(req_data, dict):
+        return False
+    if not set(req_data.keys()).issubset({"version", "id", "type", "payload"}):
+        return False
+    if req_data.get("version") != 1 or type(req_data.get("version")) is not int:
+        return False
+    req_id = req_data.get("id")
+    if not isinstance(req_id, str) or not (1 <= len(req_id) <= 64):
+        return False
+    if req_data.get("type") != "load":
+        return False
+    if "payload" in req_data and req_data["payload"] is not None:
+        if not isinstance(req_data["payload"], dict) or len(req_data["payload"]) > 0:
+            return False
+    return True
+
+
 @dataclass(frozen=True)
 class EditSession:
     token: str
@@ -495,9 +513,9 @@ def install_edit_api(
     write_lock = asyncio.Lock()
     cli_semaphore = asyncio.Semaphore(MAX_CLI_CONCURRENCY)
     checklist_cache: OrderedDict[Path, tuple[tuple[int, int], dict[str, Any]]] = OrderedDict()
-    in_flight_checklist: dict[Path, asyncio.Future[_SingleflightResult]] = {}
+    in_flight_checklist: dict[Path, asyncio.Task[_SingleflightResult]] = {}
     decision_cache: OrderedDict[Path, tuple[tuple[int, int], list[Path], tuple[tuple[str, bool, int, int], ...], dict[str, Any]]] = OrderedDict()
-    in_flight_decision: dict[Path, asyncio.Future[_SingleflightResult]] = {}
+    in_flight_decision: dict[Path, asyncio.Task[_SingleflightResult]] = {}
     router = APIRouter(prefix=API_PREFIX)
     def registered_report(scope: str) -> Path | None:
         registration = registry.get_by_url(_report_route(scope))
@@ -595,6 +613,55 @@ def install_edit_api(
         }
         return JSONResponse(capability)
 
+    async def _execute_checklist_load(
+        resolved_path: Path, checklist_path: Path, body_bytes: bytes
+    ) -> _SingleflightResult:
+        try:
+            before_fp = _file_fingerprint(resolved_path)
+            async with cli_semaphore:
+                completed = await asyncio.to_thread(
+                    subprocess.run,
+                    [*analyzer_command, "checklist", "request", "--file", str(checklist_path)],
+                    input=body_bytes,
+                    capture_output=True,
+                    timeout=30,
+                    check=False,
+                    creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
+                )
+            if completed.returncode != 0:
+                detail = (completed.stderr or completed.stdout).decode("utf-8", errors="replace").strip()
+                prob = _problem(502, "checklist_cli_failed", "Checklist CLI reported a fatal error", detail)
+                return _SingleflightResult(ok=False, error_response=prob)
+            try:
+                parsed = json.loads(completed.stdout)
+            except Exception:
+                parsed = None
+            after_fp = _file_fingerprint(resolved_path)
+            if (
+                isinstance(parsed, dict)
+                and parsed.get("type") == "result"
+                and before_fp is not None
+                and before_fp == after_fp
+            ):
+                template = copy.deepcopy(parsed)
+                checklist_cache[resolved_path] = (before_fp, template)
+                checklist_cache.move_to_end(resolved_path)
+                if len(checklist_cache) > MAX_LOAD_CACHE_ENTRIES:
+                    checklist_cache.popitem(last=False)
+            if isinstance(parsed, dict):
+                return _SingleflightResult(ok=True, data=parsed)
+            return _SingleflightResult(
+                ok=False,
+                error_response=Response(content=completed.stdout, media_type="application/json"),
+            )
+        except (OSError, subprocess.SubprocessError) as error:
+            prob = _problem(502, "checklist_cli_failed", "Checklist CLI could not run", str(error))
+            return _SingleflightResult(ok=False, error_response=prob)
+        except Exception as error:
+            return _SingleflightResult(ok=False, exception=error)
+        finally:
+            in_flight_checklist.pop(resolved_path, None)
+
     @router.post("/checklists/{scope}/{task}")
     async def checklist_request(scope: str, task: str, request: Request) -> Response:
         """Pipe one Checklist bridge message through the one C# parser.
@@ -647,13 +714,12 @@ def install_edit_api(
         resolved_path = checklist_path.resolve()
         try:
             req_data = json.loads(body)
-            req_type = req_data.get("type") if isinstance(req_data, dict) else None
             req_id = req_data.get("id") if isinstance(req_data, dict) else ""
         except Exception:
-            req_type = None
+            req_data = None
             req_id = ""
 
-        if req_type == "load":
+        if _is_standard_checklist_load(req_data):
             current_fp = _file_fingerprint(resolved_path)
             if current_fp is not None and resolved_path in checklist_cache:
                 cached_fp, cached_template = checklist_cache[resolved_path]
@@ -667,75 +733,28 @@ def install_edit_api(
                     )
 
             if resolved_path in in_flight_checklist:
-                sf_res = await in_flight_checklist[resolved_path]
-                if not sf_res.ok:
-                    if sf_res.error_response is not None:
-                        return sf_res.error_response
-                    raise sf_res.exception or RuntimeError("Checklist CLI failed")
-                resp_payload = copy.deepcopy(sf_res.data)
-                resp_payload["id"] = req_id
-                return Response(
-                    content=json.dumps(resp_payload, ensure_ascii=False).encode("utf-8"),
-                    media_type="application/json",
+                task_fut = in_flight_checklist[resolved_path]
+            else:
+                task_fut = asyncio.create_task(
+                    _execute_checklist_load(resolved_path, checklist_path, body)
                 )
+                in_flight_checklist[resolved_path] = task_fut
 
-            loop = asyncio.get_running_loop()
-            fut: asyncio.Future[_SingleflightResult] = loop.create_future()
-            in_flight_checklist[resolved_path] = fut
-            before_fp = _file_fingerprint(resolved_path)
-            try:
-                async with cli_semaphore:
-                    completed = await asyncio.to_thread(
-                        subprocess.run,
-                        [*analyzer_command, "checklist", "request", "--file", str(checklist_path)],
-                        input=body,
-                        capture_output=True,
-                        timeout=30,
-                        check=False,
-                        creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
-                    )
-                if completed.returncode != 0:
-                    detail = (completed.stderr or completed.stdout).decode("utf-8", errors="replace").strip()
-                    prob = _problem(502, "checklist_cli_failed", "Checklist CLI reported a fatal error", detail)
-                    fut.set_result(_SingleflightResult(ok=False, error_response=prob))
-                    return prob
-                try:
-                    parsed = json.loads(completed.stdout)
-                except Exception:
-                    parsed = None
-                after_fp = _file_fingerprint(resolved_path)
-                if (
-                    isinstance(parsed, dict)
-                    and parsed.get("type") == "result"
-                    and before_fp is not None
-                    and before_fp == after_fp
-                ):
-                    template = copy.deepcopy(parsed)
-                    checklist_cache[resolved_path] = (before_fp, template)
-                    checklist_cache.move_to_end(resolved_path)
-                    if len(checklist_cache) > MAX_LOAD_CACHE_ENTRIES:
-                        checklist_cache.popitem(last=False)
-                if isinstance(parsed, dict):
-                    fut.set_result(_SingleflightResult(ok=True, data=parsed))
-                    parsed_copy = copy.deepcopy(parsed)
-                    parsed_copy["id"] = req_id
-                    return Response(
-                        content=json.dumps(parsed_copy, ensure_ascii=False).encode("utf-8"),
-                        media_type="application/json",
-                    )
-                fut.set_result(_SingleflightResult(ok=False, exception=ValueError("Invalid checklist output")))
-                return Response(content=completed.stdout, media_type="application/json")
-            except (OSError, subprocess.SubprocessError) as error:
-                prob = _problem(502, "checklist_cli_failed", "Checklist CLI could not run", str(error))
-                fut.set_result(_SingleflightResult(ok=False, error_response=prob))
-                return prob
-            except Exception as error:
-                fut.set_result(_SingleflightResult(ok=False, exception=error))
-                raise
-            finally:
-                in_flight_checklist.pop(resolved_path, None)
+            sf_res = await asyncio.shield(task_fut)
+            if not sf_res.ok:
+                if sf_res.error_response is not None:
+                    return sf_res.error_response
+                raise sf_res.exception or RuntimeError("Checklist CLI failed")
+            resp_payload = copy.deepcopy(sf_res.data)
+            resp_payload["id"] = req_id
+            return Response(
+                content=json.dumps(resp_payload, ensure_ascii=False).encode("utf-8"),
+                media_type="application/json",
+            )
 
-        checklist_cache.pop(resolved_path, None)
+        is_load_type = isinstance(req_data, dict) and req_data.get("type") == "load"
+        if not is_load_type:
+            checklist_cache.pop(resolved_path, None)
         try:
             async with cli_semaphore:
                 completed = await asyncio.to_thread(
@@ -750,7 +769,8 @@ def install_edit_api(
         except (OSError, subprocess.SubprocessError) as error:
             return _problem(502, "checklist_cli_failed", "Checklist CLI could not run", str(error))
         finally:
-            checklist_cache.pop(resolved_path, None)
+            if not is_load_type:
+                checklist_cache.pop(resolved_path, None)
         if completed.returncode != 0:
             detail = (completed.stderr or completed.stdout).decode("utf-8", errors="replace").strip()
             return _problem(502, "checklist_cli_failed", "Checklist CLI reported a fatal error", detail)
@@ -768,6 +788,55 @@ def install_edit_api(
         if folder.resolve() != folder or path.resolve().parent != folder or path.resolve() != path:
             raise ValueError("Linked decision paths are forbidden")
         return path
+
+    async def _execute_decision_load(
+        resolved_path: Path, path: Path, body_bytes: bytes
+    ) -> _SingleflightResult:
+        try:
+            before_fp = _file_fingerprint(resolved_path)
+            pre_source_paths: list[Path] = []
+            try:
+                if resolved_path.is_file():
+                    pre_doc = json.loads(resolved_path.read_text(encoding="utf-8"))
+                    if isinstance(pre_doc, dict):
+                        pre_source_paths = _extract_decision_source_paths(resolved_path, pre_doc)
+            except Exception:
+                pre_source_paths = []
+            before_sources_fp = _sources_fingerprint(pre_source_paths)
+
+            async with cli_semaphore:
+                completed = await asyncio.to_thread(
+                    subprocess.run,
+                    [*analyzer_command, "decisions", "request", "--file", str(path), "--task", path.stem],
+                    input=body_bytes,
+                    capture_output=True,
+                    timeout=30,
+                    check=False,
+                    creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
+                )
+            if completed.returncode != 0:
+                return _SingleflightResult(ok=False, exception=ValueError("Decision CLI failed"))
+            try:
+                result = json.loads(completed.stdout)
+            except Exception as exc:
+                return _SingleflightResult(ok=False, exception=exc)
+            if not isinstance(result, dict) or not isinstance(result.get("ok"), bool):
+                return _SingleflightResult(ok=False, exception=ValueError("Invalid Decision CLI response"))
+
+            after_fp = _file_fingerprint(resolved_path)
+            if result.get("ok") is True and before_fp is not None and before_fp == after_fp:
+                post_source_paths = _extract_decision_source_paths(resolved_path, result.get("document", {}))
+                after_sources_fp = _sources_fingerprint(post_source_paths)
+                if pre_source_paths == post_source_paths and before_sources_fp == after_sources_fp:
+                    decision_cache[resolved_path] = (before_fp, post_source_paths, after_sources_fp, copy.deepcopy(result))
+                    decision_cache.move_to_end(resolved_path)
+                    if len(decision_cache) > MAX_LOAD_CACHE_ENTRIES:
+                        decision_cache.popitem(last=False)
+            return _SingleflightResult(ok=True, data=result)
+        except Exception as exc:
+            return _SingleflightResult(ok=False, exception=exc)
+        finally:
+            in_flight_decision.pop(resolved_path, None)
 
     async def run_decision(path: Path, body: bytes) -> dict[str, Any]:
         if not analyzer_command:
@@ -792,50 +861,19 @@ def install_edit_api(
                     return res
 
             if resolved_path in in_flight_decision:
-                sf_res = await in_flight_decision[resolved_path]
-                if not sf_res.ok:
-                    raise sf_res.exception or ValueError("Decision CLI failed")
-                res = copy.deepcopy(sf_res.data)
-                res["request_id"] = req_id
-                return res
+                task_fut = in_flight_decision[resolved_path]
+            else:
+                task_fut = asyncio.create_task(
+                    _execute_decision_load(resolved_path, path, body)
+                )
+                in_flight_decision[resolved_path] = task_fut
 
-            loop = asyncio.get_running_loop()
-            fut: asyncio.Future[_SingleflightResult] = loop.create_future()
-            in_flight_decision[resolved_path] = fut
-            before_fp = _file_fingerprint(resolved_path)
-            try:
-                async with cli_semaphore:
-                    completed = await asyncio.to_thread(
-                        subprocess.run,
-                        [*analyzer_command, "decisions", "request", "--file", str(path), "--task", path.stem],
-                        input=body,
-                        capture_output=True,
-                        timeout=30,
-                        check=False,
-                        creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
-                    )
-                if completed.returncode != 0:
-                    raise ValueError("Decision CLI failed")
-                result = json.loads(completed.stdout)
-                if not isinstance(result, dict) or not isinstance(result.get("ok"), bool):
-                    raise ValueError("Invalid Decision CLI response")
-                after_fp = _file_fingerprint(resolved_path)
-                if result.get("ok") is True and before_fp is not None and before_fp == after_fp:
-                    source_paths = _extract_decision_source_paths(resolved_path, result.get("document", {}))
-                    sources_fp = _sources_fingerprint(source_paths)
-                    decision_cache[resolved_path] = (before_fp, source_paths, sources_fp, copy.deepcopy(result))
-                    decision_cache.move_to_end(resolved_path)
-                    if len(decision_cache) > MAX_LOAD_CACHE_ENTRIES:
-                        decision_cache.popitem(last=False)
-                fut.set_result(_SingleflightResult(ok=True, data=result))
-                res = copy.deepcopy(result)
-                res["request_id"] = req_id
-                return res
-            except Exception as exc:
-                fut.set_result(_SingleflightResult(ok=False, exception=exc))
-                raise
-            finally:
-                in_flight_decision.pop(resolved_path, None)
+            sf_res = await asyncio.shield(task_fut)
+            if not sf_res.ok:
+                raise sf_res.exception or ValueError("Decision CLI failed")
+            res = copy.deepcopy(sf_res.data)
+            res["request_id"] = req_id
+            return res
 
         decision_cache.pop(resolved_path, None)
         try:

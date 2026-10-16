@@ -70,10 +70,15 @@
 
   async function refresh() {
     if (!transport || !view || view.dirty || view.saving || view.pending || resetOpen || resetBusy) return;
+    const initialPersistence = persistence;
+    const initialRevision = view?.document?.revision;
     try {
       const document = await transport.load();
       if (!document || !document.revision) return;
-      if (document.revision === view.document.revision) return;
+      if (!persistence || persistence !== initialPersistence || !view) return;
+      if (view.document?.revision !== initialRevision) return;
+      if (view.dirty || view.saving || view.pending || resetOpen || resetBusy) return;
+      if (document.revision === initialRevision) return;
       const cautious = view.cautious;
       installDocument(document);
       if (cautious && persistence) {

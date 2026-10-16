@@ -96,6 +96,7 @@ class DecisionRouteTests(unittest.TestCase):
         doc = copy.deepcopy(FIXTURE)
         doc['task_id'] = 'first-task'
         doc['decisions'][0]['source_ref'] = '../source.md#heading'
+        dec_file.write_text(json.dumps(doc), encoding='utf-8')
 
         call_count = 0
         def fake_run(command, **kwargs):
@@ -126,6 +127,37 @@ class DecisionRouteTests(unittest.TestCase):
             self.assertTrue(res3['ok'])
             self.assertEqual('req-3', res3.get('request_id'))
             self.assertEqual(2, call_count, "Modified source markdown must invalidate decision cache")
+
+    def test_source_modified_during_cli_is_not_cached(self):
+        folder = self.root / 'decisions'
+        folder.mkdir(exist_ok=True)
+        dec_file = folder / 'first-task.decisions'
+        doc_dir = self.root
+        src_file = doc_dir / 'source.md'
+        src_file.write_text('# Heading\noriginal text', encoding='utf-8')
+
+        doc = copy.deepcopy(FIXTURE)
+        doc['task_id'] = 'first-task'
+        doc['decisions'][0]['source_ref'] = '../source.md#heading'
+        dec_file.write_text(json.dumps(doc), encoding='utf-8')
+
+        call_count = 0
+        def fake_run(command, **kwargs):
+            nonlocal call_count
+            call_count += 1
+            import time
+            time.sleep(0.01)
+            src_file.write_text('# Heading\nconcurrently modified', encoding='utf-8')
+            return subprocess.CompletedProcess(command, 0, json.dumps({'ok':True,'document':doc,'revision':f'rev-{call_count}'}).encode(), b'')
+
+        with patch('service.taskprogress_host.subprocess.run', side_effect=fake_run):
+            res1 = self.call('/first-task', {'operation':'load', 'request_id':'req-1'}).json()
+            self.assertTrue(res1['ok'])
+            self.assertEqual(1, call_count)
+
+            res2 = self.call('/first-task', {'operation':'load', 'request_id':'req-2'}).json()
+            self.assertTrue(res2['ok'])
+            self.assertEqual(2, call_count, "Inconsistent result during CLI run must not be cached")
 
 class DecisionProcessTests(unittest.TestCase):
     def test_schema_fixture_and_two_real_processes_compete(self):

@@ -1,5 +1,6 @@
 import { createChecklistHttpTransport } from "./checklist-http-transport.js";
 import { createDecisionHttpTransport } from "./decision-transport.js";
+import { mergeReports } from "./report-model.js";
 
 /**
  * Normalizes a document_ref object into a standard shape.
@@ -260,3 +261,67 @@ export function projectTasksWithBindings(tasks, evaluations = new Map()) {
     };
   });
 }
+
+/**
+ * Creates a coordinated document binding refresher with generation token
+ * and active state checking to prevent stale or out-of-order responses from
+ * overwriting newer scopes, reports, or in-flight user edits.
+ */
+export function createDocumentBindingRefresher({
+  getReport,
+  getDeveloperReport = () => null,
+  getEditorState = () => null,
+  evaluateAll = evaluateAllDocumentBindings,
+  merge = mergeReports,
+  project = projectTasksWithBindings,
+  onApply,
+}) {
+  let generation = 0;
+
+  function isEditorBusy(editor) {
+    if (!editor || !editor.editing) return false;
+    return Boolean(
+      editor.dirty
+      || editor.saving
+      || editor.pending
+      || editor.previewing
+      || editor.timeSettingsPending
+      || editor.confirmingDeliverySave
+    );
+  }
+
+  return async function refresh() {
+    const report = getReport();
+    if (!report) return { applied: false, reason: "no_report" };
+    if (isEditorBusy(getEditorState())) return { applied: false, reason: "editor_busy" };
+
+    const currentGen = ++generation;
+    const initialScopeId = report.scope_id;
+    const initialReportId = report.report_id;
+    const initialUpdatedAt = report.updated_at;
+    const initialReport = report;
+    const initialDevReport = getDeveloperReport();
+
+    const merged = merge(initialReport, initialDevReport);
+    try {
+      const evaluations = await evaluateAll(merged.tasks);
+      if (currentGen !== generation) return { applied: false, reason: "stale_generation" };
+      const currentReport = getReport();
+      if (!currentReport || currentReport.scope_id !== initialScopeId || currentReport.report_id !== initialReportId) {
+        return { applied: false, reason: "scope_or_report_changed" };
+      }
+      if (currentReport.updated_at !== initialUpdatedAt || currentReport !== initialReport) {
+        return { applied: false, reason: "report_version_changed" };
+      }
+      if (isEditorBusy(getEditorState())) return { applied: false, reason: "editor_became_busy" };
+
+      const freshMerged = merge(currentReport, getDeveloperReport());
+      const tasks = project(freshMerged.tasks, evaluations);
+      onApply?.({ evaluations, tasks, merged: freshMerged });
+      return { applied: true, evaluations, tasks };
+    } catch (error) {
+      return { applied: false, reason: "evaluation_failed", error };
+    }
+  };
+}
+

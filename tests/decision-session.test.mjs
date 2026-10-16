@@ -352,3 +352,20 @@ test("returning a sibling to its saved answer during autosave leaves no dirty dr
   assert.deepEqual(s.undo(), ["next"]);
   assert.equal(s.saveOperation("next"), "reopen");
 });
+
+test("updateSources updates sources warnings without clearing drafts or undo history", () => {
+  const s = createDecisionSession(initial());
+  s.select("input", "batch");
+  assert.equal(s.view().dirty, true);
+  assert.equal(s.view().history.canUndo, true);
+
+  const newSources = { input: { reference: "foo.md", status: "invalid", message: "標題錨點不存在" } };
+  s.updateSources(newSources);
+
+  const view = s.view();
+  assert.deepEqual(view.snapshot.sources, newSources);
+  assert.equal(view.dirty, true, "Draft must remain dirty");
+  assert.equal(view.drafts.input?.choice, "batch", "Draft choice must be preserved");
+  assert.equal(view.history.canUndo, true, "Undo history must be preserved");
+});
+

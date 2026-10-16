@@ -4,7 +4,7 @@ import { createEditorTransaction } from "./editor-transaction.js";
 const clone = value => structuredClone(value);
 const canonical = value => value && typeof value === "object"
   ? Array.isArray(value) ? value.map(canonical) : Object.fromEntries(Object.keys(value).sort().map(k => [k, canonical(value[k])])) : value;
-const same = (a, b) => JSON.stringify(canonical(a)) === JSON.stringify(canonical(b));
+export const same = (a, b) => JSON.stringify(canonical(a)) === JSON.stringify(canonical(b));
 export function createDecisionSession(initial) {
   let snapshot = clone(initial), drafts = Object.create(null), pending = null, sentDraft = null, busy = false;
   const find = id => snapshot.document.decisions.find(d => d.id === id);
@@ -61,6 +61,9 @@ export function createDecisionSession(initial) {
   }
   return {
     view,
+    updateSources(sources) {
+      snapshot.sources = clone(sources);
+    },
     undo: () => traverse("undo"),
     redo: () => traverse("redo"),
     clearHistory() {

@@ -4298,11 +4298,13 @@ function hs(e, t) {
 		}), L(l, c.snapshot()), L(p, W(l).message);
 	}
 	async function v() {
-		if (!(!a() || !W(l) || W(l).dirty || W(l).saving || W(l).pending || W(m) || W(h))) try {
-			let e = await a().load();
-			if (!e || !e.revision || e.revision === W(l).document.revision) return;
-			let t = W(l).cautious;
-			_(e), t && c && await c.setCautious(!0);
+		if (!a() || !W(l) || W(l).dirty || W(l).saving || W(l).pending || W(m) || W(h)) return;
+		let e = c, t = W(l)?.document?.revision;
+		try {
+			let n = await a().load();
+			if (!n || !n.revision || !c || c !== e || !W(l) || W(l).document?.revision !== t || W(l).dirty || W(l).saving || W(l).pending || W(m) || W(h) || n.revision === t) return;
+			let r = W(l).cautious;
+			_(n), r && c && await c.setCautious(!0);
 		} catch (e) {
 			console.warn("Checklist foreground refresh failed:", e);
 		}

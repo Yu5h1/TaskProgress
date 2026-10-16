@@ -10,7 +10,7 @@
   import { DEFAULT_CAPSULE_ID, loadFilterSelection, saveFilterSelection, isDefaultLit, toggleTag, toggleDefault } from "../../../viewer/assets/filter-selection.js";
   import ThemeControl from "./ThemeControl.svelte";
   import { createThemeControl } from "../../../viewer/assets/theme-control.js";
-  import { createDecisionSession } from "../../../viewer/assets/decision-session.js";
+  import { createDecisionSession, same } from "../../../viewer/assets/decision-session.js";
   import { loadDisclosure, saveDisclosure } from "../../../viewer/assets/card-disclosure-state.js";
   export let transport;
   export let onPersistenceChange = () => {};
@@ -122,6 +122,15 @@
       }
       if (result.revision !== view?.snapshot?.revision) {
         session.merge(result);
+        sourceOverrides = {};
+        sync();
+      } else if (!same(result.sources, view?.snapshot?.sources)) {
+        if (typeof session.updateSources === "function") {
+          session.updateSources(result.sources);
+        } else {
+          session.merge(result);
+        }
+        sourceOverrides = {};
         sync();
       }
     } catch (error) {

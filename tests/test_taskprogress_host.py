@@ -1317,6 +1317,125 @@ class ChecklistRequestRouteTests(unittest.TestCase):
             self.assertEqual(200, second.status_code)
             self.assertEqual(2, mocked_run.call_count, "File modification must invalidate cache")
 
+    def test_checklist_non_standard_load_bypasses_cache_and_singleflight(self) -> None:
+        real_run = subprocess.run
+        with patch("service.taskprogress_host.subprocess.run", side_effect=real_run) as mocked_run:
+            warm = self.client.post(
+                "/__taskprogress/v1/checklists/secure-test/first-task",
+                headers=self.request_headers(),
+                json={"version": 1, "id": "warm-1", "type": "load"},
+            )
+            self.assertEqual(200, warm.status_code)
+            self.assertEqual("result", warm.json()["type"])
+            self.assertEqual(1, mocked_run.call_count)
+
+            bad_ver = self.client.post(
+                "/__taskprogress/v1/checklists/secure-test/first-task",
+                headers=self.request_headers(),
+                json={"version": 999, "id": "bad-ver", "type": "load"},
+            )
+            self.assertEqual(200, bad_ver.status_code)
+            self.assertEqual("error", bad_ver.json()["type"])
+            self.assertEqual(2, mocked_run.call_count, "Unsupported version must call CLI and not hit cache")
+
+            bad_field = self.client.post(
+                "/__taskprogress/v1/checklists/secure-test/first-task",
+                headers=self.request_headers(),
+                json={"version": 1, "id": "bad-field", "type": "load", "unexpected": True},
+            )
+            self.assertEqual(200, bad_field.status_code)
+            self.assertEqual("error", bad_field.json()["type"])
+            self.assertEqual(3, mocked_run.call_count, "Unknown field must call CLI and not hit cache")
+
+            bad_payload = self.client.post(
+                "/__taskprogress/v1/checklists/secure-test/first-task",
+                headers=self.request_headers(),
+                json={"version": 1, "id": "bad-payload", "type": "load", "payload": "not-a-dict"},
+            )
+            self.assertEqual(200, bad_payload.status_code)
+            self.assertEqual("error", bad_payload.json()["type"])
+            self.assertEqual(4, mocked_run.call_count, "Invalid payload must call CLI and not hit cache")
+
+            hit = self.client.post(
+                "/__taskprogress/v1/checklists/secure-test/first-task",
+                headers=self.request_headers(),
+                json={"version": 1, "id": "warm-2", "type": "load"},
+            )
+            self.assertEqual(200, hit.status_code)
+            self.assertEqual("result", hit.json()["type"])
+            self.assertEqual(4, mocked_run.call_count, "Valid standard load must hit cache")
+
+    def test_checklist_singleflight_cancellation_safety(self) -> None:
+        import asyncio
+        import httpx
+        import time
+
+        real_run = subprocess.run
+
+        def slow_run(cmd, **kwargs):
+            if "checklist" in cmd:
+                time.sleep(0.15)
+            return real_run(cmd, **kwargs)
+
+        async def run_scenario():
+            transport = httpx.ASGITransport(app=self.client.app)
+            async with httpx.AsyncClient(transport=transport, base_url=ORIGIN) as client:
+                headers = self.request_headers()
+
+                with patch("service.taskprogress_host.subprocess.run", side_effect=slow_run):
+                    task1 = asyncio.create_task(client.post(
+                        "/__taskprogress/v1/checklists/secure-test/first-task",
+                        headers=headers,
+                        json={"version": 1, "id": "init-1", "type": "load"},
+                    ))
+                    await asyncio.sleep(0.02)
+                    task2 = asyncio.create_task(client.post(
+                        "/__taskprogress/v1/checklists/secure-test/first-task",
+                        headers=headers,
+                        json={"version": 1, "id": "waiter-1", "type": "load"},
+                    ))
+                    await asyncio.sleep(0.01)
+                    task2.cancel()
+                    with self.assertRaises(asyncio.CancelledError):
+                        await task2
+                    resp1 = await task1
+                    self.assertEqual(200, resp1.status_code)
+                    self.assertEqual("init-1", resp1.json()["id"])
+
+                time.sleep(0.01)
+                content = self.checklist_path.read_text(encoding="utf-8")
+                self.checklist_path.write_text(content + "\n<!-- test2 -->\n", encoding="utf-8")
+
+                with patch("service.taskprogress_host.subprocess.run", side_effect=slow_run):
+                    task1 = asyncio.create_task(client.post(
+                        "/__taskprogress/v1/checklists/secure-test/first-task",
+                        headers=headers,
+                        json={"version": 1, "id": "init-2", "type": "load"},
+                    ))
+                    await asyncio.sleep(0.02)
+                    task2 = asyncio.create_task(client.post(
+                        "/__taskprogress/v1/checklists/secure-test/first-task",
+                        headers=headers,
+                        json={"version": 1, "id": "waiter-2", "type": "load"},
+                    ))
+                    await asyncio.sleep(0.01)
+                    task1.cancel()
+                    with self.assertRaises(asyncio.CancelledError):
+                        await task1
+                    resp2 = await asyncio.wait_for(task2, timeout=2.0)
+                    self.assertEqual(200, resp2.status_code)
+                    self.assertEqual("waiter-2", resp2.json()["id"])
+
+                resp3 = await client.post(
+                    "/__taskprogress/v1/checklists/secure-test/first-task",
+                    headers=headers,
+                    json={"version": 1, "id": "subsequent", "type": "load"},
+                )
+                self.assertEqual(200, resp3.status_code)
+                self.assertEqual("subsequent", resp3.json()["id"])
+
+        asyncio.run(run_scenario())
+
 
 if __name__ == "__main__":
     unittest.main()

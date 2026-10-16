@@ -1,5 +1,6 @@
 import { requestedCardPin } from "./card-order.js";
 import {
+  createDocumentBindingRefresher,
   evaluateAllDocumentBindings,
   projectTasksWithBindings,
 } from "./document-binding.js";
@@ -884,20 +885,32 @@ function rebuildMergedTasks() {
   state.developerAvailable = merged.developerAvailable;
 }
 
-async function refreshDocumentBindings() {
-  if (!state.report || !state.tasks) return;
-  if (state.editor.editing && state.editor.persistenceView?.dirty) return;
-  const merged = mergeReports(state.report, state.developerReport);
-  try {
-    const evaluations = await evaluateAllDocumentBindings(merged.tasks);
+const documentBindingRefresher = createDocumentBindingRefresher({
+  getReport: () => state.report,
+  getDeveloperReport: () => state.developerReport,
+  getEditorState: () => state.editor.editing ? {
+    editing: true,
+    dirty: state.editor.persistenceView?.dirty,
+    saving: state.editor.persistenceView?.saving,
+    pending: state.editor.persistenceView?.pending,
+    previewing: state.editor.previewing,
+    timeSettingsPending: state.editor.timeSettingsPending,
+    confirmingDeliverySave: state.editor.confirmingDeliverySave,
+  } : null,
+  evaluateAll: evaluateAllDocumentBindings,
+  merge: mergeReports,
+  project: projectTasksWithBindings,
+  onApply: ({ evaluations, tasks }) => {
     state.documentEvaluations = evaluations;
-    state.tasks = projectTasksWithBindings(merged.tasks, evaluations);
+    state.tasks = tasks;
     renderProjectProgress();
     renderFilters();
     renderTasks();
-  } catch (error) {
-    console.warn("無法更新綁定文件狀態：", error);
-  }
+  },
+});
+
+async function refreshDocumentBindings() {
+  await documentBindingRefresher();
 }
 
 // Top-level task adder. The control is shared; the host keeps Unicode

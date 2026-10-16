@@ -6,13 +6,13 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
 
 ## Current state (2026-09-29)
 
-- **文件讀取與前景刷新效能優化（2026-10-17）。** 驗收清單 `checklists/document-refresh-optimization.checklist`。解決大量綁定文件並行啟動 CLI 程序、事件迴圈阻塞與白屏重載問題：
-  - 前景刷新生命週期：`viewer/assets/foreground-refresh.js` 支援非同步 reload callback，在 `finally` 安全復原 `refreshing = false`，同次回焦多次事件去重，失敗後允許再次回焦重試，並阻擋 background unhandledRejection；`viewer/assets/app.js` 於靜默刷新完成後比對 scope/report/draft 狀態。
+- **文件讀取與前景刷新效能優化（2026-10-17）。** 驗收清單 `checklists/document-refresh-optimization.checklist`。解決大量綁定文件並行啟動 CLI 程序、事件迴圈阻塞與白屏重載問題，並補齊深度驗收缺口：
+  - 前景刷新生命週期與草稿保護：`viewer/assets/foreground-refresh.js` 支援非同步 reload callback，在 `finally` 安全復原 `refreshing = false`，同次回焦多次事件去重，失敗後允許再次回焦重試；`ChecklistApp.svelte` 於刷新開始前記錄 session 身分與 revision，返回後重新確認 `dirty/saving/pending/reset` 狀態，若期間有草稿或操作則捨棄過期回應，不清除草稿。
   - 後端阻塞解除與並行限制：`service/taskprogress_host.py` 將 Checklist CLI 改為 `await asyncio.to_thread` 移出事件迴圈，全域以 `cli_semaphore` 限制子程序並行數上限為 4。
-  - 後端有界 load 快取與 Singleflight 聚合：以 `(path, mtime, size)` 快取成功讀取的 Checklist 與 Decision 文件（LRU 上限 128）；Decision 同步納入所有引用的來源 Markdown 依賴指紋；Singleflight 聚合並行同檔 load 請求，嚴格隔離並替換請求 `id`／`request_id`；寫入（save/set/reset/confirm/reopen/clear_all）及外部檔案異動精準失效快取。
-  - 互動頁面局部非同步刷新：`ChecklistApp.svelte`、`checklist-browser-main.js`、`DecisionApp.svelte`、`decisions-main.js` 接入非同步 `bindRefresh`；來源 revision 未變時 0 DOM 異動，保留 session、Undo/Redo 歷史、選取與滾動位置；revision 改變時就地更新。
-  - Report 文件綁定並行限制：`viewer/assets/document-binding.js` 實作 `mapConcurrent`，限制前端最大並行請求數（預設 4）。
-  - 定向測試與量測：`tests/foreground-refresh.test.mjs`（8 項）、`tests/document-binding.test.mjs`（9 項）、`tests/report-document-binding-integration.test.mjs`（3 項）、`tests/test_taskprogress_host.py`（43 項）、`tests/test_decisions.py`（8 項）全數通過；bundles 建置成功；實測首次 cold load ~105ms (1 CLI)、warm load 2.17ms (0 CLI，48x 加速)、修改後重新讀取 ~83ms (1 CLI)。下一步：待使用者於瀏覽器核查實機前景切換與體感流暢度。
+  - 後端有界 load 快取與 Singleflight 聚合：以 `(path, mtime, size)` 快取成功讀取的 Checklist 與 Decision 文件（LRU 上限 128）；Decision load 前後對照來源 Markdown 指紋一致性，解析期間有異動不快取；Singleflight 改用獨立 `asyncio.Task` 與 `asyncio.shield` 隔離取消，避免等待者或主請求取消造成死結或 `InvalidStateError`；Checklist load 加入 `_is_standard_checklist_load` 嚴格核驗，非標準請求不命中快取，交由 CLI 統一拒絕以保持冷熱行為一致；寫入（save/set/reset/confirm/reopen/clear_all）及外部檔案異動精準失效快取。
+  - 互動頁面局部非同步刷新：`ChecklistApp.svelte`、`checklist-browser-main.js`、`DecisionApp.svelte`、`decisions-main.js` 接入非同步 `bindRefresh`；來源 revision 未變時 0 DOM 異動，保留 session、Undo/Redo 歷史、選取與滾動位置；Decision 來源異動時前端透過 `updateSources` 與清空 `sourceOverrides` 局部更新警告，不清除答案草稿與歷史。
+  - Report 文件綁定並行限制與過期丟棄：`viewer/assets/document-binding.js` 實作 `mapConcurrent` 限制並行數（預設 4），並實作 `createDocumentBindingRefresher` 世代計數器，在等待期間發生 scope 切換、開始編輯或逆序返回時精準捨棄舊回應。
+  - 定向測試與量測：`tests/foreground-refresh.test.mjs`（10 項）、`tests/document-binding.test.mjs`（12 項）、`tests/report-document-binding-integration.test.mjs`（3 項）、`tests/decision-session.test.mjs`（30 項）、`tests/test_taskprogress_host.py`（45 項）、`tests/test_decisions.py`（9 項）共 109 項單元與整合測試全數通過；bundles 建置成功；實測首次 cold load ~105ms (1 CLI)、warm load 2.17ms (0 CLI，48x 加速)、修改後重新讀取 ~83ms (1 CLI)。下一步：待使用者於瀏覽器核查第 5 項實機前景切換與體感流暢度。
 
 - **Checklist／Decision 與 Report 項目完成狀態連動（2026-10-16）。** Report 任務與子項目支援可選 `document_ref`（`{ kind: "checklist"|"decision", scope_id, task|stem }`）。在 Viewer 載入或前景回焦刷新時，透過既有 HTTP 路由讀取綁定文件並推導顯示狀態：Checklist 全部 checks 通過或 Decision 全部完成且具有效答案時推導為完成（`done`），動態反映於完成區、篩選與進度統計；空文件、失敗、重開或缺檔維持原始狀態；原始 `done` 與 `archive` 維持不變；讀取失敗標記來源不可用；未保存草稿受既有 `canRefresh()` 保護；保存 Report 時不回寫推導狀態至原始資料。來源連結與註解文字（comments）保持在同一行（baseline 彈性排列），連結標籤顯示文件類型（`Checklist` 或 `Decision`，不顯示檔名 stem），繼承文字顏色（不使用藍色），圖示無底線、僅 Label 文字具底線，自然融入註解文字。
   - 定向測試：`tests/document-binding.test.mjs`（8 項）、`tests/report-document-binding-integration.test.mjs`（3 項）及 `tests/report-model.test.mjs`（23 項）全數通過；`npm run viewer:ui:build` 建置成功。

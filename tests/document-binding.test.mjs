@@ -12,6 +12,7 @@ import {
   deriveBoundItemStatus,
   evaluateAllDocumentBindings,
   projectTasksWithBindings,
+  createDocumentBindingRefresher,
 } from "../viewer/assets/document-binding.js";
 import { calculateProjectProgress } from "../viewer/assets/report-model.js";
 
@@ -307,3 +308,89 @@ test("evaluateAllDocumentBindings caps active concurrent requests", async () => 
   assert.equal(evaluations.size, 12);
   assert.equal(maxActive, 3, "Max active requests must not exceed configured concurrency limit of 3");
 });
+
+test("createDocumentBindingRefresher drops stale result when scope changes during fetch", async () => {
+  let scope = "scope-a";
+  const reportA = { scope_id: "scope-a", report_id: "rep-1", updated_at: "2026-10-17T00:00:00Z", tasks: [] };
+  const reportB = { scope_id: "scope-b", report_id: "rep-2", updated_at: "2026-10-17T00:00:00Z", tasks: [] };
+  let applied = false;
+
+  const refresher = createDocumentBindingRefresher({
+    getReport: () => (scope === "scope-a" ? reportA : reportB),
+    evaluateAll: async () => {
+      scope = "scope-b";
+      return new Map([["checklist:scope-a:task-1", { ok: true, completed: true }]]);
+    },
+    onApply: () => {
+      applied = true;
+    },
+  });
+
+  const res = await refresher();
+  assert.equal(res.applied, false);
+  assert.equal(res.reason, "scope_or_report_changed");
+  assert.equal(applied, false, "Must not apply binding result to changed scope");
+});
+
+test("createDocumentBindingRefresher drops stale result when user starts editing during fetch", async () => {
+  const report = { scope_id: "scope-a", report_id: "rep-1", updated_at: "2026-10-17T00:00:00Z", tasks: [] };
+  let editor = { editing: false, dirty: false };
+  let applied = false;
+
+  const refresher = createDocumentBindingRefresher({
+    getReport: () => report,
+    getEditorState: () => editor,
+    evaluateAll: async () => {
+      editor = { editing: true, dirty: true };
+      return new Map([["checklist:scope-a:task-1", { ok: true, completed: true }]]);
+    },
+    onApply: () => {
+      applied = true;
+    },
+  });
+
+  const res = await refresher();
+  assert.equal(res.applied, false);
+  assert.equal(res.reason, "editor_became_busy");
+  assert.equal(applied, false, "Must not apply binding result when user became dirty");
+});
+
+test("createDocumentBindingRefresher drops out-of-order stale response", async () => {
+  const report = { scope_id: "scope-a", report_id: "rep-1", updated_at: "2026-10-17T00:00:00Z", tasks: [] };
+  const appliedCalls = [];
+
+  let resolveFirst = null;
+  const firstPromise = new Promise((resolve) => {
+    resolveFirst = resolve;
+  });
+
+  let callCount = 0;
+  const refresher = createDocumentBindingRefresher({
+    getReport: () => report,
+    evaluateAll: async () => {
+      callCount += 1;
+      if (callCount === 1) {
+        await firstPromise;
+        return new Map([["doc-1", { ok: true, version: 1 }]]);
+      }
+      return new Map([["doc-1", { ok: true, version: 2 }]]);
+    },
+    onApply: ({ evaluations }) => {
+      appliedCalls.push(evaluations.get("doc-1").version);
+    },
+  });
+
+  const p1 = refresher();
+  const p2 = refresher();
+
+  const res2 = await p2;
+  assert.equal(res2.applied, true);
+
+  resolveFirst();
+  const res1 = await p1;
+  assert.equal(res1.applied, false);
+  assert.equal(res1.reason, "stale_generation");
+
+  assert.deepEqual(appliedCalls, [2]);
+});
+
