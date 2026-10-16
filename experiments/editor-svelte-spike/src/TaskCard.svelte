@@ -184,7 +184,22 @@
       })}
     ></textarea>
   {:else}
-    <div class="task-summary"><ExpandableText text={task.summary} lines={2} /></div>
+    <div class="task-summary">
+      {#if task.sourceRef}
+        {#if task.sourceRef.available}
+          <a class="document-source-link" href={task.sourceRef.href} title={`開啟 ${task.sourceRef.kind}: ${task.sourceRef.task}`}>
+            <span class="source-icon" aria-hidden="true">{task.sourceRef.kind === "checklist" ? "📋" : "⚖"}</span>
+            <span class="source-label">{task.sourceRef.task}</span>
+          </a>
+        {:else}
+          <span class="document-source-link source-unavailable" title={task.sourceRef.error ?? "來源無法讀取"}>
+            <span class="source-icon" aria-hidden="true">⚠️</span>
+            <span class="source-label">來源不可用</span>
+          </span>
+        {/if}
+      {/if}
+      <ExpandableText text={task.summary} lines={2} />
+    </div>
   {/if}
 
   <DeveloperDetails developer={task.developer ?? null} />

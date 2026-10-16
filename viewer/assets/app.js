@@ -1,5 +1,9 @@
 import { requestedCardPin } from "./card-order.js";
 import {
+  evaluateAllDocumentBindings,
+  projectTasksWithBindings,
+} from "./document-binding.js";
+import {
   PRIORITY_POLICY,
   STATUS_META,
   SUPPORTED_SCHEMA_VERSIONS,
@@ -170,6 +174,7 @@ const state = {
   filterStorageKey: null,
   diagnostics: [],
   developerAvailable: false,
+  documentEvaluations: new Map(),
   timeAnalysis: null,
   taskListView: null,
   taskAdderView: null,
@@ -873,8 +878,26 @@ function renderFilters() {
 
 function rebuildMergedTasks() {
   const merged = mergeReports(state.report, state.developerReport);
-  state.tasks = merged.tasks;
+  state.tasks = state.documentEvaluations?.size
+    ? projectTasksWithBindings(merged.tasks, state.documentEvaluations)
+    : merged.tasks;
   state.developerAvailable = merged.developerAvailable;
+}
+
+async function refreshDocumentBindings() {
+  if (!state.report || !state.tasks) return;
+  if (state.editor.editing && state.editor.persistenceView?.dirty) return;
+  const merged = mergeReports(state.report, state.developerReport);
+  try {
+    const evaluations = await evaluateAllDocumentBindings(merged.tasks);
+    state.documentEvaluations = evaluations;
+    state.tasks = projectTasksWithBindings(merged.tasks, evaluations);
+    renderProjectProgress();
+    renderFilters();
+    renderTasks();
+  } catch (error) {
+    console.warn("無法更新綁定文件狀態：", error);
+  }
 }
 
 // Top-level task adder. The control is shared; the host keeps Unicode
@@ -1448,6 +1471,8 @@ async function main() {
     }
     state.developerAvailable = merged.developerAvailable;
     state.diagnostics.push(...merged.diagnostics);
+    state.documentEvaluations = new Map();
+    void refreshDocumentBindings();
     // Fire-and-forget: pointer cards paint as "loading" on first render and
     // repaint themselves through `renderTasks()` once each target resolves,
     // independently of the rest of this report's own load.

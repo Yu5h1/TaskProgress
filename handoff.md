@@ -6,6 +6,9 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
 
 ## Current state (2026-09-29)
 
+- **Checklist／Decision 與 Report 項目完成狀態連動（2026-10-16）。** Report 任務與子項目支援可選 `document_ref`（`{ kind: "checklist"|"decision", scope_id, task|stem }`）。在 Viewer 載入或前景回焦刷新時，透過既有 HTTP 路由讀取綁定文件並推導顯示狀態：Checklist 全部 checks 通過或 Decision 全部完成且具有效答案時推導為完成（`done`），動態反映於完成區、篩選與進度統計；空文件、失敗、重開或缺檔維持原始狀態；原始 `done` 與 `archive` 維持不變；讀取失敗標記來源不可用；未保存草稿受既有 `canRefresh()` 保護；保存 Report 時不回寫推導狀態至原始資料。來源連結以獨立底線連結（含 📋／⚖ 圖示）緊接在項目描述開頭，自然融入註解文字。
+  - 定向測試：`tests/document-binding.test.mjs`（8 項）、`tests/report-document-binding-integration.test.mjs`（3 項）及 `tests/report-model.test.mjs`（23 項）全數通過；`npm run viewer:ui:build` 建置成功。
+
 - **Report Viewer 標題與品牌配置調整（2026-10-16）。** 左上角 `.site-header` 的 `#report-title.brand` 改為顯示目前專案 `report.title`（`setReportTitle` 同步更新 `textContent` 與 `title` 屬性，支援 scope 切換與 `popstate`），字級放大為 `clamp(1.25rem, 2.5vw, 1.55rem)`、字重 750、行高 1.25 並於頂部導覽列垂直置中（`align-self: center`），與中央預覽／編輯模式按鈕及右側控制項保持一致水平高度，保留點擊導覽回 `./`；內容區 `.hero` 移除藍色小字 `#scope-label` 與重複 `<h1>` 專案標題，右上進度標題改為垂直置中且大小貼合整行（`font-size: clamp(0.86rem, 1.4vw, 0.95rem)`），保留 `#report-summary`、`#time-summary-dock`、`#report-meta` 與 `#project-progress`；左下角 `footer` 以 `.footer-brand` 組合既有 `.brand-mark` 圖示與「TaskProgress Viewer」，其中 `TaskProgress` 採粗體、`Viewer` 採一般字重。過長標題以 `text-overflow: ellipsis` 省略並可由 `title` 查看完整名稱，居中 `.editor-mode-dock` 顯示時限制左欄最大寬度避免擠壓或重疊。
   - `tests/viewer-header-branding.test.mjs`（4 項含雙 scope 切換模擬、標題樣式斷言與粗細斷言）及 `report-summary`、`local-edit-interface`、`time-viewer-model`、`theme-model`、`ui-host`、`publish-contract` 共 42 項定向 Node 測試全部通過。修改為 `viewer/` 直接服務之靜態資產，重新整理瀏覽器即可確認亮／暗主題與視覺效果。
 

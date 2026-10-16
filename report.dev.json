@@ -362,6 +362,27 @@
         }
       ],
       "next_step": "使用者核查 checklists/card-pin.checklist；正式入口已可用 open --scope task-progress --pin card-pin。"
+    },
+    {
+      "id": "document-binding",
+      "next_step": "在 Viewer 介面實測歷史工具（已通過）與決策範例之自動連動完成，核對來源底線連結點擊導覽。",
+      "decisions": [
+        {
+          "summary": "Report 項目狀態連動第一版採讀取時推導，不回寫原始 report.json；Checklist 與 Decision 依全數通過／全數決策為唯一完成條件。",
+          "reference": "Documentation/DocumentBindingPlan.md"
+        },
+        {
+          "summary": "來源連結以獨立底線連結形式置於項目註解（描述文字）開頭，融入註解排版；不採用膠囊樣式。",
+          "reference": "handoff.md"
+        }
+      ],
+      "routes": [
+        {
+          "title": "結構化 document_ref 欄位與唯讀推導",
+          "state": "selected",
+          "reason": "明確綁定、避免文字正則解析脆性、保存隔離草稿。"
+        }
+      ]
     }
   ]
 }

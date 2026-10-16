@@ -738,6 +738,52 @@
       ],
       "id": "card-pin",
       "summary": "圖釘與 open --pin 已完成並更新正式 EXE。最新觸發優先、重複呼叫不取消；真實 Browser 已確認置頂、重載再置頂及取消／收合保留。保留使用者核查項目。"
+    },
+    {
+      "id": "document-binding",
+      "title": "Checklist／Decision 與 Report 項目完成狀態連動",
+      "status": "in_progress",
+      "priority": 1,
+      "summary": "Report 任務與子項目支援明確綁定 Checklist 或 Decision 文件，於 Viewer 載入時依驗收與決策結果推導完成狀態，並在註解開頭提供底線來源連結。",
+      "completed_items": [
+        {
+          "id": "item-binding-checklist-completed",
+          "title": "綁定已全數通過的 Checklist 驗證自動推導完成",
+          "priority": 1,
+          "document_ref": {
+            "kind": "checklist",
+            "scope_id": "task-progress",
+            "task": "history-tools"
+          }
+        },
+        {
+          "id": "item-binding-decision-completed",
+          "title": "綁定已完成決策的 Decision 驗證自動推導完成",
+          "priority": 1,
+          "document_ref": {
+            "kind": "decision",
+            "scope_id": "task-progress",
+            "task": "decision-example"
+          }
+        }
+      ],
+      "pending_items": [
+        {
+          "id": "item-binding-checklist-partial",
+          "title": "綁定尚未全數通過的 Checklist 驗證維持待處理狀態",
+          "priority": 2,
+          "document_ref": {
+            "kind": "checklist",
+            "scope_id": "task-progress",
+            "task": "document-owner-report"
+          }
+        },
+        {
+          "id": "item-binding-unbound-fallback",
+          "title": "未綁定文件的既有項目保持原有狀態與行為",
+          "priority": 3
+        }
+      ]
     }
   ]
 }

@@ -378,6 +378,9 @@ function validateTaskItemList(value, path, errors, ids) {
         ));
       }
     }
+    if (item.document_ref !== undefined) {
+      validateDocumentRef(item.document_ref, `${itemPath}.document_ref`, errors);
+    }
     if (typeof item.id === "string") {
       if (ids.has(item.id)) {
         errors.push(issue("duplicate_item", `${itemPath}.id`, `item id「${item.id}」重複。`));
@@ -385,6 +388,24 @@ function validateTaskItemList(value, path, errors, ids) {
       ids.add(item.id);
     }
   });
+}
+
+export function validateDocumentRef(value, path, errors) {
+  if (value === undefined) return;
+  if (!isObject(value)) {
+    errors.push(issue("invalid_document_ref", path, `${path} 必須是物件。`));
+    return;
+  }
+  if (!["checklist", "decision"].includes(value.kind)) {
+    errors.push(issue("invalid_document_ref_kind", `${path}.kind`, `${path}.kind 必須是 checklist 或 decision。`));
+  }
+  requireString(value.scope_id, `${path}.scope_id`, errors, { id: true });
+  const taskName = value.task ?? value.stem;
+  if (taskName === undefined) {
+    errors.push(issue("missing_document_ref_task", path, `${path} 必須包含 task 或 stem。`));
+  } else {
+    requireString(taskName, value.task !== undefined ? `${path}.task` : `${path}.stem`, errors, { id: true });
+  }
 }
 
 function validateTimestamp(value, path, errors) {
@@ -416,6 +437,7 @@ function validateStandardTask(task, path, errors) {
     errors.push(issue("invalid_status", `${path}.status`, `${path}.status 不是支援的狀態。`));
   }
   validatePriority(task.priority, `${path}.priority`, errors);
+  validateDocumentRef(task.document_ref, `${path}.document_ref`, errors);
   if (task.report_ref !== undefined) {
     errors.push(issue(
       "unexpected_report_ref",

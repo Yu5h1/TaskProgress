@@ -1026,6 +1026,34 @@ h1 {
   line-height: 1.45;
 }
 
+.document-source-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  margin-right: 6px;
+  color: var(--expandable-text-link-color, var(--color-link, #2563eb));
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  font-size: inherit;
+  font-weight: 550;
+  vertical-align: baseline;
+}
+
+.document-source-link:hover {
+  filter: brightness(1.15);
+}
+
+.document-source-link.source-unavailable {
+  color: var(--color-warning-text, #d97706);
+  text-decoration: underline dotted;
+  cursor: help;
+}
+
+.document-source-link .source-icon {
+  font-size: 0.95em;
+  line-height: 1;
+}
+
 .task-title-input,
 .task-summary-input,
 .report-summary-input,

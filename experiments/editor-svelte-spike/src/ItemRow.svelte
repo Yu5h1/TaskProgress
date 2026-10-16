@@ -114,7 +114,22 @@
         })}
       >
     {:else}
-      <div class="item-row-text"><ExpandableText text={item.title} lines={1} /></div>
+      <div class="item-row-text">
+        {#if item.sourceRef}
+          {#if item.sourceRef.available}
+            <a class="document-source-link" href={item.sourceRef.href} title={`開啟 ${item.sourceRef.kind}: ${item.sourceRef.task}`}>
+              <span class="source-icon" aria-hidden="true">{item.sourceRef.kind === "checklist" ? "📋" : "⚖"}</span>
+              <span class="source-label">{item.sourceRef.task}</span>
+            </a>
+          {:else}
+            <span class="document-source-link source-unavailable" title={item.sourceRef.error ?? "來源無法讀取"}>
+              <span class="source-icon" aria-hidden="true">⚠️</span>
+              <span class="source-label">來源不可用</span>
+            </span>
+          {/if}
+        {/if}
+        <ExpandableText text={item.title} lines={1} />
+      </div>
     {/if}
   </div>
 
