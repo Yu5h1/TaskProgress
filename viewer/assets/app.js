@@ -1640,6 +1640,64 @@ window.addEventListener("beforeunload", (event) => {
   event.preventDefault();
   event.returnValue = "";
 });
+
+let isRefreshingForeground = false;
+
+async function refreshForegroundSilently() {
+  if (isRefreshingForeground) return;
+  if (!state.report) return;
+  if (state.editor.editing && (
+    state.editor.persistenceView?.dirty
+    || state.editor.persistenceView?.saving
+    || state.editor.persistenceView?.pending
+    || state.editor.previewing
+    || state.editor.timeSettingsPending
+    || state.editor.confirmingDeliverySave
+  )) {
+    return;
+  }
+
+  isRefreshingForeground = true;
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const request = resolveReportRequest(params);
+    if (!request) return;
+
+    const report = await fetchJson(request.reportSource, "report.json");
+    if (!isSupportedSchemaVersion(report.schema_version)) return;
+    const errors = validateReport(report);
+    if (errors.length) return;
+
+    let developerReport = null;
+    const devSource = resolveDeveloperReportSource(params, request, document.baseURI);
+    if (devSource) {
+      try {
+        const isAutomatic = !params.get("dev");
+        developerReport = isAutomatic
+          ? await fetchOptionalJson(devSource, "report.dev.json")
+          : await fetchJson(devSource, "report.dev.json");
+        if (developerReport && validateDeveloperReport(developerReport).length > 0) {
+          developerReport = null;
+        }
+      } catch {
+        developerReport = null;
+      }
+    }
+
+    state.report = report;
+    state.persistedReport = structuredClone(report);
+    state.developerReport = developerReport;
+    rebuildMergedTasks();
+    renderReport();
+    await refreshDocumentBindings();
+    void loadPointerCards();
+  } catch (error) {
+    console.warn("前景靜默刷新略過：", error);
+  } finally {
+    isRefreshingForeground = false;
+  }
+}
+
 installForegroundRefresh({
   canRefresh: () => Boolean(
     !state.editor.persistenceView?.dirty
@@ -1649,6 +1707,9 @@ installForegroundRefresh({
     && !state.editor.timeSettingsPending
     && !state.editor.confirmingDeliverySave
   ),
+  reload: () => {
+    void refreshForegroundSilently();
+  },
 });
 window.addEventListener("popstate", () => {
   void main();
