@@ -1,8 +1,26 @@
 {
   "schema_version": "1.0",
   "report_id": "task-progress-development",
-  "updated_at": "2026-09-30T14:57:44.378845+00:00",
+  "updated_at": "2026-10-16T15:47:49.871Z",
   "tasks": [
+    {
+      "id": "document-refresh-optimization",
+      "next_step": "優先修正 viewer/assets/foreground-refresh.js 的 refreshing 旗標重置與 Promise 支援，並撰寫定向測試。",
+      "decisions": [
+        {
+          "summary": "Checklist 與 Decision 的 load 結果依檔案指紋 (path, mtime, size) 於記憶體有界快取，寫入路徑 (save/reset) 立即失效；回傳時嚴格隔離 request id。",
+          "reference": "handoff.md"
+        },
+        {
+          "summary": "Checklist CLI 執行改以 asyncio.to_thread 移出事件迴圈，並以 Semaphore 限制並行數，避免高並行請求癱瘓系統資源。",
+          "reference": "handoff.md"
+        },
+        {
+          "summary": "Checklist 與 Decision 瀏覽器端改為比較 revision 局部更新，未變更時不銷毀 session、不重新 mount Svelte，徹底消除白屏重載。",
+          "reference": "handoff.md"
+        }
+      ]
+    },
     {
       "id": "viewer-core",
       "next_step": "先完成 foreground-source-refresh 的 Preview Panel 人工驗收；其後 Viewer core 只剩受保護的 report_ref 建立／更換路由未設計，見 pending item-viewer-core-pointer-ref-route。",

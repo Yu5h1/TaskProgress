@@ -3,8 +3,48 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-10-16T14:19:00.162Z",
+  "updated_at": "2026-10-16T15:47:49.871Z",
   "tasks": [
+    {
+      "id": "document-refresh-optimization",
+      "title": "文件讀取與前景刷新效能優化",
+      "status": "in_progress",
+      "priority": 1,
+      "summary": "解決前景回焦與大量綁定文件讀取時的高成本 CLI 程序啟動、事件迴圈阻塞與白屏重載；實作後端有界 mtime 快取、CLI 並行限制與前端非同步局部刷新。",
+      "document_ref": {
+        "kind": "checklist",
+        "scope_id": "task-progress",
+        "task": "document-refresh-optimization"
+      },
+      "pending_items": [
+        {
+          "id": "item-doc-refresh-lifecycle",
+          "title": "修正前景刷新生命週期：支援非同步 reload、finally 安全恢復可刷新狀態與同次回焦去重",
+          "priority": 1
+        },
+        {
+          "id": "item-doc-refresh-backend-concurrency",
+          "title": "後端解除阻塞與 CLI 並行限制：Checklist CLI 改為 asyncio.to_thread 執行，加入全域 Semaphore 限制子程序並行數",
+          "priority": 1
+        },
+        {
+          "id": "item-doc-refresh-backend-cache",
+          "title": "實作有界 load 快取與 Singleflight 聚合：以 (path, mtime, size) 快取成功讀取，隔離請求 id 並在寫入/外部變更時精準失效",
+          "priority": 1
+        },
+        {
+          "id": "item-doc-refresh-browser-local",
+          "title": "Checklist 與 Decision 互動頁面局部刷新：以 revision 比對取代整頁 reload，保留未變更來源的 DOM、歷史與頁面狀態",
+          "priority": 1
+        },
+        {
+          "id": "item-doc-refresh-report-concurrency",
+          "title": "Report 綁定讀取並行限制與端到端效能量測：加入前端並行上限，量測首次/命中/單檔變更耗時與 CLI 啟動次數",
+          "priority": 2
+        }
+      ],
+      "completed_items": []
+    },
     {
       "id": "decision-example",
       "title": "決策項目操作範例",
