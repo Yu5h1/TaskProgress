@@ -9,11 +9,11 @@ Current round: `Documentation/DocumentOwnerReport.md#行為`.
       - Action: 執行 owner-report 定向測試及 Checklist／Decision 資產建置。
       - Expect: 同 scope 正確連結；缺檔、無效回應、錯誤 scope、網路失敗不產生連結；資產建置成功。
 
-- [ ] **2. 頁面導覽**
+- [x] **2. 頁面導覽**
   Depends on: 1.
   Outcome: Checklist 與 Decision 可從標題下方返回所屬報告。
   Checks:
-    - [ ] **擁有者連結** `[manual]`
+    - [x] **擁有者連結** `[manual]`
       - Action: 重新整理 Checklist 與 Decision 網頁 → 查看標題下方擁有者 → 點擊報告名稱。
       - Expect: 兩頁顯示所屬 Report 名稱，點擊到正確 scope 的 Report，連結可用鍵盤聚焦及開啟。
       - Reason: 需要確認實際頁面排版與導覽操作。
