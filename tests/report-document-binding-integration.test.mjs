@@ -27,13 +27,18 @@ function sampleReport() {
         status: "planned",
         summary: "Checklist is fully passed",
         priority: 1,
-        document_ref: {
-          kind: "checklist",
-          scope_id: "main-project",
-          task: "chk-all-passed",
-        },
         completed_items: [],
-        pending_items: [],
+        pending_items: [
+          {
+            id: "sub-chk-done",
+            title: "Checklist sub-item",
+            document_ref: {
+              kind: "checklist",
+              scope_id: "main-project",
+              task: "chk-all-passed",
+            },
+          },
+        ],
       },
       {
         id: "task-checklist-partial",
@@ -41,13 +46,18 @@ function sampleReport() {
         status: "in_progress",
         summary: "Checklist has pending checks",
         priority: 2,
-        document_ref: {
-          kind: "checklist",
-          scope_id: "main-project",
-          task: "chk-partial",
-        },
         completed_items: [],
-        pending_items: [],
+        pending_items: [
+          {
+            id: "sub-chk-partial",
+            title: "Partial checklist sub-item",
+            document_ref: {
+              kind: "checklist",
+              scope_id: "main-project",
+              task: "chk-partial",
+            },
+          },
+        ],
       },
       {
         id: "task-checklist-failed",
@@ -55,13 +65,18 @@ function sampleReport() {
         status: "planned",
         summary: "Checklist has failed checks",
         priority: 2,
-        document_ref: {
-          kind: "checklist",
-          scope_id: "main-project",
-          task: "chk-failed",
-        },
         completed_items: [],
-        pending_items: [],
+        pending_items: [
+          {
+            id: "sub-chk-failed",
+            title: "Failed checklist sub-item",
+            document_ref: {
+              kind: "checklist",
+              scope_id: "main-project",
+              task: "chk-failed",
+            },
+          },
+        ],
       },
       {
         id: "task-decision-done",
@@ -69,13 +84,18 @@ function sampleReport() {
         status: "planned",
         summary: "Decision is fully answered",
         priority: 1,
-        document_ref: {
-          kind: "decision",
-          scope_id: "main-project",
-          stem: "dec-all-done",
-        },
         completed_items: [],
-        pending_items: [],
+        pending_items: [
+          {
+            id: "sub-dec-done",
+            title: "Decision sub-item",
+            document_ref: {
+              kind: "decision",
+              scope_id: "main-project",
+              stem: "dec-all-done",
+            },
+          },
+        ],
       },
       {
         id: "task-decision-reopened",
@@ -83,13 +103,18 @@ function sampleReport() {
         status: "in_progress",
         summary: "Decision was reopened or empty",
         priority: 3,
-        document_ref: {
-          kind: "decision",
-          scope_id: "main-project",
-          task: "dec-reopened",
-        },
         completed_items: [],
-        pending_items: [],
+        pending_items: [
+          {
+            id: "sub-dec-reopened",
+            title: "Reopened decision sub-item",
+            document_ref: {
+              kind: "decision",
+              scope_id: "main-project",
+              task: "dec-reopened",
+            },
+          },
+        ],
       },
       {
         id: "task-with-items",
@@ -128,11 +153,6 @@ function sampleReport() {
         title: "Already done task with failing document",
         status: "done",
         summary: "Raw done must stay done",
-        document_ref: {
-          kind: "checklist",
-          scope_id: "main-project",
-          task: "chk-failed",
-        },
         completed_items: [],
         pending_items: [],
       },
@@ -141,35 +161,70 @@ function sampleReport() {
         title: "Archived task with passing document",
         status: "archive",
         summary: "Archive must never be automatically reopened",
-        document_ref: {
-          kind: "checklist",
-          scope_id: "main-project",
-          task: "chk-all-passed",
-        },
         completed_items: [],
-        pending_items: [],
+        pending_items: [
+          {
+            id: "sub-archived",
+            title: "Archived sub-item with passing doc",
+            document_ref: {
+              kind: "checklist",
+              scope_id: "main-project",
+              task: "chk-all-passed",
+            },
+          },
+        ],
       },
       {
         id: "task-missing-doc",
         title: "Task with missing document",
         status: "planned",
         summary: "Missing file should show unavailable",
-        document_ref: {
-          kind: "checklist",
-          scope_id: "main-project",
-          task: "does-not-exist",
-        },
         completed_items: [],
-        pending_items: [],
+        pending_items: [
+          {
+            id: "sub-missing",
+            title: "Sub-item with missing document",
+            document_ref: {
+              kind: "checklist",
+              scope_id: "main-project",
+              task: "does-not-exist",
+            },
+          },
+        ],
       },
     ],
   };
 }
 
-test("validateReport validates report with document_ref successfully", () => {
+test("validateReport validates report with child item document_ref successfully", () => {
   const report = sampleReport();
   const errors = validateReport(report);
   assert.deepEqual(errors, []);
+});
+
+test("validateReport rejects legacy task-level document_ref with clear diagnostic", () => {
+  const legacyReport = {
+    schema_version: "1.1",
+    report_id: "legacy",
+    scope_id: "main",
+    title: "Legacy",
+    updated_at: "2026-10-16T12:00:00Z",
+    tasks: [
+      {
+        id: "legacy-task",
+        title: "Legacy task",
+        status: "planned",
+        summary: "Old summary",
+        document_ref: { kind: "checklist", scope_id: "main", task: "old-chk" },
+        completed_items: [],
+        pending_items: [],
+      },
+    ],
+  };
+  const errors = validateReport(legacyReport);
+  assert.equal(errors.length, 1);
+  assert.equal(errors[0].code, "deprecated_task_document_ref");
+  assert.match(errors[0].message, /任務卡，不支援保存 document_ref/);
 });
 
 test("evaluateAllDocumentBindings queries documents and distinguishes identical stem under different scopes", async () => {
@@ -234,36 +289,44 @@ test("evaluateAllDocumentBindings queries documents and distinguishes identical 
   // Project tasks
   const projected = projectTasksWithBindings(report.tasks, evaluations);
 
-  // 1. Checklist all passed -> done
+  // 1. Checklist all passed -> child item done -> card status derived to done
   const taskChkDone = projected.find((t) => t.id === "task-checklist-done");
   assert.equal(taskChkDone.status, "done");
-  assert.equal(taskChkDone.sourceRef.completed, true);
-  assert.equal(taskChkDone.sourceRef.available, true);
+  assert.equal(taskChkDone.sourceRef, undefined);
+  assert.equal(taskChkDone.completed_items.length, 1);
+  assert.equal(taskChkDone.completed_items[0].sourceRef.completed, true);
+  assert.equal(taskChkDone.completed_items[0].sourceRef.available, true);
 
-  // 2. Checklist partial -> stays original (planned)
+  // 2. Checklist partial -> stays original (in_progress)
   const taskChkPartial = projected.find((t) => t.id === "task-checklist-partial");
   assert.equal(taskChkPartial.status, "in_progress");
-  assert.equal(taskChkPartial.sourceRef.completed, false);
+  assert.equal(taskChkPartial.sourceRef, undefined);
+  assert.equal(taskChkPartial.pending_items[0].sourceRef.completed, false);
 
   // 3. Checklist failed -> stays original (planned)
   const taskChkFailed = projected.find((t) => t.id === "task-checklist-failed");
   assert.equal(taskChkFailed.status, "planned");
-  assert.equal(taskChkFailed.sourceRef.completed, false);
+  assert.equal(taskChkFailed.sourceRef, undefined);
+  assert.equal(taskChkFailed.pending_items[0].sourceRef.completed, false);
 
-  // 4. Decision all done -> done
+  // 4. Decision all done -> child item done -> card status derived to done
   const taskDecDone = projected.find((t) => t.id === "task-decision-done");
   assert.equal(taskDecDone.status, "done");
-  assert.equal(taskDecDone.sourceRef.completed, true);
+  assert.equal(taskDecDone.sourceRef, undefined);
+  assert.equal(taskDecDone.completed_items.length, 1);
+  assert.equal(taskDecDone.completed_items[0].sourceRef.completed, true);
 
   // 5. Decision reopened -> stays in_progress
   const taskDecReopened = projected.find((t) => t.id === "task-decision-reopened");
   assert.equal(taskDecReopened.status, "in_progress");
-  assert.equal(taskDecReopened.sourceRef.completed, false);
+  assert.equal(taskDecReopened.sourceRef, undefined);
+  assert.equal(taskDecReopened.pending_items[0].sourceRef.completed, false);
 
   // 6. Sub-items: sub-1 and sub-2 moved to completed_items, sub-3 remains in pending_items
   const taskWithItems = projected.find((t) => t.id === "task-with-items");
-  // Parent task raw status remains planned (not automatically modified by sub-items)
+  // 2 of 3 completed -> parent status remains planned
   assert.equal(taskWithItems.status, "planned");
+  assert.equal(taskWithItems.sourceRef, undefined);
   assert.equal(taskWithItems.completed_items.length, 2);
   assert.deepEqual(
     taskWithItems.completed_items.map((i) => i.id),
@@ -277,7 +340,7 @@ test("evaluateAllDocumentBindings queries documents and distinguishes identical 
   assert.equal(itemProgress.completed, 2);
   assert.equal(itemProgress.total, 3);
 
-  // 7. Raw done stays done even with failing doc
+  // 7. Raw done stays done
   const taskRawDone = projected.find((t) => t.id === "task-raw-done");
   assert.equal(taskRawDone.status, "done");
 
@@ -285,18 +348,26 @@ test("evaluateAllDocumentBindings queries documents and distinguishes identical 
   const taskArchived = projected.find((t) => t.id === "task-archived");
   assert.equal(taskArchived.status, "archive");
 
-  // 9. Missing doc stays planned with available=false
+  // 9. Missing doc stays planned with available=false on child item
   const taskMissing = projected.find((t) => t.id === "task-missing-doc");
   assert.equal(taskMissing.status, "planned");
-  assert.equal(taskMissing.sourceRef.available, false);
-  assert.match(taskMissing.sourceRef.error, /File not found/);
+  assert.equal(taskMissing.pending_items[0].sourceRef.available, false);
+  assert.match(taskMissing.pending_items[0].sourceRef.error, /File not found/);
 
   // 10. Overall project progress reflects all completed tasks and items
   const projProgress = calculateProjectProgress(projected);
   // Total non-archived tasks: 8 tasks.
-  // Completed items in taskWithItems: 2/3.
-  // Completed tasks (1 unit each): task-checklist-done (1), task-decision-done (1), task-raw-done (1).
-  // Total completed units = 1 + 0 + 0 + 1 + 0 + 2 + 1 + 0 = 5. Total units = 1 + 1 + 1 + 1 + 1 + 3 + 1 + 1 = 10.
+  // Completed units:
+  // taskChkDone (1/1) -> 1
+  // taskChkPartial (0/1) -> 0
+  // taskChkFailed (0/1) -> 0
+  // taskDecDone (1/1) -> 1
+  // taskDecReopened (0/1) -> 0
+  // taskWithItems (2/3) -> 2
+  // taskRawDone (1/1) -> 1
+  // taskMissing (0/1) -> 0
+  // Total completed units = 1 + 0 + 0 + 1 + 0 + 2 + 1 + 0 = 5.
+  // Total units = 1 + 1 + 1 + 1 + 1 + 3 + 1 + 1 = 10.
   assert.equal(projProgress.completed, 5);
   assert.equal(projProgress.total, 10);
   assert.equal(projProgress.percentage, 50);
@@ -304,6 +375,8 @@ test("evaluateAllDocumentBindings queries documents and distinguishes identical 
   // 11. Saving: original report is completely unmutated
   const rawReport = sampleReport();
   assert.equal(rawReport.tasks[0].status, "planned");
+  assert.equal(rawReport.tasks[0].completed_items.length, 0);
+  assert.equal(rawReport.tasks[0].pending_items.length, 1);
   assert.equal(rawReport.tasks[3].status, "planned");
   assert.equal(rawReport.tasks[5].completed_items.length, 0);
   assert.equal(rawReport.tasks[5].pending_items.length, 3);
@@ -315,22 +388,34 @@ test("when a completed checklist is unchecked or reverted, projected status reve
       {
         id: "task-dynamic",
         status: "planned",
-        document_ref: { kind: "checklist", scope_id: "s", task: "chk" },
+        summary: "Dynamic test task",
+        completed_items: [],
+        pending_items: [
+          {
+            id: "sub-dynamic",
+            title: "Dynamic check item",
+            document_ref: { kind: "checklist", scope_id: "s", task: "chk" },
+          },
+        ],
       },
     ],
   };
 
-  // Round 1: All passed
+  // Round 1: All passed -> item done, task derived to done
   const evalsPassed = new Map([
     ["checklist:s:chk", { ok: true, completed: true }],
   ]);
   const projected1 = projectTasksWithBindings(report.tasks, evalsPassed);
   assert.equal(projected1[0].status, "done");
+  assert.equal(projected1[0].completed_items.length, 1);
+  assert.equal(projected1[0].pending_items.length, 0);
 
-  // Round 2: User unchecked or check failed -> reverted
+  // Round 2: User unchecked or check failed -> reverted to planned
   const evalsReverted = new Map([
     ["checklist:s:chk", { ok: true, completed: false }],
   ]);
   const projected2 = projectTasksWithBindings(report.tasks, evalsReverted);
   assert.equal(projected2[0].status, "planned");
+  assert.equal(projected2[0].completed_items.length, 0);
+  assert.equal(projected2[0].pending_items.length, 1);
 });

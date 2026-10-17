@@ -159,6 +159,137 @@ class DecisionRouteTests(unittest.TestCase):
             self.assertTrue(res2['ok'])
             self.assertEqual(2, call_count, "Inconsistent result during CLI run must not be cached")
 
+    def test_decision_inflight_source_modified_race(self):
+        import asyncio
+        import httpx
+        import threading
+        import time
+
+        folder = self.root / 'decisions'
+        folder.mkdir(exist_ok=True)
+        dec_file = folder / 'first-task.decisions'
+        doc_dir = self.root
+        src_file = doc_dir / 'source.md'
+        src_file.write_text('# Heading\noriginal text', encoding='utf-8')
+
+        doc = copy.deepcopy(FIXTURE)
+        doc['task_id'] = 'first-task'
+        doc['decisions'][0]['source_ref'] = '../source.md#heading'
+        dec_file.write_text(json.dumps(doc), encoding='utf-8')
+
+        load_a_started = threading.Event()
+        load_a_release = threading.Event()
+        call_count = 0
+
+        def controlled_run(command, **kwargs):
+            nonlocal call_count
+            call_count += 1
+            if call_count == 1:
+                load_a_started.set()
+                load_a_release.wait(timeout=5)
+            return subprocess.CompletedProcess(command, 0, json.dumps({'ok':True,'document':doc,'revision':f'rev-{call_count}'}).encode(), b'')
+
+        async def run_scenario():
+            transport = httpx.ASGITransport(app=self.client.app)
+            async with httpx.AsyncClient(transport=transport, base_url=host_tests.ORIGIN) as client:
+                headers = self.request_headers()
+                with patch('service.taskprogress_host.subprocess.run', side_effect=controlled_run):
+                    task_a = asyncio.create_task(client.post(
+                        '/__taskprogress/v1/decisions/secure-test/first-task',
+                        headers=headers,
+                        json={'operation': 'load', 'request_id': 'load-a'},
+                    ))
+                    while not load_a_started.is_set():
+                        await asyncio.sleep(0.005)
+
+                    time.sleep(0.01)
+                    src_file.write_text('# Heading\nmodified source', encoding='utf-8')
+
+                    task_c = asyncio.create_task(client.post(
+                        '/__taskprogress/v1/decisions/secure-test/first-task',
+                        headers=headers,
+                        json={'operation': 'load', 'request_id': 'load-c'},
+                    ))
+
+                    resp_c = await task_c
+                    self.assertTrue(resp_c.json()['ok'])
+                    self.assertEqual('load-c', resp_c.json().get('request_id'))
+                    self.assertEqual(2, call_count, "Load C must invoke CLI due to modified source")
+
+                    load_a_release.set()
+                    resp_a = await task_a
+                    self.assertTrue(resp_a.json()['ok'])
+                    self.assertEqual('load-a', resp_a.json().get('request_id'))
+
+        asyncio.run(run_scenario())
+
+    def test_decision_inflight_external_decisions_file_modified_race(self):
+        import asyncio
+        import httpx
+        import threading
+        import time
+
+        folder = self.root / 'decisions'
+        folder.mkdir(exist_ok=True)
+        dec_file = folder / 'first-task.decisions'
+        doc_dir = self.root
+        src_file = doc_dir / 'source.md'
+        src_file.write_text('# Heading\noriginal text', encoding='utf-8')
+
+        doc = copy.deepcopy(FIXTURE)
+        doc['task_id'] = 'first-task'
+        doc['decisions'][0]['source_ref'] = '../source.md#heading'
+        dec_file.write_text(json.dumps(doc), encoding='utf-8')
+
+        load_a_started = threading.Event()
+        load_a_release = threading.Event()
+        call_count = 0
+
+        def controlled_run(command, **kwargs):
+            nonlocal call_count
+            call_count += 1
+            if call_count == 1:
+                load_a_started.set()
+                load_a_release.wait(timeout=5)
+            return subprocess.CompletedProcess(command, 0, json.dumps({'ok':True,'document':doc,'revision':f'rev-{call_count}'}).encode(), b'')
+
+        async def run_scenario():
+            transport = httpx.ASGITransport(app=self.client.app)
+            async with httpx.AsyncClient(transport=transport, base_url=host_tests.ORIGIN) as client:
+                headers = self.request_headers()
+                with patch('service.taskprogress_host.subprocess.run', side_effect=controlled_run):
+                    task_a = asyncio.create_task(client.post(
+                        '/__taskprogress/v1/decisions/secure-test/first-task',
+                        headers=headers,
+                        json={'operation': 'load', 'request_id': 'load-a'},
+                    ))
+                    while not load_a_started.is_set():
+                        await asyncio.sleep(0.005)
+
+                    time.sleep(0.01)
+                    doc2 = copy.deepcopy(doc)
+                    doc2['version'] = 2
+                    dec_file.write_text(json.dumps(doc2), encoding='utf-8')
+
+                    task_c = asyncio.create_task(client.post(
+                        '/__taskprogress/v1/decisions/secure-test/first-task',
+                        headers=headers,
+                        json={'operation': 'load', 'request_id': 'load-c'},
+                    ))
+
+                    resp_c = await task_c
+                    self.assertTrue(resp_c.json()['ok'])
+                    self.assertEqual('load-c', resp_c.json().get('request_id'))
+                    self.assertEqual(2, call_count, "Load C must invoke CLI due to modified decisions file")
+
+                    load_a_release.set()
+                    resp_a = await task_a
+                    self.assertTrue(resp_a.json()['ok'])
+                    self.assertEqual('load-a', resp_a.json().get('request_id'))
+
+        asyncio.run(run_scenario())
+
+
 class DecisionProcessTests(unittest.TestCase):
     def test_schema_fixture_and_two_real_processes_compete(self):
         schema = json.loads((ROOT / 'schemas/decisions.schema.json').read_text())

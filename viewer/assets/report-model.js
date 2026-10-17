@@ -437,7 +437,13 @@ function validateStandardTask(task, path, errors) {
     errors.push(issue("invalid_status", `${path}.status`, `${path}.status 不是支援的狀態。`));
   }
   validatePriority(task.priority, `${path}.priority`, errors);
-  validateDocumentRef(task.document_ref, `${path}.document_ref`, errors);
+  if (task.document_ref !== undefined) {
+    errors.push(issue(
+      "deprecated_task_document_ref",
+      `${path}.document_ref`,
+      `${path} 是任務卡，不支援保存 document_ref；Checklist／Decision 文件綁定只出現在子項目（item.document_ref）。`,
+    ));
+  }
   if (task.report_ref !== undefined) {
     errors.push(issue(
       "unexpected_report_ref",

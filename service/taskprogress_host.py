@@ -85,6 +85,22 @@ class _SingleflightResult:
     exception: Exception | None = None
 
 
+@dataclass
+class _InFlightChecklist:
+    generation: int
+    file_fp: tuple[int, int] | None
+    task: asyncio.Task[_SingleflightResult]
+
+
+@dataclass
+class _InFlightDecision:
+    generation: int
+    file_fp: tuple[int, int] | None
+    source_paths: list[Path]
+    sources_fp: tuple[tuple[str, bool, int, int], ...]
+    task: asyncio.Task[_SingleflightResult]
+
+
 def _file_fingerprint(path: Path) -> tuple[int, int] | None:
     try:
         st = path.stat()
@@ -134,7 +150,15 @@ def _is_standard_checklist_load(req_data: Any) -> bool:
     if req_data.get("version") != 1 or type(req_data.get("version")) is not int:
         return False
     req_id = req_data.get("id")
-    if not isinstance(req_id, str) or not (1 <= len(req_id) <= 64):
+    if not isinstance(req_id, str):
+        return False
+    if not req_id.strip():
+        return False
+    try:
+        utf16_len = len(req_id.encode("utf-16-le", errors="surrogatepass")) // 2
+    except Exception:
+        return False
+    if not (1 <= utf16_len <= 64):
         return False
     if req_data.get("type") != "load":
         return False
@@ -513,9 +537,11 @@ def install_edit_api(
     write_lock = asyncio.Lock()
     cli_semaphore = asyncio.Semaphore(MAX_CLI_CONCURRENCY)
     checklist_cache: OrderedDict[Path, tuple[tuple[int, int], dict[str, Any]]] = OrderedDict()
-    in_flight_checklist: dict[Path, asyncio.Task[_SingleflightResult]] = {}
+    checklist_generation: dict[Path, int] = {}
+    in_flight_checklist: dict[Path, _InFlightChecklist] = {}
     decision_cache: OrderedDict[Path, tuple[tuple[int, int], list[Path], tuple[tuple[str, bool, int, int], ...], dict[str, Any]]] = OrderedDict()
-    in_flight_decision: dict[Path, asyncio.Task[_SingleflightResult]] = {}
+    decision_generation: dict[Path, int] = {}
+    in_flight_decision: dict[Path, _InFlightDecision] = {}
     router = APIRouter(prefix=API_PREFIX)
     def registered_report(scope: str) -> Path | None:
         registration = registry.get_by_url(_report_route(scope))
@@ -614,10 +640,13 @@ def install_edit_api(
         return JSONResponse(capability)
 
     async def _execute_checklist_load(
-        resolved_path: Path, checklist_path: Path, body_bytes: bytes
+        resolved_path: Path,
+        checklist_path: Path,
+        body_bytes: bytes,
+        expected_gen: int,
+        expected_fp: tuple[int, int] | None,
     ) -> _SingleflightResult:
         try:
-            before_fp = _file_fingerprint(resolved_path)
             async with cli_semaphore:
                 completed = await asyncio.to_thread(
                     subprocess.run,
@@ -640,11 +669,12 @@ def install_edit_api(
             if (
                 isinstance(parsed, dict)
                 and parsed.get("type") == "result"
-                and before_fp is not None
-                and before_fp == after_fp
+                and expected_fp is not None
+                and expected_fp == after_fp
+                and checklist_generation.get(resolved_path, 0) == expected_gen
             ):
                 template = copy.deepcopy(parsed)
-                checklist_cache[resolved_path] = (before_fp, template)
+                checklist_cache[resolved_path] = (expected_fp, template)
                 checklist_cache.move_to_end(resolved_path)
                 if len(checklist_cache) > MAX_LOAD_CACHE_ENTRIES:
                     checklist_cache.popitem(last=False)
@@ -660,7 +690,9 @@ def install_edit_api(
         except Exception as error:
             return _SingleflightResult(ok=False, exception=error)
         finally:
-            in_flight_checklist.pop(resolved_path, None)
+            curr = in_flight_checklist.get(resolved_path)
+            if curr is not None and curr.task is asyncio.current_task():
+                in_flight_checklist.pop(resolved_path, None)
 
     @router.post("/checklists/{scope}/{task}")
     async def checklist_request(scope: str, task: str, request: Request) -> Response:
@@ -720,6 +752,7 @@ def install_edit_api(
             req_id = ""
 
         if _is_standard_checklist_load(req_data):
+            current_gen = checklist_generation.get(resolved_path, 0)
             current_fp = _file_fingerprint(resolved_path)
             if current_fp is not None and resolved_path in checklist_cache:
                 cached_fp, cached_template = checklist_cache[resolved_path]
@@ -732,13 +765,25 @@ def install_edit_api(
                         media_type="application/json",
                     )
 
-            if resolved_path in in_flight_checklist:
-                task_fut = in_flight_checklist[resolved_path]
+            entry = in_flight_checklist.get(resolved_path)
+            if (
+                entry is not None
+                and not entry.task.done()
+                and entry.generation == current_gen
+                and entry.file_fp == current_fp
+            ):
+                task_fut = entry.task
             else:
                 task_fut = asyncio.create_task(
-                    _execute_checklist_load(resolved_path, checklist_path, body)
+                    _execute_checklist_load(
+                        resolved_path, checklist_path, body, current_gen, current_fp
+                    )
                 )
-                in_flight_checklist[resolved_path] = task_fut
+                in_flight_checklist[resolved_path] = _InFlightChecklist(
+                    generation=current_gen,
+                    file_fp=current_fp,
+                    task=task_fut,
+                )
 
             sf_res = await asyncio.shield(task_fut)
             if not sf_res.ok:
@@ -754,7 +799,9 @@ def install_edit_api(
 
         is_load_type = isinstance(req_data, dict) and req_data.get("type") == "load"
         if not is_load_type:
+            checklist_generation[resolved_path] = checklist_generation.get(resolved_path, 0) + 1
             checklist_cache.pop(resolved_path, None)
+            in_flight_checklist.pop(resolved_path, None)
         try:
             async with cli_semaphore:
                 completed = await asyncio.to_thread(
@@ -770,7 +817,9 @@ def install_edit_api(
             return _problem(502, "checklist_cli_failed", "Checklist CLI could not run", str(error))
         finally:
             if not is_load_type:
+                checklist_generation[resolved_path] = checklist_generation.get(resolved_path, 0) + 1
                 checklist_cache.pop(resolved_path, None)
+                in_flight_checklist.pop(resolved_path, None)
         if completed.returncode != 0:
             detail = (completed.stderr or completed.stdout).decode("utf-8", errors="replace").strip()
             return _problem(502, "checklist_cli_failed", "Checklist CLI reported a fatal error", detail)
@@ -790,20 +839,15 @@ def install_edit_api(
         return path
 
     async def _execute_decision_load(
-        resolved_path: Path, path: Path, body_bytes: bytes
+        resolved_path: Path,
+        path: Path,
+        body_bytes: bytes,
+        expected_gen: int,
+        expected_fp: tuple[int, int] | None,
+        pre_source_paths: list[Path],
+        expected_sources_fp: tuple[tuple[str, bool, int, int], ...],
     ) -> _SingleflightResult:
         try:
-            before_fp = _file_fingerprint(resolved_path)
-            pre_source_paths: list[Path] = []
-            try:
-                if resolved_path.is_file():
-                    pre_doc = json.loads(resolved_path.read_text(encoding="utf-8"))
-                    if isinstance(pre_doc, dict):
-                        pre_source_paths = _extract_decision_source_paths(resolved_path, pre_doc)
-            except Exception:
-                pre_source_paths = []
-            before_sources_fp = _sources_fingerprint(pre_source_paths)
-
             async with cli_semaphore:
                 completed = await asyncio.to_thread(
                     subprocess.run,
@@ -824,11 +868,20 @@ def install_edit_api(
                 return _SingleflightResult(ok=False, exception=ValueError("Invalid Decision CLI response"))
 
             after_fp = _file_fingerprint(resolved_path)
-            if result.get("ok") is True and before_fp is not None and before_fp == after_fp:
+            if (
+                result.get("ok") is True
+                and expected_fp is not None
+                and expected_fp == after_fp
+                and decision_generation.get(resolved_path, 0) == expected_gen
+            ):
                 post_source_paths = _extract_decision_source_paths(resolved_path, result.get("document", {}))
                 after_sources_fp = _sources_fingerprint(post_source_paths)
-                if pre_source_paths == post_source_paths and before_sources_fp == after_sources_fp:
-                    decision_cache[resolved_path] = (before_fp, post_source_paths, after_sources_fp, copy.deepcopy(result))
+                if (
+                    pre_source_paths == post_source_paths
+                    and expected_sources_fp == after_sources_fp
+                    and _file_fingerprint(resolved_path) == expected_fp
+                ):
+                    decision_cache[resolved_path] = (expected_fp, post_source_paths, after_sources_fp, copy.deepcopy(result))
                     decision_cache.move_to_end(resolved_path)
                     if len(decision_cache) > MAX_LOAD_CACHE_ENTRIES:
                         decision_cache.popitem(last=False)
@@ -836,7 +889,9 @@ def install_edit_api(
         except Exception as exc:
             return _SingleflightResult(ok=False, exception=exc)
         finally:
-            in_flight_decision.pop(resolved_path, None)
+            curr = in_flight_decision.get(resolved_path)
+            if curr is not None and curr.task is asyncio.current_task():
+                in_flight_decision.pop(resolved_path, None)
 
     async def run_decision(path: Path, body: bytes) -> dict[str, Any]:
         if not analyzer_command:
@@ -851,6 +906,7 @@ def install_edit_api(
             req_id = None
 
         if req_op == "load":
+            current_gen = decision_generation.get(resolved_path, 0)
             current_fp = _file_fingerprint(resolved_path)
             if current_fp is not None and resolved_path in decision_cache:
                 cached_doc_fp, cached_source_paths, cached_sources_fp, cached_res = decision_cache[resolved_path]
@@ -860,13 +916,44 @@ def install_edit_api(
                     res["request_id"] = req_id
                     return res
 
-            if resolved_path in in_flight_decision:
-                task_fut = in_flight_decision[resolved_path]
+            entry = in_flight_decision.get(resolved_path)
+            if (
+                entry is not None
+                and not entry.task.done()
+                and entry.generation == current_gen
+                and entry.file_fp == current_fp
+                and _sources_fingerprint(entry.source_paths) == entry.sources_fp
+            ):
+                task_fut = entry.task
             else:
+                pre_source_paths: list[Path] = []
+                try:
+                    if resolved_path.is_file():
+                        pre_doc = json.loads(resolved_path.read_text(encoding="utf-8"))
+                        if isinstance(pre_doc, dict):
+                            pre_source_paths = _extract_decision_source_paths(resolved_path, pre_doc)
+                except Exception:
+                    pre_source_paths = []
+                current_sources_fp = _sources_fingerprint(pre_source_paths)
+
                 task_fut = asyncio.create_task(
-                    _execute_decision_load(resolved_path, path, body)
+                    _execute_decision_load(
+                        resolved_path,
+                        path,
+                        body,
+                        current_gen,
+                        current_fp,
+                        pre_source_paths,
+                        current_sources_fp,
+                    )
                 )
-                in_flight_decision[resolved_path] = task_fut
+                in_flight_decision[resolved_path] = _InFlightDecision(
+                    generation=current_gen,
+                    file_fp=current_fp,
+                    source_paths=pre_source_paths,
+                    sources_fp=current_sources_fp,
+                    task=task_fut,
+                )
 
             sf_res = await asyncio.shield(task_fut)
             if not sf_res.ok:
@@ -875,7 +962,9 @@ def install_edit_api(
             res["request_id"] = req_id
             return res
 
+        decision_generation[resolved_path] = decision_generation.get(resolved_path, 0) + 1
         decision_cache.pop(resolved_path, None)
+        in_flight_decision.pop(resolved_path, None)
         try:
             async with cli_semaphore:
                 completed = await asyncio.to_thread(
@@ -894,7 +983,9 @@ def install_edit_api(
                 raise ValueError("Invalid Decision CLI response")
             return result
         finally:
+            decision_generation[resolved_path] = decision_generation.get(resolved_path, 0) + 1
             decision_cache.pop(resolved_path, None)
+            in_flight_decision.pop(resolved_path, None)
 
     @router.post("/decisions/{scope}")
     async def decision_summary(scope: str, request: Request) -> Response:

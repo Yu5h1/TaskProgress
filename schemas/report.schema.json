@@ -158,9 +158,6 @@
               "minimum": 1
             }
           }
-        },
-        "document_ref": {
-          "$ref": "#/$defs/documentRef"
         }
       }
     },

@@ -43,7 +43,7 @@ Current round: `plan.md#文件讀取效能與前景局部刷新優化`.
       - Observed: 原先回焦直接執行 location.reload() 造成全頁閃爍重載、卡片重新掛載與滾動焦點遺失。
       - Resolved: 接入 bindRefresh 與非同步局部更新；未變更 revision 時 0 DOM 異動並完整保留 Undo/Redo 及滾動選取；建置 bundles 成功。
 
-- [ ] **5. Report 綁定並行限制與端到端效能量測**
+- [x] **5. Report 綁定並行限制與端到端效能量測**
   Depends on: 4.
   Outcome: viewer/assets/document-binding.js 加入並行請求限制，並量測記錄首次讀取、命中快取與單檔變更之耗時與 CLI 啟動次數。
   Checks:
@@ -52,7 +52,7 @@ Current round: `plan.md#文件讀取效能與前景局部刷新優化`.
       - Expect: 23+ 份綁定文件平滑載入，舊請求不覆蓋新畫面，全部自動化測試通過。
       - Observed: 前端 Promise.all 一次發射全數 23 份文件請求，造成突發網路並行流量。
       - Resolved: 加入 mapConcurrent 限制並行數為 4（DEFAULT_DOCUMENT_BINDING_CONCURRENCY）；定向測試 20 項及 Python 51 項全數通過。
-    - [ ] **實機讀取效能與前景切換核查** `[manual]`
+    - [x] **實機讀取效能與前景切換核查** `[manual]`
       - Action: 在瀏覽器開啟 Report 與 Checklist 頁面，於終端機/編輯器與瀏覽器間來回切換焦點，確認無白屏重載且極速就地更新。
       - Expect: 切換回焦時無卡頓白屏，Checklist 互動狀態保留，Report 進度即時反映。
       - Reason: 需要使用者在真實多視窗環境確認體感流暢度與互動歷史保留。
@@ -64,21 +64,40 @@ Current round: `plan.md#文件讀取效能與前景局部刷新優化`.
     - [x] **Checklist 刷新期間草稿保護**
       - Action: 執行 foreground-refresh.test.mjs 單元測試。
       - Expect: 請求等待期間使用者建立草稿或開始編輯時，舊回應到達不覆蓋草稿、不銷毀 session。
+      - Observed: await transport.load() 期間若使用者建立草稿，回應到達時無條件 installDocument() 導致草稿被清除。
       - Resolved: 記錄 initialPersistence 與 initialRevision，load 返回後重新核對 dirty/saving/pending/reset 狀態；測試通過。
     - [x] **Report 綁定世代與狀態過期保護**
       - Action: 執行 document-binding.test.mjs 單元測試。
       - Expect: 請求期間切換 scope、開始編輯或兩請求逆序返回時，舊結果不覆蓋畫面。
+      - Observed: refreshForegroundSilently() 後續文件綁定查詢完成後，無條件套用先前捕捉的 tasks，舊請求會覆蓋新畫面。
       - Resolved: 實作 createDocumentBindingRefresher，以 generation 世代計數與 report 身份/狀態核驗防止過期覆蓋；測試通過。
     - [x] **Decision 來源解析前後一致性與卡片警告更新**
       - Action: 執行 test_decisions.py 與 decision-session.test.mjs 單元測試。
       - Expect: CLI 解析期間來源修改不快取錯誤結果；來源單獨修改回焦時畫面警告即時更新且不清除草稿與歷史。
+      - Observed: 來源指紋僅在 CLI 完成後取得，解析期間若來源變更會快取錯誤結果；前端未因應 sources 單獨變更更新警告。
       - Resolved: 後端於 CLI 前後對照來源指紋一致性；前端實作 updateSources 與 sourceOverrides 重置；測試通過。
     - [x] **Singleflight 取消安全與請求隔離**
       - Action: 執行 test_taskprogress_host.py 單元測試。
       - Expect: 取消一個等待者不影響其他等待者；取消主請求時其他等待者不卡住；後續可正常重試。
+      - Observed: 等待者直接 await 共享 Future，取消一個等待者會取消所有等待者共享的結果；主請求取消可能移除 entry 卻未結束其他等待。
       - Resolved: 以獨立 asyncio.Task 與 asyncio.shield 隔離生命週期，於 Task finally 清理 in_flight；測試通過。
     - [x] **Checklist 快取標準請求驗證契約**
       - Action: 執行 test_taskprogress_host.py 單元測試。
       - Expect: 非標準 load（如不支援版本、未知欄位、非法 payload）在冷熱快取下行為一致，交由 CLI 處理拒絕。
+      - Observed: 只要 type == "load" 即命中快取回傳，不合法 payload 在熱快取時可能成功但冷讀取時被拒絕。
       - Resolved: 加入 _is_standard_checklist_load 嚴格核驗；非標準請求不命中快取亦不加入 singleflight；測試通過。
 
+- [x] **7. 讀取版本失效防護與 ID 驗證保守契約**
+  Depends on: 6.
+  Outcome: 防止儲存後的新讀取加入過期工作，並消除 Checklist 快取入口與 C# CLI 之間的 ID 驗證差異。
+  Checks:
+    - [x] **防止儲存或外部修改後的新讀取加入過期 in-flight 工作**
+      - Action: 執行 test_taskprogress_host.py 與 test_decisions.py 單元測試。
+      - Expect: 寫入操作或外部修改檔案後，新讀取不加入舊工作；舊工作完成不覆蓋新工作與新快取。
+      - Observed: 舊讀取進行中若儲存完成或外部檔案/來源變更，新讀取因僅依檔案路徑共用而收到舊內容，且舊工作可能污染快取。
+      - Resolved: 引入 generation 與檔案/來源指紋核驗；寫入使 generation 失效；finally 僅清理自身工作；測試通過。
+    - [x] **Checklist 快取入口 ID 格式與長度保守契約**
+      - Action: 執行 test_taskprogress_host.py 單元測試。
+      - Expect: 全空白 ID 與 40 emoji 等超長 ID 在冷快取、熱快取與並行情境均旁路快取由 CLI 拒絕。
+      - Observed: 快取驗證接受全空白 ID 且以 Unicode 字元數而非 UTF-16 code units 計算長度，導致熱快取放行但冷讀取拒絕。
+      - Resolved: _is_standard_checklist_load 以 not req_id.strip() 與 UTF-16 長度核驗對齊 C# 規則；測試通過。

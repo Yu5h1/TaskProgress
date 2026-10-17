@@ -14,10 +14,10 @@ Current round: `plan.md#scope-重算邊界與未估算投影`.
       - Action: 執行 time-viewer-model、time-dialog-control 定向測試並重建三入口。
       - Expect: 舊快照與無時數未設置格式可讀，真實估算仍要求時數，18 項測試與建置通過。
 
-- [ ] **2. 部署後操作確認**
+- [x] **2. 部署後操作確認**
   Outcome: 使用新 CLI 與 worker 時，路由同步不改其他專案，畫面未估算顯示數量。
   Checks:
-    - [ ] **實機畫面與服務** `[manual]`
+    - [x] **實機畫面與服務** `[manual]`
       - Action: 更新部署並結束舊 worker → 使用可拋棄測試 scope 啟動及同步服務 → 檢查快照檔案與 Viewer 未估算顯示。
       - Expect: 同步不改快照；未估算以項目數呈現，仍可開啟估算入口。
       - Reason: 需要使用者安排 resident worker 與應用部署切換；本輪不重啟共用服務。

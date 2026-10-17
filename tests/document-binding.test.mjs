@@ -10,6 +10,7 @@ import {
   fetchDocumentBinding,
   deriveBoundTaskStatus,
   deriveBoundItemStatus,
+  deriveCardStatusFromItems,
   evaluateAllDocumentBindings,
   projectTasksWithBindings,
   createDocumentBindingRefresher,
@@ -170,24 +171,50 @@ test("fetchDocumentBinding handles success, transport failures and missing files
   assert.match(failing.error, /HTTP 404/);
 });
 
-test("deriveBoundTaskStatus and deriveBoundItemStatus preserve raw done and archive", () => {
-  // Archive stays archive even if document is completed
-  assert.equal(deriveBoundTaskStatus("archive", { ok: true, completed: true }), "archive");
+test("deriveCardStatusFromItems aggregates task status from items", () => {
+  // Archive always stays archive
+  assert.equal(deriveCardStatusFromItems("archive", 2, 2, true), "archive");
+  assert.equal(deriveCardStatusFromItems("archive", 0, 2, true), "archive");
+
+  // No non-archived items -> retains original status
+  assert.equal(deriveCardStatusFromItems("planned", 0, 0, false), "planned");
+  assert.equal(deriveCardStatusFromItems("in_progress", 0, 0, false), "in_progress");
+
+  // All items done -> derives to done
+  assert.equal(deriveCardStatusFromItems("planned", 3, 3, true), "done");
+  assert.equal(deriveCardStatusFromItems("in_progress", 3, 3, true), "done");
+
+  // Incomplete items when original was done -> reverts to in_progress
+  assert.equal(deriveCardStatusFromItems("done", 2, 3, true), "in_progress");
+
+  // Incomplete items retain non-done original status
+  assert.equal(deriveCardStatusFromItems("planned", 1, 3, true), "planned");
+  assert.equal(deriveCardStatusFromItems("in_progress", 1, 3, true), "in_progress");
+  assert.equal(deriveCardStatusFromItems("blocked", 1, 3, true), "blocked");
+});
+
+test("deriveBoundItemStatus reflects source document completion and reopening", () => {
+  // Archive always stays archive regardless of source
   assert.equal(deriveBoundItemStatus("archive", { ok: true, completed: true }), "archive");
+  assert.equal(deriveBoundItemStatus("archive", { ok: true, completed: false }), "archive");
+  assert.equal(deriveBoundItemStatus("archive", { ok: false, completed: false }), "archive");
 
-  // Raw done stays done even if document is incomplete or failed
-  assert.equal(deriveBoundTaskStatus("done", { ok: true, completed: false }), "done");
-  assert.equal(deriveBoundTaskStatus("done", { ok: false, completed: false }), "done");
-  assert.equal(deriveBoundItemStatus("done", { ok: true, completed: false }), "done");
-  assert.equal(deriveBoundItemStatus("done", { ok: false, completed: false }), "done");
-
-  // Planned becomes done when document completed
-  assert.equal(deriveBoundTaskStatus("planned", { ok: true, completed: true }), "done");
+  // Source completed -> derives to done
   assert.equal(deriveBoundItemStatus("planned", { ok: true, completed: true }), "done");
+  assert.equal(deriveBoundItemStatus("in_progress", { ok: true, completed: true }), "done");
+  assert.equal(deriveBoundItemStatus("blocked", { ok: true, completed: true }), "done");
+  assert.equal(deriveBoundItemStatus("done", { ok: true, completed: true }), "done");
 
-  // Planned stays planned when document is incomplete or error
-  assert.equal(deriveBoundTaskStatus("planned", { ok: true, completed: false }), "planned");
-  assert.equal(deriveBoundTaskStatus("planned", { ok: false, completed: false }), "planned");
+  // Source incomplete / reopened / unselected:
+  // - Raw planned, in_progress, blocked retain their unfinished status
+  assert.equal(deriveBoundItemStatus("planned", { ok: true, completed: false }), "planned");
+  assert.equal(deriveBoundItemStatus("in_progress", { ok: true, completed: false }), "in_progress");
+  assert.equal(deriveBoundItemStatus("blocked", { ok: true, completed: false }), "blocked");
+
+  // - Raw done or implicit done reverts to in_progress when source is incomplete, empty, or failed
+  assert.equal(deriveBoundItemStatus("done", { ok: true, completed: false }), "in_progress");
+  assert.equal(deriveBoundItemStatus("done", { ok: true, completed: false, total: 0 }), "in_progress");
+  assert.equal(deriveBoundItemStatus("done", { ok: false, completed: false, error: "File not found" }), "in_progress");
 });
 
 test("projectTasksWithBindings partitions completed items and updates progress", () => {
@@ -215,9 +242,14 @@ test("projectTasksWithBindings partitions completed items and updates progress",
       title: "Bound Task",
       status: "in_progress",
       summary: "Bound to decision",
-      document_ref: { kind: "decision", scope_id: "alpha", task: "dec-1" },
       completed_items: [],
-      pending_items: [],
+      pending_items: [
+        {
+          id: "item-3",
+          title: "Bound Decision Item",
+          document_ref: { kind: "decision", scope_id: "alpha", task: "dec-1" },
+        },
+      ],
     },
   ];
 
@@ -228,8 +260,9 @@ test("projectTasksWithBindings partitions completed items and updates progress",
 
   const projected = projectTasksWithBindings(tasks, evaluations);
 
-  // task-1 parent status remains planned (not automatically rewritten by child completion)
+  // task-1 parent status remains planned (1 of 2 completed)
   assert.equal(projected[0].status, "planned");
+  assert.equal(projected[0].sourceRef, undefined);
   // item-1 moved into completed_items because its bound checklist completed!
   assert.equal(projected[0].completed_items.length, 1);
   assert.equal(projected[0].completed_items[0].id, "item-1");
@@ -242,29 +275,37 @@ test("projectTasksWithBindings partitions completed items and updates progress",
   assert.equal(projected[0].pending_items.length, 1);
   assert.equal(projected[0].pending_items[0].id, "item-2");
 
-  // task-2 status derived to done because its bound decision completed!
+  // task-2 status derived to done because all its items (item-3) completed!
   assert.equal(projected[1].status, "done");
-  assert.equal(projected[1].sourceRef.completed, true);
-  assert.equal(projected[1].sourceRef.label, "Decision");
-  assert.equal(projected[1].sourceRef.href, "/decisions/?scope=alpha&task=dec-1");
+  assert.equal(projected[1].sourceRef, undefined);
+  assert.equal(projected[1].completed_items.length, 1);
+  assert.equal(projected[1].completed_items[0].id, "item-3");
+  assert.equal(projected[1].completed_items[0].sourceRef.completed, true);
+  assert.equal(projected[1].completed_items[0].sourceRef.label, "Decision");
+  assert.equal(projected[1].completed_items[0].sourceRef.href, "/decisions/?scope=alpha&task=dec-1");
 
   // Project progress calculation reflects the derived completions
   const progress = calculateProjectProgress(projected);
-  // task-1: 1 of 2 items completed. task-2: 1 of 1 completed task. Total: completed = 2, total = 3.
+  // task-1: 1 of 2 items completed. task-2: 1 of 1 completed items. Total: completed = 2, total = 3.
   assert.equal(progress.completed, 2);
   assert.equal(progress.total, 3);
   assert.equal(progress.percentage, 67);
 });
 
-test("projectTasksWithBindings marks unavailable sourceRef on error without halting projection", () => {
+test("projectTasksWithBindings marks unavailable sourceRef on item error without halting projection", () => {
   const tasks = [
     {
       id: "task-err",
-      title: "Task with broken ref",
+      title: "Task with broken item ref",
       status: "planned",
-      document_ref: { kind: "checklist", scope_id: "alpha", task: "missing" },
       completed_items: [],
-      pending_items: [],
+      pending_items: [
+        {
+          id: "item-err",
+          title: "Item with broken ref",
+          document_ref: { kind: "checklist", scope_id: "alpha", task: "missing" },
+        },
+      ],
     },
   ];
 
@@ -274,9 +315,10 @@ test("projectTasksWithBindings marks unavailable sourceRef on error without halt
 
   const projected = projectTasksWithBindings(tasks, evaluations);
   assert.equal(projected[0].status, "planned");
-  assert.equal(projected[0].sourceRef.available, false);
-  assert.equal(projected[0].sourceRef.error, "HTTP 404");
-  assert.equal(projected[0].sourceRef.completed, false);
+  assert.equal(projected[0].sourceRef, undefined);
+  assert.equal(projected[0].pending_items[0].sourceRef.available, false);
+  assert.equal(projected[0].pending_items[0].sourceRef.error, "HTTP 404");
+  assert.equal(projected[0].pending_items[0].sourceRef.completed, false);
 });
 
 test("evaluateAllDocumentBindings caps active concurrent requests", async () => {
@@ -297,7 +339,14 @@ test("evaluateAllDocumentBindings caps active concurrent requests", async () => 
     id: `task-${i}`,
     title: `Task ${i}`,
     status: "planned",
-    document_ref: { kind: "checklist", scope_id: "scope-1", task: `doc-${i}` },
+    completed_items: [],
+    pending_items: [
+      {
+        id: `item-${i}`,
+        title: `Item ${i}`,
+        document_ref: { kind: "checklist", scope_id: "scope-1", task: `doc-${i}` },
+      },
+    ],
   }));
 
   const evaluations = await evaluateAllDocumentBindings(tasks, {
@@ -394,3 +443,190 @@ test("createDocumentBindingRefresher drops out-of-order stale response", async (
   assert.deepEqual(appliedCalls, [2]);
 });
 
+
+
+test("projectTasksWithBindings reflects source reopening on bound items and preserves raw report", () => {
+  const tasks = [
+    {
+      id: "task-reopened-chk",
+      title: "Task with checklist",
+      status: "in_progress",
+      completed_items: [
+        {
+          id: "item-explicit-done",
+          title: "Explicit done item",
+          status: "done",
+          document_ref: { kind: "checklist", scope_id: "test", task: "chk-reopened" },
+        },
+        {
+          id: "item-implicit-done",
+          title: "Implicit done item without status field",
+          document_ref: { kind: "checklist", scope_id: "test", task: "chk-empty" },
+        },
+      ],
+      pending_items: [
+        {
+          id: "item-planned",
+          title: "Planned item",
+          status: "planned",
+          document_ref: { kind: "decision", scope_id: "test", task: "dec-reopened" },
+        },
+      ],
+    },
+    {
+      id: "task-missing-source",
+      title: "Task with missing and failed sources",
+      status: "in_progress",
+      completed_items: [
+        {
+          id: "item-done-missing",
+          title: "Item with missing file",
+          status: "done",
+          document_ref: { kind: "checklist", scope_id: "test", task: "chk-missing" },
+        },
+        {
+          id: "item-archived-bound",
+          title: "Archived item",
+          status: "archive",
+          document_ref: { kind: "checklist", scope_id: "test", task: "chk-missing" },
+        },
+      ],
+      pending_items: [],
+    },
+  ];
+
+  const evaluations = new Map([
+    // Checklist unchecked / partial
+    ["checklist:test:chk-reopened", { ok: true, completed: false, total: 3, passed: 2 }],
+    // Checklist empty
+    ["checklist:test:chk-empty", { ok: true, completed: false, total: 0, passed: 0 }],
+    // Decision reopened
+    ["decision:test:dec-reopened", { ok: true, completed: false, total: 2, decided: 1 }],
+    // Missing file
+    ["checklist:test:chk-missing", { ok: false, completed: false, error: "HTTP 404" }],
+  ]);
+
+  const rawTasksSnapshot = JSON.stringify(tasks);
+  const projected = projectTasksWithBindings(tasks, evaluations);
+
+  // Raw data unmutated
+  assert.equal(JSON.stringify(tasks), rawTasksSnapshot);
+
+  const t1 = projected.find((t) => t.id === "task-reopened-chk");
+  // All 3 items are unfinished:
+  // - item-explicit-done (was done) -> derived status: in_progress, moved to pending_items
+  // - item-implicit-done (was implicit done) -> derived status: in_progress, moved to pending_items
+  // - item-planned (was planned) -> derived status: planned, in pending_items
+  assert.equal(t1.completed_items.length, 0);
+  assert.equal(t1.pending_items.length, 3);
+  const itExplicit = t1.pending_items.find((i) => i.id === "item-explicit-done");
+  assert.equal(itExplicit.status, "in_progress");
+  assert.equal(itExplicit.sourceRef.completed, false);
+  assert.equal(itExplicit.sourceRef.available, true);
+
+  const itImplicit = t1.pending_items.find((i) => i.id === "item-implicit-done");
+  assert.equal(itImplicit.status, "in_progress");
+  assert.equal(itImplicit.sourceRef.completed, false);
+  assert.equal(itImplicit.sourceRef.available, true);
+
+  const itPlanned = t1.pending_items.find((i) => i.id === "item-planned");
+  assert.equal(itPlanned.status, "planned");
+  assert.equal(itPlanned.sourceRef.completed, false);
+
+  // Card progress: 0 / 3
+  const p1 = calculateProjectProgress([t1]);
+  assert.equal(p1.completed, 0);
+  assert.equal(p1.total, 3);
+  assert.equal(t1.status, "in_progress");
+
+  const t2 = projected.find((t) => t.id === "task-missing-source");
+  // item-done-missing had missing file -> status reverts to in_progress, available = false
+  const itMissing = t2.pending_items.find((i) => i.id === "item-done-missing");
+  assert.equal(itMissing.status, "in_progress");
+  assert.equal(itMissing.sourceRef.available, false);
+  assert.equal(itMissing.sourceRef.completed, false);
+  assert.match(itMissing.sourceRef.error, /HTTP 404/);
+
+  // item-archived-bound stays archive in completed_items
+  const itArchive = t2.pending_items.find((i) => i.id === "item-archived-bound");
+  assert.equal(itArchive.status, "archive");
+});
+
+test("projectTasksWithBindings leaves completely unbound task cards completely untouched", () => {
+  const tasks = [
+    {
+      id: "unbound-blocked",
+      title: "Blocked card with all completed items",
+      status: "blocked",
+      summary: "Manual roadblock",
+      completed_items: [
+        { id: "item-b1", title: "Item 1", status: "done" },
+        { id: "item-b2", title: "Item 2", status: "done" },
+      ],
+      pending_items: [],
+    },
+    {
+      id: "unbound-done-with-pending",
+      title: "Done card with pending item",
+      status: "done",
+      summary: "Done by manual override",
+      completed_items: [
+        { id: "item-d1", title: "Item 1", status: "done" },
+      ],
+      pending_items: [
+        { id: "item-d2", title: "Item 2", status: "planned" },
+      ],
+    },
+    {
+      id: "mixed-card",
+      title: "Card with mixed bound and unbound items",
+      status: "in_progress",
+      summary: "Has both",
+      completed_items: [],
+      pending_items: [
+        {
+          id: "item-bound-pass",
+          title: "Bound item",
+          document_ref: { kind: "checklist", scope_id: "s", task: "chk-pass" },
+        },
+        {
+          id: "item-unbound-pending",
+          title: "Unbound pending item",
+          status: "planned",
+        },
+      ],
+    },
+  ];
+
+  const evaluations = new Map([
+    ["checklist:s:chk-pass", { ok: true, completed: true, total: 1, passed: 1 }],
+  ]);
+
+  const rawTasksSnapshot = JSON.stringify(tasks);
+  const projected = projectTasksWithBindings(tasks, evaluations);
+
+  // 1. Unbound blocked card must retain status: blocked even though all items are done!
+  const blockedCard = projected.find((t) => t.id === "unbound-blocked");
+  assert.equal(blockedCard.status, "blocked");
+  assert.equal(blockedCard.completed_items.length, 2);
+
+  // 2. Unbound done card must retain status: done even though it has pending items!
+  const doneCard = projected.find((t) => t.id === "unbound-done-with-pending");
+  assert.equal(doneCard.status, "done");
+  assert.equal(doneCard.completed_items.length, 1);
+  assert.equal(doneCard.pending_items.length, 1);
+
+  // 3. Mixed card has bound items, so it aggregates:
+  // - item-bound-pass completed -> moved to completed_items
+  // - item-unbound-pending is planned -> stays in pending_items
+  // - 1 of 2 done -> card status remains in_progress
+  const mixedCard = projected.find((t) => t.id === "mixed-card");
+  assert.equal(mixedCard.completed_items.length, 1);
+  assert.equal(mixedCard.completed_items[0].id, "item-bound-pass");
+  assert.equal(mixedCard.pending_items.length, 1);
+  assert.equal(mixedCard.pending_items[0].id, "item-unbound-pending");
+  assert.equal(mixedCard.status, "in_progress");
+
+  // Raw data unmutated
+  assert.equal(JSON.stringify(tasks), rawTasksSnapshot);
+});

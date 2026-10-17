@@ -1437,5 +1437,266 @@ class ChecklistRequestRouteTests(unittest.TestCase):
         asyncio.run(run_scenario())
 
 
+    def test_checklist_id_validation_discrepancy_cold_hot_and_shared(self) -> None:
+        import asyncio
+        import httpx
+        import threading
+
+        whitespace_id = "   \t  \n "
+        long_emoji_id = "🚀" * 40
+        valid_64_ascii = "a" * 64
+        invalid_65_ascii = "a" * 65
+        valid_32_emoji = "🚀" * 32
+        invalid_33_emoji = "🚀" * 33
+
+        # 1. Cold cache:
+        # All-whitespace ID is rejected by CLI
+        res_ws = self.client.post(
+            "/__taskprogress/v1/checklists/secure-test/first-task",
+            headers=self.request_headers(),
+            json={"version": 1, "id": whitespace_id, "type": "load"},
+        )
+        self.assertEqual(200, res_ws.status_code)
+        self.assertEqual("error", res_ws.json().get("type"))
+
+        # 40 emojis (80 UTF-16 code units) is rejected by CLI
+        res_emoji = self.client.post(
+            "/__taskprogress/v1/checklists/secure-test/first-task",
+            headers=self.request_headers(),
+            json={"version": 1, "id": long_emoji_id, "type": "load"},
+        )
+        self.assertEqual(200, res_emoji.status_code)
+        self.assertEqual("error", res_emoji.json().get("type"))
+
+        # 65 ASCII chars is rejected by CLI
+        res_65 = self.client.post(
+            "/__taskprogress/v1/checklists/secure-test/first-task",
+            headers=self.request_headers(),
+            json={"version": 1, "id": invalid_65_ascii, "type": "load"},
+        )
+        self.assertEqual(200, res_65.status_code)
+        self.assertEqual("error", res_65.json().get("type"))
+
+        # 33 emojis (66 UTF-16 code units) is rejected by CLI
+        res_33 = self.client.post(
+            "/__taskprogress/v1/checklists/secure-test/first-task",
+            headers=self.request_headers(),
+            json={"version": 1, "id": invalid_33_emoji, "type": "load"},
+        )
+        self.assertEqual(200, res_33.status_code)
+        self.assertEqual("error", res_33.json().get("type"))
+
+        # Valid 64 ASCII chars succeeds and warms cache
+        res_64 = self.client.post(
+            "/__taskprogress/v1/checklists/secure-test/first-task",
+            headers=self.request_headers(),
+            json={"version": 1, "id": valid_64_ascii, "type": "load"},
+        )
+        self.assertEqual(200, res_64.status_code)
+        self.assertEqual("result", res_64.json().get("type"))
+        self.assertEqual(valid_64_ascii, res_64.json().get("id"))
+
+        # Valid 32 emojis (64 UTF-16 code units) succeeds
+        res_32 = self.client.post(
+            "/__taskprogress/v1/checklists/secure-test/first-task",
+            headers=self.request_headers(),
+            json={"version": 1, "id": valid_32_emoji, "type": "load"},
+        )
+        self.assertEqual(200, res_32.status_code)
+        self.assertEqual("result", res_32.json().get("type"))
+        self.assertEqual(valid_32_emoji, res_32.json().get("id"))
+
+        # 2. Hot cache:
+        # Invalid IDs must STILL be rejected and NOT return the cached result!
+        res_ws_hot = self.client.post(
+            "/__taskprogress/v1/checklists/secure-test/first-task",
+            headers=self.request_headers(),
+            json={"version": 1, "id": whitespace_id, "type": "load"},
+        )
+        self.assertEqual("error", res_ws_hot.json().get("type"))
+
+        res_emoji_hot = self.client.post(
+            "/__taskprogress/v1/checklists/secure-test/first-task",
+            headers=self.request_headers(),
+            json={"version": 1, "id": long_emoji_id, "type": "load"},
+        )
+        self.assertEqual("error", res_emoji_hot.json().get("type"))
+
+        # 3. Concurrent shared load:
+        # If a valid load is in-flight, an invalid request arriving concurrently
+        # must NOT join the in-flight task!
+        async def run_concurrent():
+            import os
+            st = self.checklist_path.stat()
+            os.utime(self.checklist_path, (st.st_atime, st.st_mtime + 2))
+
+            real_run = subprocess.run
+            cli_started = threading.Event()
+            cli_release = threading.Event()
+
+            def controlled_run(cmd, **kwargs):
+                if "checklist" in cmd and "request" in cmd:
+                    inp = kwargs.get("input", b"")
+                    if b"legal-init" in inp:
+                        cli_started.set()
+                        cli_release.wait(timeout=5)
+                return real_run(cmd, **kwargs)
+
+            transport = httpx.ASGITransport(app=self.client.app)
+            async with httpx.AsyncClient(transport=transport, base_url=ORIGIN) as client:
+                headers = self.request_headers()
+                with patch("service.taskprogress_host.subprocess.run", side_effect=controlled_run):
+                    task_legal = asyncio.create_task(client.post(
+                        "/__taskprogress/v1/checklists/secure-test/first-task",
+                        headers=headers,
+                        json={"version": 1, "id": "legal-init", "type": "load"},
+                    ))
+                    while not cli_started.is_set():
+                        await asyncio.sleep(0.005)
+
+                    task_illegal = asyncio.create_task(client.post(
+                        "/__taskprogress/v1/checklists/secure-test/first-task",
+                        headers=headers,
+                        json={"version": 1, "id": long_emoji_id, "type": "load"},
+                    ))
+
+                    resp_illegal = await task_illegal
+                    self.assertEqual("error", resp_illegal.json().get("type"))
+
+                    cli_release.set()
+                    resp_legal = await task_legal
+                    self.assertEqual("result", resp_legal.json().get("type"))
+                    self.assertEqual("legal-init", resp_legal.json().get("id"))
+
+        asyncio.run(run_concurrent())
+
+    def test_checklist_inflight_generation_and_write_race(self) -> None:
+        import asyncio
+        import httpx
+        import os
+        import threading
+
+        # Test: Load A starts -> Save B completes -> Load C starts -> Load A finishes late
+        # Load C must receive post-save content.
+        # Load A must NOT overwrite cache with pre-save content.
+        async def run_scenario():
+            real_run = subprocess.run
+            load_a_started = threading.Event()
+            load_a_release = threading.Event()
+
+            def controlled_run(cmd, **kwargs):
+                inp = kwargs.get("input", b"")
+                if b"load-a" in inp:
+                    load_a_started.set()
+                    load_a_release.wait(timeout=5)
+                return real_run(cmd, **kwargs)
+
+            st = self.checklist_path.stat()
+            os.utime(self.checklist_path, (st.st_atime, st.st_mtime + 2))
+
+            transport = httpx.ASGITransport(app=self.client.app)
+            async with httpx.AsyncClient(transport=transport, base_url=ORIGIN) as client:
+                headers = self.request_headers()
+                with patch("service.taskprogress_host.subprocess.run", side_effect=controlled_run):
+                    task_a = asyncio.create_task(client.post(
+                        "/__taskprogress/v1/checklists/secure-test/first-task",
+                        headers=headers,
+                        json={"version": 1, "id": "load-a", "type": "load"},
+                    ))
+                    while not load_a_started.is_set():
+                        await asyncio.sleep(0.005)
+
+                    save_resp = await client.post(
+                        "/__taskprogress/v1/checklists/secure-test/first-task",
+                        headers=headers,
+                        json={"version": 1, "id": "reset-b", "type": "reset", "payload": {}},
+                    )
+                    self.assertEqual(200, save_resp.status_code)
+                    self.assertEqual("result", save_resp.json().get("type"))
+
+                    task_c = asyncio.create_task(client.post(
+                        "/__taskprogress/v1/checklists/secure-test/first-task",
+                        headers=headers,
+                        json={"version": 1, "id": "load-c", "type": "load"},
+                    ))
+
+                    resp_c = await task_c
+                    self.assertEqual(200, resp_c.status_code)
+                    self.assertEqual("result", resp_c.json().get("type"))
+                    self.assertEqual("load-c", resp_c.json().get("id"))
+                    post_save_rev = resp_c.json()["payload"]["revision"]
+
+                    load_a_release.set()
+                    resp_a = await task_a
+                    self.assertEqual(200, resp_a.status_code)
+                    self.assertEqual("load-a", resp_a.json().get("id"))
+
+                    resp_d = await client.post(
+                        "/__taskprogress/v1/checklists/secure-test/first-task",
+                        headers=headers,
+                        json={"version": 1, "id": "load-d", "type": "load"},
+                    )
+                    self.assertEqual(200, resp_d.status_code)
+                    self.assertEqual(post_save_rev, resp_d.json()["payload"]["revision"],
+                                     "Cache must contain post-save revision, not stale pre-save revision from Load A")
+
+        asyncio.run(run_scenario())
+
+    def test_checklist_inflight_external_modification_race(self) -> None:
+        import asyncio
+        import httpx
+        import os
+        import threading
+        import time
+
+        async def run_scenario():
+            real_run = subprocess.run
+            load_a_started = threading.Event()
+            load_a_release = threading.Event()
+
+            def controlled_run(cmd, **kwargs):
+                inp = kwargs.get("input", b"")
+                if b"load-ext-a" in inp:
+                    load_a_started.set()
+                    load_a_release.wait(timeout=5)
+                return real_run(cmd, **kwargs)
+
+            st = self.checklist_path.stat()
+            os.utime(self.checklist_path, (st.st_atime, st.st_mtime + 2))
+
+            transport = httpx.ASGITransport(app=self.client.app)
+            async with httpx.AsyncClient(transport=transport, base_url=ORIGIN) as client:
+                headers = self.request_headers()
+                with patch("service.taskprogress_host.subprocess.run", side_effect=controlled_run):
+                    task_a = asyncio.create_task(client.post(
+                        "/__taskprogress/v1/checklists/secure-test/first-task",
+                        headers=headers,
+                        json={"version": 1, "id": "load-ext-a", "type": "load"},
+                    ))
+                    while not load_a_started.is_set():
+                        await asyncio.sleep(0.005)
+
+                    time.sleep(0.01)
+                    st2 = self.checklist_path.stat()
+                    os.utime(self.checklist_path, (st2.st_atime, st2.st_mtime + 5))
+
+                    task_c = asyncio.create_task(client.post(
+                        "/__taskprogress/v1/checklists/secure-test/first-task",
+                        headers=headers,
+                        json={"version": 1, "id": "load-ext-c", "type": "load"},
+                    ))
+
+                    resp_c = await task_c
+                    self.assertEqual(200, resp_c.status_code)
+                    self.assertEqual("load-ext-c", resp_c.json().get("id"))
+
+                    load_a_release.set()
+                    resp_a = await task_a
+                    self.assertEqual(200, resp_a.status_code)
+                    self.assertEqual("load-ext-a", resp_a.json().get("id"))
+
+        asyncio.run(run_scenario())
+
+
 if __name__ == "__main__":
     unittest.main()

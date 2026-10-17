@@ -27,7 +27,6 @@
   // message, openHref }. A pointer card never takes `editing`, `onCommand` or
   // any other write-capable prop — it has no edit affordances to receive one.
   export let pointerCards = {};
-  export let decisionCards = {};
   let defaultExpanded = true;
   let expandedCards = {};
   let appliedPin = null;
@@ -57,7 +56,6 @@
       <ReportPointerCard {visibilityEnabled} {visible} {onVisibleChange} expanded={expandedCards[task.id] ?? defaultExpanded} onToggle={value => setExpanded(task.id, value)} {task} state={pointerCards[task.id] ?? { status: "loading" }} />
     {:else}
       <TaskCard {visibilityEnabled} {visible} {onVisibleChange}
-        decisionCard={decisionCards[task.id] ?? null}
         expanded={expandedCards[task.id] ?? defaultExpanded}
         onToggle={value => setExpanded(task.id, value)}
         {task}

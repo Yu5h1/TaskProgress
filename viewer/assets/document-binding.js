@@ -117,10 +117,29 @@ export function deriveBoundTaskStatus(originalStatus, evaluation) {
  * - successful completion derives to done.
  * - incomplete / error / reverted retains original status.
  */
+/**
+ * Derives a task card's display status from its child items.
+ * - archive stays archive.
+ * - if the task has no non-archived items, retains original status.
+ * - if all items are done, derives to done.
+ * - if incomplete and was done, reverts to in_progress.
+ * - otherwise retains original status.
+ */
+export function deriveCardStatusFromItems(originalStatus, completedCount, totalCount, hasItems) {
+  if (originalStatus === "archive") return "archive";
+  if (!hasItems) return originalStatus;
+  if (completedCount === totalCount && totalCount > 0) return "done";
+  if (completedCount < totalCount) {
+    if (originalStatus === "done") return "in_progress";
+    return originalStatus;
+  }
+  return originalStatus;
+}
+
 export function deriveBoundItemStatus(originalStatus, evaluation) {
   if (originalStatus === "archive") return "archive";
-  if (originalStatus === "done") return "done";
   if (evaluation?.ok && evaluation?.completed) return "done";
+  if (originalStatus === "done") return "in_progress";
   return originalStatus ?? "planned";
 }
 
@@ -146,10 +165,6 @@ export async function evaluateAllDocumentBindings(tasks, options = {}) {
   const refsByKey = new Map();
 
   for (const task of tasks ?? []) {
-    const taskKey = documentBindingKey(task.document_ref);
-    if (taskKey && !refsByKey.has(taskKey)) {
-      refsByKey.set(taskKey, task.document_ref);
-    }
     for (const field of ["completed_items", "pending_items"]) {
       for (const item of task[field] ?? []) {
         if (!item || typeof item !== "object") continue;
@@ -178,26 +193,6 @@ export async function evaluateAllDocumentBindings(tasks, options = {}) {
  */
 export function projectTasksWithBindings(tasks, evaluations = new Map()) {
   return (tasks ?? []).map((task) => {
-    let nextTaskStatus = task.status;
-    let taskSourceRef = null;
-
-    const taskKey = documentBindingKey(task.document_ref);
-    if (taskKey) {
-      const norm = normalizeDocumentRef(task.document_ref);
-      const evalResult = evaluations.get(taskKey) ?? { ok: false, completed: false, error: "未評估" };
-      nextTaskStatus = deriveBoundTaskStatus(task.status, evalResult);
-      taskSourceRef = {
-        href: documentBindingHref(task.document_ref),
-        kind: norm.kind,
-        scope_id: norm.scope_id,
-        task: norm.task,
-        label: norm.kind === "checklist" ? "Checklist" : "Decision",
-        completed: Boolean(evalResult.ok && evalResult.completed),
-        available: Boolean(evalResult.ok),
-        error: evalResult.ok ? null : (evalResult.error ?? "來源無法讀取"),
-      };
-    }
-
     const completedItems = [];
     const pendingItems = [];
 
@@ -252,13 +247,31 @@ export function projectTasksWithBindings(tasks, evaluations = new Map()) {
       processItem(item, "pending_items");
     }
 
-    return {
+    const hasBoundItems = [
+      ...(task.completed_items ?? []),
+      ...(task.pending_items ?? []),
+    ].some((item) => item && typeof item === "object" && Boolean(documentBindingKey(item.document_ref)));
+
+    let nextTaskStatus = task.status;
+    if (hasBoundItems) {
+      const nonArchivedStatuses = [
+        ...completedItems.map((item) => (item && typeof item === "object") ? (item.status ?? "done") : "done"),
+        ...pendingItems.map((item) => (item && typeof item === "object") ? (item.status ?? "planned") : "planned"),
+      ].filter((status) => status !== "archive");
+      const hasItems = nonArchivedStatuses.length > 0;
+      const completedCount = nonArchivedStatuses.filter((status) => status === "done").length;
+      const totalCount = nonArchivedStatuses.length;
+      nextTaskStatus = deriveCardStatusFromItems(task.status, completedCount, totalCount, hasItems);
+    }
+
+    const projectedTask = {
       ...task,
       status: nextTaskStatus,
-      sourceRef: taskSourceRef,
       completed_items: completedItems,
       pending_items: pendingItems,
     };
+    delete projectedTask.sourceRef;
+    return projectedTask;
   });
 }
 
