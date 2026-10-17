@@ -34,10 +34,10 @@ Current round: `Documentation/ThirdPartyChecklistWritePlan.md#驗證`.
   Depends on: 1, 2, 3.
   Outcome: 第三方可探索端點並寫入 manual 結果，使用者仍可手動修改；服務不可用不改動來源。
   Checks:
-    - [ ] **完整往返與人工後路** `[manual]`
-      - Action: 在實際消費端發出 reset／set，再於 Browser Checklist 修改同一格；停止服務後再次觸發工具操作。
-      - Expect: 寫入結果與頁面一致，人工可改回 pending；服務停止時工具保持可用，Checklist 不被改動。
-      - Reason: 需要使用者的消費端互動工具與實際 Browser 操作判斷。
+    - [ ] **第三方寫入與瀏覽器手動覆寫往返** `[manual]`
+      - Action: 1. 透過外部工具或 HTTP POST 向 Checklist API 發送 reset 與 set 將某一項設為通過；2. 開啟瀏覽器 Checklist 頁面，手動點擊該項目改回待處理；3. 停止本機服務後再次觸發外部工具寫入。
+      - Expect: 外部工具寫入後頁面顯示通過；使用者能在瀏覽器手動覆寫改回待處理；本機服務停止時外部工具正常失敗，且原本的 Checklist 檔案不被損壞或修改。
+      - Reason: 需要在真實消費端發送 HTTP 請求並於瀏覽器頁面核對人工覆寫行為。
 
 - [ ] **5. Browser 可確認後清空人工結果**
   Outcome: 清空只重設確認範圍的 manual checks，保留 agent 證據，並與草稿儲存及前景刷新互斥。
@@ -45,10 +45,10 @@ Current round: `Documentation/ThirdPartyChecklistWritePlan.md#驗證`.
     - [x] **共用 Checklist 資產建置**
       - Action: 執行 checklist:ui:build 與 checklist:browser:build。
       - Expect: Desktop 與 Browser 的共用 Svelte Checklist 資產均可建置。
-    - [ ] **確認、取消與寫入隔離** `[manual]`
-      - Action: 在有人工及 agent 結果的 Checklist 篩選部分項目，開啟清空確認框，分別取消與確認；另檢查草稿、寫入中、前景切換及失敗情境。
-      - Expect: 顯示全份人工 targets 數量；取消零請求；成功清除人工結果與 Observed／Resolved，保留 agent，Undo 不帶回舊結果；草稿或待寫入時禁用，請求期間不可編輯，確認／請求不被前景刷新打斷；失敗顯示錯誤，不自動重試。
-      - Reason: 完整 UI 與實機驗收依使用者安排後排。
+    - [ ] **清空確認框操作與狀態隔離** `[manual]`
+      - Action: 1. 在包含人工項目與 Agent 證據的 Checklist 頁面點擊「清空」按鈕開啟對話框，點擊「取消」確認無動作；2. 再次開啟並點擊「確認」，驗證僅人工項目被重設；3. 測試在有草稿未存或儲存中時清空按鈕停用，以及開啟對話框時切換視窗前景不被打斷。
+      - Expect: 清空對話框清楚顯示即將重設的人工項目總數；按取消不發送任何請求；確認後僅重設人工項目與其說明，Agent 測試結果完整保留且 Undo 不帶回舊資料；編輯草稿中禁用清空，對話框不會被前景切換刷新打斷；若請求失敗需顯示錯誤且不自動重試。
+      - Reason: 需要於真實瀏覽器操作清空對話框、核對視覺筆數提示與前景回焦互動。
     - [x] **HTTP reset 傳輸回歸**
       - Action: 執行 tests/checklist-http-transport.test.mjs 已備妥的 reset 測試。
       - Expect: 明確 targets 原樣送出、未指定與空 targets 保持不同語意、Browser 不加 bearer token，bridge 拒絕不自動重試。
