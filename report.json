@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-10-16T16:27:48.646Z",
+  "updated_at": "2026-10-17T05:03:01.382893+00:00",
   "tasks": [
     {
       "id": "document-refresh-optimization",
@@ -11,12 +11,19 @@
       "status": "in_progress",
       "priority": 1,
       "summary": "解決前景回焦與大量綁定文件讀取時的高成本 CLI 程序啟動、事件迴圈阻塞與白屏重載；實作後端有界 mtime 快取、CLI 並行限制與前端非同步局部刷新。",
-      "document_ref": {
-        "kind": "checklist",
-        "scope_id": "task-progress",
-        "task": "document-refresh-optimization"
-      },
-      "pending_items": [],
+      "pending_items": [
+        {
+          "id": "item-doc-refresh-verification-checklist",
+          "title": "文件讀取與前景刷新效能優化回歸驗收與實機核查",
+          "priority": 1,
+          "status": "planned",
+          "document_ref": {
+            "kind": "checklist",
+            "scope_id": "task-progress",
+            "task": "document-refresh-optimization"
+          }
+        }
+      ],
       "completed_items": [
         {
           "id": "item-doc-refresh-lifecycle",
@@ -812,10 +819,16 @@
     {
       "id": "document-binding",
       "title": "Checklist／Decision 與 Report 項目完成狀態連動",
-      "status": "done",
+      "status": "in_progress",
       "priority": 1,
-      "summary": "Report 任務與子項目支援明確綁定 Checklist 或 Decision 文件，於 Viewer 載入時依驗收與決策結果推導完成狀態，並在註解開頭提供底線來源連結。",
+      "summary": "僅子項目綁定 Checklist／Decision；任務卡文件徽章與待決策入口已移除。來源重開與未綁定卡片保護已驗證，42 項定向測試通過；實作完成，待瀏覽器人工驗收。",
       "completed_items": [
+        {
+          "id": "item-binding-item-only-review",
+          "title": "子項目綁定與任務卡入口移除：程式及回歸驗收通過",
+          "status": "done",
+          "priority": 1
+        },
         {
           "id": "item-binding-checklist-completed",
           "title": "綁定已全數通過的 Checklist 驗證自動推導完成",
@@ -852,7 +865,19 @@
           "priority": 3
         }
       ],
-      "pending_items": []
+      "pending_items": [
+        {
+          "id": "item-binding-browser-verification",
+          "title": "子項目綁定：瀏覽器畫面、導覽與回焦連動驗收",
+          "status": "planned",
+          "priority": 1,
+          "document_ref": {
+            "kind": "checklist",
+            "scope_id": "task-progress",
+            "task": "document-binding"
+          }
+        }
+      ]
     },
     {
       "id": "unowned-documents",

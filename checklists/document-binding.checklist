@@ -1,0 +1,24 @@
+# Report 子項目文件綁定 Checklist
+
+Current round: `Documentation/DocumentBindingPlan.md#子項目綁定契約`.
+
+本輪限於子項目綁定、任務卡入口移除與狀態連動；人工檢查尚待使用者操作。
+
+- [x] **1. 來源完成與重新開啟正確推導子項目**
+  Outcome: 明確或隱含完成的綁定項目可恢復未完成，未綁定卡片維持原狀，投影不改寫原始資料。
+  Checks:
+    - [x] **定向回歸測試**
+      - Action: 執行 node --test tests/document-binding.test.mjs tests/report-document-binding-integration.test.mjs tests/report-model.test.mjs。
+      - Expect: 全部測試通過，涵蓋來源重開、空文件、缺失、封存、混合項目與未綁定卡片。
+
+- [ ] **2. 實際頁面入口與連動一致**
+  Outcome: 任務卡只呈現摘要，文件入口集中在子項目，來源變更可反映到 Report。
+  Checks:
+    - [ ] **任務卡與子項目導覽** `[manual]`
+      - Action: 開啟 http://127.0.0.1:8001/?scope=task-progress，再切換 Yu5h1Lib UX Report；檢查任務卡標題與摘要，點擊子項目的文件連結並返回 Report。
+      - Expect: 任務卡無文件徽章與待決策計數；子項目連結開啟正確文件，文件頁擁有者連結可返回 Report，一般摘要超連結仍可使用。
+      - Reason: 需要確認使用者目前服務版本的實際呈現與導覽。
+    - [ ] **來源修改與回焦連動** `[manual]`
+      - Action: 選擇可測試的已綁定 Checklist 與 Decision，記下原始結果；切換完成與未完成後返回 Report，檢查子項目及卡片進度，最後還原原始結果。
+      - Expect: 完成與重新開啟皆正確反映；卡片進度與子項目一致，未綁定卡片狀態不變。
+      - Reason: 需要在使用者的瀏覽器操作來源頁面並確認回焦體驗。

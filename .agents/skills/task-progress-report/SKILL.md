@@ -109,7 +109,7 @@ Before adding a link, verify its target from available evidence; the Viewer does
 
 ## Bind Checklist and Decision documents (document_ref)
 
-Bind a `.checklist` or `.decisions` file when finishing that document is what finishes a task or object item. The Viewer then derives the entry's displayed completion from the document. To merely mention a document, use an [inline link](#inline-links-in-report-descriptions).
+Bind a `.checklist` or `.decisions` file when finishing that document is what finishes an object item. Document bindings are allowed only on child items; tasks aggregate status from their items. To merely mention a document, use an [inline link](#inline-links-in-report-descriptions); general hyperlinks in task summaries and items are preserved and do not participate in status derivation.
 
 ```json
 "document_ref": { "kind": "checklist", "scope_id": "<scope-id>", "task": "<stem>" }
@@ -118,21 +118,21 @@ Bind a `.checklist` or `.decisions` file when finishing that document is what fi
 - `kind` is `checklist` (→ `<scope-root>/checklists/<stem>.checklist`) or `decision`, singular (→ `<scope-root>/decisions/<stem>.decisions`).
 - `scope_id` is the registered scope that owns the file. It may differ from the report's own scope when both are served by the same local service.
 - `task` names the file stem, matching the page's `?task=` query; `stem` is an accepted alias. Write `task`. The stem need not equal the Report task ID.
-- Allowed on ordinary tasks and on object items. A legacy string item must first become `{ "id", "title" }` with a stable ID.
-- Writing it: `task.add` and `item.add` accept `document_ref` inside `value`. The `report` command cannot add, change, or remove it on an existing entry; edit `report.json` directly, then run `report validate` (see [Validate](#validate-before-reporting-completion)).
+- Allowed only on object items (`{ "id", "title" }`). Tasks must not carry `document_ref`. A legacy string item must first become an object item with a stable ID.
+- Writing it: `item.add` accepts `document_ref` inside `value`; `task.add` does not accept `document_ref`. The `report` command cannot add, change, or remove it on an existing entry; edit `report.json` directly, then run `report validate` (see [Validate](#validate-before-reporting-completion)).
 
 How the Viewer projects it (`viewer/assets/document-binding.js`):
 
 - It reads each bound document on load and on foreground return, through the service's Checklist and Decision routes.
 - **Checklist complete**: at least one check, and every nested check `[x]`, `[manual]` checks included.
 - **Decision complete**: at least one decision, and every decision answered. Unanswered, or 「其他」 with an empty reason, is pending.
-- A complete document shows the entry as `done`: a bound item moves to the completed list and counts toward progress. Otherwise the stored status shows unchanged.
-- Projection only raises to `done`. A stored `done` or `archive` always wins, so reopening the document does not reopen an entry stored as `done`. Keep a bound entry's stored status truthful to the work (`planned`, `in_progress`, `blocked`) and let the document supply completion; store `done` only when completion is final regardless of the document.
+- A complete document shows the bound child item as `done`: it moves to the completed list and counts toward progress. When the document is incomplete, reopened, unchecked, empty, or fails to read, the item reflects an unfinished state (reverting to its stored `planned`/`in_progress`/`blocked` status, or `in_progress` if stored as `done`). Stored `archive` retains archive semantics. Missing or unreadable files mark the item's source unavailable.
+- For task cards containing bound child items, card status and progress aggregate all its child items: all items done derives the card to `done`; incomplete items revert a done card to `in_progress` or retain the card's unfinished status. Task cards without any bound items keep their stored status and existing behavior unchanged.
 - The projection is display-only. Saving from the Viewer never writes it back to `report.json`, and a refresh is skipped while the editor holds unsaved changes.
 - A missing file, unknown scope, or transport failure marks that entry's source unavailable; the rest of the report renders normally.
-- The entry shows a `Checklist` or `Decision` source link beside its text, opening the document page.
+- The bound child item shows a `Checklist` or `Decision` source link beside its text, opening the document page. Task card headers and summaries do not show document badges or decision links.
 
-Separate, unbound behavior: on a local Viewer, a task whose ID equals a `decisions/<task-id>.decisions` stem in the report's own scope also shows that file's pending-decision count. Document pages link back to their scope's Report by scope alone. Neither needs `document_ref`.
+Separate, unbound behavior: document pages link back to their scope's Report by scope alone (no `document_ref` needed; see [DocumentOwnerReport](../../../Documentation/DocumentOwnerReport.md)). Task cards do not show task-level pending decision counts or decision links.
 
 The bound routes exist only on the local service. Keep `document_ref` out of a report published elsewhere unless that deployment serves `/checklist/` and `/decisions/`; otherwise every bound entry shows an unavailable source.
 

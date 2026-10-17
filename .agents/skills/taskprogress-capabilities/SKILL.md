@@ -50,7 +50,7 @@ missing. Each is cheap; none is sufficient alone.
 | Ask the user or record answers in a `.decisions` file without a browser | `task-progress decisions request --file <file>` (UTF-8 stdin `load`, then `confirm`/`reopen`/`revise` with the loaded revision); `decisions validate <file>` to check it. Request shapes: [DecisionItemsUsage](../../../Documentation/DecisionItemsUsage.md#agent-與本機請求). |
 | Open a document outside the Browser pane | `task-progress checklist <file>` / `decisions <file>` — opens the service page in the system browser when the route is available, otherwise the native desktop editor. Not a fallback for a Browser-pane request. |
 | Put clickable links inside Report descriptions | `[label](URL)` in the existing string; see [Inline links](../task-progress-report/SKILL.md#inline-links-in-report-descriptions). |
-| Let a Checklist or Decision drive a Report task or item's completion | `document_ref` on the task or object item; see [Bind Checklist and Decision documents](../task-progress-report/SKILL.md#bind-checklist-and-decision-documents-document_ref). |
+| Let a Checklist or Decision drive a Report item's completion | `document_ref` on the object item; see [Bind Checklist and Decision documents](../task-progress-report/SKILL.md#bind-checklist-and-decision-documents-document_ref). |
 | Update report tasks and items | `task-progress report get|validate|apply`; see [the Report skill](../task-progress-report/SKILL.md#update-existing-report-through-cli). |
 | Report generation, time, cost, deadline risk | `.agents/skills/task-progress-report/SKILL.md`. |
 | Ports, mounts, and routing for the local service | `LocalWebService`'s `skills/local-web-service/SKILL.md`. |

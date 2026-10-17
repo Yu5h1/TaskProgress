@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "report_id": "task-progress-development",
-  "updated_at": "2026-10-16T17:16:00.000Z",
+  "updated_at": "2026-10-17T05:03:01.382893+00:00",
   "tasks": [
     {
       "id": "document-refresh-optimization",
@@ -383,7 +383,7 @@
     },
     {
       "id": "document-binding",
-      "next_step": "已完成 Checklist／Decision 狀態連動、來源底線連結點擊導覽與各項情境驗證。",
+      "next_step": "完成 [子項目綁定驗收](/checklist/?scope=task-progress&task=document-binding) 第 2 項人工檢查；42 項定向測試與文件審查已通過。",
       "decisions": [
         {
           "summary": "Report 項目狀態連動第一版採讀取時推導，不回寫原始 report.json；Checklist 與 Decision 依全數通過／全數決策為唯一完成條件。",

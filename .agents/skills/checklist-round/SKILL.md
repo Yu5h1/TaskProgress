@@ -227,9 +227,10 @@ wherever it is read.
 
 ### Report binding
 
-When a Report task or item is finished exactly when this round is, bind it with
-`document_ref` (`kind: "checklist"`, the owning `scope_id`, `task: "<task-id>"`).
-The Viewer then shows the entry done once every check is `[x]`; replacing the
-round with unchecked items takes that display away again unless the entry's
-stored status is already `done`. Field rules, how to write the binding, and the
-projection contract belong to [the Report skill](../task-progress-report/SKILL.md#bind-checklist-and-decision-documents-document_ref).
+When a Report child item is finished exactly when this round is, bind it with
+`document_ref` (`kind: "checklist"`, the owning `scope_id`, `task: "<stem>"`).
+The Viewer then shows the item done once every check is `[x]`; replacing the
+round with unchecked items or reopening takes that display away again (reverting
+to an unfinished state even if stored as `done`). Document bindings are allowed
+only on child items; tasks aggregate completion from their items. Field rules,
+how to write the binding, and the projection contract belong to [the Report skill](../task-progress-report/SKILL.md#bind-checklist-and-decision-documents-document_ref).
