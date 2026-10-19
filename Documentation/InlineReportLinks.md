@@ -24,6 +24,12 @@ Report 任務摘要／子項描述／指路卡摘要
 
 只解析行內連結，不提供完整 Markdown、HTML、圖片或裸 URL 自動轉換。支援 HTTP(S)、相對 URL 與 `#fragment`，URL 內空白需編碼。危險協定、格式不完整的語法與其他 HTML 皆保留為文字，不執行。這個功能不查核目標是否存在，也不等同決策 source_ref 的來源檢查。
 
+## Checklist 欄位
+
+Checklist 頁面的工作項目摘要（`Outcome`）與每項檢查的 `Action`、`Expect` 使用相同語法與限制，以全文顯示，不截斷。網頁版與桌面 Checklist 編輯器共用同一個 `ChecklistApp`，顯示規則一致；其他欄位（`Reason`、`Observed`、`Resolved`）仍為純文字。`.checklist` 檔仍保存原始 Markdown，`ChecklistDocument` 解析、`checklist validate`、勾選及結果欄位不因含連結而改變。
+
+網頁版在目前分頁導覽。桌面編輯器的視窗只顯示自己的資產：使用者點擊的 HTTP(S) 絕對網址交給系統預設瀏覽器開啟，相對 URL 與 `#fragment` 在桌面沒有本機服務可導覽，點擊後不動作。
+
 ## 收合與焦點
 
 摘要維持兩行，子項維持一行。測量依顯示文字及實際連結寬度，不計入 Markdown 語法長度。連結是完整單位，收合空間不足時整個留到展開後顯示，不能留下部分可點擊標籤。長標籤展開後可自然換行。
@@ -35,3 +41,8 @@ Report 任務摘要／子項描述／指路卡摘要
 - 多連結、中文、相對路徑、含括號 URL 與片段可解析；不安全協定及 HTML 不執行。
 - 收合不截斷連結，展開可見完整內容，更新／縮放不遺失連結焦點。
 - Browser 實際核查：描述中間的「前往」有底線、可點開既有 Checklist／Decision，更多／收合與卡片選取仍正常。
+
+## 首項展開與 Checklist 連結驗收
+
+- Viewer 載入時首張卡（有 pin 時為被 pin 的卡）的第一個未完成子項顯示全文，不需點「更多」；其他子項仍截斷。
+- Checklist 的 `Outcome`、`Action`、`Expect` 中 `[label](URL)` 顯示為可點連結，網頁與桌面編輯器一致；`checklist validate` 通過，既有測試通過。

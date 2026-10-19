@@ -1,0 +1,25 @@
+# Viewer 首項展開與 Checklist 連結 Checklist
+
+Current round: `Documentation/InlineReportLinks.md#首項展開與-checklist-連結驗收`.
+
+本檔只承載這一輪；完成後由 Git 保存，下一輪重用同一路徑。
+
+- [x] **1. Viewer 首項預設展開**
+  Outcome: 首張卡（有 pin 時為被 pin 的卡）的第一個未完成子項載入即顯示全文，使用者收合後不被重新展開。
+  Checks:
+    - [x] **展開要求的定向測試**
+      - Action: 執行 `node --test tests/expandable-text.test.mjs` 與 `npm run viewer:ui:build`。
+      - Expect: 展開要求、收合保留與既有截斷案例全數通過，Viewer 建置成功。
+    - [x] **yu5h1lib-web ui-workflow 首項**
+      - Action: 在 Browser 開啟 [ui-workflow](http://127.0.0.1:8001/?scope=yu5h1lib-web&pin=ui-workflow)，讀取首張卡第一個未完成子項。
+      - Expect: 首張卡為 ui-workflow，其第一個未完成子項在超出一行的寬度下顯示全文、按鈕為「收合」；同卡其他子項仍截斷；按收合後維持收合。UX-WEB-25 已因 toggle.checklist 全數通過而投影為已完成，不再是首項。
+
+- [x] **2. Checklist 欄位行內連結**
+  Outcome: Outcome、Action、Expect 的行內連結語法在網頁與桌面 Checklist 顯示為可點連結，檔案仍存原始 Markdown。
+  Checks:
+    - [x] **解析與建置**
+      - Action: 執行 `checklist validate` 本檔、`TaskProgress.Checklist.Tests`、Checklist 網頁與桌面 bundle 建置及 CLI Release build；本項 Action 含 [animation demo](http://127.0.0.1:8015/animation-lab/)。
+      - Expect: validate 通過，Checklist 測試全過，三者建置成功。
+    - [x] **網頁頁面連結**
+      - Action: 在 Browser 開啟本檔的 `/checklist/` 頁面，讀取第 2 項檢查的 Action。
+      - Expect: 「animation demo」為 `a.inline-link`，href 為 `http://127.0.0.1:8015/animation-lab/`，不顯示 Markdown 語法。

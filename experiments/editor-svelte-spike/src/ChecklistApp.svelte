@@ -25,6 +25,7 @@
   import FocusShield from "./FocusShield.svelte";
   import DialogShell from "./DialogShell.svelte";
   import FilterStrip from "./FilterStrip.svelte";
+  import InlineLinks from "./InlineLinks.svelte";
   import MarkerBox from "./MarkerBox.svelte";
   import ProgressSummary from "./ProgressSummary.svelte";
   import SaveBar from "./SaveBar.svelte";
@@ -345,7 +346,7 @@
             <span class="checklist-status" aria-label={`通過 ${fullItem.checks.filter(check => check.status === "passed").length}，共 ${fullItem.checks.length}`}>{fullItem.checks.filter(check => check.status === "passed").length}/{fullItem.checks.length}</span>
           </header>
           <div class="checklist-checks">
-            <p class="checklist-outcome">{item.outcome}</p>
+            <p class="checklist-outcome"><InlineLinks text={item.outcome} /></p>
               {#if item.dependsOn.length}
                 <p class="checklist-chips">
                   <span class="checklist-chip">Depends on {item.dependsOn.join(", ")}</span>
@@ -370,8 +371,8 @@
                   >{check.isManual ? "實機" : "Agent"}</span>
                 </div>
                 <dl>
-                  <div><dt>Action</dt><dd>{check.action}</dd></div>
-                  <div><dt>Expect</dt><dd>{check.expect}</dd></div>
+                  <div><dt>Action</dt><dd><InlineLinks text={check.action} /></dd></div>
+                  <div><dt>Expect</dt><dd><InlineLinks text={check.expect} /></dd></div>
                   {#if check.reason}<div><dt>Reason</dt><dd>{check.reason}</dd></div>{/if}
                   {#if check.observed && !(check.isManual && check.status === "failed")}
                     <div><dt>Observed</dt><dd>{check.observed}</dd></div>

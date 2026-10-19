@@ -140,3 +140,21 @@ test("hidden reveal, resize/font notifications and disposal", () => {
   f.observer.callback();
   assert.equal(f.frames.size, 0);
 });
+
+test("an expanded request opens on load and when it turns on, but never re-collapses the reader", () => {
+  const f = fixture();
+  f.control.update({ text: "a".repeat(60), expanded: true });
+  f.flush();
+  assert.equal(f.button.attributes["aria-expanded"], "true");
+  assert.equal(f.textNode.textContent, "a".repeat(60));
+  f.button.dispatchEvent(new Event("click")); f.flush();
+  assert.equal(f.button.attributes["aria-expanded"], "false");
+  f.control.update({ text: "a".repeat(60), expanded: true }); f.flush();
+  assert.equal(f.button.attributes["aria-expanded"], "false");
+  f.control.update({ text: "a".repeat(60), expanded: false }); f.flush();
+  f.control.update({ text: "a".repeat(60), expanded: true }); f.flush();
+  assert.equal(f.button.attributes["aria-expanded"], "true");
+  f.control.update({ text: "a".repeat(60), expanded: false }); f.flush();
+  assert.equal(f.button.attributes["aria-expanded"], "true");
+  f.control.destroy();
+});

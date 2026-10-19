@@ -30,6 +30,8 @@
   // labels, not capsules: a task total is derived from its items, so there
   // is nothing to act on at this level and a control would imply otherwise.
   export let moduleTotals = [];
+  // The first visible card in the list (the pinned one when a pin applies).
+  export let lead = false;
   const completedPreviewCount = 1;
   let showAllCompleted = false;
 
@@ -195,7 +197,7 @@
         <section class={`detail-section ${group.className}`}>
           <h4 class="detail-heading">{group.title}</h4>
           <ul class="detail-list" id={`task-${task.id}-${group.field}`}>
-            {#each group.status === "done" && !showAllCompleted ? group.items.slice(0, completedPreviewCount) : group.items as item (item.id)}
+            {#each group.status === "done" && !showAllCompleted ? group.items.slice(0, completedPreviewCount) : group.items as item, index (item.id)}
               <ItemRow
                 taskId={task.id}
                 field={group.field}
@@ -208,6 +210,7 @@
                 {onModuleActivate}
                 {moduleOrder}
                 {onModuleReorder}
+                leadItem={lead && group.status === "planned" && index === 0}
               />
             {/each}
           </ul>

@@ -19,6 +19,8 @@
   export let onModuleActivate = () => {};
   export let moduleOrder = ["time"];
   export let onModuleReorder = () => {};
+  // The lead card opens its first unfinished item in full on load.
+  export let leadItem = false;
 
   let priorityValue = policy.normalize(item.priority, policy.fallbackValue);
   // Same five statuses a task card carries. `statuses` is supplied by the
@@ -128,7 +130,7 @@
             </span>
           {/if}
         {/if}
-        <ExpandableText text={item.title} lines={1} />
+        <ExpandableText text={item.title} lines={1} expanded={leadItem} />
       </div>
     {/if}
   </div>

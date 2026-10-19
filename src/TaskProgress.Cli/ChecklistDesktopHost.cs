@@ -1,4 +1,5 @@
 // Hosts the local Checklist surface in one STA WPF window backed by Microsoft Edge WebView2.
+using System.Diagnostics;
 using System.Runtime.ExceptionServices;
 using System.Windows;
 using Microsoft.Web.WebView2.Core;
@@ -111,9 +112,17 @@ internal static class ChecklistDesktopHost
                 };
                 webView.CoreWebView2.NavigationStarting += (_, e) =>
                 {
-                    if (!Uri.TryCreate(e.Uri, UriKind.Absolute, out var uri) || uri.Host != host || uri.Scheme != "https") e.Cancel = true;
+                    if (!Uri.TryCreate(e.Uri, UriKind.Absolute, out var uri) || uri.Host != host || uri.Scheme != "https")
+                    {
+                        e.Cancel = true;
+                        if (e.IsUserInitiated) OpenExternalLink(e.Uri, host);
+                    }
                 };
-                webView.CoreWebView2.NewWindowRequested += (_, e) => e.Handled = true;
+                webView.CoreWebView2.NewWindowRequested += (_, e) =>
+                {
+                    e.Handled = true;
+                    if (e.IsUserInitiated) OpenExternalLink(e.Uri, host);
+                };
                 webView.CoreWebView2.Navigate($"https://{host}/index.html");
             }
             catch (Exception error)
@@ -126,6 +135,24 @@ internal static class ChecklistDesktopHost
         if (initializationFailure is not null)
         {
             ExceptionDispatchInfo.Capture(initializationFailure).Throw();
+        }
+    }
+
+    /// <summary>
+    /// Hands a clicked inline link to the system browser. The editor window stays on its own
+    /// assets, so only HTTP(S) targets outside the virtual host are opened.
+    /// </summary>
+    private static void OpenExternalLink(string target, string host)
+    {
+        if (!Uri.TryCreate(target, UriKind.Absolute, out var uri) || uri.Host == host) return;
+        if (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps) return;
+        try
+        {
+            Process.Start(new ProcessStartInfo(uri.AbsoluteUri) { UseShellExecute = true });
+        }
+        catch (Exception error) when (error is System.ComponentModel.Win32Exception or InvalidOperationException)
+        {
+            // A missing default browser leaves the editor usable; the link simply does not open.
         }
     }
 

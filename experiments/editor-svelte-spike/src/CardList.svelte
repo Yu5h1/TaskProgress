@@ -51,6 +51,7 @@
   let notice = "";
   $: load(storageKey);
   $: ordered = orderCards(displayCards(items, order, mode, pinEnabled ? pinnedIds : []), heldOrder);
+  $: leadId = ordered.find(item => isCardVisible(item.id, visibilityMode, hiddenIds))?.id ?? null;
   $: applyRequestedPin(requestedPin, storageKey, allIds, pinEnabled);
 
   function applyRequestedPin(id, key, ids, enabled) {
@@ -235,7 +236,7 @@
           </svg>
         </button>
       {/if}
-      <slot {item} {visibilityEnabled} visible={!hiddenIds.includes(item.id)} onVisibleChange={value => setVisible(item.id, value)} />
+      <slot {item} lead={item.id === leadId} {visibilityEnabled} visible={!hiddenIds.includes(item.id)} onVisibleChange={value => setVisible(item.id, value)} />
     </div>
   {/each}
 </div>

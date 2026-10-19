@@ -12,6 +12,8 @@
 
 任務卡摘要使用 `lines: 2`，任務卡子項文字使用 `lines: 1`，兩者共用同一個 ExpandableText 控制器與 Svelte 接入層。子項超長時「…更多」接在第一行末尾，展開後可收合；編輯模式仍顯示完整輸入欄位。
 
+首項預設展開：清單中第一張可見任務卡（有 pin 時為被釘選的那張）的第一個未完成子項，載入時直接顯示全文；其他子項維持截斷。CardList 以 `lead` 標出首張卡，TaskCard 只把它交給待處理群組排序後的第一項。使用者收合後不會被重新展開；首張卡改變時，新的首項展開，原本的不會自動收合。
+
 - `viewer/assets/expandable-text.js`：原生 DOM 控制器，無套件或 TaskProgress 資料依賴。
 - `viewer/assets/expandable-text.css`：必要樣式，類名使用 `expandable-text` 前綴；字型、文字色繼承外層。連結色可用 `--expandable-text-link-color` 覆寫。
 - `experiments/editor-svelte-spike/src/ExpandableText.svelte`：薄接入層，使用同一控制器。
@@ -32,7 +34,7 @@ control.update({ text: "更新後的說明", lines: 2 });
 control.destroy();
 ```
 
-`update` 接受完整選項；省略值回預設。文字或行數改變會收合，相同內容更新則保留目前展開狀態。文字用 textContent 寫入；保留換行，長網址可折行。ResizeObserver 與字型載入事件重新量測，卸載取消排程與觀察器。按鈕提供原生鍵盤操作、焦點提示與 aria-expanded。
+`update` 接受完整選項；省略值回預設。文字或行數改變會回到 `expanded` 要求的狀態（預設收合），相同內容更新則保留目前展開狀態。`expanded: true` 是展開要求而非綁定：新文字或由 false 轉 true 時展開，之後使用者可自行收合，再收到同值 true 也不重新展開；轉回 false 不會收合。文字用 textContent 寫入；保留換行，長網址可折行。ResizeObserver 與字型載入事件重新量測，卸載取消排程與觀察器。按鈕提供原生鍵盤操作、焦點提示與 aria-expanded。
 
 ## 驗收
 

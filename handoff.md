@@ -6,6 +6,11 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
 
 ## Current state (2026-09-29)
 
+- **Viewer 首項展開與 Checklist 行內連結（2026-10-20）。** 規格 `Documentation/InlineReportLinks.md#checklist-欄位`、`Documentation/ExpandableText.md#模組邊界`；驗收 `checklists/viewer-lead-item-checklist-links.checklist`（全 `[x]`），綁定 viewer-core 子項 `lead-item-checklist-links`。
+  - ExpandableText 新增 `expanded` 展開要求（只在新文字或轉為 true 時展開，不覆蓋使用者收合）；CardList 以 `lead` 標出首張可見卡，TaskCard 交給待處理群組排序後首項。ChecklistApp 的 Outcome／Action／Expect 改用 `InlineLinks.svelte`（共用 `inline-links.js`）。桌面 `ChecklistDesktopHost` 對使用者點擊的外部 HTTP(S) 連結取消導覽並交給系統瀏覽器；相對 URL 在桌面不動作。
+  - 已驗證：expandable-text 6 項、Checklist 262 checks、CLI Release build（`bin/Validation/ChecklistInlineLinks/Release`）、三個 bundle 建置；全量 node --test 597 項中 8 項失敗皆為既有失敗（HEAD 基準同樣失敗或無法載入）。Browser 確認 ui-workflow 首項展開／收合與 Checklist 連結 href。UX-WEB-25 因 toggle.checklist 全數通過已投影為完成，不再是首項。
+  - 未部署：正式 `Build/win-x64/task-progress.exe` 與 `Build/win-x64/checklist-ui/` 未更新，桌面編輯器的連結需 Publish 後才生效；桌面實機點擊未核查。
+
 - **文件讀取與前景刷新效能優化（2026-10-17）。** 驗收清單 `checklists/document-refresh-optimization.checklist`。解決大量綁定文件並行啟動 CLI 程序、事件迴圈阻塞與白屏重載問題，並補齊深度驗收缺口：
   - 前景刷新生命週期與草稿保護：`viewer/assets/foreground-refresh.js` 支援非同步 reload callback，在 `finally` 安全復原 `refreshing = false`，同次回焦多次事件去重，失敗後允許再次回焦重試；`ChecklistApp.svelte` 於刷新開始前記錄 session 身分與 revision，返回後重新確認 `dirty/saving/pending/reset` 狀態，若期間有草稿或操作則捨棄過期回應，不清除草稿。
   - 後端阻塞解除與並行限制：`service/taskprogress_host.py` 將 Checklist CLI 改為 `await asyncio.to_thread` 移出事件迴圈，全域以 `cli_semaphore` 限制子程序並行數上限為 4。

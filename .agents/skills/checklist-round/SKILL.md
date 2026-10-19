@@ -157,9 +157,11 @@ is `ui-workflow`, and the item is `ux-toggle-goal-1`. Each manual checklist gets
 its own child item under the same existing card (§ Report binding).
 
 Write `Action` so the user can open the page from the checklist: embed the demo
-page as `[label](URL)` in the `Action` text, then the hands-on steps. The link is
-clickable once the checklist page renders hyperlinks; until then the URL is still
-there to copy. `Expect` names what the user must see; `Reason` says why the agent
+page as `[label](URL)` in the `Action` text, then the hands-on steps. The checklist
+page renders `[label](URL)` in `Outcome`, `Action`, and `Expect` as a clickable link
+(rules: [InlineReportLinks](../../../Documentation/InlineReportLinks.md#checklist-欄位));
+the desktop editor opens absolute HTTP(S) links in the system browser.
+`Expect` names what the user must see; `Reason` says why the agent
 cannot judge it (「外觀由使用者判」 is a capability reason).
 
 ```markdown
