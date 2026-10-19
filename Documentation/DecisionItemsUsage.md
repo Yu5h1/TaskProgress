@@ -21,6 +21,7 @@ task-progress.exe decisions validate "C:\Project\decisions\task-a.decisions"
 
 - 指定任務：`/decisions/?scope=<scope-id>&task=<task-id>`。
 - scope 總覽：`/decisions/?scope=<scope-id>`。
+- `<scope-id>` 是該資料夾 `report.json` 的 `scope_id`（小寫，例如 `UX/` 的是 `ux`），不是資料夾名稱。
 - Report 子項目可透過 document_ref 綁定 Decision 文件，顯示來源連結並連動完成狀態；任務卡標題與摘要不再顯示專用決策入口或待決策計數。摘要的一般文字超連結仍可使用。
 
 選取一般選項 → 自動保存。選「其他」啟用「其他方案與理由」輸入框 → 填寫理由，每次更動自動保存。未選擇或只有空白理由仍為待決策；保存失敗保留草稿並顯示錯誤。未保存草稿僅保留本頁，重新載入或關閉可能遺失。

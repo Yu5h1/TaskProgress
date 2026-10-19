@@ -109,7 +109,7 @@ Before adding a link, verify its target from available evidence; the Viewer does
 
 ## Bind Checklist and Decision documents (document_ref)
 
-Bind a `.checklist` or `.decisions` file when finishing that document is what finishes an object item. Document bindings are allowed only on child items; tasks aggregate status from their items. To merely mention a document, use an [inline link](#inline-links-in-report-descriptions); general hyperlinks in task summaries and items are preserved and do not participate in status derivation.
+Bind a `.checklist` or `.decisions` file when finishing that document is what finishes an object item. In a scope with a `report.json`, bind every new checklist round and every decisions file that has pending decisions when it is written, before asking the user to act on it: an unbound document does not appear on any task card and gets overlooked. When no child item matches, add one (for example 「驗收 <name>」 or 「決策 <topic>」) under the task the document serves. Document bindings are allowed only on child items; tasks aggregate status from their items. To merely mention a document, use an [inline link](#inline-links-in-report-descriptions); general hyperlinks in task summaries and items are preserved and do not participate in status derivation.
 
 ```json
 "document_ref": { "kind": "checklist", "scope_id": "<scope-id>", "task": "<stem>" }

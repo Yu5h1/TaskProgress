@@ -55,6 +55,9 @@ missing. Each is cheap; none is sufficient alone.
 | Report generation, time, cost, deadline risk | `.agents/skills/task-progress-report/SKILL.md`. |
 | Ports, mounts, and routing for the local service | `LocalWebService`'s `skills/local-web-service/SKILL.md`. |
 
+`<scope-id>` in these routes is the `scope_id` in the owning folder's `report.json` (lowercase, for
+example `ux` for `UX/`), never the folder name; read it before composing a URL.
+
 Checklist and Decision pages show an "擁有者" link back to the same scope's Report on their own;
 it needs no `document_ref` ([DocumentOwnerReport](../../../Documentation/DocumentOwnerReport.md)).
 

@@ -227,8 +227,12 @@ wherever it is read.
 
 ### Report binding
 
-When a Report child item is finished exactly when this round is, bind it with
-`document_ref` (`kind: "checklist"`, the owning `scope_id`, `task: "<stem>"`).
+Bind every round to a Report child item when the round is written, before handing
+any check to the user; an unbound round is invisible on the task card and gets
+skipped. Bind it with `document_ref` (`kind: "checklist"`, the owning `scope_id`,
+`task: "<stem>"`) to the child item that is finished exactly when this round is;
+when no such item exists, add one (for example 「驗收 <name>」) under the task the
+round verifies.
 The Viewer then shows the item done once every check is `[x]`; replacing the
 round with unchecked items or reopening takes that display away again (reverting
 to an unfinished state even if stored as `done`). Document bindings are allowed
