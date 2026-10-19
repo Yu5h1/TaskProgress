@@ -161,6 +161,10 @@ page as `[label](URL)` in the `Action` text, then the hands-on steps. The checkl
 page renders `[label](URL)` in `Outcome`, `Action`, and `Expect` as a clickable link
 (rules: [InlineReportLinks](../../../Documentation/InlineReportLinks.md#checklist-欄位));
 the desktop editor opens absolute HTTP(S) links in the system browser.
+Before handing over, confirm every linked page answers from the project's own
+demo entry (an HTTP request, not a guess); a page the built delivery does not
+contain is not a manual check yet, and when the entry has to be started first,
+say how in the checklist's opening prose.
 `Expect` names what the user must see; `Reason` says why the agent
 cannot judge it (「外觀由使用者判」 is a capability reason).
 
