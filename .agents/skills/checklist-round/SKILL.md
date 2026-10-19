@@ -1,6 +1,6 @@
 ---
 name: checklist-round
-description: Split a settled spec into a per-task `.checklist` file, shape its work items and nested checks, hand `[manual]` checks to the user, and run one round to completion. Use when the project carries a `checklists/` directory and a task's spec has been accepted.
+description: Split a settled spec into a per-task `.checklist` file, shape its work items and nested checks, run one round to completion, and open per-page manual checklists for the user. Use when the project carries a `checklists/` directory and a task's spec has been accepted.
 ---
 
 # Checklist Round
@@ -19,19 +19,13 @@ A project opts in by carrying a `checklists/` directory at its root. Each
 independently executable task owns one direct child named
 `checklists/<task-id>.checklist`; use the stable task ID from its canonical route
 or assignment, and do not create an index merely to find the file. Without that
-directory, skip all of this. Once the current task's file exists, hand the list
-over instead of running it alone when any one of these holds — all countable
-before starting, unlike elapsed minutes or token spend:
-
-- the list runs past ~10 items
-- verification touches UI, device input, or hands-on manipulation
-- the plan needs more than ~10 tool calls, or more than 3 browser round-trips
-
-The user checks a screen in seconds where the agent spends a round of tool calls
-that then sit in context for the rest of the session. They can also ask for the
-handover directly, with no threshold met. A standing instruction to run
-everything makes the agent the executor for that scope: skip the pause, run it
-all.
+directory, skip all of this. The task's own round holds only the checks the
+agent runs; anything that needs the user's screen, device or judgment goes to a
+manual checklist of its own (§ Manual checklists), opened once the agent's
+checks pass. The user checks a screen in seconds where the agent spends a round
+of tool calls that then sit in context for the rest of the session, so do not
+drive a page to judge what the user can see. A standing instruction to run
+everything makes the agent the executor for that scope.
 
 Only project development work belongs in the checklist: product behavior, code,
 configuration, schemas, migrations, and the verification needed to prove those
@@ -85,10 +79,6 @@ work-item title; every referenced ID belongs to another item in the same round.
     - [ ] **Source contract**
       - Action: Run the focused loader and host tests.
       - Expect: All focused tests pass and no source references editor.html.
-    - [ ] **Rendered Viewer** `[manual]`
-      - Action: Open the local Viewer, enter Edit, and save once.
-      - Expect: The Network panel has no 404 or request for a retired editor path.
-      - Reason: Requires inspection in the user's running browser session.
     - [x] **Resolved environment check**
       - Action: Run the focused build after the environment intervention.
       - Expect: The build completes successfully.
@@ -97,10 +87,11 @@ work-item title; every referenced ID belongs to another item in the same round.
 ```
 
 `Action` covers commands, URLs, and hands-on steps; `Expect` gives the observable
-pass condition. Untagged checks belong to the agent. Add `[manual]` only when a
-check needs the user's device, environment, protected data, or direct UX
-judgment, and require a short `Reason`. "The user is faster" is not a capability
-reason. Do not use separate `Entry`, `Verification`, `By`, or `Why not agent`
+pass condition. Untagged checks belong to the agent. A `[manual]` check is for
+what needs the user's device, environment, protected data, or direct UX
+judgment, requires a short `Reason`, and lives only in a manual checklist
+(§ Manual checklists), never beside agent checks. "The user is faster" is not a
+capability reason. Do not use separate `Entry`, `Verification`, `By`, or `Why not agent`
 fields; they duplicate this structure. Every check field is a nested Markdown
 list entry using the exact `      - Field: value` shape. This applies to required
 `Action` and `Expect` and optional `Reason`, `Observed`, and `Resolved`.
@@ -151,6 +142,42 @@ are unchanged. Add a new numeric item only when the required outcome, scope,
 action, or expectation materially changes. An unattempted `[ ]` specification can
 still be clarified before its first saved result.
 
+### Manual checklists
+
+A manual checklist holds the `[manual]` checks for exactly one page of one piece
+of work; a checklist never spans pages, and one page may have several (one per
+module, for instance). Name it after its own Task ID, derived from the work and
+the page — `toggle-tg02-playback`, `toggle-tg02-apps` — so the file is
+`checklists/<work>-<check>-<page>.checklist`. Open it only after the work's own
+round has every agent check `[x]`.
+
+The file name is the Task ID of that piece of work. It is not the report card ID
+and not the child-item ID: for Toggle the round is `toggle.checklist`, the card
+is `ui-workflow`, and the item is `ux-toggle-goal-1`. Each manual checklist gets
+its own child item under the same existing card (§ Report binding).
+
+Write `Action` so the user can open the page from the checklist: embed the demo
+page as `[label](URL)` in the `Action` text, then the hands-on steps. The link is
+clickable once the checklist page renders hyperlinks; until then the URL is still
+there to copy. `Expect` names what the user must see; `Reason` says why the agent
+cannot judge it (「外觀由使用者判」 is a capability reason).
+
+```markdown
+# Toggle TG02 Playback Checklist
+
+Current round: `../UX/Documentation/ModuleSpec/Controls/Toggle.md#驗收`.
+
+本檔只放 animation 播放列頁的人工檢查；apps 頁另有 toggle-tg02-apps.checklist。
+
+- [ ] **1. 播放列的兩顆開關（TG02）**
+  Outcome: 動作名稱的開關看起來像下一步要做的事，固定名稱的開關開著時看得出按下。
+  Checks:
+    - [ ] **播放／暫停與循環播放** `[manual]`
+      - Action: 開啟 [animation 播放列](http://127.0.0.1:8015/demo/animation/)，按播放再按暫停，開關循環播放。
+      - Expect: 播放鈕只換名稱與圖示、沒有亮底；循環播放開著時底色為 accent。
+      - Reason: 外觀由使用者判。
+```
+
 ### Recording manual results
 
 `[manual]` identifies who performs the check and supplies the required capability,
@@ -199,7 +226,8 @@ else needs to track staleness.
 1. Spec settles → write each work item, its outcome, and its checks; all markers
    start `[ ]`.
 2. The agent implements the work and runs each untagged check once.
-3. If only `[manual]` checks remain, hand those checks to the user and stop.
+3. When every agent check is `[x]` and the spec still needs the user, open the
+   manual checklists (§ Manual checklists), bind them, and stop.
 4. Record manual checks under **Recording manual results**. The user may later
    revise them through the single marker cycle. `[!]` requires `Observed`;
    `[ ]` remains incomplete.
@@ -215,6 +243,8 @@ else needs to track staleness.
 8. Create a new numeric item only when triage changes the outcome or acceptance
    contract. A fix that still targets the original `Expect` remains in that item.
 9. When every check is `[x]`, the derived parent is `[x]` and the round ends.
+   The work the round verifies is accepted only when its manual checklists are
+   all `[x]` too.
 
 Each task file carries one round at a time. When the round completes, keep its
 finished contents readable and commit them with the implementation and evidence.
@@ -227,12 +257,15 @@ wherever it is read.
 
 ### Report binding
 
-Bind every round to a Report child item when the round is written, before handing
-any check to the user; an unbound round is invisible on the task card and gets
-skipped. Bind it with `document_ref` (`kind: "checklist"`, the owning `scope_id`,
-`task: "<stem>"`) to the child item that is finished exactly when this round is;
-when no such item exists, add one (for example 「驗收 <name>」) under the task the
-round verifies.
+Bind every round to a Report child item when the round is written; an unbound
+round is invisible on the task card and gets skipped. Bind it with `document_ref`
+(`kind: "checklist"`, the owning `scope_id`, `task: "<stem>"`) to the child item
+that is finished exactly when this round is; when no such item exists, add one
+(for example 「驗收 <name>」) under the task the round verifies. Bind each manual
+checklist the same way, by its own new child item under the requirement's
+existing card — never a new card. Binding runs one way only: a child item binds
+one checklist or decision document; a task card binds nothing and aggregates
+completion from its items; a checklist never binds back to a card or item.
 The Viewer then shows the item done once every check is `[x]`; replacing the
 round with unchecked items or reopening takes that display away again (reverting
 to an unfinished state even if stored as `done`). Document bindings are allowed
