@@ -22,7 +22,8 @@ test("production Viewer discovers local editing through the shared edit-host cli
   ]);
   // The toggle is rendered by the shared component into this mount point.
   assert.match(html, /<div class="view-mode-dock" id="view-mode-toggle"><\/div>/);
-  assert.match(modeToggle, /aria-pressed=\{editing\}/);
+  assert.match(modeToggle, /class:is-editing=\{editing\}/);
+  assert.match(modeToggle, />\{nextLabel\}<\/button>/);
   assert.match(modeToggle, /hidden=\{hideWhenUnavailable && !available\}/);
   assert.match(html, /id="edit-save-bar"[^>]*hidden/);
   // Discovery and capability parsing live in edit-host-client.js now; the

@@ -17,11 +17,11 @@
 
 <button
   class="view-mode-toggle editor-mode-dock"
+  class:is-editing={editing}
   type="button"
-  aria-pressed={editing}
-  aria-label={`目前為${currentLabel}；按下切換到${nextLabel}`}
+  aria-label={`切換到${nextLabel}（目前為${currentLabel}）`}
   disabled={disabled || !available}
   hidden={hideWhenUnavailable && !available}
   title={!available ? unavailableTitle : ""}
   onclick={() => onToggle(editing ? "preview" : "edit")}
->{currentLabel}</button>
+>{nextLabel}</button>

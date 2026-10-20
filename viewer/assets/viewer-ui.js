@@ -2931,7 +2931,7 @@ function Da(e, t) {
 }
 //#endregion
 //#region experiments/editor-svelte-spike/src/ModeToggle.svelte
-var Oa = /* @__PURE__ */ q("<button class=\"view-mode-toggle editor-mode-dock\" type=\"button\"> </button>");
+var Oa = /* @__PURE__ */ q("<button type=\"button\"> </button>");
 function ka(e, t) {
 	Ke(t, !1);
 	let n = /* @__PURE__ */ F(), r = /* @__PURE__ */ F(), i = /* @__PURE__ */ F(), a = $(t, "mode", 8, "preview"), o = $(t, "available", 8, !0), s = $(t, "disabled", 8, !1), c = $(t, "hideWhenUnavailable", 8, !1), l = $(t, "unavailableTitle", 8, ""), u = $(t, "onToggle", 8, () => {});
@@ -2942,9 +2942,11 @@ function ka(e, t) {
 	}), B(() => U(n), () => {
 		I(i, U(n) ? "預覽模式" : "編輯模式");
 	}), An(), Hi();
-	var d = Oa(), f = L(d, !0);
+	var d = Oa();
+	let f;
+	var p = L(d, !0);
 	M(d), V(() => {
-		Q(d, "aria-pressed", U(n)), Q(d, "aria-label", `目前為${U(r)}；按下切換到${U(i)}`), d.disabled = s() || !o(), Q(d, "hidden", c() && !o()), Q(d, "title", o() ? "" : l()), Y(f, U(r));
+		f = Z(d, 1, "view-mode-toggle editor-mode-dock", null, f, { "is-editing": U(n) }), Q(d, "aria-label", `切換到${U(i)}（目前為${U(r)}）`), d.disabled = s() || !o(), Q(d, "hidden", c() && !o()), Q(d, "title", o() ? "" : l()), Y(p, U(i));
 	}), K("click", d, () => u()(U(n) ? "preview" : "edit")), J(e, d), qe();
 }
 Er(["click"]);
@@ -4708,7 +4710,7 @@ function Fs(e, t, n, r, i, a) {
 }
 //#endregion
 //#region experiments/editor-svelte-spike/src/CardList.svelte
-var Is = /* @__PURE__ */ Pr("<path d=\"M4 5h15M4 10h8M4 15h17M4 20h11\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\" stroke-linecap=\"round\"></path>"), Ls = /* @__PURE__ */ Pr("<path fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"></path><path fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\" stroke-linecap=\"round\"></path>", 1), Rs = /* @__PURE__ */ Pr("<svg viewBox=\"0 0 24 24\" width=\"24\" height=\"24\" aria-hidden=\"true\"><!></svg>"), zs = /* @__PURE__ */ q("<button type=\"button\"><svg viewBox=\"0 0 24 24\" width=\"14\" height=\"14\" aria-hidden=\"true\"><path d=\"M8 3h8l-1 7 4 4v2H5v-2l4-4-1-7Zm4 13v6\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linecap=\"round\" stroke-linejoin=\"round\"></path></svg></button>"), Bs = /* @__PURE__ */ q("<div role=\"group\" tabindex=\"0\"><!> <!></div>"), Vs = /* @__PURE__ */ q("<div class=\"card-list-controls\"><div class=\"card-list-heading\"><p class=\"section-kicker\">工作項目</p> <!></div> <div class=\"card-list-tools\"><button type=\"button\" class=\"card-toolbar-icon\"><svg viewBox=\"0 0 24 24\" width=\"22\" height=\"22\" aria-hidden=\"true\"><path fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"></path></svg></button> <!> <!> <span role=\"status\"> </span></div></div> <div class=\"arrangeable-cards\"></div>", 1);
+var Is = /* @__PURE__ */ Pr("<path d=\"M4 5h15M4 10h8M4 15h17M4 20h11\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\" stroke-linecap=\"round\"></path>"), Ls = /* @__PURE__ */ Pr("<path fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"></path><path fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\" stroke-linecap=\"round\"></path>", 1), Rs = /* @__PURE__ */ Pr("<svg viewBox=\"0 0 24 24\" width=\"24\" height=\"24\" aria-hidden=\"true\"><!></svg>"), zs = /* @__PURE__ */ q("<button type=\"button\"><svg viewBox=\"0 0 24 24\" width=\"14\" height=\"14\" aria-hidden=\"true\"><path d=\"M8 3h8l-1 7 4 4v2H5v-2l4-4-1-7Zm4 13v6\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linecap=\"round\" stroke-linejoin=\"round\"></path></svg></button>"), Bs = /* @__PURE__ */ q("<div role=\"group\" tabindex=\"0\"><!> <!></div>"), Vs = /* @__PURE__ */ q("<div class=\"card-list-controls\"><div class=\"card-list-heading\"><p class=\"section-kicker\">工作項目</p> <!></div> <div class=\"card-list-tools\"><button type=\"button\" class=\"card-toolbar-icon\"><svg viewBox=\"0 0 24 24\" width=\"22\" height=\"22\" aria-hidden=\"true\"><path fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"></path></svg></button> <!> <!> <span role=\"status\"> </span> <!></div></div> <div class=\"arrangeable-cards\"></div>", 1);
 function Hs(e, t) {
 	Ke(t, !1);
 	let n = /* @__PURE__ */ F(), r = /* @__PURE__ */ F(), i = /* @__PURE__ */ F(), a = /* @__PURE__ */ F(), o = $(t, "items", 24, () => []), s = $(t, "allIds", 24, () => []), c = $(t, "storageKey", 8), l = $(t, "pinEnabled", 8, !1), u = $(t, "requestedPin", 8, null), d = $(t, "heldOrder", 8, null);
@@ -4896,7 +4898,7 @@ function Hs(e, t) {
 		onChoose: C
 	});
 	var Ce = z(Se, 2), we = L(Ce, !0);
-	M(Ce), M(_e), M(he);
+	M(Ce), ci(z(Ce, 2), t, "tools", {}, null), M(_e), M(he);
 	var Te = z(he, 2);
 	return ni(Te, 5, () => U(i), (e) => e.id, (e, r) => {
 		var i = Bs();
@@ -5127,7 +5129,7 @@ function $s(e, t) {
 }
 //#endregion
 //#region experiments/editor-svelte-spike/src/TaskList.svelte
-var ec = /* @__PURE__ */ q("<span class=\"task-search\"><input type=\"search\" aria-label=\"搜尋任務卡名稱、摘要與子項\" placeholder=\"搜尋名稱、摘要、子項\"/> <svg class=\"task-search-icon\" viewBox=\"0 0 16 16\" width=\"14\" height=\"14\" aria-hidden=\"true\"><circle cx=\"7\" cy=\"7\" r=\"4.5\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\"></circle><path d=\"M10.4 10.4 14 14\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linecap=\"round\"></path></svg></span>"), tc = /* @__PURE__ */ q("<!> <!>", 1), nc = /* @__PURE__ */ q("<p class=\"empty-state\"> </p>");
+var ec = /* @__PURE__ */ q("<span class=\"task-search\"><input type=\"search\" aria-label=\"搜尋任務卡名稱、摘要與子項\" placeholder=\"搜尋名稱、摘要、子項\"/> <svg class=\"task-search-icon\" viewBox=\"0 0 16 16\" width=\"14\" height=\"14\" aria-hidden=\"true\"><circle cx=\"7\" cy=\"7\" r=\"4.5\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\"></circle><path d=\"M10.4 10.4 14 14\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linecap=\"round\"></path></svg></span>"), tc = /* @__PURE__ */ q("<p class=\"empty-state\"> </p>"), nc = /* @__PURE__ */ q("<!> <!>", 1);
 function rc(e, t) {
 	Ke(t, !1);
 	let n = /* @__PURE__ */ F(), r = $(t, "filters", 8, null), i = $(t, "tasks", 24, () => []), a = $(t, "allIds", 24, () => []), o = $(t, "cardStorageKey", 8, null), s = $(t, "requestedPin", 8, null), c = $(t, "scopeId", 8, null), l = $(t, "searchQuery", 8, ""), u = $(t, "onSearch", 8, null), d = $(t, "progress", 24, () => ({})), f = $(t, "editing", 8, !1), p = $(t, "policy", 8), m = $(t, "onCommand", 8, () => {}), h = $(t, "onAddItem", 8, () => {}), g = $(t, "timeTasks", 24, () => /* @__PURE__ */ new Map()), _ = $(t, "itemCapsules", 24, () => /* @__PURE__ */ new Map()), v = $(t, "onModuleActivate", 8, () => {}), y = $(t, "moduleOrder", 24, () => ["time"]), b = $(t, "onModuleReorder", 8, () => {}), x = $(t, "moduleTotals", 24, () => ({})), S = $(t, "statusOrder", 24, () => ["done", "planned"]), C = $(t, "emptyLabel", 8, "沒有符合目前篩選的工作項目。"), w = $(t, "pointerCards", 24, () => ({})), T = /* @__PURE__ */ F(!0), E = /* @__PURE__ */ F({}), ee = null;
@@ -5158,7 +5160,7 @@ function rc(e, t) {
 	}), B(() => (G(s()), U(n)), () => {
 		te(s(), U(n));
 	}), An(), Hi();
-	var k = tc(), re = R(k);
+	var k = nc(), re = R(k);
 	Hs(re, {
 		pinEnabled: !0,
 		get requestedPin() {
@@ -5274,24 +5276,26 @@ function rc(e, t) {
 				}), J(e, s);
 			},
 			filters: (e, t) => {
-				var n = tc(), i = R(n), a = (e) => {
+				var n = Ir(), i = R(n), a = (e) => {
 					$a(e, Gi(r));
 				};
 				X(i, (e) => {
 					r() && e(a);
-				});
-				var o = z(i, 2), s = (e) => {
+				}), J(e, n);
+			},
+			tools: (e, t) => {
+				var n = Ir(), r = R(n), i = (e) => {
 					var t = ec(), n = L(t);
 					ki(n), Ie(2), M(t), V(() => Ai(n, l())), K("input", n, (e) => u()(e.currentTarget.value)), J(e, t);
 				};
-				X(o, (e) => {
-					u() && e(s);
+				X(r, (e) => {
+					u() && e(i);
 				}), J(e, n);
 			}
 		}
 	});
 	var ie = z(re, 2), ae = (e) => {
-		var t = nc(), n = L(t, !0);
+		var t = tc(), n = L(t, !0);
 		M(t), V(() => Y(n, C())), J(e, t);
 	};
 	X(ie, (e) => {

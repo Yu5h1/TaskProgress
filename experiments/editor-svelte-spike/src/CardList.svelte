@@ -179,6 +179,7 @@
   </IconChoice>
   <VisibilityMenu mode={visibilityMode} onChoose={selectVisibility} />
   <span role="status">{notice}</span>
+  <slot name="tools" />
 </div>
 </div>
 <div class="arrangeable-cards" bind:this={root}>

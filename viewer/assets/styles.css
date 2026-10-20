@@ -378,7 +378,7 @@ code {
  * light blue. Keyed on the shared dock so every host toggle matches; geometry
  * stays in editor-presentation.css, which is colour-free by contract.
  */
-.editor-mode-dock[aria-pressed="true"] {
+.editor-mode-dock.is-editing {
   color: var(--blue);
   background: var(--blue-soft);
   border-color: var(--color-active-border);
@@ -3188,16 +3188,14 @@ footer {
 .item-row-copy:hover { color: var(--color-accent); }
 .item-row-copy.is-copied { color: var(--moss); }
 .item-row-copy:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 1px; }
-.card-list-heading:has(.task-search) { flex-wrap: nowrap; }
-.card-list-heading:has(.task-search) .filter-strip { flex: 0 1 auto; }
-.card-list-heading .task-search {
+.card-list-tools .task-search {
   position: relative;
   display: flex;
   flex: 0 1 220px;
   min-width: 96px;
   margin-left: auto;
 }
-.card-list-heading .task-search input {
+.card-list-tools .task-search input {
   width: 100%;
   min-width: 0;
   padding: 4px 26px 4px 8px;
@@ -3208,7 +3206,7 @@ footer {
   font: inherit;
   font-size: .75rem;
 }
-.card-list-heading .task-search input:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 1px; }
+.card-list-tools .task-search input:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 1px; }
 .task-search-icon {
   position: absolute;
   top: 50%;

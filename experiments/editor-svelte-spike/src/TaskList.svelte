@@ -54,6 +54,8 @@
   <CardList pinEnabled {requestedPin} expanded={defaultExpanded} onToggleAll={setAllExpanded} items={tasks} {allIds} storageKey={cardStorageKey} let:item={task} let:lead let:visibilityEnabled let:visible let:onVisibleChange>
     <svelte:fragment slot="filters">
       {#if filters}<FilterStrip {...filters} />{/if}
+    </svelte:fragment>
+    <svelte:fragment slot="tools">
       {#if onSearch}
         <span class="task-search">
           <input
