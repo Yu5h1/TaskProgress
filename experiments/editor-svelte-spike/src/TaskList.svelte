@@ -11,6 +11,8 @@
   export let cardStorageKey = null;
   export let requestedPin = null;
   export let scopeId = null;
+  export let searchQuery = "";
+  export let onSearch = null;
   export let progress = {};
   export let editing = false;
   export let policy;
@@ -52,6 +54,16 @@
   <CardList pinEnabled {requestedPin} expanded={defaultExpanded} onToggleAll={setAllExpanded} items={tasks} {allIds} storageKey={cardStorageKey} let:item={task} let:lead let:visibilityEnabled let:visible let:onVisibleChange>
     <svelte:fragment slot="filters">
       {#if filters}<FilterStrip {...filters} />{/if}
+      {#if onSearch}
+        <input
+          class="task-search"
+          type="search"
+          aria-label="搜尋任務卡名稱、摘要與子項"
+          placeholder="搜尋名稱、摘要、子項"
+          value={searchQuery}
+          oninput={(event) => onSearch(event.currentTarget.value)}
+        >
+      {/if}
     </svelte:fragment>
     {#if task.kind === "report_pointer"}
       <ReportPointerCard {visibilityEnabled} {visible} {onVisibleChange} expanded={expandedCards[task.id] ?? defaultExpanded} onToggle={value => setExpanded(task.id, value)} {task} state={pointerCards[task.id] ?? { status: "loading" }} />

@@ -1,4 +1,5 @@
 import { requestedCardPin } from "./card-order.js";
+import { searchTask, searchTerms } from "./task-search.js";
 import {
   createDocumentBindingRefresher,
   evaluateAllDocumentBindings,
@@ -172,6 +173,7 @@ const state = {
   // Seeded with every status: an empty set is a deliberate "show nothing", and
   // starting there would open the screen with no cards at all.
   selection: createFilterSelection(supportedStatuses),
+  searchQuery: "",
   filterStorageKey: null,
   diagnostics: [],
   developerAvailable: false,
@@ -1042,6 +1044,8 @@ function taskListProps(tasks) {
   };
 }
 
+const SEARCH_MATCHES_IDS = false;
+
 function renderTasks() {
   const requestedPin = requestedCardPin(location.search, state.report.scope_id);
   // Explicit status groups lead; unfinished cards use priority and completed
@@ -1059,6 +1063,7 @@ function renderTasks() {
   // 待處理／已完成 split describes work, not a link to another report — so
   // it stays visible regardless of the current selection.
   const selected = state.selection.selected;
+  const terms = searchTerms(state.searchQuery);
   const tasks = orderedTasks
     .filter((task) => task.id === requestedPin || taskKind(task) === "report_pointer"
       || taskMatchesSelection(task, selected)
@@ -1070,11 +1075,18 @@ function renderTasks() {
         : task.id === requestedPin
         ? { ...task, kind }
         : { ...filterTaskItems(task, selected), kind };
-    });
+    })
+    .map((task) => (task.id === requestedPin ? task : searchTask(task, terms, { ids: SEARCH_MATCHES_IDS })))
+    .filter(Boolean);
 
   const props = taskListProps(tasks);
   props.requestedPin = requestedPin;
   props.scopeId = state.report.scope_id;
+  props.searchQuery = state.searchQuery;
+  props.onSearch = (query) => {
+    state.searchQuery = query;
+    renderTasks();
+  };
   props.allIds = orderedTasks.map(task => task.id);
   props.cardStorageKey = `taskprogress.cards.report.v1:${location.pathname}:${state.report.scope_id}:${state.report.report_id}`;
   if (state.taskListView) state.taskListView.update(props);

@@ -1,0 +1,15 @@
+# 任務卡搜尋 Checklist
+
+Current round: `Documentation/TaskSearch.md#驗收`.
+
+本檔只承載這一輪（文字搜尋）；ID 比對待決策 id-match 定案後另加項目。
+
+- [x] **1. 文字搜尋與兩層過濾**
+  Outcome: 搜尋框以名稱、摘要與子項描述過濾任務卡，卡片命中保留整張，否則只留命中的子項。
+  Checks:
+    - [x] **比對規則**
+      - Action: 執行 `node --test tests/task-search.test.mjs` 與 `npm run viewer:ui:build`。
+      - Expect: 名稱、摘要、子項、跨卡片多詞、連結文字、舊式子項與無結果案例通過，網址不命中；Viewer 建置成功。
+    - [x] **Viewer 實際過濾**
+      - Action: 在 Browser 開啟 [yu5h1lib-web](http://127.0.0.1:8001/?scope=yu5h1lib-web)，於搜尋框依序輸入「播放」「Theme」「zzzz」，再清空。
+      - Expect: 搜尋框在狀態篩選列右側；「播放」只剩 ui-workflow 的 2 個子項；「Theme」剩 4 張卡；「zzzz」顯示「沒有符合目前篩選的工作項目。」；清空後回到 16 張卡，焦點留在搜尋框。
