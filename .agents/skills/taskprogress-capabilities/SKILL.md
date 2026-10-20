@@ -67,13 +67,17 @@ A `.decisions` file, with the Report card and binding its page requires, is for 
 durable record. Create one only when at least one of these holds:
 
 - the user asks for a decisions file or the decision page;
-- the task is large — many questions, or answers that later sessions, agents or reviewers will rely on;
+- the task is large enough that later sessions, agents or reviewers will rely on its answers;
 - the task clearly needs a record of what was chosen and why, beyond the spec that results;
 - the task is an automated workflow whose steps read the answers back from the file.
 
-A small task with one or two questions does not qualify: ask in the conversation, give the
-recommendation and the facts it rests on, and write the answer into the spec, plan or handoff that
-the work updates. Do not create a Report card, child item or binding just to host such a question.
+Judge by whether anyone or anything will read the answers back later, not by counting questions.
+One question an automated workflow reads back still needs the file; several small details settled on
+the spot and written straight into the spec do not. When no record is needed, ask in the
+conversation, give the recommendation and the facts it rests on, and write the answer into the spec,
+plan or handoff that the work updates. A small task with one or two questions is the common case of
+this, not a threshold. Do not create a Report card, child item or binding just to host such a
+question: their cost outweighs a question that needs no record.
 
 ## Reaching the browser entrance from another project
 
