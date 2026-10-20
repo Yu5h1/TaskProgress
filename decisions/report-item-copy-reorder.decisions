@@ -1,42 +1,50 @@
 {
   "schema_version": "1.1",
   "task_id": "report-item-copy-reorder",
-  "updated_at": "2026-10-20T12:00:00+00:00",
+  "updated_at": "2026-10-20T15:10:16.9920171\u002B00:00",
   "decisions": [
     {
       "id": "copy-entry",
       "version": 1,
-      "question": "子項的「複製參照」要從哪裡觸發？",
-      "context": "現況：任務卡子項的 ID 存在 report.json，畫面不顯示。要一鍵複製「scope › 卡片 ID › 子項 ID「標題前段」」給 agent。子項每列已有：狀態圓點（純裝飾）、優先級標籤、描述、模組膠囊、狀態標籤，常駐一個複製按鈕會再佔一欄寬度。網頁 Viewer 與桌面 WebView2 都能寫入剪貼簿。限制：沒有 ID 的舊式文字子項（目前只在 Web report，68 項）不提供複製。",
+      "question": "\u5B50\u9805\u7684\u300C\u8907\u88FD\u53C3\u7167\u300D\u8981\u5F9E\u54EA\u88E1\u89F8\u767C\uFF1F",
+      "context": "\u73FE\u6CC1\uFF1A\u4EFB\u52D9\u5361\u5B50\u9805\u7684 ID \u5B58\u5728 report.json\uFF0C\u756B\u9762\u4E0D\u986F\u793A\u3002\u8981\u4E00\u9375\u8907\u88FD\u300Cscope \u203A \u5361\u7247 ID \u203A \u5B50\u9805 ID\u300C\u6A19\u984C\u524D\u6BB5\u300D\u300D\u7D66 agent\u3002\u5B50\u9805\u6BCF\u5217\u5DF2\u6709\uFF1A\u72C0\u614B\u5713\u9EDE\uFF08\u7D14\u88DD\u98FE\uFF09\u3001\u512A\u5148\u7D1A\u6A19\u7C64\u3001\u63CF\u8FF0\u3001\u6A21\u7D44\u81A0\u56CA\u3001\u72C0\u614B\u6A19\u7C64\uFF0C\u5E38\u99D0\u4E00\u500B\u8907\u88FD\u6309\u9215\u6703\u518D\u4F54\u4E00\u6B04\u5BEC\u5EA6\u3002\u7DB2\u9801 Viewer \u8207\u684C\u9762 WebView2 \u90FD\u80FD\u5BEB\u5165\u526A\u8CBC\u7C3F\u3002\u9650\u5236\uFF1A\u6C92\u6709 ID \u7684\u820A\u5F0F\u6587\u5B57\u5B50\u9805\uFF08\u76EE\u524D\u53EA\u5728 Web report\uFF0C68 \u9805\uFF09\u4E0D\u63D0\u4F9B\u8907\u88FD\u3002",
       "options": [
         {
           "id": "hover-overlay",
-          "label": "滑過或聚焦才出現的小圖示",
-          "description": "圖示疊在列尾（狀態標籤左側），平常不佔版面寬度；滑鼠移入列、或以 Tab 聚焦該列時出現，點一下複製並顯示「已複製」。觸控裝置在選取卡片後顯示。"
+          "label": "\u6ED1\u904E\u6216\u805A\u7126\u624D\u51FA\u73FE\u7684\u5C0F\u5716\u793A",
+          "description": "\u5716\u793A\u758A\u5728\u5217\u5C3E\uFF08\u72C0\u614B\u6A19\u7C64\u5DE6\u5074\uFF09\uFF0C\u5E73\u5E38\u4E0D\u4F54\u7248\u9762\u5BEC\u5EA6\uFF1B\u6ED1\u9F20\u79FB\u5165\u5217\u3001\u6216\u4EE5 Tab \u805A\u7126\u8A72\u5217\u6642\u51FA\u73FE\uFF0C\u9EDE\u4E00\u4E0B\u8907\u88FD\u4E26\u986F\u793A\u300C\u5DF2\u8907\u88FD\u300D\u3002\u89F8\u63A7\u88DD\u7F6E\u5728\u9078\u53D6\u5361\u7247\u5F8C\u986F\u793A\u3002"
         },
         {
           "id": "context-menu",
-          "label": "在子項按右鍵",
-          "description": "自訂右鍵選單只有「複製參照」一項。完全不佔空間，但要兩步，觸控裝置與只用鍵盤時不易發現。"
+          "label": "\u5728\u5B50\u9805\u6309\u53F3\u9375",
+          "description": "\u81EA\u8A02\u53F3\u9375\u9078\u55AE\u53EA\u6709\u300C\u8907\u88FD\u53C3\u7167\u300D\u4E00\u9805\u3002\u5B8C\u5168\u4E0D\u4F54\u7A7A\u9593\uFF0C\u4F46\u8981\u5169\u6B65\uFF0C\u89F8\u63A7\u88DD\u7F6E\u8207\u53EA\u7528\u9375\u76E4\u6642\u4E0D\u6613\u767C\u73FE\u3002"
         },
         {
           "id": "marker-click",
-          "label": "點列首的狀態圓點",
-          "description": "圓點改為按鈕，點了就複製。不佔空間、一步完成；但 Checklist 頁的同位置標記是點了會切換結果，同一個位置在兩個頁面意義不同，容易誤會成改狀態。"
+          "label": "\u9EDE\u5217\u9996\u7684\u72C0\u614B\u5713\u9EDE",
+          "description": "\u5713\u9EDE\u6539\u70BA\u6309\u9215\uFF0C\u9EDE\u4E86\u5C31\u8907\u88FD\u3002\u4E0D\u4F54\u7A7A\u9593\u3001\u4E00\u6B65\u5B8C\u6210\uFF1B\u4F46 Checklist \u9801\u7684\u540C\u4F4D\u7F6E\u6A19\u8A18\u662F\u9EDE\u4E86\u6703\u5207\u63DB\u7D50\u679C\uFF0C\u540C\u4E00\u500B\u4F4D\u7F6E\u5728\u5169\u500B\u9801\u9762\u610F\u7FA9\u4E0D\u540C\uFF0C\u5BB9\u6613\u8AA4\u6703\u6210\u6539\u72C0\u614B\u3002"
         },
         {
           "id": "keyboard",
-          "label": "聚焦子項後按 Ctrl+C",
-          "description": "沒有任何可見元素，最省空間；但必須知道快捷鍵，滑鼠使用者得先用 Tab 聚焦，發現性最低。"
+          "label": "\u805A\u7126\u5B50\u9805\u5F8C\u6309 Ctrl\u002BC",
+          "description": "\u6C92\u6709\u4EFB\u4F55\u53EF\u898B\u5143\u7D20\uFF0C\u6700\u7701\u7A7A\u9593\uFF1B\u4F46\u5FC5\u9808\u77E5\u9053\u5FEB\u6377\u9375\uFF0C\u6ED1\u9F20\u4F7F\u7528\u8005\u5F97\u5148\u7528 Tab \u805A\u7126\uFF0C\u767C\u73FE\u6027\u6700\u4F4E\u3002"
         }
       ],
       "recommendation": {
         "option_id": "hover-overlay",
-        "reason": "平常不佔寬度、一步完成，鍵盤與觸控也有入口；不與 Checklist 標記的切換行為衝突。"
+        "reason": "\u5E73\u5E38\u4E0D\u4F54\u5BEC\u5EA6\u3001\u4E00\u6B65\u5B8C\u6210\uFF0C\u9375\u76E4\u8207\u89F8\u63A7\u4E5F\u6709\u5165\u53E3\uFF1B\u4E0D\u8207 Checklist \u6A19\u8A18\u7684\u5207\u63DB\u884C\u70BA\u885D\u7A81\u3002"
       },
       "allow_other": true,
-      "status": "pending",
-      "answer": null
+      "status": "decided",
+      "answer": {
+        "kind": "option",
+        "option_id": "hover-overlay",
+        "confirmed_at": "2026-10-20T15:10:16.9920171\u002B00:00"
+      },
+      "last_request": {
+        "request_id": "9f916c79-0805-474a-9fdd-04a6e8a6dcb9",
+        "fingerprint": "11c0de8120e6a723d120f961e839ee0cd0460d7e6867b9a1fa66fab03ac29b52"
+      }
     }
   ]
 }

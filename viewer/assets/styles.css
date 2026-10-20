@@ -3159,3 +3159,32 @@ footer {
 .item-drop-before::before, .item-drop-after::after { content: ""; position: absolute; left: 0; right: 0; height: 2px; background: var(--color-accent); pointer-events: none; }
 .item-drop-before::before { top: -1px; }
 .item-drop-after::after { bottom: -1px; }
+
+.item-row-description { position: relative; }
+.item-row-copy {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  transform: translateY(-50%);
+  padding: 1px 6px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--muted);
+  font: inherit;
+  font-size: 0.75rem;
+  line-height: 1.4;
+  white-space: nowrap;
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+}
+.editor-item-row:hover .item-row-copy,
+.editor-item-row:focus-within .item-row-copy,
+.card-selected .item-row-copy,
+.item-row-copy.is-done {
+  opacity: 1;
+  pointer-events: auto;
+}
+.item-row-copy:hover { color: var(--color-accent); }
+.item-row-copy:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 1px; }

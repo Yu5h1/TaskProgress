@@ -1074,6 +1074,7 @@ function renderTasks() {
 
   const props = taskListProps(tasks);
   props.requestedPin = requestedPin;
+  props.scopeId = state.report.scope_id;
   props.allIds = orderedTasks.map(task => task.id);
   props.cardStorageKey = `taskprogress.cards.report.v1:${location.pathname}:${state.report.scope_id}:${state.report.report_id}`;
   if (state.taskListView) state.taskListView.update(props);

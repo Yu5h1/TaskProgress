@@ -10,6 +10,7 @@
   export let allIds = [];
   export let cardStorageKey = null;
   export let requestedPin = null;
+  export let scopeId = null;
   export let progress = {};
   export let editing = false;
   export let policy;
@@ -72,6 +73,7 @@
         {statusOrder}
         moduleTotals={moduleTotals[task.id] ?? []}
         {lead}
+        {scopeId}
       />
     {/if}
   </CardList>

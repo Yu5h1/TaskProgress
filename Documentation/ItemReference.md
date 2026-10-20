@@ -1,0 +1,31 @@
+# 複製子項參照
+
+> Task ID: report-item-copy-reference
+>
+> 觸發方式由 [決策 copy-entry](../decisions/report-item-copy-reorder.decisions) 定案（滑過或聚焦才出現的小圖示）。驗收 `checklists/report-item-copy-reference.checklist`。
+
+## 用途
+
+使用者從 Viewer 一鍵複製某個任務卡子項的參照，貼給 agent，agent 以 ID 定位，不靠畫面順序或標題。畫面順序會因 priority 排序、狀態改變與文件綁定投影而變動，不能當參照。
+
+## 格式
+
+```text
+<scope-id> › <task-id> › <item-id>「<標題前 24 字>」
+```
+
+- scope 與卡片 ID 一併帶上：子項 ID 只在同一張卡內唯一，report CLI 的 `item.update` 也需要 task 與 item 兩個 ID。
+- 標題去掉行內連結語法、合併空白，超過 24 字截斷加「…」；只供核對，agent 以 ID 為準。
+- 由 `viewer/assets/item-reference.js` 的 `itemReference` 產生。
+
+## 介面
+
+- 預覽模式中，有穩定 ID 的子項在描述欄尾端疊一個複製圖示，不佔版面寬度。滑鼠移入該列、以 Tab 聚焦，或卡片被選取（觸控）時才顯示。
+- 按下後圖示短暫顯示「已複製」，失敗顯示「無法複製」。先用 Clipboard API，被拒絕時改用選取複製。
+- 編輯模式不顯示，避免蓋住輸入欄。任務卡不提供複製，卡片 ID 已顯示在卡片上。
+- 舊式文字子項沒有 ID（Viewer 只為顯示產生 `legacy-…` 暫代 ID），不提供複製；需先遷移成具 ID 物件。
+
+## 驗收
+
+- 參照格式、標題截斷與連結語法移除正確；舊式子項與缺 scope 時不產生參照。
+- Browser：有 ID 的子項平常不顯示圖示、聚焦或滑過時顯示，按下複製出正確參照；舊式子項沒有圖示；描述欄寬度不因此縮小。

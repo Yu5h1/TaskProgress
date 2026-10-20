@@ -1,0 +1,17 @@
+# 複製子項參照 Checklist
+
+Current round: `Documentation/ItemReference.md#驗收`.
+
+本檔只承載這一輪；完成後由 Git 保存，下一輪重用同一路徑。
+
+- [x] **1. 子項參照複製**
+  Outcome: 預覽模式的有 ID 子項可一鍵複製「scope › 卡片 › 子項「標題前段」」，平常不佔版面，舊式子項不提供。
+  Checks:
+    - [x] **參照格式與建置**
+      - Action: 執行 `node --test tests/item-reference.test.mjs tests/report-model.test.mjs tests/editor-shared-components.test.mjs` 與 `npm run viewer:ui:build`。
+      - Expect: 格式、截斷、連結語法移除與不產生參照的案例通過，既有案例不受影響，Viewer 建置成功。
+    - [x] **Viewer 實際複製**
+      - Action: 在 Browser 開啟 [ui-workflow](http://127.0.0.1:8001/?scope=yu5h1lib-web&pin=ui-workflow)，檢查各子項的複製圖示，聚焦一個圖示，再實際點擊另一個。
+      - Expect: 4 項舊式子項沒有圖示；有 ID 的子項平常透明、聚焦時顯示；點擊後顯示「已複製」，複製內容為 `yu5h1lib-web › ui-workflow › list-inspector-platform「ListEdit LP01–LP03 與 Obj…」`。
+      - Observed: Browser 面板拒絕 Clipboard API（NotAllowedError），首次只顯示「無法複製」。
+      - Resolved: 加上選取複製備援後重測，點擊顯示「已複製」，copy 事件內容與預期相同。

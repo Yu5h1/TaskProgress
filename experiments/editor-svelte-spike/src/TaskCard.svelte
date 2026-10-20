@@ -32,6 +32,7 @@
   export let moduleTotals = [];
   // The first visible card in the list (the pinned one when a pin applies).
   export let lead = false;
+  export let scopeId = null;
   const completedPreviewCount = 1;
   let showAllCompleted = false;
 
@@ -281,6 +282,7 @@
                 {moduleOrder}
                 {onModuleReorder}
                 leadItem={lead && group.status === "planned" && index === 0}
+                {scopeId}
                 reorder={editing && group.status === "planned" && item.id ? itemReorder(item, group.items, draggingId, dropTarget) : null}
               />
             {/each}

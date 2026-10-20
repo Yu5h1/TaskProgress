@@ -1,6 +1,7 @@
 <script>
   import ModuleCapsuleStrip from "./ModuleCapsuleStrip.svelte";
   import ExpandableText from "./ExpandableText.svelte";
+  import { copyText, itemReference } from "@editor/item-reference.js";
 
   export let taskId;
   export let field;
@@ -24,6 +25,17 @@
   // Supplied by the card for unfinished rows in edit mode: drag and Alt+Arrow
   // handlers plus the side ("before"/"after") a drop would land on.
   export let reorder = null;
+  export let scopeId = null;
+
+  $: reference = editing ? null : itemReference({ scopeId, taskId, item });
+  let copyState = "";
+  let copyTimer;
+
+  async function copyReference() {
+    clearTimeout(copyTimer);
+    copyState = await copyText(reference) ? "已複製" : "無法複製";
+    copyTimer = setTimeout(() => { copyState = ""; }, 1500);
+  }
 
   let priorityValue = policy.normalize(item.priority, policy.fallbackValue);
   // Same five statuses a task card carries. `statuses` is supplied by the
@@ -154,6 +166,16 @@
         {/if}
         <ExpandableText text={item.title} lines={1} expanded={leadItem} />
       </div>
+      {#if reference}
+        <button
+          type="button"
+          class="item-row-copy"
+          class:is-done={copyState}
+          aria-label={copyState || `複製「${item.title}」的參照`}
+          title={reference}
+          onclick={copyReference}
+        >{copyState || "⧉"}</button>
+      {/if}
     {/if}
   </div>
 

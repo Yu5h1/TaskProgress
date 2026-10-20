@@ -661,7 +661,7 @@ const ITEM_FIELDS = ["completed_items", "pending_items"];
  */
 function normalizeStableItem(item, taskId, field, index) {
   if (typeof item !== "string") return item;
-  return { id: `legacy-${taskId}-${field}-${index}`, title: item };
+  return { id: `legacy-${taskId}-${field}-${index}`, title: item, legacy: true };
 }
 
 export function mergeReports(report, developerReport = null) {

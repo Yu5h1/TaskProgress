@@ -7,7 +7,7 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
 ## Current state (2026-09-29)
 
 - **子項拖曳換位與複製參照（2026-10-20）。** 卡片 `report-item-copy-reorder`。拖曳換位已完成：規格 `Documentation/ReportItemOrderingPlan.md#編輯模式拖曳換位`，驗收 `checklists/report-item-copy-reorder.checklist`（全 `[x]`）。Editor Core 新增 `reorder-item`（語意同 CLI item.move）；編輯模式未完成子項以把手取代狀態圓點，只接受同級放置，Alt+↑／↓ 換位並保留焦點。Browser 實測後順序已還原，report.json 該卡與 HEAD 一致。
-  - 待決：複製參照的觸發方式 `decisions/report-item-copy-reorder.decisions` 的 copy-entry（推薦滑過／聚焦才出現的小圖示）。定案後實作複製並另起 checklist round；Web report 68 項舊式文字子項無 ID，不提供複製，遷移屬 Web 的工作。
+  - 複製參照已完成（決策 copy-entry 選滑過／聚焦圖示）：規格 `Documentation/ItemReference.md`，驗收 `checklists/report-item-copy-reference.checklist`（全 `[x]`）。`viewer/assets/item-reference.js` 產生「scope › 卡片 › 子項「標題前段」」，預覽模式疊在描述尾端；Clipboard API 被拒時改用選取複製（Browser 面板即如此）。舊式子項經 report-model 標 `legacy: true` 不提供複製；Web report 68 項待遷移屬 Web。report skill 已補參照解讀規則。
   - 順手移除先前三處方法內註解（expandable-text.js、ChecklistDesktopHost.cs），依 CodingConventions。
 
 - **Viewer 首項展開與 Checklist 行內連結（2026-10-20）。** 規格 `Documentation/InlineReportLinks.md#checklist-欄位`、`Documentation/ExpandableText.md#模組邊界`；驗收 `checklists/viewer-lead-item-checklist-links.checklist`（全 `[x]`），綁定 viewer-core 子項 `lead-item-checklist-links`。

@@ -3,8 +3,48 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-10-20T15:09:19.102141+00:00",
+  "updated_at": "2026-10-20T15:13:07.194864+00:00",
   "tasks": [
+    {
+      "id": "report-item-copy-reorder",
+      "title": "子項複製參照與拖曳換位",
+      "status": "done",
+      "summary": "子項可一鍵複製「scope › 卡片 › 子項」參照給 agent；未完成子項可在同群組內拖曳換位，已完成項目維持完成順序。",
+      "pending_items": [],
+      "completed_items": [
+        {
+          "id": "item-copy-reference",
+          "title": "子項複製參照（滑過／聚焦顯示圖示），依 [驗收清單](/checklist/?scope=task-progress&task=report-item-copy-reference) 核查",
+          "status": "done",
+          "document_ref": {
+            "kind": "checklist",
+            "scope_id": "task-progress",
+            "task": "report-item-copy-reference"
+          }
+        },
+        {
+          "id": "decide-copy-entry",
+          "title": "決定複製參照的觸發方式，見 [決策](/decisions/?scope=task-progress&task=report-item-copy-reorder)",
+          "status": "done",
+          "priority": 0,
+          "document_ref": {
+            "kind": "decision",
+            "scope_id": "task-progress",
+            "task": "report-item-copy-reorder"
+          }
+        },
+        {
+          "id": "item-drag-reorder",
+          "title": "未完成子項同群組拖曳換位（編輯模式，同優先級內），依 [驗收清單](/checklist/?scope=task-progress&task=report-item-copy-reorder) 核查",
+          "status": "done",
+          "document_ref": {
+            "kind": "checklist",
+            "scope_id": "task-progress",
+            "task": "report-item-copy-reorder"
+          }
+        }
+      ]
+    },
     {
       "id": "document-refresh-optimization",
       "title": "文件讀取與前景刷新效能優化",
@@ -1075,37 +1115,6 @@
             "kind": "checklist",
             "scope_id": "task-progress",
             "task": "startup-observer"
-          }
-        }
-      ]
-    },
-    {
-      "id": "report-item-copy-reorder",
-      "title": "子項複製參照與拖曳換位",
-      "status": "in_progress",
-      "summary": "子項可一鍵複製「scope › 卡片 › 子項」參照給 agent；未完成子項可在同群組內拖曳換位，已完成項目維持完成順序。",
-      "pending_items": [
-        {
-          "id": "decide-copy-entry",
-          "title": "決定複製參照的觸發方式，見 [決策](/decisions/?scope=task-progress&task=report-item-copy-reorder)",
-          "status": "planned",
-          "priority": 0,
-          "document_ref": {
-            "kind": "decision",
-            "scope_id": "task-progress",
-            "task": "report-item-copy-reorder"
-          }
-        }
-      ],
-      "completed_items": [
-        {
-          "id": "item-drag-reorder",
-          "title": "未完成子項同群組拖曳換位（編輯模式，同優先級內），依 [驗收清單](/checklist/?scope=task-progress&task=report-item-copy-reorder) 核查",
-          "status": "done",
-          "document_ref": {
-            "kind": "checklist",
-            "scope_id": "task-progress",
-            "task": "report-item-copy-reorder"
           }
         }
       ]
