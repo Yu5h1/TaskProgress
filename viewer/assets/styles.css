@@ -3154,37 +3154,37 @@ footer {
 }
 .item-row-grip:active { cursor: grabbing; }
 .item-row-grip:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
-.editor-item-row.item-drop-before,
-.editor-item-row.item-drop-after { position: relative; }
+.detail-list li.editor-item-row.item-drop-before,
+.detail-list li.editor-item-row.item-drop-after { position: relative; }
 .item-drop-before::before, .item-drop-after::after { content: ""; position: absolute; left: 0; right: 0; height: 2px; background: var(--color-accent); pointer-events: none; }
 .item-drop-before::before { top: -1px; }
 .item-drop-after::after { bottom: -1px; }
 
-.editor-item-row { position: relative; }
+.detail-list li.editor-item-row { position: static; }
 .item-row-copy {
   position: absolute;
   z-index: 1;
-  top: 50%;
-  transform: translateY(-50%);
-  padding: 1px 6px;
-  border: 1px solid var(--line);
-  border-radius: 6px;
-  background: var(--surface);
+  transform: translateX(-22px);
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
   color: var(--muted);
   font: inherit;
   font-size: 0.75rem;
-  line-height: 1.4;
-  white-space: nowrap;
+  line-height: 18px;
+  text-align: center;
   cursor: pointer;
   opacity: 0;
-  pointer-events: none;
 }
 .editor-item-row:hover .item-row-copy,
 .editor-item-row:focus-within .item-row-copy,
 .card-selected .item-row-copy,
 .item-row-copy.is-done {
   opacity: 1;
-  pointer-events: auto;
 }
 .item-row-copy:hover { color: var(--color-accent); }
+.item-row-copy.is-copied { color: var(--moss); }
 .item-row-copy:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 1px; }

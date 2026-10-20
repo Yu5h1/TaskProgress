@@ -22,3 +22,10 @@ Current round: `Documentation/ItemReference.md#驗收`.
     - [x] **游標旁定位與點擊**
       - Action: 在 Browser 開啟 [ui-workflow](http://127.0.0.1:8001/?scope=yu5h1lib-web&pin=ui-workflow)，滑鼠移到一列有「更多」的子項描述中段，再移向出現的圖示並點擊。
       - Expect: 圖示位於游標右側且與「更多」不重疊；移向圖示時位置不變；點擊後顯示「已複製」並複製該項參照。
+
+- [x] **3. 圖示改在狀態圓點左側**
+  Outcome: 複製圖示固定在列首圓點左側的卡片內距，不被子項列裁切，不蓋住「更多」。
+  Checks:
+    - [x] **位置與點擊**
+      - Action: 在 Browser 開啟 [ui-workflow](http://127.0.0.1:8001/?scope=yu5h1lib-web&pin=ui-workflow)，量測前三個有 ID 子項的圖示與圓點位置，滑過一列後點擊其圖示。
+      - Expect: 圖示右緣在圓點左緣之前、與圓點垂直置中；滑過時可見；點擊後變成綠色 ✓，複製內容為該項參照。
