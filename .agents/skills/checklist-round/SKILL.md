@@ -156,15 +156,27 @@ and not the child-item ID: for Toggle the round is `toggle.checklist`, the card
 is `ui-workflow`, and the item is `ux-toggle-goal-1`. Each manual checklist gets
 its own child item under the same existing card (§ Report binding).
 
-Write `Action` so the user can open the page from the checklist: embed the demo
-page as `[label](URL)` in the `Action` text, then the hands-on steps. The checklist
-page renders `[label](URL)` in `Outcome`, `Action`, and `Expect` as a clickable link
-(rules: [InlineReportLinks](../../../Documentation/InlineReportLinks.md#checklist-欄位));
-the desktop editor opens absolute HTTP(S) links in the system browser.
-Before handing over, confirm every linked page answers from the project's own
-demo entry (an HTTP request, not a guess); a page the built delivery does not
-contain is not a manual check yet, and when the entry has to be started first,
-say how in the checklist's opening prose.
+Write `Action` so the user can reach the target from the checklist, then the
+hands-on steps:
+
+- Target with a URL (web page, local service page): link it as `[label](URL)`
+  with an absolute `http(s)://` address. The checklist page renders `[label](URL)`
+  in `Outcome`, `Action`, and `Expect` as a clickable link
+  (rules: [InlineReportLinks](../../../Documentation/InlineReportLinks.md#checklist-欄位));
+  the desktop editor opens only absolute links, and a relative link does nothing
+  there. Before handing over, confirm every linked page answers from the
+  project's own demo entry (an HTTP request, not a guess); a page the built
+  delivery does not contain is not a manual check yet, and when the entry has to
+  be started first, say how in the checklist's opening prose.
+- Target without a URL (Unity scene, desktop window, device): no link. The first
+  sentence names how to open it — project, scene path, menu path or command — in
+  backticks, and that scene or entry must exist in the delivered project. Do not
+  invent a URL or link a file path; `file:` is not rendered as a link.
+- When the user compares against a reference that has a URL, link the reference
+  and still state how to open the target.
+
+Which target, address or scene to name belongs to the project or the acceptance
+workflow that asks for the check, not to this skill.
 `Expect` names what the user must see; `Reason` says why the agent
 cannot judge it (「外觀由使用者判」 is a capability reason).
 
@@ -181,6 +193,16 @@ Current round: `../UX/Documentation/ModuleSpec/Controls/Toggle.md#驗收`.
     - [ ] **播放／暫停與循環播放** `[manual]`
       - Action: 開啟 [animation 播放列](http://127.0.0.1:8015/demo/animation/)，按播放再按暫停，開關循環播放。
       - Expect: 播放鈕只換名稱與圖示、沒有亮底；循環播放開著時底色為 accent。
+      - Reason: 外觀由使用者判。
+```
+
+A target without a URL names how to open it instead of linking it; the
+reference it is compared against may still be a link:
+
+```markdown
+    - [ ] **按鈕外觀與 Web 並排（BT02）** `[manual]`
+      - Action: 開啟 Unity 專案 `W:/UnityProject/Yu5h1LibTest`，載入場景 `Assets/Samples/Yu5h1Lib.UIToolkit/0.1.0/UxAcceptance/UxAcceptanceDemo.unity` 並進入 Play（`CurrentTarget.json` 已指到 Button 案例）；並排開啟 [Web OptionPicker 參考](http://127.0.0.1:8015/demo/option-picker/)，切到「TaskProgress 外觀」。
+      - Expect: 按鈕比例、圖示排列與狀態差異和 Web 一致；顏色不比（尚未引用 VisualFoundation）。
       - Reason: 外觀由使用者判。
 ```
 
@@ -233,7 +255,12 @@ else needs to track staleness.
    start `[ ]`.
 2. The agent implements the work and runs each untagged check once.
 3. When every agent check is `[x]` and the spec still needs the user, open the
-   manual checklists (§ Manual checklists), bind them, and stop.
+   manual checklists (§ Manual checklists), bind them, and stop. Hand over
+   through the task card: give the card link from
+   `task-progress.exe open --scope <scope> --pin <task> --no-browser` (or open
+   the card in the browser pane), never loose URLs or file paths. The card's
+   child items lead to each manual checklist, and its `Action` leads to the
+   target.
 4. Record manual checks under **Recording manual results**. The user may later
    revise them through the single marker cycle. `[!]` requires `Observed`;
    `[ ]` remains incomplete.
