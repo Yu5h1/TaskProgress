@@ -404,13 +404,6 @@
       </CardList>
     </section>
 
-    {#if typeof transport?.reset === "function"}
-      <div class="checklist-reset-dock">
-        <button type="button" class="secondary-button" disabled={!canReset} onclick={openReset}
-          title={view.dirty || view.pending || view.saving ? "請先儲存或捨棄變更，再清空。" : "將實機檢查重設為未執行；Agent 檢查結果保留"}
-        >清空結果</button>
-      </div>
-    {/if}
     <footer
       class="edit-save-bar"
       data-state={toneOf(view.status)}
@@ -430,6 +423,11 @@
         onRedo={redo}
         onDiscard={discard}
       />
+    {#if typeof transport?.reset === "function"}
+      <button type="button" class="secondary-button checklist-reset-button" disabled={!canReset} onclick={openReset}
+        title={view.dirty || view.pending || view.saving ? "請先儲存或捨棄變更，再清空。" : "將實機檢查重設為未執行；Agent 檢查結果保留"}
+      >清空結果</button>
+    {/if}
     </footer>
   {/if}
 </main>

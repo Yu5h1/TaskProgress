@@ -221,31 +221,10 @@ body {
   }
 }
 
-.checklist-reset-dock {
-  position: fixed;
-  z-index: 40;
-  left: max(16px, calc((100% - 960px) / 2));
-  bottom: 16px;
-  display: flex;
-  align-items: center;
-  padding: 8px 9px;
-  background: color-mix(in srgb, var(--color-panel-bg) 92%, transparent);
-  border: 1px solid var(--color-border);
-  border-radius: 999px;
-  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.25);
-  backdrop-filter: blur(12px);
-}
-
-.checklist-reset-dock button {
+.checklist-reset-button {
+  margin-left: auto;
   padding: 5px 9px;
   font-size: 0.7rem;
-}
-
-@media (max-width: 600px) {
-  .checklist-reset-dock {
-    left: 12px;
-    bottom: 76px;
-  }
 }
 
 .checklist-header > div:first-child { min-width: 0; flex: 1; }
