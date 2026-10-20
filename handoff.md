@@ -6,7 +6,7 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
 
 ## Current state (2026-09-29)
 
-- **完成堆疊、清空結果與決策連結（2026-10-21）。** 綁定文件完成而顯示為完成的待處理子項，投影時排在完成區最上方（`viewer/assets/document-binding.js`，規格 `Documentation/DocumentBindingPlan.md#子項目綁定契約`）。Checklist「清空實機結果」改名「清空結果」並移到卡片圖示列右端（`Documentation/CardDisclosurePlan.md`）。決策頁 context、選項說明、建議理由改用 `InlineLinks`（`Documentation/InlineReportLinks.md#decision-欄位`）。Browser 已確認前兩項與決策頁文字正常；目前沒有含連結的決策檔，決策頁連結的實際顯示未在頁面上看到，由原始碼測試覆蓋。正式 Desktop 資產未更新。
+- **完成堆疊、清空結果與決策連結（2026-10-21）。** 綁定文件完成而顯示為完成的待處理子項，投影時排在完成區最上方（`viewer/assets/document-binding.js`，規格 `Documentation/DocumentBindingPlan.md#子項目綁定契約`）。Checklist「清空實機結果」改名「清空結果」，固定在視窗左下角、與右下角的儲存列分開（`Documentation/CardDisclosurePlan.md`）。決策頁 context、選項說明、建議理由改用 `InlineLinks`（`Documentation/InlineReportLinks.md#decision-欄位`）。Browser 已確認前兩項與決策頁文字正常；目前沒有含連結的決策檔，決策頁連結的實際顯示未在頁面上看到，由原始碼測試覆蓋。正式 Desktop 資產未更新。
 
 - **任務卡搜尋（2026-10-21）。** 卡片 `report-search`；規格 `Documentation/TaskSearch.md`，驗收 `checklists/report-search.checklist`（全 `[x]`）。狀態篩選列右側搜尋框，比對名稱、摘要、子項描述，多詞須全中，兩層過濾沿用狀態篩選慣例（卡片命中保留整張，否則只留命中子項；pin 卡保留）。`viewer/assets/task-search.js` 為純函式，決策 id-match 選 include：`SEARCH_MATCHES_IDS` 為 true，卡片與子項 ID 可比對；貼上複製參照時以 `parseReference`／`referenceTask` 定位單一子項，其他 scope 沒有結果。
 

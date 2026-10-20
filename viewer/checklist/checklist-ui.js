@@ -4351,7 +4351,7 @@ wr([
 ]);
 //#endregion
 //#region experiments/editor-svelte-spike/src/ChecklistApp.svelte
-var ts = /* @__PURE__ */ J("<p class=\"document-owner\">擁有者：<a> </a></p>"), ns = /* @__PURE__ */ J("<details class=\"checklist-round\"><summary>本輪依據</summary><p> </p></details>"), rs = /* @__PURE__ */ J("<p class=\"checklist-notice\" role=\"status\"> </p>"), is = /* @__PURE__ */ J("<p class=\"checklist-notice checklist-error\" role=\"alert\"> </p>"), as = /* @__PURE__ */ J("<a class=\"checklist-next-step\"><span> </span> <strong> </strong></a>"), os = /* @__PURE__ */ J("<p class=\"checklist-chips\"><span class=\"checklist-chip\"> </span></p>"), ss = /* @__PURE__ */ J("<div><dt>Reason</dt><dd> </dd></div>"), cs = /* @__PURE__ */ J("<div><dt>Observed</dt><dd> </dd></div>"), ls = /* @__PURE__ */ J("<div><dt>Resolved</dt><dd> </dd></div>"), us = /* @__PURE__ */ J("<label class=\"checklist-observed\"><span>Observed</span> <textarea rows=\"3\" placeholder=\"記錄實際看到的結果\"></textarea></label>"), ds = /* @__PURE__ */ J("<section tabindex=\"-1\"><div class=\"checklist-check-heading\"><!> <strong> </strong> <span> </span></div> <dl><div><dt>Action</dt><dd><!></dd></div> <div><dt>Expect</dt><dd><!></dd></div> <!> <!> <!></dl> <!></section>"), fs = /* @__PURE__ */ J("<div class=\"checklist-checks\"><p class=\"checklist-outcome\"><!></p> <!> <!></div>"), ps = /* @__PURE__ */ J("<header slot=\"header\" class=\"checklist-item-header\"><!> <div><h2> </h2></div> <span class=\"checklist-status\"> </span></header>"), ms = /* @__PURE__ */ J("<article><!></article>"), hs = /* @__PURE__ */ J("<button type=\"button\" class=\"secondary-button checklist-reset-button\">清空結果</button>"), gs = /* @__PURE__ */ J("<!> <!> <section class=\"checklist-items\" aria-label=\"Implementation checklist items\"><!></section> <footer class=\"edit-save-bar\" aria-live=\"polite\"><!></footer>", 1), _s = /* @__PURE__ */ J("<p> </p> <p>此操作無法復原；如需回復，請使用 Git 歷史。</p> <form method=\"dialog\" class=\"theme-dialog-actions\"><button type=\"submit\" class=\"secondary-button\">取消</button> <button type=\"submit\" class=\"primary-button\">確認清空</button></form>", 1), vs = /* @__PURE__ */ J("<!> <main class=\"checklist-page\"><header class=\"checklist-header\"><div><h1> </h1> <!> <!></div> <!></header> <!></main> <!>", 1);
+var ts = /* @__PURE__ */ J("<p class=\"document-owner\">擁有者：<a> </a></p>"), ns = /* @__PURE__ */ J("<details class=\"checklist-round\"><summary>本輪依據</summary><p> </p></details>"), rs = /* @__PURE__ */ J("<p class=\"checklist-notice\" role=\"status\"> </p>"), is = /* @__PURE__ */ J("<p class=\"checklist-notice checklist-error\" role=\"alert\"> </p>"), as = /* @__PURE__ */ J("<a class=\"checklist-next-step\"><span> </span> <strong> </strong></a>"), os = /* @__PURE__ */ J("<p class=\"checklist-chips\"><span class=\"checklist-chip\"> </span></p>"), ss = /* @__PURE__ */ J("<div><dt>Reason</dt><dd> </dd></div>"), cs = /* @__PURE__ */ J("<div><dt>Observed</dt><dd> </dd></div>"), ls = /* @__PURE__ */ J("<div><dt>Resolved</dt><dd> </dd></div>"), us = /* @__PURE__ */ J("<label class=\"checklist-observed\"><span>Observed</span> <textarea rows=\"3\" placeholder=\"記錄實際看到的結果\"></textarea></label>"), ds = /* @__PURE__ */ J("<section tabindex=\"-1\"><div class=\"checklist-check-heading\"><!> <strong> </strong> <span> </span></div> <dl><div><dt>Action</dt><dd><!></dd></div> <div><dt>Expect</dt><dd><!></dd></div> <!> <!> <!></dl> <!></section>"), fs = /* @__PURE__ */ J("<div class=\"checklist-checks\"><p class=\"checklist-outcome\"><!></p> <!> <!></div>"), ps = /* @__PURE__ */ J("<header slot=\"header\" class=\"checklist-item-header\"><!> <div><h2> </h2></div> <span class=\"checklist-status\"> </span></header>"), ms = /* @__PURE__ */ J("<article><!></article>"), hs = /* @__PURE__ */ J("<div class=\"checklist-reset-dock\"><button type=\"button\" class=\"secondary-button\">清空結果</button></div>"), gs = /* @__PURE__ */ J("<!> <!> <section class=\"checklist-items\" aria-label=\"Implementation checklist items\"><!></section> <!> <footer class=\"edit-save-bar\" aria-live=\"polite\"><!></footer>", 1), _s = /* @__PURE__ */ J("<p> </p> <p>此操作無法復原；如需回復，請使用 Git 歷史。</p> <form method=\"dialog\" class=\"theme-dialog-actions\"><button type=\"submit\" class=\"secondary-button\">取消</button> <button type=\"submit\" class=\"primary-button\">確認清空</button></form>", 1), vs = /* @__PURE__ */ J("<!> <main class=\"checklist-page\"><header class=\"checklist-header\"><div><h1> </h1> <!> <!></div> <!></header> <!></main> <!>", 1);
 function ys(e, t) {
 	Ue(t, !1);
 	let n = /* @__PURE__ */ I(), r = /* @__PURE__ */ I(), i = /* @__PURE__ */ I(), a = $(t, "transport", 8, null), o = $(t, "onPersistenceChange", 8, () => {}), s = $(t, "bindRefresh", 8, () => {}), c = null, l = /* @__PURE__ */ I(null), u = /* @__PURE__ */ I(!0), d = /* @__PURE__ */ I(""), f = /* @__PURE__ */ I(null), p = /* @__PURE__ */ I("正在載入 Checklist…"), m = /* @__PURE__ */ I(!1), h = /* @__PURE__ */ I(!1), g = /* @__PURE__ */ I([]);
@@ -4750,17 +4750,6 @@ function ys(e, t) {
 						}
 						j(s), V(() => oi(s, 1, (K(W(n)), G(() => `checklist-item checklist-${W(n).status}`)))), Y(e, s);
 					},
-					tools: (e, t) => {
-						var n = Pr(), i = fn(n), o = (e) => {
-							var t = hs();
-							V(() => {
-								t.disabled = !W(r), Q(t, "title", (W(l), G(() => W(l).dirty || W(l).pending || W(l).saving ? "請先儲存或捨棄變更，再清空。" : "將實機檢查重設為未執行；Agent 檢查結果保留")));
-							}), q("click", t, y), Y(e, t);
-						};
-						Z(i, (e) => {
-							K(a()), G(() => typeof a()?.reset == "function") && e(o);
-						}), Y(e, n);
-					},
 					filters: (e, t) => {
 						{
 							let t = /* @__PURE__ */ P(() => (W(l), W(T), G(() => E(W(l).document, W(T))))), n = /* @__PURE__ */ P(() => (K(Ri), W(C), G(() => Ri(W(C)))));
@@ -4791,10 +4780,19 @@ function ys(e, t) {
 			}), (e) => L(ie, e), () => W(ie));
 		}
 		j(s);
-		var u = z(s, 2), d = R(u);
+		var u = z(s, 2), d = (e) => {
+			var t = hs(), n = R(t);
+			j(t), V(() => {
+				n.disabled = !W(r), Q(n, "title", (W(l), G(() => W(l).dirty || W(l).pending || W(l).saving ? "請先儲存或捨棄變更，再清空。" : "將實機檢查重設為未執行；Agent 檢查結果保留")));
+			}), q("click", n, y), Y(e, t);
+		};
+		Z(u, (e) => {
+			K(a()), G(() => typeof a()?.reset == "function") && e(d);
+		});
+		var f = z(u, 2), m = R(f);
 		{
 			let e = /* @__PURE__ */ P(() => (W(l), W(h), G(() => W(l).saving || W(h))));
-			Yo(d, {
+			Yo(m, {
 				get cautious() {
 					return W(l), G(() => W(l).cautious);
 				},
@@ -4820,8 +4818,8 @@ function ys(e, t) {
 				onDiscard: be
 			});
 		}
-		j(u), V((e) => {
-			Q(u, "data-state", e), Q(u, "aria-busy", (W(l), W(h), G(() => W(l).saving || W(h))));
+		j(f), V((e) => {
+			Q(f, "data-state", e), Q(f, "aria-busy", (W(l), W(h), G(() => W(l).saving || W(h))));
 		}, [() => (W(l), G(() => de(W(l).status)))]), Y(e, t);
 	};
 	Z(Ne, (e) => {
