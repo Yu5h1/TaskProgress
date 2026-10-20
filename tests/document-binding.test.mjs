@@ -630,3 +630,26 @@ test("projectTasksWithBindings leaves completely unbound task cards completely u
   // Raw data unmutated
   assert.equal(JSON.stringify(tasks), rawTasksSnapshot);
 });
+
+test("items completed by their bound document stack on top of stored completed items", () => {
+  const tasks = [{
+    id: "work",
+    title: "Work",
+    status: "in_progress",
+    completed_items: [{ id: "old-done", title: "Old", status: "done" }],
+    pending_items: [
+      { id: "bound-a", title: "A", status: "in_progress", document_ref: { kind: "checklist", scope_id: "alpha", task: "a" } },
+      { id: "open", title: "Open", status: "planned" },
+      { id: "bound-b", title: "B", status: "planned", document_ref: { kind: "checklist", scope_id: "alpha", task: "b" } },
+    ],
+  }];
+  const done = { ok: true, completed: true };
+  const evaluations = new Map([
+    [documentBindingKey(tasks[0].pending_items[0].document_ref), done],
+    [documentBindingKey(tasks[0].pending_items[2].document_ref), done],
+  ]);
+  const [projected] = projectTasksWithBindings(tasks, evaluations);
+  assert.deepEqual(projected.completed_items.map(item => item.id), ["bound-a", "bound-b", "old-done"]);
+  assert.deepEqual(projected.pending_items.map(item => item.id), ["open"]);
+  assert.deepEqual(tasks[0].completed_items.map(item => item.id), ["old-done"]);
+});

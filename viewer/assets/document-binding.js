@@ -194,6 +194,7 @@ export async function evaluateAllDocumentBindings(tasks, options = {}) {
 export function projectTasksWithBindings(tasks, evaluations = new Map()) {
   return (tasks ?? []).map((task) => {
     const completedItems = [];
+    const promotedItems = [];
     const pendingItems = [];
 
     // Helper to process an item
@@ -234,7 +235,7 @@ export function projectTasksWithBindings(tasks, evaluations = new Map()) {
       };
 
       if (derivedStatus === "done") {
-        completedItems.push(projectedItem);
+        (defaultOriginField === "pending_items" ? promotedItems : completedItems).push(projectedItem);
       } else {
         pendingItems.push(projectedItem);
       }
@@ -255,7 +256,7 @@ export function projectTasksWithBindings(tasks, evaluations = new Map()) {
     let nextTaskStatus = task.status;
     if (hasBoundItems) {
       const nonArchivedStatuses = [
-        ...completedItems.map((item) => (item && typeof item === "object") ? (item.status ?? "done") : "done"),
+        ...[...promotedItems, ...completedItems].map((item) => (item && typeof item === "object") ? (item.status ?? "done") : "done"),
         ...pendingItems.map((item) => (item && typeof item === "object") ? (item.status ?? "planned") : "planned"),
       ].filter((status) => status !== "archive");
       const hasItems = nonArchivedStatuses.length > 0;
@@ -267,7 +268,7 @@ export function projectTasksWithBindings(tasks, evaluations = new Map()) {
     const projectedTask = {
       ...task,
       status: nextTaskStatus,
-      completed_items: completedItems,
+      completed_items: [...promotedItems, ...completedItems],
       pending_items: pendingItems,
     };
     delete projectedTask.sourceRef;

@@ -715,3 +715,12 @@ test("Cost's dialog draws its readout through the same shared component as Time'
   assert.match(costDialogText, /<AssessmentReadout label="估算總額" value=\{total\.exact\}>/u);
   assert.doesNotMatch(costDialogText, /cost-readout\b/u);
 });
+
+test("decision context, option descriptions and recommendation reasons render inline links; questions stay plain", async () => {
+  const decision = await readFile(new URL("../experiments/editor-svelte-spike/src/DecisionApp.svelte", import.meta.url), "utf8");
+  assert.match(decision, /import InlineLinks from "\.\/InlineLinks\.svelte"/u);
+  assert.match(decision, /<InlineLinks text=\{item\.context\} \/>/u);
+  assert.match(decision, /<InlineLinks text=\{option\.description\} \/>/u);
+  assert.match(decision, /<InlineLinks text=\{item\.recommendation\.reason\} \/>/u);
+  assert.doesNotMatch(decision, /<InlineLinks text=\{item\.question\}/u);
+});

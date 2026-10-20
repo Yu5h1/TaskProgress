@@ -317,6 +317,13 @@
         storageKey={new URLSearchParams(location.search).has("scope")
           ? `taskprogress.cards.checklist.v1:${location.pathname}:${new URLSearchParams(location.search).get("scope")}:${new URLSearchParams(location.search).get("task")}:${view.document.roundIdentity}`
           : null} let:item let:visibilityEnabled let:visible let:onVisibleChange>
+      <svelte:fragment slot="tools">
+        {#if typeof transport?.reset === "function"}
+          <button type="button" class="secondary-button checklist-reset-button" disabled={!canReset} onclick={openReset}
+            title={view.dirty || view.pending || view.saving ? "請先儲存或捨棄變更，再清空。" : "將實機檢查重設為未執行；Agent 檢查結果保留"}
+          >清空結果</button>
+        {/if}
+      </svelte:fragment>
       <svelte:fragment slot="filters">
     <FilterStrip
       categories={filterCategories(view.document, capsuleOrder)}
@@ -423,20 +430,12 @@
         onRedo={redo}
         onDiscard={discard}
       />
-    {#if typeof transport?.reset === "function"}
-      <div class="checklist-reset-actions">
-        {#if view.dirty || view.pending || view.saving}<span>請先儲存或捨棄變更，再清空。</span>{/if}
-        <button type="button" class="secondary-button" disabled={!canReset} onclick={openReset}>
-          清空實機結果
-        </button>
-      </div>
-    {/if}
     </footer>
   {/if}
 </main>
 
 
-<DialogShell open={resetOpen} title="清空實機結果？" titleId="checklist-reset-title"
+<DialogShell open={resetOpen} title="清空結果？" titleId="checklist-reset-title"
   kicker="Checklist" onClose={() => { resetOpen = false; }}>
   <p>將 {resetTargets.length} 個實機檢查重設為未執行，並清除 Observed／Resolved，包含篩選後隱藏的項目。其他檢查結果不受影響。</p>
   <p>此操作無法復原；如需回復，請使用 Git 歷史。</p>

@@ -4,6 +4,7 @@
   import CardList from "./CardList.svelte";
   import FocusShield from "./FocusShield.svelte";
   import DialogShell from "./DialogShell.svelte";
+  import InlineLinks from "./InlineLinks.svelte";
   import HistoryTools from "./HistoryTools.svelte";
   import CardDisclosure from "./CardDisclosure.svelte";
   import FilterStrip from "./FilterStrip.svelte";
@@ -254,8 +255,8 @@
             </div>
           {/if}
           {#if item.context || item.recommendation}<div class="decision-description">
-          {#if item.context}<p class="decision-text">{item.context}</p>{/if}
-          {#if item.recommendation}<p>建議：{item.options.find(o => o.id === item.recommendation.option_id)?.label} — {item.recommendation.reason}</p>{/if}
+          {#if item.context}<p class="decision-text"><InlineLinks text={item.context} /></p>{/if}
+          {#if item.recommendation}<p>建議：{item.options.find(o => o.id === item.recommendation.option_id)?.label} — <InlineLinks text={item.recommendation.reason} /></p>{/if}
           </div>{/if}
             <fieldset disabled={refreshing || view.pending?.operation === "clear_all" || (!!view.pending && !view.busy) || draft?.conflict}>
               <legend class="decision-visually-hidden">{item.question}</legend>
@@ -263,7 +264,7 @@
                 <label class="decision-option"><input type="radio" name={`answer-${item.id}`} checked={choice === option.id}
                   onclick={event => { event.currentTarget.checked = choose(item.id, option.id) === option.id; }} />
                   <span>{String.fromCharCode(65 + index)}　{option.label}{option.id === item.recommendation?.option_id ? "（建議）" : ""}
-                    {#if option.description}<small>{option.description}</small>{/if}</span></label>
+                    {#if option.description}<small><InlineLinks text={option.description} /></small>{/if}</span></label>
               {/each}
               {#if item.allow_other}<label class="decision-option"><input type="radio" name={`answer-${item.id}`} checked={choice === "__other"}
                 onclick={async event => { const selected = choose(item.id, "__other"); event.currentTarget.checked = selected === "__other"; await tick(); if (selected === "__other" && activeCard === item.id) document.getElementById(`other-${item.id}`)?.focus(); }} /><span>其他</span></label>

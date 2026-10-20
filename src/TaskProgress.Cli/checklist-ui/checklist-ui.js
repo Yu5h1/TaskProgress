@@ -3395,7 +3395,7 @@ function uo(e, t, n, r, i, a) {
 }
 //#endregion
 //#region experiments/editor-svelte-spike/src/CardList.svelte
-var fo = /* @__PURE__ */ Mr("<path d=\"M4 5h15M4 10h8M4 15h17M4 20h11\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\" stroke-linecap=\"round\"></path>"), po = /* @__PURE__ */ Mr("<path fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"></path><path fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\" stroke-linecap=\"round\"></path>", 1), mo = /* @__PURE__ */ Mr("<svg viewBox=\"0 0 24 24\" width=\"24\" height=\"24\" aria-hidden=\"true\"><!></svg>"), ho = /* @__PURE__ */ J("<button type=\"button\"><svg viewBox=\"0 0 24 24\" width=\"14\" height=\"14\" aria-hidden=\"true\"><path d=\"M8 3h8l-1 7 4 4v2H5v-2l4-4-1-7Zm4 13v6\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linecap=\"round\" stroke-linejoin=\"round\"></path></svg></button>"), go = /* @__PURE__ */ J("<div role=\"group\" tabindex=\"0\"><!> <!></div>"), _o = /* @__PURE__ */ J("<div class=\"card-list-controls\"><div class=\"card-list-heading\"><p class=\"section-kicker\">工作項目</p> <!></div> <div class=\"card-list-tools\"><button type=\"button\" class=\"card-toolbar-icon\"><svg viewBox=\"0 0 24 24\" width=\"22\" height=\"22\" aria-hidden=\"true\"><path fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"></path></svg></button> <!> <!> <span role=\"status\"> </span></div></div> <div class=\"arrangeable-cards\"></div>", 1);
+var fo = /* @__PURE__ */ Mr("<path d=\"M4 5h15M4 10h8M4 15h17M4 20h11\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\" stroke-linecap=\"round\"></path>"), po = /* @__PURE__ */ Mr("<path fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"></path><path fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\" stroke-linecap=\"round\"></path>", 1), mo = /* @__PURE__ */ Mr("<svg viewBox=\"0 0 24 24\" width=\"24\" height=\"24\" aria-hidden=\"true\"><!></svg>"), ho = /* @__PURE__ */ J("<button type=\"button\"><svg viewBox=\"0 0 24 24\" width=\"14\" height=\"14\" aria-hidden=\"true\"><path d=\"M8 3h8l-1 7 4 4v2H5v-2l4-4-1-7Zm4 13v6\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linecap=\"round\" stroke-linejoin=\"round\"></path></svg></button>"), go = /* @__PURE__ */ J("<div role=\"group\" tabindex=\"0\"><!> <!></div>"), _o = /* @__PURE__ */ J("<div class=\"card-list-controls\"><div class=\"card-list-heading\"><p class=\"section-kicker\">工作項目</p> <!></div> <div class=\"card-list-tools\"><button type=\"button\" class=\"card-toolbar-icon\"><svg viewBox=\"0 0 24 24\" width=\"22\" height=\"22\" aria-hidden=\"true\"><path fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"></path></svg></button> <!> <!> <span role=\"status\"> </span> <!></div></div> <div class=\"arrangeable-cards\"></div>", 1);
 function vo(e, t) {
 	Ue(t, !1);
 	let n = /* @__PURE__ */ I(), r = /* @__PURE__ */ I(), i = /* @__PURE__ */ I(), a = /* @__PURE__ */ I(), o = $(t, "items", 24, () => []), s = $(t, "allIds", 24, () => []), c = $(t, "storageKey", 8), l = $(t, "pinEnabled", 8, !1), u = $(t, "requestedPin", 8, null), d = $(t, "heldOrder", 8, null);
@@ -3583,7 +3583,7 @@ function vo(e, t) {
 		onChoose: C
 	});
 	var Te = z(we, 2), O = R(Te, !0);
-	j(Te), j(ye), j(_e);
+	j(Te), Xr(z(Te, 2), t, "tools", {}, null), j(ye), j(_e);
 	var Ee = z(_e, 2);
 	return Wr(Ee, 5, () => W(i), (e) => e.id, (e, r) => {
 		var i = go();
@@ -4351,8 +4351,8 @@ wr([
 ]);
 //#endregion
 //#region experiments/editor-svelte-spike/src/ChecklistApp.svelte
-var ts = /* @__PURE__ */ J("<p class=\"document-owner\">擁有者：<a> </a></p>"), ns = /* @__PURE__ */ J("<details class=\"checklist-round\"><summary>本輪依據</summary><p> </p></details>"), rs = /* @__PURE__ */ J("<p class=\"checklist-notice\" role=\"status\"> </p>"), is = /* @__PURE__ */ J("<p class=\"checklist-notice checklist-error\" role=\"alert\"> </p>"), as = /* @__PURE__ */ J("<a class=\"checklist-next-step\"><span> </span> <strong> </strong></a>"), os = /* @__PURE__ */ J("<p class=\"checklist-chips\"><span class=\"checklist-chip\"> </span></p>"), ss = /* @__PURE__ */ J("<div><dt>Reason</dt><dd> </dd></div>"), cs = /* @__PURE__ */ J("<div><dt>Observed</dt><dd> </dd></div>"), ls = /* @__PURE__ */ J("<div><dt>Resolved</dt><dd> </dd></div>"), us = /* @__PURE__ */ J("<label class=\"checklist-observed\"><span>Observed</span> <textarea rows=\"3\" placeholder=\"記錄實際看到的結果\"></textarea></label>"), ds = /* @__PURE__ */ J("<section tabindex=\"-1\"><div class=\"checklist-check-heading\"><!> <strong> </strong> <span> </span></div> <dl><div><dt>Action</dt><dd><!></dd></div> <div><dt>Expect</dt><dd><!></dd></div> <!> <!> <!></dl> <!></section>"), fs = /* @__PURE__ */ J("<div class=\"checklist-checks\"><p class=\"checklist-outcome\"><!></p> <!> <!></div>"), ps = /* @__PURE__ */ J("<header slot=\"header\" class=\"checklist-item-header\"><!> <div><h2> </h2></div> <span class=\"checklist-status\"> </span></header>"), ms = /* @__PURE__ */ J("<article><!></article>"), hs = /* @__PURE__ */ J("<span>請先儲存或捨棄變更，再清空。</span>"), gs = /* @__PURE__ */ J("<div class=\"checklist-reset-actions\"><!> <button type=\"button\" class=\"secondary-button\">清空實機結果</button></div>"), _s = /* @__PURE__ */ J("<!> <!> <section class=\"checklist-items\" aria-label=\"Implementation checklist items\"><!></section> <footer class=\"edit-save-bar\" aria-live=\"polite\"><!> <!></footer>", 1), vs = /* @__PURE__ */ J("<p> </p> <p>此操作無法復原；如需回復，請使用 Git 歷史。</p> <form method=\"dialog\" class=\"theme-dialog-actions\"><button type=\"submit\" class=\"secondary-button\">取消</button> <button type=\"submit\" class=\"primary-button\">確認清空</button></form>", 1), ys = /* @__PURE__ */ J("<!> <main class=\"checklist-page\"><header class=\"checklist-header\"><div><h1> </h1> <!> <!></div> <!></header> <!></main> <!>", 1);
-function bs(e, t) {
+var ts = /* @__PURE__ */ J("<p class=\"document-owner\">擁有者：<a> </a></p>"), ns = /* @__PURE__ */ J("<details class=\"checklist-round\"><summary>本輪依據</summary><p> </p></details>"), rs = /* @__PURE__ */ J("<p class=\"checklist-notice\" role=\"status\"> </p>"), is = /* @__PURE__ */ J("<p class=\"checklist-notice checklist-error\" role=\"alert\"> </p>"), as = /* @__PURE__ */ J("<a class=\"checklist-next-step\"><span> </span> <strong> </strong></a>"), os = /* @__PURE__ */ J("<p class=\"checklist-chips\"><span class=\"checklist-chip\"> </span></p>"), ss = /* @__PURE__ */ J("<div><dt>Reason</dt><dd> </dd></div>"), cs = /* @__PURE__ */ J("<div><dt>Observed</dt><dd> </dd></div>"), ls = /* @__PURE__ */ J("<div><dt>Resolved</dt><dd> </dd></div>"), us = /* @__PURE__ */ J("<label class=\"checklist-observed\"><span>Observed</span> <textarea rows=\"3\" placeholder=\"記錄實際看到的結果\"></textarea></label>"), ds = /* @__PURE__ */ J("<section tabindex=\"-1\"><div class=\"checklist-check-heading\"><!> <strong> </strong> <span> </span></div> <dl><div><dt>Action</dt><dd><!></dd></div> <div><dt>Expect</dt><dd><!></dd></div> <!> <!> <!></dl> <!></section>"), fs = /* @__PURE__ */ J("<div class=\"checklist-checks\"><p class=\"checklist-outcome\"><!></p> <!> <!></div>"), ps = /* @__PURE__ */ J("<header slot=\"header\" class=\"checklist-item-header\"><!> <div><h2> </h2></div> <span class=\"checklist-status\"> </span></header>"), ms = /* @__PURE__ */ J("<article><!></article>"), hs = /* @__PURE__ */ J("<button type=\"button\" class=\"secondary-button checklist-reset-button\">清空結果</button>"), gs = /* @__PURE__ */ J("<!> <!> <section class=\"checklist-items\" aria-label=\"Implementation checklist items\"><!></section> <footer class=\"edit-save-bar\" aria-live=\"polite\"><!></footer>", 1), _s = /* @__PURE__ */ J("<p> </p> <p>此操作無法復原；如需回復，請使用 Git 歷史。</p> <form method=\"dialog\" class=\"theme-dialog-actions\"><button type=\"submit\" class=\"secondary-button\">取消</button> <button type=\"submit\" class=\"primary-button\">確認清空</button></form>", 1), vs = /* @__PURE__ */ J("<!> <main class=\"checklist-page\"><header class=\"checklist-header\"><div><h1> </h1> <!> <!></div> <!></header> <!></main> <!>", 1);
+function ys(e, t) {
 	Ue(t, !1);
 	let n = /* @__PURE__ */ I(), r = /* @__PURE__ */ I(), i = /* @__PURE__ */ I(), a = $(t, "transport", 8, null), o = $(t, "onPersistenceChange", 8, () => {}), s = $(t, "bindRefresh", 8, () => {}), c = null, l = /* @__PURE__ */ I(null), u = /* @__PURE__ */ I(!0), d = /* @__PURE__ */ I(""), f = /* @__PURE__ */ I(null), p = /* @__PURE__ */ I("正在載入 Checklist…"), m = /* @__PURE__ */ I(!1), h = /* @__PURE__ */ I(!1), g = /* @__PURE__ */ I([]);
 	function _(e) {
@@ -4522,7 +4522,7 @@ function bs(e, t) {
 	}), B(() => W(i), () => {
 		W(i) && oe(W(i));
 	}), Dn(), Ti();
-	var Ce = ys(), we = fn(Ce);
+	var Ce = vs(), we = fn(Ce);
 	bo(we, {});
 	var Te = z(we, 2), O = R(Te), Ee = R(O), De = R(Ee), Oe = R(De, !0);
 	j(De);
@@ -4571,7 +4571,7 @@ function bs(e, t) {
 		var t = is(), n = R(t, !0);
 		j(t), V(() => X(n, W(d))), Y(e, t);
 	}, Ie = (e) => {
-		var t = _s(), n = fn(t);
+		var t = gs(), n = fn(t);
 		{
 			let e = /* @__PURE__ */ P(() => (W(l), G(() => ({
 				form: "segmented",
@@ -4750,6 +4750,17 @@ function bs(e, t) {
 						}
 						j(s), V(() => oi(s, 1, (K(W(n)), G(() => `checklist-item checklist-${W(n).status}`)))), Y(e, s);
 					},
+					tools: (e, t) => {
+						var n = Pr(), i = fn(n), o = (e) => {
+							var t = hs();
+							V(() => {
+								t.disabled = !W(r), Q(t, "title", (W(l), G(() => W(l).dirty || W(l).pending || W(l).saving ? "請先儲存或捨棄變更，再清空。" : "將實機檢查重設為未執行；Agent 檢查結果保留")));
+							}), q("click", t, y), Y(e, t);
+						};
+						Z(i, (e) => {
+							K(a()), G(() => typeof a()?.reset == "function") && e(o);
+						}), Y(e, n);
+					},
 					filters: (e, t) => {
 						{
 							let t = /* @__PURE__ */ P(() => (W(l), W(T), G(() => E(W(l).document, W(T))))), n = /* @__PURE__ */ P(() => (K(Ri), W(C), G(() => Ri(W(C)))));
@@ -4809,19 +4820,7 @@ function bs(e, t) {
 				onDiscard: be
 			});
 		}
-		var f = z(d, 2), m = (e) => {
-			var t = gs(), n = R(t), i = (e) => {
-				Y(e, hs());
-			};
-			Z(n, (e) => {
-				W(l), G(() => W(l).dirty || W(l).pending || W(l).saving) && e(i);
-			});
-			var a = z(n, 2);
-			j(t), V(() => a.disabled = !W(r)), q("click", a, y), Y(e, t);
-		};
-		Z(f, (e) => {
-			K(a()), G(() => typeof a()?.reset == "function") && e(m);
-		}), j(u), V((e) => {
+		j(u), V((e) => {
 			Q(u, "data-state", e), Q(u, "aria-busy", (W(l), W(h), G(() => W(l).saving || W(h))));
 		}, [() => (W(l), G(() => de(W(l).status)))]), Y(e, t);
 	};
@@ -4831,14 +4830,14 @@ function bs(e, t) {
 		get open() {
 			return W(m);
 		},
-		title: "清空實機結果？",
+		title: "清空結果？",
 		titleId: "checklist-reset-title",
 		kicker: "Checklist",
 		onClose: () => {
 			L(m, !1);
 		},
 		children: (e, t) => {
-			var n = vs(), r = fn(n), i = R(r);
+			var n = _s(), r = fn(n), i = R(r);
 			j(r);
 			var a = z(r, 4), o = z(R(a), 2);
 			j(a), V(() => {
@@ -4851,17 +4850,17 @@ function bs(e, t) {
 wr(["click", "input"]);
 //#endregion
 //#region experiments/editor-svelte-spike/src/checklist-bridge.js
-var xs = 1, Ss = /* @__PURE__ */ new Set([
+var bs = 1, xs = /* @__PURE__ */ new Set([
 	"load",
 	"save",
 	"reset"
 ]);
-function Cs(e = globalThis.chrome?.webview) {
+function Ss(e = globalThis.chrome?.webview) {
 	if (!e || typeof e.postMessage != "function") throw Error("此頁面必須由 TaskProgress Checklist Desktop Host 開啟。");
 	let t = 0, n = /* @__PURE__ */ new Map();
 	e.addEventListener("message", (e) => {
 		let t = e.data;
-		if (!t || t.version !== xs || typeof t.id != "string") return;
+		if (!t || t.version !== bs || typeof t.id != "string") return;
 		let r = n.get(t.id);
 		if (!r) return;
 		if (n.delete(t.id), t.type === "result") {
@@ -4872,7 +4871,7 @@ function Cs(e = globalThis.chrome?.webview) {
 		i.code = t.error?.code ?? "bridge_error", r.reject(i);
 	});
 	function r(r, i) {
-		if (!Ss.has(r)) return Promise.reject(/* @__PURE__ */ Error(`不支援的 Checklist bridge request：${r}`));
+		if (!xs.has(r)) return Promise.reject(/* @__PURE__ */ Error(`不支援的 Checklist bridge request：${r}`));
 		let a = `checklist-${Date.now()}-${++t}`;
 		return new Promise((t, o) => {
 			n.set(a, {
@@ -4880,7 +4879,7 @@ function Cs(e = globalThis.chrome?.webview) {
 				reject: o
 			});
 			let s = {
-				version: xs,
+				version: bs,
 				id: a,
 				type: r
 			};
@@ -4895,9 +4894,9 @@ function Cs(e = globalThis.chrome?.webview) {
 }
 //#endregion
 //#region experiments/editor-svelte-spike/src/checklist-main.js
-function ws() {
+function Cs() {
 	try {
-		return Cs();
+		return Ss();
 	} catch (e) {
 		let t = () => Promise.reject(e);
 		return {
@@ -4906,8 +4905,8 @@ function ws() {
 		};
 	}
 }
-Fr(bs, {
+Fr(ys, {
 	target: document.querySelector("#app"),
-	props: { transport: ws() }
+	props: { transport: Cs() }
 });
 //#endregion
