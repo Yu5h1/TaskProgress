@@ -5127,7 +5127,7 @@ function $s(e, t) {
 }
 //#endregion
 //#region experiments/editor-svelte-spike/src/TaskList.svelte
-var ec = /* @__PURE__ */ q("<input class=\"task-search\" type=\"search\" aria-label=\"搜尋任務卡名稱、摘要與子項\" placeholder=\"搜尋名稱、摘要、子項\"/>"), tc = /* @__PURE__ */ q("<!> <!>", 1), nc = /* @__PURE__ */ q("<p class=\"empty-state\"> </p>");
+var ec = /* @__PURE__ */ q("<span class=\"task-search\"><input type=\"search\" aria-label=\"搜尋任務卡名稱、摘要與子項\" placeholder=\"搜尋名稱、摘要、子項\"/> <svg class=\"task-search-icon\" viewBox=\"0 0 16 16\" width=\"14\" height=\"14\" aria-hidden=\"true\"><circle cx=\"7\" cy=\"7\" r=\"4.5\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\"></circle><path d=\"M10.4 10.4 14 14\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linecap=\"round\"></path></svg></span>"), tc = /* @__PURE__ */ q("<!> <!>", 1), nc = /* @__PURE__ */ q("<p class=\"empty-state\"> </p>");
 function rc(e, t) {
 	Ke(t, !1);
 	let n = /* @__PURE__ */ F(), r = $(t, "filters", 8, null), i = $(t, "tasks", 24, () => []), a = $(t, "allIds", 24, () => []), o = $(t, "cardStorageKey", 8, null), s = $(t, "requestedPin", 8, null), c = $(t, "scopeId", 8, null), l = $(t, "searchQuery", 8, ""), u = $(t, "onSearch", 8, null), d = $(t, "progress", 24, () => ({})), f = $(t, "editing", 8, !1), p = $(t, "policy", 8), m = $(t, "onCommand", 8, () => {}), h = $(t, "onAddItem", 8, () => {}), g = $(t, "timeTasks", 24, () => /* @__PURE__ */ new Map()), _ = $(t, "itemCapsules", 24, () => /* @__PURE__ */ new Map()), v = $(t, "onModuleActivate", 8, () => {}), y = $(t, "moduleOrder", 24, () => ["time"]), b = $(t, "onModuleReorder", 8, () => {}), x = $(t, "moduleTotals", 24, () => ({})), S = $(t, "statusOrder", 24, () => ["done", "planned"]), C = $(t, "emptyLabel", 8, "沒有符合目前篩選的工作項目。"), w = $(t, "pointerCards", 24, () => ({})), T = /* @__PURE__ */ F(!0), E = /* @__PURE__ */ F({}), ee = null;
@@ -5281,8 +5281,8 @@ function rc(e, t) {
 					r() && e(a);
 				});
 				var o = z(i, 2), s = (e) => {
-					var t = ec();
-					ki(t), V(() => Ai(t, l())), K("input", t, (e) => u()(e.currentTarget.value)), J(e, t);
+					var t = ec(), n = L(t);
+					ki(n), Ie(2), M(t), V(() => Ai(n, l())), K("input", n, (e) => u()(e.currentTarget.value)), J(e, t);
 				};
 				X(o, (e) => {
 					u() && e(s);

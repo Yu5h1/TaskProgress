@@ -3188,11 +3188,19 @@ footer {
 .item-row-copy:hover { color: var(--color-accent); }
 .item-row-copy.is-copied { color: var(--moss); }
 .item-row-copy:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 1px; }
+.card-list-heading:has(.task-search) { flex-wrap: nowrap; }
+.card-list-heading:has(.task-search) .filter-strip { flex: 0 1 auto; }
 .card-list-heading .task-search {
+  position: relative;
+  display: flex;
   flex: 0 1 220px;
-  min-width: 120px;
+  min-width: 96px;
   margin-left: auto;
-  padding: 4px 8px;
+}
+.card-list-heading .task-search input {
+  width: 100%;
+  min-width: 0;
+  padding: 4px 26px 4px 8px;
   border: 1px solid var(--line);
   border-radius: 6px;
   background: var(--surface);
@@ -3200,4 +3208,12 @@ footer {
   font: inherit;
   font-size: .75rem;
 }
-.card-list-heading .task-search:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 1px; }
+.card-list-heading .task-search input:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 1px; }
+.task-search-icon {
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  transform: translateY(-50%);
+  color: var(--muted);
+  pointer-events: none;
+}

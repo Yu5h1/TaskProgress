@@ -55,14 +55,19 @@
     <svelte:fragment slot="filters">
       {#if filters}<FilterStrip {...filters} />{/if}
       {#if onSearch}
-        <input
-          class="task-search"
-          type="search"
-          aria-label="搜尋任務卡名稱、摘要與子項"
-          placeholder="搜尋名稱、摘要、子項"
-          value={searchQuery}
-          oninput={(event) => onSearch(event.currentTarget.value)}
-        >
+        <span class="task-search">
+          <input
+            type="search"
+            aria-label="搜尋任務卡名稱、摘要與子項"
+            placeholder="搜尋名稱、摘要、子項"
+            value={searchQuery}
+            oninput={(event) => onSearch(event.currentTarget.value)}
+          >
+          <svg class="task-search-icon" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
+            <circle cx="7" cy="7" r="4.5" fill="none" stroke="currentColor" stroke-width="1.6" />
+            <path d="M10.4 10.4 14 14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+          </svg>
+        </span>
       {/if}
     </svelte:fragment>
     {#if task.kind === "report_pointer"}
