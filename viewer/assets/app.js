@@ -1,5 +1,5 @@
 import { requestedCardPin } from "./card-order.js";
-import { searchTask, searchTerms } from "./task-search.js";
+import { parseReference, referenceTask, searchTask, searchTerms } from "./task-search.js";
 import {
   createDocumentBindingRefresher,
   evaluateAllDocumentBindings,
@@ -1044,7 +1044,7 @@ function taskListProps(tasks) {
   };
 }
 
-const SEARCH_MATCHES_IDS = false;
+const SEARCH_MATCHES_IDS = true;
 
 function renderTasks() {
   const requestedPin = requestedCardPin(location.search, state.report.scope_id);
@@ -1063,7 +1063,11 @@ function renderTasks() {
   // 待處理／已完成 split describes work, not a link to another report — so
   // it stays visible regardless of the current selection.
   const selected = state.selection.selected;
+  const reference = parseReference(state.searchQuery);
   const terms = searchTerms(state.searchQuery);
+  const search = (task) => (reference
+    ? reference.scopeId === state.report.scope_id ? referenceTask(task, reference) : null
+    : searchTask(task, terms, { ids: SEARCH_MATCHES_IDS }));
   const tasks = orderedTasks
     .filter((task) => task.id === requestedPin || taskKind(task) === "report_pointer"
       || taskMatchesSelection(task, selected)
@@ -1076,7 +1080,7 @@ function renderTasks() {
         ? { ...task, kind }
         : { ...filterTaskItems(task, selected), kind };
     })
-    .map((task) => (task.id === requestedPin ? task : searchTask(task, terms, { ids: SEARCH_MATCHES_IDS })))
+    .map((task) => (task.id === requestedPin ? task : search(task)))
     .filter(Boolean);
 
   const props = taskListProps(tasks);

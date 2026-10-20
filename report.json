@@ -3,8 +3,38 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-10-20T16:22:52.617886+00:00",
+  "updated_at": "2026-10-20T16:26:26.560877+00:00",
   "tasks": [
+    {
+      "id": "report-search",
+      "title": "任務卡搜尋",
+      "status": "done",
+      "summary": "狀態篩選列右側的搜尋框，以關鍵字過濾任務卡名稱、子項描述與卡片摘要，與狀態篩選同時生效。",
+      "pending_items": [],
+      "completed_items": [
+        {
+          "id": "decide-id-match",
+          "title": "決定 ID 是否參與搜尋比對，見 [決策](/decisions/?scope=task-progress&task=report-search)",
+          "status": "done",
+          "priority": 0,
+          "document_ref": {
+            "kind": "decision",
+            "scope_id": "task-progress",
+            "task": "report-search"
+          }
+        },
+        {
+          "id": "search-bar",
+          "title": "搜尋框與兩層過濾，依 [驗收清單](/checklist/?scope=task-progress&task=report-search) 核查",
+          "status": "done",
+          "document_ref": {
+            "kind": "checklist",
+            "scope_id": "task-progress",
+            "task": "report-search"
+          }
+        }
+      ]
+    },
     {
       "id": "report-item-copy-reorder",
       "title": "子項複製參照與拖曳換位",
@@ -1115,37 +1145,6 @@
             "kind": "checklist",
             "scope_id": "task-progress",
             "task": "startup-observer"
-          }
-        }
-      ]
-    },
-    {
-      "id": "report-search",
-      "title": "任務卡搜尋",
-      "status": "in_progress",
-      "summary": "狀態篩選列右側的搜尋框，以關鍵字過濾任務卡名稱、子項描述與卡片摘要，與狀態篩選同時生效。",
-      "pending_items": [
-        {
-          "id": "decide-id-match",
-          "title": "決定 ID 是否參與搜尋比對，見 [決策](/decisions/?scope=task-progress&task=report-search)",
-          "status": "planned",
-          "priority": 0,
-          "document_ref": {
-            "kind": "decision",
-            "scope_id": "task-progress",
-            "task": "report-search"
-          }
-        }
-      ],
-      "completed_items": [
-        {
-          "id": "search-bar",
-          "title": "搜尋框與兩層過濾，依 [驗收清單](/checklist/?scope=task-progress&task=report-search) 核查",
-          "status": "done",
-          "document_ref": {
-            "kind": "checklist",
-            "scope_id": "task-progress",
-            "task": "report-search"
           }
         }
       ]

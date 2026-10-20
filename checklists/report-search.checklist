@@ -2,7 +2,7 @@
 
 Current round: `Documentation/TaskSearch.md#驗收`.
 
-本檔只承載這一輪（文字搜尋）；ID 比對待決策 id-match 定案後另加項目。
+本檔只承載這一輪；ID 比對依決策 id-match（include）加為第 2 項。
 
 - [x] **1. 文字搜尋與兩層過濾**
   Outcome: 搜尋框以名稱、摘要與子項描述過濾任務卡，卡片命中保留整張，否則只留命中的子項。
@@ -13,3 +13,13 @@ Current round: `Documentation/TaskSearch.md#驗收`.
     - [x] **Viewer 實際過濾**
       - Action: 在 Browser 開啟 [yu5h1lib-web](http://127.0.0.1:8001/?scope=yu5h1lib-web)，於搜尋框依序輸入「播放」「Theme」「zzzz」，再清空。
       - Expect: 搜尋框在狀態篩選列右側；「播放」只剩 ui-workflow 的 2 個子項；「Theme」剩 4 張卡；「zzzz」顯示「沒有符合目前篩選的工作項目。」；清空後回到 16 張卡，焦點留在搜尋框。
+
+- [x] **2. ID 比對與參照定位**
+  Outcome: 子項與卡片 ID 可搜尋；貼上複製參照時只留該卡的該子項。
+  Checks:
+    - [x] **參照解析**
+      - Action: 執行 `node --test tests/task-search.test.mjs` 與 `npm run viewer:ui:build`。
+      - Expect: ID 開關、參照解析（含標題、只有卡片、缺欄位）、跨欄位定位、其他卡片與不存在子項的案例通過，Viewer 建置成功。
+    - [x] **Viewer 實際定位**
+      - Action: 在 Browser 開啟 [yu5h1lib-web](http://127.0.0.1:8001/?scope=yu5h1lib-web)，依序輸入 `playback-platform`、`yu5h1lib-web › ui-workflow › ux-toggle-goal-1「…」`、`yu5h1lib-web › ui-workflow › theme-editor-platform`、`task-progress › ui-workflow › ux-toggle-goal-1`、`yu5h1lib-web › ui-workflow`。
+      - Expect: 前三者都只留 ui-workflow 的該一項（含已完成投影的 ux-toggle-goal-1）；其他 scope 的參照沒有結果；只有卡片的參照保留整張 ui-workflow。

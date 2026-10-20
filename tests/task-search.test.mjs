@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { searchTask, searchTerms } from "../viewer/assets/task-search.js";
+import { parseReference, referenceTask, searchTask, searchTerms } from "../viewer/assets/task-search.js";
 
 const task = {
   id: "ui-workflow",
@@ -41,4 +41,17 @@ test("IDs match only when enabled", () => {
   assert.equal(searchTask(task, searchTerms("ux-toggle-goal-1")), null);
   assert.deepEqual(searchTask(task, searchTerms("ux-toggle-goal-1"), { ids: true }).pending_items.map(item => item.id), ["ux-toggle-goal-1"]);
   assert.equal(searchTask(task, searchTerms("ui-workflow"), { ids: true }), task);
+});
+
+test("a pasted reference selects one card and item by ID", () => {
+  assert.deepEqual(parseReference("yu5h1lib-web › ui-workflow › ux-toggle-goal-1「Toggle 目標 1…」"), { scopeId: "yu5h1lib-web", taskId: "ui-workflow", itemId: "ux-toggle-goal-1" });
+  assert.deepEqual(parseReference(" s › t "), { scopeId: "s", taskId: "t", itemId: null });
+  assert.equal(parseReference("播放 toggle"), null);
+  assert.equal(parseReference("› t"), null);
+  const one = referenceTask(task, parseReference("s › ui-workflow › ux-web-6"));
+  assert.deepEqual(one.pending_items, []);
+  assert.deepEqual(one.completed_items.map(item => item.id), ["ux-web-6"]);
+  assert.equal(referenceTask(task, parseReference("s › ui-workflow")), task);
+  assert.equal(referenceTask(task, parseReference("s › other › ux-web-6")), null);
+  assert.equal(referenceTask(task, parseReference("s › ui-workflow › missing")), null);
 });

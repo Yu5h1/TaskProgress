@@ -6,8 +6,7 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
 
 ## Current state (2026-09-29)
 
-- **任務卡搜尋（2026-10-21）。** 卡片 `report-search`；規格 `Documentation/TaskSearch.md`，驗收 `checklists/report-search.checklist`（全 `[x]`）。狀態篩選列右側搜尋框，比對名稱、摘要、子項描述，多詞須全中，兩層過濾沿用狀態篩選慣例（卡片命中保留整張，否則只留命中子項；pin 卡保留）。`viewer/assets/task-search.js` 為純函式，`app.js` 的 `SEARCH_MATCHES_IDS` 目前為 false。
-  - 待決：ID 是否參與比對 `decisions/report-search.decisions` 的 id-match（推薦 include，含貼上複製參照定位）。定案後改 `SEARCH_MATCHES_IDS` 並視答案補參照解析與 checklist 項目。
+- **任務卡搜尋（2026-10-21）。** 卡片 `report-search`；規格 `Documentation/TaskSearch.md`，驗收 `checklists/report-search.checklist`（全 `[x]`）。狀態篩選列右側搜尋框，比對名稱、摘要、子項描述，多詞須全中，兩層過濾沿用狀態篩選慣例（卡片命中保留整張，否則只留命中子項；pin 卡保留）。`viewer/assets/task-search.js` 為純函式，決策 id-match 選 include：`SEARCH_MATCHES_IDS` 為 true，卡片與子項 ID 可比對；貼上複製參照時以 `parseReference`／`referenceTask` 定位單一子項，其他 scope 沒有結果。
 
 - **子項拖曳換位與複製參照（2026-10-20）。** 卡片 `report-item-copy-reorder`。拖曳換位已完成：規格 `Documentation/ReportItemOrderingPlan.md#編輯模式拖曳換位`，驗收 `checklists/report-item-copy-reorder.checklist`（全 `[x]`）。Editor Core 新增 `reorder-item`（語意同 CLI item.move）；編輯模式未完成子項以把手取代狀態圓點，只接受同級放置，Alt+↑／↓ 換位並保留焦點。Browser 實測後順序已還原，report.json 該卡與 HEAD 一致。
   - 複製參照已完成（決策 copy-entry 選滑過／聚焦圖示）：規格 `Documentation/ItemReference.md`，驗收 `checklists/report-item-copy-reference.checklist`（全 `[x]`）。`viewer/assets/item-reference.js` 產生「scope › 卡片 › 子項「標題前段」」，預覽模式疊在描述尾端；Clipboard API 被拒時改用選取複製（Browser 面板即如此）。舊式子項經 report-model 標 `legacy: true` 不提供複製；Web report 68 項待遷移屬 Web。report skill 已補參照解讀規則。

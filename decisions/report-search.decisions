@@ -1,37 +1,45 @@
 {
   "schema_version": "1.1",
   "task_id": "report-search",
-  "updated_at": "2026-10-21T00:00:00+00:00",
+  "updated_at": "2026-10-20T16:25:28.9004218\u002B00:00",
   "decisions": [
     {
       "id": "id-match",
       "version": 1,
-      "question": "搜尋時 ID 要不要算進比對？",
-      "context": "現況：狀態篩選列右側要加搜尋框，比對任務卡名稱、子項描述與卡片摘要（不分大小寫、以空白分隔的多個詞須全部命中）。卡片 ID 顯示在卡片右上角；子項 ID 畫面上不顯示，只出現在複製出來的參照「scope › 卡片 › 子項「標題前段」」裡。agent 回報時常只寫 ID（例如 ux-toggle-goal-1），你也會從 agent 的訊息或別處拿到參照。",
+      "question": "\u641C\u5C0B\u6642 ID \u8981\u4E0D\u8981\u7B97\u9032\u6BD4\u5C0D\uFF1F",
+      "context": "\u73FE\u6CC1\uFF1A\u72C0\u614B\u7BE9\u9078\u5217\u53F3\u5074\u8981\u52A0\u641C\u5C0B\u6846\uFF0C\u6BD4\u5C0D\u4EFB\u52D9\u5361\u540D\u7A31\u3001\u5B50\u9805\u63CF\u8FF0\u8207\u5361\u7247\u6458\u8981\uFF08\u4E0D\u5206\u5927\u5C0F\u5BEB\u3001\u4EE5\u7A7A\u767D\u5206\u9694\u7684\u591A\u500B\u8A5E\u9808\u5168\u90E8\u547D\u4E2D\uFF09\u3002\u5361\u7247 ID \u986F\u793A\u5728\u5361\u7247\u53F3\u4E0A\u89D2\uFF1B\u5B50\u9805 ID \u756B\u9762\u4E0A\u4E0D\u986F\u793A\uFF0C\u53EA\u51FA\u73FE\u5728\u8907\u88FD\u51FA\u4F86\u7684\u53C3\u7167\u300Cscope \u203A \u5361\u7247 \u203A \u5B50\u9805\u300C\u6A19\u984C\u524D\u6BB5\u300D\u300D\u88E1\u3002agent \u56DE\u5831\u6642\u5E38\u53EA\u5BEB ID\uFF08\u4F8B\u5982 ux-toggle-goal-1\uFF09\uFF0C\u4F60\u4E5F\u6703\u5F9E agent \u7684\u8A0A\u606F\u6216\u5225\u8655\u62FF\u5230\u53C3\u7167\u3002",
       "options": [
         {
           "id": "include",
-          "label": "算進比對，並認得貼上的參照",
-          "description": "卡片 ID、子項 ID 都參與比對；貼上整段複製參照時，直接定位到那張卡的那個子項。代價：子項 ID 看不見，偶爾會出現「畫面上看不出為何命中」的結果。"
+          "label": "\u7B97\u9032\u6BD4\u5C0D\uFF0C\u4E26\u8A8D\u5F97\u8CBC\u4E0A\u7684\u53C3\u7167",
+          "description": "\u5361\u7247 ID\u3001\u5B50\u9805 ID \u90FD\u53C3\u8207\u6BD4\u5C0D\uFF1B\u8CBC\u4E0A\u6574\u6BB5\u8907\u88FD\u53C3\u7167\u6642\uFF0C\u76F4\u63A5\u5B9A\u4F4D\u5230\u90A3\u5F35\u5361\u7684\u90A3\u500B\u5B50\u9805\u3002\u4EE3\u50F9\uFF1A\u5B50\u9805 ID \u770B\u4E0D\u898B\uFF0C\u5076\u723E\u6703\u51FA\u73FE\u300C\u756B\u9762\u4E0A\u770B\u4E0D\u51FA\u70BA\u4F55\u547D\u4E2D\u300D\u7684\u7D50\u679C\u3002"
         },
         {
           "id": "reference-only",
-          "label": "只認得貼上的參照",
-          "description": "一般關鍵字只比對看得到的文字；只有貼上「scope › 卡片 › 子項」格式時才用 ID 定位。不會有看不出原因的命中，但單獨輸入 ux-toggle-goal-1 找不到。"
+          "label": "\u53EA\u8A8D\u5F97\u8CBC\u4E0A\u7684\u53C3\u7167",
+          "description": "\u4E00\u822C\u95DC\u9375\u5B57\u53EA\u6BD4\u5C0D\u770B\u5F97\u5230\u7684\u6587\u5B57\uFF1B\u53EA\u6709\u8CBC\u4E0A\u300Cscope \u203A \u5361\u7247 \u203A \u5B50\u9805\u300D\u683C\u5F0F\u6642\u624D\u7528 ID \u5B9A\u4F4D\u3002\u4E0D\u6703\u6709\u770B\u4E0D\u51FA\u539F\u56E0\u7684\u547D\u4E2D\uFF0C\u4F46\u55AE\u7368\u8F38\u5165 ux-toggle-goal-1 \u627E\u4E0D\u5230\u3002"
         },
         {
           "id": "exclude",
-          "label": "不算",
-          "description": "只比對畫面上看得到的文字（名稱、子項描述、摘要）。最單純，但拿到 agent 回報的 ID 時無法用搜尋找到。"
+          "label": "\u4E0D\u7B97",
+          "description": "\u53EA\u6BD4\u5C0D\u756B\u9762\u4E0A\u770B\u5F97\u5230\u7684\u6587\u5B57\uFF08\u540D\u7A31\u3001\u5B50\u9805\u63CF\u8FF0\u3001\u6458\u8981\uFF09\u3002\u6700\u55AE\u7D14\uFF0C\u4F46\u62FF\u5230 agent \u56DE\u5831\u7684 ID \u6642\u7121\u6CD5\u7528\u641C\u5C0B\u627E\u5230\u3002"
         }
       ],
       "recommendation": {
         "option_id": "include",
-        "reason": "和 agent 協作時 ID 是最常拿到的線索，複製參照本身也以 ID 為準；看不見的子項 ID 命中時，結果只留下那一項，原因仍然清楚。"
+        "reason": "\u548C agent \u5354\u4F5C\u6642 ID \u662F\u6700\u5E38\u62FF\u5230\u7684\u7DDA\u7D22\uFF0C\u8907\u88FD\u53C3\u7167\u672C\u8EAB\u4E5F\u4EE5 ID \u70BA\u6E96\uFF1B\u770B\u4E0D\u898B\u7684\u5B50\u9805 ID \u547D\u4E2D\u6642\uFF0C\u7D50\u679C\u53EA\u7559\u4E0B\u90A3\u4E00\u9805\uFF0C\u539F\u56E0\u4ECD\u7136\u6E05\u695A\u3002"
       },
       "allow_other": true,
-      "status": "pending",
-      "answer": null
+      "status": "decided",
+      "answer": {
+        "kind": "option",
+        "option_id": "include",
+        "confirmed_at": "2026-10-20T16:25:28.9004218\u002B00:00"
+      },
+      "last_request": {
+        "request_id": "4c773af2-ebe0-4b7d-aec7-af7c5e1d5729",
+        "fingerprint": "b82ef1af8fe4980d8129108f93ddeb1bd5a5aa3d552e1015e086fbd3461963e8"
+      }
     }
   ]
 }
