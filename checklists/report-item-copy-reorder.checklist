@@ -1,0 +1,15 @@
+# 子項複製參照與拖曳換位 Checklist
+
+Current round: `Documentation/ReportItemOrderingPlan.md#編輯模式拖曳換位`.
+
+本檔只承載這一輪（拖曳換位）；複製參照待決策 copy-entry 定案後另起一輪。
+
+- [x] **1. 編輯模式同級拖曳換位**
+  Outcome: 編輯模式下，未完成子項只能在同卡同優先級內以拖曳或 Alt+↑／↓ 換位，已完成項目不可移動。
+  Checks:
+    - [x] **Editor Core 換位命令**
+      - Action: 執行 `node --test tests/editor-core.test.mjs tests/editor-shared-components.test.mjs tests/report-item-ordering.test.mjs` 與 `npm run viewer:ui:build`。
+      - Expect: reorder-item 前後換位、Undo／Redo、無效位置與已完成項目的拒絕案例通過，既有案例不受影響，Viewer 建置成功。
+    - [x] **Viewer 實際拖曳與鍵盤**
+      - Action: 在 Browser 開啟 [time-reference](http://127.0.0.1:8001/?scope=task-progress&pin=time-reference) 並切到編輯模式，以拖曳事件把 P2 項目拖到 P0 項目上、把第二個 P2 拖到第一個 P2 之前，再聚焦把手按 Alt+↓、Alt+↑。
+      - Expect: 已完成項目沒有把手；跨級拖曳不接受放置；同級拖曳顯示放置線並換位；鍵盤換位後焦點留在原把手；最後順序與原本相同，report.json 該卡與 HEAD 一致。

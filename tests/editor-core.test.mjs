@@ -487,3 +487,29 @@ test("a report-level change is reported by the plain diff too", () => {
   assert.equal(diff.timeInvalidation.stale, false);
   assert.equal(deriveReportEditorState(baseline, draft).dirty, true);
 });
+
+test("editor core reorders unfinished items by stable reference with undo, and rejects other positions", () => {
+  const report = sampleReport();
+  report.tasks[0].pending_items = ["a", "b", "c"].map((id) => ({ id, title: id.toUpperCase(), priority: 2 }));
+  report.tasks[0].completed_items = [{ id: "done-1", title: "Done", status: "done" }];
+  const session = createReportEditorSession(report);
+  const order = () => session.task("task-a").pending_items.map((item) => item.id);
+
+  session.dispatch({ type: "reorder-item", taskId: "task-a", itemId: "c", position: { before: "a" } });
+  assert.deepEqual(order(), ["c", "a", "b"]);
+  session.dispatch({ type: "reorder-item", taskId: "task-a", itemId: "c", position: { after: "b" } });
+  assert.deepEqual(order(), ["a", "b", "c"]);
+  assert.equal(session.history.undoCommandType, "reorder-item");
+  assert.equal(session.undo(), true);
+  assert.deepEqual(order(), ["c", "a", "b"]);
+  assert.equal(session.redo(), true);
+  assert.deepEqual(order(), ["a", "b", "c"]);
+
+  for (const position of [{}, { before: "a", after: "b" }, { before: "missing" }, { before: "done-1" }, { at: 0 }]) {
+    assert.throws(() => session.dispatch({ type: "reorder-item", taskId: "task-a", itemId: "b", position }));
+  }
+  assert.throws(() => session.dispatch({ type: "reorder-item", taskId: "task-a", itemId: "b", position: { after: "b" } }));
+  assert.throws(() => session.dispatch({ type: "reorder-item", taskId: "task-a", itemId: "done-1", position: { before: "a" } }));
+  assert.deepEqual(order(), ["a", "b", "c"]);
+  assert.equal(session.task("task-a").completed_items[0].id, "done-1");
+});

@@ -389,6 +389,25 @@ function createReportEditorSession(
         insertTaskItem(task, command.toField, item);
         break;
       }
+      case "reorder-item": {
+        const position = command.position ?? {};
+        const keys = Object.keys(position).filter((key) => key === "before" || key === "after");
+        if (keys.length !== 1 || Object.keys(position).length !== 1) {
+          throw new Error("子項目位置必須且只能指定 before 或 after。");
+        }
+        const targetId = position[keys[0]];
+        if (targetId === command.itemId) throw new Error("子項目不能以自己為位置參照。");
+        const task = findTask(draft, command.taskId);
+        const items = task.pending_items ?? [];
+        const isItem = (id) => (item) => item && typeof item === "object" && !Array.isArray(item) && item.id === id;
+        const sourceIndex = items.findIndex(isItem(command.itemId));
+        if (sourceIndex < 0) throw new Error(`找不到待處理子項目「${command.itemId}」。`);
+        if (items.findIndex(isItem(targetId)) < 0) throw new Error(`找不到待處理子項目「${targetId}」。`);
+        const [item] = items.splice(sourceIndex, 1);
+        const targetIndex = items.findIndex(isItem(targetId));
+        items.splice(keys[0] === "after" ? targetIndex + 1 : targetIndex, 0, item);
+        break;
+      }
       case "delete-item": {
         const task = findTask(draft, command.taskId);
         const items = task[command.field] ?? [];

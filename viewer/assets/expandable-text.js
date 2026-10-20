@@ -105,8 +105,6 @@ export function expandableText(host, options = {}) {
     const text = String(next.text ?? "");
     const lines = Number.isInteger(next.lines) && next.lines > 0 ? next.lines : 2;
     const textChanged = !settings || settings.text !== text;
-    // `expanded` is a request to open, not a binding: it opens on new text or when
-    // it turns on, and never collapses what the reader opened or re-collapsed.
     const open = next.expanded === true;
     if (textChanged || settings.lines !== lines) expanded = open;
     else if (open && !settings.open) expanded = true;

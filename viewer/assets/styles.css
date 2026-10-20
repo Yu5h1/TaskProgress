@@ -3141,3 +3141,21 @@ footer {
 .completed-more:hover { color: var(--color-accent); }
 .completed-more:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
 .task-card:has(.card-disclosure-body:not([hidden]) .completed-more) { padding-bottom: 5px; }
+
+.item-row-grip {
+  flex: 0 0 14px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  line-height: 1;
+  cursor: grab;
+}
+.item-row-grip:active { cursor: grabbing; }
+.item-row-grip:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+.editor-item-row.item-drop-before,
+.editor-item-row.item-drop-after { position: relative; }
+.item-drop-before::before, .item-drop-after::after { content: ""; position: absolute; left: 0; right: 0; height: 2px; background: var(--color-accent); pointer-events: none; }
+.item-drop-before::before { top: -1px; }
+.item-drop-after::after { bottom: -1px; }

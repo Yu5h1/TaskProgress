@@ -152,7 +152,6 @@ internal static class ChecklistDesktopHost
         }
         catch (Exception error) when (error is System.ComponentModel.Win32Exception or InvalidOperationException)
         {
-            // A missing default browser leaves the editor usable; the link simply does not open.
         }
     }
 

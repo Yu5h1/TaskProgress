@@ -1,0 +1,42 @@
+{
+  "schema_version": "1.1",
+  "task_id": "report-item-copy-reorder",
+  "updated_at": "2026-10-20T12:00:00+00:00",
+  "decisions": [
+    {
+      "id": "copy-entry",
+      "version": 1,
+      "question": "子項的「複製參照」要從哪裡觸發？",
+      "context": "現況：任務卡子項的 ID 存在 report.json，畫面不顯示。要一鍵複製「scope › 卡片 ID › 子項 ID「標題前段」」給 agent。子項每列已有：狀態圓點（純裝飾）、優先級標籤、描述、模組膠囊、狀態標籤，常駐一個複製按鈕會再佔一欄寬度。網頁 Viewer 與桌面 WebView2 都能寫入剪貼簿。限制：沒有 ID 的舊式文字子項（目前只在 Web report，68 項）不提供複製。",
+      "options": [
+        {
+          "id": "hover-overlay",
+          "label": "滑過或聚焦才出現的小圖示",
+          "description": "圖示疊在列尾（狀態標籤左側），平常不佔版面寬度；滑鼠移入列、或以 Tab 聚焦該列時出現，點一下複製並顯示「已複製」。觸控裝置在選取卡片後顯示。"
+        },
+        {
+          "id": "context-menu",
+          "label": "在子項按右鍵",
+          "description": "自訂右鍵選單只有「複製參照」一項。完全不佔空間，但要兩步，觸控裝置與只用鍵盤時不易發現。"
+        },
+        {
+          "id": "marker-click",
+          "label": "點列首的狀態圓點",
+          "description": "圓點改為按鈕，點了就複製。不佔空間、一步完成；但 Checklist 頁的同位置標記是點了會切換結果，同一個位置在兩個頁面意義不同，容易誤會成改狀態。"
+        },
+        {
+          "id": "keyboard",
+          "label": "聚焦子項後按 Ctrl+C",
+          "description": "沒有任何可見元素，最省空間；但必須知道快捷鍵，滑鼠使用者得先用 Tab 聚焦，發現性最低。"
+        }
+      ],
+      "recommendation": {
+        "option_id": "hover-overlay",
+        "reason": "平常不佔寬度、一步完成，鍵盤與觸控也有入口；不與 Checklist 標記的切換行為衝突。"
+      },
+      "allow_other": true,
+      "status": "pending",
+      "answer": null
+    }
+  ]
+}

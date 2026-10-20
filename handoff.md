@@ -6,6 +6,10 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
 
 ## Current state (2026-09-29)
 
+- **子項拖曳換位與複製參照（2026-10-20）。** 卡片 `report-item-copy-reorder`。拖曳換位已完成：規格 `Documentation/ReportItemOrderingPlan.md#編輯模式拖曳換位`，驗收 `checklists/report-item-copy-reorder.checklist`（全 `[x]`）。Editor Core 新增 `reorder-item`（語意同 CLI item.move）；編輯模式未完成子項以把手取代狀態圓點，只接受同級放置，Alt+↑／↓ 換位並保留焦點。Browser 實測後順序已還原，report.json 該卡與 HEAD 一致。
+  - 待決：複製參照的觸發方式 `decisions/report-item-copy-reorder.decisions` 的 copy-entry（推薦滑過／聚焦才出現的小圖示）。定案後實作複製並另起 checklist round；Web report 68 項舊式文字子項無 ID，不提供複製，遷移屬 Web 的工作。
+  - 順手移除先前三處方法內註解（expandable-text.js、ChecklistDesktopHost.cs），依 CodingConventions。
+
 - **Viewer 首項展開與 Checklist 行內連結（2026-10-20）。** 規格 `Documentation/InlineReportLinks.md#checklist-欄位`、`Documentation/ExpandableText.md#模組邊界`；驗收 `checklists/viewer-lead-item-checklist-links.checklist`（全 `[x]`），綁定 viewer-core 子項 `lead-item-checklist-links`。
   - ExpandableText 新增 `expanded` 展開要求（只在新文字或轉為 true 時展開，不覆蓋使用者收合）；CardList 以 `lead` 標出首張可見卡，TaskCard 交給待處理群組排序後首項。ChecklistApp 的 Outcome／Action／Expect 改用 `InlineLinks.svelte`（共用 `inline-links.js`）。桌面 `ChecklistDesktopHost` 對使用者點擊的外部 HTTP(S) 連結取消導覽並交給系統瀏覽器；相對 URL 在桌面不動作。
   - 已驗證：expandable-text 6 項、Checklist 262 checks、CLI Release build（`bin/Validation/ChecklistInlineLinks/Release`）、三個 bundle 建置；全量 node --test 597 項中 8 項失敗皆為既有失敗（HEAD 基準同樣失敗或無法載入）。Browser 確認 ui-workflow 首項展開／收合與 Checklist 連結 href。UX-WEB-25 因 toggle.checklist 全數通過已投影為完成，不再是首項。

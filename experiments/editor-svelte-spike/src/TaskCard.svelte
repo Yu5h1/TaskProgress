@@ -87,6 +87,76 @@
     addError = "";
   }
 
+  let draggingId = null;
+  let dropTarget = null;
+  $: if (!editing) clearItemDrag();
+
+  function clearItemDrag() {
+    draggingId = null;
+    dropTarget = null;
+  }
+
+  function samePriority(left, right) {
+    return policy.normalize(left.priority, policy.fallbackValue)
+      === policy.normalize(right.priority, policy.fallbackValue);
+  }
+
+  function reorderItem(itemId, targetId, after) {
+    const ids = (task.pending_items ?? []).map((entry) => entry?.id);
+    const next = ids.filter((id) => id !== itemId);
+    next.splice(next.indexOf(targetId) + (after ? 1 : 0), 0, itemId);
+    if (next.every((id, index) => id === ids[index])) return;
+    onCommand({
+      type: "reorder-item",
+      taskId: task.id,
+      itemId,
+      position: after ? { after: targetId } : { before: targetId },
+    });
+  }
+
+  function itemReorder(item, items, dragId, target) {
+    const dragged = items.find((entry) => entry.id === dragId);
+    return {
+      side: target?.id === item.id ? (target.after ? "after" : "before") : null,
+      start(event) {
+        event.stopPropagation();
+        draggingId = item.id;
+        event.dataTransfer.effectAllowed = "move";
+        event.dataTransfer.setData("text/plain", item.id);
+      },
+      end: clearItemDrag,
+      over(event) {
+        if (!dragged || dragged.id === item.id || !samePriority(dragged, item)) return;
+        event.preventDefault();
+        event.stopPropagation();
+        event.dataTransfer.dropEffect = "move";
+        const bounds = event.currentTarget.getBoundingClientRect();
+        dropTarget = { id: item.id, after: event.clientY >= bounds.top + bounds.height / 2 };
+      },
+      leave(event) {
+        if (!event.currentTarget.contains(event.relatedTarget) && dropTarget?.id === item.id) dropTarget = null;
+      },
+      drop(event) {
+        if (!dragged || dropTarget?.id !== item.id) return;
+        event.preventDefault();
+        event.stopPropagation();
+        reorderItem(dragged.id, item.id, dropTarget.after);
+        clearItemDrag();
+      },
+      keydown(event) {
+        if (!event.altKey || !["ArrowUp", "ArrowDown"].includes(event.key)) return;
+        event.preventDefault();
+        event.stopPropagation();
+        const level = items.filter((entry) => entry.id && samePriority(entry, item));
+        const neighbor = level[level.findIndex((entry) => entry.id === item.id) + (event.key === "ArrowUp" ? -1 : 1)];
+        if (!neighbor) return;
+        reorderItem(item.id, neighbor.id, event.key === "ArrowDown");
+        const ref = CSS.escape(`${task.id}/${item.id}`);
+        requestAnimationFrame(() => document.querySelector(`.item-row-grip[data-item-ref="${ref}"]`)?.focus());
+      },
+    };
+  }
+
   function submitAdd() {
     const result = onAddItem(newTitle, Number(newPriority));
     addError = result.error;
@@ -211,6 +281,7 @@
                 {moduleOrder}
                 {onModuleReorder}
                 leadItem={lead && group.status === "planned" && index === 0}
+                reorder={editing && group.status === "planned" && item.id ? itemReorder(item, group.items, draggingId, dropTarget) : null}
               />
             {/each}
           </ul>

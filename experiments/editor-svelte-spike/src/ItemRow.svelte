@@ -21,6 +21,9 @@
   export let onModuleReorder = () => {};
   // The lead card opens its first unfinished item in full on load.
   export let leadItem = false;
+  // Supplied by the card for unfinished rows in edit mode: drag and Alt+Arrow
+  // handlers plus the side ("before"/"after") a drop would land on.
+  export let reorder = null;
 
   let priorityValue = policy.normalize(item.priority, policy.fallbackValue);
   // Same five statuses a task card carries. `statuses` is supplied by the
@@ -60,11 +63,30 @@
   }
 </script>
 
-<li class="editor-item-row" class:editable-work-item={editing}>
-  <span
-    class={`item-row-marker item-row-marker-${itemStatus}`}
-    aria-hidden="true"
-  >{itemStatus === "done" ? "✓" : "○"}</span>
+<li class="editor-item-row" class:editable-work-item={editing}
+  class:item-drop-before={reorder?.side === "before"}
+  class:item-drop-after={reorder?.side === "after"}
+  ondragover={reorder?.over}
+  ondragleave={reorder?.leave}
+  ondrop={reorder?.drop}>
+  {#if reorder}
+    <button
+      type="button"
+      class="item-row-grip"
+      data-item-ref={`${taskId}/${item.id}`}
+      draggable="true"
+      aria-label={`移動「${item.title}」（Alt+↑／↓，限同優先級）`}
+      title="拖曳換位（限同優先級）"
+      ondragstart={reorder.start}
+      ondragend={reorder.end}
+      onkeydown={reorder.keydown}
+    >⠿</button>
+  {:else}
+    <span
+      class={`item-row-marker item-row-marker-${itemStatus}`}
+      aria-hidden="true"
+    >{itemStatus === "done" ? "✓" : "○"}</span>
+  {/if}
 
   <!-- A finished item has no priority worth reading: priority ranks what to do
        next, and there is nothing left to schedule here. Preview therefore drops
