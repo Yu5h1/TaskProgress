@@ -15,3 +15,10 @@ Current round: `Documentation/ItemReference.md#驗收`.
       - Expect: 4 項舊式子項沒有圖示；有 ID 的子項平常透明、聚焦時顯示；點擊後顯示「已複製」，複製內容為 `yu5h1lib-web › ui-workflow › list-inspector-platform「ListEdit LP01–LP03 與 Obj…」`。
       - Observed: Browser 面板拒絕 Clipboard API（NotAllowedError），首次只顯示「無法複製」。
       - Resolved: 加上選取複製備援後重測，點擊顯示「已複製」，copy 事件內容與預期相同。
+
+- [x] **2. 圖示出現在游標旁**
+  Outcome: 複製圖示出現在游標右側，不蓋住「更多」，移向它時不跳開。
+  Checks:
+    - [x] **游標旁定位與點擊**
+      - Action: 在 Browser 開啟 [ui-workflow](http://127.0.0.1:8001/?scope=yu5h1lib-web&pin=ui-workflow)，滑鼠移到一列有「更多」的子項描述中段，再移向出現的圖示並點擊。
+      - Expect: 圖示位於游標右側且與「更多」不重疊；移向圖示時位置不變；點擊後顯示「已複製」並複製該項參照。

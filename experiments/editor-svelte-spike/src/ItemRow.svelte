@@ -30,6 +30,15 @@
   $: reference = editing ? null : itemReference({ scopeId, taskId, item });
   let copyState = "";
   let copyTimer;
+  let copyAnchor = null;
+  let copyButton;
+
+  function placeCopy(event) {
+    if (!reference || event.target === copyButton) return;
+    const x = event.clientX - event.currentTarget.getBoundingClientRect().left;
+    if (copyAnchor !== null && Math.abs(x - copyAnchor) <= 48) return;
+    copyAnchor = x;
+  }
 
   async function copyReference() {
     clearTimeout(copyTimer);
@@ -76,6 +85,9 @@
 </script>
 
 <li class="editor-item-row" class:editable-work-item={editing}
+  onpointermove={placeCopy}
+  onpointerdown={placeCopy}
+  onpointerleave={() => { copyAnchor = null; }}
   class:item-drop-before={reorder?.side === "before"}
   class:item-drop-after={reorder?.side === "after"}
   ondragover={reorder?.over}
@@ -166,18 +178,22 @@
         {/if}
         <ExpandableText text={item.title} lines={1} expanded={leadItem} />
       </div>
-      {#if reference}
-        <button
-          type="button"
-          class="item-row-copy"
-          class:is-done={copyState}
-          aria-label={copyState || `複製「${item.title}」的參照`}
-          title={reference}
-          onclick={copyReference}
-        >{copyState || "⧉"}</button>
-      {/if}
+
     {/if}
   </div>
+
+  {#if reference}
+    <button
+      bind:this={copyButton}
+      type="button"
+      class="item-row-copy"
+      class:is-done={copyState}
+      style:left={copyAnchor === null ? "0px" : `calc(min(${copyAnchor + 10}px, 100% - 2.5em))`}
+      aria-label={copyState || `複製「${item.title}」的參照`}
+      title={reference}
+      onclick={copyReference}
+    >{copyState || "⧉"}</button>
+  {/if}
 
   <span class="item-row-utility-panel">
     <span class="item-row-modules">

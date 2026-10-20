@@ -3160,11 +3160,11 @@ footer {
 .item-drop-before::before { top: -1px; }
 .item-drop-after::after { bottom: -1px; }
 
-.item-row-description { position: relative; }
+.editor-item-row { position: relative; }
 .item-row-copy {
   position: absolute;
+  z-index: 1;
   top: 50%;
-  right: 0;
   transform: translateY(-50%);
   padding: 1px 6px;
   border: 1px solid var(--line);
