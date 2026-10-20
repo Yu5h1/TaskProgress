@@ -1,6 +1,6 @@
 ---
 name: taskprogress-capabilities
-description: Find the TaskProgress entrance that already exists — a CLI verb, a page the local service serves, or a documented skill — before building anything against a `.checklist` or `.decisions` file, a report, or a scope. Use when work in any project touches TaskProgress data, or before answering that some TaskProgress capability is missing.
+description: Find the TaskProgress entrance that already exists — a CLI verb, a page the local service serves, or a documented skill — before building anything against a `.checklist` or `.decisions` file, a report, or a scope. Use when work in any project touches TaskProgress data, before creating a `.decisions` file to ask the user something, or before answering that some TaskProgress capability is missing.
 ---
 
 # TaskProgress capabilities
@@ -60,6 +60,20 @@ example `ux` for `UX/`), never the folder name; read it before composing a URL.
 
 Checklist and Decision pages show an "擁有者" link back to the same scope's Report on their own;
 it needs no `document_ref` ([DocumentOwnerReport](../../../Documentation/DocumentOwnerReport.md)).
+
+## When a question needs a decisions file
+
+A `.decisions` file, with the Report card and binding its page requires, is for questions that need a
+durable record. Create one only when at least one of these holds:
+
+- the user asks for a decisions file or the decision page;
+- the task is large — many questions, or answers that later sessions, agents or reviewers will rely on;
+- the task clearly needs a record of what was chosen and why, beyond the spec that results;
+- the task is an automated workflow whose steps read the answers back from the file.
+
+A small task with one or two questions does not qualify: ask in the conversation, give the
+recommendation and the facts it rests on, and write the answer into the spec, plan or handoff that
+the work updates. Do not create a Report card, child item or binding just to host such a question.
 
 ## Reaching the browser entrance from another project
 
