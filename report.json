@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-10-21T06:19:02.802509+00:00",
+  "updated_at": "2026-10-21T06:24:37.443657+00:00",
   "tasks": [
     {
       "id": "report-search",
@@ -1193,7 +1193,7 @@
         },
         {
           "id": "retention-setting",
-          "title": "保留筆數設定：設定面板可調，預設最近 3 筆，建立紀錄永久保留；CLI 與 Viewer 寫入時套用同一個設定",
+          "title": "保留筆數：程式常數 3 筆（最近 3 筆，建立紀錄永久保留），CLI 與 Viewer 寫入時套用同一個常數；暫不做設定面板",
           "status": "planned"
         },
         {
