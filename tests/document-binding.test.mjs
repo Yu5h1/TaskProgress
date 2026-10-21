@@ -52,6 +52,7 @@ test("evaluateChecklistDocument requires at least 1 check and all checks passed"
     completed: false,
     total: 0,
     passed: 0,
+    manual: false,
   });
 
   // All passed
@@ -66,6 +67,7 @@ test("evaluateChecklistDocument requires at least 1 check and all checks passed"
     completed: true,
     total: 3,
     passed: 3,
+    manual: false,
   });
 
   // Partial / unchecked
@@ -79,6 +81,7 @@ test("evaluateChecklistDocument requires at least 1 check and all checks passed"
     completed: false,
     total: 2,
     passed: 1,
+    manual: false,
   });
 
   // Failure
@@ -92,7 +95,15 @@ test("evaluateChecklistDocument requires at least 1 check and all checks passed"
     completed: false,
     total: 2,
     passed: 1,
+    manual: false,
   });
+});
+
+test("evaluateChecklistDocument flags a checklist holding any manual check", () => {
+  const agentOnly = { items: [{ checks: [{ status: "passed", isManual: false }] }] };
+  const manual = { items: [{ checks: [{ status: "passed" }, { status: "pending", isManual: true }] }] };
+  assert.equal(evaluateChecklistDocument(agentOnly).manual, false);
+  assert.equal(evaluateChecklistDocument(manual).manual, true);
 });
 
 test("evaluateDecisionDocument requires at least 1 decision and all decided with valid answer", () => {

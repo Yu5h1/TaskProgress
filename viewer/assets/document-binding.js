@@ -35,7 +35,7 @@ export function documentBindingHref(ref) {
 
 /**
  * Evaluates whether a loaded checklist document is fully completed.
- * Condition: at least one check, and ALL checks are "passed".
+ * Condition: at least one check, and ALL checks are "passed". `manual` marks a checklist holding any `[manual]` check.
  */
 export function evaluateChecklistDocument(payload) {
   const items = payload?.document?.items ?? payload?.items ?? [];
@@ -43,7 +43,8 @@ export function evaluateChecklistDocument(payload) {
   const total = checks.length;
   const passed = checks.filter((c) => c?.status === "passed").length;
   const completed = total > 0 && passed === total;
-  return { ok: true, completed, total, passed };
+  const manual = checks.some((c) => c?.isManual === true);
+  return { ok: true, completed, total, passed, manual };
 }
 
 /**
@@ -223,6 +224,7 @@ export function projectTasksWithBindings(tasks, evaluations = new Map()) {
         scope_id: norm.scope_id,
         task: norm.task,
         label: norm.kind === "checklist" ? "Checklist" : "Decision",
+        manual: Boolean(evalResult.ok && evalResult.manual),
         completed: Boolean(evalResult.ok && evalResult.completed),
         available: Boolean(evalResult.ok),
         error: evalResult.ok ? null : (evalResult.error ?? "來源無法讀取"),

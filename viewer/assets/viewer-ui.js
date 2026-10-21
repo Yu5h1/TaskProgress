@@ -3859,7 +3859,7 @@ function Zo(e, t) {
 				M(n);
 				var i = z(n, 2), a = L(i, !0);
 				M(i), M(t), V(() => {
-					Q(t, "href", (G(u()), W(() => u().sourceRef.href))), Q(t, "title", (G(u()), W(() => `開啟 ${u().sourceRef.kind}: ${u().sourceRef.task}`))), Y(r, (G(u()), W(() => u().sourceRef.kind === "checklist" ? "📋" : "⚖"))), Y(a, (G(u()), W(() => u().sourceRef.label)));
+					Q(t, "href", (G(u()), W(() => u().sourceRef.href))), Q(t, "title", (G(u()), W(() => `開啟 ${u().sourceRef.kind === "checklist" ? u().sourceRef.manual ? "人工驗收 checklist" : "agent checklist" : u().sourceRef.kind}: ${u().sourceRef.task}`))), Y(r, (G(u()), W(() => u().sourceRef.kind === "decision" ? "⚖" : u().sourceRef.manual ? "📋" : "🤖"))), Y(a, (G(u()), W(() => u().sourceRef.label)));
 				}), J(e, t);
 			}, i = (e) => {
 				var t = Go();

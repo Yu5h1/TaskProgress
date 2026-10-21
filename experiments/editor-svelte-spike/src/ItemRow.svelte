@@ -163,8 +163,8 @@
       <div class="item-row-text">
         {#if item.sourceRef}
           {#if item.sourceRef.available}
-            <a class="document-source-link" href={item.sourceRef.href} title={`開啟 ${item.sourceRef.kind}: ${item.sourceRef.task}`}>
-              <span class="source-icon" aria-hidden="true">{item.sourceRef.kind === "checklist" ? "📋" : "⚖"}</span>
+            <a class="document-source-link" href={item.sourceRef.href} title={`開啟 ${item.sourceRef.kind === "checklist" ? (item.sourceRef.manual ? "人工驗收 checklist" : "agent checklist") : item.sourceRef.kind}: ${item.sourceRef.task}`}>
+              <span class="source-icon" aria-hidden="true">{item.sourceRef.kind === "decision" ? "⚖" : item.sourceRef.manual ? "📋" : "🤖"}</span>
               <span class="source-label">{item.sourceRef.label}</span>
             </a>
           {:else}
