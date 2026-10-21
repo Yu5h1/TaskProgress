@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-10-21T03:40:37.631024+00:00",
+  "updated_at": "2026-10-21T06:19:02.802509+00:00",
   "tasks": [
     {
       "id": "report-search",
@@ -1167,6 +1167,49 @@
             "scope_id": "task-progress",
             "task": "startup-observer"
           }
+        }
+      ]
+    },
+    {
+      "id": "item-activity-log",
+      "title": "子項活動紀錄",
+      "status": "planned",
+      "summary": "每個子項記錄誰在何時建立、開始、修改、完成，用來追查變更來源，並在其他 session 執行中時讓 agent 停下。紀錄由寫入者自行填寫身分：工具名稱必填，session ID 有就填。",
+      "pending_items": [
+        {
+          "id": "schema",
+          "title": "Report schema 與驗證：子項新增活動紀錄（事件 created／started／updated／done／takeover、執行者工具名稱、選填 session ID、時間）；JS 與 CLI 兩邊驗證一致；既有子項不回填",
+          "status": "planned"
+        },
+        {
+          "id": "cli-actor",
+          "title": "report CLI：新增身分參數（工具名稱必填、session ID 選填），item.add／update／move 與狀態變更時自動附加對應事件",
+          "status": "planned"
+        },
+        {
+          "id": "cli-claim",
+          "title": "report CLI 認領檢查：子項最後一筆 started 不是自己（或無法辨認）時拒絕寫入；使用者授權後以接手參數寫入並記一筆 takeover；只檢查寫入，不擋讀取",
+          "status": "planned"
+        },
+        {
+          "id": "retention-setting",
+          "title": "保留筆數設定：設定面板可調，預設最近 3 筆，建立紀錄永久保留；CLI 與 Viewer 寫入時套用同一個設定",
+          "status": "planned"
+        },
+        {
+          "id": "viewer-user-events",
+          "title": "Viewer 寫入記為 user：編輯模式存檔與預覽拖曳換位都附加 user 事件，不受認領檢查阻擋",
+          "status": "planned"
+        },
+        {
+          "id": "viewer-tooltip",
+          "title": "子項滑鼠停留 tooltip 顯示活動紀錄（例如 建立：antigravity · 執行中：codex · 3 小時前）",
+          "status": "planned"
+        },
+        {
+          "id": "skill-docs",
+          "title": "更新 task-progress-report skill 與 ReportCliUsage：寫入時帶身分、開始時設 in_progress 即認領、認不出就停下請求授權；AgentsRule 不改",
+          "status": "planned"
         }
       ]
     }
