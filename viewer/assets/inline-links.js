@@ -32,6 +32,41 @@ export function parseInlineLinks(value) {
   return parts;
 }
 
+/**
+ * Creates the one link element every surface uses for a parsed `[label](URL)` part.
+ * `emphasis` marks links inside descriptive text, which render bold.
+ */
+export function createInlineLink(doc, part, { emphasis = false } = {}) {
+  const link = doc.createElement("a");
+  link.className = emphasis ? "inline-link inline-link--emphasis" : "inline-link";
+  link.setAttribute("href", part.href);
+  link.setAttribute("rel", "noopener noreferrer");
+  link.textContent = part.text;
+  return link;
+}
+
+/** Replaces the host's children with the full text, rendering safe inline links through `createInlineLink`. */
+export function renderInlineLinks(host, text, options = {}) {
+  const doc = host.ownerDocument;
+  host.replaceChildren(...parseInlineLinks(text).map(part => (
+    part.href ? createInlineLink(doc, part, options) : doc.createTextNode(part.text)
+  )));
+}
+
+/** Svelte-style action around `renderInlineLinks`; options are `{ text, emphasis }`. */
+export function inlineLinks(host, options = {}) {
+  let current = null;
+  function update(next = {}) {
+    const text = String(next.text ?? "");
+    const emphasis = next.emphasis === true;
+    if (current && current.text === text && current.emphasis === emphasis) return;
+    current = { text, emphasis };
+    renderInlineLinks(host, text, { emphasis });
+  }
+  update(options);
+  return { update, destroy() { host.replaceChildren(); } };
+}
+
 export function inlineUnits(text) {
   const segmenter = typeof Intl.Segmenter === "function" ? new Intl.Segmenter(undefined, {granularity: "grapheme"}) : null;
   return parseInlineLinks(text).map(part => ({...part, units: part.href ? [part.text] :

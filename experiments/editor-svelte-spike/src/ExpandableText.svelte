@@ -5,6 +5,7 @@
   export let moreLabel = "…更多";
   export let lessLabel = "收合";
   export let expanded = false;
+  export let emphasis = false;
 </script>
 
-<div use:expandableText={{ text, lines, moreLabel, lessLabel, expanded }}></div>
+<div use:expandableText={{ text, lines, moreLabel, lessLabel, expanded, emphasis }}></div>

@@ -3675,7 +3675,11 @@ function Fo(e) {
 	}
 	return i < t.length && n.push({ text: t.slice(i) }), n;
 }
-function Io(e) {
+function Io(e, t, { emphasis: n = !1 } = {}) {
+	let r = e.createElement("a");
+	return r.className = n ? "inline-link inline-link--emphasis" : "inline-link", r.setAttribute("href", t.href), r.setAttribute("rel", "noopener noreferrer"), r.textContent = t.text, r;
+}
+function Lo(e) {
 	let t = typeof Intl.Segmenter == "function" ? new Intl.Segmenter(void 0, { granularity: "grapheme" }) : null;
 	return Fo(e).map((e) => ({
 		...e,
@@ -3684,7 +3688,7 @@ function Io(e) {
 }
 //#endregion
 //#region viewer/assets/expandable-text.js
-function Lo(e, t = {}) {
+function Ro(e, t = {}) {
 	let n = e.ownerDocument, r = n.defaultView, i = n.createElement("div"), a = n.createElement("span"), o = n.createElement("button"), s = n.createElement("span"), c = n.createElement("span");
 	c.className = "expandable-text__label", o.append(s, c), i.className = "expandable-text__content", o.className = "expandable-text__toggle", o.type = "button", e.classList.add("expandable-text"), i.append(a, o), e.append(i);
 	let l = n.createElement("div"), u = n.createElement("span"), d = n.createElement("button");
@@ -3692,8 +3696,8 @@ function Lo(e, t = {}) {
 	let f, p = !1, m = 0, h = !1, g = [], _ = [], v = [], y = 0;
 	function b(e) {
 		return e.replaceChildren(), g.map((t) => {
-			let r = n.createElement(t.href ? "a" : "span");
-			return t.href && (r.className = "expandable-text__link", r.setAttribute("href", t.href), r.setAttribute("rel", "noopener noreferrer"), r.textContent = t.text), e.append(r), r;
+			let r = t.href ? Io(n, t, { emphasis: f.emphasis }) : n.createElement("span");
+			return e.append(r), r;
 		});
 	}
 	function x(e, t) {
@@ -3724,14 +3728,15 @@ function Lo(e, t = {}) {
 		!h && !m && (m = r.requestAnimationFrame(C));
 	}
 	function ee(e = {}) {
-		let t = String(e.text ?? ""), n = Number.isInteger(e.lines) && e.lines > 0 ? e.lines : 2, r = !f || f.text !== t, i = e.expanded === !0;
-		r || f.lines !== n ? p = i : i && !f.open && (p = !0), f = {
+		let t = String(e.text ?? ""), n = Number.isInteger(e.lines) && e.lines > 0 ? e.lines : 2, r = e.emphasis === !0, i = !f || f.text !== t || f.emphasis !== r, o = e.expanded === !0;
+		i || f.lines !== n ? p = o : o && !f.open && (p = !0), f = {
 			text: t,
 			lines: n,
-			open: i,
+			open: o,
+			emphasis: r,
 			moreLabel: e.moreLabel ?? "…更多",
 			lessLabel: e.lessLabel ?? "收合"
-		}, r && (g = Io(t), y = g.reduce((e, t) => e + t.units.length, 0), _ = b(a), v = b(u), x(_, y)), S(), w();
+		}, i && (g = Lo(t), y = g.reduce((e, t) => e + t.units.length, 0), _ = b(a), v = b(u), x(_, y)), S(), w();
 	}
 	function T() {
 		p = !p, S(), w();
@@ -3747,24 +3752,25 @@ function Lo(e, t = {}) {
 }
 //#endregion
 //#region experiments/editor-svelte-spike/src/ExpandableText.svelte
-var Ro = /* @__PURE__ */ q("<div></div>");
-function zo(e, t) {
-	let n = $(t, "text", 8, ""), r = $(t, "lines", 8, 2), i = $(t, "moreLabel", 8, "…更多"), a = $(t, "lessLabel", 8, "收合"), o = $(t, "expanded", 8, !1);
-	var s = Ro();
-	hi(s, (e, t) => Lo?.(e, t), () => ({
+var zo = /* @__PURE__ */ q("<div></div>");
+function Bo(e, t) {
+	let n = $(t, "text", 8, ""), r = $(t, "lines", 8, 2), i = $(t, "moreLabel", 8, "…更多"), a = $(t, "lessLabel", 8, "收合"), o = $(t, "expanded", 8, !1), s = $(t, "emphasis", 8, !1);
+	var c = zo();
+	hi(c, (e, t) => Ro?.(e, t), () => ({
 		text: n(),
 		lines: r(),
 		moreLabel: i(),
 		lessLabel: a(),
-		expanded: o()
-	})), J(e, s);
+		expanded: o(),
+		emphasis: s()
+	})), J(e, c);
 }
 //#endregion
 //#region viewer/assets/item-reference.js
-function Bo({ scopeId: e, taskId: t, item: n }) {
+function Vo({ scopeId: e, taskId: t, item: n }) {
 	return !e || !t || !n?.id || n.legacy ? null : `${e} › ${t} › ${n.id}`;
 }
-async function Vo(e, t = globalThis.document) {
+async function Ho(e, t = globalThis.document) {
 	try {
 		return await t.defaultView.navigator.clipboard.writeText(e), !0;
 	} catch {
@@ -3783,14 +3789,14 @@ Object.freeze([
 	"done",
 	"takeover"
 ]);
-var Ho = {
+var Uo = {
 	created: "建立",
 	started: "開始",
 	updated: "修改",
 	done: "完成",
 	takeover: "接手"
 };
-function Uo(e, t) {
+function Wo(e, t) {
 	let n = Math.floor((t - Date.parse(e)) / 6e4);
 	if (!Number.isFinite(n)) return "";
 	if (n < 1) return "剛剛";
@@ -3798,25 +3804,25 @@ function Uo(e, t) {
 	let r = Math.floor(n / 60);
 	return r < 24 ? `${r} 小時前` : `${Math.floor(r / 24)} 天前`;
 }
-function Wo(e, t = Date.now()) {
+function Go(e, t = Date.now()) {
 	return !Array.isArray(e) || !e.length ? "" : e.map((e) => {
-		let n = e.session ? `${e.actor} (${e.session})` : e.actor, r = Uo(e.at, t);
-		return `${Ho[e.event] ?? e.event}：${n}${r ? ` · ${r}` : ""}`;
+		let n = e.session ? `${e.actor} (${e.session})` : e.actor, r = Wo(e.at, t);
+		return `${Uo[e.event] ?? e.event}：${n}${r ? ` · ${r}` : ""}`;
 	}).join("\n");
 }
 //#endregion
 //#region experiments/editor-svelte-spike/src/ItemRow.svelte
-var Go = /* @__PURE__ */ q("<button type=\"button\" class=\"item-row-grip\" draggable=\"true\" title=\"拖曳換位（限同優先級）\">⠿</button>"), Ko = /* @__PURE__ */ q("<span aria-hidden=\"true\"> </span>"), qo = /* @__PURE__ */ q("<option> </option>"), Jo = /* @__PURE__ */ q("<select class=\"inline-priority-select\"></select>"), Yo = /* @__PURE__ */ q("<span> </span>"), Xo = /* @__PURE__ */ q("<span class=\"item-row-priority\"><!></span>"), Zo = /* @__PURE__ */ q("<input class=\"inline-edit-input\" maxlength=\"500\"/>"), Qo = /* @__PURE__ */ q("<span class=\"item-row-selected-label\">已選取</span>"), $o = /* @__PURE__ */ q("<a class=\"document-source-link\"><span class=\"source-icon\" aria-hidden=\"true\"> </span> <span class=\"source-label\"> </span></a>"), es = /* @__PURE__ */ q("<span class=\"document-source-link source-unavailable\"><span class=\"source-icon\" aria-hidden=\"true\">⚠️</span> <span class=\"source-label\">來源不可用</span></span>"), ts = /* @__PURE__ */ q("<div class=\"item-row-text\"><!> <!> <!></div>"), ns = /* @__PURE__ */ q("<button type=\"button\"> </button>"), rs = /* @__PURE__ */ q("<select class=\"inline-status-select\"></select>"), is = /* @__PURE__ */ q("<span class=\"item-row-action\"><button class=\"inline-delete-button\" type=\"button\">刪除</button></span>"), as = /* @__PURE__ */ q("<li><!> <!> <div class=\"item-row-description\"><!></div> <!> <span class=\"item-row-utility-panel\"><span class=\"item-row-modules\"><!></span> <span class=\"item-row-status\"><!></span> <!></span></li>");
-function os(e, t) {
+var Ko = /* @__PURE__ */ q("<button type=\"button\" class=\"item-row-grip\" draggable=\"true\" title=\"拖曳換位（限同優先級）\">⠿</button>"), qo = /* @__PURE__ */ q("<span aria-hidden=\"true\"> </span>"), Jo = /* @__PURE__ */ q("<option> </option>"), Yo = /* @__PURE__ */ q("<select class=\"inline-priority-select\"></select>"), Xo = /* @__PURE__ */ q("<span> </span>"), Zo = /* @__PURE__ */ q("<span class=\"item-row-priority\"><!></span>"), Qo = /* @__PURE__ */ q("<input class=\"inline-edit-input\" maxlength=\"500\"/>"), $o = /* @__PURE__ */ q("<span class=\"item-row-selected-label\">已選取</span>"), es = /* @__PURE__ */ q("<a class=\"document-source-link\"><span class=\"source-icon\" aria-hidden=\"true\"> </span> <span class=\"source-label\"> </span></a>"), ts = /* @__PURE__ */ q("<span class=\"document-source-link source-unavailable\"><span class=\"source-icon\" aria-hidden=\"true\">⚠️</span> <span class=\"source-label\">來源不可用</span></span>"), ns = /* @__PURE__ */ q("<div class=\"item-row-text\"><!> <!> <!></div>"), rs = /* @__PURE__ */ q("<button type=\"button\"> </button>"), is = /* @__PURE__ */ q("<select class=\"inline-status-select\"></select>"), as = /* @__PURE__ */ q("<span class=\"item-row-action\"><button class=\"inline-delete-button\" type=\"button\">刪除</button></span>"), os = /* @__PURE__ */ q("<li><!> <!> <div class=\"item-row-description\"><!></div> <!> <span class=\"item-row-utility-panel\"><span class=\"item-row-modules\"><!></span> <span class=\"item-row-status\"><!></span> <!></span></li>");
+function ss(e, t) {
 	Ke(t, !1);
 	let n = () => ut(E(), "$selection", r), [r, i] = dt(), a = /* @__PURE__ */ F(), o = /* @__PURE__ */ F(), s = /* @__PURE__ */ F(), c = /* @__PURE__ */ F(), l = /* @__PURE__ */ F(), u = /* @__PURE__ */ F(), d = /* @__PURE__ */ F(), f = /* @__PURE__ */ F(), p = /* @__PURE__ */ F(), m = /* @__PURE__ */ F(), h = $(t, "taskId", 8), g = $(t, "field", 8), _ = $(t, "item", 8), v = $(t, "editing", 8), y = $(t, "policy", 8), b = $(t, "onCommand", 8), x = $(t, "moduleCapsules", 24, () => []), S = $(t, "onModuleActivate", 8, () => {}), C = $(t, "moduleOrder", 24, () => ["time"]), w = $(t, "onModuleReorder", 8, () => {}), ee = $(t, "leadItem", 8, !1), T = $(t, "reorder", 8, null), te = $(t, "scopeId", 8, null), E = $(t, "selection", 8, null);
 	function D() {
-		v() || I(o, Wo(_().activity));
+		v() || I(o, Go(_().activity));
 	}
 	let O = /* @__PURE__ */ F(""), ne;
 	async function k() {
 		clearTimeout(ne);
-		let e = E() ? await E().copyReferences(U(a)) : await Vo(U(a));
+		let e = E() ? await E().copyReferences(U(a)) : await Ho(U(a));
 		I(O, e ? "已複製" : "無法複製"), ne = setTimeout(() => {
 			I(O, "");
 		}, 1500);
@@ -3839,13 +3845,13 @@ function os(e, t) {
 		});
 	}
 	B(() => (G(v()), G(te()), G(h()), G(_())), () => {
-		I(a, v() ? null : Bo({
+		I(a, v() ? null : Vo({
 			scopeId: te(),
 			taskId: h(),
 			item: _()
 		}));
 	}), B(() => (G(v()), G(_())), () => {
-		I(o, v() ? "" : Wo(_().activity));
+		I(o, v() ? "" : Go(_().activity));
 	}), B(() => (U(a), G(E())), () => {
 		I(s, !!(U(a) && E()));
 	}), B(() => (U(s), n(), U(a)), () => {
@@ -3870,10 +3876,10 @@ function os(e, t) {
 	}), B(() => U(p), () => {
 		I(m, U(p).label);
 	}), Fn(), qi();
-	var ce = as();
+	var ce = os();
 	let le;
 	var ue = L(ce), de = (e) => {
-		var t = Go();
+		var t = Ko();
 		V(() => {
 			Q(t, "data-item-ref", (G(h()), G(_()), W(() => `${h()}/${_().id}`))), Q(t, "aria-label", (G(_()), W(() => `移動「${_().title}」（Alt+↑／↓，限同優先級）`)));
 		}), Ar("dragstart", t, function(...e) {
@@ -3884,7 +3890,7 @@ function os(e, t) {
 			T().keydown?.apply(this, e);
 		}), J(e, t);
 	}, fe = (e) => {
-		var t = Ko(), n = L(t, !0);
+		var t = qo(), n = L(t, !0);
 		M(t), V(() => {
 			Z(t, 1, `item-row-marker item-row-marker-${U(f)}`), Y(n, U(f) === "done" ? "✓" : "○");
 		}), J(e, t);
@@ -3893,10 +3899,10 @@ function os(e, t) {
 		T() && v() ? e(de) : e(fe, -1);
 	});
 	var pe = z(ue, 2), me = (e) => {
-		var t = Xo(), n = L(t), r = (e) => {
-			var t = Jo();
+		var t = Zo(), n = L(t), r = (e) => {
+			var t = Yo();
 			si(t, 5, () => (G(y()), W(() => y().levels)), (e) => e.value, (e, t) => {
-				var n = qo(), r = L(n, !0);
+				var n = Jo(), r = L(n, !0);
 				M(n);
 				var i = {};
 				V((e) => {
@@ -3911,7 +3917,7 @@ function os(e, t) {
 				value: Number(U(re))
 			})), Oi(t, () => U(re), (e) => I(re, e)), J(e, t);
 		}, i = (e) => {
-			var t = Yo(), n = L(t, !0);
+			var t = Xo(), n = L(t, !0);
 			M(t), V(() => {
 				Z(t, 1, (U(u), W(() => `priority-badge priority-${U(u).tone}`))), Y(n, U(d));
 			}), J(e, t);
@@ -3924,7 +3930,7 @@ function os(e, t) {
 		G(v()), U(f), U(u), G(y()), W(() => v() || U(f) !== "done" && U(u) && (!U(u).hidden || !y().labelsValid)) && e(me);
 	});
 	var he = z(pe, 2), ge = L(he), _e = (e) => {
-		var t = Zo();
+		var t = Qo();
 		Pi(t), V(() => {
 			Q(t, "aria-label", (G(_()), W(() => `編輯子項目：${_().title}`))), Q(t, "title", (G(_()), W(() => _().title))), Fi(t, (G(_()), W(() => _().title)));
 		}), K("input", t, (e) => b()({
@@ -3936,22 +3942,22 @@ function os(e, t) {
 			value: e.currentTarget.value
 		})), J(e, t);
 	}, ve = (e) => {
-		var t = ts(), n = L(t), r = (e) => {
-			J(e, Qo());
+		var t = ns(), n = L(t), r = (e) => {
+			J(e, $o());
 		};
 		X(n, (e) => {
 			U(c) && e(r);
 		});
 		var i = z(n, 2), a = (e) => {
 			var t = Vr(), n = R(t), r = (e) => {
-				var t = $o(), n = L(t), r = L(n, !0);
+				var t = es(), n = L(t), r = L(n, !0);
 				M(n);
 				var i = z(n, 2), a = L(i, !0);
 				M(i), M(t), V(() => {
 					Q(t, "href", (G(_()), W(() => _().sourceRef.href))), Q(t, "title", (G(_()), W(() => _().sourceRef.title))), Y(r, (G(_()), W(() => _().sourceRef.kind === "decision" ? "⚖" : _().sourceRef.manual ? "📋" : "🤖"))), Y(a, (G(_()), W(() => _().sourceRef.label)));
 				}), J(e, t);
 			}, i = (e) => {
-				var t = es();
+				var t = ts();
 				V(() => Q(t, "title", (G(_()), W(() => _().sourceRef.error ?? "來源無法讀取")))), J(e, t);
 			};
 			X(n, (e) => {
@@ -3960,7 +3966,7 @@ function os(e, t) {
 		};
 		X(i, (e) => {
 			G(_()), W(() => _().sourceRef) && e(a);
-		}), zo(z(i, 2), {
+		}), Bo(z(i, 2), {
 			get text() {
 				return G(_()), W(() => _().title);
 			},
@@ -3974,7 +3980,7 @@ function os(e, t) {
 		v() ? e(_e) : e(ve, -1);
 	}), M(he);
 	var ye = z(he, 2), be = (e) => {
-		var t = ns();
+		var t = rs();
 		let n;
 		var r = L(t, !0);
 		M(t), V(() => {
@@ -4001,9 +4007,9 @@ function os(e, t) {
 		}
 	}), M(Se);
 	var Ce = z(Se, 2), we = L(Ce), Te = (e) => {
-		var t = rs();
+		var t = is();
 		si(t, 5, ie, (e) => e.value, (e, t) => {
-			var n = qo(), r = L(n, !0);
+			var n = Jo(), r = L(n, !0);
 			M(n);
 			var i = {};
 			V(() => {
@@ -4011,7 +4017,7 @@ function os(e, t) {
 			}), J(e, n);
 		}), M(t), V(() => Q(t, "aria-label", (G(_()), W(() => `設定「${_().title}」的狀態`)))), K("change", t, () => oe(U(ae))), Oi(t, () => U(ae), (e) => I(ae, e)), J(e, t);
 	}, Ee = (e) => {
-		var t = Yo(), n = L(t, !0);
+		var t = Xo(), n = L(t, !0);
 		M(t), V(() => {
 			Z(t, 1, (U(p), W(() => `item-status-capsule status-${U(p).tone}`))), Y(n, U(m));
 		}), J(e, t);
@@ -4020,7 +4026,7 @@ function os(e, t) {
 		v() ? e(Te) : e(Ee, -1);
 	}), M(Ce);
 	var De = z(Ce, 2), Oe = (e) => {
-		var t = is(), n = L(t);
+		var t = as(), n = L(t);
 		M(t), V(() => Q(n, "aria-label", (G(_()), W(() => `刪除子項目：${_().title}`)))), K("click", n, () => b()({
 			type: "delete-item",
 			taskId: h(),
@@ -4167,20 +4173,20 @@ jr([
 		tone: "muted"
 	}
 });
-var ss = globalThis.TaskProgressPriorityPolicy;
-Object.freeze(Object.fromEntries(ss.levels.map((e) => [e.value, e])));
-var cs = ss.fallbackValue;
-function ls(e) {
-	return ss.normalize(e, cs);
-}
+var cs = globalThis.TaskProgressPriorityPolicy;
+Object.freeze(Object.fromEntries(cs.levels.map((e) => [e.value, e])));
+var ls = cs.fallbackValue;
 function us(e) {
-	return ls(typeof e == "object" && e && !Array.isArray(e) ? e.priority : void 0);
+	return cs.normalize(e, ls);
 }
 function ds(e) {
+	return us(typeof e == "object" && e && !Array.isArray(e) ? e.priority : void 0);
+}
+function fs(e) {
 	return [...e ?? []].map((e, t) => ({
 		item: e,
 		index: t
-	})).sort((e, t) => us(e.item) - us(t.item) || e.index - t.index).map(({ item: e }) => e);
+	})).sort((e, t) => ds(e.item) - ds(t.item) || e.index - t.index).map(({ item: e }) => e);
 }
 Object.freeze([
 	"status",
@@ -4192,8 +4198,8 @@ Object.freeze([
 ]);
 //#endregion
 //#region experiments/editor-svelte-spike/src/TaskCard.svelte
-var fs = /* @__PURE__ */ q("<textarea class=\"task-summary-input\" aria-label=\"任務描述\" maxlength=\"1000\" rows=\"3\"></textarea>"), ps = /* @__PURE__ */ q("<div class=\"task-summary\"><!></div>"), ms = /* @__PURE__ */ q("<button type=\"button\" class=\"completed-more\"><svg viewBox=\"0 0 16 16\" width=\"14\" height=\"14\" aria-hidden=\"true\"><path fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"></path></svg> </button>"), hs = /* @__PURE__ */ q("<section><h4 class=\"detail-heading\"> </h4> <ul class=\"detail-list\"></ul> <!></section>"), gs = /* @__PURE__ */ q("<option> </option>"), _s = /* @__PURE__ */ q("<div class=\"spike-add-form\"><input aria-label=\"新增子項目描述\" placeholder=\"新增待處理項目\" maxlength=\"500\"/> <select aria-label=\"新增子項目優先級\"></select> <button type=\"button\">新增</button> <button type=\"button\">取消</button> <p class=\"spike-field-error\" role=\"alert\"> </p></div>"), vs = /* @__PURE__ */ q("<button class=\"spike-add-button\" type=\"button\">＋</button>"), ys = /* @__PURE__ */ q("<div class=\"spike-add-shell\"><!></div>"), bs = /* @__PURE__ */ q("<!> <!> <div class=\"work-columns\"><!> <section class=\"task-adder-section\"><!></section></div>", 1), xs = /* @__PURE__ */ q("<div class=\"time-task-status-line\"><select class=\"inline-status-select\"></select> <select class=\"inline-priority-select\"></select></div>"), Ss = /* @__PURE__ */ q("<input class=\"task-title-input\" aria-label=\"任務名稱\" maxlength=\"160\"/>"), Cs = /* @__PURE__ */ q("<h3> </h3>"), ws = /* @__PURE__ */ q("<span> </span>"), Ts = /* @__PURE__ */ q("<div class=\"task-module-totals\"></div>"), Es = /* @__PURE__ */ q("<header slot=\"header\" class=\"task-header\"><div class=\"task-title-group\"><!> <div class=\"time-task-title-line\"><!></div> <!></div> <div class=\"task-header-meta\"><strong class=\"task-fraction\"> </strong> <span> </span> <code class=\"task-id\"> </code></div></header>"), Ds = /* @__PURE__ */ q("<article><!></article>");
-function Os(e, t) {
+var ps = /* @__PURE__ */ q("<textarea class=\"task-summary-input\" aria-label=\"任務描述\" maxlength=\"1000\" rows=\"3\"></textarea>"), ms = /* @__PURE__ */ q("<div class=\"task-summary\"><!></div>"), hs = /* @__PURE__ */ q("<button type=\"button\" class=\"completed-more\"><svg viewBox=\"0 0 16 16\" width=\"14\" height=\"14\" aria-hidden=\"true\"><path fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"></path></svg> </button>"), gs = /* @__PURE__ */ q("<section><h4 class=\"detail-heading\"> </h4> <ul class=\"detail-list\"></ul> <!></section>"), _s = /* @__PURE__ */ q("<option> </option>"), vs = /* @__PURE__ */ q("<div class=\"spike-add-form\"><input aria-label=\"新增子項目描述\" placeholder=\"新增待處理項目\" maxlength=\"500\"/> <select aria-label=\"新增子項目優先級\"></select> <button type=\"button\">新增</button> <button type=\"button\">取消</button> <p class=\"spike-field-error\" role=\"alert\"> </p></div>"), ys = /* @__PURE__ */ q("<button class=\"spike-add-button\" type=\"button\">＋</button>"), bs = /* @__PURE__ */ q("<div class=\"spike-add-shell\"><!></div>"), xs = /* @__PURE__ */ q("<!> <!> <div class=\"work-columns\"><!> <section class=\"task-adder-section\"><!></section></div>", 1), Ss = /* @__PURE__ */ q("<div class=\"time-task-status-line\"><select class=\"inline-status-select\"></select> <select class=\"inline-priority-select\"></select></div>"), Cs = /* @__PURE__ */ q("<input class=\"task-title-input\" aria-label=\"任務名稱\" maxlength=\"160\"/>"), ws = /* @__PURE__ */ q("<h3> </h3>"), Ts = /* @__PURE__ */ q("<span> </span>"), Es = /* @__PURE__ */ q("<div class=\"task-module-totals\"></div>"), Ds = /* @__PURE__ */ q("<header slot=\"header\" class=\"task-header\"><div class=\"task-title-group\"><!> <div class=\"time-task-title-line\"><!></div> <!></div> <div class=\"task-header-meta\"><strong class=\"task-fraction\"> </strong> <span> </span> <code class=\"task-id\"> </code></div></header>"), Os = /* @__PURE__ */ q("<article><!></article>");
+function ks(e, t) {
 	Ke(t, !1);
 	let n = /* @__PURE__ */ F(), r = /* @__PURE__ */ F(), i = /* @__PURE__ */ F(), a = /* @__PURE__ */ F(), o = $(t, "visibilityEnabled", 8, !1), s = $(t, "visible", 8, !0), c = $(t, "onVisibleChange", 8, () => {}), l = $(t, "expanded", 8, !0), u = $(t, "onToggle", 8, () => {}), d = $(t, "task", 8), f = $(t, "progress", 8), p = $(t, "editing", 8), m = $(t, "policy", 8), h = $(t, "onCommand", 8), g = $(t, "onAddItem", 8);
 	$(t, "timeTask", 8, null);
@@ -4294,7 +4300,7 @@ function Os(e, t) {
 		let e = g()(U(ne), Number(U(k)));
 		I(re, e.error), U(re) || oe();
 	}
-	B(() => (G(d()), ds), () => {
+	B(() => (G(d()), fs), () => {
 		I(n, [{
 			status: "done",
 			title: "已完成",
@@ -4306,7 +4312,7 @@ function Os(e, t) {
 			title: "待處理",
 			className: "pending-work",
 			field: "pending_items",
-			items: ds(d().pending_items)
+			items: fs(d().pending_items)
 		}]);
 	}), B(() => (U(n), G(x())), () => {
 		I(r, [...U(n)].sort((e, t) => {
@@ -4329,7 +4335,7 @@ function Os(e, t) {
 	}), B(() => G(p()), () => {
 		p(), ue();
 	}), Fn(), qi();
-	var he = Ds(), ge = L(he);
+	var he = Os(), ge = L(he);
 	{
 		let e = /* @__PURE__ */ N(() => (G(d()), W(() => `task-body-${d().id}`)));
 		_o(ge, {
@@ -4355,8 +4361,8 @@ function Os(e, t) {
 				return G(d()), W(() => d().title);
 			},
 			children: (e, t) => {
-				var n = bs(), i = R(n), a = (e) => {
-					var t = fs();
+				var n = xs(), i = R(n), a = (e) => {
+					var t = ps();
 					pt(t), V(() => Fi(t, (G(d()), W(() => d().summary)))), K("input", t, (e) => h()({
 						type: "set-task-field",
 						taskId: d().id,
@@ -4364,12 +4370,13 @@ function Os(e, t) {
 						value: e.currentTarget.value
 					})), J(e, t);
 				}, o = (e) => {
-					var t = ps();
-					zo(L(t), {
+					var t = ms();
+					Bo(L(t), {
 						get text() {
 							return G(d()), W(() => d().summary);
 						},
-						lines: 2
+						lines: 2,
+						emphasis: !0
 					}), M(t), J(e, t);
 				};
 				X(i, (e) => {
@@ -4385,13 +4392,13 @@ function Os(e, t) {
 				var c = z(s, 2), l = L(c);
 				si(l, 1, () => U(r), (e) => e.status, (e, t) => {
 					var n = Vr(), r = R(n), i = (e) => {
-						var n = hs(), r = L(n), i = L(r, !0);
+						var n = gs(), r = L(n), i = L(r, !0);
 						M(r);
 						var a = z(r, 2);
 						si(a, 7, () => (U(t), U(E), W(() => U(t).status === "done" && !U(E) ? U(t).items.slice(0, 1) : U(t).items)), (e) => e.id, (e, n, r) => {
 							{
 								let i = /* @__PURE__ */ N(() => (G(_()), U(n), W(() => _().get(U(n).id) ?? []))), a = /* @__PURE__ */ N(() => (G(C()), U(t), G(U(r)), W(() => C() && U(t).status === "planned" && U(r) === 0))), o = /* @__PURE__ */ N(() => p() ? null : te()), s = /* @__PURE__ */ N(() => (G(p()), G(ee()), U(t), U(n), U(se), U(ce), U(le), W(() => (p() || ee()) && U(t).status === "planned" && U(n).id && !U(n).legacy ? pe(U(n), U(t).items, U(se), U(ce), U(le)) : null)));
-								os(e, {
+								ss(e, {
 									get taskId() {
 										return G(d()), W(() => d().id);
 									},
@@ -4441,7 +4448,7 @@ function Os(e, t) {
 							}
 						}), M(a);
 						var o = z(a, 2), s = (e) => {
-							var n = ms(), r = L(n), i = L(r);
+							var n = hs(), r = L(n), i = L(r);
 							M(r);
 							var a = z(r);
 							M(n), V(() => {
@@ -4459,12 +4466,12 @@ function Os(e, t) {
 					}), J(e, n);
 				});
 				var u = z(l, 2), f = L(u), g = (e) => {
-					var t = ys(), n = L(t), r = (e) => {
-						var t = _s(), n = L(t);
+					var t = bs(), n = L(t), r = (e) => {
+						var t = vs(), n = L(t);
 						Pi(n);
 						var r = z(n, 2);
 						si(r, 5, () => (G(m()), W(() => m().levels)), (e) => e.value, (e, t) => {
-							var n = gs(), r = L(n, !0);
+							var n = _s(), r = L(n, !0);
 							M(n);
 							var i = {};
 							V((e) => {
@@ -4478,7 +4485,7 @@ function Os(e, t) {
 							e.key === "Enter" && me(), e.key === "Escape" && oe();
 						}), Bi(n, () => U(ne), (e) => I(ne, e)), Oi(r, () => U(k), (e) => I(k, e)), K("click", i, me), K("click", a, oe), J(e, t);
 					}, i = (e) => {
-						var t = vs();
+						var t = ys();
 						V(() => Q(t, "aria-label", (G(d()), W(() => `在「${d().title}」新增子項目`)))), K("click", t, () => {
 							I(O, !0);
 						}), J(e, t);
@@ -4494,10 +4501,10 @@ function Os(e, t) {
 			$$slots: {
 				default: !0,
 				header: (e, t) => {
-					var n = Es(), r = L(n), i = L(r), o = (e) => {
-						var t = xs(), n = L(t);
+					var n = Ds(), r = L(n), i = L(r), o = (e) => {
+						var t = Ss(), n = L(t);
 						si(n, 5, () => D, (e) => e.value, (e, t) => {
-							var n = gs(), r = L(n, !0);
+							var n = _s(), r = L(n, !0);
 							M(n);
 							var i = {};
 							V(() => {
@@ -4506,7 +4513,7 @@ function Os(e, t) {
 						}), M(n);
 						var r = z(n, 2);
 						si(r, 5, () => (G(m()), W(() => m().levels)), (e) => e.value, (e, t) => {
-							var n = gs(), r = L(n, !0);
+							var n = _s(), r = L(n, !0);
 							M(n);
 							var i = {};
 							V((e) => {
@@ -4530,7 +4537,7 @@ function Os(e, t) {
 						p() && e(o);
 					});
 					var s = z(i, 2), c = L(s), l = (e) => {
-						var t = Ss();
+						var t = Cs();
 						Pi(t), V(() => {
 							Q(t, "id", (G(d()), W(() => `task-${d().id}-title`))), Fi(t, (G(d()), W(() => d().title)));
 						}), K("input", t, (e) => h()({
@@ -4540,7 +4547,7 @@ function Os(e, t) {
 							value: e.currentTarget.value
 						})), J(e, t);
 					}, u = (e) => {
-						var t = Cs(), n = L(t, !0);
+						var t = ws(), n = L(t, !0);
 						M(t), V(() => {
 							Q(t, "id", (G(d()), W(() => `task-${d().id}-title`))), Y(n, (G(d()), W(() => d().title)));
 						}), J(e, t);
@@ -4549,9 +4556,9 @@ function Os(e, t) {
 						p() ? e(l) : e(u, -1);
 					}), M(s);
 					var g = z(s, 2), _ = (e) => {
-						var t = Ts();
+						var t = Es();
 						si(t, 5, S, (e) => e.id, (e, t) => {
-							var n = ws(), r = L(n, !0);
+							var n = Ts(), r = L(n, !0);
 							M(n), V(() => {
 								Z(n, 1, (U(t), W(() => `task-module-total task-module-total-${U(t).id}`))), Y(r, (U(t), W(() => U(t).label)));
 							}), J(e, n);
@@ -4584,17 +4591,17 @@ jr([
 ]);
 //#endregion
 //#region viewer/assets/icon-choice.js
-function ks(e, t) {
+function As(e, t) {
 	let n = e.filter((e) => e.kind !== "action");
 	return n.length ? n[(n.findIndex((e) => e.id === t) + 1) % n.length].id : void 0;
 }
-function As(e, t, n) {
+function js(e, t, n) {
 	return n === "adjacent" ? e.filter((e) => e.id !== t) : e;
 }
 //#endregion
 //#region experiments/editor-svelte-spike/src/IconChoice.svelte
-var js = /* @__PURE__ */ q("<button type=\"button\" tabindex=\"-1\"><!></button>"), Ms = /* @__PURE__ */ q("<div role=\"group\"></div>"), Ns = /* @__PURE__ */ q("<div class=\"icon-choice\" role=\"group\"><button class=\"card-toolbar-icon\" type=\"button\"><!></button> <!></div>");
-function Ps(e, t) {
+var Ms = /* @__PURE__ */ q("<button type=\"button\" tabindex=\"-1\"><!></button>"), Ns = /* @__PURE__ */ q("<div role=\"group\"></div>"), Ps = /* @__PURE__ */ q("<div class=\"icon-choice\" role=\"group\"><button class=\"card-toolbar-icon\" type=\"button\"><!></button> <!></div>");
+function Fs(e, t) {
 	Ke(t, !1);
 	let n = /* @__PURE__ */ F(), r = /* @__PURE__ */ F(), i = $(t, "items", 24, () => []), a = $(t, "value", 8), o = $(t, "label", 8, "選擇"), s = $(t, "interaction", 8, "picker"), c = $(t, "orientation", 8, "horizontal"), l = $(t, "placement", 8, "aligned"), u = $(t, "onChoose", 8, () => {}), d = /* @__PURE__ */ F(), f = /* @__PURE__ */ F(), p = /* @__PURE__ */ F(), m = /* @__PURE__ */ F(), h = /* @__PURE__ */ F(!1), g = /* @__PURE__ */ F(!1), _ = /* @__PURE__ */ F(!1), v = /* @__PURE__ */ F(null), y = /* @__PURE__ */ F(0), b = /* @__PURE__ */ F(0), x = /* @__PURE__ */ F(!1), S = /* @__PURE__ */ F(null), C = 0;
 	function w(e = !1) {
@@ -4655,9 +4662,9 @@ function Ps(e, t) {
 	$r(() => clearTimeout(U(m))), B(() => (G(i()), G(a())), () => {
 		I(n, i().find((e) => e.id === a() && e.kind !== "action") ?? i().find((e) => e.kind !== "action"));
 	}), B(() => (G(i()), G(a()), G(l())), () => {
-		I(r, As(i(), a(), l()));
+		I(r, js(i(), a(), l()));
 	}), Fn(), qi();
-	var ne = Ns();
+	var ne = Ps();
 	Ar("pointerdown", fn, (e) => {
 		U(d)?.contains(e.target) || w();
 	}), Ar("resize", fn, O), Ar("blur", fn, O), Ar("scroll", pn, (e) => {
@@ -4669,10 +4676,10 @@ function Ps(e, t) {
 		return U(n);
 	} }, null), M(k), Ki(k, (e) => I(f, e), () => U(f));
 	var ie = z(k, 2), ae = (e) => {
-		var n = Ms();
+		var n = Ns();
 		let i, s;
 		si(n, 5, () => U(r), (e) => e.id, (e, n) => {
-			var r = js();
+			var r = Ms();
 			let i;
 			pi(L(r), t, "icon", { get item() {
 				return U(n);
@@ -4710,7 +4717,7 @@ function Ps(e, t) {
 		}
 		if (s() === "picker") T(!0);
 		else {
-			let e = ks(i(), a());
+			let e = As(i(), a());
 			e !== void 0 && u()(e);
 		}
 	}), J(e, ne), qe();
@@ -4725,8 +4732,8 @@ jr([
 ]);
 //#endregion
 //#region experiments/editor-svelte-spike/src/VisibilityMenu.svelte
-var Fs = /* @__PURE__ */ zr("<svg viewBox=\"0 0 24 24\" width=\"20\" height=\"20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M3 10a9 9 0 1 1 2 8M3 4v6h6\"></path></svg>");
-function Is(e, t) {
+var Is = /* @__PURE__ */ zr("<svg viewBox=\"0 0 24 24\" width=\"20\" height=\"20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M3 10a9 9 0 1 1 2 8M3 4v6h6\"></path></svg>");
+function Ls(e, t) {
 	let n = $(t, "mode", 8, "disabled"), r = $(t, "onChoose", 8, () => {}), i = [
 		{
 			id: "enabled",
@@ -4746,7 +4753,7 @@ function Is(e, t) {
 			kind: "action"
 		}
 	];
-	Ps(e, {
+	Fs(e, {
 		get items() {
 			return i;
 		},
@@ -4761,7 +4768,7 @@ function Is(e, t) {
 		$$slots: { icon: (e, t) => {
 			let n = /* @__PURE__ */ N(() => t.item);
 			var r = Vr(), i = R(r), a = (e) => {
-				J(e, Fs());
+				J(e, Is());
 			}, o = (e) => {
 				{
 					let t = /* @__PURE__ */ N(() => (G(U(n)), W(() => U(n)?.id === "closed"))), r = /* @__PURE__ */ N(() => (G(U(n)), W(() => U(n)?.id === "disabled")));
@@ -4783,10 +4790,10 @@ function Is(e, t) {
 }
 //#endregion
 //#region viewer/assets/card-visibility.js
-function Ls(e, t, n) {
+function Rs(e, t, n) {
 	return t === "closed" ? !1 : t !== "enabled" || !n.includes(e);
 }
-function Rs(e, t, n) {
+function zs(e, t, n) {
 	return n === "reset" ? {
 		mode: "enabled",
 		hiddenIds: []
@@ -4801,7 +4808,7 @@ function Rs(e, t, n) {
 }
 //#endregion
 //#region viewer/assets/capsule-order.js
-function zs(e, t) {
+function Bs(e, t) {
 	let n = [...new Set(t)];
 	if (!Array.isArray(e)) return n;
 	let r = new Set(n), i = /* @__PURE__ */ new Set(), a = [];
@@ -4811,39 +4818,39 @@ function zs(e, t) {
 		i.has(e) || a.push(e);
 	}), a;
 }
-function Bs(e, t, n, r = !1) {
+function Vs(e, t, n, r = !1) {
 	if (t === n || !e.includes(t) || !e.includes(n)) return [...e];
 	let i = e.filter((e) => e !== t), a = i.indexOf(n);
 	return i.splice(a + +!!r, 0, t), i;
 }
 //#endregion
 //#region viewer/assets/card-order.js
-function Vs(e, t) {
+function Hs(e, t) {
 	return [t, ...e.filter((e) => e !== t)];
 }
-function Hs(e, t, n, r = []) {
-	let i = n === "free" ? Us(e, t) : n === "reverse" ? [...e].reverse() : e;
+function Us(e, t, n, r = []) {
+	let i = n === "free" ? Ws(e, t) : n === "reverse" ? [...e].reverse() : e;
 	if (!r.length) return i;
 	let a = new Map(e.map((e) => [e.id, e])), o = new Set(r);
 	return [...o].filter((e) => a.has(e)).map((e) => a.get(e)).concat(i.filter((e) => !o.has(e.id)));
 }
-function Us(e, t) {
+function Ws(e, t) {
 	if (!t) return e;
 	let n = new Map(t.map((e, t) => [e, t]));
 	return [...e].sort((e, r) => (n.get(e.id) ?? t.length) - (n.get(r.id) ?? t.length));
 }
-function Ws(e, t, n, r, i, a) {
-	let o = zs(t, e), s = new Set(n), c = Bs(o.filter((e) => s.has(e)), r, i, a), l = 0;
+function Gs(e, t, n, r, i, a) {
+	let o = Bs(t, e), s = new Set(n), c = Vs(o.filter((e) => s.has(e)), r, i, a), l = 0;
 	return o.map((e) => s.has(e) ? c[l++] : e);
 }
 //#endregion
 //#region experiments/editor-svelte-spike/src/CardList.svelte
-var Gs = /* @__PURE__ */ zr("<path d=\"M4 5h15M4 10h8M4 15h17M4 20h11\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\" stroke-linecap=\"round\"></path>"), Ks = /* @__PURE__ */ zr("<path fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"></path><path fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\" stroke-linecap=\"round\"></path>", 1), qs = /* @__PURE__ */ zr("<svg viewBox=\"0 0 24 24\" width=\"24\" height=\"24\" aria-hidden=\"true\"><!></svg>"), Js = /* @__PURE__ */ q("<button type=\"button\"><svg viewBox=\"0 0 24 24\" width=\"14\" height=\"14\" aria-hidden=\"true\"><path d=\"M8 3h8l-1 7 4 4v2H5v-2l4-4-1-7Zm4 13v6\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linecap=\"round\" stroke-linejoin=\"round\"></path></svg></button>"), Ys = /* @__PURE__ */ q("<div role=\"group\" tabindex=\"0\"><!> <!></div>"), Xs = /* @__PURE__ */ q("<div class=\"card-list-controls\"><div class=\"card-list-heading\"><p class=\"section-kicker\">工作項目</p> <!></div> <div class=\"card-list-tools\"><button type=\"button\" class=\"card-toolbar-icon\"><svg viewBox=\"0 0 24 24\" width=\"22\" height=\"22\" aria-hidden=\"true\"><path fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"></path></svg></button> <!> <!> <span role=\"status\"> </span> <!></div></div> <div class=\"arrangeable-cards\"></div>", 1);
-function Zs(e, t) {
+var Ks = /* @__PURE__ */ zr("<path d=\"M4 5h15M4 10h8M4 15h17M4 20h11\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\" stroke-linecap=\"round\"></path>"), qs = /* @__PURE__ */ zr("<path fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"></path><path fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\" stroke-linecap=\"round\"></path>", 1), Js = /* @__PURE__ */ zr("<svg viewBox=\"0 0 24 24\" width=\"24\" height=\"24\" aria-hidden=\"true\"><!></svg>"), Ys = /* @__PURE__ */ q("<button type=\"button\"><svg viewBox=\"0 0 24 24\" width=\"14\" height=\"14\" aria-hidden=\"true\"><path d=\"M8 3h8l-1 7 4 4v2H5v-2l4-4-1-7Zm4 13v6\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linecap=\"round\" stroke-linejoin=\"round\"></path></svg></button>"), Xs = /* @__PURE__ */ q("<div role=\"group\" tabindex=\"0\"><!> <!></div>"), Zs = /* @__PURE__ */ q("<div class=\"card-list-controls\"><div class=\"card-list-heading\"><p class=\"section-kicker\">工作項目</p> <!></div> <div class=\"card-list-tools\"><button type=\"button\" class=\"card-toolbar-icon\"><svg viewBox=\"0 0 24 24\" width=\"22\" height=\"22\" aria-hidden=\"true\"><path fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"></path></svg></button> <!> <!> <span role=\"status\"> </span> <!></div></div> <div class=\"arrangeable-cards\"></div>", 1);
+function Qs(e, t) {
 	Ke(t, !1);
 	let n = /* @__PURE__ */ F(), r = /* @__PURE__ */ F(), i = /* @__PURE__ */ F(), a = /* @__PURE__ */ F(), o = $(t, "items", 24, () => []), s = $(t, "allIds", 24, () => []), c = $(t, "storageKey", 8), l = $(t, "pinEnabled", 8, !1), u = $(t, "requestedPin", 8, null), d = $(t, "heldOrder", 8, null);
 	function f(e = o()) {
-		return Hs(e, U(T), U(_), l() ? U(p) : []).map((e) => e.id);
+		return Us(e, U(T), U(_), l() ? U(p) : []).map((e) => e.id);
 	}
 	let p = /* @__PURE__ */ F([]), m = null, h = $(t, "expanded", 8, !0), g = $(t, "onToggleAll", 8, () => {}), _ = /* @__PURE__ */ F("forward"), v = [
 		"forward",
@@ -4863,7 +4870,7 @@ function Zs(e, t) {
 		} catch {}
 	}
 	function C(e) {
-		let t = Rs(U(b), U(x), e);
+		let t = zs(U(b), U(x), e);
 		I(b, t.mode), I(x, t.hiddenIds), de(), S();
 	}
 	function w(e, t) {
@@ -4881,7 +4888,7 @@ function Zs(e, t) {
 				I(k, `找不到卡片 ID：${e}`);
 				return;
 			}
-			I(p, Vs(U(p), e)), ee(e), ie();
+			I(p, Hs(U(p), e)), ee(e), ie();
 		}
 	}
 	function ie() {
@@ -4896,7 +4903,7 @@ function Zs(e, t) {
 		}
 	}
 	function ae(e) {
-		de(), I(p, U(p).includes(e) ? U(p).filter((t) => t !== e) : Vs(U(p), e)), ie();
+		de(), I(p, U(p).includes(e) ? U(p).filter((t) => t !== e) : Hs(U(p), e)), ie();
 	}
 	function oe(e) {
 		if (m = null, I(p, []), e) try {
@@ -4943,7 +4950,7 @@ function Zs(e, t) {
 		}
 	}
 	async function le(e, t, n) {
-		U(_) === "free" && (l() && (U(p).includes(e) || U(p).includes(t)) || e !== t && (se(Ws(s(), U(T), U(r).map((e) => e.id), e, t, n)), I(te, e), await Sr(), [...U(ne).querySelectorAll("[data-card-id]")].find((t) => t.dataset.cardId === String(e))?.focus()));
+		U(_) === "free" && (l() && (U(p).includes(e) || U(p).includes(t)) || e !== t && (se(Gs(s(), U(T), U(r).map((e) => e.id), e, t, n)), I(te, e), await Sr(), [...U(ne).querySelectorAll("[data-card-id]")].find((t) => t.dataset.cardId === String(e))?.focus()));
 	}
 	function ue(e, t) {
 		let n = U(r).findIndex((t) => t.id === e);
@@ -4966,13 +4973,13 @@ function Zs(e, t) {
 	B(() => U(b), () => {
 		I(n, U(b) === "enabled");
 	}), B(() => (G(o()), U(T), U(_), G(l()), U(p), G(d())), () => {
-		I(i, Us(Hs(o(), U(T), U(_), l() ? U(p) : []), d()));
+		I(i, Ws(Us(o(), U(T), U(_), l() ? U(p) : []), d()));
 	}), B(() => (U(i), U(b), U(x), G(l()), U(p)), () => {
-		I(r, U(i).filter((e) => Ls(e.id, U(b), U(x)) && !(l() && U(p).includes(e.id))));
+		I(r, U(i).filter((e) => Rs(e.id, U(b), U(x)) && !(l() && U(p).includes(e.id))));
 	}), B(() => G(c()), () => {
 		oe(c());
 	}), B(() => (U(i), U(b), U(x)), () => {
-		I(a, U(i).find((e) => Ls(e.id, U(b), U(x)))?.id ?? null);
+		I(a, U(i).find((e) => Rs(e.id, U(b), U(x)))?.id ?? null);
 	}), B(() => (G(u()), G(c()), G(s()), G(l())), () => {
 		re(u(), c(), s(), l());
 	}), Fn();
@@ -4981,7 +4988,7 @@ function Zs(e, t) {
 		revealCard: ee
 	};
 	qi();
-	var me = Xs(), he = R(me), ge = L(he);
+	var me = Zs(), he = R(me), ge = L(he);
 	pi(z(L(ge), 2), t, "filters", {}, null), M(ge);
 	var _e = z(ge, 2), ve = L(_e), ye = L(ve), be = L(ye);
 	M(ye), M(ve);
@@ -4991,7 +4998,7 @@ function Zs(e, t) {
 			id: e,
 			label: y[e]
 		}))));
-		Ps(xe, {
+		Fs(xe, {
 			get items() {
 				return U(e);
 			},
@@ -5004,10 +5011,10 @@ function Zs(e, t) {
 			onChoose: ce,
 			$$slots: { icon: (e, t) => {
 				let n = /* @__PURE__ */ N(() => t.item);
-				var r = qs(), i = L(r), a = (e) => {
-					J(e, Gs());
+				var r = Js(), i = L(r), a = (e) => {
+					J(e, Ks());
 				}, o = (e) => {
-					var t = Ks(), r = R(t), i = z(r);
+					var t = qs(), r = R(t), i = z(r);
 					V(() => {
 						Q(r, "d", (G(U(n)), W(() => U(n).id === "forward" ? "M5 3v18m-3-3 3 3 3-3" : "M5 21V3m-3 3 3-3 3 3"))), Q(i, "d", (G(U(n)), W(() => U(n).id === "forward" ? "M11 4h10M11 9h8M11 14h6M11 19h3" : "M11 4h3M11 9h6M11 14h8M11 19h10")));
 					}), J(e, t);
@@ -5019,7 +5026,7 @@ function Zs(e, t) {
 		});
 	}
 	var Se = z(xe, 2);
-	Is(Se, {
+	Ls(Se, {
 		get mode() {
 			return U(b);
 		},
@@ -5029,10 +5036,10 @@ function Zs(e, t) {
 	M(Ce), pi(z(Ce, 2), t, "tools", {}, null), M(_e), M(he);
 	var Te = z(he, 2);
 	return si(Te, 5, () => U(i), (e) => e.id, (e, r) => {
-		var i = Ys();
+		var i = Xs();
 		let o;
 		var s = L(i), c = (e) => {
-			var t = Js();
+			var t = Ys();
 			let n;
 			var i = L(t), a = L(i);
 			M(i), M(t), V((e, r, i, o, s) => {
@@ -5073,7 +5080,7 @@ function Zs(e, t) {
 				"card-drop-before": U(O)?.id === U(r).id && !U(O).after,
 				"card-drop-after": U(O)?.id === U(r).id && U(O).after
 			}), Q(i, "aria-label", (U(r), U(te), W(() => `${U(r).title}${U(te) === U(r).id ? "，已選取" : ""}`))), Q(i, "data-card-id", (U(r), W(() => U(r).id))), Q(i, "draggable", (U(_), U(E), U(r), W(() => U(_) === "free" && U(E) === U(r).id)));
-		}, [() => (G(Ls), U(r), U(b), U(x), W(() => !Ls(U(r).id, U(b), U(x))))]), K("pointerdown", i, (e) => {
+		}, [() => (G(Rs), U(r), U(b), U(x), W(() => !Rs(U(r).id, U(b), U(x))))]), K("pointerdown", i, (e) => {
 			I(E, null), e.button === 0 && (I(te, U(r).id), !e.target.closest("button, a, input, textarea, select, label, [contenteditable], [role=\"button\"], [role=\"checkbox\"]") && (U(_) !== "free" || e.pointerType !== "mouse" || l() && U(p).includes(U(r).id) || e.target.closest("button, a, input, textarea, select, label, [contenteditable], [role=\"button\"], [role=\"checkbox\"], h1, h2, h3, p, span, strong, code, dt, dd, li, svg") || I(E, U(r).id)));
 		}), K("focusin", i, () => {
 			I(te, U(r).id);
@@ -5104,8 +5111,8 @@ jr([
 ]);
 //#endregion
 //#region experiments/editor-svelte-spike/src/ReportPointerCard.svelte
-var Qs = /* @__PURE__ */ q("<li class=\"pointer-card-row\"><span class=\"pointer-card-row-title\"> </span> <span> </span></li>"), $s = /* @__PURE__ */ q("<div class=\"task-summary\"><!></div> <p class=\"pointer-card-progress\"> </p> <ul class=\"pointer-card-rows\"></ul>", 1), ec = /* @__PURE__ */ q("<a class=\"pointer-card-title-link\"> </a>"), tc = /* @__PURE__ */ q("<a class=\"pointer-card-badge\">開啟專案報告 →</a>"), nc = /* @__PURE__ */ q("<strong class=\"task-fraction\"> </strong>"), rc = /* @__PURE__ */ q("<span> </span>"), ic = /* @__PURE__ */ q("<span role=\"status\">讀取目標報告中…</span>"), ac = /* @__PURE__ */ q("<span class=\"pointer-card-error\" role=\"alert\"> </span>"), oc = /* @__PURE__ */ q("<header slot=\"header\" class=\"task-header\"><div class=\"task-title-group\"><div class=\"time-task-title-line\"><h3><!></h3></div> <!></div> <div class=\"task-header-meta\"><!> <!> <!> <!></div></header>"), sc = /* @__PURE__ */ q("<article><!></article>");
-function cc(e, t) {
+var $s = /* @__PURE__ */ q("<li class=\"pointer-card-row\"><span class=\"pointer-card-row-title\"> </span> <span> </span></li>"), ec = /* @__PURE__ */ q("<div class=\"task-summary\"><!></div> <p class=\"pointer-card-progress\"> </p> <ul class=\"pointer-card-rows\"></ul>", 1), tc = /* @__PURE__ */ q("<a class=\"pointer-card-title-link\"> </a>"), nc = /* @__PURE__ */ q("<a class=\"pointer-card-badge\">開啟專案報告 →</a>"), rc = /* @__PURE__ */ q("<strong class=\"task-fraction\"> </strong>"), ic = /* @__PURE__ */ q("<span> </span>"), ac = /* @__PURE__ */ q("<span role=\"status\">讀取目標報告中…</span>"), oc = /* @__PURE__ */ q("<span class=\"pointer-card-error\" role=\"alert\"> </span>"), sc = /* @__PURE__ */ q("<header slot=\"header\" class=\"task-header\"><div class=\"task-title-group\"><div class=\"time-task-title-line\"><h3><!></h3></div> <!></div> <div class=\"task-header-meta\"><!> <!> <!> <!></div></header>"), cc = /* @__PURE__ */ q("<article><!></article>");
+function lc(e, t) {
 	Ke(t, !1);
 	let n = /* @__PURE__ */ F(), r = /* @__PURE__ */ F(), i = $(t, "visibilityEnabled", 8, !1), a = $(t, "visible", 8, !0), o = $(t, "onVisibleChange", 8, () => {}), s = $(t, "expanded", 8, !0), c = $(t, "onToggle", 8, () => {}), l = $(t, "task", 8), u = $(t, "state", 24, () => ({ status: "loading" })), d = {
 		planned: {
@@ -5146,7 +5153,7 @@ function cc(e, t) {
 			tone: "muted"
 		} : null);
 	}), Fn(), qi();
-	var p = sc(), m = L(p);
+	var p = cc(), m = L(p);
 	{
 		let e = /* @__PURE__ */ N(() => (G(l()), W(() => `task-body-${l().id}`)));
 		_o(m, {
@@ -5173,16 +5180,19 @@ function cc(e, t) {
 			},
 			children: (e, t) => {
 				var r = Vr(), i = R(r), a = (e) => {
-					var t = $s(), r = R(t);
-					zo(L(r), { get text() {
-						return U(n), W(() => U(n).summary);
-					} }), M(r);
+					var t = ec(), r = R(t);
+					Bo(L(r), {
+						get text() {
+							return U(n), W(() => U(n).summary);
+						},
+						emphasis: !0
+					}), M(r);
 					var i = z(r, 2), a = L(i);
 					M(i);
 					var o = z(i, 2);
 					si(o, 5, () => (U(n), W(() => U(n).rows)), (e) => e.id, (e, t) => {
 						let n = /* @__PURE__ */ N(() => (U(t), W(() => f(U(t).status))));
-						var r = Qs(), i = L(r), a = L(i, !0);
+						var r = $s(), i = L(r), a = L(i, !0);
 						M(i);
 						var o = z(i, 2), s = L(o, !0);
 						M(o), M(r), V(() => {
@@ -5199,8 +5209,8 @@ function cc(e, t) {
 			$$slots: {
 				default: !0,
 				header: (e, t) => {
-					var i = oc(), a = L(i), o = L(a), s = L(o), c = L(s), d = (e) => {
-						var t = ec(), n = L(t, !0);
+					var i = sc(), a = L(i), o = L(a), s = L(o), c = L(s), d = (e) => {
+						var t = tc(), n = L(t, !0);
 						M(t), V(() => {
 							Q(t, "href", (G(u()), W(() => u().openHref))), Y(n, (G(l()), W(() => l().title)));
 						}), J(e, t);
@@ -5212,21 +5222,21 @@ function cc(e, t) {
 						G(u()), W(() => u().openHref) ? e(d) : e(f, -1);
 					}), M(s), M(o);
 					var p = z(o, 2), m = (e) => {
-						var t = tc();
+						var t = nc();
 						V(() => Q(t, "href", (G(u()), W(() => u().openHref)))), J(e, t);
 					};
 					X(p, (e) => {
 						G(u()), W(() => u().openHref) && e(m);
 					}), M(a);
 					var h = z(a, 2), g = L(h), _ = (e) => {
-						var t = nc(), r = L(t);
+						var t = rc(), r = L(t);
 						M(t), V(() => Y(r, `${U(n), W(() => U(n).progress.completed) ?? ""} / ${U(n), W(() => U(n).progress.total) ?? ""}`)), J(e, t);
 					};
 					X(g, (e) => {
 						U(n) && e(_);
 					});
 					var v = z(g, 2), y = (e) => {
-						var t = rc(), n = L(t, !0);
+						var t = ic(), n = L(t, !0);
 						M(t), V(() => {
 							Z(t, 1, (U(r), W(() => `status-badge status-${U(r).tone}`))), Y(n, (U(r), W(() => U(r).label)));
 						}), J(e, t);
@@ -5235,13 +5245,13 @@ function cc(e, t) {
 						U(r) && e(y);
 					});
 					var b = z(v, 2), x = (e) => {
-						J(e, ic());
+						J(e, ac());
 					};
 					X(b, (e) => {
 						G(u()), W(() => u().status === "loading") && e(x);
 					});
 					var S = z(b, 2), C = (e) => {
-						var t = ac(), n = L(t, !0);
+						var t = oc(), n = L(t, !0);
 						M(t), V(() => Y(n, (G(u()), W(() => u().message)))), J(e, t);
 					};
 					X(S, (e) => {
@@ -5257,8 +5267,8 @@ function cc(e, t) {
 }
 //#endregion
 //#region experiments/editor-svelte-spike/src/TaskList.svelte
-var lc = /* @__PURE__ */ q("<span class=\"task-search\"><input type=\"search\" aria-label=\"搜尋任務卡名稱、摘要與子項\" placeholder=\"搜尋名稱、摘要、子項\"/> <svg class=\"task-search-icon\" viewBox=\"0 0 16 16\" width=\"14\" height=\"14\" aria-hidden=\"true\"><circle cx=\"7\" cy=\"7\" r=\"4.5\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\"></circle><path d=\"M10.4 10.4 14 14\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linecap=\"round\"></path></svg></span>"), uc = /* @__PURE__ */ q("<p class=\"empty-state\"> </p>"), dc = /* @__PURE__ */ q("<!> <!>", 1);
-function fc(e, t) {
+var uc = /* @__PURE__ */ q("<span class=\"task-search\"><input type=\"search\" aria-label=\"搜尋任務卡名稱、摘要與子項\" placeholder=\"搜尋名稱、摘要、子項\"/> <svg class=\"task-search-icon\" viewBox=\"0 0 16 16\" width=\"14\" height=\"14\" aria-hidden=\"true\"><circle cx=\"7\" cy=\"7\" r=\"4.5\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\"></circle><path d=\"M10.4 10.4 14 14\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linecap=\"round\"></path></svg></span>"), dc = /* @__PURE__ */ q("<p class=\"empty-state\"> </p>"), fc = /* @__PURE__ */ q("<!> <!>", 1);
+function pc(e, t) {
 	Ke(t, !1);
 	let n = /* @__PURE__ */ F(), r = $(t, "filters", 8, null), i = $(t, "tasks", 24, () => []), a = $(t, "allIds", 24, () => []), o = $(t, "cardStorageKey", 8, null), s = $(t, "requestedPin", 8, null), c = $(t, "scopeId", 8, null), l = $(t, "searchQuery", 8, ""), u = $(t, "onSearch", 8, null), d = $(t, "reorderable", 8, !1), f = $(t, "onReorder", 8, () => {}), p = $(t, "selection", 8, null), m = $(t, "progress", 24, () => ({})), h = $(t, "editing", 8, !1), g = $(t, "policy", 8), _ = $(t, "onCommand", 8, () => {}), v = $(t, "onAddItem", 8, () => {}), y = $(t, "timeTasks", 24, () => /* @__PURE__ */ new Map()), b = $(t, "itemCapsules", 24, () => /* @__PURE__ */ new Map()), x = $(t, "onModuleActivate", 8, () => {}), S = $(t, "moduleOrder", 24, () => ["time"]), C = $(t, "onModuleReorder", 8, () => {}), w = $(t, "moduleTotals", 24, () => ({})), ee = $(t, "statusOrder", 24, () => ["done", "planned"]), T = $(t, "emptyLabel", 8, "沒有符合目前篩選的工作項目。"), te = $(t, "pointerCards", 24, () => ({})), E = /* @__PURE__ */ F(!0), D = /* @__PURE__ */ F({}), O = null;
 	function ne(e, t) {
@@ -5288,8 +5298,8 @@ function fc(e, t) {
 	}), B(() => (G(s()), U(n)), () => {
 		ne(s(), U(n));
 	}), Fn(), qi();
-	var ae = dc(), oe = R(ae);
-	Zs(oe, {
+	var ae = fc(), oe = R(ae);
+	Qs(oe, {
 		pinEnabled: !0,
 		get requestedPin() {
 			return s();
@@ -5314,7 +5324,7 @@ function fc(e, t) {
 				var s = Vr(), l = R(s), u = (e) => {
 					{
 						let t = /* @__PURE__ */ N(() => (U(D), G(U(n)), U(E), W(() => U(D)[U(n).id] ?? U(E)))), r = /* @__PURE__ */ N(() => (G(te()), G(U(n)), W(() => te()[U(n).id] ?? { status: "loading" })));
-						cc(e, {
+						lc(e, {
 							get visibilityEnabled() {
 								return U(i);
 							},
@@ -5339,7 +5349,7 @@ function fc(e, t) {
 				}, T = (e) => {
 					{
 						let t = /* @__PURE__ */ N(() => (U(D), G(U(n)), U(E), W(() => U(D)[U(n).id] ?? U(E)))), s = /* @__PURE__ */ N(() => (G(y()), G(U(n)), W(() => y().get(U(n).id) ?? null))), l = /* @__PURE__ */ N(() => (G(w()), G(U(n)), W(() => w()[U(n).id] ?? [])));
-						Os(e, {
+						ks(e, {
 							get visibilityEnabled() {
 								return U(i);
 							},
@@ -5422,7 +5432,7 @@ function fc(e, t) {
 			},
 			tools: (e, t) => {
 				var n = Vr(), r = R(n), i = (e) => {
-					var t = lc(), n = L(t);
+					var t = uc(), n = L(t);
 					Pi(n), Ie(2), M(t), V(() => Fi(n, l())), K("input", n, (e) => u()(e.currentTarget.value)), J(e, t);
 				};
 				X(r, (e) => {
@@ -5432,7 +5442,7 @@ function fc(e, t) {
 		}
 	});
 	var se = z(oe, 2), ce = (e) => {
-		var t = uc(), n = L(t, !0);
+		var t = dc(), n = L(t, !0);
 		M(t), V(() => Y(n, T())), J(e, t);
 	};
 	X(se, (e) => {
@@ -5442,7 +5452,7 @@ function fc(e, t) {
 jr(["input"]);
 //#endregion
 //#region viewer/assets/theme-model.js
-var pc = [
+var mc = [
 	{
 		key: "pageBackground",
 		cssVariable: "--color-page-bg",
@@ -5483,7 +5493,7 @@ var pc = [
 		cssVariable: "--color-accent",
 		label: "強調色"
 	}
-], mc = Object.freeze({
+], hc = Object.freeze({
 	light: Object.freeze({
 		pageBackground: "#f5f3ec",
 		panelBackground: "#fffdf8",
@@ -5509,35 +5519,35 @@ Object.freeze({
 	version: 1,
 	mode: "system"
 });
-var hc = /^#[0-9a-f]{6}$/i;
-function gc(e) {
-	return typeof e == "string" && hc.test(e);
+var gc = /^#[0-9a-f]{6}$/i;
+function _c(e) {
+	return typeof e == "string" && gc.test(e);
 }
-function _c(e = "light", t = {}) {
-	let n = e === "dark" ? "dark" : "light", r = mc[n], i = { base: n };
-	for (let e of pc) {
+function vc(e = "light", t = {}) {
+	let n = e === "dark" ? "dark" : "light", r = hc[n], i = { base: n };
+	for (let e of mc) {
 		let n = t[e.key];
-		i[e.key] = gc(n) ? n.toLowerCase() : r[e.key];
+		i[e.key] = _c(n) ? n.toLowerCase() : r[e.key];
 	}
 	return i;
 }
-function vc(e) {
+function yc(e) {
 	let t = e / 255;
 	return t <= .04045 ? t / 12.92 : ((t + .055) / 1.055) ** 2.4;
 }
-function yc(e, t) {
-	if (!gc(e) || !gc(t)) return 1;
+function bc(e, t) {
+	if (!_c(e) || !_c(t)) return 1;
 	let n = (e) => {
 		let t = e.slice(1), n = [
 			0,
 			2,
 			4
-		].map((e) => vc(Number.parseInt(t.slice(e, e + 2), 16)));
+		].map((e) => yc(Number.parseInt(t.slice(e, e + 2), 16)));
 		return .2126 * n[0] + .7152 * n[1] + .0722 * n[2];
 	}, r = n(e), i = n(t);
 	return (Math.max(r, i) + .05) / (Math.min(r, i) + .05);
 }
-function bc(e) {
+function xc(e) {
 	return [
 		[
 			"大標題",
@@ -5559,12 +5569,12 @@ function bc(e) {
 			e.secondaryText,
 			e.panelBackground
 		]
-	].filter(([, e, t]) => yc(e, t) < 4.5).map(([e]) => `${e}對比低於 4.5:1`);
+	].filter(([, e, t]) => bc(e, t) < 4.5).map(([e]) => `${e}對比低於 4.5:1`);
 }
 //#endregion
 //#region experiments/editor-svelte-spike/src/ThemeControl.svelte
-var xc = /* @__PURE__ */ q("<option> </option>"), Sc = /* @__PURE__ */ q("<label class=\"theme-color-field\"><span> </span> <span class=\"theme-color-controls\"><input type=\"color\"/> <input type=\"text\" inputmode=\"text\" maxlength=\"7\"/></span></label>"), Cc = /* @__PURE__ */ q("<p class=\"theme-dialog-description\">選擇基底後調整主要介面顏色；任務狀態色會沿用基底，保持完成、進行中與受阻容易辨識。</p> <label class=\"theme-base-field\" for=\"theme-custom-base\"><span>狀態色基底</span> <select id=\"theme-custom-base\"><option>亮色基底</option><option>暗色基底</option></select></label> <div class=\"theme-color-fields\" id=\"theme-color-fields\"></div> <p id=\"theme-dialog-status\" aria-live=\"polite\"> </p> <div class=\"theme-dialog-actions\"><button class=\"secondary-button\" id=\"theme-reset\" type=\"button\">恢復基底預設</button> <span class=\"theme-dialog-action-spacer\"></span> <button class=\"secondary-button\" id=\"theme-cancel\" type=\"button\">取消</button> <button class=\"primary-button\" id=\"theme-apply\" type=\"button\">套用自訂主題</button></div>", 1), wc = /* @__PURE__ */ q("<label class=\"theme-picker\" for=\"theme-select\"><span>主題</span> <select id=\"theme-select\" aria-label=\"顯示主題\"></select></label> <!>", 1);
-function Tc(e, t) {
+var Sc = /* @__PURE__ */ q("<option> </option>"), Cc = /* @__PURE__ */ q("<label class=\"theme-color-field\"><span> </span> <span class=\"theme-color-controls\"><input type=\"color\"/> <input type=\"text\" inputmode=\"text\" maxlength=\"7\"/></span></label>"), wc = /* @__PURE__ */ q("<p class=\"theme-dialog-description\">選擇基底後調整主要介面顏色；任務狀態色會沿用基底，保持完成、進行中與受阻容易辨識。</p> <label class=\"theme-base-field\" for=\"theme-custom-base\"><span>狀態色基底</span> <select id=\"theme-custom-base\"><option>亮色基底</option><option>暗色基底</option></select></label> <div class=\"theme-color-fields\" id=\"theme-color-fields\"></div> <p id=\"theme-dialog-status\" aria-live=\"polite\"> </p> <div class=\"theme-dialog-actions\"><button class=\"secondary-button\" id=\"theme-reset\" type=\"button\">恢復基底預設</button> <span class=\"theme-dialog-action-spacer\"></span> <button class=\"secondary-button\" id=\"theme-cancel\" type=\"button\">取消</button> <button class=\"primary-button\" id=\"theme-apply\" type=\"button\">套用自訂主題</button></div>", 1), Tc = /* @__PURE__ */ q("<label class=\"theme-picker\" for=\"theme-select\"><span>主題</span> <select id=\"theme-select\" aria-label=\"顯示主題\"></select></label> <!>", 1);
+function Ec(e, t) {
 	Ke(t, !1);
 	let n = /* @__PURE__ */ F(), r = /* @__PURE__ */ F(), i = /* @__PURE__ */ F(), a = $(t, "mode", 8, "system"), o = $(t, "custom", 8, null), s = $(t, "systemScheme", 8, "light"), c = $(t, "onModeChange", 8, () => {}), l = $(t, "onApplyCustom", 8, () => {}), u = [
 		{
@@ -5583,9 +5593,9 @@ function Tc(e, t) {
 			value: "custom",
 			label: "自訂…"
 		}
-	], d = /^#[0-9a-f]{6}$/i, f = /* @__PURE__ */ F(!1), p = /* @__PURE__ */ F([]), m = /* @__PURE__ */ F(a()), h = /* @__PURE__ */ F(o()?.base ?? s()), g = /* @__PURE__ */ F(v(_c(U(h)))), _ = /* @__PURE__ */ F({ ...U(g) });
+	], d = /^#[0-9a-f]{6}$/i, f = /* @__PURE__ */ F(!1), p = /* @__PURE__ */ F([]), m = /* @__PURE__ */ F(a()), h = /* @__PURE__ */ F(o()?.base ?? s()), g = /* @__PURE__ */ F(v(vc(U(h)))), _ = /* @__PURE__ */ F({ ...U(g) });
 	function v(e) {
-		return Object.fromEntries(pc.map((t) => [t.key, e[t.key]]));
+		return Object.fromEntries(mc.map((t) => [t.key, e[t.key]]));
 	}
 	function y(e) {
 		I(h, e.base), I(g, v(e)), I(_, { ...U(g) });
@@ -5600,13 +5610,13 @@ function Tc(e, t) {
 		c()(t);
 	}
 	function x() {
-		y(o() ? _c(o().base, o()) : _c(s())), I(f, !0);
+		y(o() ? vc(o().base, o()) : vc(s())), I(f, !0);
 	}
 	function S() {
 		I(f, !1);
 	}
 	function C(e) {
-		y(_c(e.currentTarget.value));
+		y(vc(e.currentTarget.value));
 	}
 	function w(e, t, n) {
 		let r = n.currentTarget.value;
@@ -5637,20 +5647,20 @@ function Tc(e, t) {
 			e.reportValidity();
 			return;
 		}
-		l()(_c(U(h), U(_))), S();
+		l()(vc(U(h), U(_))), S();
 	}
 	B(() => G(a()), () => {
 		I(m, a());
 	}), B(() => (U(h), U(_)), () => {
-		I(n, _c(U(h), U(_)));
+		I(n, vc(U(h), U(_)));
 	}), B(() => U(n), () => {
-		I(r, bc(U(n)));
+		I(r, xc(U(n)));
 	}), B(() => U(r), () => {
 		I(i, U(r).length ? `注意：${U(r).join("；")}。仍可套用，但可能較難閱讀。` : "目前的文字與背景色彩對比符合 4.5:1。");
 	}), Fn(), qi();
-	var E = wc(), D = R(E), O = z(L(D), 2);
+	var E = Tc(), D = R(E), O = z(L(D), 2);
 	si(O, 5, () => u, (e) => e.value, (e, t) => {
-		var n = xc(), r = L(n, !0);
+		var n = Sc(), r = L(n, !0);
 		M(n);
 		var i = {};
 		V(() => {
@@ -5667,15 +5677,15 @@ function Tc(e, t) {
 		closeLabel: "關閉自訂主題",
 		onClose: T,
 		children: (e, t) => {
-			var a = Cc(), o = z(R(a), 2), s = z(L(o), 2), c = L(s);
+			var a = wc(), o = z(R(a), 2), s = z(L(o), 2), c = L(s);
 			c.value = c.__value = "light";
 			var l = z(c);
 			l.value = l.__value = "dark", M(s);
 			var u;
 			Di(s), M(o);
 			var d = z(o, 2);
-			si(d, 7, () => pc, (e) => e.key, (e, t, r) => {
-				var i = Sc(), a = L(i), o = L(a, !0);
+			si(d, 7, () => mc, (e) => e.key, (e, t, r) => {
+				var i = Cc(), a = L(i), o = L(a, !0);
 				M(a);
 				var s = z(a, 2), c = L(s);
 				Pi(c);
@@ -5691,7 +5701,7 @@ function Tc(e, t) {
 			var v = z(f, 2), b = L(v), x = z(b, 4), S = z(x, 2);
 			M(v), V(() => {
 				u !== (u = U(h)) && (s.value = (s.__value = U(h)) ?? "", Ei(s, U(h))), m = Z(f, 1, "theme-dialog-status", null, m, { "theme-status-warning": U(r).length > 0 }), Y(_, U(i));
-			}), K("change", s, C), K("click", b, () => y(_c(U(h)))), K("click", x, T), K("click", S, te), J(e, a);
+			}), K("change", s, C), K("click", b, () => y(vc(U(h)))), K("click", x, T), K("click", S, te), J(e, a);
 		},
 		$$slots: { default: !0 }
 	}), K("change", O, b), Oi(O, () => U(m), (e) => I(m, e)), J(e, E), qe();
@@ -5703,8 +5713,8 @@ jr([
 ]);
 //#endregion
 //#region experiments/editor-svelte-spike/src/ManualEstimateEditor.svelte
-var Ec = /* @__PURE__ */ q("<span> </span>"), Dc = /* @__PURE__ */ q("<label class=\"spike-estimate-note\"><span>人工依據</span> <input maxlength=\"1000\" placeholder=\"例如：已拆解三個步驟\"/></label>"), Oc = /* @__PURE__ */ q("<p class=\"spike-field-error\" role=\"alert\"> </p>"), kc = /* @__PURE__ */ q("<form class=\"spike-estimate-form\"><section class=\"spike-estimate-row\"><div class=\"spike-estimate-badges\"><span>預估工時</span> <!></div> <label class=\"spike-estimate-hours\"><span>人工工時（hr）</span> <input type=\"number\" min=\"0.02\" step=\"0.25\"/></label></section> <div class=\"time-item-rationale\"><!></div> <label class=\"spike-estimate-confirmation\"><input type=\"checkbox\"/> <span>人工確認此工時</span></label> <p class=\"spike-estimate-contract\">未勾選仍可儲存人工工時與依據；確認只表示你接受目前估算結果。</p> <div class=\"spike-estimate-actions\"><button type=\"submit\">套用工時草稿</button></div> <!></form>");
-function Ac(e, t) {
+var Dc = /* @__PURE__ */ q("<span> </span>"), Oc = /* @__PURE__ */ q("<label class=\"spike-estimate-note\"><span>人工依據</span> <input maxlength=\"1000\" placeholder=\"例如：已拆解三個步驟\"/></label>"), kc = /* @__PURE__ */ q("<p class=\"spike-field-error\" role=\"alert\"> </p>"), Ac = /* @__PURE__ */ q("<form class=\"spike-estimate-form\"><section class=\"spike-estimate-row\"><div class=\"spike-estimate-badges\"><span>預估工時</span> <!></div> <label class=\"spike-estimate-hours\"><span>人工工時（hr）</span> <input type=\"number\" min=\"0.02\" step=\"0.25\"/></label></section> <div class=\"time-item-rationale\"><!></div> <label class=\"spike-estimate-confirmation\"><input type=\"checkbox\"/> <span>人工確認此工時</span></label> <p class=\"spike-estimate-contract\">未勾選仍可儲存人工工時與依據；確認只表示你接受目前估算結果。</p> <div class=\"spike-estimate-actions\"><button type=\"submit\">套用工時草稿</button></div> <!></form>");
+function jc(e, t) {
 	Ke(t, !1);
 	let n = $(t, "item", 8), r = $(t, "activeEstimate", 8, null), i = $(t, "onApply", 8, () => ({ error: "" })), a = /* @__PURE__ */ F(r()?.likely_minutes ? String(r().likely_minutes / 60) : n().unset ? "" : String(n().likelyMinutes / 60)), o = /* @__PURE__ */ F(r()?.human_note ?? ""), s = /* @__PURE__ */ F(!!(r()?.human_confirmed ?? n().humanConfirmed)), c = /* @__PURE__ */ F("");
 	function l() {
@@ -5723,9 +5733,9 @@ function Ac(e, t) {
 		I(c, t?.error ?? "");
 	}
 	qi();
-	var u = kc(), d = L(u), f = L(d);
+	var u = Ac(), d = L(u), f = L(d);
 	si(z(L(f), 2), 1, () => (G(n()), W(() => n().sourceBadges)), (e) => e.kind, (e, t) => {
-		var n = Ec(), r = L(n, !0);
+		var n = Dc(), r = L(n, !0);
 		M(n), V(() => {
 			Z(n, 1, `assessment-source-badge source-${U(t), W(() => U(t).kind) ?? ""}`), Y(r, (U(t), W(() => U(t).label)));
 		}), J(e, n);
@@ -5736,7 +5746,7 @@ function Ac(e, t) {
 	da(L(h), {
 		heading: "估算依據",
 		children: (e, t) => {
-			var r = Dc(), i = z(L(r), 2);
+			var r = Oc(), i = z(L(r), 2);
 			Pi(i), M(r), V(() => Q(i, "aria-label", (G(n()), W(() => `「${n().title}」人工依據`)))), Bi(i, () => U(o), (e) => I(o, e)), J(e, r);
 		},
 		$$slots: { default: !0 }
@@ -5746,7 +5756,7 @@ function Ac(e, t) {
 	var v = z(g, 4), y = L(v);
 	M(v);
 	var b = z(v, 2), x = (e) => {
-		var t = Oc(), n = L(t, !0);
+		var t = kc(), n = L(t, !0);
 		M(t), V(() => Y(n, U(c))), J(e, t);
 	};
 	X(b, (e) => {
@@ -5759,8 +5769,8 @@ function Ac(e, t) {
 }
 //#endregion
 //#region experiments/editor-svelte-spike/src/TimeSettingsEditor.svelte
-var jc = /* @__PURE__ */ q("<label><input type=\"checkbox\"/> <span> </span></label>"), Mc = /* @__PURE__ */ q("<div class=\"spike-exception-row\"><label><span>日期</span><input type=\"date\"/></label> <label><span>可工作（hr）</span><input type=\"number\" min=\"0\" max=\"24\" step=\"0.5\"/></label> <label><span>請假／例外說明</span><input maxlength=\"500\" placeholder=\"例如：不可工作\"/></label> <button class=\"spike-delete-exception\" type=\"button\">刪除</button></div>"), Nc = /* @__PURE__ */ q("<div class=\"spike-exception-list\"></div>"), Pc = /* @__PURE__ */ q("<p class=\"spike-empty-setting\">目前沒有休假或容量例外。</p>"), Fc = /* @__PURE__ */ q("<p class=\"spike-field-error\" role=\"alert\"> </p>"), Ic = /* @__PURE__ */ q("<section class=\"spike-time-editor\" aria-labelledby=\"time-settings-title\"><div class=\"spike-time-editor-heading\"><p class=\"spike-editor-kicker\">時間設定</p> <h2 id=\"time-settings-title\">工作容量與交付日</h2> <p>所有欄位先保存在記憶體草稿；重新計算只預覽，全域儲存才寫入。</p> <p class=\"spike-timezone\"> </p></div> <div class=\"spike-time-settings-fields\"><section class=\"spike-delivery-settings\" aria-labelledby=\"delivery-settings-title\"><h3 id=\"delivery-settings-title\">交付日</h3> <div class=\"spike-delivery-controls\"><label><span>排他截止時間</span><input type=\"datetime-local\"/></label> <label class=\"spike-delivery-reason\"><span>修改原因（不填敏感原文）</span><input maxlength=\"500\" placeholder=\"例如：配合里程碑調整\"/></label> <button class=\"spike-subtle-button\" type=\"button\">設為未指定</button></div></section> <section class=\"spike-capacity-settings\" aria-labelledby=\"capacity-settings-title\"><div class=\"spike-setting-heading\"><h3 id=\"capacity-settings-title\">每日分配</h3> <strong> </strong></div> <div class=\"spike-allocation-fields\"><label><span>睡眠（hr）</span><input type=\"number\" min=\"0\" max=\"24\" step=\"0.5\"/></label> <label><span>生活（hr）</span><input type=\"number\" min=\"0\" max=\"24\" step=\"0.5\"/></label> <label><span>其他不可工作（hr）</span><input type=\"number\" min=\"0\" max=\"24\" step=\"0.5\"/></label></div> <fieldset class=\"spike-weekdays\"><legend>工作日</legend> <!></fieldset></section> <section class=\"spike-exception-settings\" aria-labelledby=\"exception-settings-title\"><div class=\"spike-setting-heading\"><div><h3 id=\"exception-settings-title\">休假與容量例外</h3> <p>請假／例外說明可能公開；請勿填私人細節。既有私人理由會保留但不在此顯示或修改。</p></div> <button class=\"spike-subtle-button\" type=\"button\">＋ 新增例外</button></div> <!></section> <div class=\"spike-time-settings-actions\"><button type=\"button\">重新計算預覽</button> <!></div></div></section>");
-function Lc(e, t) {
+var Mc = /* @__PURE__ */ q("<label><input type=\"checkbox\"/> <span> </span></label>"), Nc = /* @__PURE__ */ q("<div class=\"spike-exception-row\"><label><span>日期</span><input type=\"date\"/></label> <label><span>可工作（hr）</span><input type=\"number\" min=\"0\" max=\"24\" step=\"0.5\"/></label> <label><span>請假／例外說明</span><input maxlength=\"500\" placeholder=\"例如：不可工作\"/></label> <button class=\"spike-delete-exception\" type=\"button\">刪除</button></div>"), Pc = /* @__PURE__ */ q("<div class=\"spike-exception-list\"></div>"), Fc = /* @__PURE__ */ q("<p class=\"spike-empty-setting\">目前沒有休假或容量例外。</p>"), Ic = /* @__PURE__ */ q("<p class=\"spike-field-error\" role=\"alert\"> </p>"), Lc = /* @__PURE__ */ q("<section class=\"spike-time-editor\" aria-labelledby=\"time-settings-title\"><div class=\"spike-time-editor-heading\"><p class=\"spike-editor-kicker\">時間設定</p> <h2 id=\"time-settings-title\">工作容量與交付日</h2> <p>所有欄位先保存在記憶體草稿；重新計算只預覽，全域儲存才寫入。</p> <p class=\"spike-timezone\"> </p></div> <div class=\"spike-time-settings-fields\"><section class=\"spike-delivery-settings\" aria-labelledby=\"delivery-settings-title\"><h3 id=\"delivery-settings-title\">交付日</h3> <div class=\"spike-delivery-controls\"><label><span>排他截止時間</span><input type=\"datetime-local\"/></label> <label class=\"spike-delivery-reason\"><span>修改原因（不填敏感原文）</span><input maxlength=\"500\" placeholder=\"例如：配合里程碑調整\"/></label> <button class=\"spike-subtle-button\" type=\"button\">設為未指定</button></div></section> <section class=\"spike-capacity-settings\" aria-labelledby=\"capacity-settings-title\"><div class=\"spike-setting-heading\"><h3 id=\"capacity-settings-title\">每日分配</h3> <strong> </strong></div> <div class=\"spike-allocation-fields\"><label><span>睡眠（hr）</span><input type=\"number\" min=\"0\" max=\"24\" step=\"0.5\"/></label> <label><span>生活（hr）</span><input type=\"number\" min=\"0\" max=\"24\" step=\"0.5\"/></label> <label><span>其他不可工作（hr）</span><input type=\"number\" min=\"0\" max=\"24\" step=\"0.5\"/></label></div> <fieldset class=\"spike-weekdays\"><legend>工作日</legend> <!></fieldset></section> <section class=\"spike-exception-settings\" aria-labelledby=\"exception-settings-title\"><div class=\"spike-setting-heading\"><div><h3 id=\"exception-settings-title\">休假與容量例外</h3> <p>請假／例外說明可能公開；請勿填私人細節。既有私人理由會保留但不在此顯示或修改。</p></div> <button class=\"spike-subtle-button\" type=\"button\">＋ 新增例外</button></div> <!></section> <div class=\"spike-time-settings-actions\"><button type=\"button\">重新計算預覽</button> <!></div></div></section>");
+function Rc(e, t) {
 	Ke(t, !1);
 	let n = /* @__PURE__ */ F(), r = $(t, "config", 8), i = $(t, "onApply", 8), a = $(t, "onPreview", 8), o = $(t, "onPendingChange", 8, () => {}), s = [
 		{
@@ -5877,7 +5887,7 @@ function Lc(e, t) {
 	B(() => (U(f), U(p), U(m)), () => {
 		I(n, 24 - Number(U(f)) - Number(U(p)) - Number(U(m)));
 	}), Fn(), qi();
-	var D = Ic(), O = L(D), ne = z(L(O), 6), k = L(ne);
+	var D = Lc(), O = L(D), ne = z(L(O), 6), k = L(ne);
 	M(ne), M(O);
 	var re = z(O, 2), ie = L(re), ae = z(L(ie), 2), oe = L(ae), se = z(L(oe));
 	Pi(se), M(oe);
@@ -5897,7 +5907,7 @@ function Lc(e, t) {
 	Pi(Se), M(xe), M(ge);
 	var Ce = z(ge, 2);
 	si(z(L(Ce), 2), 1, () => s, (e) => e.value, (e, t) => {
-		var n = jc(), r = L(n);
+		var n = Mc(), r = L(n);
 		Pi(r);
 		var i = z(r, 2), a = L(i);
 		M(i), M(n), V((e) => {
@@ -5907,9 +5917,9 @@ function Lc(e, t) {
 	var we = z(de, 2), Te = L(we), Ee = z(L(Te), 2);
 	M(Te);
 	var De = z(Te, 2), Oe = (e) => {
-		var t = Nc();
+		var t = Pc();
 		si(t, 5, () => U(_), (e) => e.key, (e, t) => {
-			var n = Mc(), r = L(n), i = z(L(r));
+			var n = Nc(), r = L(n), i = z(L(r));
 			Pi(i), M(r);
 			var a = z(r, 2), o = z(L(a));
 			Pi(o), M(a);
@@ -5921,13 +5931,13 @@ function Lc(e, t) {
 			}), K("input", i, (e) => C(U(t).key, "date", e.currentTarget.value)), K("input", o, (e) => C(U(t).key, "availableHours", e.currentTarget.value)), K("input", c, (e) => C(U(t).key, "publicLabel", e.currentTarget.value)), K("click", l, () => ee(U(t).key)), J(e, n);
 		}), M(t), J(e, t);
 	}, ke = (e) => {
-		J(e, Pc());
+		J(e, Fc());
 	};
 	X(De, (e) => {
 		U(_), W(() => U(_).length) ? e(Oe) : e(ke, -1);
 	}), M(we);
 	var Ae = z(we, 2), je = L(Ae), Me = z(je, 2), A = (e) => {
-		var t = Fc(), n = L(t, !0);
+		var t = Ic(), n = L(t, !0);
 		M(t), V(() => Y(n, U(v))), J(e, t);
 	};
 	X(Me, (e) => {
@@ -5945,8 +5955,8 @@ jr([
 ]);
 //#endregion
 //#region experiments/editor-svelte-spike/src/TimeDialog.svelte
-var Rc = (e, t = _, n = _) => {
-	var r = Gc(), i = L(r), a = L(i, !0);
+var zc = (e, t = _, n = _) => {
+	var r = Kc(), i = L(r), a = L(i, !0);
 	M(i);
 	var o = z(i, 2), s = L(o, !0);
 	M(o);
@@ -5954,10 +5964,10 @@ var Rc = (e, t = _, n = _) => {
 	M(c), M(r), V((e) => {
 		Z(r, 1, e), Y(a, (t(), W(() => t().label))), Y(s, (t(), W(() => t().value))), Y(l, (t(), W(() => t().note)));
 	}, [() => vi((n(), W(() => `time-evaluation-node ${n()}`.trim())))]), J(e, r);
-}, zc = (e, t = _) => {
-	var n = qc();
+}, Bc = (e, t = _) => {
+	var n = Jc();
 	si(n, 5, t, ri, (e, t) => {
-		var n = Kc(), r = L(n), i = L(r), a = L(i, !0);
+		var n = qc(), r = L(n), i = L(r), a = L(i, !0);
 		M(i);
 		var o = z(i), s = L(o, !0);
 		M(o), M(r);
@@ -5966,26 +5976,26 @@ var Rc = (e, t = _, n = _) => {
 			Y(a, (U(t), W(() => U(t).label))), Y(s, (U(t), W(() => U(t).note))), Y(l, (U(t), W(() => U(t).value)));
 		}), J(e, n);
 	}), M(n), J(e, n);
-}, Bc = (e, t = _) => {
-	var n = Jc();
-	zc(z(L(n), 2), t), M(n), J(e, n);
-}, Vc = (e, t = _, n = _) => {
-	var r = Yc(), i = L(r), a = L(i, !0);
+}, Vc = (e, t = _) => {
+	var n = Yc();
+	Bc(z(L(n), 2), t), M(n), J(e, n);
+}, Hc = (e, t = _, n = _) => {
+	var r = Xc(), i = L(r), a = L(i, !0);
 	M(i);
 	var o = z(i, 2), s = L(o), c = L(s);
-	Rc(c, () => (t(), W(() => t().engineeringLane.source)), () => ""), Rc(z(c, 4), () => (t(), W(() => t().engineeringLane.result)), () => "time-evaluation-result"), M(s);
+	zc(c, () => (t(), W(() => t().engineeringLane.source)), () => ""), zc(z(c, 4), () => (t(), W(() => t().engineeringLane.result)), () => "time-evaluation-result"), M(s);
 	var l = z(s, 2), u = L(l);
-	Rc(u, () => (t(), W(() => t().capacityLane.source)), () => ""), Rc(z(u, 4), () => (t(), W(() => t().capacityLane.result)), () => "time-evaluation-result"), M(l), M(o);
+	zc(u, () => (t(), W(() => t().capacityLane.source)), () => ""), zc(z(u, 4), () => (t(), W(() => t().capacityLane.result)), () => "time-evaluation-result"), M(l), M(o);
 	var d = z(o, 2);
-	Rc(z(L(d), 2), () => (t(), W(() => t().merge)), () => (t(), W(() => t().merge.className))), M(d);
+	zc(z(L(d), 2), () => (t(), W(() => t().merge)), () => (t(), W(() => t().merge.className))), M(d);
 	var f = z(d, 2), p = L(f);
-	Rc(p, () => (t(), W(() => t().risk.trend)), () => ""), Rc(z(p, 4), () => (t(), W(() => t().risk.result)), () => (t(), W(() => t().risk.result.className))), M(f);
+	zc(p, () => (t(), W(() => t().risk.trend)), () => ""), zc(z(p, 4), () => (t(), W(() => t().risk.result)), () => (t(), W(() => t().risk.result.className))), M(f);
 	var m = z(f, 2), h = L(m, !0);
 	M(m), M(r), V(() => {
 		Q(r, "hidden", !n()), Y(a, (t(), W(() => t().intro))), Y(h, (t(), W(() => t().note)));
 	}), J(e, r);
-}, Hc = (e, t = _, n = _) => {
-	var r = Qc(), i = L(r);
+}, Uc = (e, t = _, n = _) => {
+	var r = $c(), i = L(r);
 	ca(i, { get metrics() {
 		return t(), W(() => t().metrics);
 	} });
@@ -5996,7 +6006,7 @@ var Rc = (e, t = _, n = _) => {
 			return t(), W(() => t().explanation.className);
 		},
 		children: (e, n) => {
-			var r = Xc(), i = R(r), a = L(i, !0);
+			var r = Zc(), i = R(r), a = L(i, !0);
 			M(i);
 			var o = z(i, 2), s = L(o, !0);
 			M(o), V(() => {
@@ -6009,13 +6019,13 @@ var Rc = (e, t = _, n = _) => {
 	da(o, {
 		heading: "執行校準",
 		children: (e, n) => {
-			var r = Zc(), i = L(r, !0);
+			var r = Qc(), i = L(r, !0);
 			M(r), V(() => Y(i, (t(), W(() => t().calibrationText)))), J(e, r);
 		},
 		$$slots: { default: !0 }
-	}), Bc(z(o, 2), () => (t(), W(() => t().composition))), M(r), V(() => Q(r, "hidden", !n())), J(e, r);
-}, Uc = (e, t = _, n = _) => {
-	var r = tl(), i = z(L(r), 2);
+	}), Vc(z(o, 2), () => (t(), W(() => t().composition))), M(r), V(() => Q(r, "hidden", !n())), J(e, r);
+}, Wc = (e, t = _, n = _) => {
+	var r = nl(), i = z(L(r), 2);
 	ca(i, { get metrics() {
 		return t(), W(() => t().metrics);
 	} });
@@ -6023,7 +6033,7 @@ var Rc = (e, t = _, n = _) => {
 	da(a, {
 		heading: "每日容量公式",
 		children: (e, n) => {
-			var r = $c(), i = z(R(r), 2), a = L(i, !0);
+			var r = el(), i = z(R(r), 2), a = L(i, !0);
 			M(i), V(() => Y(a, (t(), W(() => t().formulaCode)))), J(e, r);
 		},
 		$$slots: { default: !0 }
@@ -6033,7 +6043,7 @@ var Rc = (e, t = _, n = _) => {
 	var l = z(s, 2), u = L(l), d = (e) => {
 		var n = Vr();
 		si(R(n), 1, () => (t(), W(() => t().exceptions)), ri, (e, t) => {
-			var n = Kc(), r = L(n), i = L(r), a = L(i, !0);
+			var n = qc(), r = L(n), i = L(r), a = L(i, !0);
 			M(i);
 			var o = z(i), s = L(o, !0);
 			M(o), M(r);
@@ -6043,15 +6053,15 @@ var Rc = (e, t = _, n = _) => {
 			}), J(e, n);
 		}), J(e, n);
 	}, f = (e) => {
-		J(e, el());
+		J(e, tl());
 	};
 	X(u, (e) => {
 		t(), W(() => t().exceptions) ? e(d) : e(f, -1);
 	}), M(l), M(o), M(r), V(() => {
 		Q(r, "hidden", !n()), Y(c, (t(), W(() => t().exceptionsHeading)));
 	}), J(e, r);
-}, Wc = (e, t = _) => {
-	var n = nl(), r = L(n), i = L(r, !0);
+}, Gc = (e, t = _) => {
+	var n = rl(), r = L(n), i = L(r, !0);
 	M(r);
 	var a = z(r, 2);
 	ca(a, { get metrics() {
@@ -6061,13 +6071,13 @@ var Rc = (e, t = _, n = _) => {
 	da(o, {
 		heading: "執行校準",
 		children: (e, n) => {
-			var r = Zc(), i = L(r, !0);
+			var r = Qc(), i = L(r, !0);
 			M(r), V(() => Y(i, (t(), W(() => t().calibrationText)))), J(e, r);
 		},
 		$$slots: { default: !0 }
-	}), Bc(z(o, 2), () => (t(), W(() => t().composition))), M(n), V(() => Y(i, (t(), W(() => t().intro)))), J(e, n);
-}, Gc = /* @__PURE__ */ q("<div><span> </span> <strong> </strong> <small> </small></div>"), Kc = /* @__PURE__ */ q("<div class=\"time-source-row\"><div><strong> </strong><p> </p></div> <span> </span></div>"), qc = /* @__PURE__ */ q("<div class=\"time-source-list\"></div>"), Jc = /* @__PURE__ */ q("<section class=\"time-composition\"><h3>估算組成</h3> <!></section>"), Yc = /* @__PURE__ */ q("<section class=\"time-tab-panel time-flow-panel\" id=\"time-flow-panel\" role=\"tabpanel\" aria-labelledby=\"time-flow-tab\"><p class=\"time-flow-intro\"> </p> <div class=\"time-flow-lanes\"><section class=\"time-flow-lane\" aria-label=\"工程估算路徑\"><!> <span class=\"time-flow-arrow\">→</span> <!></section> <section class=\"time-flow-lane\" aria-label=\"工作容量路徑\"><!> <span class=\"time-flow-arrow\">→</span> <!></section></div> <div class=\"time-flow-merge\"><span class=\"time-flow-arrow\">↓</span> <!></div> <div class=\"time-flow-lane time-flow-risk\"><!> <span class=\"time-flow-arrow\">→</span> <!></div> <p class=\"time-flow-note\"> </p></section>"), Xc = /* @__PURE__ */ q("<p> </p> <code class=\"time-formula\"> </code>", 1), Zc = /* @__PURE__ */ q("<p> </p>"), Qc = /* @__PURE__ */ q("<section class=\"time-tab-panel\" id=\"time-engineering-panel\" role=\"tabpanel\" aria-labelledby=\"time-engineering-tab\"><!> <!> <!> <!></section>"), $c = /* @__PURE__ */ q("<p>固定不可工作時間只在產生容量時間線時扣除一次；週末依工作日設定排除。</p> <code class=\"time-formula\"> </code>", 1), el = /* @__PURE__ */ q("<p class=\"time-empty-note\">目前沒有休假或其他容量例外。</p>"), tl = /* @__PURE__ */ q("<section class=\"time-tab-panel\" id=\"time-capacity-panel\" role=\"tabpanel\" aria-labelledby=\"time-capacity-tab\"><div class=\"time-capacity-toolbar\"><p>工作容量由每日分配、工作日及休假例外共同產生。</p></div> <!> <!> <section class=\"time-composition\"><h3> </h3> <div class=\"time-source-list\"><!></div></section></section>"), nl = /* @__PURE__ */ q("<section class=\"time-tab-panel time-estimate-only-panel\"><p class=\"time-flow-intro\"> </p> <!> <!> <!></section>"), rl = /* @__PURE__ */ q("<span> </span>"), il = /* @__PURE__ */ q("<!> <div class=\"time-item-rationale\"><!></div>", 1), al = /* @__PURE__ */ q("<div class=\"time-source-row\"><div><strong> </strong> <p> </p></div> <span> </span></div>"), ol = /* @__PURE__ */ q("<code class=\"time-formula\"> </code>"), sl = /* @__PURE__ */ q("<code class=\"time-reference\"> </code>"), cl = /* @__PURE__ */ q("<div><div class=\"time-detail-toolbar\"><span> </span> <button class=\"time-small-button\" type=\"button\"> </button></div> <!> <section class=\"time-item-technical\"><!> <!> <!> <!></section></div>"), ll = /* @__PURE__ */ q("<span aria-hidden=\"true\"></span>"), ul = /* @__PURE__ */ q("<div class=\"time-report-field\"><span> </span> <strong><!> </strong></div>"), dl = /* @__PURE__ */ q("<!> <!>", 1), fl = /* @__PURE__ */ q("<section class=\"time-missing-config\" aria-labelledby=\"time-missing-config-title\"><h3 id=\"time-missing-config-title\">尚未建立工作容量設定</h3> <p>建立後採單人、平日 09:00–17:00、睡眠 8h／生活 8h／工作 8h；只是草稿，仍由全域儲存決定是否寫入。</p> <button type=\"button\">建立 8/8/8 預設設定</button></section>"), pl = /* @__PURE__ */ q("<button class=\"time-tab\" type=\"button\" role=\"tab\"> </button>"), ml = /* @__PURE__ */ q("<div class=\"time-tab-list\" role=\"tablist\" aria-label=\"進度報告詳細資訊\"></div> <!> <!> <!>", 1), hl = /* @__PURE__ */ q("<div><div class=\"time-detail-toolbar\"><span class=\"time-report-caption\"> </span> <button class=\"time-small-button\" type=\"button\"> </button></div> <section class=\"time-report-overview\"><div class=\"time-report-grid\"></div> <p class=\"time-report-updated\"> </p></section> <section class=\"time-project-details\"><!></section></div>"), gl = /* @__PURE__ */ q("<div class=\"time-dialog-content\"><!></div>");
-function _l(e, t) {
+	}), Vc(z(o, 2), () => (t(), W(() => t().composition))), M(n), V(() => Y(i, (t(), W(() => t().intro)))), J(e, n);
+}, Kc = /* @__PURE__ */ q("<div><span> </span> <strong> </strong> <small> </small></div>"), qc = /* @__PURE__ */ q("<div class=\"time-source-row\"><div><strong> </strong><p> </p></div> <span> </span></div>"), Jc = /* @__PURE__ */ q("<div class=\"time-source-list\"></div>"), Yc = /* @__PURE__ */ q("<section class=\"time-composition\"><h3>估算組成</h3> <!></section>"), Xc = /* @__PURE__ */ q("<section class=\"time-tab-panel time-flow-panel\" id=\"time-flow-panel\" role=\"tabpanel\" aria-labelledby=\"time-flow-tab\"><p class=\"time-flow-intro\"> </p> <div class=\"time-flow-lanes\"><section class=\"time-flow-lane\" aria-label=\"工程估算路徑\"><!> <span class=\"time-flow-arrow\">→</span> <!></section> <section class=\"time-flow-lane\" aria-label=\"工作容量路徑\"><!> <span class=\"time-flow-arrow\">→</span> <!></section></div> <div class=\"time-flow-merge\"><span class=\"time-flow-arrow\">↓</span> <!></div> <div class=\"time-flow-lane time-flow-risk\"><!> <span class=\"time-flow-arrow\">→</span> <!></div> <p class=\"time-flow-note\"> </p></section>"), Zc = /* @__PURE__ */ q("<p> </p> <code class=\"time-formula\"> </code>", 1), Qc = /* @__PURE__ */ q("<p> </p>"), $c = /* @__PURE__ */ q("<section class=\"time-tab-panel\" id=\"time-engineering-panel\" role=\"tabpanel\" aria-labelledby=\"time-engineering-tab\"><!> <!> <!> <!></section>"), el = /* @__PURE__ */ q("<p>固定不可工作時間只在產生容量時間線時扣除一次；週末依工作日設定排除。</p> <code class=\"time-formula\"> </code>", 1), tl = /* @__PURE__ */ q("<p class=\"time-empty-note\">目前沒有休假或其他容量例外。</p>"), nl = /* @__PURE__ */ q("<section class=\"time-tab-panel\" id=\"time-capacity-panel\" role=\"tabpanel\" aria-labelledby=\"time-capacity-tab\"><div class=\"time-capacity-toolbar\"><p>工作容量由每日分配、工作日及休假例外共同產生。</p></div> <!> <!> <section class=\"time-composition\"><h3> </h3> <div class=\"time-source-list\"><!></div></section></section>"), rl = /* @__PURE__ */ q("<section class=\"time-tab-panel time-estimate-only-panel\"><p class=\"time-flow-intro\"> </p> <!> <!> <!></section>"), il = /* @__PURE__ */ q("<span> </span>"), al = /* @__PURE__ */ q("<!> <div class=\"time-item-rationale\"><!></div>", 1), ol = /* @__PURE__ */ q("<div class=\"time-source-row\"><div><strong> </strong> <p> </p></div> <span> </span></div>"), sl = /* @__PURE__ */ q("<code class=\"time-formula\"> </code>"), cl = /* @__PURE__ */ q("<code class=\"time-reference\"> </code>"), ll = /* @__PURE__ */ q("<div><div class=\"time-detail-toolbar\"><span> </span> <button class=\"time-small-button\" type=\"button\"> </button></div> <!> <section class=\"time-item-technical\"><!> <!> <!> <!></section></div>"), ul = /* @__PURE__ */ q("<span aria-hidden=\"true\"></span>"), dl = /* @__PURE__ */ q("<div class=\"time-report-field\"><span> </span> <strong><!> </strong></div>"), fl = /* @__PURE__ */ q("<!> <!>", 1), pl = /* @__PURE__ */ q("<section class=\"time-missing-config\" aria-labelledby=\"time-missing-config-title\"><h3 id=\"time-missing-config-title\">尚未建立工作容量設定</h3> <p>建立後採單人、平日 09:00–17:00、睡眠 8h／生活 8h／工作 8h；只是草稿，仍由全域儲存決定是否寫入。</p> <button type=\"button\">建立 8/8/8 預設設定</button></section>"), ml = /* @__PURE__ */ q("<button class=\"time-tab\" type=\"button\" role=\"tab\"> </button>"), hl = /* @__PURE__ */ q("<div class=\"time-tab-list\" role=\"tablist\" aria-label=\"進度報告詳細資訊\"></div> <!> <!> <!>", 1), gl = /* @__PURE__ */ q("<div><div class=\"time-detail-toolbar\"><span class=\"time-report-caption\"> </span> <button class=\"time-small-button\" type=\"button\"> </button></div> <section class=\"time-report-overview\"><div class=\"time-report-grid\"></div> <p class=\"time-report-updated\"> </p></section> <section class=\"time-project-details\"><!></section></div>"), _l = /* @__PURE__ */ q("<div class=\"time-dialog-content\"><!></div>");
+function vl(e, t) {
 	Ke(t, !1);
 	let n = $(t, "open", 8, !1), r = $(t, "kind", 8, null), i = $(t, "kicker", 8, ""), a = $(t, "title", 8, ""), o = $(t, "project", 8, null), s = $(t, "item", 8, null), c = $(t, "onClose", 8, () => {}), l = $(t, "onToggleDetails", 8, () => {}), u = $(t, "onSetTab", 8, (e) => {}), d = $(t, "editing", 8, !1), f = $(t, "activeEstimate", 8, null), p = $(t, "onManualEstimate", 8, null), m = $(t, "timeSettings", 8, null), h = $(t, "deliveryPreview", 8, null), g = /* @__PURE__ */ F([]);
 	async function _(e, t, n) {
@@ -6099,8 +6109,8 @@ function _l(e, t) {
 				return c();
 			},
 			children: (e, t) => {
-				var n = gl(), i = L(n), c = (e) => {
-					var t = cl(), n = L(t), r = L(n), i = L(r, !0);
+				var n = _l(), i = L(n), c = (e) => {
+					var t = ll(), n = L(t), r = L(n), i = L(r, !0);
 					M(r);
 					var o = z(r, 2), c = L(o, !0);
 					M(o), M(n);
@@ -6112,7 +6122,7 @@ function _l(e, t) {
 									...s(),
 									title: a()
 								}))));
-								Ac(e, {
+								jc(e, {
 									get item() {
 										return U(t);
 									},
@@ -6126,7 +6136,7 @@ function _l(e, t) {
 							}
 						}), J(e, t);
 					}, h = (e) => {
-						var t = il(), n = R(t);
+						var t = al(), n = R(t);
 						ma(n, {
 							label: "預估工時",
 							get value() {
@@ -6135,7 +6145,7 @@ function _l(e, t) {
 							$$slots: { badges: (e, t) => {
 								var n = Vr();
 								si(R(n), 1, () => (G(s()), W(() => s().sourceBadges)), (e) => e.kind, (e, t) => {
-									var n = rl(), r = L(n, !0);
+									var n = il(), r = L(n, !0);
 									M(n), V(() => {
 										Z(n, 1, `assessment-source-badge source-${U(t), W(() => U(t).kind) ?? ""}`), Y(r, (U(t), W(() => U(t).label)));
 									}), J(e, n);
@@ -6146,7 +6156,7 @@ function _l(e, t) {
 						da(L(r), {
 							heading: "估算依據",
 							children: (e, t) => {
-								var n = Zc(), r = L(n, !0);
+								var n = Qc(), r = L(n, !0);
 								M(n), V(() => Y(r, (G(s()), W(() => s().rationale)))), J(e, n);
 							},
 							$$slots: { default: !0 }
@@ -6160,7 +6170,7 @@ function _l(e, t) {
 						return G(s()), W(() => s().technical.metrics);
 					} });
 					var v = z(_, 2), y = (e) => {
-						var t = al(), n = L(t), r = L(n), i = L(r, !0);
+						var t = ol(), n = L(t), r = L(n), i = L(r, !0);
 						M(r);
 						var a = z(r, 2), o = L(a, !0);
 						M(a), M(n);
@@ -6176,7 +6186,7 @@ function _l(e, t) {
 						da(e, {
 							heading: "固定公式",
 							children: (e, t) => {
-								var n = ol(), r = L(n, !0);
+								var n = sl(), r = L(n, !0);
 								M(n), V(() => Y(r, (G(s()), W(() => s().technical.formula)))), J(e, n);
 							},
 							$$slots: { default: !0 }
@@ -6186,7 +6196,7 @@ function _l(e, t) {
 						G(s()), W(() => s().technical.formula) && e(x);
 					});
 					var S = z(b, 2), C = (e) => {
-						var t = sl(), n = L(t, !0);
+						var t = cl(), n = L(t, !0);
 						M(t), V(() => Y(n, (G(s()), W(() => s().technical.reference)))), J(e, t);
 					};
 					X(S, (e) => {
@@ -6197,16 +6207,16 @@ function _l(e, t) {
 						l()?.apply(this, e);
 					}), J(e, t);
 				}, v = (e) => {
-					var t = hl(), n = L(t), r = L(n), i = L(r, !0);
+					var t = gl(), n = L(t), r = L(n), i = L(r, !0);
 					M(r);
 					var a = z(r, 2), s = L(a, !0);
 					M(a), M(n);
 					var c = z(n, 2), f = L(c);
 					si(f, 5, () => (G(o()), W(() => o().overview)), ri, (e, t) => {
-						var n = ul(), r = L(n), i = L(r, !0);
+						var n = dl(), r = L(n), i = L(r, !0);
 						M(r);
 						var a = z(r, 2), o = L(a), s = (e) => {
-							var n = ll();
+							var n = ul();
 							V(() => Z(n, 1, `time-risk-dot ${U(t), W(() => U(t).urgencyClassName) ?? ""}`)), J(e, n);
 						};
 						X(o, (e) => {
@@ -6221,8 +6231,8 @@ function _l(e, t) {
 					M(p), M(c);
 					var y = z(c, 2), b = L(y), x = (e) => {
 						var t = Vr(), n = R(t), r = (e) => {
-							var t = dl(), n = R(t);
-							Lc(n, {
+							var t = fl(), n = R(t);
+							Rc(n, {
 								get config() {
 									return G(m()), W(() => m().config);
 								},
@@ -6245,7 +6255,7 @@ function _l(e, t) {
 								h() && e(i);
 							}), J(e, t);
 						}, i = (e) => {
-							var t = fl(), n = z(L(t), 4);
+							var t = pl(), n = z(L(t), 4);
 							M(t), K("click", n, function(...e) {
 								m().onInitializeConfig?.apply(this, e);
 							}), J(e, t);
@@ -6254,19 +6264,19 @@ function _l(e, t) {
 							G(m()), W(() => m().hasConfig) ? e(r) : e(i, -1);
 						}), J(e, t);
 					}, S = (e) => {
-						var t = ml(), n = R(t);
+						var t = hl(), n = R(t);
 						si(n, 7, () => (G(o()), W(() => o().tabs)), (e) => e.name, (e, t, n) => {
-							var r = pl(), i = L(r, !0);
+							var r = ml(), i = L(r, !0);
 							M(r), Ki(r, (e, t) => rn(g, U(g)[t] = e), (e) => U(g)?.[e], () => [U(n)]), V(() => {
 								Q(r, "id", (U(t), W(() => `time-${U(t).name}-tab`))), Q(r, "aria-controls", (U(t), W(() => `time-${U(t).name}-panel`))), Q(r, "aria-selected", (G(o()), U(t), W(() => o().activeTab === U(t).name))), Q(r, "tabindex", (G(o()), U(t), W(() => o().activeTab === U(t).name ? 0 : -1))), Y(i, (U(t), W(() => U(t).label)));
 							}), K("click", r, () => u()(U(t).name)), K("keydown", r, (e) => _(e, U(n), o().tabs)), J(e, r);
 						}), M(n);
 						var r = z(n, 2);
-						Vc(r, () => (G(o()), W(() => o().flow)), () => (G(o()), W(() => o().activeTab === "flow")));
+						Hc(r, () => (G(o()), W(() => o().flow)), () => (G(o()), W(() => o().activeTab === "flow")));
 						var i = z(r, 2);
-						Hc(i, () => (G(o()), W(() => o().engineering)), () => (G(o()), W(() => o().activeTab === "engineering"))), Uc(z(i, 2), () => (G(o()), W(() => o().capacity)), () => (G(o()), W(() => o().activeTab === "capacity"))), J(e, t);
+						Uc(i, () => (G(o()), W(() => o().engineering)), () => (G(o()), W(() => o().activeTab === "engineering"))), Wc(z(i, 2), () => (G(o()), W(() => o().capacity)), () => (G(o()), W(() => o().activeTab === "capacity"))), J(e, t);
 					}, C = (e) => {
-						Wc(e, () => (G(o()), W(() => o().estimateOnly)));
+						Gc(e, () => (G(o()), W(() => o().estimateOnly)));
 					};
 					X(b, (e) => {
 						d() && m() ? e(x) : (G(o()), W(() => o().hasDeadline) ? e(S, 1) : e(C, -1));
@@ -6288,19 +6298,19 @@ function _l(e, t) {
 jr(["click", "keydown"]);
 //#endregion
 //#region experiments/editor-svelte-spike/src/TimeSummaryButton.svelte
-var vl = /* @__PURE__ */ q("<span class=\"time-risk-dot\"></span>"), yl = /* @__PURE__ */ q("<span class=\"time-chevron\">›</span>"), bl = /* @__PURE__ */ q("<button type=\"button\"><span> </span> <!> <!></button>");
-function xl(e, t) {
+var yl = /* @__PURE__ */ q("<span class=\"time-risk-dot\"></span>"), bl = /* @__PURE__ */ q("<span class=\"time-chevron\">›</span>"), xl = /* @__PURE__ */ q("<button type=\"button\"><span> </span> <!> <!></button>");
+function Sl(e, t) {
 	let n = $(t, "hidden", 8, !0), r = $(t, "disabled", 8, !1), i = $(t, "className", 8, "time-summary-button"), a = $(t, "ariaLabel", 8, ""), o = $(t, "label", 8, ""), s = $(t, "showDot", 8, !1), c = $(t, "showChevron", 8, !1), l = $(t, "onClick", 8, () => {});
-	var u = bl(), d = L(u), f = L(d, !0);
+	var u = xl(), d = L(u), f = L(d, !0);
 	M(d);
 	var p = z(d, 2), m = (e) => {
-		J(e, vl());
+		J(e, yl());
 	};
 	X(p, (e) => {
 		s() && e(m);
 	});
 	var h = z(p, 2), g = (e) => {
-		J(e, yl());
+		J(e, bl());
 	};
 	X(h, (e) => {
 		c() && e(g);
@@ -6313,8 +6323,8 @@ function xl(e, t) {
 jr(["click"]);
 //#endregion
 //#region experiments/editor-svelte-spike/src/viewer-adapter.svelte.js
-var Sl = {
-	"task-list": fc,
+var Cl = {
+	"task-list": pc,
 	"status-overview": oo,
 	"status-filters": io,
 	"project-progress": Ka,
@@ -6324,19 +6334,19 @@ var Sl = {
 	"add-control": ia,
 	diagnostics: Ma,
 	"scope-directory": Qa,
-	"theme-control": Tc,
+	"theme-control": Ec,
 	"project-module-strip": Ba,
-	"time-summary-button": xl,
-	"time-dialog": _l,
+	"time-summary-button": Sl,
+	"time-dialog": vl,
 	"cost-dialog": Ca,
 	"delivery-save-confirmation": Aa
-}, Cl = {
+}, wl = {
 	id: "svelte",
-	regions: Object.keys(Sl),
+	regions: Object.keys(Cl),
 	mount(e, t, n) {
 		let r = ln({ ...n });
 		return {
-			component: Kr(Sl[e], {
+			component: Kr(Cl[e], {
 				target: t,
 				props: r
 			}),
@@ -6352,5 +6362,5 @@ var Sl = {
 };
 //#endregion
 //#region experiments/editor-svelte-spike/src/viewer-ui.js
-e(Cl);
+e(wl);
 //#endregion

@@ -71,7 +71,7 @@
   </header>
 
   {#if card}
-    <div class="task-summary"><ExpandableText text={card.summary} /></div>
+    <div class="task-summary"><ExpandableText text={card.summary} emphasis /></div>
     <p
       class="pointer-card-progress"
       aria-label={`子任務完成 ${card.progress.completed}，共 ${card.progress.total}`}

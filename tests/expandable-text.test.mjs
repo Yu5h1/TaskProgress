@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { expandableText } from "../viewer/assets/expandable-text.js";
-import { parseInlineLinks, inlineUnits } from "../viewer/assets/inline-links.js";
+import { inlineLinks, inlineUnits, parseInlineLinks } from "../viewer/assets/inline-links.js";
 
 function fixture(text = "a".repeat(60)) {
   const frames = new Map();
@@ -157,4 +157,29 @@ test("an expanded request opens on load and when it turns on, but never re-colla
   f.control.update({ text: "a".repeat(60), expanded: false }); f.flush();
   assert.equal(f.button.attributes["aria-expanded"], "true");
   f.control.destroy();
+});
+
+test("every surface renders links through one element shape, bold only with emphasis", () => {
+  const text = "a".repeat(10) + "[前往](https://example.com/x)";
+  const plain = fixture(text);
+  const strong = fixture("");
+  strong.control.update({ text, emphasis: true });
+  assert.equal(plain.textNode.children[1].className, "inline-link");
+  assert.equal(strong.textNode.children[1].className, "inline-link inline-link--emphasis");
+  assert.equal(strong.textNode.children[1].attributes.rel, "noopener noreferrer");
+
+  const children = [];
+  const host = {
+    ownerDocument: {
+      createElement: () => ({ attributes: {}, setAttribute(key, value) { this.attributes[key] = value; } }),
+      createTextNode: (value) => ({ text: value }),
+    },
+    replaceChildren(...nodes) { children.splice(0, children.length, ...nodes); },
+  };
+  const action = inlineLinks(host, { text: "看 [文件](https://example.com/d) 結尾" });
+  assert.deepEqual(children.map(node => node.text ?? node.className), ["看 ", "inline-link", " 結尾"]);
+  action.update({ text: "看 [文件](https://example.com/d) 結尾", emphasis: true });
+  assert.equal(children[1].className, "inline-link inline-link--emphasis");
+  action.destroy();
+  assert.equal(children.length, 0);
 });

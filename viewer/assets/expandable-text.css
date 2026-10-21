@@ -30,14 +30,13 @@
 .expandable-text__label { text-decoration: underline; }
 .expandable-text__toggle:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
 
-.expandable-text__link,
 .inline-link {
   color: var(--expandable-text-link-color, currentColor);
   text-decoration: underline;
   cursor: pointer;
 }
-.expandable-text__link[hidden] { display: none; }
-.expandable-text__link:focus-visible,
+.inline-link--emphasis { font-weight: 700; }
+.inline-link[hidden] { display: none; }
 .inline-link:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
 .expandable-text__measure {
   position: absolute;

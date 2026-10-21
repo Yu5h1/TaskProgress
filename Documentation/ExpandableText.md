@@ -18,6 +18,12 @@
 - `viewer/assets/expandable-text.css`：必要樣式，類名使用 `expandable-text` 前綴；字型、文字色繼承外層。連結色可用 `--expandable-text-link-color` 覆寫。
 - `experiments/editor-svelte-spike/src/ExpandableText.svelte`：薄接入層，使用同一控制器。
 
+### 連結渲染
+
+`[文字](網址)` 連結在所有畫面只有一個渲染來源：`viewer/assets/inline-links.js` 的 `createInlineLink`，輸出 `a.inline-link`，樣式在 `expandable-text.css`。ExpandableText 的截斷文字與完整顯示的 `InlineLinks.svelte`（Checklist、Decision 頁，經 `inlineLinks` action）都用它；改連結樣式只改這一處。
+
+`emphasis: true` 加上 `inline-link--emphasis`，連結改為粗體。目前只有任務卡與指路卡的 summary 使用（使用者 2026-10-22 決定 summary 的連結用粗體）；Checklist／Decision 哪些欄位算「說明」尚未決定，暫不使用。
+
 移植時攜帶 JS 與 CSS，載入 CSS 後提供空的 host 元素即可。控制器擁有 host 的子節點；呼叫端負責外部字體、寬度、間距及卸載時機。需支援 ResizeObserver 的現代瀏覽器。
 
 ```js

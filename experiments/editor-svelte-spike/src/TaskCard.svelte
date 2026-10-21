@@ -271,7 +271,7 @@
     ></textarea>
   {:else}
     <div class="task-summary">
-      <ExpandableText text={task.summary} lines={2} />
+      <ExpandableText text={task.summary} lines={2} emphasis />
     </div>
   {/if}
 

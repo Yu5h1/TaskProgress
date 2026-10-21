@@ -1,5 +1,5 @@
 /** Framework-independent text disclosure with safe inline links. Owns an empty host's children. */
-import { inlineUnits } from "./inline-links.js";
+import { createInlineLink, inlineUnits } from "./inline-links.js";
 export function expandableText(host, options = {}) {
   const doc = host.ownerDocument;
   const win = doc.defaultView;
@@ -34,13 +34,7 @@ export function expandableText(host, options = {}) {
   function createNodes(parent) {
     parent.replaceChildren();
     return pieces.map(piece => {
-      const node = doc.createElement(piece.href ? "a" : "span");
-      if (piece.href) {
-        node.className = "expandable-text__link";
-        node.setAttribute("href", piece.href);
-        node.setAttribute("rel", "noopener noreferrer");
-        node.textContent = piece.text;
-      }
+      const node = piece.href ? createInlineLink(doc, piece, { emphasis: settings.emphasis }) : doc.createElement("span");
       parent.append(node);
       return node;
     });
@@ -104,11 +98,12 @@ export function expandableText(host, options = {}) {
   function update(next = {}) {
     const text = String(next.text ?? "");
     const lines = Number.isInteger(next.lines) && next.lines > 0 ? next.lines : 2;
-    const textChanged = !settings || settings.text !== text;
+    const emphasis = next.emphasis === true;
+    const textChanged = !settings || settings.text !== text || settings.emphasis !== emphasis;
     const open = next.expanded === true;
     if (textChanged || settings.lines !== lines) expanded = open;
     else if (open && !settings.open) expanded = true;
-    settings = { text, lines, open, moreLabel: next.moreLabel ?? "…更多", lessLabel: next.lessLabel ?? "收合" };
+    settings = { text, lines, open, emphasis, moreLabel: next.moreLabel ?? "…更多", lessLabel: next.lessLabel ?? "收合" };
     if (textChanged) {
       pieces = inlineUnits(text);
       unitCount = pieces.reduce((total, piece) => total + piece.units.length, 0);

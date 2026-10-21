@@ -1034,10 +1034,6 @@ h1 {
   min-width: 0;
 }
 
-.task-summary .expandable-text__link {
-  font-weight: 700;
-}
-
 .document-source-link {
   display: inline-flex;
   align-items: baseline;
