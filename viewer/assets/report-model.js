@@ -1,4 +1,5 @@
 import "./priority-policy.js";
+import { validateActivity } from "./item-activity.js";
 
 /*
  * Every reader in the project accepts the same set of report versions, and
@@ -381,6 +382,7 @@ function validateTaskItemList(value, path, errors, ids) {
     if (item.document_ref !== undefined) {
       validateDocumentRef(item.document_ref, `${itemPath}.document_ref`, errors);
     }
+    validateActivity(item.activity, `${itemPath}.activity`, errors, issue);
     if (typeof item.id === "string") {
       if (ids.has(item.id)) {
         errors.push(issue("duplicate_item", `${itemPath}.id`, `item id「${item.id}」重複。`));

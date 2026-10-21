@@ -2,6 +2,7 @@
   import ModuleCapsuleStrip from "./ModuleCapsuleStrip.svelte";
   import ExpandableText from "./ExpandableText.svelte";
   import { copyText, itemReference } from "@editor/item-reference.js";
+  import { formatActivity } from "@editor/item-activity.js";
 
   export let taskId;
   export let field;
@@ -28,6 +29,11 @@
   export let scopeId = null;
 
   $: reference = editing ? null : itemReference({ scopeId, taskId, item });
+  // Relative times go stale while the page stays open, so hovering recomputes them.
+  $: activityTitle = editing ? "" : formatActivity(item.activity);
+  function refreshActivityTitle() {
+    if (!editing) activityTitle = formatActivity(item.activity);
+  }
   let copyState = "";
   let copyTimer;
 
@@ -83,6 +89,8 @@
   class:item-row-reorderable={!editing && !!reorder}
   class:item-row-dragging={!!reorder?.dragging}
   draggable={!editing && reorder?.armed ? "true" : undefined}
+  title={activityTitle || undefined}
+  onpointerenter={refreshActivityTitle}
   onpointerdown={editing ? undefined : reorder?.arm}
   onpointerup={editing ? undefined : reorder?.disarm}
   ondragstart={editing ? undefined : reorder?.start}

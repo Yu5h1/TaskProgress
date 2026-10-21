@@ -6,6 +6,8 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
 
 ## Current state (2026-09-29)
 
+- **子項活動紀錄（2026-10-21）。** 契約 `Documentation/ItemActivityLog.md`。Report CLI 請求必須帶 `actor`（session 選填），自動記 created／started／updated／done／takeover；`in_progress` 子項由他人執行時回 `claim_conflict`／`claim_unverified`，需 `claim: own／takeover`。Viewer 編輯存檔與預覽換位記 `user`，預覽滑鼠停留 tooltip 顯示。保留 created＋最近 3 筆（常數）。身分放在請求 JSON 而非 CLI 參數，因此不需重新發布 EXE；`Program.cs` 只多一行說明，正式 EXE 的 help 要等下次 Publish。**部署注意**：未更新 skill 的 agent 送出不含 actor 的請求會被拒絕，錯誤訊息會說明。
+
 - **預覽模式拖曳換位（2026-10-21）。** 規格 `Documentation/ReportItemOrderingPlan.md#預覽模式拖曳換位`，驗收 `checklists/preview-item-reorder.checklist`（全 `[x]`）。有本機編輯服務時，預覽頁同卡同級未完成子項可從空白處拖曳或 Alt+↑／↓ 換位，目標以動畫空出位置，放下直接寫入（無復原、無儲存列）。`app.js` 的 `reorderInPreview` 先比對重新讀取的 report.json 與畫面，不同就不寫並重載；`viewer/assets/item-reorder.js` 只動陣列位置。子項換位不做長按（使用者判斷任務卡空白處足夠）；UX 第 69 題不受影響。
 
 - **完成堆疊、清空結果與決策連結（2026-10-21）。** 綁定文件完成而顯示為完成的待處理子項，投影時排在完成區最上方（`viewer/assets/document-binding.js`，規格 `Documentation/DocumentBindingPlan.md#子項目綁定契約`）。Checklist「清空實機結果」改名「清空結果」，放在底部儲存列最右端（`Documentation/CardDisclosurePlan.md`）。決策頁 context、選項說明、建議理由改用 `InlineLinks`（`Documentation/InlineReportLinks.md#decision-欄位`）。Browser 已確認前兩項與決策頁文字正常；目前沒有含連結的決策檔，決策頁連結的實際顯示未在頁面上看到，由原始碼測試覆蓋。正式 Desktop 資產未更新。

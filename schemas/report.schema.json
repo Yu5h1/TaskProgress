@@ -200,7 +200,28 @@
         },
         "document_ref": {
           "$ref": "#/$defs/documentRef"
+        },
+        "activity": {
+          "$comment": "Written by the Report CLI and the Viewer, never by hand. The created entry is kept forever; only the most recent 3 other entries are kept after it.",
+          "type": "array",
+          "maxItems": 4,
+          "items": { "$ref": "#/$defs/activityEntry" }
         }
+      }
+    },
+    "activityEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["event", "actor", "at"],
+      "properties": {
+        "event": { "enum": ["created", "started", "updated", "done", "takeover"] },
+        "actor": {
+          "$comment": "The writing tool, such as claude, codex or antigravity; user for the Viewer.",
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]{0,31}$"
+        },
+        "session": { "type": "string", "minLength": 1, "maxLength": 100 },
+        "at": { "type": "string", "format": "date-time" }
       }
     }
   }

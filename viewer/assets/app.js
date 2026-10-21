@@ -1,5 +1,6 @@
 import { requestedCardPin } from "./card-order.js";
 import { moveUnfinishedItem } from "./item-reorder.js";
+import { recordUserActivity } from "./item-activity.js";
 import { parseReference, referenceTask, searchTask, searchTerms } from "./task-search.js";
 import {
   createDocumentBindingRefresher,
@@ -1337,7 +1338,7 @@ async function confirmReportSave(payload) {
 }
 
 async function saveReportDraft(payload) {
-  return await state.editor.client.save(payload);
+  return await state.editor.client.save({ ...payload, report: recordUserActivity(state.persistedReport, payload.report) });
 }
 
 /**
@@ -1359,7 +1360,7 @@ async function reorderInPreview(command) {
       await refreshForegroundSilently();
       return;
     }
-    const report = moveUnfinishedItem(state.persistedReport, command);
+    const report = recordUserActivity(state.persistedReport, moveUnfinishedItem(state.persistedReport, command));
     report.updated_at = new Date().toISOString();
     const errors = validateReport(report);
     if (errors.length) throw new Error(String(errors[0]?.message ?? errors[0]));

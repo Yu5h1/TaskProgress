@@ -20,6 +20,8 @@ task-progress.exe report get --scope project
 {
   "version": "1",
   "expected_revision": "填入 get 回傳的 revision",
+  "actor": "codex",
+  "session": "選填：知道自己的 session ID 才填",
   "operations": [
     {
       "op": "task.update",
@@ -103,6 +105,21 @@ task-progress.exe report apply "C:\Project" --input changes.json
 不接受已完成項目移位、done 新增時指定 position、自身或跨任務參照、不存在的 ID、標題與數字索引。位置錯誤拒絕整批保存。move 不變更其他欄位；結果 changes 的 item_id 定位子項目，fields 中的 position 表示位置操作，不含參照值。
 
 位置操作由專案的 `service/report_operations.py` 提供；CLI `--help` 列出 item.move／position 的版本包含相應說明。部署須配套同版 service 與 schemas；可用 `python service/report_cli.py --help` 確認實際後端入口，並用 dry-run 驗證請求。舊後端不支援時先更新，不以手改 JSON 繞過。
+
+## 身分與認領
+
+每個 apply 請求都要帶 `actor`（寫入的工具，小寫英文，例如 `claude`、`codex`、`antigravity`）；`session` 可省略。CLI 依此在子項的 `activity` 自動記錄建立、開始、修改、完成與接手，不能在新增的值裡自帶 `activity`。
+
+子項為 `in_progress` 且最後一筆 `started`／`takeover` 不是自己時，`item.update`／`item.move` 會被拒絕（exit code 2）：
+
+- `claim_conflict`：別的工具或別的 session 正在執行。先問使用者，同意後在該操作加 `"claim": "takeover"`。
+- `claim_unverified`：同一工具但缺少 session ID 無法比對。確定是自己開始的就加 `"claim": "own"`，否則先問使用者再用 `takeover`。
+
+```json
+{ "op": "item.update", "task_id": "feature-a", "item_id": "implementation", "set": { "status": "done" }, "claim": "own" }
+```
+
+判定與保留規則見 [子項活動紀錄](ItemActivityLog.md)。
 
 ## stdin 與結果
 

@@ -78,7 +78,8 @@ subprocess.Popen = ObservedPopen
                 (folder / 'time.config.json').write_text(json.dumps(config), encoding='utf-8')
             current = invoke('get')
             result = invoke('apply', {'version': '1', 'expected_revision': current['revision'],
-                                     'operations': [{'op': 'report.update', 'set': {'title': title}}]})
+                                     'operations': [{'op': 'report.update', 'set': {'title': title}}],
+                                     'actor': 'codex'})
             assert result['changed'], result
             assert json.loads((folder / 'report.json').read_text(encoding='utf-8'))['title'] == title
             if analysis:

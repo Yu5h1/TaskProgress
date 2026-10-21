@@ -90,11 +90,15 @@ def execute(folder, action, request=None, *, task=None, dry_run=False, analyzer=
             developer = next((t for t in (overlay or {}).get("tasks", []) if t["id"] == task), None)
             return {"ok": True, "revision": before, "task": selected, "developer": developer}
         require(action == "apply", "Unknown action")
-        require(isinstance(request, dict) and set(request) == {"version", "expected_revision", "operations"}, "Invalid request properties")
+        require(isinstance(request, dict) and {"version", "expected_revision", "operations", "actor"} <= set(request)
+                <= {"version", "expected_revision", "operations", "actor", "session"},
+                "Request needs version, expected_revision, operations and actor (the writing tool, such as codex); session is optional")
         require(request["version"] == "1", "Unsupported request version", "version")
         if request["expected_revision"] != before:
             raise ReportError("revision_conflict", "Source revision changed; load it again", 3)
-        candidate, next_overlay, summaries = apply_operations(report, overlay, request["operations"])
+        stamp = datetime.now(timezone.utc).isoformat()
+        writer = {"actor": request["actor"], "session": request.get("session")}
+        candidate, next_overlay, summaries = apply_operations(report, overlay, request["operations"], writer, stamp)
         changed_report, changed_overlay = candidate != report, next_overlay != overlay
         changed = changed_report or changed_overlay
         analysis = changed_report and needs_analysis(sources)
@@ -103,7 +107,6 @@ def execute(folder, action, request=None, *, task=None, dry_run=False, analyzer=
                   "changes": summaries if changed else [], "analysis": "planned" if analysis else "not_required"}
         if not changed:
             return result
-        stamp = datetime.now(timezone.utc).isoformat()
         staged = {}
         for name, payload, modified in (("report.json", candidate, changed_report), ("report.dev.json", next_overlay, changed_overlay)):
             if modified:

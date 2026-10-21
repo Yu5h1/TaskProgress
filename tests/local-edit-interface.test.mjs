@@ -56,7 +56,7 @@ test("local editor opens a dual-revision session and saves through the shared ed
   // seeded from whatever the session already carries as defaults.
   assert.match(app, /createTimeInputDraft\(hostSession\.inputs, state\.editor\.scope/);
   assert.match(app, /await state\.editor\.client\.start\(\)/);
-  assert.match(app, /await state\.editor\.client\.save\(payload\)/);
+  assert.match(app, /await state\.editor\.client\.save\(\{ \.\.\.payload, report: recordUserActivity\(state\.persistedReport, payload\.report\) \}\)/);
   assert.match(app, /await state\.editor\.client\?\.close\(\)/);
   // The token/revision precondition lives inside the shared client now, not
   // duplicated as raw fetch headers in the host.

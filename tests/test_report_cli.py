@@ -26,8 +26,55 @@ class ReportCliTests(unittest.TestCase):
     def write(self, name, value):
         (self.root / name).write_text(json.dumps(value, ensure_ascii=False), encoding="utf-8")
 
-    def request(self, operations):
-        return {"version": "1", "expected_revision": execute(self.root, "get")["revision"], "operations": operations}
+    def request(self, operations, actor="codex", session=None):
+        request = {"version": "1", "expected_revision": execute(self.root, "get")["revision"],
+                   "operations": operations, "actor": actor}
+        if session is not None:
+            request["session"] = session
+        return request
+
+    def item(self, identity="item"):
+        task = execute(self.root, "get", task="one")["task"]
+        return next(i for key in ("pending_items", "completed_items") for i in task.get(key, [])
+                    if isinstance(i, dict) and i["id"] == identity)
+
+    def test_activity_records_created_started_done_and_keeps_three_recent(self):
+        execute(self.root, "apply", self.request([{"op": "item.add", "task_id": "one", "value": {"id": "log", "title": "Log"}}], session="s1"))
+        self.assertEqual([(e["event"], e["actor"], e.get("session")) for e in self.item("log")["activity"]], [("created", "codex", "s1")])
+        for title in ("A", "B", "C"):
+            execute(self.root, "apply", self.request([{"op": "item.update", "task_id": "one", "item_id": "log", "set": {"title": title}}], session="s1"))
+        execute(self.root, "apply", self.request([{"op": "item.update", "task_id": "one", "item_id": "log", "set": {"status": "in_progress"}}], session="s1"))
+        execute(self.root, "apply", self.request([{"op": "item.update", "task_id": "one", "item_id": "log", "set": {"status": "done"}}], session="s1"))
+        self.assertEqual([e["event"] for e in self.item("log")["activity"]], ["created", "updated", "started", "done"])
+
+    def test_activity_noop_stays_noop_and_actor_is_required(self):
+        execute(self.root, "apply", self.request([{"op": "item.add", "task_id": "one", "value": {"id": "log", "title": "Log"}}]))
+        before = self.snapshot()
+        result = execute(self.root, "apply", self.request([{"op": "item.update", "task_id": "one", "item_id": "log", "set": {"title": "Log"}}]))
+        self.assertFalse(result["changed"])
+        self.assertEqual(before, self.snapshot())
+        request = self.request([{"op": "item.update", "task_id": "one", "item_id": "log", "set": {"title": "X"}}])
+        del request["actor"]
+        with self.assertRaises(ReportError):
+            execute(self.root, "apply", request)
+        with self.assertRaises(ReportError):
+            execute(self.root, "apply", self.request([{"op": "item.add", "task_id": "one", "value": {"id": "forged", "title": "F", "activity": []}}]))
+
+    def test_claim_conflict_unverified_own_and_takeover(self):
+        execute(self.root, "apply", self.request([{"op": "item.add", "task_id": "one", "value": {"id": "log", "title": "Log", "status": "in_progress"}}], session="s1"))
+        execute(self.root, "apply", self.request([{"op": "item.update", "task_id": "one", "item_id": "log", "set": {"title": "Same session"}}], session="s1"))
+        rename = [{"op": "item.update", "task_id": "one", "item_id": "log", "set": {"title": "Other"}}]
+        for actor, session, code in (("claude", None, "claim_conflict"), ("codex", "s2", "claim_conflict"), ("codex", None, "claim_unverified")):
+            with self.assertRaises(ReportError) as raised:
+                execute(self.root, "apply", self.request(rename, actor=actor, session=session))
+            self.assertEqual(raised.exception.code, code)
+        with self.assertRaises(ReportError):
+            execute(self.root, "apply", self.request([{**rename[0], "claim": "own"}], actor="claude"))
+        execute(self.root, "apply", self.request([{**rename[0], "claim": "own"}], actor="codex"))
+        execute(self.root, "apply", self.request([{**rename[0], "set": {"title": "Taken"}, "claim": "takeover"}], actor="claude", session="c1"))
+        self.assertEqual([(e["event"], e["actor"]) for e in self.item("log")["activity"]][-2:], [("takeover", "claude"), ("updated", "claude")])
+        execute(self.root, "apply", self.request([{**rename[0], "set": {"title": "Mine now"}}], actor="claude", session="c1"))
+        self.assertEqual(execute(self.root, "get", task="one")["revision"], execute(self.root, "get")["revision"])
 
     def snapshot(self):
         return {p.name: p.read_bytes() for p in self.root.iterdir()}
@@ -156,7 +203,7 @@ class ReportCliTests(unittest.TestCase):
 
     def test_position_add_move_dry_run_noop_and_lifecycle(self):
         def apply(operations, **options):
-            return execute(self.root, "apply", self.request(operations), **options)
+            return execute(self.root, "apply", self.request(operations, session="lifecycle"), **options)
         def move(identity, position):
             return {"op": "item.move", "task_id": "one", "item_id": identity, "position": position}
         def ids():
@@ -185,7 +232,7 @@ class ReportCliTests(unittest.TestCase):
         task = execute(self.root, "get", task="one")["task"]
         self.assertEqual(ids(), ["legacy", "item", "a", "b"])
         self.assertEqual(task["completed_items"], [])
-        self.assertEqual(task["pending_items"][1], {"id": "item", "title": "項目", "status": "in_progress"})
+        self.assertEqual({k: v for k, v in task["pending_items"][1].items() if k != "activity"}, {"id": "item", "title": "項目", "status": "in_progress"})
         self.assertEqual(task["pending_items"][3]["priority"], 1)
 
     def test_invalid_positions_and_priority_reject_entire_batch(self):
@@ -234,7 +281,7 @@ class ReportCliTests(unittest.TestCase):
         request = {"version": "1", "expected_revision": current["revision"], "operations": [
             {"op": "item.add", "task_id": "one", "value": {"id": "first", "title": "第一項"}, "position": {"before": "item"}},
             {"op": "item.move", "task_id": "one", "item_id": "item", "position": {"after": "first"}},
-        ]}
+        ], "actor": "codex"}
         before = self.snapshot()
         code, preview = command("apply", request, dry_run=True)
         self.assertEqual(code, 0)
