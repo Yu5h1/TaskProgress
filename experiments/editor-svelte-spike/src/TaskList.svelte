@@ -15,6 +15,7 @@
   export let onSearch = null;
   export let reorderable = false;
   export let onReorder = () => {};
+  export let selection = null;
   export let progress = {};
   export let editing = false;
   export let policy;
@@ -97,6 +98,7 @@
         {scopeId}
         {reorderable}
         {onReorder}
+        {selection}
       />
     {/if}
   </CardList>

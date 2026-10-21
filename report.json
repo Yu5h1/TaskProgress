@@ -3,8 +3,35 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-10-21T07:10:58.772787+00:00",
+  "updated_at": "2026-10-21T10:40:23.303805+00:00",
   "tasks": [
+    {
+      "id": "item-selection",
+      "title": "子項多選與批次複製參照",
+      "status": "done",
+      "summary": "預覽模式可跨卡片多選子項並一次複製參照（一行一個）；選取、輸入對應與宿主轉接分層，之後由 Web 共用 Selection 取代。",
+      "completed_items": [
+        {
+          "id": "mouse-keyboard",
+          "title": "滑鼠與鍵盤多選：點選、Ctrl 加選、Shift 範圍、↑↓ 焦點、Space、Ctrl+A／C、Esc",
+          "status": "done",
+          "activity": [
+            {
+              "event": "created",
+              "actor": "claude",
+              "at": "2026-10-21T10:40:23.303805+00:00",
+              "session": "5ef525bc-4328-4bae-bdae-81ad0c8cad3a"
+            },
+            {
+              "event": "done",
+              "actor": "claude",
+              "at": "2026-10-21T10:40:23.303805+00:00",
+              "session": "5ef525bc-4328-4bae-bdae-81ad0c8cad3a"
+            }
+          ]
+        }
+      ]
+    },
     {
       "id": "item-activity-log",
       "title": "子項活動紀錄",

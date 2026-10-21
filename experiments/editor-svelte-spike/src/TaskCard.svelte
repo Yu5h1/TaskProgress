@@ -36,6 +36,7 @@
   export let scopeId = null;
   export let reorderable = false;
   export let onReorder = () => {};
+  export let selection = null;
   const completedPreviewCount = 1;
   let showAllCompleted = false;
 
@@ -297,6 +298,7 @@
                 {onModuleReorder}
                 leadItem={lead && group.status === "planned" && index === 0}
                 {scopeId}
+                selection={editing ? null : selection}
                 reorder={(editing || reorderable) && group.status === "planned" && item.id && !item.legacy ? itemReorder(item, group.items, draggingId, dropTarget, armedId) : null}
               />
             {/each}

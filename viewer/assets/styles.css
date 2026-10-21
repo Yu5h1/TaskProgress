@@ -3225,3 +3225,16 @@ footer {
 @media (prefers-reduced-motion: reduce) {
   .detail-list li.editor-item-row.item-row-reorderable { transition: none; }
 }
+
+/* Item selection (viewer/assets/item-selection.js). A light accent tint for now; UX's Selection
+   spec will settle whether a whole row takes VisualFoundation's full accent. */
+.work-columns .detail-list li.editor-item-row.is-selected { background: color-mix(in srgb, var(--theme-accent) 28%, transparent); }
+.work-columns .detail-list li.editor-item-row[data-select-key]:focus-visible { outline: 2px solid var(--theme-accent); outline-offset: -2px; }
+.item-row-selected-label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}

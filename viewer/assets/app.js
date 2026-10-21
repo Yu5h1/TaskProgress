@@ -1,6 +1,8 @@
 import { requestedCardPin } from "./card-order.js";
 import { moveUnfinishedItem } from "./item-reorder.js";
 import { recordUserActivity } from "./item-activity.js";
+import { SELECT_KEY_ATTRIBUTE, createItemSelection } from "./item-selection.js";
+import { isSelectionIgnoredTarget } from "./selection-input.js";
 import { parseReference, referenceTask, searchTask, searchTerms } from "./task-search.js";
 import {
   createDocumentBindingRefresher,
@@ -111,6 +113,14 @@ function loadCapsuleOrder() {
   return [DEFAULT_CAPSULE_ID, ...order.filter((id) => id !== DEFAULT_CAPSULE_ID)];
 }
 const moduleOrderControl = createModuleOrderControl({ storage: statusOrderStorage });
+
+// One selection shared by every card's item rows, so references can be copied across cards.
+const itemSelection = createItemSelection();
+document.addEventListener("click", (event) => {
+  if (event.target instanceof Element
+    && !event.target.closest(`[${SELECT_KEY_ATTRIBUTE}]`)
+    && !isSelectionIgnoredTarget(event.target)) itemSelection.clear();
+});
 
 /*
  * The trusted module registry: which module types this build ships a
@@ -1090,6 +1100,7 @@ function renderTasks() {
   props.scopeId = state.report.scope_id;
   props.reorderable = state.editor.available && !state.editor.editing;
   props.onReorder = reorderInPreview;
+  props.selection = itemSelection;
   props.searchQuery = state.searchQuery;
   props.onSearch = (query) => {
     state.searchQuery = query;
@@ -1188,6 +1199,7 @@ async function startEditing() {
       },
     });
     state.editor.editing = true;
+    itemSelection.clear();
     state.editor.persistence = createPersistenceController({
       session: state.editor.session,
       save: saveReportDraft,

@@ -27,6 +27,8 @@
   // handlers plus the side ("before"/"after") a drop would land on.
   export let reorder = null;
   export let scopeId = null;
+  // Shared across every card's rows (viewer/assets/item-selection.js); null where rows are not selectable.
+  export let selection = null;
 
   $: reference = editing ? null : itemReference({ scopeId, taskId, item });
   // Relative times go stale while the page stays open, so hovering recomputes them.
@@ -37,9 +39,14 @@
   let copyState = "";
   let copyTimer;
 
+  $: selectable = Boolean(reference && selection);
+  $: selected = selectable && Boolean($selection?.keys.has(reference));
+  $: copyCount = selected ? $selection.keys.size : 1;
+
   async function copyReference() {
     clearTimeout(copyTimer);
-    copyState = await copyText(reference) ? "已複製" : "無法複製";
+    const copied = selection ? await selection.copyReferences(reference) : await copyText(reference);
+    copyState = copied ? "已複製" : "無法複製";
     copyTimer = setTimeout(() => { copyState = ""; }, 1500);
   }
 
@@ -88,6 +95,11 @@
   class:item-gap-after={!editing && reorder?.side === "after"}
   class:item-row-reorderable={!editing && !!reorder}
   class:item-row-dragging={!!reorder?.dragging}
+  class:is-selected={selected}
+  data-select-key={selectable ? reference : undefined}
+  tabindex={selectable ? 0 : undefined}
+  onclick={selectable ? (event) => selection.rowClick(reference, event) : undefined}
+  onfocus={selectable ? () => selection.rowFocus(reference) : undefined}
   draggable={!editing && reorder?.armed ? "true" : undefined}
   title={activityTitle || undefined}
   onpointerenter={refreshActivityTitle}
@@ -95,7 +107,10 @@
   onpointerup={editing ? undefined : reorder?.disarm}
   ondragstart={editing ? undefined : reorder?.start}
   ondragend={editing ? undefined : reorder?.end}
-  onkeydown={editing ? undefined : reorder?.keydown}
+  onkeydown={editing ? undefined : (event) => {
+    reorder?.keydown?.(event);
+    if (!event.defaultPrevented && selectable) selection.rowKeydown(reference, event);
+  }}
   ondragover={reorder?.over}
   ondragleave={reorder?.leave}
   ondrop={reorder?.drop}>
@@ -169,6 +184,7 @@
       >
     {:else}
       <div class="item-row-text">
+        {#if selected}<span class="item-row-selected-label">已選取</span>{/if}
         {#if item.sourceRef}
           {#if item.sourceRef.available}
             <a class="document-source-link" href={item.sourceRef.href} title={`開啟 ${item.sourceRef.kind === "checklist" ? (item.sourceRef.manual ? "人工驗收 checklist" : "agent checklist") : item.sourceRef.kind}: ${item.sourceRef.task}`}>
@@ -195,8 +211,9 @@
       data-item-ref={`${taskId}/${item.id}`}
       class:is-done={copyState}
       class:is-copied={copyState === "已複製"}
-      aria-label={copyState || `複製「${item.title}」的參照`}
-      title={copyState || reference}
+      tabindex={selectable ? -1 : undefined}
+      aria-label={copyState || (copyCount > 1 ? `複製已選取的 ${copyCount} 項參照` : `複製「${item.title}」的參照`)}
+      title={copyState || (copyCount > 1 ? `複製已選取的 ${copyCount} 項參照` : reference)}
       onclick={copyReference}
     >{copyState === "已複製" ? "✓" : copyState ? "✕" : "⧉"}</button>
   {/if}
