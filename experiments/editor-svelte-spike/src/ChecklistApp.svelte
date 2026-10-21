@@ -343,7 +343,7 @@
               <h2>{item.id}. {item.title}</h2>
 
             </div>
-            <span class="checklist-status" aria-label={`通過 ${fullItem.checks.filter(check => check.status === "passed").length}，共 ${fullItem.checks.length}`}>{fullItem.checks.filter(check => check.status === "passed").length}/{fullItem.checks.length}</span>
+            <span class="checklist-status" aria-label={`通過 ${fullItem.progress.passed}，共 ${fullItem.progress.total}`}>{fullItem.progress.passed}/{fullItem.progress.total}</span>
           </header>
           <div class="checklist-checks">
             <p class="checklist-outcome"><InlineLinks text={item.outcome} /></p>

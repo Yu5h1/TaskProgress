@@ -22,6 +22,7 @@ function derive(document) {
   const result = structuredClone(document);
   result.items.forEach((item) => {
     item.status = itemStatus(item);
+    item.progress = { passed: item.checks.filter((check) => check.status === "passed").length, total: item.checks.length };
   });
   return result;
 }

@@ -103,10 +103,10 @@ test("the screen labels the shared summary instead of drawing its own", async ()
     new URL("../experiments/editor-svelte-spike/src/ChecklistApp.svelte", import.meta.url),
     "utf8",
   );
-  assert.match(app, /import NextStepCard from "\.\/NextStepCard\.svelte"/u);
   assert.match(app, /import ProgressSummary from "\.\/ProgressSummary\.svelte"/u);
   assert.match(app, /bar=\{\{ form: "segmented", cells: view\.summary\.cells \}\}/u);
   assert.match(app, /\{#if view\.summary\.nextStep\}/u);
+  assert.match(app, /<a class="checklist-next-step"[\s\S]*href=\{`#check-\$\{view\.summary\.nextStep\.workItemId\}/u);
   // No second count anywhere: the screen reads the derived summary only. It
   // may filter its own capsule list, but never recount the document.
   assert.doesNotMatch(app, /summary\.[a-z]+\.filter\(|\.reduce\(/u, "counting belongs to the session");

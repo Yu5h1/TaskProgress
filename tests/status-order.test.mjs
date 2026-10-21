@@ -147,10 +147,9 @@ test("status and module order use the same capsule-order behavior", () => {
 });
 
 test("production Viewer exposes mouse, touch, and keyboard status ordering", async () => {
-  const [app, css, html] = await Promise.all([
+  const [app, css] = await Promise.all([
     readFile(path.join(ROOT, "viewer/assets/app.js"), "utf8"),
     readFile(path.join(ROOT, "viewer/assets/styles.css"), "utf8"),
-    readFile(path.join(ROOT, "viewer/index.html"), "utf8"),
   ]);
   // Ordering interaction moved into the filter component; the host keeps
   // persistence and re-render. Mouse drag, touch drag and keyboard must all
@@ -180,5 +179,7 @@ test("production Viewer exposes mouse, touch, and keyboard status ordering", asy
   assert.match(css, /\.filter-button\.status-sortable/);
   assert.match(css, /touch-action: pan-y/);
   assert.match(css, /content: "待處理"/);
-  assert.match(html, /拖曳狀態標籤可調整卡片排序/);
+  // The drag hint lives on each status capsule now, not on the HTML container.
+  assert.match(app, /ariaLabel: `\$\{label\} \$\{count\}，排序第 \$\{index\}；可拖曳調整`/);
+  assert.match(app, /ariaLabel: "工作狀態篩選與排序"/);
 });

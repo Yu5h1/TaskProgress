@@ -2596,7 +2596,10 @@ function Yi(e) {
 function Xi(e) {
 	let t = structuredClone(e);
 	return t.items.forEach((e) => {
-		e.status = Yi(e);
+		e.status = Yi(e), e.progress = {
+			passed: e.checks.filter((e) => e.status === "passed").length,
+			total: e.checks.length
+		};
 	}), t;
 }
 function Zi(e, t) {
@@ -4741,9 +4744,9 @@ function ys(e, t) {
 										var a = z(i, 2), s = R(a), c = R(s);
 										j(s), j(a);
 										var l = z(a, 2), u = R(l);
-										j(l), j(r), V((e, t) => {
-											X(c, `${K(W(n)), G(() => W(n).id) ?? ""}. ${K(W(n)), G(() => W(n).title) ?? ""}`), Q(l, "aria-label", e), X(u, `${t ?? ""}/${K(W(o)), G(() => W(o).checks.length) ?? ""}`);
-										}, [() => (K(W(o)), G(() => `通過 ${W(o).checks.filter((e) => e.status === "passed").length}，共 ${W(o).checks.length}`)), () => (K(W(o)), G(() => W(o).checks.filter((e) => e.status === "passed").length))]), Y(e, r);
+										j(l), j(r), V(() => {
+											X(c, `${K(W(n)), G(() => W(n).id) ?? ""}. ${K(W(n)), G(() => W(n).title) ?? ""}`), Q(l, "aria-label", (K(W(o)), G(() => `通過 ${W(o).progress.passed}，共 ${W(o).progress.total}`))), X(u, `${K(W(o)), G(() => W(o).progress.passed) ?? ""}/${K(W(o)), G(() => W(o).progress.total) ?? ""}`);
+										}), Y(e, r);
 									}
 								}
 							});

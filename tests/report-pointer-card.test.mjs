@@ -36,7 +36,8 @@ test("no prop can mutate anything", () => {
 test("the card takes only the pointer task and its projected state", () => {
   assert.match(script, /export let task;/u);
   assert.match(script, /export let state = \{ status: "loading" \};/u);
-  assert.doesNotMatch(script, /^\s*import /mu);
+  const imports = [...script.matchAll(/^\s*import (\w+) from "([^"]+)";/gmu)].map(([, name, from]) => `${name} ${from}`);
+  assert.deepEqual(imports, ["CardDisclosure ./CardDisclosure.svelte", "ExpandableText ./ExpandableText.svelte"], "only presentation components, no data source");
 });
 
 test("every status the card can show comes from the report-model status table", () => {
@@ -53,10 +54,10 @@ test("every status the card can show comes from the report-model status table", 
   }, "must match report-model.js's STATUS_META exactly, or the two Viewer surfaces would disagree");
 });
 
-test("loading, error and ready are three distinct, exhaustive branches", () => {
-  assert.match(template, /\{#if state\.status === "loading"\}/u);
-  assert.match(template, /\{:else if state\.status === "error"\}/u);
-  assert.match(template, /\{:else if card\}/u);
+test("loading, error and ready are three distinct states", () => {
+  assert.match(template, /\{#if state\.status === "loading"\}<span role="status">/u);
+  assert.match(template, /\{#if state\.status === "error"\}<span class="pointer-card-error" role="alert">/u);
+  assert.match(script, /\$: card = state\.status === "ready" \? state\.card : null;/u, "only a ready state yields card content");
   assert.match(template, /role="alert"/u, "an error state must be announced");
 });
 
@@ -73,10 +74,9 @@ test("the badge is the one open action — no second, redundant link", () => {
 
 test("TaskList dispatches by kind and never passes a pointer card a write prop", () => {
   assert.match(taskList, /\{#if task\.kind === "report_pointer"\}/u);
-  assert.match(
-    taskList,
-    /<ReportPointerCard \{task\} state=\{pointerCards\[task\.id\] \?\? \{ status: "loading" \}\} \/>/u,
-  );
+  const tag = taskList.match(/<ReportPointerCard [^\n]*\/>/u)?.[0] ?? "";
+  assert.match(tag, /\{task\} state=\{pointerCards\[task\.id\] \?\? \{ status: "loading" \}\} \/>$/u);
+  assert.doesNotMatch(tag, /(editing|onCommand|onAddItem|onModuleReorder|onTimeClick)/u, "a pointer card receives no write prop");
 });
 
 test("the pointer badge and error text use theme tokens, not literals", () => {

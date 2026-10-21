@@ -41,7 +41,7 @@ test("the marker box is one component with three states", () => {
 test("a manual check has exactly one interactive marker", () => {
   const buttons = checkHeading.match(/<button/gu) ?? [];
   assert.equal(buttons.length, 0, "the marker is the shared component, not a local button");
-  assert.match(checkHeading, /<MarkerBox[\s\S]*interactive=\{check\.isManual\}/u);
+  assert.match(checkHeading, /<MarkerBox[\s\S]*interactive=\{check\.isManual && !resetBusy\}/u);
   assert.match(checkHeading, /onCycle=\{\(\) => cycleResult\(item\.id, check\)\}/u);
   assert.match(app, /type: "cycle-result"/u);
   assert.doesNotMatch(template, /checklist-result-controls/u);
@@ -49,8 +49,8 @@ test("a manual check has exactly one interactive marker", () => {
 });
 
 test("Agent checks and work-item markers stay read-only", () => {
-  // `interactive` is bound to isManual, so an Agent check gets the plain box.
-  assert.match(checkHeading, /interactive=\{check\.isManual\}/u);
+  // `interactive` requires isManual (and no reset in flight), so an Agent check gets the plain box.
+  assert.match(checkHeading, /interactive=\{check\.isManual && !resetBusy\}/u);
   const itemHeader = template.slice(
     template.indexOf("checklist-item-header"),
     template.indexOf("checklist-checks"),
