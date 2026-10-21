@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-10-21T06:24:37.443657+00:00",
+  "updated_at": "2026-10-21T07:02:42.374994+00:00",
   "tasks": [
     {
       "id": "report-search",
@@ -291,6 +291,12 @@
       "summary": "Draft 0.2 sidecar 已採用 deterministic-capacity-feasibility v0.3：直接加總未完成估算，先判斷真實容量可行性，再以進度壓力補充期限趨勢。",
       "completed_items": [
         {
+          "id": "item-time-reference-todo-4",
+          "title": "未估算項目應視為未設置並排除於加總之外，而非代入預設 8hr 後計入總數；預覽模式不顯示未設置膠囊，編輯模式在有時間設定檔時顯示 -hr 作為建立第一筆估算的入口",
+          "priority": 2,
+          "status": "done"
+        },
+        {
           "id": "item-time-reference-done-1",
           "title": "完成 time.config、time.estimates、time.events 與 time.analysis Draft 0.2 契約",
           "priority": 4
@@ -366,11 +372,6 @@
           "id": "item-time-reference-todo-3",
           "title": "從零建立 time.config／首次重新計算並儲存後，交付按鈕與膠囊應直接反映新的 time.analysis.json，不必整頁重新整理",
           "priority": 2
-        },
-        {
-          "id": "item-time-reference-todo-4",
-          "title": "未估算項目應視為未設置並排除於加總之外，而非代入預設 8hr 後計入總數；預覽模式不顯示未設置膠囊，編輯模式在有時間設定檔時顯示 -hr 作為建立第一筆估算的入口",
-          "priority": 2
         }
       ]
     },
@@ -379,8 +380,14 @@
       "title": "本機任務編輯",
       "status": "in_progress",
       "priority": 2,
-      "summary": "Checklist document core、WPF／WebView2 Host、restricted bridge、共用 Svelte UI 與首版 Release package contract 已驗證。實機 WPF review 已改版 UX：預設自動儲存、cache 持久化的謹慎模式，以及左側單一循環 manual marker；新規格尚未實作。 Report 層級摘要已可在正式 Viewer 編輯模式修改與清空，沿用同一條 Editor Core 草稿與儲存路徑。",
+      "summary": "Checklist document core、WPF／WebView2 Host、restricted bridge、共用 Svelte UI 與首版 Release package contract 已驗證。實機 WPF review 已改版 UX：預設自動儲存、cache 持久化的謹慎模式，以及左側單一循環 manual marker；新規格已實作。 Report 層級摘要已可在正式 Viewer 編輯模式修改與清空，沿用同一條 Editor Core 草稿與儲存路徑。",
       "completed_items": [
+        {
+          "id": "structured-checklist-editor",
+          "title": "完成 WPF／WebView2 Checklist Editor 的新互動：預設 revision-safe 自動儲存、使用者 cache 的謹慎模式，以及可持續編輯的左側單一循環 manual marker；維持受限 bridge 與 no-LocalWebService 邊界",
+          "priority": 1,
+          "status": "done"
+        },
         {
           "id": "item-local-task-editing-done-1",
           "title": "完成第一版編輯範圍、階段、風險與正式上線條件規劃",
@@ -718,11 +725,6 @@
         }
       ],
       "pending_items": [
-        {
-          "id": "structured-checklist-editor",
-          "title": "完成 WPF／WebView2 Checklist Editor 的新互動：預設 revision-safe 自動儲存、使用者 cache 的謹慎模式，以及可持續編輯的左側單一循環 manual marker；維持受限 bridge 與 no-LocalWebService 邊界",
-          "priority": 1
-        },
         {
           "id": "dual-host-report-editor",
           "title": "在 Checklist Desktop 路徑穩定後，讓完整 Report Editor 以同一 Edit Application Contract 支援 LocalWebService／Browser 與 WebView2／Desktop 雙入口",
