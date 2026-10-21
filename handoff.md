@@ -6,7 +6,7 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
 
 ## Current state (2026-09-29)
 
-- **預覽模式拖曳換位（2026-10-21）。** 規格 `Documentation/ReportItemOrderingPlan.md#預覽模式拖曳換位`，驗收 `checklists/preview-item-reorder.checklist`（全 `[x]`）。有本機編輯服務時，預覽頁同卡同級未完成子項可從空白處拖曳或 Alt+↑／↓ 換位，目標以動畫空出位置，放下直接寫入（無復原、無儲存列）。`app.js` 的 `reorderInPreview` 先比對重新讀取的 report.json 與畫面，不同就不寫並重載；`viewer/assets/item-reorder.js` 只動陣列位置。觸控長按未做，等 UX 第 69 題。
+- **預覽模式拖曳換位（2026-10-21）。** 規格 `Documentation/ReportItemOrderingPlan.md#預覽模式拖曳換位`，驗收 `checklists/preview-item-reorder.checklist`（全 `[x]`）。有本機編輯服務時，預覽頁同卡同級未完成子項可從空白處拖曳或 Alt+↑／↓ 換位，目標以動畫空出位置，放下直接寫入（無復原、無儲存列）。`app.js` 的 `reorderInPreview` 先比對重新讀取的 report.json 與畫面，不同就不寫並重載；`viewer/assets/item-reorder.js` 只動陣列位置。長按換位依 UX 第 69 題取消，不做。
 
 - **完成堆疊、清空結果與決策連結（2026-10-21）。** 綁定文件完成而顯示為完成的待處理子項，投影時排在完成區最上方（`viewer/assets/document-binding.js`，規格 `Documentation/DocumentBindingPlan.md#子項目綁定契約`）。Checklist「清空實機結果」改名「清空結果」，放在底部儲存列最右端（`Documentation/CardDisclosurePlan.md`）。決策頁 context、選項說明、建議理由改用 `InlineLinks`（`Documentation/InlineReportLinks.md#decision-欄位`）。Browser 已確認前兩項與決策頁文字正常；目前沒有含連結的決策檔，決策頁連結的實際顯示未在頁面上看到，由原始碼測試覆蓋。正式 Desktop 資產未更新。
 
