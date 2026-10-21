@@ -3216,3 +3216,12 @@ footer {
   color: var(--muted);
   pointer-events: none;
 }
+
+.detail-list li.editor-item-row.item-row-reorderable { cursor: grab; transition: padding 150ms ease-out; }
+.item-row-reorderable :where(span, strong, code) { cursor: auto; }
+.detail-list li.editor-item-row.item-row-dragging { opacity: 0.4; }
+.work-columns .detail-list li.editor-item-row.item-gap-before { padding-top: calc(var(--editor-item-padding-block) + 2.25rem); }
+.work-columns .detail-list li.editor-item-row.item-gap-after { padding-bottom: calc(var(--editor-item-padding-block) + 2.25rem); }
+@media (prefers-reduced-motion: reduce) {
+  .detail-list li.editor-item-row.item-row-reorderable { transition: none; }
+}

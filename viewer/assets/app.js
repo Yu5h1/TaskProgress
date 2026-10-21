@@ -1,4 +1,5 @@
 import { requestedCardPin } from "./card-order.js";
+import { moveUnfinishedItem } from "./item-reorder.js";
 import { parseReference, referenceTask, searchTask, searchTerms } from "./task-search.js";
 import {
   createDocumentBindingRefresher,
@@ -1086,6 +1087,8 @@ function renderTasks() {
   const props = taskListProps(tasks);
   props.requestedPin = requestedPin;
   props.scopeId = state.report.scope_id;
+  props.reorderable = state.editor.available && !state.editor.editing;
+  props.onReorder = reorderInPreview;
   props.searchQuery = state.searchQuery;
   props.onSearch = (query) => {
     state.searchQuery = query;
@@ -1335,6 +1338,46 @@ async function confirmReportSave(payload) {
 
 async function saveReportDraft(payload) {
   return await state.editor.client.save(payload);
+}
+
+/**
+ * Saves one unfinished-item move made in preview. The move applies only when
+ * report.json still matches what the page shows; otherwise nothing is written
+ * and the page reloads. The session's If-Match covers the rest of the window.
+ */
+async function reorderInPreview(command) {
+  if (!state.editor.available || state.editor.editing || state.previewReorderBusy) return;
+  state.previewReorderBusy = true;
+  const client = state.editor.client;
+  try {
+    await client.start();
+    const request = resolveReportRequest(new URLSearchParams(location.search));
+    const current = await fetchJson(request.reportSource, "report.json");
+    if (JSON.stringify(current) !== JSON.stringify(state.persistedReport)) {
+      state.diagnostics.push({ level: "warning", message: "報告已被其他人更新，已重新載入；請再拖一次。" });
+      renderDiagnostics();
+      await refreshForegroundSilently();
+      return;
+    }
+    const report = moveUnfinishedItem(state.persistedReport, command);
+    report.updated_at = new Date().toISOString();
+    const errors = validateReport(report);
+    if (errors.length) throw new Error(String(errors[0]?.message ?? errors[0]));
+    const payload = { report, inputs: {}, changes: [] };
+    await client.save(payload);
+    state.report = payload.report;
+    state.persistedReport = structuredClone(payload.report);
+    rebuildMergedTasks();
+    renderReport();
+    await refreshDocumentBindings();
+  } catch (error) {
+    state.diagnostics.push({ level: "error", message: error instanceof Error ? error.message : "換位儲存失敗；原始檔案未變更。" });
+    renderDiagnostics();
+    await refreshForegroundSilently();
+  } finally {
+    await client.close();
+    state.previewReorderBusy = false;
+  }
 }
 
 async function loadScopeCatalog() {

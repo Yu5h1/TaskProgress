@@ -6,6 +6,7 @@
   export let expanded = true;
   export let onToggle = () => {};
   import DeveloperDetails from "./DeveloperDetails.svelte";
+  import { tick } from "svelte";
   import ItemRow from "./ItemRow.svelte";
   import { stableSortTaskItemsByPriority } from "../../../viewer/assets/report-model.js";
   import ExpandableText from "./ExpandableText.svelte";
@@ -33,6 +34,8 @@
   // The first visible card in the list (the pinned one when a pin applies).
   export let lead = false;
   export let scopeId = null;
+  export let reorderable = false;
+  export let onReorder = () => {};
   const completedPreviewCount = 1;
   let showAllCompleted = false;
 
@@ -90,11 +93,13 @@
 
   let draggingId = null;
   let dropTarget = null;
-  $: if (!editing) clearItemDrag();
+  let armedId = null;
+  $: editing, clearItemDrag();
 
   function clearItemDrag() {
     draggingId = null;
     dropTarget = null;
+    armedId = null;
   }
 
   function samePriority(left, right) {
@@ -107,18 +112,25 @@
     const next = ids.filter((id) => id !== itemId);
     next.splice(next.indexOf(targetId) + (after ? 1 : 0), 0, itemId);
     if (next.every((id, index) => id === ids[index])) return;
-    onCommand({
-      type: "reorder-item",
-      taskId: task.id,
-      itemId,
-      position: after ? { after: targetId } : { before: targetId },
-    });
+    const position = after ? { after: targetId } : { before: targetId };
+    if (editing) return onCommand({ type: "reorder-item", taskId: task.id, itemId, position });
+    return onReorder({ taskId: task.id, itemId, position });
   }
 
-  function itemReorder(item, items, dragId, target) {
+  function itemReorder(item, items, dragId, target, armed) {
     const dragged = items.find((entry) => entry.id === dragId);
     return {
       side: target?.id === item.id ? (target.after ? "after" : "before") : null,
+      armed: armed === item.id,
+      dragging: dragId === item.id,
+      arm(event) {
+        if (editing || event.button !== 0 || event.pointerType !== "mouse") return;
+        if (event.target.closest("a, button, input, select, textarea, label, [contenteditable], span, strong, code, svg")) return;
+        armedId = item.id;
+      },
+      disarm() {
+        if (armedId === item.id && draggingId !== item.id) armedId = null;
+      },
       start(event) {
         event.stopPropagation();
         draggingId = item.id;
@@ -131,7 +143,8 @@
         event.preventDefault();
         event.stopPropagation();
         event.dataTransfer.dropEffect = "move";
-        const bounds = event.currentTarget.getBoundingClientRect();
+        const content = event.currentTarget.querySelector(".item-row-description") ?? event.currentTarget;
+        const bounds = content.getBoundingClientRect();
         dropTarget = { id: item.id, after: event.clientY >= bounds.top + bounds.height / 2 };
       },
       leave(event) {
@@ -151,9 +164,10 @@
         const level = items.filter((entry) => entry.id && samePriority(entry, item));
         const neighbor = level[level.findIndex((entry) => entry.id === item.id) + (event.key === "ArrowUp" ? -1 : 1)];
         if (!neighbor) return;
-        reorderItem(item.id, neighbor.id, event.key === "ArrowDown");
         const ref = CSS.escape(`${task.id}/${item.id}`);
-        requestAnimationFrame(() => document.querySelector(`.item-row-grip[data-item-ref="${ref}"]`)?.focus());
+        Promise.resolve(reorderItem(item.id, neighbor.id, event.key === "ArrowDown"))
+          .then(() => tick())
+          .then(() => document.querySelector(`[data-item-ref="${ref}"]`)?.focus());
       },
     };
   }
@@ -283,7 +297,7 @@
                 {onModuleReorder}
                 leadItem={lead && group.status === "planned" && index === 0}
                 {scopeId}
-                reorder={editing && group.status === "planned" && item.id ? itemReorder(item, group.items, draggingId, dropTarget) : null}
+                reorder={(editing || reorderable) && group.status === "planned" && item.id && !item.legacy ? itemReorder(item, group.items, draggingId, dropTarget, armedId) : null}
               />
             {/each}
           </ul>

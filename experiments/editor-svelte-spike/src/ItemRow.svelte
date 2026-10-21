@@ -76,12 +76,22 @@
 </script>
 
 <li class="editor-item-row" class:editable-work-item={editing}
-  class:item-drop-before={reorder?.side === "before"}
-  class:item-drop-after={reorder?.side === "after"}
+  class:item-drop-before={editing && reorder?.side === "before"}
+  class:item-drop-after={editing && reorder?.side === "after"}
+  class:item-gap-before={!editing && reorder?.side === "before"}
+  class:item-gap-after={!editing && reorder?.side === "after"}
+  class:item-row-reorderable={!editing && !!reorder}
+  class:item-row-dragging={!!reorder?.dragging}
+  draggable={!editing && reorder?.armed ? "true" : undefined}
+  onpointerdown={editing ? undefined : reorder?.arm}
+  onpointerup={editing ? undefined : reorder?.disarm}
+  ondragstart={editing ? undefined : reorder?.start}
+  ondragend={editing ? undefined : reorder?.end}
+  onkeydown={editing ? undefined : reorder?.keydown}
   ondragover={reorder?.over}
   ondragleave={reorder?.leave}
   ondrop={reorder?.drop}>
-  {#if reorder}
+  {#if reorder && editing}
     <button
       type="button"
       class="item-row-grip"
@@ -174,6 +184,7 @@
     <button
       type="button"
       class="item-row-copy"
+      data-item-ref={`${taskId}/${item.id}`}
       class:is-done={copyState}
       class:is-copied={copyState === "已複製"}
       aria-label={copyState || `複製「${item.title}」的參照`}

@@ -13,6 +13,8 @@
   export let scopeId = null;
   export let searchQuery = "";
   export let onSearch = null;
+  export let reorderable = false;
+  export let onReorder = () => {};
   export let progress = {};
   export let editing = false;
   export let policy;
@@ -93,6 +95,8 @@
         moduleTotals={moduleTotals[task.id] ?? []}
         {lead}
         {scopeId}
+        {reorderable}
+        {onReorder}
       />
     {/if}
   </CardList>

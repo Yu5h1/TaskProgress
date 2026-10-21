@@ -21,7 +21,7 @@ function b() {
 		reject: t
 	};
 }
-var x = 1024, S = 2048, C = 4096, w = 8192, T = 16384, E = 32768, ee = 1 << 25, te = 65536, D = 1 << 19, O = 1 << 20, ne = 1 << 25, k = 65536, re = 1 << 21, ie = 1 << 22, ae = 1 << 23, oe = Symbol("$state"), se = Symbol("legacy props"), ce = Symbol(""), le = Symbol("attributes"), ue = Symbol("class"), de = Symbol("style"), fe = Symbol("text"), pe = Symbol("form reset"), me = new class extends Error {
+var x = 1024, S = 2048, C = 4096, w = 8192, ee = 16384, te = 32768, T = 1 << 25, E = 65536, D = 1 << 19, O = 1 << 20, ne = 1 << 25, k = 65536, re = 1 << 21, ie = 1 << 22, ae = 1 << 23, oe = Symbol("$state"), se = Symbol("legacy props"), ce = Symbol(""), le = Symbol("attributes"), ue = Symbol("class"), de = Symbol("style"), fe = Symbol("text"), pe = Symbol("form reset"), me = new class extends Error {
 	name = "StaleReactionError";
 	message = "The reaction that called `getAbortSignal()` was re-run or destroyed";
 }(), he = !!globalThis.document?.contentType && /* @__PURE__ */ globalThis.document.contentType.includes("xml");
@@ -288,7 +288,7 @@ function pt(e) {
 }
 //#endregion
 //#region node_modules/svelte/src/internal/client/dom/blocks/boundary.js
-var mt = te | D;
+var mt = E | D;
 function ht(e, t, n, r) {
 	new gt(e, t, n, r);
 }
@@ -1187,7 +1187,7 @@ function Sn(e, t) {
 		} catch (e) {
 			throw Rn(r), e;
 		}
-		i.deps === null && i.teardown === null && i.nodes === null && i.first === i.last && !(i.f & 524288) && (i = i.first, e & 16 && e & 65536 && i !== null && (i.f |= te));
+		i.deps === null && i.teardown === null && i.nodes === null && i.first === i.last && !(i.f & 524288) && (i = i.first, e & 16 && e & 65536 && i !== null && (i.f |= E));
 	}
 	if (i !== null && (i.parent = n, n !== null && xn(i, n), Xn !== null && Xn.f & 2 && !(e & 64))) {
 		var a = Xn;
@@ -1306,10 +1306,10 @@ function Ln(e) {
 }
 function Rn(e, t = !0) {
 	var n = !1;
-	(t || e.f & 262144) && e.nodes !== null && e.nodes.end !== null && (zn(e.nodes.start, e.nodes.end), n = !0), e.f |= ee, In(e, t && !n), hr(e, 0);
+	(t || e.f & 262144) && e.nodes !== null && e.nodes.end !== null && (zn(e.nodes.start, e.nodes.end), n = !0), e.f |= T, In(e, t && !n), hr(e, 0);
 	var r = e.nodes && e.nodes.t;
 	if (r !== null) for (let e of r) e.stop();
-	Fn(e), e.f ^= ee, e.f |= T;
+	Fn(e), e.f ^= T, e.f |= ee;
 	var i = e.parent;
 	i !== null && i.first !== null && Bn(e), e.next = e.prev = e.teardown = e.ctx = e.deps = e.fn = e.nodes = e.ac = e.b = null;
 }
@@ -1425,7 +1425,7 @@ function pr(e) {
 	try {
 		e.f |= re;
 		var u = e.fn, d = u();
-		e.f |= E;
+		e.f |= te;
 		var f = e.deps, p = P?.is_fork;
 		if (nr !== null) {
 			var m;
@@ -1502,7 +1502,7 @@ function U(e) {
 			var a = i.v;
 			return (!(i.f & 1024) && i.reactions !== null || yr(i)) && (a = Tt(i)), Jt.set(i, a), a;
 		}
-		var o = !(i.f & 512) && !Zn && Xn !== null && (qn || !!(Xn.f & 512)), c = (i.f & E) === 0;
+		var o = !(i.f & 512) && !Zn && Xn !== null && (qn || !!(Xn.f & 512)), c = (i.f & te) === 0;
 		dr(i) && (o && (i.f |= 512), Et(i)), o && !c && (Ot(i), vr(i));
 	}
 	if (jt?.has(e)) return jt.get(e);
@@ -1850,7 +1850,7 @@ function Yr(e) {
 function X(e, t, n = !1) {
 	var r;
 	A && (r = j, Fe());
-	var i = new Kr(e), a = n ? te : 0;
+	var i = new Kr(e), a = n ? E : 0;
 	function o(e, t) {
 		if (A) {
 			var n = Re(r);
@@ -2005,14 +2005,14 @@ function ii(e, t, n, r, i) {
 		var w = [];
 		if (u !== void 0) for (_ of u) _.f & 8192 || w.push(_);
 		for (; l !== null;) !(l.f & 8192) && l !== e.fallback && w.push(l), l = ri(l.next);
-		var T = w.length;
-		if (T > 0) {
-			var E = r & 4 && o === 0 ? n : null;
+		var ee = w.length;
+		if (ee > 0) {
+			var te = r & 4 && o === 0 ? n : null;
 			if (a) {
-				for (v = 0; v < T; v += 1) w[v].nodes?.a?.measure();
-				for (v = 0; v < T; v += 1) w[v].nodes?.a?.fix();
+				for (v = 0; v < ee; v += 1) w[v].nodes?.a?.measure();
+				for (v = 0; v < ee; v += 1) w[v].nodes?.a?.fix();
 			}
-			$r(e, w, E);
+			$r(e, w, te);
 		}
 	}
 	a && Ze(() => {
@@ -2073,7 +2073,7 @@ function li(e, t, n, r, a, o) {
 			}
 			A && Pe(t);
 		}), () => {};
-	}, te), wn(() => {}), s && (Ne(!0), Pe(l));
+	}, E), wn(() => {}), s && (Ne(!0), Pe(l));
 }
 //#endregion
 //#region node_modules/svelte/src/internal/client/dom/elements/actions.js
@@ -2483,15 +2483,15 @@ typeof window < "u" && ((window.__svelte ??= {}).v ??= /* @__PURE__ */ new Set()
 var Ki = /* @__PURE__ */ q("<button type=\"button\">＋</button>"), qi = /* @__PURE__ */ q("<textarea class=\"task-summary-input\" rows=\"2\" maxlength=\"1000\"></textarea>"), Ji = /* @__PURE__ */ q("<option> </option>"), Yi = /* @__PURE__ */ q("<span class=\"task-add-contract\"> </span>"), Xi = /* @__PURE__ */ q("<span class=\"inline-add-error\" role=\"alert\"> </span> <div class=\"inline-add-actions\"><button class=\"secondary-button inline-add-cancel\" type=\"button\"> </button> <button class=\"secondary-button\" type=\"submit\"> </button></div>", 1), Zi = /* @__PURE__ */ q("<button class=\"secondary-button inline-add-cancel\" type=\"button\"> </button> <button class=\"secondary-button\" type=\"submit\"> </button> <span class=\"inline-add-error\" role=\"alert\"> </span>", 1), Qi = /* @__PURE__ */ q("<form><input class=\"inline-edit-input\" type=\"text\"/> <!> <select class=\"inline-priority-select\"></select> <!> <!></form>");
 function $i(e, t) {
 	Ke(t, !1);
-	let n = /* @__PURE__ */ F(), r = /* @__PURE__ */ F(), i = /* @__PURE__ */ F(), a = /* @__PURE__ */ F(), o = /* @__PURE__ */ F(), s = /* @__PURE__ */ F(), c = $(t, "kind", 8, "item"), l = $(t, "expanded", 8, !1), u = $(t, "policy", 8), d = $(t, "triggerAriaLabel", 8, ""), f = $(t, "titlePlaceholder", 8, ""), p = $(t, "titleAriaLabel", 8, ""), m = $(t, "summaryPlaceholder", 8, "任務描述（必填）"), h = $(t, "summaryAriaLabel", 8, "新任務描述"), g = $(t, "priorityAriaLabel", 8, ""), _ = $(t, "contractText", 8, ""), v = $(t, "submitLabel", 8, ""), y = $(t, "cancelLabel", 8, "取消"), b = $(t, "errorMessage", 8, ""), x = $(t, "onOpen", 8, () => {}), S = $(t, "onCancel", 8, () => {}), C = $(t, "onSubmit", 8, () => {}), w = /* @__PURE__ */ F(""), T = /* @__PURE__ */ F(""), E = /* @__PURE__ */ F(u()?.creationDefaultValue ?? 4), ee = /* @__PURE__ */ F();
-	async function te() {
-		await _r(), U(ee)?.focus?.();
+	let n = /* @__PURE__ */ F(), r = /* @__PURE__ */ F(), i = /* @__PURE__ */ F(), a = /* @__PURE__ */ F(), o = /* @__PURE__ */ F(), s = /* @__PURE__ */ F(), c = $(t, "kind", 8, "item"), l = $(t, "expanded", 8, !1), u = $(t, "policy", 8), d = $(t, "triggerAriaLabel", 8, ""), f = $(t, "titlePlaceholder", 8, ""), p = $(t, "titleAriaLabel", 8, ""), m = $(t, "summaryPlaceholder", 8, "任務描述（必填）"), h = $(t, "summaryAriaLabel", 8, "新任務描述"), g = $(t, "priorityAriaLabel", 8, ""), _ = $(t, "contractText", 8, ""), v = $(t, "submitLabel", 8, ""), y = $(t, "cancelLabel", 8, "取消"), b = $(t, "errorMessage", 8, ""), x = $(t, "onOpen", 8, () => {}), S = $(t, "onCancel", 8, () => {}), C = $(t, "onSubmit", 8, () => {}), w = /* @__PURE__ */ F(""), ee = /* @__PURE__ */ F(""), te = /* @__PURE__ */ F(u()?.creationDefaultValue ?? 4), T = /* @__PURE__ */ F();
+	async function E() {
+		await _r(), U(T)?.focus?.();
 	}
 	function D(e) {
 		e.preventDefault(), C()({
 			title: U(w),
-			summary: U(T),
-			priority: u().normalize(U(E), u().creationDefaultValue)
+			summary: U(ee),
+			priority: u().normalize(U(te), u().creationDefaultValue)
 		});
 	}
 	function O(e) {
@@ -2510,7 +2510,7 @@ function $i(e, t) {
 	}), B(() => (G(v()), U(n)), () => {
 		I(s, v() || (U(n) ? "加入任務" : "新增"));
 	}), B(() => G(l()), () => {
-		l() && te();
+		l() && E();
 	}), An(), Hi();
 	var ne = Ir(), k = R(ne), re = (e) => {
 		var t = Ki();
@@ -2521,12 +2521,12 @@ function $i(e, t) {
 		}), J(e, t);
 	}, ie = (e) => {
 		var t = Qi(), r = L(t);
-		ki(r), Vi(r, (e) => I(ee, e), () => U(ee));
+		ki(r), Vi(r, (e) => I(T, e), () => U(T));
 		var c = z(r, 2), l = (e) => {
 			var t = qi();
 			ct(t), V(() => {
 				Q(t, "placeholder", m()), Q(t, "aria-label", h());
-			}), Fi(t, () => U(T), (e) => I(T, e)), J(e, t);
+			}), Fi(t, () => U(ee), (e) => I(ee, e)), J(e, t);
 		};
 		X(c, (e) => {
 			U(n) && e(l);
@@ -2574,7 +2574,7 @@ function $i(e, t) {
 			U(n) ? e(v) : e(x, -1);
 		}), M(t), V(() => {
 			Z(t, 1, pi(U(n) ? "task-add-form" : "inline-add-form")), Q(r, "maxlength", U(n) ? 160 : 300), Q(r, "placeholder", U(i)), Q(r, "aria-label", U(a)), Q(d, "aria-label", U(o));
-		}), Tr("submit", t, D), K("keydown", t, O), Fi(r, () => U(w), (e) => I(w, e)), Ci(d, () => U(E), (e) => I(E, e)), J(e, t);
+		}), Tr("submit", t, D), K("keydown", t, O), Fi(r, () => U(w), (e) => I(w, e)), Ci(d, () => U(te), (e) => I(te, e)), J(e, t);
 	};
 	X(k, (e) => {
 		l() ? e(ie, -1) : e(re);
@@ -2854,20 +2854,20 @@ function Ca(e, t) {
 	M(b), M(_);
 	var S = z(_, 4), C = z(L(S), 2), w = L(C, !0);
 	M(C);
-	var T = z(C, 2), E = L(T);
-	M(T), M(S), M(g);
-	var ee = z(g, 2), te = L(ee), D = z(L(te)), O = L(D, !0);
-	M(D), M(te);
-	var ne = z(te, 2), k = z(L(ne)), re = L(k, !0);
-	M(k), M(ne), M(ee);
-	var ie = z(ee, 2), ae = (e) => {
+	var ee = z(C, 2), te = L(ee);
+	M(ee), M(S), M(g);
+	var T = z(g, 2), E = L(T), D = z(L(E)), O = L(D, !0);
+	M(D), M(E);
+	var ne = z(E, 2), k = z(L(ne)), re = L(k, !0);
+	M(k), M(ne), M(T);
+	var ie = z(T, 2), ae = (e) => {
 		var t = xa(), r = z(L(t), 1, !0);
 		M(t), V(() => Y(r, (G(n()), W(() => n().reason)))), J(e, t);
 	};
 	X(ie, (e) => {
 		G(n()), W(() => n().reason) && e(ae);
 	}), M(c), V((e, t, i, a) => {
-		Y(f, r()), Y(y, (G(n()), W(() => n().current.label))), Y(x, `剩餘容量 ${e ?? ""}`), Z(S, 1, (G(n()), W(() => `risk-${n().next.urgency ?? "none"}`))), Y(w, (G(n()), W(() => n().next.label))), Y(E, `剩餘容量 ${t ?? ""}`), Y(O, i), Y(re, a);
+		Y(f, r()), Y(y, (G(n()), W(() => n().current.label))), Y(x, `剩餘容量 ${e ?? ""}`), Z(S, 1, (G(n()), W(() => `risk-${n().next.urgency ?? "none"}`))), Y(w, (G(n()), W(() => n().next.label))), Y(te, `剩餘容量 ${t ?? ""}`), Y(O, i), Y(re, a);
 	}, [
 		() => (G(n()), W(() => o(n().current.remainingCapacityMinutes))),
 		() => (G(n()), W(() => o(n().next.remainingCapacityMinutes))),
@@ -3002,18 +3002,18 @@ function Pa(e, t) {
 	function w(e, t) {
 		t.currentTarget.contains(t.relatedTarget) || U(c)?.id === e.id && I(c, null);
 	}
-	function T(e, t) {
+	function ee(e, t) {
 		if (!U(s) || e.sortable === !1) return;
 		t.preventDefault();
 		let n = U(s), r = g(t.currentTarget, t.clientX);
 		m(), v(n, e.id, r);
 	}
-	function E() {
+	function te() {
 		m(), setTimeout(() => {
 			l = !1;
 		}, 0);
 	}
-	function ee(e, t) {
+	function T(e, t) {
 		e.sortable !== !1 && t.pointerType !== "mouse" && t.button === 0 && (u = {
 			pointerId: t.pointerId,
 			id: e.id,
@@ -3024,7 +3024,7 @@ function Pa(e, t) {
 			placeAfter: !1
 		}, t.currentTarget.setPointerCapture?.(t.pointerId));
 	}
-	function te(e, t) {
+	function E(e, t) {
 		if (!u || u.pointerId !== t.pointerId) return;
 		let n = t.clientX - u.startX, r = t.clientY - u.startY;
 		if (!u.active) {
@@ -3080,13 +3080,13 @@ function Pa(e, t) {
 		}), Tr("dragleave", r, function(...e) {
 			(U(n) ? (e) => w(U(t), e) : null)?.apply(this, e);
 		}), Tr("drop", r, function(...e) {
-			(U(n) ? (e) => T(U(t), e) : null)?.apply(this, e);
-		}), Tr("dragend", r, function(...e) {
-			(U(n) ? E : null)?.apply(this, e);
-		}), K("pointerdown", r, function(...e) {
 			(U(n) ? (e) => ee(U(t), e) : null)?.apply(this, e);
+		}), Tr("dragend", r, function(...e) {
+			(U(n) ? te : null)?.apply(this, e);
+		}), K("pointerdown", r, function(...e) {
+			(U(n) ? (e) => T(U(t), e) : null)?.apply(this, e);
 		}), K("pointermove", r, function(...e) {
-			(U(n) ? (e) => te(U(t), e) : null)?.apply(this, e);
+			(U(n) ? (e) => E(U(t), e) : null)?.apply(this, e);
 		}), K("pointerup", r, function(...e) {
 			(U(n) ? D : null)?.apply(this, e);
 		}), Tr("pointercancel", r, function(...e) {
@@ -3258,18 +3258,18 @@ function Za(e, t) {
 	M(b);
 	var S = z(b, 2), C = L(S), w = L(C, !0);
 	M(C);
-	var T = z(C, 2), E = L(T, !0);
-	M(T), M(S);
-	var ee = z(S, 2), te = (e) => {
+	var ee = z(C, 2), te = L(ee, !0);
+	M(ee), M(S);
+	var T = z(S, 2), E = (e) => {
 		var t = Ja(), a = L(t, !0);
 		M(t), V(() => {
 			Q(t, "aria-pressed", n()), Q(t, "aria-label", `${i()}：改為手動儲存與放棄`), t.disabled = o(), Y(a, i());
 		}), K("click", t, () => r()(!n())), J(e, t);
 	};
-	X(ee, (e) => {
-		r() && e(te);
+	X(T, (e) => {
+		r() && e(E);
 	});
-	var D = z(ee, 2), O = (e) => {
+	var D = z(T, 2), O = (e) => {
 		var t = Ya(), n = R(t), r = L(n, !0);
 		M(n);
 		var i = z(n, 2), s = L(i, !0);
@@ -3284,10 +3284,10 @@ function Za(e, t) {
 	X(D, (e) => {
 		n() && e(O);
 	}), V(() => {
-		Y(x, l()), Q(C, "aria-label", `${f()}上一個修改`), C.disabled = !s() || o(), Y(w, f()), Q(T, "aria-label", `${p()}下一個修改`), T.disabled = !c() || o(), Y(E, p());
+		Y(x, l()), Q(C, "aria-label", `${f()}上一個修改`), C.disabled = !s() || o(), Y(w, f()), Q(ee, "aria-label", `${p()}下一個修改`), ee.disabled = !c() || o(), Y(te, p());
 	}), K("click", C, function(...e) {
 		g()?.apply(this, e);
-	}), K("click", T, function(...e) {
+	}), K("click", ee, function(...e) {
 		_()?.apply(this, e);
 	}), J(e, y), qe();
 }
@@ -3682,7 +3682,7 @@ function Mo(e, t = {}) {
 	function w() {
 		!h && !m && (m = r.requestAnimationFrame(C));
 	}
-	function T(e = {}) {
+	function ee(e = {}) {
 		let t = String(e.text ?? ""), n = Number.isInteger(e.lines) && e.lines > 0 ? e.lines : 2, r = !f || f.text !== t, i = e.expanded === !0;
 		r || f.lines !== n ? p = i : i && !f.open && (p = !0), f = {
 			text: t,
@@ -3692,15 +3692,15 @@ function Mo(e, t = {}) {
 			lessLabel: e.lessLabel ?? "收合"
 		}, r && (g = jo(t), y = g.reduce((e, t) => e + t.units.length, 0), _ = b(a), v = b(u), x(_, y)), S(), w();
 	}
-	function E() {
+	function te() {
 		p = !p, S(), w();
 	}
-	o.hidden = !0, o.addEventListener("click", E);
-	let ee = new r.ResizeObserver(w);
-	return ee.observe(i), n.fonts?.addEventListener("loadingdone", w), T(t), {
-		update: T,
+	o.hidden = !0, o.addEventListener("click", te);
+	let T = new r.ResizeObserver(w);
+	return T.observe(i), n.fonts?.addEventListener("loadingdone", w), ee(t), {
+		update: ee,
 		destroy() {
-			h = !0, r.cancelAnimationFrame(m), ee.disconnect(), n.fonts?.removeEventListener("loadingdone", w), o.removeEventListener("click", E), i.remove(), l.remove(), e.classList.remove("expandable-text");
+			h = !0, r.cancelAnimationFrame(m), T.disconnect(), n.fonts?.removeEventListener("loadingdone", w), o.removeEventListener("click", te), i.remove(), l.remove(), e.classList.remove("expandable-text");
 		}
 	};
 }
@@ -3748,8 +3748,8 @@ function Zo(e, t) {
 			I(x, "");
 		}, 1500);
 	}
-	let w = /* @__PURE__ */ F(f().normalize(u().priority, f().fallbackValue)), T = $(t, "statuses", 24, () => []), E = /* @__PURE__ */ F(u().status ?? (l() === "completed_items" ? "done" : "planned"));
-	function ee(e) {
+	let w = /* @__PURE__ */ F(f().normalize(u().priority, f().fallbackValue)), ee = $(t, "statuses", 24, () => []), te = /* @__PURE__ */ F(u().status ?? (l() === "completed_items" ? "done" : "planned"));
+	function T(e) {
 		e !== U(a) && p()({
 			type: "set-item-status",
 			taskId: c(),
@@ -3758,7 +3758,7 @@ function Zo(e, t) {
 			status: e
 		});
 	}
-	function te(e) {
+	function E(e) {
 		h()(e, {
 			taskId: c(),
 			itemId: u().id,
@@ -3780,9 +3780,9 @@ function Zo(e, t) {
 	}), B(() => (G(u()), G(l())), () => {
 		I(a, u().status ?? (l() === "completed_items" ? "done" : "planned"));
 	}), B(() => U(a), () => {
-		I(E, U(a));
-	}), B(() => (G(T()), U(a)), () => {
-		I(o, T().find((e) => e.value === U(a)) ?? {
+		I(te, U(a));
+	}), B(() => (G(ee()), U(a)), () => {
+		I(o, ee().find((e) => e.value === U(a)) ?? {
 			label: U(a),
 			tone: "muted"
 		});
@@ -3809,7 +3809,7 @@ function Zo(e, t) {
 		}), J(e, t);
 	};
 	X(ne, (e) => {
-		y() ? e(k) : e(re, -1);
+		y() && d() ? e(k) : e(re, -1);
 	});
 	var ie = z(ne, 2), ae = (e) => {
 		var t = Ho(), n = L(t), a = (e) => {
@@ -3894,7 +3894,7 @@ function Zo(e, t) {
 			r = Z(t, 1, "item-row-copy", null, r, {
 				"is-done": U(x),
 				"is-copied": U(x) === "已複製"
-			}), Q(t, "aria-label", (U(x), G(u()), W(() => U(x) || `複製「${u().title}」的參照`))), Q(t, "title", U(x) || U(n)), Y(i, U(x) === "已複製" ? "✓" : U(x) ? "✕" : "⧉");
+			}), Q(t, "data-item-ref", (G(c()), G(u()), W(() => `${c()}/${u().id}`))), Q(t, "aria-label", (U(x), G(u()), W(() => U(x) || `複製「${u().title}」的參照`))), Q(t, "title", U(x) || U(n)), Y(i, U(x) === "已複製" ? "✓" : U(x) ? "✕" : "⧉");
 		}), K("click", t, C), J(e, t);
 	};
 	X(ue, (e) => {
@@ -3908,21 +3908,21 @@ function Zo(e, t) {
 		get moduleOrder() {
 			return g();
 		},
-		onActivate: te,
+		onActivate: E,
 		get onReorder() {
 			return _();
 		}
 	}), M(pe);
 	var me = z(pe, 2), he = L(me), ge = (e) => {
 		var t = Jo();
-		ni(t, 5, T, (e) => e.value, (e, t) => {
+		ni(t, 5, ee, (e) => e.value, (e, t) => {
 			var n = zo(), r = L(n, !0);
 			M(n);
 			var i = {};
 			V(() => {
 				Y(r, (U(t), W(() => U(t).label))), i !== (i = (U(t), W(() => U(t).value))) && (n.value = (n.__value = (U(t), W(() => U(t).value))) ?? "");
 			}), J(e, n);
-		}), M(t), V(() => Q(t, "aria-label", (G(u()), W(() => `設定「${u().title}」的狀態`)))), K("change", t, () => ee(U(E))), Ci(t, () => U(E), (e) => I(E, e)), J(e, t);
+		}), M(t), V(() => Q(t, "aria-label", (G(u()), W(() => `設定「${u().title}」的狀態`)))), K("change", t, () => T(U(te))), Ci(t, () => U(te), (e) => I(te, e)), J(e, t);
 	}, _e = (e) => {
 		var t = Vo(), n = L(t, !0);
 		M(t), V(() => {
@@ -3943,11 +3943,27 @@ function Zo(e, t) {
 	};
 	X(ve, (e) => {
 		d() && e(ye);
-	}), M(fe), M(D), V(() => O = Z(D, 1, "editor-item-row", null, O, {
-		"editable-work-item": d(),
-		"item-drop-before": y()?.side === "before",
-		"item-drop-after": y()?.side === "after"
-	})), Tr("dragover", D, function(...e) {
+	}), M(fe), M(D), V(() => {
+		O = Z(D, 1, "editor-item-row", null, O, {
+			"editable-work-item": d(),
+			"item-drop-before": d() && y()?.side === "before",
+			"item-drop-after": d() && y()?.side === "after",
+			"item-gap-before": !d() && y()?.side === "before",
+			"item-gap-after": !d() && y()?.side === "after",
+			"item-row-reorderable": !d() && !!y(),
+			"item-row-dragging": !!y()?.dragging
+		}), Q(D, "draggable", (G(d()), G(y()), W(() => !d() && y()?.armed ? "true" : void 0)));
+	}), K("pointerdown", D, function(...e) {
+		(d() ? void 0 : y()?.arm)?.apply(this, e);
+	}), K("pointerup", D, function(...e) {
+		(d() ? void 0 : y()?.disarm)?.apply(this, e);
+	}), Tr("dragstart", D, function(...e) {
+		(d() ? void 0 : y()?.start)?.apply(this, e);
+	}), Tr("dragend", D, function(...e) {
+		(d() ? void 0 : y()?.end)?.apply(this, e);
+	}), K("keydown", D, function(...e) {
+		(d() ? void 0 : y()?.keydown)?.apply(this, e);
+	}), Tr("dragover", D, function(...e) {
 		(y()?.over)?.apply(this, e);
 	}), Tr("dragleave", D, function(...e) {
 		(y()?.leave)?.apply(this, e);
@@ -3956,6 +3972,8 @@ function Zo(e, t) {
 	}), J(e, D), qe();
 }
 Er([
+	"pointerdown",
+	"pointerup",
 	"keydown",
 	"change",
 	"input",
@@ -4085,7 +4103,7 @@ function ys(e, t) {
 	Ke(t, !1);
 	let n = /* @__PURE__ */ F(), r = /* @__PURE__ */ F(), i = /* @__PURE__ */ F(), a = /* @__PURE__ */ F(), o = $(t, "visibilityEnabled", 8, !1), s = $(t, "visible", 8, !0), c = $(t, "onVisibleChange", 8, () => {}), l = $(t, "expanded", 8, !0), u = $(t, "onToggle", 8, () => {}), d = $(t, "task", 8), f = $(t, "progress", 8), p = $(t, "editing", 8), m = $(t, "policy", 8), h = $(t, "onCommand", 8), g = $(t, "onAddItem", 8);
 	$(t, "timeTask", 8, null);
-	let _ = $(t, "itemCapsules", 24, () => /* @__PURE__ */ new Map()), v = $(t, "onModuleActivate", 8, () => {}), y = $(t, "moduleOrder", 24, () => ["time"]), b = $(t, "onModuleReorder", 8, () => {}), x = $(t, "statusOrder", 24, () => ["done", "planned"]), S = $(t, "moduleTotals", 24, () => []), C = $(t, "lead", 8, !1), w = $(t, "scopeId", 8, null), T = /* @__PURE__ */ F(!1), E = [
+	let _ = $(t, "itemCapsules", 24, () => /* @__PURE__ */ new Map()), v = $(t, "onModuleActivate", 8, () => {}), y = $(t, "moduleOrder", 24, () => ["time"]), b = $(t, "onModuleReorder", 8, () => {}), x = $(t, "statusOrder", 24, () => ["done", "planned"]), S = $(t, "moduleTotals", 24, () => []), C = $(t, "lead", 8, !1), w = $(t, "scopeId", 8, null), ee = $(t, "reorderable", 8, !1), te = $(t, "onReorder", 8, () => {}), T = /* @__PURE__ */ F(!1), E = [
 		{
 			value: "planned",
 			label: "待處理",
@@ -4111,63 +4129,76 @@ function ys(e, t) {
 			label: "已封存",
 			tone: "muted"
 		}
-	], ee = /* @__PURE__ */ F(!1), te = /* @__PURE__ */ F(""), D = /* @__PURE__ */ F(m().creationDefaultValue), O = /* @__PURE__ */ F(""), ne = /* @__PURE__ */ F(d().status), k = /* @__PURE__ */ F(m().normalize(d().priority, m().fallbackValue));
-	function re() {
-		I(ee, !1), I(te, ""), I(D, m().creationDefaultValue), I(O, "");
+	], D = /* @__PURE__ */ F(!1), O = /* @__PURE__ */ F(""), ne = /* @__PURE__ */ F(m().creationDefaultValue), k = /* @__PURE__ */ F(""), re = /* @__PURE__ */ F(d().status), ie = /* @__PURE__ */ F(m().normalize(d().priority, m().fallbackValue));
+	function ae() {
+		I(D, !1), I(O, ""), I(ne, m().creationDefaultValue), I(k, "");
 	}
-	let ie = /* @__PURE__ */ F(null), ae = /* @__PURE__ */ F(null);
-	function oe() {
-		I(ie, null), I(ae, null);
+	let oe = /* @__PURE__ */ F(null), se = /* @__PURE__ */ F(null), ce = /* @__PURE__ */ F(null);
+	function le() {
+		I(oe, null), I(se, null), I(ce, null);
 	}
-	function se(e, t) {
+	function ue(e, t) {
 		return m().normalize(e.priority, m().fallbackValue) === m().normalize(t.priority, m().fallbackValue);
 	}
-	function ce(e, t, n) {
+	function de(e, t, n) {
 		let r = (d().pending_items ?? []).map((e) => e?.id), i = r.filter((t) => t !== e);
-		i.splice(i.indexOf(t) + +!!n, 0, e), !i.every((e, t) => e === r[t]) && h()({
+		if (i.splice(i.indexOf(t) + +!!n, 0, e), i.every((e, t) => e === r[t])) return;
+		let a = n ? { after: t } : { before: t };
+		return p() ? h()({
 			type: "reorder-item",
 			taskId: d().id,
 			itemId: e,
-			position: n ? { after: t } : { before: t }
+			position: a
+		}) : te()({
+			taskId: d().id,
+			itemId: e,
+			position: a
 		});
 	}
-	function le(e, t, n, r) {
-		let i = t.find((e) => e.id === n);
+	function fe(e, t, n, r, i) {
+		let a = t.find((e) => e.id === n);
 		return {
 			side: r?.id === e.id ? r.after ? "after" : "before" : null,
-			start(t) {
-				t.stopPropagation(), I(ie, e.id), t.dataTransfer.effectAllowed = "move", t.dataTransfer.setData("text/plain", e.id);
+			armed: i === e.id,
+			dragging: n === e.id,
+			arm(t) {
+				p() || t.button !== 0 || t.pointerType !== "mouse" || t.target.closest("a, button, input, select, textarea, label, [contenteditable], span, strong, code, svg") || I(ce, e.id);
 			},
-			end: oe,
+			disarm() {
+				U(ce) === e.id && U(oe) !== e.id && I(ce, null);
+			},
+			start(t) {
+				t.stopPropagation(), I(oe, e.id), t.dataTransfer.effectAllowed = "move", t.dataTransfer.setData("text/plain", e.id);
+			},
+			end: le,
 			over(t) {
-				if (!i || i.id === e.id || !se(i, e)) return;
+				if (!a || a.id === e.id || !ue(a, e)) return;
 				t.preventDefault(), t.stopPropagation(), t.dataTransfer.dropEffect = "move";
-				let n = t.currentTarget.getBoundingClientRect();
-				I(ae, {
+				let n = (t.currentTarget.querySelector(".item-row-description") ?? t.currentTarget).getBoundingClientRect();
+				I(se, {
 					id: e.id,
 					after: t.clientY >= n.top + n.height / 2
 				});
 			},
 			leave(t) {
-				!t.currentTarget.contains(t.relatedTarget) && U(ae)?.id === e.id && I(ae, null);
+				!t.currentTarget.contains(t.relatedTarget) && U(se)?.id === e.id && I(se, null);
 			},
 			drop(t) {
-				!i || U(ae)?.id !== e.id || (t.preventDefault(), t.stopPropagation(), ce(i.id, e.id, U(ae).after), oe());
+				!a || U(se)?.id !== e.id || (t.preventDefault(), t.stopPropagation(), de(a.id, e.id, U(se).after), le());
 			},
 			keydown(n) {
 				if (!n.altKey || !["ArrowUp", "ArrowDown"].includes(n.key)) return;
 				n.preventDefault(), n.stopPropagation();
-				let r = t.filter((t) => t.id && se(t, e)), i = r[r.findIndex((t) => t.id === e.id) + (n.key === "ArrowUp" ? -1 : 1)];
+				let r = t.filter((t) => t.id && ue(t, e)), i = r[r.findIndex((t) => t.id === e.id) + (n.key === "ArrowUp" ? -1 : 1)];
 				if (!i) return;
-				ce(e.id, i.id, n.key === "ArrowDown");
 				let a = CSS.escape(`${d().id}/${e.id}`);
-				requestAnimationFrame(() => document.querySelector(`.item-row-grip[data-item-ref="${a}"]`)?.focus());
+				Promise.resolve(de(e.id, i.id, n.key === "ArrowDown")).then(() => _r()).then(() => document.querySelector(`[data-item-ref="${a}"]`)?.focus());
 			}
 		};
 	}
-	function ue() {
-		let e = g()(U(te), Number(U(D)));
-		I(O, e.error), U(O) || re();
+	function pe() {
+		let e = g()(U(O), Number(U(ne)));
+		I(k, e.error), U(k) || ae();
 	}
 	B(() => (G(d()), ns), () => {
 		I(n, [{
@@ -4191,23 +4222,23 @@ function ys(e, t) {
 	}), B(() => (G(m()), G(d())), () => {
 		I(i, m().metadata(d().priority));
 	}), B(() => G(d()), () => {
-		I(ne, d().status);
+		I(re, d().status);
 	}), B(() => (G(m()), G(d())), () => {
-		I(k, m().normalize(d().priority, m().fallbackValue));
+		I(ie, m().normalize(d().priority, m().fallbackValue));
 	}), B(() => G(d()), () => {
 		I(a, E.find((e) => e.value === d().status) ?? {
 			label: d().status,
 			tone: "muted"
 		});
-	}), B(() => (G(p()), U(ee)), () => {
-		!p() && U(ee) && re();
+	}), B(() => (G(p()), U(D)), () => {
+		!p() && U(D) && ae();
 	}), B(() => G(p()), () => {
-		p() || oe();
+		p(), le();
 	}), An(), Hi();
-	var de = vs(), fe = L(de);
+	var me = vs(), he = L(me);
 	{
 		let e = /* @__PURE__ */ N(() => (G(d()), W(() => `task-body-${d().id}`)));
-		fo(fe, {
+		fo(he, {
 			get visibilityEnabled() {
 				return o();
 			},
@@ -4265,7 +4296,7 @@ function ys(e, t) {
 						var a = z(r, 2);
 						ni(a, 7, () => (U(t), U(T), W(() => U(t).status === "done" && !U(T) ? U(t).items.slice(0, 1) : U(t).items)), (e) => e.id, (e, n, r) => {
 							{
-								let i = /* @__PURE__ */ N(() => (G(_()), U(n), W(() => _().get(U(n).id) ?? []))), a = /* @__PURE__ */ N(() => (G(C()), U(t), G(U(r)), W(() => C() && U(t).status === "planned" && U(r) === 0))), o = /* @__PURE__ */ N(() => (G(p()), U(t), U(n), U(ie), U(ae), W(() => p() && U(t).status === "planned" && U(n).id ? le(U(n), U(t).items, U(ie), U(ae)) : null)));
+								let i = /* @__PURE__ */ N(() => (G(_()), U(n), W(() => _().get(U(n).id) ?? []))), a = /* @__PURE__ */ N(() => (G(C()), U(t), G(U(r)), W(() => C() && U(t).status === "planned" && U(r) === 0))), o = /* @__PURE__ */ N(() => (G(p()), G(ee()), U(t), U(n), U(oe), U(se), U(ce), W(() => (p() || ee()) && U(t).status === "planned" && U(n).id && !U(n).legacy ? fe(U(n), U(t).items, U(oe), U(se), U(ce)) : null)));
 								Zo(e, {
 									get taskId() {
 										return G(d()), W(() => d().id);
@@ -4345,18 +4376,18 @@ function ys(e, t) {
 						}), M(r);
 						var i = z(r, 2), a = z(i, 2), o = z(a, 2), s = L(o, !0);
 						M(o), M(t), V(() => {
-							Q(o, "hidden", !U(O)), Y(s, U(O));
+							Q(o, "hidden", !U(k)), Y(s, U(k));
 						}), K("keydown", n, (e) => {
-							e.key === "Enter" && ue(), e.key === "Escape" && re();
-						}), Fi(n, () => U(te), (e) => I(te, e)), Ci(r, () => U(D), (e) => I(D, e)), K("click", i, ue), K("click", a, re), J(e, t);
+							e.key === "Enter" && pe(), e.key === "Escape" && ae();
+						}), Fi(n, () => U(O), (e) => I(O, e)), Ci(r, () => U(ne), (e) => I(ne, e)), K("click", i, pe), K("click", a, ae), J(e, t);
 					}, i = (e) => {
 						var t = ls();
 						V(() => Q(t, "aria-label", (G(d()), W(() => `在「${d().title}」新增子項目`)))), K("click", t, () => {
-							I(ee, !0);
+							I(D, !0);
 						}), J(e, t);
 					};
 					X(n, (e) => {
-						U(ee) ? e(r) : e(i, -1);
+						U(D) ? e(r) : e(i, -1);
 					}), M(t), J(e, t);
 				};
 				X(f, (e) => {
@@ -4390,13 +4421,13 @@ function ys(e, t) {
 							type: "set-task-field",
 							taskId: d().id,
 							field: "status",
-							value: U(ne)
-						})), Ci(n, () => U(ne), (e) => I(ne, e)), K("change", r, () => h()({
+							value: U(re)
+						})), Ci(n, () => U(re), (e) => I(re, e)), K("change", r, () => h()({
 							type: "set-task-field",
 							taskId: d().id,
 							field: "priority",
-							value: Number(U(k))
-						})), Ci(r, () => U(k), (e) => I(k, e)), J(e, t);
+							value: Number(U(ie))
+						})), Ci(r, () => U(ie), (e) => I(ie, e)), J(e, t);
 					};
 					X(i, (e) => {
 						p() && e(o);
@@ -4436,17 +4467,17 @@ function ys(e, t) {
 					M(y);
 					var x = z(y, 2), C = L(x, !0);
 					M(x);
-					var w = z(x, 2), T = L(w, !0);
+					var w = z(x, 2), ee = L(w, !0);
 					M(w), M(v), M(n), V(() => {
-						Q(y, "aria-label", (G(f()), W(() => `子項目完成 ${f().completed}，共 ${f().total}`))), Y(b, `${G(f()), W(() => f().completed) ?? ""} / ${G(f()), W(() => f().total) ?? ""}`), Z(x, 1, (U(a), W(() => `status-badge status-${U(a).tone}`))), Y(C, (U(a), W(() => U(a).label))), Y(T, (G(d()), W(() => d().id)));
+						Q(y, "aria-label", (G(f()), W(() => `子項目完成 ${f().completed}，共 ${f().total}`))), Y(b, `${G(f()), W(() => f().completed) ?? ""} / ${G(f()), W(() => f().total) ?? ""}`), Z(x, 1, (U(a), W(() => `status-badge status-${U(a).tone}`))), Y(C, (U(a), W(() => U(a).label))), Y(ee, (G(d()), W(() => d().id)));
 					}), J(e, n);
 				}
 			}
 		});
 	}
-	M(de), V(() => {
-		Z(de, 1, (U(i), W(() => `task-card editor-task-card priority-${U(i)?.tone ?? "unspecified"}`))), Q(de, "aria-labelledby", (G(d()), W(() => `task-${d().id}-title`)));
-	}), J(e, de), qe();
+	M(me), V(() => {
+		Z(me, 1, (U(i), W(() => `task-card editor-task-card priority-${U(i)?.tone ?? "unspecified"}`))), Q(me, "aria-labelledby", (G(d()), W(() => `task-${d().id}-title`)));
+	}), J(e, me), qe();
 }
 Er([
 	"input",
@@ -4472,10 +4503,10 @@ function Ts(e, t) {
 	function w(e = !1) {
 		clearTimeout(U(m)), C++, U(S) !== null && U(f)?.hasPointerCapture(U(S)) && U(f).releasePointerCapture(U(S)), I(S, null), I(h, !1), I(g, !1), I(v, null), I(x, !1), e && U(f)?.focus();
 	}
-	function T(e) {
+	function ee(e) {
 		w(!0), u()(e);
 	}
-	async function E(e = !1) {
+	async function te(e = !1) {
 		if (!U(r).length) return;
 		I(h, !0), I(x, !1);
 		let t = ++C;
@@ -4483,15 +4514,15 @@ function Ts(e, t) {
 		let n = U(f).getBoundingClientRect(), i = U(p).getBoundingClientRect(), o = [...U(p).querySelectorAll("button")], s = o.find((e) => e.dataset.choice === String(a())) ?? o[0], u = s.getBoundingClientRect();
 		l() === "aligned" ? (I(y, n.left + n.width / 2 - (u.left - i.left + u.width / 2)), I(b, n.top + n.height / 2 - (u.top - i.top + u.height / 2))) : c() === "horizontal" ? (I(y, n.right + 4), U(y) + i.width > window.innerWidth - 4 && I(y, n.left - i.width - 4), I(b, n.top + (n.height - i.height) / 2)) : (I(y, n.left + (n.width - i.width) / 2), I(b, n.bottom + 4), U(b) + i.height > window.innerHeight - 4 && I(b, n.top - i.height - 4)), I(y, Math.max(4, Math.min(U(y), window.innerWidth - i.width - 4))), I(b, Math.max(4, Math.min(U(b), window.innerHeight - i.height - 4))), I(x, !0), await _r(), e && U(h) && t === C && s.focus({ preventScroll: !0 });
 	}
-	function ee(e) {
+	function T(e) {
 		let t = document.elementFromPoint(e.clientX, e.clientY)?.closest("[data-choice]");
 		return t && U(p)?.contains(t) ? t.dataset.choice : null;
 	}
-	function te(e) {
+	function E(e) {
 		if (clearTimeout(U(m)), U(S) !== null) {
 			if (U(g)) {
-				let t = ee(e);
-				I(_, !0), t === null ? w(!0) : T(U(r).find((e) => String(e.id) === t).id);
+				let t = T(e);
+				I(_, !0), t === null ? w(!0) : ee(U(r).find((e) => String(e.id) === t).id);
 			} else {
 				let t = U(f).getBoundingClientRect();
 				(e.clientX < t.left || e.clientX > t.right || e.clientY < t.top || e.clientY > t.bottom) && (I(_, !0), w(!0));
@@ -4515,7 +4546,7 @@ function Ts(e, t) {
 			"End"
 		].includes(e.key)) return;
 		if (e.preventDefault(), !U(h)) {
-			E(!0);
+			te(!0);
 			return;
 		}
 		let n = [...U(p).querySelectorAll("button")], r = n.indexOf(document.activeElement);
@@ -4550,7 +4581,7 @@ function Ts(e, t) {
 				return U(n);
 			} }, null), M(r), V((e) => {
 				i = Z(r, 1, "card-toolbar-icon", null, i, e), Q(r, "data-choice", (U(n), W(() => U(n).id))), Q(r, "aria-label", (U(n), W(() => U(n).label))), Q(r, "title", (U(n), W(() => U(n).label))), Q(r, "aria-pressed", (U(n), G(a()), W(() => U(n).kind === "action" ? void 0 : U(n).id === a())));
-			}, [() => ({ "icon-choice-hover": U(v) === String(U(n).id) })]), K("keydown", r, D), K("click", r, () => T(U(n).id)), J(e, r);
+			}, [() => ({ "icon-choice-hover": U(v) === String(U(n).id) })]), K("keydown", r, D), K("click", r, () => ee(U(n).id)), J(e, r);
 		}), M(n), Vi(n, (e) => I(p, e), () => U(p)), V(() => {
 			i = Z(n, 1, "icon-choice-options", null, i, { vertical: c() === "vertical" }), Q(n, "aria-label", `${o()}選項`), s = bi(n, "", s, {
 				left: `${U(y)}px`,
@@ -4567,11 +4598,11 @@ function Ts(e, t) {
 		U(d).contains(e.relatedTarget) || w();
 	}), K("keydown", k, D), K("pointerdown", k, (e) => {
 		e.button === 0 && (I(_, !1), !(s() === "cycle" || U(h)) && (I(S, e.pointerId), U(f).setPointerCapture(U(S)), clearTimeout(U(m)), I(m, setTimeout(() => {
-			I(g, !0), E();
+			I(g, !0), te();
 		}, 300))));
 	}), K("pointermove", k, (e) => {
-		U(g) && I(v, ee(e));
-	}), K("pointerup", k, te), Tr("pointercancel", k, O), K("click", k, () => {
+		U(g) && I(v, T(e));
+	}), K("pointerup", k, E), Tr("pointercancel", k, O), K("click", k, () => {
 		if (U(_)) {
 			I(_, !1);
 			return;
@@ -4580,7 +4611,7 @@ function Ts(e, t) {
 			w(!0);
 			return;
 		}
-		if (s() === "picker") E(!0);
+		if (s() === "picker") te(!0);
 		else {
 			let e = bs(i(), a());
 			e !== void 0 && u()(e);
@@ -4715,7 +4746,7 @@ function Hs(e, t) {
 	Ke(t, !1);
 	let n = /* @__PURE__ */ F(), r = /* @__PURE__ */ F(), i = /* @__PURE__ */ F(), a = /* @__PURE__ */ F(), o = $(t, "items", 24, () => []), s = $(t, "allIds", 24, () => []), c = $(t, "storageKey", 8), l = $(t, "pinEnabled", 8, !1), u = $(t, "requestedPin", 8, null), d = $(t, "heldOrder", 8, null);
 	function f(e = o()) {
-		return Ns(e, U(E), U(_), l() ? U(p) : []).map((e) => e.id);
+		return Ns(e, U(te), U(_), l() ? U(p) : []).map((e) => e.id);
 	}
 	let p = /* @__PURE__ */ F([]), m = null, h = $(t, "expanded", 8, !0), g = $(t, "onToggleAll", 8, () => {}), _ = /* @__PURE__ */ F("forward"), v = [
 		"forward",
@@ -4741,10 +4772,10 @@ function Hs(e, t) {
 	function w(e, t) {
 		I(x, t ? U(x).filter((t) => t !== e) : [.../* @__PURE__ */ new Set([...U(x), e])]), de(), S();
 	}
-	function T(e) {
+	function ee(e) {
 		U(b) === "closed" && I(b, "enabled"), w(e, !0);
 	}
-	let E = /* @__PURE__ */ F(null), ee = /* @__PURE__ */ F(null), te = /* @__PURE__ */ F(null), D = /* @__PURE__ */ F(null), O = /* @__PURE__ */ F(null), ne = /* @__PURE__ */ F(), k = /* @__PURE__ */ F("");
+	let te = /* @__PURE__ */ F(null), T = /* @__PURE__ */ F(null), E = /* @__PURE__ */ F(null), D = /* @__PURE__ */ F(null), O = /* @__PURE__ */ F(null), ne = /* @__PURE__ */ F(), k = /* @__PURE__ */ F("");
 	function re(e, t, n, r) {
 		if (!r || !e || !n.length) return;
 		let i = JSON.stringify([t, e]);
@@ -4753,7 +4784,7 @@ function Hs(e, t) {
 				I(k, `找不到卡片 ID：${e}`);
 				return;
 			}
-			I(p, Ms(U(p), e)), T(e), ie();
+			I(p, Ms(U(p), e)), ee(e), ie();
 		}
 	}
 	function ie() {
@@ -4783,21 +4814,21 @@ function Hs(e, t) {
 				"disabled"
 			].includes(t?.mode) ? t.mode : t?.enabled === !0 ? "enabled" : "disabled"), I(x, Array.isArray(t?.hiddenIds) ? t.hiddenIds : []);
 		} catch {}
-		if (I(ee, null), I(te, null), I(D, null), I(O, null), !e) {
-			I(E, null), I(_, "forward");
+		if (I(T, null), I(E, null), I(D, null), I(O, null), !e) {
+			I(te, null), I(_, "forward");
 			return;
 		}
 		try {
 			let t = JSON.parse(localStorage.getItem(e) ?? "null");
-			I(E, Array.isArray(t) ? t : null);
+			I(te, Array.isArray(t) ? t : null);
 			let n = localStorage.getItem(`${e}:mode`);
-			I(_, v.includes(n) ? n : U(E) ? "free" : "forward");
+			I(_, v.includes(n) ? n : U(te) ? "free" : "forward");
 		} catch {
-			I(E, null), I(_, "forward");
+			I(te, null), I(_, "forward");
 		}
 	}
 	function se(e) {
-		if (I(E, e), !c()) {
+		if (I(te, e), !c()) {
 			I(k, "順序僅保留於本頁");
 			return;
 		}
@@ -4815,7 +4846,7 @@ function Hs(e, t) {
 		}
 	}
 	async function le(e, t, n) {
-		U(_) === "free" && (l() && (U(p).includes(e) || U(p).includes(t)) || e !== t && (se(Fs(s(), U(E), U(r).map((e) => e.id), e, t, n)), I(ee, e), await _r(), [...U(ne).querySelectorAll("[data-card-id]")].find((t) => t.dataset.cardId === String(e))?.focus()));
+		U(_) === "free" && (l() && (U(p).includes(e) || U(p).includes(t)) || e !== t && (se(Fs(s(), U(te), U(r).map((e) => e.id), e, t, n)), I(T, e), await _r(), [...U(ne).querySelectorAll("[data-card-id]")].find((t) => t.dataset.cardId === String(e))?.focus()));
 	}
 	function ue(e, t) {
 		let n = U(r).findIndex((t) => t.id === e);
@@ -4824,7 +4855,7 @@ function Hs(e, t) {
 		i && le(e, i.id, t > 0);
 	}
 	function de() {
-		I(te, null), I(D, null), I(O, null);
+		I(E, null), I(D, null), I(O, null);
 	}
 	function fe(e, t) {
 		if (l() && U(p).includes(e.id) || U(D) === null || U(D) === e.id) return;
@@ -4837,8 +4868,8 @@ function Hs(e, t) {
 	}
 	B(() => U(b), () => {
 		I(n, U(b) === "enabled");
-	}), B(() => (G(o()), U(E), U(_), G(l()), U(p), G(d())), () => {
-		I(i, Ps(Ns(o(), U(E), U(_), l() ? U(p) : []), d()));
+	}), B(() => (G(o()), U(te), U(_), G(l()), U(p), G(d())), () => {
+		I(i, Ps(Ns(o(), U(te), U(_), l() ? U(p) : []), d()));
 	}), B(() => (U(i), U(b), U(x), G(l()), U(p)), () => {
 		I(r, U(i).filter((e) => Os(e.id, U(b), U(x)) && !(l() && U(p).includes(e.id))));
 	}), B(() => G(c()), () => {
@@ -4850,7 +4881,7 @@ function Hs(e, t) {
 	}), An();
 	var pe = {
 		orderedIds: f,
-		revealCard: T
+		revealCard: ee
 	};
 	Hi();
 	var me = Vs(), he = R(me), ge = L(he);
@@ -4941,22 +4972,22 @@ function Hs(e, t) {
 		}
 		M(i), V((e) => {
 			Q(i, "hidden", e), o = Z(i, 1, "arrangeable-card", null, o, {
-				"card-selected": U(ee) === U(r).id,
+				"card-selected": U(T) === U(r).id,
 				"card-drop-before": U(O)?.id === U(r).id && !U(O).after,
 				"card-drop-after": U(O)?.id === U(r).id && U(O).after
-			}), Q(i, "aria-label", (U(r), U(ee), W(() => `${U(r).title}${U(ee) === U(r).id ? "，已選取" : ""}`))), Q(i, "data-card-id", (U(r), W(() => U(r).id))), Q(i, "draggable", (U(_), U(te), U(r), W(() => U(_) === "free" && U(te) === U(r).id)));
+			}), Q(i, "aria-label", (U(r), U(T), W(() => `${U(r).title}${U(T) === U(r).id ? "，已選取" : ""}`))), Q(i, "data-card-id", (U(r), W(() => U(r).id))), Q(i, "draggable", (U(_), U(E), U(r), W(() => U(_) === "free" && U(E) === U(r).id)));
 		}, [() => (G(Os), U(r), U(b), U(x), W(() => !Os(U(r).id, U(b), U(x))))]), K("pointerdown", i, (e) => {
-			I(te, null), e.button === 0 && (I(ee, U(r).id), !e.target.closest("button, a, input, textarea, select, label, [contenteditable], [role=\"button\"], [role=\"checkbox\"]") && (U(_) !== "free" || e.pointerType !== "mouse" || l() && U(p).includes(U(r).id) || e.target.closest("button, a, input, textarea, select, label, [contenteditable], [role=\"button\"], [role=\"checkbox\"], h1, h2, h3, p, span, strong, code, dt, dd, li, svg") || I(te, U(r).id)));
+			I(E, null), e.button === 0 && (I(T, U(r).id), !e.target.closest("button, a, input, textarea, select, label, [contenteditable], [role=\"button\"], [role=\"checkbox\"]") && (U(_) !== "free" || e.pointerType !== "mouse" || l() && U(p).includes(U(r).id) || e.target.closest("button, a, input, textarea, select, label, [contenteditable], [role=\"button\"], [role=\"checkbox\"], h1, h2, h3, p, span, strong, code, dt, dd, li, svg") || I(E, U(r).id)));
 		}), K("focusin", i, () => {
-			I(ee, U(r).id);
+			I(T, U(r).id);
 		}), K("input", i, () => {
-			I(ee, U(r).id);
+			I(T, U(r).id);
 		}), K("pointerup", i, () => {
-			I(te, null);
+			I(E, null);
 		}), K("keydown", i, (e) => {
-			e.target === e.currentTarget && (e.key === "Enter" || e.key === " " ? (e.preventDefault(), I(ee, U(r).id)) : e.key === "Escape" && I(ee, null), U(_) === "free" && e.target === e.currentTarget && e.altKey && ["ArrowUp", "ArrowDown"].includes(e.key) && (e.preventDefault(), ue(U(r).id, e.key === "ArrowUp" ? -1 : 1)));
+			e.target === e.currentTarget && (e.key === "Enter" || e.key === " " ? (e.preventDefault(), I(T, U(r).id)) : e.key === "Escape" && I(T, null), U(_) === "free" && e.target === e.currentTarget && e.altKey && ["ArrowUp", "ArrowDown"].includes(e.key) && (e.preventDefault(), ue(U(r).id, e.key === "ArrowUp" ? -1 : 1)));
 		}), Tr("dragstart", i, (e) => {
-			U(_) === "free" && U(te) === U(r).id && e.target === e.currentTarget && (I(D, U(r).id), e.dataTransfer.effectAllowed = "move", e.dataTransfer.setData("text/plain", String(U(r).id)));
+			U(_) === "free" && U(E) === U(r).id && e.target === e.currentTarget && (I(D, U(r).id), e.dataTransfer.effectAllowed = "move", e.dataTransfer.setData("text/plain", String(U(r).id)));
 		}), Tr("dragend", i, de), Tr("dragover", i, (e) => fe(U(r), e)), Tr("dragleave", i, (e) => {
 			e.currentTarget.contains(e.relatedTarget) || I(O, null);
 		}), Tr("drop", i, (e) => {
@@ -4964,7 +4995,7 @@ function Hs(e, t) {
 		}), J(e, i);
 	}), M(Te), Vi(Te, (e) => I(ne, e), () => U(ne)), V(() => {
 		Q(ve, "aria-label", h() ? "全部收合" : "全部展開"), Q(ve, "title", h() ? "全部收合" : "全部展開"), Q(be, "d", h() ? "M5 15l7-7 7 7" : "M5 9l7 7 7-7"), Y(we, U(k));
-	}), K("click", ve, () => g()(!h())), J(e, me), zi(t, "orderedIds", f), zi(t, "revealCard", T), qe(pe);
+	}), K("click", ve, () => g()(!h())), J(e, me), zi(t, "orderedIds", f), zi(t, "revealCard", ee), qe(pe);
 }
 Er([
 	"click",
@@ -5132,36 +5163,36 @@ function $s(e, t) {
 var ec = /* @__PURE__ */ q("<span class=\"task-search\"><input type=\"search\" aria-label=\"搜尋任務卡名稱、摘要與子項\" placeholder=\"搜尋名稱、摘要、子項\"/> <svg class=\"task-search-icon\" viewBox=\"0 0 16 16\" width=\"14\" height=\"14\" aria-hidden=\"true\"><circle cx=\"7\" cy=\"7\" r=\"4.5\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\"></circle><path d=\"M10.4 10.4 14 14\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linecap=\"round\"></path></svg></span>"), tc = /* @__PURE__ */ q("<p class=\"empty-state\"> </p>"), nc = /* @__PURE__ */ q("<!> <!>", 1);
 function rc(e, t) {
 	Ke(t, !1);
-	let n = /* @__PURE__ */ F(), r = $(t, "filters", 8, null), i = $(t, "tasks", 24, () => []), a = $(t, "allIds", 24, () => []), o = $(t, "cardStorageKey", 8, null), s = $(t, "requestedPin", 8, null), c = $(t, "scopeId", 8, null), l = $(t, "searchQuery", 8, ""), u = $(t, "onSearch", 8, null), d = $(t, "progress", 24, () => ({})), f = $(t, "editing", 8, !1), p = $(t, "policy", 8), m = $(t, "onCommand", 8, () => {}), h = $(t, "onAddItem", 8, () => {}), g = $(t, "timeTasks", 24, () => /* @__PURE__ */ new Map()), _ = $(t, "itemCapsules", 24, () => /* @__PURE__ */ new Map()), v = $(t, "onModuleActivate", 8, () => {}), y = $(t, "moduleOrder", 24, () => ["time"]), b = $(t, "onModuleReorder", 8, () => {}), x = $(t, "moduleTotals", 24, () => ({})), S = $(t, "statusOrder", 24, () => ["done", "planned"]), C = $(t, "emptyLabel", 8, "沒有符合目前篩選的工作項目。"), w = $(t, "pointerCards", 24, () => ({})), T = /* @__PURE__ */ F(!0), E = /* @__PURE__ */ F({}), ee = null;
-	function te(e, t) {
-		!e || ee === JSON.stringify([t, e]) || (ee = JSON.stringify([t, e]), I(E, {
+	let n = /* @__PURE__ */ F(), r = $(t, "filters", 8, null), i = $(t, "tasks", 24, () => []), a = $(t, "allIds", 24, () => []), o = $(t, "cardStorageKey", 8, null), s = $(t, "requestedPin", 8, null), c = $(t, "scopeId", 8, null), l = $(t, "searchQuery", 8, ""), u = $(t, "onSearch", 8, null), d = $(t, "reorderable", 8, !1), f = $(t, "onReorder", 8, () => {}), p = $(t, "progress", 24, () => ({})), m = $(t, "editing", 8, !1), h = $(t, "policy", 8), g = $(t, "onCommand", 8, () => {}), _ = $(t, "onAddItem", 8, () => {}), v = $(t, "timeTasks", 24, () => /* @__PURE__ */ new Map()), y = $(t, "itemCapsules", 24, () => /* @__PURE__ */ new Map()), b = $(t, "onModuleActivate", 8, () => {}), x = $(t, "moduleOrder", 24, () => ["time"]), S = $(t, "onModuleReorder", 8, () => {}), C = $(t, "moduleTotals", 24, () => ({})), w = $(t, "statusOrder", 24, () => ["done", "planned"]), ee = $(t, "emptyLabel", 8, "沒有符合目前篩選的工作項目。"), te = $(t, "pointerCards", 24, () => ({})), T = /* @__PURE__ */ F(!0), E = /* @__PURE__ */ F({}), D = null;
+	function O(e, t) {
+		!e || D === JSON.stringify([t, e]) || (D = JSON.stringify([t, e]), I(E, {
 			...U(E),
 			[e]: !0
 		}));
 	}
-	function D(e) {
-		ee = null;
+	function ne(e) {
+		D = null;
 		let t = no(e);
 		I(T, t.expanded), I(E, t.overrides);
 	}
-	function O(e, t) {
+	function k(e, t) {
 		I(E, {
 			...U(E),
 			[e]: t
 		}), ro(U(n), U(T), U(E));
 	}
-	function ne(e) {
+	function re(e) {
 		I(T, e), I(E, {}), ro(U(n), U(T), U(E));
 	}
 	B(() => G(o()), () => {
 		I(n, `taskprogress.disclosure:${o() ?? location.href}`);
 	}), B(() => U(n), () => {
-		D(U(n));
+		ne(U(n));
 	}), B(() => (G(s()), U(n)), () => {
-		te(s(), U(n));
+		O(s(), U(n));
 	}), An(), Hi();
-	var k = nc(), re = R(k);
-	Hs(re, {
+	var ie = nc(), ae = R(ie);
+	Hs(ae, {
 		pinEnabled: !0,
 		get requestedPin() {
 			return s();
@@ -5169,7 +5200,7 @@ function rc(e, t) {
 		get expanded() {
 			return U(T);
 		},
-		onToggleAll: ne,
+		onToggleAll: re,
 		get items() {
 			return i();
 		},
@@ -5185,7 +5216,7 @@ function rc(e, t) {
 				let n = /* @__PURE__ */ N(() => t.item), r = /* @__PURE__ */ N(() => t.lead), i = /* @__PURE__ */ N(() => t.visibilityEnabled), a = /* @__PURE__ */ N(() => t.visible), o = /* @__PURE__ */ N(() => t.onVisibleChange);
 				var s = Ir(), l = R(s), u = (e) => {
 					{
-						let t = /* @__PURE__ */ N(() => (U(E), G(U(n)), U(T), W(() => U(E)[U(n).id] ?? U(T)))), r = /* @__PURE__ */ N(() => (G(w()), G(U(n)), W(() => w()[U(n).id] ?? { status: "loading" })));
+						let t = /* @__PURE__ */ N(() => (U(E), G(U(n)), U(T), W(() => U(E)[U(n).id] ?? U(T)))), r = /* @__PURE__ */ N(() => (G(te()), G(U(n)), W(() => te()[U(n).id] ?? { status: "loading" })));
 						$s(e, {
 							get visibilityEnabled() {
 								return U(i);
@@ -5199,7 +5230,7 @@ function rc(e, t) {
 							get expanded() {
 								return U(t);
 							},
-							onToggle: (e) => O(U(n).id, e),
+							onToggle: (e) => k(U(n).id, e),
 							get task() {
 								return U(n);
 							},
@@ -5208,9 +5239,9 @@ function rc(e, t) {
 							}
 						});
 					}
-				}, C = (e) => {
+				}, ee = (e) => {
 					{
-						let t = /* @__PURE__ */ N(() => (U(E), G(U(n)), U(T), W(() => U(E)[U(n).id] ?? U(T)))), s = /* @__PURE__ */ N(() => (G(g()), G(U(n)), W(() => g().get(U(n).id) ?? null))), l = /* @__PURE__ */ N(() => (G(x()), G(U(n)), W(() => x()[U(n).id] ?? [])));
+						let t = /* @__PURE__ */ N(() => (U(E), G(U(n)), U(T), W(() => U(E)[U(n).id] ?? U(T)))), s = /* @__PURE__ */ N(() => (G(v()), G(U(n)), W(() => v().get(U(n).id) ?? null))), l = /* @__PURE__ */ N(() => (G(C()), G(U(n)), W(() => C()[U(n).id] ?? [])));
 						ys(e, {
 							get visibilityEnabled() {
 								return U(i);
@@ -5224,40 +5255,40 @@ function rc(e, t) {
 							get expanded() {
 								return U(t);
 							},
-							onToggle: (e) => O(U(n).id, e),
+							onToggle: (e) => k(U(n).id, e),
 							get task() {
 								return U(n);
 							},
 							get progress() {
-								return G(d()), G(U(n)), W(() => d()[U(n).id]);
+								return G(p()), G(U(n)), W(() => p()[U(n).id]);
 							},
 							get editing() {
-								return f();
-							},
-							get policy() {
-								return p();
-							},
-							get onCommand() {
 								return m();
 							},
-							onAddItem: (e, t) => h()(U(n).id, e, t),
+							get policy() {
+								return h();
+							},
+							get onCommand() {
+								return g();
+							},
+							onAddItem: (e, t) => _()(U(n).id, e, t),
 							get timeTask() {
 								return U(s);
 							},
 							get itemCapsules() {
-								return _();
-							},
-							get onModuleActivate() {
-								return v();
-							},
-							get moduleOrder() {
 								return y();
 							},
-							get onModuleReorder() {
+							get onModuleActivate() {
 								return b();
 							},
-							get statusOrder() {
+							get moduleOrder() {
+								return x();
+							},
+							get onModuleReorder() {
 								return S();
+							},
+							get statusOrder() {
+								return w();
 							},
 							get moduleTotals() {
 								return U(l);
@@ -5267,12 +5298,18 @@ function rc(e, t) {
 							},
 							get scopeId() {
 								return c();
+							},
+							get reorderable() {
+								return d();
+							},
+							get onReorder() {
+								return f();
 							}
 						});
 					}
 				};
 				X(l, (e) => {
-					G(U(n)), W(() => U(n).kind === "report_pointer") ? e(u) : e(C, -1);
+					G(U(n)), W(() => U(n).kind === "report_pointer") ? e(u) : e(ee, -1);
 				}), J(e, s);
 			},
 			filters: (e, t) => {
@@ -5294,13 +5331,13 @@ function rc(e, t) {
 			}
 		}
 	});
-	var ie = z(re, 2), ae = (e) => {
+	var oe = z(ae, 2), se = (e) => {
 		var t = tc(), n = L(t, !0);
-		M(t), V(() => Y(n, C())), J(e, t);
+		M(t), V(() => Y(n, ee())), J(e, t);
 	};
-	X(ie, (e) => {
-		G(i()), W(() => !i().length) && e(ae);
-	}), J(e, k), qe();
+	X(oe, (e) => {
+		G(i()), W(() => !i().length) && e(se);
+	}), J(e, ie), qe();
 }
 Er(["input"]);
 //#endregion
@@ -5481,7 +5518,7 @@ function gc(e, t) {
 			[e.key]: r
 		}), U(p)[t]?.setCustomValidity("");
 	}
-	function T(e, t) {
+	function ee(e, t) {
 		let n = t.currentTarget, r = d.test(n.value);
 		n.setCustomValidity(r ? "" : "請輸入 #RRGGBB 格式的色碼"), I(g, {
 			...U(g),
@@ -5491,10 +5528,10 @@ function gc(e, t) {
 			[e.key]: n.value.toLowerCase()
 		});
 	}
-	function E() {
+	function te() {
 		I(m, a()), S();
 	}
-	function ee() {
+	function T() {
 		let e = U(p).find((e) => e && !e.checkValidity());
 		if (e) {
 			e.reportValidity();
@@ -5511,7 +5548,7 @@ function gc(e, t) {
 	}), B(() => U(r), () => {
 		I(i, U(r).length ? `注意：${U(r).join("；")}。仍可套用，但可能較難閱讀。` : "目前的文字與背景色彩對比符合 4.5:1。");
 	}), An(), Hi();
-	var te = hc(), D = R(te), O = z(L(D), 2);
+	var E = hc(), D = R(E), O = z(L(D), 2);
 	ni(O, 5, () => u, (e) => e.value, (e, t) => {
 		var n = fc(), r = L(n, !0);
 		M(n);
@@ -5528,7 +5565,7 @@ function gc(e, t) {
 		kicker: "Custom theme",
 		title: "自訂 Viewer 顏色",
 		closeLabel: "關閉自訂主題",
-		onClose: E,
+		onClose: te,
 		children: (e, t) => {
 			var a = mc(), o = z(R(a), 2), s = z(L(o), 2), c = L(s);
 			c.value = c.__value = "light";
@@ -5545,7 +5582,7 @@ function gc(e, t) {
 				var l = z(c, 2);
 				ki(l), Q(l, "pattern", "#[0-9a-fA-F]{6}"), Vi(l, (e, t) => Qt(p, U(p)[t] = e), (e) => U(p)?.[e], () => [U(r)]), M(s), M(i), V(() => {
 					Y(o, (U(t), W(() => U(t).label))), Q(c, "aria-label", (U(t), W(() => `${U(t).label}選色器`))), Ai(c, (U(n), U(t), W(() => U(n)[U(t).key]))), Q(l, "aria-label", (U(t), W(() => `${U(t).label}十六進位色碼`))), Ai(l, (U(g), U(t), W(() => U(g)[U(t).key])));
-				}), K("input", c, (e) => w(U(t), U(r), e)), K("input", l, (e) => T(U(t), e)), J(e, i);
+				}), K("input", c, (e) => w(U(t), U(r), e)), K("input", l, (e) => ee(U(t), e)), J(e, i);
 			}), M(d);
 			var f = z(d, 2);
 			let m;
@@ -5554,10 +5591,10 @@ function gc(e, t) {
 			var v = z(f, 2), b = L(v), x = z(b, 4), S = z(x, 2);
 			M(v), V(() => {
 				u !== (u = U(h)) && (s.value = (s.__value = U(h)) ?? "", xi(s, U(h))), m = Z(f, 1, "theme-dialog-status", null, m, { "theme-status-warning": U(r).length > 0 }), Y(_, U(i));
-			}), K("change", s, C), K("click", b, () => y(cc(U(h)))), K("click", x, E), K("click", S, ee), J(e, a);
+			}), K("change", s, C), K("click", b, () => y(cc(U(h)))), K("click", x, te), K("click", S, T), J(e, a);
 		},
 		$$slots: { default: !0 }
-	}), K("change", O, b), Ci(O, () => U(m), (e) => I(m, e)), J(e, te), qe();
+	}), K("change", O, b), Ci(O, () => U(m), (e) => I(m, e)), J(e, E), qe();
 }
 Er([
 	"change",
@@ -5707,17 +5744,17 @@ function Oc(e, t) {
 			publicLabel: ""
 		}]), x();
 	}
-	function T(e) {
+	function ee(e) {
 		I(_, U(_).filter((t) => t.key !== e)), x();
 	}
-	function E() {
+	function te() {
 		if (!U(u)) return "";
 		let e = l.match(/(Z|[+-]\d{2}:\d{2})$/)?.[1];
 		return `${U(u)}:00${e ?? b(U(u), r().timezone)}`;
 	}
-	function ee() {
+	function T() {
 		let e = i()({
-			deliveryAt: E(),
+			deliveryAt: te(),
 			deliveryReason: U(d),
 			capacity: {
 				sleepMinutes: Math.round(Number(U(f)) * 60),
@@ -5734,8 +5771,8 @@ function Oc(e, t) {
 		});
 		return I(v, e.error), e;
 	}
-	async function te() {
-		ee().error || (o()(!1), await a()());
+	async function E() {
+		T().error || (o()(!1), await a()());
 	}
 	B(() => (U(f), U(p), U(m)), () => {
 		I(n, 24 - Number(U(f)) - Number(U(p)) - Number(U(m)));
@@ -5781,7 +5818,7 @@ function Oc(e, t) {
 			var l = z(s, 2);
 			M(n), V(() => {
 				Ai(i, (U(t), W(() => U(t).date))), Ai(o, (U(t), W(() => U(t).availableHours))), Ai(c, (U(t), W(() => U(t).publicLabel)));
-			}), K("input", i, (e) => C(U(t).key, "date", e.currentTarget.value)), K("input", o, (e) => C(U(t).key, "availableHours", e.currentTarget.value)), K("input", c, (e) => C(U(t).key, "publicLabel", e.currentTarget.value)), K("click", l, () => T(U(t).key)), J(e, n);
+			}), K("input", i, (e) => C(U(t).key, "date", e.currentTarget.value)), K("input", o, (e) => C(U(t).key, "availableHours", e.currentTarget.value)), K("input", c, (e) => C(U(t).key, "publicLabel", e.currentTarget.value)), K("click", l, () => ee(U(t).key)), J(e, n);
 		}), M(t), J(e, t);
 	}, ke = (e) => {
 		J(e, Tc());
@@ -5799,7 +5836,7 @@ function Oc(e, t) {
 		Y(k, `時區：${G(r()), W(() => r().timezone) ?? ""}`), me = Z(pe, 1, "", null, me, { invalid: !(U(n) > 0) }), Y(he, `工作 ${e ?? ""} hr`);
 	}, [() => (U(n), W(() => Number.isFinite(U(n)) ? U(n) : "—"))]), K("input", se, x), Fi(se, () => U(u), (e) => I(u, e)), K("input", le, x), Fi(le, () => U(d), (e) => I(d, e)), K("click", ue, () => {
 		I(u, ""), x();
-	}), K("input", ve, x), Fi(ve, () => U(f), (e) => I(f, e)), K("input", be, x), Fi(be, () => U(p), (e) => I(p, e)), K("input", Se, x), Fi(Se, () => U(m), (e) => I(m, e)), K("click", Ee, w), K("click", je, te), J(e, D), qe();
+	}), K("input", ve, x), Fi(ve, () => U(f), (e) => I(f, e)), K("input", be, x), Fi(be, () => U(p), (e) => I(p, e)), K("input", Se, x), Fi(Se, () => U(m), (e) => I(m, e)), K("click", Ee, w), K("click", je, E), J(e, D), qe();
 }
 Er([
 	"input",

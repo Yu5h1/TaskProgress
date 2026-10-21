@@ -1,0 +1,22 @@
+# 預覽模式拖曳換位 Checklist
+
+Current round: `Documentation/ReportItemOrderingPlan.md#預覽模式拖曳換位`.
+
+本檔只承載這一輪；完成後由 Git 保存，下一輪重用同一路徑。
+
+- [x] **1. 換位寫入規則**
+  Outcome: 預覽換位只移動該子項的陣列位置，其餘內容與舊式文字子項不變。
+  Checks:
+    - [x] **移動函式與建置**
+      - Action: 執行 `node --test tests/item-reorder.test.mjs tests/editor-core.test.mjs tests/editor-shared-components.test.mjs` 與 `npm run viewer:ui:build`。
+      - Expect: 前後移動、舊式子項保留、原物件不變、無效位置／已完成／缺項的拒絕案例通過，Viewer 建置成功。
+
+- [x] **2. 預覽頁實際換位**
+  Outcome: 預覽頁可在同級未完成子項間拖曳或用鍵盤換位並直接儲存，編輯模式不受影響。
+  Checks:
+    - [x] **拖曳、讓位與儲存**
+      - Action: 在 Browser 開啟 [time-reference](http://127.0.0.1:8001/?scope=task-progress&pin=time-reference)，於空白處按下後把第二個 P2 拖到 P0 上、再拖到第一個 P2 之前，檢查 report.json，再用 Alt+↓ 換回原位。
+      - Expect: 4 個未完成子項可拖、已完成不可拖、列首 ○ 不變、列上游標為抓取；拖到 P0 不接受且不空出位置；拖到同級時目標空出 44px 並寫入，report.json 只改該卡陣列順序與 updated_at；Alt+↓ 後焦點留在原項目，最後順序與 HEAD 相同。
+    - [x] **編輯模式不受影響**
+      - Action: 切到編輯模式，從把手開始拖曳到同級項目上方後取消。
+      - Expect: 4 個把手、目標顯示插入線（item-drop-before）而非空位，列本身不可拖，沒有複製圖示。

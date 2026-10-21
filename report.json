@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-10-21T03:06:45.072220+00:00",
+  "updated_at": "2026-10-21T03:40:37.631024+00:00",
   "tasks": [
     {
       "id": "report-search",
@@ -42,6 +42,16 @@
       "summary": "子項可一鍵複製「scope › 卡片 › 子項」參照給 agent；未完成子項可在同群組內拖曳換位，已完成項目維持完成順序。",
       "pending_items": [],
       "completed_items": [
+        {
+          "id": "preview-item-reorder",
+          "title": "預覽模式同級子項拖曳換位，直接儲存，依 [驗收清單](/checklist/?scope=task-progress&task=preview-item-reorder) 核查",
+          "status": "done",
+          "document_ref": {
+            "kind": "checklist",
+            "scope_id": "task-progress",
+            "task": "preview-item-reorder"
+          }
+        },
         {
           "id": "item-copy-reference",
           "title": "子項複製參照（滑過／聚焦顯示圖示），依 [驗收清單](/checklist/?scope=task-progress&task=report-item-copy-reference) 核查",
