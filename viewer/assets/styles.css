@@ -1098,6 +1098,7 @@ h1 {
 
 .task-summary-input {
   display: block;
+  margin-top: 2px;
   width: 100%;
   padding: 8px 10px;
   resize: vertical;
@@ -3060,7 +3061,7 @@ footer {
 .card-list-heading .filter-strip { min-width: 0; flex-wrap: wrap; overflow: visible; }
 .task-workspace { display: flex; flex-wrap: wrap; align-items: center; column-gap: 8px; row-gap: 0; }
 .task-workspace > .task-toolbar, .task-workspace > .task-list { display: contents; }
-.task-workspace .card-list-controls { order: 0; flex: 0 0 100%; margin-bottom: 3px; }
+.task-workspace .card-list-controls { order: 0; flex: 0 0 100%; margin-bottom: 9px; }
 .task-workspace .arrangeable-cards, .task-workspace .empty-state { order: 2; flex: 0 0 100%; }
 .card-toolbar-icon { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; padding: 4px; border: 0; border-radius: 5px; background: transparent; color: var(--color-heading); cursor: pointer; }
 .card-toolbar-icon:hover { background: var(--muted-soft); color: var(--color-accent); }
