@@ -3948,7 +3948,7 @@ function os(e, t) {
 				M(n);
 				var i = z(n, 2), a = L(i, !0);
 				M(i), M(t), V(() => {
-					Q(t, "href", (G(_()), W(() => _().sourceRef.href))), Q(t, "title", (G(_()), W(() => `開啟 ${_().sourceRef.kind === "checklist" ? _().sourceRef.manual ? "人工驗收 checklist" : "agent checklist" : _().sourceRef.kind}: ${_().sourceRef.task}`))), Y(r, (G(_()), W(() => _().sourceRef.kind === "decision" ? "⚖" : _().sourceRef.manual ? "📋" : "🤖"))), Y(a, (G(_()), W(() => _().sourceRef.label)));
+					Q(t, "href", (G(_()), W(() => _().sourceRef.href))), Q(t, "title", (G(_()), W(() => _().sourceRef.title))), Y(r, (G(_()), W(() => _().sourceRef.kind === "decision" ? "⚖" : _().sourceRef.manual ? "📋" : "🤖"))), Y(a, (G(_()), W(() => _().sourceRef.label)));
 				}), J(e, t);
 			}, i = (e) => {
 				var t = es();

@@ -55,3 +55,22 @@ test("a pasted reference selects one card and item by ID", () => {
   assert.equal(referenceTask(task, parseReference("s › other › ux-web-6")), null);
   assert.equal(referenceTask(task, parseReference("s › ui-workflow › missing")), null);
 });
+
+test("host-supplied item text, such as a binding label, matches the item", () => {
+  const bound = {
+    id: "t",
+    title: "T",
+    summary: "S",
+    pending_items: [
+      { id: "a", title: "驗收", document_ref: { kind: "checklist" } },
+      { id: "b", title: "選型", document_ref: { kind: "decision" } },
+      { id: "c", title: "一般" },
+    ],
+    completed_items: [],
+  };
+  const labels = { checklist: "Checklist", decision: "Decision" };
+  const itemTexts = (item) => [labels[item.document_ref?.kind]];
+  assert.equal(searchTask(bound, searchTerms("decision")), null);
+  assert.deepEqual(searchTask(bound, searchTerms("decision"), { itemTexts }).pending_items.map(item => item.id), ["b"]);
+  assert.deepEqual(searchTask(bound, searchTerms("checklist 驗收"), { itemTexts }).pending_items.map(item => item.id), ["a"]);
+});

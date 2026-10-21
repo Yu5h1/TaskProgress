@@ -37,8 +37,11 @@ function covers(texts, terms) {
   return terms.every(term => texts.some(text => text.includes(term)));
 }
 
-/** Returns the task unchanged when the card itself matches, a copy holding only matching items, or null. */
-export function searchTask(task, terms, { ids = false } = {}) {
+/**
+ * Returns the task unchanged when the card itself matches, a copy holding only matching items, or null.
+ * `itemTexts` lets the host add text an item shows beside its title, such as a document binding label.
+ */
+export function searchTask(task, terms, { ids = false, itemTexts = () => [] } = {}) {
   if (!terms.length) return task;
   const cardTexts = [plain(task.title), plain(task.summary), ...(ids ? [String(task.id ?? "").toLocaleLowerCase()] : [])];
   if (covers(cardTexts, terms)) return task;
@@ -48,6 +51,7 @@ export function searchTask(task, terms, { ids = false } = {}) {
     next[field] = (task[field] ?? []).filter(item => {
       const own = [plain(typeof item === "string" ? item : item?.title)];
       if (ids && item?.id && !item.legacy) own.push(String(item.id).toLocaleLowerCase());
+      if (item && typeof item === "object") own.push(...itemTexts(item).filter(Boolean).map(text => String(text).toLocaleLowerCase()));
       return covers([...cardTexts, ...own], terms);
     });
     found ||= next[field].length > 0;

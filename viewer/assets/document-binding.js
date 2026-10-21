@@ -33,6 +33,34 @@ export function documentBindingHref(ref) {
   return `${base}?scope=${encodeURIComponent(norm.scope_id)}&task=${encodeURIComponent(norm.task)}`;
 }
 
+const DOCUMENT_BINDING_LABELS = { checklist: "Checklist", decision: "Decision" };
+
+/**
+ * Returns the label a bound item shows for its document kind, or null when the item has no valid binding.
+ */
+export function documentBindingLabel(ref) {
+  const norm = normalizeDocumentRef(ref);
+  return norm ? DOCUMENT_BINDING_LABELS[norm.kind] : null;
+}
+
+/**
+ * Builds the binding link tooltip: what opens, then the document's progress.
+ */
+export function documentBindingTitle(sourceRef) {
+  const kindText = sourceRef.kind === "checklist"
+    ? (sourceRef.manual ? "人工驗收 checklist" : "agent checklist")
+    : sourceRef.kind;
+  const lines = [`開啟 ${kindText}: ${sourceRef.task}`];
+  const progress = sourceRef.progress;
+  if (progress) {
+    if (!progress.total) lines.push(sourceRef.kind === "checklist" ? "進度：沒有檢查項" : "進度：沒有決策題");
+    else if (sourceRef.kind === "checklist") {
+      lines.push(`進度：${progress.done}/${progress.total} 通過${progress.failed ? `，${progress.failed} 失敗` : ""}`);
+    } else lines.push(`進度：${progress.done}/${progress.total} 已決定`);
+  }
+  return lines.join("\n");
+}
+
 /**
  * Evaluates whether a loaded checklist document is fully completed.
  * Condition: at least one check, and ALL checks are "passed". `manual` marks a checklist holding any `[manual]` check.
@@ -42,9 +70,10 @@ export function evaluateChecklistDocument(payload) {
   const checks = items.flatMap((item) => item?.checks ?? []);
   const total = checks.length;
   const passed = checks.filter((c) => c?.status === "passed").length;
+  const failed = checks.filter((c) => c?.status === "failed").length;
   const completed = total > 0 && passed === total;
   const manual = checks.some((c) => c?.isManual === true);
-  return { ok: true, completed, total, passed, manual };
+  return { ok: true, completed, total, passed, failed, manual };
 }
 
 /**
@@ -223,12 +252,16 @@ export function projectTasksWithBindings(tasks, evaluations = new Map()) {
         kind: norm.kind,
         scope_id: norm.scope_id,
         task: norm.task,
-        label: norm.kind === "checklist" ? "Checklist" : "Decision",
+        label: DOCUMENT_BINDING_LABELS[norm.kind],
         manual: Boolean(evalResult.ok && evalResult.manual),
         completed: Boolean(evalResult.ok && evalResult.completed),
+        progress: evalResult.ok
+          ? { total: evalResult.total ?? 0, done: (norm.kind === "checklist" ? evalResult.passed : evalResult.decided) ?? 0, failed: evalResult.failed ?? 0 }
+          : null,
         available: Boolean(evalResult.ok),
         error: evalResult.ok ? null : (evalResult.error ?? "來源無法讀取"),
       };
+      itemSourceRef.title = documentBindingTitle(itemSourceRef);
 
       const projectedItem = {
         ...item,

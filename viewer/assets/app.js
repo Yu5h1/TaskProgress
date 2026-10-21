@@ -6,6 +6,7 @@ import { isSelectionIgnoredTarget } from "./selection-input.js";
 import { parseReference, referenceTask, searchTask, searchTerms } from "./task-search.js";
 import {
   createDocumentBindingRefresher,
+  documentBindingLabel,
   evaluateAllDocumentBindings,
   projectTasksWithBindings,
 } from "./document-binding.js";
@@ -1079,7 +1080,7 @@ function renderTasks() {
   const terms = searchTerms(state.searchQuery);
   const search = (task) => (reference
     ? reference.scopeId === state.report.scope_id ? referenceTask(task, reference) : null
-    : searchTask(task, terms, { ids: SEARCH_MATCHES_IDS }));
+    : searchTask(task, terms, { ids: SEARCH_MATCHES_IDS, itemTexts: (item) => [documentBindingLabel(item.document_ref)] }));
   const tasks = orderedTasks
     .filter((task) => task.id === requestedPin || taskKind(task) === "report_pointer"
       || taskMatchesSelection(task, selected)

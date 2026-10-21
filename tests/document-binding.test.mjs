@@ -4,6 +4,8 @@ import test from "node:test";
 import {
   normalizeDocumentRef,
   documentBindingKey,
+  documentBindingLabel,
+  documentBindingTitle,
   documentBindingHref,
   evaluateChecklistDocument,
   evaluateDecisionDocument,
@@ -52,6 +54,7 @@ test("evaluateChecklistDocument requires at least 1 check and all checks passed"
     completed: false,
     total: 0,
     passed: 0,
+    failed: 0,
     manual: false,
   });
 
@@ -67,6 +70,7 @@ test("evaluateChecklistDocument requires at least 1 check and all checks passed"
     completed: true,
     total: 3,
     passed: 3,
+    failed: 0,
     manual: false,
   });
 
@@ -81,6 +85,7 @@ test("evaluateChecklistDocument requires at least 1 check and all checks passed"
     completed: false,
     total: 2,
     passed: 1,
+    failed: 0,
     manual: false,
   });
 
@@ -95,6 +100,7 @@ test("evaluateChecklistDocument requires at least 1 check and all checks passed"
     completed: false,
     total: 2,
     passed: 1,
+    failed: 1,
     manual: false,
   });
 });
@@ -663,4 +669,30 @@ test("items completed by their bound document stack on top of stored completed i
   assert.deepEqual(projected.completed_items.map(item => item.id), ["bound-a", "bound-b", "old-done"]);
   assert.deepEqual(projected.pending_items.map(item => item.id), ["open"]);
   assert.deepEqual(tasks[0].completed_items.map(item => item.id), ["old-done"]);
+});
+
+test("documentBindingLabel names the bound kind and ignores invalid refs", () => {
+  assert.equal(documentBindingLabel({ kind: "checklist", scope_id: "s", task: "c" }), "Checklist");
+  assert.equal(documentBindingLabel({ kind: "decision", scope_id: "s", task: "d" }), "Decision");
+  assert.equal(documentBindingLabel(undefined), null);
+});
+
+test("the binding tooltip states what opens and the document progress", () => {
+  const evaluations = new Map([
+    ["checklist:s:c", { ok: true, completed: false, total: 5, passed: 3, failed: 1, manual: true }],
+    ["decision:s:d", { ok: true, completed: false, total: 4, decided: 2 }],
+  ]);
+  const [task] = projectTasksWithBindings([{
+    id: "t",
+    status: "in_progress",
+    pending_items: [
+      { id: "a", title: "A", document_ref: { kind: "checklist", scope_id: "s", task: "c" } },
+      { id: "b", title: "B", document_ref: { kind: "decision", scope_id: "s", task: "d" } },
+    ],
+    completed_items: [],
+  }], evaluations);
+  assert.equal(task.pending_items[0].sourceRef.title, "開啟 人工驗收 checklist: c\n進度：3/5 通過，1 失敗");
+  assert.equal(task.pending_items[1].sourceRef.title, "開啟 decision: d\n進度：2/4 已決定");
+  assert.equal(documentBindingTitle({ kind: "checklist", task: "e", manual: false, progress: { total: 0, done: 0, failed: 0 } }), "開啟 agent checklist: e\n進度：沒有檢查項");
+  assert.equal(documentBindingTitle({ kind: "decision", task: "f", progress: null }), "開啟 decision: f");
 });
