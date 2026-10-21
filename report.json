@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-10-21T10:40:23.303805+00:00",
+  "updated_at": "2026-10-21T18:50:15.732539+00:00",
   "tasks": [
     {
       "id": "item-selection",
@@ -1354,6 +1354,28 @@
             "scope_id": "task-progress",
             "task": "startup-observer"
           }
+        }
+      ]
+    },
+    {
+      "id": "agent-workflow",
+      "title": "優化 agent workflow",
+      "status": "planned",
+      "summary": "讓執行與驗收在 report 上分得開：可執行項目的 checklist 串聯另一份驗收 checklist，執行方只做執行、驗收方只做驗收，report refresh 就看得到結果。",
+      "pending_items": [
+        {
+          "id": "checklist-acceptance-chain",
+          "title": "可執行項 checklist 串聯驗收 checklist：執行 checklist 的最後一項綁定另一份驗收 checklist（需要 CLI 參數入口），執行方做完其餘項目、最後一項保留不勾；驗收 checklist 全部完成時那最後一項自動標記，report refresh 即可見；驗收方只做驗收 checklist 的工作",
+          "status": "planned",
+          "activity": [
+            {
+              "event": "created",
+              "actor": "claude",
+              "at": "2026-10-21T18:50:15.732539+00:00",
+              "session": "Yu5h1Lib.UX 流程審查",
+              "session_id": "12d6407d-b4d7-444b-be2e-d9b16a7f3b37"
+            }
+          ]
         }
       ]
     }
