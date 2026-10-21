@@ -3,7 +3,7 @@ import { parseInlineLinks } from "./inline-links.js";
 
 const ITEM_FIELDS = ["pending_items", "completed_items"];
 
-/** Reads a pasted item reference, `<scope> › <task> › <item>「<title head>」`; the item part is optional. */
+/** Reads a pasted item reference, `<scope> › <task> › <item>`; the item part is optional and an older trailing 「title head」 is ignored. */
 export function parseReference(query) {
   const text = String(query ?? "").replace(/「[\s\S]*$/u, "").trim();
   if (!text.includes("›")) return null;

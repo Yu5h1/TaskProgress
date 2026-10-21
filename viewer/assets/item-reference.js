@@ -1,12 +1,7 @@
 /** Builds the text an agent resolves to one Report child item; null when the item has no stable ID. */
-import { parseInlineLinks } from "./inline-links.js";
-
-export function itemReference({ scopeId, taskId, item, titleLength = 24 }) {
+export function itemReference({ scopeId, taskId, item }) {
   if (!scopeId || !taskId || !item?.id || item.legacy) return null;
-  const plain = parseInlineLinks(item.title).map(part => part.text).join("").replace(/\s+/gu, " ").trim();
-  const units = Array.from(plain);
-  const head = units.length > titleLength ? `${units.slice(0, titleLength).join("")}…` : plain;
-  return `${scopeId} › ${taskId} › ${item.id}${head ? `「${head}」` : ""}`;
+  return `${scopeId} › ${taskId} › ${item.id}`;
 }
 
 /** Writes text to the clipboard; falls back to a selection copy where the Clipboard API is refused. */

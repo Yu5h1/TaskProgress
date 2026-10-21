@@ -3720,10 +3720,8 @@ function Po(e, t) {
 }
 //#endregion
 //#region viewer/assets/item-reference.js
-function Fo({ scopeId: e, taskId: t, item: n, titleLength: r = 24 }) {
-	if (!e || !t || !n?.id || n.legacy) return null;
-	let i = Ao(n.title).map((e) => e.text).join("").replace(/\s+/gu, " ").trim(), a = Array.from(i), o = a.length > r ? `${a.slice(0, r).join("")}…` : i;
-	return `${e} › ${t} › ${n.id}${o ? `「${o}」` : ""}`;
+function Fo({ scopeId: e, taskId: t, item: n }) {
+	return !e || !t || !n?.id || n.legacy ? null : `${e} › ${t} › ${n.id}`;
 }
 async function Io(e, t = globalThis.document) {
 	try {
