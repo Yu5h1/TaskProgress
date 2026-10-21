@@ -6,6 +6,8 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
 
 ## Current state (2026-09-29)
 
+- **任務卡同級依子項優先級排序（2026-10-22）。** `stableSortTasksByPriority` 在卡片 priority 相同時，先比未完成且非 archive 子項中最高的 priority（`taskLeadItemPriority`，無此類子項視為 4），再比原順序。子項優先級不會讓卡片跨級。規則見 `plan.md` 任務卡排序段。
+
 - **子項多選與批次複製參照（2026-10-21）。** 規格 `Documentation/ItemSelection.md`。預覽模式點選／Ctrl 加選／Shift 範圍（跨卡片）、鍵盤 ↑↓／Shift＋↑↓／Space／Ctrl+A／Ctrl+C／Esc；複製為一行一個參照。分三層（selection-model／selection-input／item-selection），之後由 Web 共用 Selection 取代前兩層（Web `NativeUIAndDataUpdatePlan.md` TP-9；UX `plan.md` 候選 Selection）。觸控長按與手把未實作。改動了 ItemRow／TaskCard／TaskList，Web 的 TaskProgress 來源重盤點（雜湊）會看到漂移。
 
 - **子項活動紀錄（2026-10-21）。** 契約 `Documentation/ItemActivityLog.md`。Report CLI 請求必須帶 `actor`（`session` 名稱與 `session_id` 選填；tooltip 只顯示名稱，認領只比對 ID），自動記 created／started／updated／done／takeover；`in_progress` 子項由他人執行時回 `claim_conflict`／`claim_unverified`，需 `claim: own／takeover`。Viewer 編輯存檔與預覽換位記 `user`，預覽滑鼠停留 tooltip 顯示。保留 created＋最近 3 筆（常數）。身分放在請求 JSON 而非 CLI 參數，因此不需重新發布 EXE；`Program.cs` 只多一行說明，正式 EXE 的 help 要等下次 Publish。**部署注意**：未更新 skill 的 agent 送出不含 actor 的請求會被拒絕，錯誤訊息會說明。

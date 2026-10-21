@@ -14,6 +14,7 @@ import {
   resolveDeveloperReportSource,
   resolveReportRequest,
   stableSortTasksByPriority,
+  taskLeadItemPriority,
   stableSortTaskItemsByPriority,
   taskPriority,
   taskItemPriority,
@@ -430,4 +431,21 @@ test("scope catalog rejects duplicate or unsafe IDs", () => {
   }), /無效或重複/);
   assert.throws(() => buildScopeHref("../private"), /scope 無效/);
   assert.throws(() => buildScopeHref("safe", "unknown"), /顯示模式無效/);
+});
+
+test("cards of the same priority rank by their highest unfinished item priority", () => {
+  const tasks = [
+    { id: "general-plain", priority: 2, pending_items: [{ id: "a", priority: 2 }] },
+    { id: "important", priority: 1, pending_items: [{ id: "b" }] },
+    { id: "general-urgent-item", priority: 2, pending_items: [{ id: "c" }, { id: "d", priority: 0 }] },
+    { id: "general-archived-urgent", priority: 2, pending_items: [{ id: "e", priority: 0, status: "archive" }] },
+    { id: "general-empty", priority: 2, pending_items: [] },
+    { id: "general-plain-later", priority: 2, pending_items: [{ id: "f", priority: 2 }] },
+  ];
+  assert.equal(taskLeadItemPriority(tasks[2]), 0);
+  assert.equal(taskLeadItemPriority(tasks[3]), 4);
+  assert.deepEqual(
+    stableSortTasksByPriority(tasks).map((task) => task.id),
+    ["important", "general-urgent-item", "general-plain", "general-plain-later", "general-archived-urgent", "general-empty"],
+  );
 });
