@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-10-20T16:26:26.560877+00:00",
+  "updated_at": "2026-10-21T03:06:45.072220+00:00",
   "tasks": [
     {
       "id": "report-search",
@@ -148,6 +148,17 @@
       "priority": 2,
       "summary": "正式 Viewer 已具備可分享的唯讀進度報告、Developer overlay、主題系統與響應式介面。",
       "completed_items": [
+        {
+          "id": "checklist-link-test",
+          "title": "測試 Checklist 行內連結：從 checklist 點回宿主 Report",
+          "status": "done",
+          "priority": 0,
+          "document_ref": {
+            "kind": "checklist",
+            "scope_id": "task-progress",
+            "task": "checklist-link-test"
+          }
+        },
         {
           "id": "lead-item-checklist-links",
           "title": "首項預設展開與 Checklist 欄位行內連結，依 [驗收清單](/checklist/?scope=task-progress&task=viewer-lead-item-checklist-links) 核查",

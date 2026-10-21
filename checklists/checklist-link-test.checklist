@@ -1,0 +1,13 @@
+# Checklist 連結測試 Checklist
+
+Current round: `Documentation/InlineReportLinks.md#checklist-欄位`.
+
+本檔只放 Checklist 行內連結的人工測試。
+
+- [x] **1. 開啟宿主頁**
+  Outcome: 從 [TaskProgress Report](http://127.0.0.1:8001/?scope=task-progress) 的連結回到宿主頁。
+  Checks:
+    - [x] **點擊連結** `[manual]`
+      - Action: 點擊 [TaskProgress Report](http://127.0.0.1:8001/?scope=task-progress)。
+      - Expect: 連結有底線；點擊後開啟 TaskProgress 開發進度 Report 頁。
+      - Reason: 點擊與導覽由使用者確認。
