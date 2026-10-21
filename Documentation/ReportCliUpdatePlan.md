@@ -84,7 +84,7 @@ task status 與明示 progress 不因單一項目完成而自行推定。若使�
 }
 ```
 
-`actor`（寫入工具）為必填、`session` 選填，用於子項活動紀錄與認領，見 [子項活動紀錄](ItemActivityLog.md)。
+`actor`（寫入工具）為必填，`session`（名稱）與 `session_id` 選填，用於子項活動紀錄與認領，見 [子項活動紀錄](ItemActivityLog.md)。
 
 一批操作依序套用到記憶體候選資料，全部通過才保存；後面的操作可以引用同批新增的任務。任一操作失敗，整批不寫入，錯誤包含 operation index、code 與欄位位置。
 

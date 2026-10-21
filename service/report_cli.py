@@ -91,13 +91,14 @@ def execute(folder, action, request=None, *, task=None, dry_run=False, analyzer=
             return {"ok": True, "revision": before, "task": selected, "developer": developer}
         require(action == "apply", "Unknown action")
         require(isinstance(request, dict) and {"version", "expected_revision", "operations", "actor"} <= set(request)
-                <= {"version", "expected_revision", "operations", "actor", "session"},
-                "Request needs version, expected_revision, operations and actor (the writing tool, such as codex); session is optional")
+                <= {"version", "expected_revision", "operations", "actor", "session", "session_id"},
+                "Request needs version, expected_revision, operations and actor (the writing tool, such as codex); "
+                "session (the session's name) and session_id are optional")
         require(request["version"] == "1", "Unsupported request version", "version")
         if request["expected_revision"] != before:
             raise ReportError("revision_conflict", "Source revision changed; load it again", 3)
         stamp = datetime.now(timezone.utc).isoformat()
-        writer = {"actor": request["actor"], "session": request.get("session")}
+        writer = {"actor": request["actor"], "session": request.get("session"), "session_id": request.get("session_id")}
         candidate, next_overlay, summaries = apply_operations(report, overlay, request["operations"], writer, stamp)
         changed_report, changed_overlay = candidate != report, next_overlay != overlay
         changed = changed_report or changed_overlay

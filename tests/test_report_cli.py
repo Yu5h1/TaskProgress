@@ -26,11 +26,13 @@ class ReportCliTests(unittest.TestCase):
     def write(self, name, value):
         (self.root / name).write_text(json.dumps(value, ensure_ascii=False), encoding="utf-8")
 
-    def request(self, operations, actor="codex", session=None):
+    def request(self, operations, actor="codex", session=None, name=None):
         request = {"version": "1", "expected_revision": execute(self.root, "get")["revision"],
                    "operations": operations, "actor": actor}
         if session is not None:
-            request["session"] = session
+            request["session_id"] = session
+        if name is not None:
+            request["session"] = name
         return request
 
     def item(self, identity="item"):
@@ -39,8 +41,9 @@ class ReportCliTests(unittest.TestCase):
                     if isinstance(i, dict) and i["id"] == identity)
 
     def test_activity_records_created_started_done_and_keeps_three_recent(self):
-        execute(self.root, "apply", self.request([{"op": "item.add", "task_id": "one", "value": {"id": "log", "title": "Log"}}], session="s1"))
-        self.assertEqual([(e["event"], e["actor"], e.get("session")) for e in self.item("log")["activity"]], [("created", "codex", "s1")])
+        execute(self.root, "apply", self.request([{"op": "item.add", "task_id": "one", "value": {"id": "log", "title": "Log"}}], session="s1", name="Report 修正"))
+        self.assertEqual([(e["event"], e["actor"], e.get("session"), e.get("session_id")) for e in self.item("log")["activity"]],
+                         [("created", "codex", "Report 修正", "s1")])
         for title in ("A", "B", "C"):
             execute(self.root, "apply", self.request([{"op": "item.update", "task_id": "one", "item_id": "log", "set": {"title": title}}], session="s1"))
         execute(self.root, "apply", self.request([{"op": "item.update", "task_id": "one", "item_id": "log", "set": {"status": "in_progress"}}], session="s1"))
@@ -64,6 +67,9 @@ class ReportCliTests(unittest.TestCase):
         execute(self.root, "apply", self.request([{"op": "item.add", "task_id": "one", "value": {"id": "log", "title": "Log", "status": "in_progress"}}], session="s1"))
         execute(self.root, "apply", self.request([{"op": "item.update", "task_id": "one", "item_id": "log", "set": {"title": "Same session"}}], session="s1"))
         rename = [{"op": "item.update", "task_id": "one", "item_id": "log", "set": {"title": "Other"}}]
+        with self.assertRaises(ReportError) as named:
+            execute(self.root, "apply", self.request(rename, actor="codex", name="same name, no id"))
+        self.assertEqual(named.exception.code, "claim_unverified", "a session name never proves identity")
         for actor, session, code in (("claude", None, "claim_conflict"), ("codex", "s2", "claim_conflict"), ("codex", None, "claim_unverified")):
             with self.assertRaises(ReportError) as raised:
                 execute(self.root, "apply", self.request(rename, actor=actor, session=session))

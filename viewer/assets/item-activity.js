@@ -95,12 +95,12 @@ export function validateActivity(value, path, errors, issue) {
     const entryPath = `${path}[${index}]`;
     const keys = entry && typeof entry === "object" && !Array.isArray(entry) ? Object.keys(entry) : null;
     const valid = keys
-      && keys.every(key => ["event", "actor", "session", "at"].includes(key))
+      && keys.every(key => ["event", "actor", "session", "session_id", "at"].includes(key))
       && ACTIVITY_EVENTS.includes(entry.event)
       && typeof entry.actor === "string" && ACTOR_PATTERN.test(entry.actor)
-      && (entry.session === undefined || (typeof entry.session === "string" && entry.session.length > 0 && entry.session.length <= 100))
+      && ["session", "session_id"].every(key => entry[key] === undefined || (typeof entry[key] === "string" && entry[key].length > 0 && entry[key].length <= 100))
       && typeof entry.at === "string" && !Number.isNaN(Date.parse(entry.at));
-    if (!valid) errors.push(issue("invalid_activity", entryPath, `${entryPath} 必須有 event、actor、at，session 可省略。`));
+    if (!valid) errors.push(issue("invalid_activity", entryPath, `${entryPath} 必須有 event、actor、at，session 與 session_id 可省略。`));
   });
 }
 
@@ -114,7 +114,7 @@ function relative(at, now) {
   return `${Math.floor(hours / 24)} 天前`;
 }
 
-/** Tooltip text, one line per entry, oldest first; empty when the item has no activity. */
+/** Tooltip text, one line per entry, oldest first; names the session by its name, never its ID. */
 export function formatActivity(activity, now = Date.now()) {
   if (!Array.isArray(activity) || !activity.length) return "";
   return activity.map((entry) => {

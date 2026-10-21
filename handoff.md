@@ -8,7 +8,7 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
 
 - **子項多選與批次複製參照（2026-10-21）。** 規格 `Documentation/ItemSelection.md`。預覽模式點選／Ctrl 加選／Shift 範圍（跨卡片）、鍵盤 ↑↓／Shift＋↑↓／Space／Ctrl+A／Ctrl+C／Esc；複製為一行一個參照。分三層（selection-model／selection-input／item-selection），之後由 Web 共用 Selection 取代前兩層（Web `NativeUIAndDataUpdatePlan.md` TP-9；UX `plan.md` 候選 Selection）。觸控長按與手把未實作。改動了 ItemRow／TaskCard／TaskList，Web 的 TaskProgress 來源重盤點（雜湊）會看到漂移。
 
-- **子項活動紀錄（2026-10-21）。** 契約 `Documentation/ItemActivityLog.md`。Report CLI 請求必須帶 `actor`（session 選填），自動記 created／started／updated／done／takeover；`in_progress` 子項由他人執行時回 `claim_conflict`／`claim_unverified`，需 `claim: own／takeover`。Viewer 編輯存檔與預覽換位記 `user`，預覽滑鼠停留 tooltip 顯示。保留 created＋最近 3 筆（常數）。身分放在請求 JSON 而非 CLI 參數，因此不需重新發布 EXE；`Program.cs` 只多一行說明，正式 EXE 的 help 要等下次 Publish。**部署注意**：未更新 skill 的 agent 送出不含 actor 的請求會被拒絕，錯誤訊息會說明。
+- **子項活動紀錄（2026-10-21）。** 契約 `Documentation/ItemActivityLog.md`。Report CLI 請求必須帶 `actor`（`session` 名稱與 `session_id` 選填；tooltip 只顯示名稱，認領只比對 ID），自動記 created／started／updated／done／takeover；`in_progress` 子項由他人執行時回 `claim_conflict`／`claim_unverified`，需 `claim: own／takeover`。Viewer 編輯存檔與預覽換位記 `user`，預覽滑鼠停留 tooltip 顯示。保留 created＋最近 3 筆（常數）。身分放在請求 JSON 而非 CLI 參數，因此不需重新發布 EXE；`Program.cs` 只多一行說明，正式 EXE 的 help 要等下次 Publish。**部署注意**：未更新 skill 的 agent 送出不含 actor 的請求會被拒絕，錯誤訊息會說明。
 
 - **預覽模式拖曳換位（2026-10-21）。** 規格 `Documentation/ReportItemOrderingPlan.md#預覽模式拖曳換位`，驗收 `checklists/preview-item-reorder.checklist`（全 `[x]`）。有本機編輯服務時，預覽頁同卡同級未完成子項可從空白處拖曳或 Alt+↑／↓ 換位，目標以動畫空出位置，放下直接寫入（無復原、無儲存列）。`app.js` 的 `reorderInPreview` 先比對重新讀取的 report.json 與畫面，不同就不寫並重載；`viewer/assets/item-reorder.js` 只動陣列位置。子項換位不做長按（使用者判斷任務卡空白處足夠）；UX 第 69 題不受影響。
 

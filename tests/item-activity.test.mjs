@@ -52,12 +52,13 @@ test("validation rejects malformed or overlong activity", () => {
   assert.deepEqual(errors.map(error => error.path), ["x[0]", "y[0]", "z"]);
 });
 
-test("the tooltip names each entry with its actor, session and age", () => {
+test("the tooltip names each entry with its actor, session name and age, never the session ID", () => {
   const text = formatActivity([
     { event: "created", actor: "antigravity", at: "2026-10-21T05:00:00.000Z" },
-    { event: "started", actor: "codex", session: "01a15c8a", at: "2026-10-21T07:30:00.000Z" },
+    { event: "started", actor: "codex", session: "Web 驗收", session_id: "01a15c8a", at: "2026-10-21T07:30:00.000Z" },
+    { event: "updated", actor: "claude", session_id: "5ef525bc", at: "2026-10-21T07:59:30.000Z" },
   ], Date.parse(at));
-  assert.equal(text, "建立：antigravity · 3 小時前\n開始：codex (01a15c8a) · 30 分鐘前");
+  assert.equal(text, "建立：antigravity · 3 小時前\n開始：codex (Web 驗收) · 30 分鐘前\n修改：claude · 剛剛");
   assert.equal(formatActivity(undefined), "");
 });
 

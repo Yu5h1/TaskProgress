@@ -21,7 +21,8 @@ task-progress.exe report get --scope project
   "version": "1",
   "expected_revision": "填入 get 回傳的 revision",
   "actor": "codex",
-  "session": "選填：知道自己的 session ID 才填",
+  "session": "選填：session 名稱（工具畫面上的標題）",
+  "session_id": "選填：session ID",
   "operations": [
     {
       "op": "task.update",
@@ -108,12 +109,12 @@ task-progress.exe report apply "C:\Project" --input changes.json
 
 ## 身分與認領
 
-每個 apply 請求都要帶 `actor`（寫入的工具，小寫英文，例如 `claude`、`codex`、`antigravity`）；`session` 可省略。CLI 依此在子項的 `activity` 自動記錄建立、開始、修改、完成與接手，不能在新增的值裡自帶 `activity`。
+每個 apply 請求都要帶 `actor`（寫入的工具，小寫英文，例如 `claude`、`codex`、`antigravity`）；`session`（session 名稱，顯示用）與 `session_id`（session ID，認領比對用）知道就填。CLI 依此在子項的 `activity` 自動記錄建立、開始、修改、完成與接手，不能在新增的值裡自帶 `activity`。
 
 子項為 `in_progress` 且最後一筆 `started`／`takeover` 不是自己時，`item.update`／`item.move` 會被拒絕（exit code 2）：
 
 - `claim_conflict`：別的工具或別的 session 正在執行。先問使用者，同意後在該操作加 `"claim": "takeover"`。
-- `claim_unverified`：同一工具但缺少 session ID 無法比對。確定是自己開始的就加 `"claim": "own"`，否則先問使用者再用 `takeover`。
+- `claim_unverified`：同一工具但缺少 `session_id` 無法比對（名稱不算）。確定是自己開始的就加 `"claim": "own"`，否則先問使用者再用 `takeover`。
 
 ```json
 { "op": "item.update", "task_id": "feature-a", "item_id": "implementation", "set": { "status": "done" }, "claim": "own" }

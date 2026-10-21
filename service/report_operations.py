@@ -72,8 +72,9 @@ def append_activity(item, entry):
 
 def activity_entry(event, actor, at):
     entry = {"event": event, "actor": actor["actor"], "at": at}
-    if actor.get("session"):
-        entry["session"] = actor["session"]
+    for key in ("session", "session_id"):
+        if actor.get(key):
+            entry[key] = actor[key]
     return entry
 
 
@@ -90,7 +91,7 @@ def claim_relation(item, actor):
     claimant = next((e for e in reversed(item.get("activity", [])) if e["event"] in ("started", "takeover")), None)
     if claimant is None:
         return None, None
-    mine, theirs = actor.get("session"), claimant.get("session")
+    mine, theirs = actor.get("session_id"), claimant.get("session_id")
     if claimant["actor"] == actor["actor"] and mine and theirs and mine == theirs:
         return None, claimant
     if claimant["actor"] != actor["actor"] or (mine and theirs):
@@ -104,13 +105,14 @@ def check_claim(item, operation, actor, at):
     require(claim is None or claim in CLAIMS, "claim must be own or takeover", "claim")
     if relation is None:
         return
-    who = claimant["actor"] + (" (" + claimant["session"] + ")" if claimant.get("session") else "")
+    label = claimant.get("session") or claimant.get("session_id")
+    who = claimant["actor"] + (" (" + label + ")" if label else "")
     if relation == "conflict" and claim != "takeover":
         raise ReportError("claim_conflict", "Item is in progress by " + who + " since " + claimant["at"]
                           + "; ask the user, then retry with claim: takeover", field="claim")
     if relation == "unverified" and claim not in CLAIMS:
         raise ReportError("claim_unverified", "Item is in progress by " + who + " since " + claimant["at"]
-                          + " and the session cannot be compared; retry with claim: own if you started it, "
+                          + " and the session ID cannot be compared; retry with claim: own if you started it, "
                           "otherwise ask the user and retry with claim: takeover", field="claim")
     if claim == "takeover":
         append_activity(item, activity_entry("takeover", actor, at))
@@ -144,8 +146,9 @@ def update(target, operation, name):
 def apply_operations(report, overlay, operations, actor=None, at=None):
     require(isinstance(actor, dict) and isinstance(actor.get("actor"), str) and bool(ACTOR_PATTERN.match(actor["actor"])),
             "actor is required: the writing tool in lowercase, such as claude, codex or antigravity", "actor")
-    require(actor.get("session") is None or (isinstance(actor["session"], str) and 0 < len(actor["session"]) <= 100),
-            "session must be a non-empty string of at most 100 characters", "session")
+    for key in ("session", "session_id"):
+        require(actor.get(key) is None or (isinstance(actor[key], str) and 0 < len(actor[key]) <= 100),
+                key + " must be a non-empty string of at most 100 characters", key)
     require(isinstance(at, str), "Activity time is required", "at")
     require(isinstance(operations, list) and 0 < len(operations) <= 1000, "operations must contain 1–1000 entries", "operations")
     report, overlay = deepcopy(report), deepcopy(overlay)
