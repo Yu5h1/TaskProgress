@@ -1098,7 +1098,7 @@ h1 {
 
 .task-summary-input {
   display: block;
-  margin-top: 2px;
+  margin-top: 5px;
   width: 100%;
   padding: 8px 10px;
   resize: vertical;
@@ -3044,6 +3044,7 @@ footer {
 .task-card:has(> .card-disclosure-collapsed) { padding-top: 7px; padding-bottom: 7px; }
 .card-disclosure-toolbar { display: flex; flex-wrap: wrap; gap: 6px; grid-column: 1 / -1; }
 .card-disclosure-heading .task-header { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 4px 12px; }
+.card-disclosure-heading .task-header:has(.time-task-status-line) { row-gap: 5px; }
 .card-disclosure-heading .task-title-group { display: contents; overflow-wrap: anywhere; }
 .card-disclosure-heading .task-title-group > * { grid-column: 1 / -1; }
 .card-disclosure-heading .task-title-group > .time-task-title-line { grid-column: 1; grid-row: 1; }
@@ -3182,7 +3183,6 @@ footer {
 }
 .editor-item-row:hover .item-row-copy,
 .editor-item-row:focus-within .item-row-copy,
-.card-selected .item-row-copy,
 .item-row-copy.is-done {
   opacity: 1;
 }
