@@ -25,10 +25,11 @@ Current round: `experiments/acceptance-trial/spec.md#他驗與人工試跑`.
       - Resolved: 8db1676 把第二行改成 2026-10-22T12:42:55Z，與這次寫入檔案的時間（12:42:55.39Z）和提交時間一致，落在重新認領（12:42:54.56Z）之後，是建立內容當下的時間，不再是預先取得的值。第一行 cross manual ok 不變。檔案系統的建立時間仍是 12:38:26Z，因為修正是原地覆寫。
       - Recorded: claude:5e450172-dd59-4625-92e0-cb738be324a1; at=2026-10-22T12:43:39Z; fp=e9aa42fb6e99
 
-- [ ] **3. 人工驗收**
+- [x] **3. 人工驗收**
   Outcome: 使用者確認 Checklist 面板的他驗呈現。
   Checks:
-    - [ ] **他驗標籤與鎖** `[manual]`
+    - [x] **他驗標籤與鎖** `[manual]`
       - Action: 開啟 [這份 checklist](http://127.0.0.1:8001/checklist/?scope=task-progress&task=trial-cross-manual)。
       - Expect: 第 2 項的檢查顯示「他驗」標籤與記錄者；他驗通過前，本項顯示「等他驗全部通過」且無法點選。
       - Reason: 畫面由使用者判。
+      - Recorded: user; at=2026-10-22T12:44:20Z; fp=34a3f56d4880
