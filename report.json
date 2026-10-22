@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-10-22T13:24:17.070439+00:00",
+  "updated_at": "2026-10-22T13:24:38.512703+00:00",
   "tasks": [
     {
       "id": "item-selection",
@@ -1917,7 +1917,7 @@
           "id": "codex-trial-self",
           "priority": 1,
           "title": "Codex 自驗試跑",
-          "status": "in_progress",
+          "status": "planned",
           "activity": [
             {
               "event": "created",
@@ -1932,6 +1932,13 @@
               "at": "2026-10-22T13:24:17.070439+00:00",
               "session": "Codex 共用 skill 驗證試跑",
               "session_id": "365a4d62-02ee-4e28-9da7-63783c089d24"
+            },
+            {
+              "event": "released",
+              "actor": "codex",
+              "at": "2026-10-22T13:24:36.661140+00:00",
+              "session": "Codex 共用 skill 驗證試跑",
+              "session_id": "365a4d62-02ee-4e28-9da7-63783c089d24"
             }
           ]
         },
@@ -1944,12 +1951,19 @@
           "id": "codex-trial-manual",
           "priority": 1,
           "title": "Codex 人工試跑",
-          "status": "planned",
+          "status": "in_progress",
           "activity": [
             {
               "event": "created",
               "actor": "codex",
               "at": "2026-10-22T13:23:40.517962+00:00",
+              "session": "Codex 共用 skill 驗證試跑",
+              "session_id": "365a4d62-02ee-4e28-9da7-63783c089d24"
+            },
+            {
+              "event": "started",
+              "actor": "codex",
+              "at": "2026-10-22T13:24:38.512703+00:00",
               "session": "Codex 共用 skill 驗證試跑",
               "session_id": "365a4d62-02ee-4e28-9da7-63783c089d24"
             }
