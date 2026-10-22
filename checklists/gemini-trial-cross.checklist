@@ -11,12 +11,14 @@ Current round: `experiments/gemini-acceptance-trial/spec.md#他驗試跑`.
       - Action: 讀取 experiments/gemini-acceptance-trial/cross.json，對照 experiments/gemini-acceptance-trial/spec.md#他驗試跑。
       - Expect: 物件恰有 name=cross、decimals=2、rounding=half-up 三個欄位。
 
-- [ ] **2. 他驗**
+- [x] **2. 他驗**
   Outcome: 獨立 session 依原始規格確認結果。
   Checks:
-    - [ ] **驗收條件未被改動** `[acceptance]`
+    - [x] **驗收條件未被改動** `[acceptance]`
       - Action: 對照 experiments/gemini-acceptance-trial/spec.md#他驗試跑，以 git log -p 檢查本檔第 2 項自初版或最近「條件修訂」提交後的變更。
       - Expect: 驗收條件未變更，只有結果標記與 Observed、Resolved、Recorded 變動。
-    - [ ] **內容與規格一致** `[acceptance]`
+      - Recorded: antigravity:sub-session-verifier-01; at=2026-10-22T16:17:58Z; fp=fafd0295259d
+    - [x] **內容與規格一致** `[acceptance]`
       - Action: 對照 experiments/gemini-acceptance-trial/spec.md#他驗試跑，檢查 experiments/gemini-acceptance-trial/cross.json 與 git log --grep gemini-trial-cross。
       - Expect: 物件恰有 name=cross、decimals=2、rounding=half-up 三個欄位。
+      - Recorded: antigravity:sub-session-verifier-01; at=2026-10-22T16:17:58Z; fp=778f6ea1a75b
