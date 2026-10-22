@@ -11,15 +11,17 @@ Current round: `experiments/gemini-acceptance-trial/spec.md#他驗與人工試�
       - Action: 讀取 experiments/gemini-acceptance-trial/cross-manual.txt，對照 experiments/gemini-acceptance-trial/spec.md#他驗與人工試跑。
       - Expect: 第一行 cross manual ok，第二行為寫入當下的 UTC ISO 8601 時間，與寫入時間相差不超過兩秒。
 
-- [ ] **2. 他驗**
+- [x] **2. 他驗**
   Outcome: 獨立 session 依原始規格確認結果。
   Checks:
-    - [ ] **驗收條件未被改動** `[acceptance]`
+    - [x] **驗收條件未被改動** `[acceptance]`
       - Action: 對照 experiments/gemini-acceptance-trial/spec.md#他驗與人工試跑，以 git log -p 檢查本檔第 2 項自初版或最近「條件修訂」提交後的變更。
       - Expect: 驗收條件未變更，只有結果標記與 Observed、Resolved、Recorded 變動。
-    - [ ] **內容與規格一致** `[acceptance]`
+      - Recorded: antigravity:sub-session-verifier-01; at=2026-10-22T16:18:07Z; fp=2251ea24b070
+    - [x] **內容與規格一致** `[acceptance]`
       - Action: 對照 experiments/gemini-acceptance-trial/spec.md#他驗與人工試跑，檢查 experiments/gemini-acceptance-trial/cross-manual.txt 與 git log --grep gemini-trial-cross-manual。
       - Expect: 第一行 cross manual ok，第二行為寫入當下的 UTC ISO 8601 時間，與寫入時間相差不超過兩秒。
+      - Recorded: antigravity:sub-session-verifier-01; at=2026-10-22T16:18:07Z; fp=a713a229dc57
 
 - [ ] **3. 人工驗收**
   Outcome: 使用者接受本情境的狀態與面板呈現。
