@@ -4,10 +4,10 @@ Current round: `experiments/acceptance-trial/spec.md#人工試跑`.
 
 驗證方式：人工。本檔只有一輪。
 
-- [ ] **1. 建立 manual.txt**
+- [x] **1. 建立 manual.txt**
   Outcome: experiments/acceptance-trial/manual.txt 符合規格。
   Checks:
-    - [ ] **內容正確**
+    - [x] **內容正確**
       - Action: 讀取 experiments/acceptance-trial/manual.txt。
       - Expect: 只有一行 manual ok。
 
