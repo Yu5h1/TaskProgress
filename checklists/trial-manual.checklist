@@ -11,10 +11,11 @@ Current round: `experiments/acceptance-trial/spec.md#人工試跑`.
       - Action: 讀取 experiments/acceptance-trial/manual.txt。
       - Expect: 只有一行 manual ok。
 
-- [ ] **2. 人工驗收**
+- [x] **2. 人工驗收**
   Outcome: 使用者確認 Report 顯示的狀態符合規格。
   Checks:
-    - [ ] **狀態膠囊** `[manual]`
+    - [x] **狀態膠囊** `[manual]`
       - Action: 開啟 [驗證流程試跑卡片](http://127.0.0.1:8001/?scope=task-progress&pin=acceptance-trial)，看「人工試跑」這一項。
       - Expect: 執行者完成後顯示「待使用者」；在這裡標 [x] 後重新整理，顯示完成。
       - Reason: 畫面由使用者判。
+      - Recorded: user; at=2026-10-22T12:42:23Z; fp=36747109bc2b
