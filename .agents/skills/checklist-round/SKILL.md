@@ -235,6 +235,28 @@ Never type a tagged marker or a `Recorded` line by hand.
 Test processes and batch runners must never write checklist state. The agent
 records their results after execution under the untagged-check rules above.
 
+### Migrate existing checklists
+
+When `checklist validate` reports a tagged result without a recorder in a
+project's checklists recorded before these rules, migrate that project's files:
+
+1. Check the project's repository for uncommitted changes and its current branch.
+   Leave files someone else changed alone, and do not commit onto a feature
+   branch that holds other work; ask the user instead.
+2. Preview: `task-progress.exe checklist migrate <every checklists/*.checklist> --dry-run`
+   names how many results each file would get.
+3. Migrate the same files without `--dry-run`. A file that already fails to
+   parse is reported and skipped; it is a separate fix, never part of the
+   migration.
+4. Run `checklist validate` on every file; all of them must pass.
+5. Check the diff: the only added lines are `      - Recorded: legacy; …`,
+   nothing removed or changed.
+6. Stage only those checklist files and commit them on their own, saying the
+   results predate the recorder rule.
+
+Migrate only results you believe were recorded before the rules. A result that
+an agent may have typed by hand is re-verified by its owner instead.
+
 ### Verify the document
 
 This section applies when the agent writes or changes a round, or when the user explicitly requests
