@@ -6,7 +6,7 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
 
 ## Current state (2026-09-29)
 
-- **使用者層 skill 目錄更正（2026-10-22，Gemini 反饋）。** 先前文件依 Gemini CLI 文件寫成「Codex 與 Gemini 都讀 `~\.agents\skills`」；Antigravity 實際讀 `~\.gemini\config\skills`（內建 `agy-customizations`）。Codex 讀 `~\.agents\skills`，Codex session 紀錄的 skill 根目錄 r0 為證；`~\.codex` 是它的設定家目錄。taskprogress-capabilities〈Initialize the user-level entry〉改為逐一列出各工具的目錄與依據：只用自己那一列、不從家目錄名稱或別的產品推論、只寫自己的目錄、不搬動或刪除別人的入口、建立後在新 session 確認工具列出才算就緒。CodexWorkflowTrial 與 task-progress-items〈Agent specifics〉（改名 Antigravity）同步。
+- **使用者層 skill 目錄更正（2026-10-22，Gemini 反饋）。** 先前文件依 Gemini CLI 文件寫成「Codex 與 Gemini 都讀 `~\.agents\skills`」；Antigravity 實際讀 `~\.gemini\config\skills`（內建 `agy-customizations`）。Codex 讀 `~\.agents\skills`，Codex session 紀錄的 skill 根目錄 r0 為證；`~\.codex` 是它的設定家目錄。taskprogress-capabilities〈Initialize the user-level entry〉不列各工具的目錄（使用者決定：agent 只需知道自己的位置，列表會隨工具增加而膨脹）：用自己工具文件或回報的目錄、無法確認就問、只寫自己的目錄、不搬動或刪除其他位置的入口、建立後在新 session 確認工具列出才算就緒。CodexWorkflowTrial 與 task-progress-items〈Agent specifics〉（改名 Antigravity）同步。
   - Gemini 修正時把 Codex 的入口從 `~\.agents\skills` 搬到 `~\.gemini\config\skills`（檔案時間 21:21 是 Codex 原建立時間），Codex 的入口因此消失。
   - 下一步：Codex 在新 session 依 capabilities 重建 `~\.agents\skills\task-progress-items`，並確認技能清單列出它。
   - 下一步：Antigravity 在新 session 確認斜線選單列出 `task-progress-items`。

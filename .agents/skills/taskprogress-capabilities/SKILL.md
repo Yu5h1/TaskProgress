@@ -21,25 +21,10 @@ acting agent (2026-10-22), so no further question is needed for that case.
 |---|---|---|
 | `task-progress-items` | `.agents/skills/task-progress-items/SKILL.md` | TaskProgress executable items — evaluate a project into items, write one instruction as an item and run it, run the execution or acceptance queue, or do all of it. Use only when the user explicitly invokes task-progress-items (in Claude Code, the /task-progress-items command); answer paraphrases with the invocation instead. |
 
-Each agent's user-level skills directory, verified on this machine:
+For each row:
 
-| Agent | User-level skills directory | Evidence |
-|---|---|---|
-| Claude Code | `%USERPROFILE%\.claude\skills` | The session's skill list shows the entry |
-| Codex | `%USERPROFILE%\.agents\skills` (`%USERPROFILE%\.codex\skills` holds only Codex's built-in `.system`) | Codex lists it as skill root `r0` in its session log (2026-10-22) |
-| Antigravity | `%USERPROFILE%\.gemini\config\skills` | Antigravity's built-in `agy-customizations`, § Global Discovery |
-
-A tool's home folder is not its skills directory: Codex keeps its settings in `.codex` but reads
-user skills from `.agents\skills`, and Antigravity keeps its settings in `.gemini` but reads
-`.gemini\config\skills`.
-
-For each entry row:
-
-1. Use your own tool's directory row. Never derive a directory from another tool's row, from the
-   name of a tool's home folder, or from another product's docs (Gemini CLI is not Antigravity).
-   With no row for your tool, find the directory in your tool's own evidence (its built-in
-   customization docs, or the skill roots it reports when it starts); without that, stop and ask
-   the user. When found, report the directory and the evidence so the user can add the row.
+1. Use the user-level skills directory your own tool documents or reports. You only need yours;
+   when you cannot confirm it, stop and ask the user.
 2. Resolve `<SOURCE>` as the absolute path of the row's shared source in the TaskProgress
    repository the index routed you through. It must exist; never assume the session works inside
    TaskProgress.
@@ -48,12 +33,10 @@ For each entry row:
    - present and identical to the filled template (ignoring line-ending style) → leave it;
    - present but different, or naming a source that does not exist → report a conflict with both
      contents and stop; never overwrite.
-   Also report, without changing it, any project-level skill of the same name the agent would see
-   beside the entry (for Claude, a `.claude/skills/<NAME>` in the working project), since it would
-   shadow or duplicate the entry.
-4. Write only your own directory. Never move, rename or delete an entry in another directory, even
-   one your tool does not read: another tool reads it. Write another agent's directory only when
-   the user names that agent.
+   Also report, without changing it, any project-level skill of the same name your tool would see
+   beside the entry, since it would shadow or duplicate the entry.
+4. Write only your own directory. Never move, rename or delete an entry anywhere else, even in a
+   directory your tool does not read: another tool reads it.
 5. Verify in your tool: in a new session, confirm the skill appears in its slash menu or skill list.
    Only then report it ready; otherwise report "created, not verified".
 6. Initialization ends there: it starts no task, no queue and no acceptance. Do not use symbolic

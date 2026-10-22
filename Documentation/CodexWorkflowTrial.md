@@ -33,7 +33,7 @@ TaskProgress
 | `C:\Users\Yu5h1\.claude\skills\task-progress-items` | 入口文件指向同一份 skill，保留 Claude 的命令入口 |
 | `C:\Users\Yu5h1\.gemini\config\skills\task-progress-items` | 入口文件指向同一份 skill，供 Antigravity 發現 |
 
-Codex 官方文件列出使用者層 `.agents/skills`，Codex 的 session 紀錄也列它為 skill 根目錄 r0，因此不需要 `.codex/skills` 副本（那裡只有 Codex 內建的 `.system`）。Antigravity 不讀 `.agents/skills`，它的使用者層目錄是 `.gemini/config/skills`；先前依 Gemini CLI 文件寫成「Gemini 也支援 `.agents/skills`」是錯的，Gemini CLI 與 Antigravity 是不同產品。各 agent 的目錄與依據以 [taskprogress-capabilities〈Initialize the user-level entry〉](../.agents/skills/taskprogress-capabilities/SKILL.md#initialize-the-user-level-entry) 為準。安裝時須確認現有同名入口與實際工具版本，保留既有內容，不覆蓋其他 agent 的檔案。
+Codex 官方文件列出使用者層 `.agents/skills`，Codex 的 session 紀錄也列它為 skill 根目錄 r0，因此不需要 `.codex/skills` 副本（那裡只有 Codex 內建的 `.system`）。Antigravity 不讀 `.agents/skills`，它的使用者層目錄是 `.gemini/config/skills`；先前依 Gemini CLI 文件寫成「Gemini 也支援 `.agents/skills`」是錯的，Gemini CLI 與 Antigravity 是不同產品。各 agent 依自己工具的文件決定自己的目錄，見 [taskprogress-capabilities〈Initialize the user-level entry〉](../.agents/skills/taskprogress-capabilities/SKILL.md#initialize-the-user-level-entry)。安裝時須確認現有同名入口與實際工具版本，保留既有內容，不覆蓋其他 agent 的檔案。
 
 依據：[Codex skills](https://learn.chatgpt.com/docs/build-skills)、[Claude Code skills](https://code.claude.com/docs/en/skills)、[Gemini CLI skills](https://geminicli.com/docs/cli/using-agent-skills/)。官方支援不等於本機路由已驗證。
 
