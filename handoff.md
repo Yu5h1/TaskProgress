@@ -6,6 +6,10 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
 
 ## Current state (2026-09-29)
 
+- **開啟入口一律經 Tray（2026-10-22）。** 先前只有無參數／`start` 經 TrayHost；`open`、資料夾參數（Explorer `%V`）與 `task-progress://open` 在 CLI 程序內直接以隱藏方式啟動 LocalWebService，沒有 Tray（當天實況：服務在跑、父程序已結束、無 TrayHost）。現在三者由 `Program.OpenThroughTrayAsync` 交給 TrayHost invoke，worker 用原 `OpenAsync` 執行；資料夾以完整路徑轉送；`open` 拒絕 `--port`。契約 `Documentation/TrayWorkerPlan.md#開啟入口open資料夾參數與-protocol`。未加 `--no-tray`（無使用者）。
+  - 已驗證：Debug build 0 warning；`--tray-launcher-only`（新增 open 轉送、完整路徑、輸出、取消）、`--open-pin-only`、`--worker-only`、`--document-open-only` 通過。未啟動真實 Tray／服務。
+  - 未部署：正式 `Build/win-x64/task-progress.exe` 仍是舊版，`open` 仍不經 Tray。Publish 需先由使用者 Exit 舊 Tray，並處理目前無 Tray 的 python 服務（PID 29084）。實機核查：Tray 未啟動時 `open --scope` 會帶起 Tray 並開該 scope；Tray Exit 後無殘留程序。
+
 - **任務卡同級依子項優先級排序（2026-10-22）。** `stableSortTasksByPriority` 在卡片 priority 相同時，先比未完成且非 archive 子項中最高的 priority（`taskLeadItemPriority`，無此類子項視為 4），再比原順序。子項優先級不會讓卡片跨級。規則見 `plan.md` 任務卡排序段。
 
 - **子項多選與批次複製參照（2026-10-21）。** 規格 `Documentation/ItemSelection.md`。預覽模式點選／Ctrl 加選／Shift 範圍（跨卡片）、鍵盤 ↑↓／Shift＋↑↓／Space／Ctrl+A／Ctrl+C／Esc；複製為一行一個參照。分三層（selection-model／selection-input／item-selection），之後由 Web 共用 Selection 取代前兩層（Web `NativeUIAndDataUpdatePlan.md` TP-9；UX `plan.md` 候選 Selection）。觸控長按與手把未實作。改動了 ItemRow／TaskCard／TaskList，Web 的 TaskProgress 來源重盤點（雜湊）會看到漂移。

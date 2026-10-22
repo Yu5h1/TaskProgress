@@ -24,6 +24,7 @@ internal static class TrayHostLauncherTests
             await ForwardAsync(executable, manifest, ["service", "status", "中文 空格"], true);
             Check(File.ReadAllText(manifest) == existing, "Existing manifest was validated or overwritten");
             await CancelAsync(executable, manifest);
+            await OpenThroughTrayAsync(executable, manifest);
             foreach (var code in new[] { 2, 7 })
             {
                 foreach (var detail in new[] { "", " access denied \n" })
@@ -57,7 +58,7 @@ internal static class TrayHostLauncherTests
             File.Delete(manifest);
             Directory.Delete(directory);
         }
-        Console.WriteLine("Tray launcher contracts passed: missing/existing manifest, arguments/output, silent cancel, nonzero errors, process errors, no manifest writes. No process launched.");
+        Console.WriteLine("Tray launcher contracts passed: missing/existing manifest, arguments/output, silent cancel, open through tray, nonzero errors, process errors, no manifest writes. No process launched.");
     }
 
     private static async Task ForwardAsync(string executable, string manifest, string[] arguments, bool noNotify)
@@ -103,6 +104,39 @@ internal static class TrayHostLauncherTests
             Check(output.ToString() == "" && error.ToString() == "", "Cancellation emitted a failure message");
         }
         finally { Console.SetOut(originalOut); Console.SetError(originalError); }
+    }
+
+    private static async Task OpenThroughTrayAsync(string executable, string manifest)
+    {
+        var scoped = new TaskProgress.Program.OpenRequest("unused", "task-progress", false, "card-pin");
+        Check(TaskProgress.Program.BuildWorkerOpenArguments(scoped)
+                .SequenceEqual(["open", "--scope", "task-progress", "--pin", "card-pin", "--no-browser"]),
+            "Scoped open lost scope, pin or browser choice");
+        var folder = TaskProgress.Program.BuildWorkerOpenArguments(new TaskProgress.Program.OpenRequest(".", null, true));
+        Check(folder.SequenceEqual(["open", Path.GetFullPath(".")]), "Folder open was not sent fully qualified");
+
+        var originalOut = Console.Out;
+        using var output = new StringWriter();
+        try
+        {
+            Console.SetOut(output);
+            IReadOnlyList<string>? forwarded = null;
+            var exit = await TaskProgress.Program.OpenThroughTrayAsync(scoped, default,
+                (arguments, token) => TrayHostLauncher.InvokeAsync(executable, manifest, arguments, (info, _) =>
+                {
+                    forwarded = [.. info.ArgumentList];
+                    return Task.FromResult(new TrayHostLauncher.ProcessResult(0, " viewer url \n", ""));
+                }, token));
+            Check(exit == 0 && output.ToString().Trim() == "viewer url", "Open did not relay worker output");
+            Check(forwarded is not null && forwarded.Contains("--no-notify")
+                    && forwarded.SkipWhile(a => a != "--").Skip(1).SequenceEqual(TaskProgress.Program.BuildWorkerOpenArguments(scoped)),
+                "Open was not forwarded to the tray worker");
+
+            var cancelled = await TaskProgress.Program.OpenThroughTrayAsync(scoped, default,
+                (_, _) => Task.FromResult(new TrayHostLauncher.InvocationResult(true, "")));
+            Check(cancelled == 1, "Cancelled tray open did not return 1");
+        }
+        finally { Console.SetOut(originalOut); }
     }
 
     private static void Check(bool value, string message)

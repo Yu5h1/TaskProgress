@@ -105,11 +105,12 @@ route synchronization is in
 1. Resolve `Build/win-x64/task-progress.exe` from the TaskProgress repository, not the consuming
    project's working directory; use its absolute path.
 2. Run `task-progress.exe open --scope <scope-id> --no-browser` (add `--pin <card-id>` when a card
-   is the target; a report folder may replace `--scope`; `--port <port>` only when the user asked
-   for a port) once, every time, with no HTTP check first. `open` starts the tray service when it
-   is stopped and registers the scope's routes on a running one; a port that answers says nothing
-   about the scope (2026-10-22: 8001 answered while `?scope=task-progress` returned the report
-   with HTTP 404 until `open` ran). Run it as a plain direct command, outside the sandbox, as the
+   is the target; a report folder may replace `--scope`; `open` rejects `--port`) once, every
+   time, with no HTTP check first. `open` hands the request to the tray worker through TrayHost,
+   starting the tray and its service first when they are not running, and registers the scope's
+   routes; a port that answers says nothing about the scope (2026-10-22: 8001 answered while
+   `?scope=task-progress` returned the report with HTTP 404 until `open` ran). Contract:
+   [TrayWorkerPlan](../../../Documentation/TrayWorkerPlan.md#開啟入口open資料夾參數與-protocol). Run it as a plain direct command, outside the sandbox, as the
    current ordinary Windows user, using the agent tool's approval mechanism (in Codex,
    `sandbox_permissions: "require_escalated"` — unsandboxed, not administrator); startup writes
    scope/catalog state outside the workspace, so never launch the resident TrayHost/worker inside

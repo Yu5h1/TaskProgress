@@ -156,7 +156,25 @@ tray → Exit
 
 `start` 是短命的命令入口，透過 TrayHost invoke 將命令交給常駐 worker。TrayHost 擁有單一實例、啟動與等待 ready；worker 擁有服務啟動、scope／catalog 註冊與就緒判斷。CLI 不另開 Python console，也不複製常駐管理機制。
 
-`checklist <file>` 與雙擊 `.checklist` 仍直接開啟本地 WPF，不需要 Web 或 Tray。`checklist validate/request` 保持純命令；Browser 的 `/checklist` 才需要本地服務。其他 `open`／protocol 入口維持既有契約。
+`checklist <file>` 與雙擊 `.checklist` 仍直接開啟本地 WPF，不需要 Web 或 Tray。`checklist validate/request` 保持純命令；Browser 的 `/checklist` 才需要本地服務。
+
+### 開啟入口：`open`、資料夾參數與 protocol
+
+會啟動服務的入口一律經 Tray，與 `start` 相同（2026-10-22 定案）：
+
+```text
+task-progress open <folder>|--scope <id> [--pin <id>] [--no-browser]
+task-progress <folder>
+task-progress://open?scope=<id>
+  → CLI 先解析與驗證（scope 是否登記、選項）
+  → TrayHost invoke ... --no-notify -- open --scope <id>|<完整資料夾路徑> [--pin <id>] [--no-browser]
+  → Tray 不存在則先啟動；worker 執行 open：分析、註冊該 scope、輸出 Viewer 連結，需要時開瀏覽器
+```
+
+- CLI 程序本身不得直接啟動 LocalWebService；只有 worker 會。資料夾以完整路徑轉送，因為 worker 的工作目錄不是呼叫端的。
+- `open` 不接受 `--port`：服務由 worker 以預設 port 擁有，與 `start` 相同。
+- 不提供不經 Tray 的開啟模式；出現實際需要時再以明確選項（例如 `--no-tray`）加入。
+- 檔案開啟（`.checklist`／`.decisions`）只探測已在執行的服務，不啟動服務，因此不在此列。
 
 ## 問題與目標
 
@@ -432,7 +450,7 @@ TrayHost 已有 standalone 的互斥機制：identity 由 manifest 的 `id` 與 
 
 ### 完成條件
 
-- `open`、`service`、`scope`、`analyze` 維持原契約；start 契約依「啟動入口」驗收。
+- `service`、`scope`、`analyze` 維持原契約；start 契約依「啟動入口」驗收，`open`／資料夾參數／protocol 依「開啟入口」驗收。
 - worker 的 stdout 在任何路徑下都只有 protocol lines。
 - 同一份 manifest 在同一 session 只會有一個 tray 與一個 worker。
 - LocalWebService 的 health、ownership 與 shutdown 規則在整個 repository 仍只有一份實作。

@@ -86,9 +86,7 @@ internal static class Program
         if (Uri.TryCreate(args[0], UriKind.Absolute, out var activationUri)
             && string.Equals(activationUri.Scheme, ProtocolRegistration.Scheme, StringComparison.OrdinalIgnoreCase))
         {
-            var protocolRequest = ParseProtocolRequest(activationUri, store);
-            await OpenAsync(protocolRequest, cancellationToken);
-            return 0;
+            return await OpenThroughTrayAsync(ParseProtocolRequest(activationUri, store), cancellationToken);
         }
 
         switch (args[0].ToLowerInvariant())
@@ -123,11 +121,9 @@ internal static class Program
                     reportError,
                     probeTimeout);
             case "open":
-                await OpenAsync(ParseOpenRequest(args[1..], store), cancellationToken);
-                return 0;
+                return await OpenThroughTrayAsync(ParseOpenRequest(args[1..], store), cancellationToken);
             default:
-                await OpenAsync(ParseOpenRequest(args, store), cancellationToken);
-                return 0;
+                return await OpenThroughTrayAsync(ParseOpenRequest(args, store), cancellationToken);
         }
     }
 
@@ -207,7 +203,7 @@ internal static class Program
 
         var scope = ReadQueryParameter(uri, "scope");
         scope = ScopeId.Validate(scope);
-        return new OpenRequest(store.Resolve(scope), scope, LauncherSettings.DefaultPort, true);
+        return new OpenRequest(store.Resolve(scope), scope, true);
     }
 
     private static string? ReadQueryParameter(Uri uri, string name)
@@ -235,7 +231,6 @@ internal static class Program
     {
         string? folder = null;
         string? scope = null;
-        var port = LauncherSettings.DefaultPort;
         var openBrowser = true;
         string? pin = null;
 
@@ -253,8 +248,7 @@ internal static class Program
                     if (string.IsNullOrWhiteSpace(pin)) throw new CliException("--pin 必須指定卡片 ID。");
                     break;
                 case "--port":
-                    port = ParseInteger(ReadOptionValue(args, ref index, value), value, 1, 65535);
-                    break;
+                    throw new CliException("open 由 TrayHost 管理服務，不接受 --port。");
                 case "--no-browser":
                 case "--no-open":
                     openBrowser = false;
@@ -287,7 +281,7 @@ internal static class Program
             throw new CliException("請指定 report folder，或使用 --scope <scope-id>。 ");
         }
 
-        return new OpenRequest(folder, scope, port, openBrowser, pin);
+        return new OpenRequest(folder, scope, openBrowser, pin);
     }
 
     internal static StartRequest ParseStartRequest(string[] args)
@@ -438,6 +432,34 @@ internal static class Program
     }
 
     /// <summary>
+    ///   Hands an open request to the tray's worker, starting the tray first
+    ///   when it is not running, so every way of opening a report runs under
+    ///   the tray. The worker executes it with <see cref="OpenAsync"/>.
+    /// </summary>
+    internal static async Task<int> OpenThroughTrayAsync(OpenRequest request, CancellationToken cancellationToken,
+        Func<IReadOnlyList<string>, CancellationToken, Task<TrayHostLauncher.InvocationResult>>? invoke = null)
+    {
+        var result = await (invoke ?? TrayHostLauncher.InvokeAsync)(BuildWorkerOpenArguments(request), cancellationToken);
+        if (result.Cancelled) return 1;
+        if (result.Output.Length > 0) Console.WriteLine(result.Output);
+        return 0;
+    }
+
+    /// <summary>
+    ///   Rebuilds the request for the worker. A folder is sent fully qualified
+    ///   because the worker's working directory is not the caller's.
+    /// </summary>
+    internal static IReadOnlyList<string> BuildWorkerOpenArguments(OpenRequest request)
+    {
+        var arguments = new List<string> { "open" };
+        if (request.ExpectedScope is not null) arguments.AddRange(["--scope", request.ExpectedScope]);
+        else arguments.Add(Path.GetFullPath(request.Folder));
+        if (request.Pin is not null) arguments.AddRange(["--pin", request.Pin]);
+        if (!request.OpenBrowser) arguments.Add("--no-browser");
+        return arguments;
+    }
+
+    /// <summary>
     ///   Loads and validates every registered scope without regenerating
     ///   analysis snapshots. An empty store is a valid result here;
     ///   only callers that cannot proceed without a scope reject it.
@@ -512,7 +534,7 @@ internal static class Program
             report = ReportFolder.Load(request.Folder);
         }
 
-        var settings = LauncherSettings.Create(request.Port);
+        var settings = LauncherSettings.Create(LauncherSettings.DefaultPort);
         using var service = await LocalWebServiceClient.EnsureAsync(settings, cancellationToken);
         await service.RegisterReportAsync(report, cancellationToken);
         var viewerUri = service.BuildViewerUri(report, request.Pin);
@@ -680,8 +702,8 @@ internal static class Program
         Console.WriteLine("  checklist request --file <file>  stdin 收一則 bridge JSON 訊息，處理後輸出到 stdout（由 LocalWebService 呼叫，非人工執行）");
         Console.WriteLine("  checklist install                註冊目前使用者的 .checklist 檔案關聯");
         Console.WriteLine("  checklist uninstall              移除 TaskProgress .checklist 檔案關聯");
-        Console.WriteLine("  open <report-folder>             開啟指定資料夾的報告");
-        Console.WriteLine("  open --scope <scope-id>          開啟已登記的 scope");
+        Console.WriteLine("  open <report-folder>             經系統匣開啟指定資料夾的報告；系統匣未啟動時先啟動");
+        Console.WriteLine("  open --scope <scope-id>          經系統匣開啟已登記的 scope");
         Console.WriteLine("  scope add <report-folder>        以資料夾名稱自動產生並登記 scope");
         Console.WriteLine("  scope add <scope-id> <folder>    以指定名稱登記 scope");
         Console.WriteLine("  scope remove <scope-id>          移除 scope");
@@ -696,7 +718,7 @@ internal static class Program
         Console.WriteLine("  --as-of <ISO timestamp>          固定分析時間，便於重現與測試");
         Console.WriteLine("  --module <名稱>                  選擇單一分析模組（time、cost）");
         Console.WriteLine("  --output <path>                  指定分析輸出，需搭配 --module");
-        Console.WriteLine("  --port <port>                    open／service 的連接埠，預設 8001；start 不接受");
+        Console.WriteLine("  --port <port>                    service 與檔案開啟的連接埠，預設 8001；start／open 不接受");
         Console.WriteLine("  --no-browser                     不自動開啟瀏覽器");
         Console.WriteLine("  open --pin <task-id>             開啟並釘選卡片至最上方；重複呼叫不取消");
         Console.WriteLine("  start --browser                  啟動後開啟 Viewer");
@@ -718,7 +740,6 @@ internal static class Program
     internal sealed record OpenRequest(
         string Folder,
         string? ExpectedScope,
-        int Port,
         bool OpenBrowser,
         string? Pin = null);
 
