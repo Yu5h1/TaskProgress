@@ -12,8 +12,8 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
   - 標籤檢查的 `[x]` 記錄時間早於子項最近一次 `released` 時失效，validity 為 `released`（面板「需重驗：之後重新執行過」），`[!]` 不受影響。推算、`checklist request` 快照與先後規則都從綁定子項讀釋放時間。`[manual]` 失效且 `[acceptance]` 也失效時先待他驗（原本會叫使用者來驗卻寫不進去）。
   - 驗證：Checklist 335 checks、Python 84、相關 Node 110 通過，Debug build 0 warning；兩個 checklist 面板 bundle 已重建（順帶補上 67da921 未重建的 `.task-id-copy` 樣式）。發布版 `Build/win-x64` 未更新。
   - 影響：所有已登記 scope 中只有兩個試跑項目從完成變回待他驗：`acceptance-trial › trial-cross-manual`、`codex-workflow-trial › codex-trial-condition`。兩者的「驗收條件未被改動」都在之後一次釋放前通過，之後沒有重驗。
-  - 下一步：使用者決定兩個試跑項目要在另一個 session 以 `accept` 重驗，還是保留現狀。
-  - 下一步：使用者發布 `Build/win-x64` 後，新規則才對 Tray 服務與 Viewer 生效。
+  - 使用者已發布 `Build/win-x64`（22:23），新規則生效；兩個試跑項目待使用者請 Codex 在新 session 以 `accept` 重驗。
+  - 面板顯示跟進（使用者決定）：失效結果照有效狀態顯示為空框加警示色外框，不顯示 ✓、不自動改成 `[!]`；工作項目標記、進度與點擊都用有效狀態（`checklist-editor.js` `effectiveDocument`、`MarkerBox` `stale`）。瀏覽器版 checklist 頁已實機確認（trial-cross-manual 顯示 1/2）；WebView2 版要等下次發布。
 
 - **Codex 共用 skill 試跑（2026-10-22）。** 使用者明確呼叫 task-progress-items auto 處理 codex-workflow-trial。使用者層入口已建立；獨立 agent 啟動時自動發現（r0 與專案 r11 同名來源並存），從 Web 工作目錄的唯讀 scope 解析正確。六情境的 agent 部分已完成：自驗、他驗、條件修訂與等待均 done；人工、他驗加人工均 awaiting_user。原 session 的選單熱載入與發布版 CLI 的完整試跑未驗證。
   - 試跑條件與綁定先提交於 5028820；獨立驗收為另一個 agent context（887a8491），提交 85d996c；條件修訂 ff20814 後由同一驗收者在 c31e330 重驗通過。拒絕自驗收、agent 代人工通過、他驗未完先寫人工結果，三次均 type=error 且原檔未變。

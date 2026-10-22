@@ -214,7 +214,22 @@ export function checklistFilterCategories(document) {
   }));
 }
 
-export function createChecklistEditorSession(document, options = {}) {
+/*
+ * A void tagged result (no recorder, changed content, or passed before a later
+ * release) counts as not recorded, so the panel edits its effective status:
+ * the marker, progress and locks all read it, and recording it again starts
+ * from an empty box. The file keeps the old marker until a result is saved.
+ */
+function effectiveDocument(source) {
+  const document = structuredClone(source);
+  document.items?.forEach((item) => item.checks?.forEach((check) => {
+    check.status = check.effectiveStatus ?? check.status;
+  }));
+  return document;
+}
+
+export function createChecklistEditorSession(source, options = {}) {
+  const document = effectiveDocument(source);
   // The source revision follows the last saved document, not the draft: Undo can
   // restore an older draft, and that older draft must still be written against
   // the revision the file actually has now.
@@ -290,7 +305,7 @@ export function createChecklistEditorSession(document, options = {}) {
     redo() { transaction.redo(); return snapshot(); },
     discard() { transaction.discard(); return snapshot(); },
     commit(savedDocument) {
-      const next = structuredClone(savedDocument);
+      const next = effectiveDocument(savedDocument);
       transaction.commit(next, { keepHistory: true });
       persisted = next;
       return snapshot();

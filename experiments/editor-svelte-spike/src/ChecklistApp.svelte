@@ -384,6 +384,7 @@
                 <div class="checklist-check-heading">
                   <MarkerBox
                     status={check.status}
+                    stale={Boolean(check.validity && check.validity !== "valid")}
                     interactive={isTagged(check) && !resetBusy && (!locked || check.status !== "pending")}
                     label={check.title}
                     onCycle={() => cycleResult(item.id, check)}

@@ -2039,6 +2039,11 @@ footer {
   background: var(--role-status-failed-surface);
 }
 
+.marker-box.marker-stale {
+  border-color: var(--role-status-pending);
+  background: var(--role-status-pending-surface);
+}
+
 .marker-box-button {
   cursor: pointer;
 }

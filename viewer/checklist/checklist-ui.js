@@ -2724,96 +2724,102 @@ function ua(e) {
 		count: t.filter((t) => t.status === e).length
 	}));
 }
-function da(e, t = {}) {
-	let n = structuredClone(e), r = Ni(e, {
+function da(e) {
+	let t = structuredClone(e);
+	return t.items?.forEach((e) => e.checks?.forEach((e) => {
+		e.status = e.effectiveStatus ?? e.status;
+	})), t;
+}
+function fa(e, t = {}) {
+	let n = da(e), r = structuredClone(n), i = Ni(n, {
 		normalize: oa,
 		derive: Zi,
 		historyLimit: t.historyLimit
 	});
-	function i() {
-		let e = structuredClone(r.derived);
-		return e.revision = n.revision, Object.freeze({
+	function a() {
+		let e = structuredClone(i.derived);
+		return e.revision = r.revision, Object.freeze({
 			document: e,
 			summary: $i(e),
-			dirty: r.dirty,
-			history: r.history
+			dirty: i.dirty,
+			history: i.history
 		});
 	}
-	function a(e) {
+	function o(e) {
 		let t = e.type === "set-observed" ? `${e.type}:${e.workItemId}:${e.checkIndex}` : "";
-		return r.apply(e, ia, t), i();
+		return i.apply(e, ia, t), a();
 	}
-	function o() {
+	function s() {
 		let e = [], t = [];
-		return r.derived.items.forEach((r) => r.checks.forEach((i) => {
+		return i.derived.items.forEach((n) => n.checks.forEach((i) => {
 			if (!na(i)) return;
-			let a = String(i.observed ?? "").trim(), o = Yi(n, r.id, i.index).check, s = String(o.observed ?? "").trim();
+			let a = String(i.observed ?? "").trim(), o = Yi(r, n.id, i.index).check, s = String(o.observed ?? "").trim();
 			if (i.status === o.status && a === s && (i.rejectReason ?? null) === (o.rejectReason ?? null)) return;
 			if (i.status === "failed" && !a) {
 				t.push({
 					code: "observed_required",
-					workItemId: r.id,
+					workItemId: n.id,
 					checkIndex: i.index,
 					message: `「${i.title}」失敗時必須填寫 Observed。`
 				});
 				return;
 			}
 			let c = {
-				workItemId: r.id,
+				workItemId: n.id,
 				checkIndex: i.index,
 				status: i.status,
 				observed: i.status === "failed" ? a : null
 			};
 			i.isAcceptance && i.status === "failed" && (c.reason = i.rejectReason ?? "implementation"), e.push(c);
-		})), r.dirty && e.length === 0 && t.length === 0 && t.push({
+		})), i.dirty && e.length === 0 && t.length === 0 && t.push({
 			code: "empty_change",
 			message: "沒有可儲存的實機檢查結果。"
 		}), Object.freeze({
-			revision: n.revision,
+			revision: r.revision,
 			results: e,
 			errors: t
 		});
 	}
 	return Object.freeze({
-		snapshot: i,
-		dispatch: a,
-		prepareSave: o,
+		snapshot: a,
+		dispatch: o,
+		prepareSave: s,
 		undo() {
-			return r.undo(), i();
+			return i.undo(), a();
 		},
 		redo() {
-			return r.redo(), i();
+			return i.redo(), a();
 		},
 		discard() {
-			return r.discard(), i();
+			return i.discard(), a();
 		},
 		commit(e) {
-			let t = structuredClone(e);
-			return r.commit(t, { keepHistory: !0 }), n = t, i();
+			let t = da(e);
+			return i.commit(t, { keepHistory: !0 }), r = t, a();
 		}
 	});
 }
 //#endregion
 //#region viewer/assets/persistence-mode.js
-var fa = "task-progress.cautious-mode.v1", pa = "自動儲存模式。", ma = "謹慎模式：修改後需按儲存。", ha = "有尚未儲存的變更。", ga = "即將自動儲存…", _a = "正在寫入…", va = "已儲存。", ya = "已放棄尚未儲存的變更。", ba = "沒有需要儲存的變更。", xa = "儲存失敗。", Sa = "已取消儲存；草稿仍保留。", Ca = "謹慎模式仍有未儲存草稿；請先儲存或放棄再切換。";
-function wa(e = globalThis.localStorage) {
+var pa = "task-progress.cautious-mode.v1", ma = "自動儲存模式。", ha = "謹慎模式：修改後需按儲存。", ga = "有尚未儲存的變更。", _a = "即將自動儲存…", va = "正在寫入…", ya = "已儲存。", ba = "已放棄尚未儲存的變更。", xa = "沒有需要儲存的變更。", Sa = "儲存失敗。", Ca = "已取消儲存；草稿仍保留。", wa = "謹慎模式仍有未儲存草稿；請先儲存或放棄再切換。";
+function Ta(e = globalThis.localStorage) {
 	try {
-		return e?.getItem(fa) === "true";
+		return e?.getItem(pa) === "true";
 	} catch {
 		return !1;
 	}
 }
-function Ta(e, t) {
+function Ea(e, t) {
 	let n = t === !0;
 	try {
-		e?.setItem(fa, n ? "true" : "false");
+		e?.setItem(pa, n ? "true" : "false");
 	} catch {}
 	return n;
 }
-function Ea({ session: e, save: t, storage: n = globalThis.localStorage ?? null, debounceMs: r = 400, debounceCommand: i = () => !1, confirmSave: a = null, timers: o = globalThis, onChange: s = () => {} } = {}) {
+function Da({ session: e, save: t, storage: n = globalThis.localStorage ?? null, debounceMs: r = 400, debounceCommand: i = () => !1, confirmSave: a = null, timers: o = globalThis, onChange: s = () => {} } = {}) {
 	if (!e || typeof e.snapshot != "function" || typeof e.dispatch != "function" || typeof e.prepareSave != "function") throw TypeError("Persistence controller 需要既有的 editor session。");
 	if (typeof t != "function") throw TypeError("Persistence controller 需要 save 函式。");
-	let c = wa(n), l = "idle", u = c ? ma : pa, d = !1, f = null, p = Promise.resolve(), m = 0, h = () => e.snapshot();
+	let c = Ta(n), l = "idle", u = c ? ha : ma, d = !1, f = null, p = Promise.resolve(), m = 0, h = () => e.snapshot();
 	function g() {
 		let e = h();
 		return Object.freeze({
@@ -2839,7 +2845,7 @@ function Ea({ session: e, save: t, storage: n = globalThis.localStorage ?? null,
 	async function b(n) {
 		if (d && !n) return;
 		if (!h().dirty) {
-			n && (v("idle", ba), _());
+			n && (v("idle", xa), _());
 			return;
 		}
 		let r = e.prepareSave(), i = Array.isArray(r.errors) ? r.errors : [];
@@ -2849,21 +2855,21 @@ function Ea({ session: e, save: t, storage: n = globalThis.localStorage ?? null,
 		}
 		let { errors: o, ...s } = r;
 		if (typeof a == "function" && await a(s, { manual: n }) === !1) {
-			v("cancelled", Sa), _();
+			v("cancelled", Ca), _();
 			return;
 		}
-		d = !1, v("saving", _a), _();
+		d = !1, v("saving", va), _();
 		try {
 			let n = await t(s);
-			e.commit(n), v("saved", va);
+			e.commit(n), v("saved", ya);
 		} catch (e) {
-			d = !0, v(e?.code === "revision_conflict" ? "conflict" : "error", e?.message ?? xa);
+			d = !0, v(e?.code === "revision_conflict" ? "conflict" : "error", e?.message ?? Sa);
 		}
 		_();
 	}
 	function x(e = !1) {
 		return y(), m += 1, p = p.then(() => b(e)).catch((e) => {
-			d = !0, v("error", e?.message ?? xa), _();
+			d = !0, v("error", e?.message ?? Sa), _();
 		}).finally(() => {
 			--m, _();
 		}), p;
@@ -2872,7 +2878,7 @@ function Ea({ session: e, save: t, storage: n = globalThis.localStorage ?? null,
 		for (let e = 0; e < 8; e += 1) if (f !== null && x(), await p, f === null && m === 0) return;
 	}
 	function C(e) {
-		return c ? (d || v("draft", ha), null) : d ? null : e ? (y(), v("pending", ga), f = o.setTimeout(() => {
+		return c ? (d || v("draft", ga), null) : d ? null : e ? (y(), v("pending", _a), f = o.setTimeout(() => {
 			f = null, x();
 		}, r), null) : x();
 	}
@@ -2885,10 +2891,10 @@ function Ea({ session: e, save: t, storage: n = globalThis.localStorage ?? null,
 		if (t === c) return g();
 		if (t) await S(), c = !0;
 		else {
-			if (h().dirty) return v("mode_blocked", Ca), _(), g();
+			if (h().dirty) return v("mode_blocked", wa), _(), g();
 			c = !1;
 		}
-		return Ta(n, c), d || v("idle", c ? ma : pa), _(), g();
+		return Ea(n, c), d || v("idle", c ? ha : ma), _(), g();
 	}
 	return Object.freeze({
 		snapshot: g,
@@ -2905,7 +2911,7 @@ function Ea({ session: e, save: t, storage: n = globalThis.localStorage ?? null,
 			return e.redo(), w(!1);
 		},
 		discard() {
-			return y(), e.discard(), d = !1, v("idle", ya), _(), g();
+			return y(), e.discard(), d = !1, v("idle", ba), _(), g();
 		},
 		save() {
 			return x(!0);
@@ -2916,27 +2922,27 @@ function Ea({ session: e, save: t, storage: n = globalThis.localStorage ?? null,
 }
 //#endregion
 //#region viewer/assets/checklist-filter-order.js
-var Da = "task-progress.checklist-filter-order.v1";
-function Oa({ supportedIds: e, storage: t = globalThis.localStorage ?? null } = {}) {
-	let n = Wi(t, Da, e);
+var Oa = "task-progress.checklist-filter-order.v1";
+function ka({ supportedIds: e, storage: t = globalThis.localStorage ?? null } = {}) {
+	let n = Wi(t, Oa, e);
 	return {
 		get order() {
 			return n;
 		},
 		move(e, r, i = !1) {
 			let a = Ki(n, e, r, i);
-			return a.join("\0") === n.join("\0") ? n : (n = a, Gi(t, Da, n), n);
+			return a.join("\0") === n.join("\0") ? n : (n = a, Gi(t, Oa, n), n);
 		}
 	};
 }
 //#endregion
 //#region viewer/assets/theme-model.js
-var ka = "task-progress.theme.v1", Aa = [
+var Aa = "task-progress.theme.v1", ja = [
 	"system",
 	"light",
 	"dark",
 	"custom"
-], ja = [
+], Ma = [
 	{
 		key: "pageBackground",
 		cssVariable: "--color-page-bg",
@@ -2977,7 +2983,7 @@ var ka = "task-progress.theme.v1", Aa = [
 		cssVariable: "--color-accent",
 		label: "強調色"
 	}
-], Ma = Object.freeze({
+], Na = Object.freeze({
 	light: Object.freeze({
 		pageBackground: "#f5f3ec",
 		panelBackground: "#fffdf8",
@@ -2998,90 +3004,90 @@ var ka = "task-progress.theme.v1", Aa = [
 		border: "#343c49",
 		accent: "#7f9fd1"
 	})
-}), Na = Object.freeze({
+}), Pa = Object.freeze({
 	version: 1,
 	mode: "system"
-}), Pa = /^#[0-9a-f]{6}$/i;
-function Fa(e) {
+}), Fa = /^#[0-9a-f]{6}$/i;
+function Ia(e) {
 	return typeof e == "object" && !!e && !Array.isArray(e);
 }
-function Ia(e) {
-	return typeof e == "string" && Pa.test(e);
+function La(e) {
+	return typeof e == "string" && Fa.test(e);
 }
-function La(e = "light", t = {}) {
-	let n = e === "dark" ? "dark" : "light", r = Ma[n], i = { base: n };
-	for (let e of ja) {
+function Ra(e = "light", t = {}) {
+	let n = e === "dark" ? "dark" : "light", r = Na[n], i = { base: n };
+	for (let e of Ma) {
 		let n = t[e.key];
-		i[e.key] = Ia(n) ? n.toLowerCase() : r[e.key];
+		i[e.key] = La(n) ? n.toLowerCase() : r[e.key];
 	}
 	return i;
 }
-function Ra(e) {
-	if (!Fa(e) || e.version !== 1 || !Aa.includes(e.mode)) return { ...Na };
+function za(e) {
+	if (!Ia(e) || e.version !== 1 || !ja.includes(e.mode)) return { ...Pa };
 	let t = {
 		version: 1,
 		mode: e.mode
 	};
-	return Fa(e.custom) ? t.custom = La(e.custom.base, e.custom) : e.mode === "custom" && (t.custom = La()), t;
+	return Ia(e.custom) ? t.custom = Ra(e.custom.base, e.custom) : e.mode === "custom" && (t.custom = Ra()), t;
 }
-function za(e) {
+function Ba(e) {
 	try {
-		let t = e?.getItem(ka);
-		return t ? Ra(JSON.parse(t)) : { ...Na };
+		let t = e?.getItem(Aa);
+		return t ? za(JSON.parse(t)) : { ...Pa };
 	} catch {
-		return { ...Na };
+		return { ...Pa };
 	}
 }
-function Ba(e, t) {
-	let n = Ra(t);
+function Va(e, t) {
+	let n = za(t);
 	try {
-		e?.setItem(ka, JSON.stringify(n));
+		e?.setItem(Aa, JSON.stringify(n));
 	} catch {}
 	return n;
 }
-function Va(e) {
+function Ha(e) {
 	try {
 		return e?.("(prefers-color-scheme: dark)")?.matches ? "dark" : "light";
 	} catch {
 		return "light";
 	}
 }
-function Ha(e, t) {
-	let n = Ra(t);
+function Ua(e, t) {
+	let n = za(t);
 	e.dataset.theme = n.mode;
-	for (let t of ja) e.style.removeProperty(t.cssVariable);
+	for (let t of Ma) e.style.removeProperty(t.cssVariable);
 	if (delete e.dataset.themeBase, n.mode === "custom") {
-		let t = n.custom ?? La();
+		let t = n.custom ?? Ra();
 		e.dataset.themeBase = t.base;
-		for (let n of ja) e.style.setProperty(n.cssVariable, t[n.key]);
+		for (let n of Ma) e.style.setProperty(n.cssVariable, t[n.key]);
 		e.style.colorScheme = t.base;
 	} else n.mode === "system" ? e.style.colorScheme = "light dark" : e.style.colorScheme = n.mode;
 	return n;
 }
-function Ua(e, t, n = "light") {
-	let r = Ra(e), i = {
+function Wa(e, t, n = "light") {
+	let r = za(e), i = {
 		version: 1,
 		mode: t
 	};
-	return r.custom && (i.custom = r.custom), t === "custom" && !i.custom && (i.custom = La(n)), Ra(i);
+	return r.custom && (i.custom = r.custom), t === "custom" && !i.custom && (i.custom = Ra(n)), za(i);
 }
-function Wa(e) {
+function Ga(e) {
 	let t = e / 255;
 	return t <= .04045 ? t / 12.92 : ((t + .055) / 1.055) ** 2.4;
 }
-function Ga(e, t) {
-	if (!Ia(e) || !Ia(t)) return 1;
+function Ka(e, t) {
+	if (!La(e) || !La(t)) return 1;
 	let n = (e) => {
 		let t = e.slice(1), n = [
 			0,
 			2,
 			4
-		].map((e) => Wa(Number.parseInt(t.slice(e, e + 2), 16)));
+		].map((e) => Ga(Number.parseInt(t.slice(e, e + 2), 16)));
 		return .2126 * n[0] + .7152 * n[1] + .0722 * n[2];
 	}, r = n(e), i = n(t);
 	return (Math.max(r, i) + .05) / (Math.min(r, i) + .05);
 }
-function Ka(e) {
+function qa(e) {
 	return [
 		[
 			"大標題",
@@ -3103,15 +3109,15 @@ function Ka(e) {
 			e.secondaryText,
 			e.panelBackground
 		]
-	].filter(([, e, t]) => Ga(e, t) < 4.5).map(([e]) => `${e}對比低於 4.5:1`);
+	].filter(([, e, t]) => Ka(e, t) < 4.5).map(([e]) => `${e}對比低於 4.5:1`);
 }
 //#endregion
 //#region viewer/assets/theme-control.js
-function qa({ root: e = globalThis.document?.documentElement, storage: t = globalThis.localStorage, matchMedia: n = globalThis.matchMedia?.bind(globalThis) } = {}) {
-	let r = za(t);
-	e && Ha(e, r);
+function Ja({ root: e = globalThis.document?.documentElement, storage: t = globalThis.localStorage, matchMedia: n = globalThis.matchMedia?.bind(globalThis) } = {}) {
+	let r = Ba(t);
+	e && Ua(e, r);
 	function i(n) {
-		return r = Ba(t, n), e && Ha(e, r), r;
+		return r = Va(t, n), e && Ua(e, r), r;
 	}
 	return {
 		get mode() {
@@ -3121,36 +3127,36 @@ function qa({ root: e = globalThis.document?.documentElement, storage: t = globa
 			return r.custom ?? null;
 		},
 		get systemScheme() {
-			return Va(n);
+			return Ha(n);
 		},
 		setMode(e) {
-			return i(Ua(r, e, Va(n)));
+			return i(Wa(r, e, Ha(n)));
 		},
 		applyCustom(e) {
 			return i({
 				version: 1,
 				mode: "custom",
-				custom: La(e?.base, e ?? {})
+				custom: Ra(e?.base, e ?? {})
 			});
 		}
 	};
 }
 //#endregion
 //#region experiments/editor-svelte-spike/src/EyeIcon.svelte
-var Ja = /* @__PURE__ */ Nr("<path d=\"M3 9c4 7 14 7 18 0M5 12l-2 3m6-1-1 3m7-3 1 3m3-5 2 3\"></path>"), Ya = /* @__PURE__ */ Nr("<path d=\"M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z\"></path><circle cx=\"12\" cy=\"12\" r=\"3\"></circle>", 1), Xa = /* @__PURE__ */ Nr("<path d=\"M3 3l18 18\"></path>"), Za = /* @__PURE__ */ Nr("<svg viewBox=\"0 0 24 24\" width=\"20\" height=\"20\" aria-hidden=\"true\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><!><!></svg>");
-function Qa(e, t) {
+var Ya = /* @__PURE__ */ Nr("<path d=\"M3 9c4 7 14 7 18 0M5 12l-2 3m6-1-1 3m7-3 1 3m3-5 2 3\"></path>"), Xa = /* @__PURE__ */ Nr("<path d=\"M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z\"></path><circle cx=\"12\" cy=\"12\" r=\"3\"></circle>", 1), Za = /* @__PURE__ */ Nr("<path d=\"M3 3l18 18\"></path>"), Qa = /* @__PURE__ */ Nr("<svg viewBox=\"0 0 24 24\" width=\"20\" height=\"20\" aria-hidden=\"true\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><!><!></svg>");
+function $a(e, t) {
 	let n = $(t, "closed", 8, !1), r = $(t, "disabled", 8, !1);
-	var i = Za(), a = R(i), o = (e) => {
-		Y(e, Ja());
+	var i = Qa(), a = R(i), o = (e) => {
+		Y(e, Ya());
 	}, s = (e) => {
-		var t = Ya();
+		var t = Xa();
 		Ne(), Y(e, t);
 	};
 	Z(a, (e) => {
 		n() ? e(o) : e(s, -1);
 	});
 	var c = z(a), l = (e) => {
-		Y(e, Xa());
+		Y(e, Za());
 	};
 	Z(c, (e) => {
 		r() && e(l);
@@ -3158,20 +3164,20 @@ function Qa(e, t) {
 }
 //#endregion
 //#region experiments/editor-svelte-spike/src/CardDisclosure.svelte
-var $a = /* @__PURE__ */ J("<button type=\"button\" class=\"card-visibility-toggle card-toolbar-icon\"><!></button>"), eo = /* @__PURE__ */ J("<div><button type=\"button\" class=\"card-disclosure-toggle\"><span aria-hidden=\"true\"> </span></button> <!> <!></div> <div class=\"card-disclosure-body\"><!></div>", 1);
-function to(e, t) {
+var eo = /* @__PURE__ */ J("<button type=\"button\" class=\"card-visibility-toggle card-toolbar-icon\"><!></button>"), to = /* @__PURE__ */ J("<div><button type=\"button\" class=\"card-disclosure-toggle\"><span aria-hidden=\"true\"> </span></button> <!> <!></div> <div class=\"card-disclosure-body\"><!></div>", 1);
+function no(e, t) {
 	He(t, !1);
 	let n = $(t, "visibilityEnabled", 8, !1), r = $(t, "visible", 8, !0), i = $(t, "onVisibleChange", 8, () => {}), a = $(t, "expanded", 8, !0), o = $(t, "contentId", 8), s = $(t, "label", 8, "卡片"), c = $(t, "onToggle", 8, () => {});
 	Ei();
-	var l = eo(), u = pn(l);
+	var l = to(), u = pn(l);
 	let d;
 	var f = R(u), p = R(f), m = R(p, !0);
 	M(p), M(f);
 	var h = z(f, 2), g = (e) => {
-		var t = $a(), n = R(t);
+		var t = eo(), n = R(t);
 		{
 			let e = /* @__PURE__ */ P(() => !r());
-			Qa(n, { get closed() {
+			$a(n, { get closed() {
 				return W(e);
 			} });
 		}
@@ -3190,17 +3196,17 @@ function to(e, t) {
 Tr(["click"]);
 //#endregion
 //#region viewer/assets/icon-choice.js
-function no(e, t) {
+function ro(e, t) {
 	let n = e.filter((e) => e.kind !== "action");
 	return n.length ? n[(n.findIndex((e) => e.id === t) + 1) % n.length].id : void 0;
 }
-function ro(e, t, n) {
+function io(e, t, n) {
 	return n === "adjacent" ? e.filter((e) => e.id !== t) : e;
 }
 //#endregion
 //#region experiments/editor-svelte-spike/src/IconChoice.svelte
-var io = /* @__PURE__ */ J("<button type=\"button\" tabindex=\"-1\"><!></button>"), ao = /* @__PURE__ */ J("<div role=\"group\"></div>"), oo = /* @__PURE__ */ J("<div class=\"icon-choice\" role=\"group\"><button class=\"card-toolbar-icon\" type=\"button\"><!></button> <!></div>");
-function so(e, t) {
+var ao = /* @__PURE__ */ J("<button type=\"button\" tabindex=\"-1\"><!></button>"), oo = /* @__PURE__ */ J("<div role=\"group\"></div>"), so = /* @__PURE__ */ J("<div class=\"icon-choice\" role=\"group\"><button class=\"card-toolbar-icon\" type=\"button\"><!></button> <!></div>");
+function co(e, t) {
 	He(t, !1);
 	let n = /* @__PURE__ */ I(), r = /* @__PURE__ */ I(), i = $(t, "items", 24, () => []), a = $(t, "value", 8), o = $(t, "label", 8, "選擇"), s = $(t, "interaction", 8, "picker"), c = $(t, "orientation", 8, "horizontal"), l = $(t, "placement", 8, "aligned"), u = $(t, "onChoose", 8, () => {}), d = /* @__PURE__ */ I(), f = /* @__PURE__ */ I(), p = /* @__PURE__ */ I(), m = /* @__PURE__ */ I(), h = /* @__PURE__ */ I(!1), g = /* @__PURE__ */ I(!1), _ = /* @__PURE__ */ I(!1), v = /* @__PURE__ */ I(null), y = /* @__PURE__ */ I(0), b = /* @__PURE__ */ I(0), x = /* @__PURE__ */ I(!1), S = /* @__PURE__ */ I(null), C = 0;
 	function w(e = !1) {
@@ -3261,9 +3267,9 @@ function so(e, t) {
 	ki(() => clearTimeout(W(m))), B(() => (K(i()), K(a())), () => {
 		L(n, i().find((e) => e.id === a() && e.kind !== "action") ?? i().find((e) => e.kind !== "action"));
 	}), B(() => (K(i()), K(a()), K(l())), () => {
-		L(r, ro(i(), a(), l()));
+		L(r, io(i(), a(), l()));
 	}), On(), Ei();
-	var ne = oo();
+	var ne = so();
 	wr("pointerdown", rn, (e) => {
 		W(d)?.contains(e.target) || w();
 	}), wr("resize", rn, O), wr("blur", rn, O), wr("scroll", an, (e) => {
@@ -3275,10 +3281,10 @@ function so(e, t) {
 		return W(n);
 	} }, null), M(k), Ti(k, (e) => L(f, e), () => W(f));
 	var ie = z(k, 2), ae = (e) => {
-		var n = ao();
+		var n = oo();
 		let i, s;
 		Wr(n, 5, () => W(r), (e) => e.id, (e, n) => {
-			var r = io();
+			var r = ao();
 			let i;
 			Xr(R(r), t, "icon", { get item() {
 				return W(n);
@@ -3316,7 +3322,7 @@ function so(e, t) {
 		}
 		if (s() === "picker") E(!0);
 		else {
-			let e = no(i(), a());
+			let e = ro(i(), a());
 			e !== void 0 && u()(e);
 		}
 	}), Y(e, ne), Ue();
@@ -3331,8 +3337,8 @@ Tr([
 ]);
 //#endregion
 //#region experiments/editor-svelte-spike/src/VisibilityMenu.svelte
-var co = /* @__PURE__ */ Nr("<svg viewBox=\"0 0 24 24\" width=\"20\" height=\"20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M3 10a9 9 0 1 1 2 8M3 4v6h6\"></path></svg>");
-function lo(e, t) {
+var lo = /* @__PURE__ */ Nr("<svg viewBox=\"0 0 24 24\" width=\"20\" height=\"20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M3 10a9 9 0 1 1 2 8M3 4v6h6\"></path></svg>");
+function uo(e, t) {
 	let n = $(t, "mode", 8, "disabled"), r = $(t, "onChoose", 8, () => {}), i = [
 		{
 			id: "enabled",
@@ -3352,7 +3358,7 @@ function lo(e, t) {
 			kind: "action"
 		}
 	];
-	so(e, {
+	co(e, {
 		get items() {
 			return i;
 		},
@@ -3367,11 +3373,11 @@ function lo(e, t) {
 		$$slots: { icon: (e, t) => {
 			let n = /* @__PURE__ */ P(() => t.item);
 			var r = Pr(), i = pn(r), a = (e) => {
-				Y(e, co());
+				Y(e, lo());
 			}, o = (e) => {
 				{
 					let t = /* @__PURE__ */ P(() => (K(W(n)), G(() => W(n)?.id === "closed"))), r = /* @__PURE__ */ P(() => (K(W(n)), G(() => W(n)?.id === "disabled")));
-					Qa(e, {
+					$a(e, {
 						get closed() {
 							return W(t);
 						},
@@ -3389,10 +3395,10 @@ function lo(e, t) {
 }
 //#endregion
 //#region viewer/assets/card-visibility.js
-function uo(e, t, n) {
+function fo(e, t, n) {
 	return t === "closed" ? !1 : t !== "enabled" || !n.includes(e);
 }
-function fo(e, t, n) {
+function po(e, t, n) {
 	return n === "reset" ? {
 		mode: "enabled",
 		hiddenIds: []
@@ -3407,32 +3413,32 @@ function fo(e, t, n) {
 }
 //#endregion
 //#region viewer/assets/card-order.js
-function po(e, t) {
+function mo(e, t) {
 	return [t, ...e.filter((e) => e !== t)];
 }
-function mo(e, t, n, r = []) {
-	let i = n === "free" ? ho(e, t) : n === "reverse" ? [...e].reverse() : e;
+function ho(e, t, n, r = []) {
+	let i = n === "free" ? go(e, t) : n === "reverse" ? [...e].reverse() : e;
 	if (!r.length) return i;
 	let a = new Map(e.map((e) => [e.id, e])), o = new Set(r);
 	return [...o].filter((e) => a.has(e)).map((e) => a.get(e)).concat(i.filter((e) => !o.has(e.id)));
 }
-function ho(e, t) {
+function go(e, t) {
 	if (!t) return e;
 	let n = new Map(t.map((e, t) => [e, t]));
 	return [...e].sort((e, r) => (n.get(e.id) ?? t.length) - (n.get(r.id) ?? t.length));
 }
-function go(e, t, n, r, i, a) {
+function _o(e, t, n, r, i, a) {
 	let o = Ui(t, e), s = new Set(n), c = Ki(o.filter((e) => s.has(e)), r, i, a), l = 0;
 	return o.map((e) => s.has(e) ? c[l++] : e);
 }
 //#endregion
 //#region experiments/editor-svelte-spike/src/CardList.svelte
-var _o = /* @__PURE__ */ Nr("<path d=\"M4 5h15M4 10h8M4 15h17M4 20h11\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\" stroke-linecap=\"round\"></path>"), vo = /* @__PURE__ */ Nr("<path fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"></path><path fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\" stroke-linecap=\"round\"></path>", 1), yo = /* @__PURE__ */ Nr("<svg viewBox=\"0 0 24 24\" width=\"24\" height=\"24\" aria-hidden=\"true\"><!></svg>"), bo = /* @__PURE__ */ J("<button type=\"button\"><svg viewBox=\"0 0 24 24\" width=\"14\" height=\"14\" aria-hidden=\"true\"><path d=\"M8 3h8l-1 7 4 4v2H5v-2l4-4-1-7Zm4 13v6\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linecap=\"round\" stroke-linejoin=\"round\"></path></svg></button>"), xo = /* @__PURE__ */ J("<div role=\"group\" tabindex=\"0\"><!> <!></div>"), So = /* @__PURE__ */ J("<div class=\"card-list-controls\"><div class=\"card-list-heading\"><p class=\"section-kicker\">工作項目</p> <!></div> <div class=\"card-list-tools\"><button type=\"button\" class=\"card-toolbar-icon\"><svg viewBox=\"0 0 24 24\" width=\"22\" height=\"22\" aria-hidden=\"true\"><path fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"></path></svg></button> <!> <!> <span role=\"status\"> </span> <!></div></div> <div class=\"arrangeable-cards\"></div>", 1);
-function Co(e, t) {
+var vo = /* @__PURE__ */ Nr("<path d=\"M4 5h15M4 10h8M4 15h17M4 20h11\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\" stroke-linecap=\"round\"></path>"), yo = /* @__PURE__ */ Nr("<path fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"></path><path fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\" stroke-linecap=\"round\"></path>", 1), bo = /* @__PURE__ */ Nr("<svg viewBox=\"0 0 24 24\" width=\"24\" height=\"24\" aria-hidden=\"true\"><!></svg>"), xo = /* @__PURE__ */ J("<button type=\"button\"><svg viewBox=\"0 0 24 24\" width=\"14\" height=\"14\" aria-hidden=\"true\"><path d=\"M8 3h8l-1 7 4 4v2H5v-2l4-4-1-7Zm4 13v6\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linecap=\"round\" stroke-linejoin=\"round\"></path></svg></button>"), So = /* @__PURE__ */ J("<div role=\"group\" tabindex=\"0\"><!> <!></div>"), Co = /* @__PURE__ */ J("<div class=\"card-list-controls\"><div class=\"card-list-heading\"><p class=\"section-kicker\">工作項目</p> <!></div> <div class=\"card-list-tools\"><button type=\"button\" class=\"card-toolbar-icon\"><svg viewBox=\"0 0 24 24\" width=\"22\" height=\"22\" aria-hidden=\"true\"><path fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"></path></svg></button> <!> <!> <span role=\"status\"> </span> <!></div></div> <div class=\"arrangeable-cards\"></div>", 1);
+function wo(e, t) {
 	He(t, !1);
 	let n = /* @__PURE__ */ I(), r = /* @__PURE__ */ I(), i = /* @__PURE__ */ I(), a = /* @__PURE__ */ I(), o = $(t, "items", 24, () => []), s = $(t, "allIds", 24, () => []), c = $(t, "storageKey", 8), l = $(t, "pinEnabled", 8, !1), u = $(t, "requestedPin", 8, null), d = $(t, "heldOrder", 8, null);
 	function f(e = o()) {
-		return mo(e, W(E), W(_), l() ? W(p) : []).map((e) => e.id);
+		return ho(e, W(E), W(_), l() ? W(p) : []).map((e) => e.id);
 	}
 	let p = /* @__PURE__ */ I([]), m = null, h = $(t, "expanded", 8, !0), g = $(t, "onToggleAll", 8, () => {}), _ = /* @__PURE__ */ I("forward"), v = [
 		"forward",
@@ -3452,7 +3458,7 @@ function Co(e, t) {
 		} catch {}
 	}
 	function C(e) {
-		let t = fo(W(b), W(x), e);
+		let t = po(W(b), W(x), e);
 		L(b, t.mode), L(x, t.hiddenIds), de(), S();
 	}
 	function w(e, t) {
@@ -3470,7 +3476,7 @@ function Co(e, t) {
 				L(k, `找不到卡片 ID：${e}`);
 				return;
 			}
-			L(p, po(W(p), e)), T(e), ie();
+			L(p, mo(W(p), e)), T(e), ie();
 		}
 	}
 	function ie() {
@@ -3485,7 +3491,7 @@ function Co(e, t) {
 		}
 	}
 	function ae(e) {
-		de(), L(p, W(p).includes(e) ? W(p).filter((t) => t !== e) : po(W(p), e)), ie();
+		de(), L(p, W(p).includes(e) ? W(p).filter((t) => t !== e) : mo(W(p), e)), ie();
 	}
 	function oe(e) {
 		if (m = null, L(p, []), e) try {
@@ -3532,7 +3538,7 @@ function Co(e, t) {
 		}
 	}
 	async function le(e, t, n) {
-		W(_) === "free" && (l() && (W(p).includes(e) || W(p).includes(t)) || e !== t && (se(go(s(), W(E), W(r).map((e) => e.id), e, t, n)), L(D, e), await mr(), [...W(ne).querySelectorAll("[data-card-id]")].find((t) => t.dataset.cardId === String(e))?.focus()));
+		W(_) === "free" && (l() && (W(p).includes(e) || W(p).includes(t)) || e !== t && (se(_o(s(), W(E), W(r).map((e) => e.id), e, t, n)), L(D, e), await mr(), [...W(ne).querySelectorAll("[data-card-id]")].find((t) => t.dataset.cardId === String(e))?.focus()));
 	}
 	function ue(e, t) {
 		let n = W(r).findIndex((t) => t.id === e);
@@ -3555,13 +3561,13 @@ function Co(e, t) {
 	B(() => W(b), () => {
 		L(n, W(b) === "enabled");
 	}), B(() => (K(o()), W(E), W(_), K(l()), W(p), K(d())), () => {
-		L(i, ho(mo(o(), W(E), W(_), l() ? W(p) : []), d()));
+		L(i, go(ho(o(), W(E), W(_), l() ? W(p) : []), d()));
 	}), B(() => (W(i), W(b), W(x), K(l()), W(p)), () => {
-		L(r, W(i).filter((e) => uo(e.id, W(b), W(x)) && !(l() && W(p).includes(e.id))));
+		L(r, W(i).filter((e) => fo(e.id, W(b), W(x)) && !(l() && W(p).includes(e.id))));
 	}), B(() => K(c()), () => {
 		oe(c());
 	}), B(() => (W(i), W(b), W(x)), () => {
-		L(a, W(i).find((e) => uo(e.id, W(b), W(x)))?.id ?? null);
+		L(a, W(i).find((e) => fo(e.id, W(b), W(x)))?.id ?? null);
 	}), B(() => (K(u()), K(c()), K(s()), K(l())), () => {
 		re(u(), c(), s(), l());
 	}), On();
@@ -3570,7 +3576,7 @@ function Co(e, t) {
 		revealCard: T
 	};
 	Ei();
-	var me = So(), he = pn(me), ge = R(he);
+	var me = Co(), he = pn(me), ge = R(he);
 	Xr(z(R(ge), 2), t, "filters", {}, null), M(ge);
 	var _e = z(ge, 2), ve = R(_e), ye = R(ve), be = R(ye);
 	M(ye), M(ve);
@@ -3580,7 +3586,7 @@ function Co(e, t) {
 			id: e,
 			label: y[e]
 		}))));
-		so(xe, {
+		co(xe, {
 			get items() {
 				return W(e);
 			},
@@ -3593,10 +3599,10 @@ function Co(e, t) {
 			onChoose: ce,
 			$$slots: { icon: (e, t) => {
 				let n = /* @__PURE__ */ P(() => t.item);
-				var r = yo(), i = R(r), a = (e) => {
-					Y(e, _o());
+				var r = bo(), i = R(r), a = (e) => {
+					Y(e, vo());
 				}, o = (e) => {
-					var t = vo(), r = pn(t), i = z(r);
+					var t = yo(), r = pn(t), i = z(r);
 					V(() => {
 						Q(r, "d", (K(W(n)), G(() => W(n).id === "forward" ? "M5 3v18m-3-3 3 3 3-3" : "M5 21V3m-3 3 3-3 3 3"))), Q(i, "d", (K(W(n)), G(() => W(n).id === "forward" ? "M11 4h10M11 9h8M11 14h6M11 19h3" : "M11 4h3M11 9h6M11 14h8M11 19h10")));
 					}), Y(e, t);
@@ -3608,7 +3614,7 @@ function Co(e, t) {
 		});
 	}
 	var Se = z(xe, 2);
-	lo(Se, {
+	uo(Se, {
 		get mode() {
 			return W(b);
 		},
@@ -3618,10 +3624,10 @@ function Co(e, t) {
 	M(Ce), Xr(z(Ce, 2), t, "tools", {}, null), M(_e), M(he);
 	var Te = z(he, 2);
 	return Wr(Te, 5, () => W(i), (e) => e.id, (e, r) => {
-		var i = xo();
+		var i = So();
 		let o;
 		var s = R(i), c = (e) => {
-			var t = bo();
+			var t = xo();
 			let n;
 			var i = R(t), a = R(i);
 			M(i), M(t), V((e, r, i, o, s) => {
@@ -3662,7 +3668,7 @@ function Co(e, t) {
 				"card-drop-before": W(O)?.id === W(r).id && !W(O).after,
 				"card-drop-after": W(O)?.id === W(r).id && W(O).after
 			}), Q(i, "aria-label", (W(r), W(D), G(() => `${W(r).title}${W(D) === W(r).id ? "，已選取" : ""}`))), Q(i, "data-card-id", (W(r), G(() => W(r).id))), Q(i, "draggable", (W(_), W(ee), W(r), G(() => W(_) === "free" && W(ee) === W(r).id)));
-		}, [() => (K(uo), W(r), W(b), W(x), G(() => !uo(W(r).id, W(b), W(x))))]), q("pointerdown", i, (e) => {
+		}, [() => (K(fo), W(r), W(b), W(x), G(() => !fo(W(r).id, W(b), W(x))))]), q("pointerdown", i, (e) => {
 			L(ee, null), e.button === 0 && (L(D, W(r).id), !e.target.closest("button, a, input, textarea, select, label, [contenteditable], [role=\"button\"], [role=\"checkbox\"]") && (W(_) !== "free" || e.pointerType !== "mouse" || l() && W(p).includes(W(r).id) || e.target.closest("button, a, input, textarea, select, label, [contenteditable], [role=\"button\"], [role=\"checkbox\"], h1, h2, h3, p, span, strong, code, dt, dd, li, svg") || L(ee, W(r).id)));
 		}), q("focusin", i, () => {
 			L(D, W(r).id);
@@ -3693,7 +3699,7 @@ Tr([
 ]);
 //#endregion
 //#region viewer/assets/focus-shield.js
-function wo({ windowTarget: e = globalThis.window, documentTarget: t = globalThis.document, now: n = () => Date.now(), activationWindowMs: r = 100, storage: i, key: a = `taskprogress.mouse-activation.v2:${e.location?.pathname ?? ""}` } = {}) {
+function To({ windowTarget: e = globalThis.window, documentTarget: t = globalThis.document, now: n = () => Date.now(), activationWindowMs: r = 100, storage: i, key: a = `taskprogress.mouse-activation.v2:${e.location?.pathname ?? ""}` } = {}) {
 	let o = () => t.visibilityState !== "hidden" && t.hasFocus(), s = !o(), c = -Infinity, l = !1, u = !1;
 	try {
 		let e = Number((i ?? globalThis.sessionStorage).getItem(a));
@@ -3751,13 +3757,13 @@ function wo({ windowTarget: e = globalThis.window, documentTarget: t = globalThi
 }
 //#endregion
 //#region experiments/editor-svelte-spike/src/FocusShield.svelte
-function To(e, t) {
-	He(t, !1), Oi(() => wo()), Ei(), Ue();
+function Eo(e, t) {
+	He(t, !1), Oi(() => To()), Ei(), Ue();
 }
 //#endregion
 //#region experiments/editor-svelte-spike/src/DialogShell.svelte
-var Eo = /* @__PURE__ */ J("<dialog><div class=\"theme-dialog-heading\"><div><p class=\"section-kicker\"> </p> <h2> </h2></div> <button class=\"theme-close\" type=\"button\"><span aria-hidden=\"true\">×</span></button></div> <!></dialog>");
-function Do(e, t) {
+var Do = /* @__PURE__ */ J("<dialog><div class=\"theme-dialog-heading\"><div><p class=\"section-kicker\"> </p> <h2> </h2></div> <button class=\"theme-close\" type=\"button\"><span aria-hidden=\"true\">×</span></button></div> <!></dialog>");
+function Oo(e, t) {
 	He(t, !1);
 	let n = $(t, "open", 8, !1), r = $(t, "id", 8, null), i = $(t, "dialogClass", 8, ""), a = $(t, "kicker", 8, ""), o = $(t, "title", 8, ""), s = $(t, "titleId", 8), c = $(t, "closeLabel", 8, "關閉"), l = $(t, "onClose", 8, () => {}), u = /* @__PURE__ */ I(), d = null, f = !1;
 	function p(e) {
@@ -3779,7 +3785,7 @@ function Do(e, t) {
 	}
 	Ei();
 	var _ = Pr(), v = pn(_), y = (e) => {
-		var n = Eo(), l = R(n), d = R(l), f = R(d), _ = R(f, !0);
+		var n = Do(), l = R(n), d = R(l), f = R(d), _ = R(f, !0);
 		M(f);
 		var v = z(f, 2), y = R(v, !0);
 		M(v), M(d);
@@ -3795,8 +3801,8 @@ function Do(e, t) {
 Tr(["click"]);
 //#endregion
 //#region experiments/editor-svelte-spike/src/HorizontalCapsuleStrip.svelte
-var Oo = /* @__PURE__ */ J("<span></span>"), ko = /* @__PURE__ */ J("<span class=\"time-chevron\">›</span>"), Ao = /* @__PURE__ */ J("<button type=\"button\"><span> </span> <!> <!></button>"), jo = /* @__PURE__ */ J("<div role=\"toolbar\"></div>");
-function Mo(e, t) {
+var ko = /* @__PURE__ */ J("<span></span>"), Ao = /* @__PURE__ */ J("<span class=\"time-chevron\">›</span>"), jo = /* @__PURE__ */ J("<button type=\"button\"><span> </span> <!> <!></button>"), Mo = /* @__PURE__ */ J("<div role=\"toolbar\"></div>");
+function No(e, t) {
 	He(t, !1);
 	let n = $(t, "items", 24, () => []), r = $(t, "className", 8, ""), i = $(t, "ariaLabel", 8, "可排序膠囊列"), a = $(t, "onActivate", 8, () => {}), o = $(t, "onReorder", 8, () => {}), s = /* @__PURE__ */ I(null), c = /* @__PURE__ */ I(null), l = !1, u = null, d = /* @__PURE__ */ I(null), f = /* @__PURE__ */ I();
 	async function p() {
@@ -3895,20 +3901,20 @@ function Mo(e, t) {
 	B(() => (K(n()), W(d)), () => {
 		n() && W(d) && p();
 	}), On(), Ei();
-	var O = jo();
+	var O = Mo();
 	Wr(O, 5, n, (e) => e.id, (e, t) => {
 		let n = /* @__PURE__ */ P(() => (W(t), G(() => W(t).sortable !== !1)));
-		var r = Ao(), i = R(r), a = R(i, !0);
+		var r = jo(), i = R(r), a = R(i, !0);
 		M(i);
 		var o = z(i, 2), l = (e) => {
-			var n = Oo();
+			var n = ko();
 			V(() => oi(n, 1, (W(t), G(() => `time-risk-dot ${W(t).dotClass ?? ""}`)))), Y(e, n);
 		};
 		Z(o, (e) => {
 			W(t), G(() => W(t).showDot) && e(l);
 		});
 		var u = z(o, 2), d = (e) => {
-			Y(e, ko());
+			Y(e, Ao());
 		};
 		Z(u, (e) => {
 			W(t), G(() => W(t).showChevron) && e(d);
@@ -3948,7 +3954,7 @@ Tr([
 ]);
 //#endregion
 //#region experiments/editor-svelte-spike/src/FilterStrip.svelte
-function No(e, t) {
+function Po(e, t) {
 	He(t, !1);
 	let n = /* @__PURE__ */ I(), r = /* @__PURE__ */ I(), i = /* @__PURE__ */ I(), a = /* @__PURE__ */ I(), o = $(t, "categories", 24, () => []), s = $(t, "order", 24, () => []), c = $(t, "selected", 24, () => /* @__PURE__ */ new Set()), l = $(t, "defaultLit", 8, !1), u = $(t, "defaultLabel", 8, "預設"), d = $(t, "ariaLabel", 8, "篩選"), f = $(t, "className", 8, ""), p = $(t, "reorderable", 8, !1), m = $(t, "onSelect", 8, () => {}), h = $(t, "onSelectDefault", 8, () => {}), g = $(t, "onReorder", 8, () => {}), _ = (e) => e.count === void 0 || e.count === null ? e.label : `${e.label} ${e.count}`, v = (e, t, n) => {
 		let r = n && e.sortable !== !1;
@@ -3984,7 +3990,7 @@ function No(e, t) {
 	}), On(), Ei();
 	{
 		let t = /* @__PURE__ */ P(() => `filter-strip ${f()}`);
-		Mo(e, {
+		No(e, {
 			get items() {
 				return W(a);
 			},
@@ -4004,7 +4010,7 @@ function No(e, t) {
 }
 //#endregion
 //#region viewer/assets/inline-links.js
-function Po(e) {
+function Fo(e) {
 	if (!e || /[\u0000-\u0020\u007f\\]/u.test(e)) return null;
 	try {
 		let t = new URL(e, "https://taskprogress.invalid/");
@@ -4013,14 +4019,14 @@ function Po(e) {
 		return null;
 	}
 }
-function Fo(e) {
+function Io(e) {
 	let t = String(e ?? ""), n = [], r = /\[([^\]\n]+)\]\(/gu, i = 0, a;
 	for (; a = r.exec(t);) {
 		if (a.index > 0 && ["!", "\\"].includes(t[a.index - 1])) continue;
 		let e = r.lastIndex, o = 1;
 		for (; e < t.length && o && (t[e] === "(" && o++, t[e] === ")" && o--, t[e] !== "\n"); e++);
 		if (o) continue;
-		let s = Po(t.slice(r.lastIndex, e - 1));
+		let s = Fo(t.slice(r.lastIndex, e - 1));
 		if (!s) {
 			r.lastIndex = e;
 			continue;
@@ -4032,22 +4038,22 @@ function Fo(e) {
 	}
 	return i < t.length && n.push({ text: t.slice(i) }), n;
 }
-function Io(e, t, { emphasis: n = !1 } = {}) {
+function Lo(e, t, { emphasis: n = !1 } = {}) {
 	let r = e.createElement("a");
 	return r.className = n ? "inline-link inline-link--emphasis" : "inline-link", r.setAttribute("href", t.href), r.setAttribute("rel", "noopener noreferrer"), r.textContent = t.text, r;
 }
-function Lo(e, t, n = {}) {
+function Ro(e, t, n = {}) {
 	let r = e.ownerDocument;
-	e.replaceChildren(...Fo(t).map((e) => e.href ? Io(r, e, n) : r.createTextNode(e.text)));
+	e.replaceChildren(...Io(t).map((e) => e.href ? Lo(r, e, n) : r.createTextNode(e.text)));
 }
-function Ro(e, t = {}) {
+function zo(e, t = {}) {
 	let n = null;
 	function r(t = {}) {
 		let r = String(t.text ?? ""), i = t.emphasis === !0;
 		n && n.text === r && n.emphasis === i || (n = {
 			text: r,
 			emphasis: i
-		}, Lo(e, r, { emphasis: i }));
+		}, Ro(e, r, { emphasis: i }));
 	}
 	return r(t), {
 		update: r,
@@ -4058,58 +4064,60 @@ function Ro(e, t = {}) {
 }
 //#endregion
 //#region experiments/editor-svelte-spike/src/InlineLinks.svelte
-var zo = /* @__PURE__ */ J("<span></span>");
-function Bo(e, t) {
+var Bo = /* @__PURE__ */ J("<span></span>");
+function Vo(e, t) {
 	let n = $(t, "text", 8, ""), r = $(t, "emphasis", 8, !1);
-	var i = zo();
-	Zr(i, (e, t) => Ro?.(e, t), () => ({
+	var i = Bo();
+	Zr(i, (e, t) => zo?.(e, t), () => ({
 		text: n(),
 		emphasis: r()
 	})), Y(e, i);
 }
 //#endregion
 //#region experiments/editor-svelte-spike/src/MarkerBox.svelte
-var Vo = /* @__PURE__ */ J("<button type=\"button\"><span aria-hidden=\"true\"> </span></button>"), Ho = /* @__PURE__ */ J("<span role=\"img\"><span aria-hidden=\"true\"> </span></span>");
-function Uo(e, t) {
+var Ho = /* @__PURE__ */ J("<button type=\"button\"><span aria-hidden=\"true\"> </span></button>"), Uo = /* @__PURE__ */ J("<span role=\"img\"><span aria-hidden=\"true\"> </span></span>");
+function Wo(e, t) {
 	He(t, !1);
-	let n = /* @__PURE__ */ I(), r = /* @__PURE__ */ I(), i = /* @__PURE__ */ I(), a = $(t, "status", 8, "pending"), o = $(t, "interactive", 8, !1), s = $(t, "label", 8, ""), c = $(t, "onCycle", 8, () => {}), l = {
+	let n = /* @__PURE__ */ I(), r = /* @__PURE__ */ I(), i = /* @__PURE__ */ I(), a = /* @__PURE__ */ I(), o = $(t, "status", 8, "pending"), s = $(t, "interactive", 8, !1), c = $(t, "stale", 8, !1), l = $(t, "label", 8, ""), u = $(t, "onCycle", 8, () => {}), d = {
 		pending: "",
 		passed: "✓",
 		failed: "!"
-	}, u = {
+	}, f = {
 		pending: "未執行",
 		passed: "通過",
 		failed: "失敗"
 	};
-	B(() => K(a()), () => {
-		L(n, l[a()] ?? "?");
-	}), B(() => K(a()), () => {
-		L(r, u[a()] ?? a());
-	}), B(() => (K(s()), W(r)), () => {
-		L(i, s() ? `${s()}：${W(r)}` : W(r));
+	B(() => K(o()), () => {
+		L(n, d[o()] ?? "?");
+	}), B(() => (K(c()), K(o())), () => {
+		L(r, c() && o() === "pending" ? "需重驗" : f[o()] ?? o());
+	}), B(() => (K(c()), K(o())), () => {
+		L(i, c() && o() === "pending" ? " marker-stale" : "");
+	}), B(() => (K(l()), W(r)), () => {
+		L(a, l() ? `${l()}：${W(r)}` : W(r));
 	}), On();
-	var d = Pr(), f = pn(d), p = (e) => {
-		var t = Vo(), r = R(t), o = R(r, !0);
+	var p = Pr(), m = pn(p), h = (e) => {
+		var t = Ho(), r = R(t), s = R(r, !0);
 		M(r), M(t), V(() => {
-			oi(t, 1, `marker-box marker-${a()} marker-box-button`), Q(t, "aria-label", `${W(i)}，點擊切換下一個結果`), X(o, W(n));
+			oi(t, 1, `marker-box marker-${o()}${W(i)} marker-box-button`), Q(t, "aria-label", `${W(a)}，點擊切換下一個結果`), X(s, W(n));
 		}), q("click", t, function(...e) {
-			c()?.apply(this, e);
+			u()?.apply(this, e);
 		}), Y(e, t);
-	}, m = (e) => {
-		var t = Ho(), r = R(t), o = R(r, !0);
+	}, g = (e) => {
+		var t = Uo(), r = R(t), s = R(r, !0);
 		M(r), M(t), V(() => {
-			oi(t, 1, `marker-box marker-${a()}`), Q(t, "aria-label", W(i)), X(o, W(n));
+			oi(t, 1, `marker-box marker-${o()}${W(i)}`), Q(t, "aria-label", W(a)), X(s, W(n));
 		}), Y(e, t);
 	};
-	Z(f, (e) => {
-		o() ? e(p) : e(m, -1);
-	}), Y(e, d), Ue();
+	Z(m, (e) => {
+		s() ? e(h) : e(g, -1);
+	}), Y(e, p), Ue();
 }
 Tr(["click"]);
 //#endregion
 //#region experiments/editor-svelte-spike/src/ProgressBar.svelte
-var Wo = /* @__PURE__ */ J("<i></i>"), Go = /* @__PURE__ */ J("<div role=\"img\"></div>"), Ko = /* @__PURE__ */ J("<progress max=\"100\"></progress>");
-function qo(e, t) {
+var Go = /* @__PURE__ */ J("<i></i>"), Ko = /* @__PURE__ */ J("<div role=\"img\"></div>"), qo = /* @__PURE__ */ J("<progress max=\"100\"></progress>");
+function Jo(e, t) {
 	He(t, !1);
 	let n = /* @__PURE__ */ I(), r = /* @__PURE__ */ I(), i = $(t, "form", 8, "continuous"), a = $(t, "cells", 24, () => []), o = $(t, "ratio", 8, 0), s = $(t, "label", 8, ""), c = $(t, "extraClass", 8, ""), l = /* @__PURE__ */ new Set([
 		"passed",
@@ -4127,15 +4135,15 @@ function qo(e, t) {
 		L(r, Array.isArray(a()) ? a() : []);
 	}), On(), Ei();
 	var f = Pr(), p = pn(f), m = (e) => {
-		var t = Go();
+		var t = Ko();
 		Wr(t, 5, () => W(r), Br, (e, t) => {
-			var n = Wo();
+			var n = Go();
 			V((e) => oi(n, 1, e), [() => (W(t), G(() => `progress-cell${u(W(t))}`))]), Y(e, n);
 		}), M(t), V(() => {
 			oi(t, 1, `progress-bar progress-bar-segmented ${c()}`), Q(t, "aria-label", s());
 		}), Y(e, t);
 	}, h = (e) => {
-		var t = Ko();
+		var t = qo();
 		V(() => {
 			oi(t, 1, `progress-meter ${c()}`), vi(t, W(n)), Q(t, "aria-label", s());
 		}), Y(e, t);
@@ -4146,8 +4154,8 @@ function qo(e, t) {
 }
 //#endregion
 //#region experiments/editor-svelte-spike/src/ProgressSummary.svelte
-var Jo = /* @__PURE__ */ J("<div><b> </b> <span> </span></div>"), Yo = /* @__PURE__ */ J("<div class=\"progress-stats\"></div>"), Xo = /* @__PURE__ */ J("<span class=\"progress-note\"> </span>"), Zo = /* @__PURE__ */ J("<p class=\"progress-caption\"><span> </span> <!></p>"), Qo = /* @__PURE__ */ J("<section class=\"progress-summary\"><!> <!> <!></section>");
-function $o(e, t) {
+var Yo = /* @__PURE__ */ J("<div><b> </b> <span> </span></div>"), Xo = /* @__PURE__ */ J("<div class=\"progress-stats\"></div>"), Zo = /* @__PURE__ */ J("<span class=\"progress-note\"> </span>"), Qo = /* @__PURE__ */ J("<p class=\"progress-caption\"><span> </span> <!></p>"), $o = /* @__PURE__ */ J("<section class=\"progress-summary\"><!> <!> <!></section>");
+function es(e, t) {
 	He(t, !1);
 	let n = $(t, "stats", 24, () => []), r = $(t, "bar", 8, null), i = $(t, "caption", 8, ""), a = $(t, "note", 8, ""), o = $(t, "label", 8, "進度摘要"), s = /* @__PURE__ */ new Set([
 		"passed",
@@ -4155,10 +4163,10 @@ function $o(e, t) {
 		"pending"
 	]), c = (e) => s.has(e) ? ` progress-tone-${e}` : "";
 	Ei();
-	var l = Qo(), u = R(l), d = (e) => {
-		var t = Yo();
+	var l = $o(), u = R(l), d = (e) => {
+		var t = Xo();
 		Wr(t, 5, n, (e) => e.key ?? e.label, (e, t) => {
-			var n = Jo(), r = R(n), i = R(r, !0);
+			var n = Yo(), r = R(n), i = R(r, !0);
 			M(r);
 			var a = z(r, 2), o = R(a, !0);
 			M(a), M(n), V((e) => {
@@ -4172,7 +4180,7 @@ function $o(e, t) {
 	var f = z(u, 2), p = (e) => {
 		{
 			let t = /* @__PURE__ */ P(() => (K(r()), G(() => r().cells ?? []))), n = /* @__PURE__ */ P(() => (K(r()), G(() => r().ratio ?? 0))), a = /* @__PURE__ */ P(() => i() || o());
-			qo(e, {
+			Jo(e, {
 				get form() {
 					return K(r()), G(() => r().form);
 				},
@@ -4192,10 +4200,10 @@ function $o(e, t) {
 		r() && e(p);
 	});
 	var m = z(f, 2), h = (e) => {
-		var t = Zo(), n = R(t), r = R(n, !0);
+		var t = Qo(), n = R(t), r = R(n, !0);
 		M(n);
 		var o = z(n, 2), s = (e) => {
-			var t = Xo(), n = R(t, !0);
+			var t = Zo(), n = R(t, !0);
 			M(t), V(() => X(n, a())), Y(e, t);
 		};
 		Z(o, (e) => {
@@ -4208,19 +4216,19 @@ function $o(e, t) {
 }
 //#endregion
 //#region experiments/editor-svelte-spike/src/SaveBar.svelte
-var es = /* @__PURE__ */ J("<button class=\"secondary-button edit-mode-button\" type=\"button\"> </button>"), ts = /* @__PURE__ */ J("<button class=\"secondary-button edit-discard-button\" type=\"button\" aria-label=\"放棄全部修改\"> </button> <button class=\"primary-button edit-save-button\" type=\"button\"> </button>", 1), ns = /* @__PURE__ */ J("<span class=\"edit-save-status\" id=\"edit-save-status\" role=\"status\"> </span> <span class=\"edit-history-actions\"><button class=\"secondary-button edit-history-button\" type=\"button\"> </button> <button class=\"secondary-button edit-history-button\" type=\"button\"> </button></span> <!> <!>", 1);
-function rs(e, t) {
+var ts = /* @__PURE__ */ J("<button class=\"secondary-button edit-mode-button\" type=\"button\"> </button>"), ns = /* @__PURE__ */ J("<button class=\"secondary-button edit-discard-button\" type=\"button\" aria-label=\"放棄全部修改\"> </button> <button class=\"primary-button edit-save-button\" type=\"button\"> </button>", 1), rs = /* @__PURE__ */ J("<span class=\"edit-save-status\" id=\"edit-save-status\" role=\"status\"> </span> <span class=\"edit-history-actions\"><button class=\"secondary-button edit-history-button\" type=\"button\"> </button> <button class=\"secondary-button edit-history-button\" type=\"button\"> </button></span> <!> <!>", 1);
+function is(e, t) {
 	He(t, !1);
 	let n = $(t, "cautious", 8, !1), r = $(t, "onToggleCautious", 8, null), i = $(t, "cautiousLabel", 8, "謹慎模式"), a = $(t, "dirty", 8, !1), o = $(t, "saving", 8, !1), s = $(t, "canUndo", 8, !1), c = $(t, "canRedo", 8, !1), l = $(t, "message", 8, ""), u = $(t, "buttonLabel", 8, "儲存"), d = $(t, "savingLabel", 8, "正在儲存…"), f = $(t, "undoLabel", 8, "復原"), p = $(t, "redoLabel", 8, "重做"), m = $(t, "discardLabel", 8, "放棄"), h = $(t, "onSave", 8, () => {}), g = $(t, "onUndo", 8, () => {}), _ = $(t, "onRedo", 8, () => {}), v = $(t, "onDiscard", 8, () => {});
 	Ei();
-	var y = ns(), b = pn(y), x = R(b, !0);
+	var y = rs(), b = pn(y), x = R(b, !0);
 	M(b);
 	var S = z(b, 2), C = R(S), w = R(C, !0);
 	M(C);
 	var T = z(C, 2), E = R(T, !0);
 	M(T), M(S);
 	var D = z(S, 2), ee = (e) => {
-		var t = es(), a = R(t, !0);
+		var t = ts(), a = R(t, !0);
 		M(t), V(() => {
 			Q(t, "aria-pressed", n()), Q(t, "aria-label", `${i()}：改為手動儲存與放棄`), t.disabled = o(), X(a, i());
 		}), q("click", t, () => r()(!n())), Y(e, t);
@@ -4229,7 +4237,7 @@ function rs(e, t) {
 		r() && e(ee);
 	});
 	var te = z(D, 2), O = (e) => {
-		var t = ts(), n = pn(t), r = R(n, !0);
+		var t = ns(), n = pn(t), r = R(n, !0);
 		M(n);
 		var i = z(n, 2), s = R(i, !0);
 		M(i), V(() => {
@@ -4253,8 +4261,8 @@ function rs(e, t) {
 Tr(["click"]);
 //#endregion
 //#region experiments/editor-svelte-spike/src/ThemeControl.svelte
-var is = /* @__PURE__ */ J("<option> </option>"), as = /* @__PURE__ */ J("<label class=\"theme-color-field\"><span> </span> <span class=\"theme-color-controls\"><input type=\"color\"/> <input type=\"text\" inputmode=\"text\" maxlength=\"7\"/></span></label>"), os = /* @__PURE__ */ J("<p class=\"theme-dialog-description\">選擇基底後調整主要介面顏色；任務狀態色會沿用基底，保持完成、進行中與受阻容易辨識。</p> <label class=\"theme-base-field\" for=\"theme-custom-base\"><span>狀態色基底</span> <select id=\"theme-custom-base\"><option>亮色基底</option><option>暗色基底</option></select></label> <div class=\"theme-color-fields\" id=\"theme-color-fields\"></div> <p id=\"theme-dialog-status\" aria-live=\"polite\"> </p> <div class=\"theme-dialog-actions\"><button class=\"secondary-button\" id=\"theme-reset\" type=\"button\">恢復基底預設</button> <span class=\"theme-dialog-action-spacer\"></span> <button class=\"secondary-button\" id=\"theme-cancel\" type=\"button\">取消</button> <button class=\"primary-button\" id=\"theme-apply\" type=\"button\">套用自訂主題</button></div>", 1), ss = /* @__PURE__ */ J("<label class=\"theme-picker\" for=\"theme-select\"><span>主題</span> <select id=\"theme-select\" aria-label=\"顯示主題\"></select></label> <!>", 1);
-function cs(e, t) {
+var as = /* @__PURE__ */ J("<option> </option>"), os = /* @__PURE__ */ J("<label class=\"theme-color-field\"><span> </span> <span class=\"theme-color-controls\"><input type=\"color\"/> <input type=\"text\" inputmode=\"text\" maxlength=\"7\"/></span></label>"), ss = /* @__PURE__ */ J("<p class=\"theme-dialog-description\">選擇基底後調整主要介面顏色；任務狀態色會沿用基底，保持完成、進行中與受阻容易辨識。</p> <label class=\"theme-base-field\" for=\"theme-custom-base\"><span>狀態色基底</span> <select id=\"theme-custom-base\"><option>亮色基底</option><option>暗色基底</option></select></label> <div class=\"theme-color-fields\" id=\"theme-color-fields\"></div> <p id=\"theme-dialog-status\" aria-live=\"polite\"> </p> <div class=\"theme-dialog-actions\"><button class=\"secondary-button\" id=\"theme-reset\" type=\"button\">恢復基底預設</button> <span class=\"theme-dialog-action-spacer\"></span> <button class=\"secondary-button\" id=\"theme-cancel\" type=\"button\">取消</button> <button class=\"primary-button\" id=\"theme-apply\" type=\"button\">套用自訂主題</button></div>", 1), cs = /* @__PURE__ */ J("<label class=\"theme-picker\" for=\"theme-select\"><span>主題</span> <select id=\"theme-select\" aria-label=\"顯示主題\"></select></label> <!>", 1);
+function ls(e, t) {
 	He(t, !1);
 	let n = /* @__PURE__ */ I(), r = /* @__PURE__ */ I(), i = /* @__PURE__ */ I(), a = $(t, "mode", 8, "system"), o = $(t, "custom", 8, null), s = $(t, "systemScheme", 8, "light"), c = $(t, "onModeChange", 8, () => {}), l = $(t, "onApplyCustom", 8, () => {}), u = [
 		{
@@ -4273,9 +4281,9 @@ function cs(e, t) {
 			value: "custom",
 			label: "自訂…"
 		}
-	], d = /^#[0-9a-f]{6}$/i, f = /* @__PURE__ */ I(!1), p = /* @__PURE__ */ I([]), m = /* @__PURE__ */ I(a()), h = /* @__PURE__ */ I(o()?.base ?? s()), g = /* @__PURE__ */ I(v(La(W(h)))), _ = /* @__PURE__ */ I({ ...W(g) });
+	], d = /^#[0-9a-f]{6}$/i, f = /* @__PURE__ */ I(!1), p = /* @__PURE__ */ I([]), m = /* @__PURE__ */ I(a()), h = /* @__PURE__ */ I(o()?.base ?? s()), g = /* @__PURE__ */ I(v(Ra(W(h)))), _ = /* @__PURE__ */ I({ ...W(g) });
 	function v(e) {
-		return Object.fromEntries(ja.map((t) => [t.key, e[t.key]]));
+		return Object.fromEntries(Ma.map((t) => [t.key, e[t.key]]));
 	}
 	function y(e) {
 		L(h, e.base), L(g, v(e)), L(_, { ...W(g) });
@@ -4290,13 +4298,13 @@ function cs(e, t) {
 		c()(t);
 	}
 	function x() {
-		y(o() ? La(o().base, o()) : La(s())), L(f, !0);
+		y(o() ? Ra(o().base, o()) : Ra(s())), L(f, !0);
 	}
 	function S() {
 		L(f, !1);
 	}
 	function C(e) {
-		y(La(e.currentTarget.value));
+		y(Ra(e.currentTarget.value));
 	}
 	function w(e, t, n) {
 		let r = n.currentTarget.value;
@@ -4327,26 +4335,26 @@ function cs(e, t) {
 			e.reportValidity();
 			return;
 		}
-		l()(La(W(h), W(_))), S();
+		l()(Ra(W(h), W(_))), S();
 	}
 	B(() => K(a()), () => {
 		L(m, a());
 	}), B(() => (W(h), W(_)), () => {
-		L(n, La(W(h), W(_)));
+		L(n, Ra(W(h), W(_)));
 	}), B(() => W(n), () => {
-		L(r, Ka(W(n)));
+		L(r, qa(W(n)));
 	}), B(() => W(r), () => {
 		L(i, W(r).length ? `注意：${W(r).join("；")}。仍可套用，但可能較難閱讀。` : "目前的文字與背景色彩對比符合 4.5:1。");
 	}), On(), Ei();
-	var ee = ss(), te = pn(ee), O = z(R(te), 2);
+	var ee = cs(), te = pn(ee), O = z(R(te), 2);
 	Wr(O, 5, () => u, (e) => e.value, (e, t) => {
-		var n = is(), r = R(n, !0);
+		var n = as(), r = R(n, !0);
 		M(n);
 		var i = {};
 		V(() => {
 			X(r, (W(t), G(() => W(t).label))), i !== (i = (W(t), G(() => W(t).value))) && (n.value = (n.__value = (W(t), G(() => W(t).value))) ?? "");
 		}), Y(e, n);
-	}), M(O), M(te), Do(z(te, 2), {
+	}), M(O), M(te), Oo(z(te, 2), {
 		get open() {
 			return W(f);
 		},
@@ -4357,15 +4365,15 @@ function cs(e, t) {
 		closeLabel: "關閉自訂主題",
 		onClose: E,
 		children: (e, t) => {
-			var a = os(), o = z(pn(a), 2), s = z(R(o), 2), c = R(s);
+			var a = ss(), o = z(pn(a), 2), s = z(R(o), 2), c = R(s);
 			c.value = c.__value = "light";
 			var l = z(c);
 			l.value = l.__value = "dark", M(s);
 			var u;
 			ui(s), M(o);
 			var d = z(o, 2);
-			Wr(d, 7, () => ja, (e) => e.key, (e, t, r) => {
-				var i = as(), a = R(i), o = R(a, !0);
+			Wr(d, 7, () => Ma, (e) => e.key, (e, t, r) => {
+				var i = os(), a = R(i), o = R(a, !0);
 				M(a);
 				var s = z(a, 2), c = R(s);
 				_i(c);
@@ -4381,7 +4389,7 @@ function cs(e, t) {
 			var v = z(f, 2), b = R(v), x = z(b, 4), S = z(x, 2);
 			M(v), V(() => {
 				u !== (u = W(h)) && (s.value = (s.__value = W(h)) ?? "", li(s, W(h))), m = oi(f, 1, "theme-dialog-status", null, m, { "theme-status-warning": W(r).length > 0 }), X(_, W(i));
-			}), q("change", s, C), q("click", b, () => y(La(W(h)))), q("click", x, E), q("click", S, D), Y(e, a);
+			}), q("change", s, C), q("click", b, () => y(Ra(W(h)))), q("click", x, E), q("click", S, D), Y(e, a);
 		},
 		$$slots: { default: !0 }
 	}), q("change", O, b), di(O, () => W(m), (e) => L(m, e)), Y(e, ee), Ue();
@@ -4393,13 +4401,13 @@ Tr([
 ]);
 //#endregion
 //#region experiments/editor-svelte-spike/src/ChecklistApp.svelte
-var ls = /* @__PURE__ */ J("<p class=\"document-owner\">擁有者：<a> </a></p>"), us = /* @__PURE__ */ J("<details class=\"checklist-round\"><summary>本輪依據</summary><p> </p></details>"), ds = /* @__PURE__ */ J("<p class=\"checklist-notice\" role=\"status\"> </p>"), fs = /* @__PURE__ */ J("<p class=\"checklist-notice checklist-error\" role=\"alert\"> </p>"), ps = /* @__PURE__ */ J("<a class=\"checklist-next-step\"><span> </span> <strong> </strong></a>"), ms = /* @__PURE__ */ J("<p class=\"checklist-chips\"><span class=\"checklist-chip\"> </span></p>"), hs = /* @__PURE__ */ J("<p class=\"checklist-lock\"> </p>"), gs = /* @__PURE__ */ J("<div><dt>Reason</dt><dd> </dd></div>"), _s = /* @__PURE__ */ J("<div><dt>Observed</dt><dd> </dd></div>"), vs = /* @__PURE__ */ J("<div><dt>Resolved</dt><dd> </dd></div>"), ys = /* @__PURE__ */ J("<div><dt>狀態</dt><dd class=\"checklist-void\"> </dd></div>"), bs = /* @__PURE__ */ J("<div><dt>記錄</dt><dd> </dd></div>"), xs = /* @__PURE__ */ J("<label class=\"checklist-observed\"><span>不通過的原因</span> <select><option>實作不符</option><option>條件不符</option></select></label>"), Ss = /* @__PURE__ */ J("<label class=\"checklist-observed\"><span>Observed</span> <textarea rows=\"3\" placeholder=\"記錄實際看到的結果\"></textarea></label>"), Cs = /* @__PURE__ */ J("<section tabindex=\"-1\"><div class=\"checklist-check-heading\"><!> <strong> </strong> <span> </span></div> <!> <dl><div><dt>Action</dt><dd><!></dd></div> <div><dt>Expect</dt><dd><!></dd></div> <!> <!> <!> <!></dl> <!> <!></section>"), ws = /* @__PURE__ */ J("<div class=\"checklist-checks\"><p class=\"checklist-outcome\"><!></p> <!> <!></div>"), Ts = /* @__PURE__ */ J("<header slot=\"header\" class=\"checklist-item-header\"><!> <div><h2> </h2></div> <span class=\"checklist-status\"> </span></header>"), Es = /* @__PURE__ */ J("<article><!></article>"), Ds = /* @__PURE__ */ J("<button type=\"button\" class=\"secondary-button checklist-reset-button\">清空結果</button>"), Os = /* @__PURE__ */ J("<!> <!> <label class=\"checklist-operable-toggle\"><input type=\"checkbox\"/> <span>只顯示我能操作的檢查</span></label> <section class=\"checklist-items\" aria-label=\"Implementation checklist items\"><!></section> <footer class=\"edit-save-bar\" aria-live=\"polite\"><!> <!></footer>", 1), ks = /* @__PURE__ */ J("<p> </p> <p>此操作無法復原；如需回復，請使用 Git 歷史。</p> <form method=\"dialog\" class=\"theme-dialog-actions\"><button type=\"submit\" class=\"secondary-button\">取消</button> <button type=\"submit\" class=\"primary-button\">確認清空</button></form>", 1), As = /* @__PURE__ */ J("<!> <main class=\"checklist-page\"><header class=\"checklist-header\"><div><h1> </h1> <!> <!></div> <!></header> <!></main> <!>", 1);
-function js(e, t) {
+var us = /* @__PURE__ */ J("<p class=\"document-owner\">擁有者：<a> </a></p>"), ds = /* @__PURE__ */ J("<details class=\"checklist-round\"><summary>本輪依據</summary><p> </p></details>"), fs = /* @__PURE__ */ J("<p class=\"checklist-notice\" role=\"status\"> </p>"), ps = /* @__PURE__ */ J("<p class=\"checklist-notice checklist-error\" role=\"alert\"> </p>"), ms = /* @__PURE__ */ J("<a class=\"checklist-next-step\"><span> </span> <strong> </strong></a>"), hs = /* @__PURE__ */ J("<p class=\"checklist-chips\"><span class=\"checklist-chip\"> </span></p>"), gs = /* @__PURE__ */ J("<p class=\"checklist-lock\"> </p>"), _s = /* @__PURE__ */ J("<div><dt>Reason</dt><dd> </dd></div>"), vs = /* @__PURE__ */ J("<div><dt>Observed</dt><dd> </dd></div>"), ys = /* @__PURE__ */ J("<div><dt>Resolved</dt><dd> </dd></div>"), bs = /* @__PURE__ */ J("<div><dt>狀態</dt><dd class=\"checklist-void\"> </dd></div>"), xs = /* @__PURE__ */ J("<div><dt>記錄</dt><dd> </dd></div>"), Ss = /* @__PURE__ */ J("<label class=\"checklist-observed\"><span>不通過的原因</span> <select><option>實作不符</option><option>條件不符</option></select></label>"), Cs = /* @__PURE__ */ J("<label class=\"checklist-observed\"><span>Observed</span> <textarea rows=\"3\" placeholder=\"記錄實際看到的結果\"></textarea></label>"), ws = /* @__PURE__ */ J("<section tabindex=\"-1\"><div class=\"checklist-check-heading\"><!> <strong> </strong> <span> </span></div> <!> <dl><div><dt>Action</dt><dd><!></dd></div> <div><dt>Expect</dt><dd><!></dd></div> <!> <!> <!> <!></dl> <!> <!></section>"), Ts = /* @__PURE__ */ J("<div class=\"checklist-checks\"><p class=\"checklist-outcome\"><!></p> <!> <!></div>"), Es = /* @__PURE__ */ J("<header slot=\"header\" class=\"checklist-item-header\"><!> <div><h2> </h2></div> <span class=\"checklist-status\"> </span></header>"), Ds = /* @__PURE__ */ J("<article><!></article>"), Os = /* @__PURE__ */ J("<button type=\"button\" class=\"secondary-button checklist-reset-button\">清空結果</button>"), ks = /* @__PURE__ */ J("<!> <!> <label class=\"checklist-operable-toggle\"><input type=\"checkbox\"/> <span>只顯示我能操作的檢查</span></label> <section class=\"checklist-items\" aria-label=\"Implementation checklist items\"><!></section> <footer class=\"edit-save-bar\" aria-live=\"polite\"><!> <!></footer>", 1), As = /* @__PURE__ */ J("<p> </p> <p>此操作無法復原；如需回復，請使用 Git 歷史。</p> <form method=\"dialog\" class=\"theme-dialog-actions\"><button type=\"submit\" class=\"secondary-button\">取消</button> <button type=\"submit\" class=\"primary-button\">確認清空</button></form>", 1), js = /* @__PURE__ */ J("<!> <main class=\"checklist-page\"><header class=\"checklist-header\"><div><h1> </h1> <!> <!></div> <!></header> <!></main> <!>", 1);
+function Ms(e, t) {
 	He(t, !1);
 	let n = /* @__PURE__ */ I(), r = /* @__PURE__ */ I(), i = /* @__PURE__ */ I(), a = $(t, "transport", 8, null), o = $(t, "onPersistenceChange", 8, () => {}), s = $(t, "bindRefresh", 8, () => {}), c = null, l = /* @__PURE__ */ I(null), u = /* @__PURE__ */ I(!0), d = /* @__PURE__ */ I(""), f = /* @__PURE__ */ I(null), p = /* @__PURE__ */ I("正在載入 Checklist…"), m = /* @__PURE__ */ I(!1), h = /* @__PURE__ */ I(!1), g = /* @__PURE__ */ I([]);
 	function _(e) {
-		c = Ea({
-			session: da(e),
+		c = Da({
+			session: fa(e),
 			save: a().save,
 			debounceCommand: (e) => e.type === "set-observed",
 			onChange: (e) => {
@@ -4443,7 +4451,7 @@ function js(e, t) {
 		"pending",
 		"passed",
 		"failed"
-	], C = /* @__PURE__ */ I(Ii(S)), w = /* @__PURE__ */ I(null), T = Oa({ supportedIds: [Pi, ...S] }), E = /* @__PURE__ */ I(T.order);
+	], C = /* @__PURE__ */ I(Ii(S)), w = /* @__PURE__ */ I(null), T = ka({ supportedIds: [Pi, ...S] }), E = /* @__PURE__ */ I(T.order);
 	function D(e) {
 		L(C, Bi(W(C), e)), Ri(W(w), W(C));
 	}
@@ -4502,7 +4510,7 @@ function js(e, t) {
 		});
 	}
 	Oi(async () => {
-		L(de, qa()), pe();
+		L(de, Ja()), pe();
 		try {
 			if (!a()) throw Error("Checklist 介面需要由 host 提供 transport。");
 			_(await a().load()), a().loadOwnerReport?.().then((e) => {
@@ -4576,12 +4584,12 @@ function js(e, t) {
 	}), B(() => W(i), () => {
 		W(i) && ie(W(i));
 	}), On(), Ei();
-	var Te = As(), Ee = pn(Te);
-	To(Ee, {});
+	var Te = js(), Ee = pn(Te);
+	Eo(Ee, {});
 	var De = z(Ee, 2), Oe = R(De), ke = R(Oe), A = R(ke), Ae = R(A, !0);
 	M(A);
 	var j = z(A, 2), je = (e) => {
-		var t = ls(), n = z(R(t)), r = R(n, !0);
+		var t = us(), n = z(R(t)), r = R(n, !0);
 		M(n), M(t), V(() => {
 			Q(n, "href", (W(f), G(() => W(f).href))), X(r, (W(f), G(() => W(f).title)));
 		}), Y(e, t);
@@ -4590,14 +4598,14 @@ function js(e, t) {
 		W(f) && e(je);
 	});
 	var Me = z(j, 2), Pe = (e) => {
-		var t = us(), n = z(R(t)), r = R(n, !0);
+		var t = ds(), n = z(R(t)), r = R(n, !0);
 		M(n), M(t), V(() => X(r, (W(l), G(() => W(l).document.roundIdentity)))), Y(e, t);
 	};
 	Z(Me, (e) => {
 		W(l) && e(Pe);
 	}), M(ke);
 	var Fe = z(ke, 2), Ie = (e) => {
-		cs(e, {
+		ls(e, {
 			get mode() {
 				return W(fe), G(() => W(fe).mode);
 			},
@@ -4619,19 +4627,19 @@ function js(e, t) {
 		W(de) && e(Ie);
 	}), M(Oe);
 	var Le = z(Oe, 2), Re = (e) => {
-		var t = ds(), n = R(t, !0);
+		var t = fs(), n = R(t, !0);
 		M(t), V(() => X(n, W(p))), Y(e, t);
 	}, ze = (e) => {
-		var t = fs(), n = R(t, !0);
+		var t = ps(), n = R(t, !0);
 		M(t), V(() => X(n, W(d))), Y(e, t);
 	}, Be = (e) => {
-		var t = Os(), n = pn(t);
+		var t = ks(), n = pn(t);
 		{
 			let e = /* @__PURE__ */ P(() => (W(l), G(() => ({
 				form: "segmented",
 				cells: W(l).summary.cells
 			})))), t = /* @__PURE__ */ P(() => (W(l), G(() => `${W(l).summary.checks.passed} / ${W(l).summary.checks.total} checks 通過`))), r = /* @__PURE__ */ P(() => (W(l), G(() => W(l).summary.checks.failed > 0 ? `${W(l).summary.checks.failed} 個失敗` : "")));
-			$o(n, {
+			es(n, {
 				get bar() {
 					return W(e);
 				},
@@ -4644,7 +4652,7 @@ function js(e, t) {
 			});
 		}
 		var i = z(n, 2), o = (e) => {
-			var t = ps(), n = R(t), r = R(n);
+			var t = ms(), n = R(t), r = R(n);
 			M(n);
 			var i = z(n, 2), a = R(i, !0);
 			M(i), M(t), V(() => {
@@ -4659,7 +4667,7 @@ function js(e, t) {
 		var u = z(s, 2), d = R(u);
 		{
 			let e = /* @__PURE__ */ P(() => (K(ca), W(l), W(C), G(() => ca(ve(W(l).document), W(C).selected).items))), t = /* @__PURE__ */ P(() => (K(la), W(l), W(E), G(() => la(W(l).document, W(E)).items.map((e) => e.id)))), n = /* @__PURE__ */ P(() => (W(l), G(() => new URLSearchParams(location.search).has("scope") ? `taskprogress.cards.checklist.v1:${location.pathname}:${new URLSearchParams(location.search).get("scope")}:${new URLSearchParams(location.search).get("task")}:${W(l).document.roundIdentity}` : null)));
-			Ti(Co(d, {
+			Ti(wo(d, {
 				get expanded() {
 					return W(k);
 				},
@@ -4677,10 +4685,10 @@ function js(e, t) {
 				$$slots: {
 					default: (e, t) => {
 						let n = /* @__PURE__ */ P(() => t.item), r = /* @__PURE__ */ P(() => t.visibilityEnabled), i = /* @__PURE__ */ P(() => t.visible), a = /* @__PURE__ */ P(() => t.onVisibleChange), o = /* @__PURE__ */ P(() => (W(l), K(W(n)), G(() => W(l).document.items.find((e) => e.id === W(n).id))));
-						var s = Es(), c = R(s);
+						var s = Ds(), c = R(s);
 						{
 							let e = /* @__PURE__ */ P(() => (W(re), K(W(n)), W(k), G(() => W(re)[W(n).id] ?? W(k)))), t = /* @__PURE__ */ P(() => (K(W(n)), G(() => `checklist-body-${W(n).id}`)));
-							to(c, {
+							no(c, {
 								get visibilityEnabled() {
 									return W(r);
 								},
@@ -4701,27 +4709,30 @@ function js(e, t) {
 									return K(W(n)), G(() => W(n).title);
 								},
 								children: (e, t) => {
-									var r = ws(), i = R(r);
-									Bo(R(i), { get text() {
+									var r = Ts(), i = R(r);
+									Vo(R(i), { get text() {
 										return K(W(n)), G(() => W(n).outcome);
 									} }), M(i);
 									var a = z(i, 2), o = (e) => {
-										var t = ms(), r = R(t), i = R(r);
+										var t = hs(), r = R(t), i = R(r);
 										M(r), M(t), V((e) => X(i, `Depends on ${e ?? ""}`), [() => (K(W(n)), G(() => W(n).dependsOn.join(", ")))]), Y(e, t);
 									};
 									Z(a, (e) => {
 										K(W(n)), G(() => W(n).dependsOn.length) && e(o);
 									}), Wr(z(a, 2), 1, () => (K(W(n)), G(() => W(n).checks)), (e) => e.index, (e, t) => {
 										let r = /* @__PURE__ */ P(() => (W(t), G(() => W(t).isAcceptance ? "acceptance" : W(t).isManual ? "manual" : null))), i = /* @__PURE__ */ P(() => (K(na), W(t), K(ra), W(l), G(() => na(W(t)) ? ra(W(l).document, W(t)) : null)));
-										var a = Cs(), o = R(a), s = R(o);
+										var a = ws(), o = R(a), s = R(o);
 										{
-											let e = /* @__PURE__ */ P(() => (K(na), W(t), W(h), K(W(i)), G(() => na(W(t)) && !W(h) && (!W(i) || W(t).status !== "pending"))));
-											Uo(s, {
+											let e = /* @__PURE__ */ P(() => (W(t), G(() => !!(W(t).validity && W(t).validity !== "valid")))), r = /* @__PURE__ */ P(() => (K(na), W(t), W(h), K(W(i)), G(() => na(W(t)) && !W(h) && (!W(i) || W(t).status !== "pending"))));
+											Wo(s, {
 												get status() {
 													return W(t), G(() => W(t).status);
 												},
-												get interactive() {
+												get stale() {
 													return W(e);
+												},
+												get interactive() {
+													return W(r);
 												},
 												get label() {
 													return W(t), G(() => W(t).title);
@@ -4734,53 +4745,53 @@ function js(e, t) {
 										var d = z(c, 2), f = R(d, !0);
 										M(d), M(o);
 										var p = z(o, 2), m = (e) => {
-											var t = hs(), n = R(t, !0);
+											var t = gs(), n = R(t, !0);
 											M(t), V(() => X(n, W(i))), Y(e, t);
 										};
 										Z(p, (e) => {
 											K(W(i)), W(t), G(() => W(i) && W(t).status === "pending") && e(m);
 										});
 										var g = z(p, 2), _ = R(g), v = z(R(_));
-										Bo(R(v), { get text() {
+										Vo(R(v), { get text() {
 											return W(t), G(() => W(t).action);
 										} }), M(v), M(_);
 										var y = z(_, 2), b = z(R(y));
-										Bo(R(b), { get text() {
+										Vo(R(b), { get text() {
 											return W(t), G(() => W(t).expect);
 										} }), M(b), M(y);
 										var x = z(y, 2), S = (e) => {
-											var n = gs(), r = z(R(n)), i = R(r, !0);
+											var n = _s(), r = z(R(n)), i = R(r, !0);
 											M(r), M(n), V(() => X(i, (W(t), G(() => W(t).reason)))), Y(e, n);
 										};
 										Z(x, (e) => {
 											W(t), G(() => W(t).reason) && e(S);
 										});
 										var C = z(x, 2), w = (e) => {
-											var n = _s(), r = z(R(n)), i = R(r, !0);
+											var n = vs(), r = z(R(n)), i = R(r, !0);
 											M(r), M(n), V(() => X(i, (W(t), G(() => W(t).observed)))), Y(e, n);
 										}, T = /* @__PURE__ */ bt(() => (W(t), K(na), G(() => W(t).observed && !(na(W(t)) && W(t).status === "failed"))));
 										Z(C, (e) => {
 											W(T) && e(w);
 										});
 										var E = z(C, 2), D = (e) => {
-											var n = vs(), r = z(R(n)), i = R(r, !0);
+											var n = ys(), r = z(R(n)), i = R(r, !0);
 											M(r), M(n), V(() => X(i, (W(t), G(() => W(t).resolved)))), Y(e, n);
 										};
 										Z(E, (e) => {
 											W(t), G(() => W(t).resolved) && e(D);
 										});
 										var ee = z(E, 2), te = (e) => {
-											var n = ys(), r = z(R(n)), i = R(r, !0);
+											var n = bs(), r = z(R(n)), i = R(r, !0);
 											M(r), M(n), V(() => X(i, (W(t), G(() => _e[W(t).validity])))), Y(e, n);
 										}, O = (e) => {
-											var n = bs(), r = z(R(n)), i = R(r, !0);
+											var n = xs(), r = z(R(n)), i = R(r, !0);
 											M(r), M(n), V(() => X(i, (W(t), G(() => W(t).recorder === "user" ? "使用者" : W(t).recorder)))), Y(e, n);
 										};
 										Z(ee, (e) => {
 											W(t), G(() => W(t).validity && W(t).validity !== "valid") ? e(te) : (W(t), G(() => W(t).recorder) && e(O, 1));
 										}), M(g);
 										var ne = z(g, 2), k = (e) => {
-											var r = xs(), i = z(R(r), 2), a = R(i);
+											var r = Ss(), i = z(R(r), 2), a = R(i);
 											a.value = a.__value = "implementation";
 											var o = z(a);
 											o.value = o.__value = "condition", M(i);
@@ -4798,7 +4809,7 @@ function js(e, t) {
 											W(t), G(() => W(t).isAcceptance && W(t).status === "failed") && e(k);
 										});
 										var re = z(ne, 2), ie = (e) => {
-											var r = Ss(), i = z(R(r), 2);
+											var r = Cs(), i = z(R(r), 2);
 											it(i), M(r), V(() => {
 												i.disabled = W(h), vi(i, (W(t), G(() => W(t).observed ?? "")));
 											}), q("input", i, (e) => me({
@@ -4818,10 +4829,10 @@ function js(e, t) {
 								$$slots: {
 									default: !0,
 									header: (e, t) => {
-										var r = Ts(), i = R(r);
+										var r = Es(), i = R(r);
 										{
 											let e = /* @__PURE__ */ P(() => (K(W(n)), G(() => `工作項目 ${W(n).id}`)));
-											Uo(i, {
+											Wo(i, {
 												get status() {
 													return K(W(n)), G(() => W(n).status);
 												},
@@ -4845,7 +4856,7 @@ function js(e, t) {
 					filters: (e, t) => {
 						{
 							let t = /* @__PURE__ */ P(() => (W(l), W(E), G(() => O(W(l).document, W(E))))), n = /* @__PURE__ */ P(() => (K(zi), W(C), G(() => zi(W(C)))));
-							No(e, {
+							Po(e, {
 								get categories() {
 									return W(t);
 								},
@@ -4875,7 +4886,7 @@ function js(e, t) {
 		var f = z(u, 2), m = R(f);
 		{
 			let e = /* @__PURE__ */ P(() => (W(l), W(h), G(() => W(l).saving || W(h))));
-			rs(m, {
+			is(m, {
 				get cautious() {
 					return W(l), G(() => W(l).cautious);
 				},
@@ -4902,7 +4913,7 @@ function js(e, t) {
 			});
 		}
 		var g = z(m, 2), _ = (e) => {
-			var t = Ds();
+			var t = Os();
 			V(() => {
 				t.disabled = !W(r), Q(t, "title", (W(l), G(() => W(l).dirty || W(l).pending || W(l).saving ? "請先儲存或捨棄變更，再清空。" : "將實機檢查重設為未執行；Agent 檢查結果保留")));
 			}), q("click", t, y), Y(e, t);
@@ -4915,7 +4926,7 @@ function js(e, t) {
 	};
 	Z(Le, (e) => {
 		W(u) ? e(Re) : W(l) ? e(Be, -1) : e(ze, 1);
-	}), M(De), Do(z(De, 2), {
+	}), M(De), Oo(z(De, 2), {
 		get open() {
 			return W(m);
 		},
@@ -4926,7 +4937,7 @@ function js(e, t) {
 			L(m, !1);
 		},
 		children: (e, t) => {
-			var n = ks(), r = pn(n), i = R(r);
+			var n = As(), r = pn(n), i = R(r);
 			M(r);
 			var a = z(r, 4), o = z(R(a), 2);
 			M(a), V(() => {
@@ -5043,11 +5054,11 @@ Tr([
 		tone: "muted"
 	}
 });
-var Ms = globalThis.TaskProgressPriorityPolicy;
-Object.freeze(Object.fromEntries(Ms.levels.map((e) => [e.value, e]))), Ms.fallbackValue;
-var Ns = /^[a-z0-9]+(?:[._-][a-z0-9]+)*$/;
-function Ps(e, t = "auto") {
-	if (typeof e != "string" || e.length > 100 || !Ns.test(e)) throw Error("scope 無效。");
+var Ns = globalThis.TaskProgressPriorityPolicy;
+Object.freeze(Object.fromEntries(Ns.levels.map((e) => [e.value, e]))), Ns.fallbackValue;
+var Ps = /^[a-z0-9]+(?:[._-][a-z0-9]+)*$/;
+function Fs(e, t = "auto") {
+	if (typeof e != "string" || e.length > 100 || !Ps.test(e)) throw Error("scope 無效。");
 	if (![
 		"auto",
 		"none",
@@ -5056,8 +5067,8 @@ function Ps(e, t = "auto") {
 	let n = new URLSearchParams({ scope: e });
 	return t === "none" && n.set("dev", "none"), t === "explicit" && n.set("dev", `../reports/${e}/report.dev.json`), `?${n}`;
 }
-function Fs(e) {
-	if (typeof e != "string" || e.length > 100 || !Ns.test(e)) throw Error("scope 必須是小寫英數字組成的穩定 ID，可使用點、底線或連字號。");
+function Is(e) {
+	if (typeof e != "string" || e.length > 100 || !Ps.test(e)) throw Error("scope 必須是小寫英數字組成的穩定 ID，可使用點、底線或連字號。");
 	return `../reports/${e}/report.json`;
 }
 Object.freeze([
@@ -5070,9 +5081,9 @@ Object.freeze([
 ]);
 //#endregion
 //#region viewer/assets/owner-report.js
-async function Is(e, t = globalThis.fetch) {
+async function Ls(e, t = globalThis.fetch) {
 	try {
-		let n = await t(Fs(e), {
+		let n = await t(Is(e), {
 			cache: "no-store",
 			signal: AbortSignal.timeout(5e3)
 		});
@@ -5080,7 +5091,7 @@ async function Is(e, t = globalThis.fetch) {
 		let r = await n.json();
 		return r?.scope_id !== e || typeof r.title != "string" || !r.title.trim() || !Array.isArray(r.tasks) ? null : {
 			title: r.title,
-			href: `/${Ps(e)}`
+			href: `/${Fs(e)}`
 		};
 	} catch {
 		return null;
@@ -5088,20 +5099,20 @@ async function Is(e, t = globalThis.fetch) {
 }
 //#endregion
 //#region viewer/assets/checklist-http-transport.js
-var Ls = 1, Rs = /* @__PURE__ */ new Set([
+var Rs = 1, zs = /* @__PURE__ */ new Set([
 	"load",
 	"save",
 	"reset"
 ]);
-function zs({ scope: e, task: t, fetchImpl: n = globalThis.fetch, apiRoot: r = "/__taskprogress/v1" } = {}) {
+function Bs({ scope: e, task: t, fetchImpl: n = globalThis.fetch, apiRoot: r = "/__taskprogress/v1" } = {}) {
 	if (typeof e != "string" || !e) throw TypeError("Checklist HTTP transport 需要 scope。");
 	if (typeof t != "string" || !t) throw TypeError("Checklist HTTP transport 需要 task。");
 	if (typeof n != "function") throw TypeError("Checklist HTTP transport 需要 fetch。");
 	let i = 0;
 	async function a(a, o) {
-		if (!Rs.has(a)) throw Error(`不支援的 Checklist request：${a}`);
+		if (!zs.has(a)) throw Error(`不支援的 Checklist request：${a}`);
 		let s = {
-			version: Ls,
+			version: Rs,
 			id: `checklist-${Date.now()}-${++i}`,
 			type: a
 		};
@@ -5134,7 +5145,7 @@ function zs({ scope: e, task: t, fetchImpl: n = globalThis.fetch, apiRoot: r = "
 		throw u.code = l.error?.code ?? "bridge_error", u;
 	}
 	return Object.freeze({
-		loadOwnerReport: () => Is(e, n),
+		loadOwnerReport: () => Ls(e, n),
 		load: () => a("load"),
 		save: (e) => a("save", e),
 		reset: (e = {}) => a("reset", e)
@@ -5142,12 +5153,12 @@ function zs({ scope: e, task: t, fetchImpl: n = globalThis.fetch, apiRoot: r = "
 }
 //#endregion
 //#region viewer/assets/foreground-refresh.js
-function Bs(e, t) {
+function Vs(e, t) {
 	if (!e || typeof e.addEventListener != "function" || typeof e.removeEventListener != "function") throw TypeError(`${t} 必須支援事件監聽。`);
 	return e;
 }
-function Vs({ windowTarget: e = globalThis.window, documentTarget: t = globalThis.document, canRefresh: n = () => !0, reload: r = () => e.location.reload(), schedule: i = (e) => globalThis.queueMicrotask(e) } = {}) {
-	if (Bs(e, "windowTarget"), Bs(t, "documentTarget"), typeof n != "function") throw TypeError("canRefresh 必須是函式。");
+function Hs({ windowTarget: e = globalThis.window, documentTarget: t = globalThis.document, canRefresh: n = () => !0, reload: r = () => e.location.reload(), schedule: i = (e) => globalThis.queueMicrotask(e) } = {}) {
+	if (Vs(e, "windowTarget"), Vs(t, "documentTarget"), typeof n != "function") throw TypeError("canRefresh 必須是函式。");
 	if (typeof r != "function") throw TypeError("reload 必須是函式。");
 	if (typeof i != "function") throw TypeError("schedule 必須是函式。");
 	let a = !1, o = !1, s = !1, c = !1;
@@ -5181,10 +5192,10 @@ function Vs({ windowTarget: e = globalThis.window, documentTarget: t = globalThi
 }
 //#endregion
 //#region experiments/editor-svelte-spike/src/checklist-browser-main.js
-function Hs() {
+function Us() {
 	try {
 		let e = new URLSearchParams(location.search);
-		return zs({
+		return Bs({
 			scope: e.get("scope"),
 			task: e.get("task")
 		});
@@ -5196,21 +5207,21 @@ function Hs() {
 		};
 	}
 }
-var Us = null, Ws = null;
-Vs({
-	canRefresh: () => !Ws?.dirty && !Ws?.saving && !Ws?.pending,
+var Ws = null, Gs = null;
+Hs({
+	canRefresh: () => !Gs?.dirty && !Gs?.saving && !Gs?.pending,
 	reload: async () => {
-		Us && await Us();
+		Ws && await Ws();
 	}
-}), Fr(js, {
+}), Fr(Ms, {
 	target: document.querySelector("#app"),
 	props: {
-		transport: Hs(),
+		transport: Us(),
 		bindRefresh: (e) => {
-			Us = e;
+			Ws = e;
 		},
 		onPersistenceChange: (e) => {
-			Ws = e;
+			Gs = e;
 		}
 	}
 });

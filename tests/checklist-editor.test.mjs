@@ -63,6 +63,19 @@ test("shared editor transaction owns draft history, discard, and commit", () => 
   assert.equal(transaction.draft.value, 3);
 });
 
+test("a void result shows its effective status and is recorded again from an empty box", () => {
+  const source = documentFixture();
+  source.items[0].checks[1] = { ...source.items[0].checks[1], status: "passed", effectiveStatus: "pending", validity: "released", recorder: "user" };
+  const session = createChecklistEditorSession(source);
+  const view = session.snapshot();
+  assert.equal(view.document.items[0].checks[1].status, "pending");
+  assert.equal(view.document.items[0].status, "pending");
+  assert.deepEqual(view.document.items[0].progress, { passed: 1, total: 2 });
+  assert.deepEqual(session.prepareSave().results, [], "an untouched void result is never written");
+  session.dispatch({ type: "cycle-result", workItemId: 1, checkIndex: 1 });
+  assert.deepEqual(session.prepareSave().results, [{ workItemId: 1, checkIndex: 1, status: "passed", observed: null }]);
+});
+
 test("Checklist session edits manual checks only", () => {
   const session = createChecklistEditorSession(documentFixture());
   assert.throws(() => session.dispatch({
