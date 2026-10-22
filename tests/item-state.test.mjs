@@ -43,6 +43,15 @@ test("manual waits for the user, and a void or agent-marked manual result also w
   assert.equal(deriveItemState(started, evaluation([untagged, userFailed])), "needs_fix");
 });
 
+test("passes voided by a later release reopen acceptance before the user is asked again", () => {
+  const untagged = check({ status: "passed", effectiveStatus: "passed" });
+  const acceptance = check({ tag: "acceptance", status: "passed", effectiveStatus: "pending", validity: "released" });
+  const manual = check({ tag: "manual", status: "passed", effectiveStatus: "pending", validity: "released", recorder: "user" });
+  assert.equal(deriveItemState(started, evaluation([untagged, acceptance, manual])), "awaiting_acceptance");
+  const reaccepted = check({ tag: "acceptance", status: "passed", effectiveStatus: "passed", recorder: "claude:a" });
+  assert.equal(deriveItemState(started, evaluation([untagged, reaccepted, manual])), "awaiting_user");
+});
+
 test("waits make an unfinished item waiting and list links for unfinished targets", () => {
   const wait = { scope_id: "web", task_id: "card", item_id: "w1" };
   const item = { id: "u", title: "收尾", waits_for: [wait] };

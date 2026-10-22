@@ -51,9 +51,8 @@ export function stateFromChecklist(item, evaluation) {
   if (unfixed.some((check) => released === null || (recordedAt(check) ?? 0) > released)) return "needs_fix";
   const executorFailed = checks.some((check) => !check.tag && check.status === "failed");
   const agentRecheck = checks.some((check) => check.tag === "manual" && effective(check) === "failed" && check.recorder !== "user");
-  const manualVoid = checks.some((check) => check.tag === "manual" && check.validity && check.validity !== "valid");
   const manualOpen = checks.some((check) => check.tag === "manual" && effective(check) !== "passed");
-  if (executorFailed || agentRecheck || manualVoid
+  if (executorFailed || agentRecheck
     || (manualOpen && evaluation.untaggedComplete && evaluation.acceptanceComplete)) return "awaiting_user";
   if (evaluation.untaggedComplete && !evaluation.acceptanceComplete) return "awaiting_acceptance";
   const started = (item?.activity ?? []).some((entry) => entry?.event === "started" || entry?.event === "takeover");

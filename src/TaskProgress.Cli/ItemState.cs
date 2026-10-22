@@ -43,7 +43,7 @@ internal sealed class ItemStateResolver
     {
         var checklist = BoundChecklist(scope, item, out var bound);
         var stored = item["status"]?.GetValue<string>();
-        if (bound && checklist is not null && IsDone(checklist)) return ItemStates.Done;
+        if (bound && checklist is not null && IsDone(checklist, LatestAt(item, "released"))) return ItemStates.Done;
         if (!bound && stored == "done") return ItemStates.Done;
         if (Waits(item, depth)) return ItemStates.Waiting;
         if (!bound || checklist is null)
@@ -85,34 +85,33 @@ internal sealed class ItemStateResolver
         var released = LatestAt(item, "released");
         var disputed = LatestAt(item, "disputed");
         var conditions = checks
-            .Where(check => check.IsAcceptance && ChecklistDocument.EffectiveStatus(check) == ChecklistStatus.Failed
+            .Where(check => check.IsAcceptance && ChecklistDocument.EffectiveStatus(check, released) == ChecklistStatus.Failed
                 && check.Record?.RejectReason == ChecklistRejectReason.Condition)
             .ToArray();
         if (conditions.Any(check => check.Record!.ConditionCount >= 2 || (disputed is { } at && at > check.Record.At)))
             return ItemStates.Disputed;
         if (conditions.Length > 0) return ItemStates.ConditionsToRevise;
-        var unfixed = checks.Where(check => ChecklistDocument.EffectiveStatus(check) == ChecklistStatus.Failed
+        var unfixed = checks.Where(check => ChecklistDocument.EffectiveStatus(check, released) == ChecklistStatus.Failed
             && ((check.IsAcceptance && check.Record?.RejectReason == ChecklistRejectReason.Implementation)
                 || (check.IsManual && check.Record?.Recorder == "user")));
         if (unfixed.Any(check => released is null || check.Record!.At > released)) return ItemStates.NeedsFix;
         var executorFailed = checks.Any(check => !check.IsTagged && check.Status == ChecklistStatus.Failed);
-        var agentRecheck = checks.Any(check => check.IsManual && ChecklistDocument.EffectiveStatus(check) == ChecklistStatus.Failed
+        var agentRecheck = checks.Any(check => check.IsManual && ChecklistDocument.EffectiveStatus(check, released) == ChecklistStatus.Failed
             && check.Record?.Recorder != "user");
-        var manualVoid = checks.Any(check => check.IsManual
-            && ChecklistDocument.Validity(check) != ChecklistResultValidity.Valid);
-        var manualOpen = checks.Any(check => check.IsManual && ChecklistDocument.EffectiveStatus(check) != ChecklistStatus.Passed);
-        if (executorFailed || agentRecheck || manualVoid
-            || (manualOpen && checklist.UntaggedComplete && checklist.AcceptanceComplete))
+        var manualOpen = checks.Any(check => check.IsManual && ChecklistDocument.EffectiveStatus(check, released) != ChecklistStatus.Passed);
+        var acceptanceComplete = checklist.IsAcceptanceComplete(released);
+        if (executorFailed || agentRecheck
+            || (manualOpen && checklist.UntaggedComplete && acceptanceComplete))
             return ItemStates.AwaitingUser;
-        if (checklist.UntaggedComplete && !checklist.AcceptanceComplete) return ItemStates.AwaitingAcceptance;
+        if (checklist.UntaggedComplete && !acceptanceComplete) return ItemStates.AwaitingAcceptance;
         return item["activity"] is JsonArray activity
             && activity.OfType<JsonObject>().Any(entry => entry["event"]?.GetValue<string>() is "started" or "takeover")
             ? ItemStates.InProgress
             : ItemStates.NotStarted;
     }
 
-    private static bool IsDone(ChecklistDocument checklist) =>
-        checklist.Items.SelectMany(work => work.Checks).All(check => ChecklistDocument.EffectiveStatus(check) == ChecklistStatus.Passed);
+    private static bool IsDone(ChecklistDocument checklist, DateTimeOffset? released) =>
+        checklist.Items.SelectMany(work => work.Checks).All(check => ChecklistDocument.EffectiveStatus(check, released) == ChecklistStatus.Passed);
 
     private static DateTimeOffset? LatestAt(JsonObject item, string eventName)
     {

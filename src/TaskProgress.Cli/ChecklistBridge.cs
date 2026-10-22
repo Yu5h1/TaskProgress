@@ -170,7 +170,7 @@ internal sealed class ChecklistBridge
         {
             if (hasActor || root.TryGetProperty("sessionId", out _))
                 throw new ChecklistBridgeException("invalid_request", "面板寫入不帶 actor 或 sessionId。");
-            return ChecklistWriter.User;
+            return ChecklistWriter.User with { ReleasedAt = OptionalBinding()?.ReleasedAt };
         }
         if (type == "reset") throw new ChecklistBridgeException("forbidden", "agent 不能清空結果。");
         if (!hasActor || !root.TryGetProperty("sessionId", out _))
@@ -182,7 +182,21 @@ internal sealed class ChecklistBridge
         if (session.Contains(';')) throw new ChecklistBridgeException("invalid_request", "sessionId 不可包含分號。");
         var binding = ChecklistBinding.Find(checklistPath)
             ?? throw new ChecklistBridgeException("forbidden", "這份 checklist 沒有綁定 Report 子項，agent 不能寫入標籤檢查。");
-        return new ChecklistWriter($"{actor}:{session}", false, session, binding.ExecutorSessions);
+        return new ChecklistWriter($"{actor}:{session}", false, session, binding.ExecutorSessions, binding.ReleasedAt);
+    }
+
+    /// <summary>The bound item for reads and panel writes, which still work beside an unreadable report.</summary>
+    private ChecklistBindingInfo? OptionalBinding()
+    {
+        try
+        {
+            return ChecklistBinding.Find(checklistPath);
+        }
+        catch (Exception error) when (error is JsonException or IOException or UnauthorizedAccessException
+            or KeyNotFoundException or InvalidOperationException)
+        {
+            return null;
+        }
     }
 
     private static JsonElement RequirePayload(JsonElement root, string type)
@@ -224,13 +238,15 @@ internal sealed class ChecklistBridge
             reason);
     }
 
-    private object Snapshot(ChecklistDocument document) => new
+    private object Snapshot(ChecklistDocument document) => Snapshot(document, OptionalBinding()?.ReleasedAt);
+
+    private object Snapshot(ChecklistDocument document, DateTimeOffset? releasedAt) => new
     {
         fileName = Path.GetFileName(checklistPath),
         revision = document.Revision,
         roundIdentity = document.RoundIdentity,
         untaggedComplete = document.UntaggedComplete,
-        acceptanceComplete = document.AcceptanceComplete,
+        acceptanceComplete = document.IsAcceptanceComplete(releasedAt),
         items = document.Items.Select(item => new
         {
             id = item.Id,
@@ -242,7 +258,7 @@ internal sealed class ChecklistBridge
             {
                 index,
                 status = StatusValue(check.Status),
-                effectiveStatus = StatusValue(ChecklistDocument.EffectiveStatus(check)),
+                effectiveStatus = StatusValue(ChecklistDocument.EffectiveStatus(check, releasedAt)),
                 title = check.Title,
                 tag = check.Tag switch
                 {
@@ -257,10 +273,11 @@ internal sealed class ChecklistBridge
                 reason = check.Reason,
                 observed = check.Observed,
                 resolved = check.Resolved,
-                validity = ChecklistDocument.Validity(check) switch
+                validity = ChecklistDocument.Validity(check, releasedAt) switch
                 {
                     ChecklistResultValidity.NoRecorder => "no_recorder",
                     ChecklistResultValidity.FingerprintMismatch => "fingerprint",
+                    ChecklistResultValidity.PassedBeforeRelease => "released",
                     _ => "valid",
                 },
                 recorder = check.Record?.Recorder,

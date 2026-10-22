@@ -4526,7 +4526,8 @@ function js(e, t) {
 		acceptance: "他驗"
 	}, ve = {
 		no_recorder: "需重驗：沒有記錄者",
-		fingerprint: "需重驗：內容已變更"
+		fingerprint: "需重驗：內容已變更",
+		released: "需重驗：之後重新執行過"
 	};
 	function ye(e) {
 		let t = la(e, W(E));

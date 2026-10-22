@@ -6,6 +6,15 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
 
 ## Current state (2026-09-29)
 
+- **中斷恢復與重做後驗收失效（2026-10-22，回應 Codex 試跑反饋）。** 設計寫入 [AcceptanceChainPlan〈認領〉與〈寫入與記錄者〉](Documentation/AcceptanceChainPlan.md#認領)，流程紀錄八個情境已重走。
+  - 執行步驟改為「validate → 釋放 → 工作與 `report.json` 同一個提交」（task-progress-items § Execute 與 Needs-fix）。
+  - `released` 只能釋放自己的認領（`service/report_operations.py` `check_release`）；認領者已結束、工作已提交只差釋放時，經使用者同意以 `claim: "recover"` 代為釋放，不記 `takeover`（task-progress-items § Recover a stale claim）。
+  - 標籤檢查的 `[x]` 記錄時間早於子項最近一次 `released` 時失效，validity 為 `released`（面板「需重驗：之後重新執行過」），`[!]` 不受影響。推算、`checklist request` 快照與先後規則都從綁定子項讀釋放時間。`[manual]` 失效且 `[acceptance]` 也失效時先待他驗（原本會叫使用者來驗卻寫不進去）。
+  - 驗證：Checklist 335 checks、Python 84、相關 Node 110 通過，Debug build 0 warning；兩個 checklist 面板 bundle 已重建（順帶補上 67da921 未重建的 `.task-id-copy` 樣式）。發布版 `Build/win-x64` 未更新。
+  - 影響：所有已登記 scope 中只有兩個試跑項目從完成變回待他驗：`acceptance-trial › trial-cross-manual`、`codex-workflow-trial › codex-trial-condition`。兩者的「驗收條件未被改動」都在之後一次釋放前通過，之後沒有重驗。
+  - 下一步：使用者決定兩個試跑項目要在另一個 session 以 `accept` 重驗，還是保留現狀。
+  - 下一步：使用者發布 `Build/win-x64` 後，新規則才對 Tray 服務與 Viewer 生效。
+
 - **Codex 共用 skill 試跑（2026-10-22）。** 使用者明確呼叫 task-progress-items auto 處理 codex-workflow-trial。使用者層入口已建立；獨立 agent 啟動時自動發現（r0 與專案 r11 同名來源並存），從 Web 工作目錄的唯讀 scope 解析正確。六情境的 agent 部分已完成：自驗、他驗、條件修訂與等待均 done；人工、他驗加人工均 awaiting_user。原 session 的選單熱載入與發布版 CLI 的完整試跑未驗證。
   - 試跑條件與綁定先提交於 5028820；獨立驗收為另一個 agent context（887a8491），提交 85d996c；條件修訂 ff20814 後由同一驗收者在 c31e330 重驗通過。拒絕自驗收、agent 代人工通過、他驗未完先寫人工結果，三次均 type=error 且原檔未變。
   - 結果證據與驗證限制：[Codex trial results](experiments/codex-acceptance-trial/results.md)。本輪採既有 Debug DLL 呼叫 CLI；未改產品程式或共用 skill。

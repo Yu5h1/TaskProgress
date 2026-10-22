@@ -73,6 +73,21 @@ internal static partial class Program
         Equal("user", userPassed.Items[2].Checks[0].Record!.Recorder, "user recorder");
         True(userPassed.Items.All(item => item.Status == ChecklistStatus.Passed), "all passed");
 
+        var later = at.AddMinutes(5);
+        var acceptedCheck = accepted.Items[1].Checks[0];
+        Equal(ChecklistResultValidity.PassedBeforeRelease, ChecklistDocument.Validity(acceptedCheck, later),
+            "a later release voids the pass");
+        Equal(ChecklistStatus.Pending, ChecklistDocument.EffectiveStatus(acceptedCheck, later), "voided pass counts as pending");
+        Equal(ChecklistResultValidity.Valid, ChecklistDocument.Validity(acceptedCheck, at.AddMinutes(-5)),
+            "an earlier release keeps the pass");
+        True(!accepted.IsAcceptanceComplete(later) && accepted.IsAcceptanceComplete(at), "acceptance reopens after a later release");
+        Equal(ChecklistResultValidity.Valid, ChecklistDocument.Validity(failed.Items[1].Checks[0], later),
+            "a release never voids a failure");
+        Throws(() => accepted.ApplyTaggedResults([new(3, 0, ChecklistStatus.Passed, null)], ChecklistWriter.User with { ReleasedAt = later }, later),
+            "manual locks again until the voided acceptance is re-recorded");
+        var reaccepted = accepted.ApplyTaggedResults([new(2, 0, ChecklistStatus.Passed, null)], acceptor, later.AddMinutes(1));
+        True(reaccepted.IsAcceptanceComplete(later), "re-recording the pass after the release restores acceptance");
+
         var legacy = ChecklistDocument.Parse(Encoding.UTF8.GetBytes(
             Encoding.UTF8.GetString(AcceptanceFixture(executorDone: true)).Replace("- [ ] **3. Manual**", "- [x] **3. Manual**", StringComparison.Ordinal)
                 .Replace("    - [ ] **Decimal input** `[manual]`", "    - [x] **Decimal input** `[manual]`", StringComparison.Ordinal)));
@@ -134,6 +149,28 @@ internal static partial class Program
         Equal("manual", check.GetProperty("tag").GetString(), "snapshot tag");
         Equal("valid", check.GetProperty("validity").GetString(), "snapshot validity");
         Equal("user", check.GetProperty("recorder").GetString(), "snapshot recorder");
+
+        var reportPath = Path.Combine(scopeRoot, "report.json");
+        var report = System.Text.Json.Nodes.JsonNode.Parse(File.ReadAllText(reportPath))!.AsObject();
+        var item = report["tasks"]![0]!["pending_items"]![0]!.AsObject();
+        var resolver = new ItemStateResolver(scopeRoot, report);
+        Equal(ItemStates.Done, resolver.StateOf("acc", item), "accepted and manually passed item is done");
+        item["activity"]!.AsArray().Add(new System.Text.Json.Nodes.JsonObject
+        {
+            ["event"] = "released",
+            ["actor"] = "claude",
+            ["session_id"] = "exec-1",
+            ["at"] = DateTimeOffset.UtcNow.AddMinutes(1).ToString("O", System.Globalization.CultureInfo.InvariantCulture),
+        });
+        File.WriteAllText(reportPath, report.ToJsonString());
+        Equal(ItemStates.AwaitingAcceptance, new ItemStateResolver(scopeRoot, report).StateOf("acc", item),
+            "work released after the passes reopens acceptance");
+        using var reopened = JsonDocument.Parse(user.Handle(JsonSerializer.Serialize(new { version = 1, id = "load", type = "load" })));
+        var reopenedPayload = reopened.RootElement.GetProperty("payload");
+        Equal(false, reopenedPayload.GetProperty("acceptanceComplete").GetBoolean(), "snapshot reopens acceptance");
+        var reopenedCheck = reopenedPayload.GetProperty("items")[1].GetProperty("checks")[0];
+        Equal("released", reopenedCheck.GetProperty("validity").GetString(), "snapshot names the release");
+        Equal("pending", reopenedCheck.GetProperty("effectiveStatus").GetString(), "snapshot counts the voided pass as pending");
     }
 
     private static string? ErrorCode(ChecklistBridge bridge, string type, object payload, string? actor, string? session)

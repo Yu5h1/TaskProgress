@@ -120,6 +120,8 @@ task-progress.exe report apply "C:\Project" --input changes.json
 { "op": "item.update", "task_id": "feature-a", "item_id": "implementation", "set": { "status": "done" }, "claim": "own" }
 ```
 
+`item.event` 的 `released` 也照同樣判定，只能釋放自己的認領；`claim` 只接受 `own` 或 `recover`。認領者的 session 已結束、工作已提交只差釋放時，先問使用者，同意後加 `"claim": "recover"` 代為釋放。代為釋放不記 `takeover`，釋放的 session 不會因此成為執行者。`disputed` 不帶 `claim`。
+
 判定與保留規則見 [子項活動紀錄](ItemActivityLog.md)。
 
 ## stdin 與結果

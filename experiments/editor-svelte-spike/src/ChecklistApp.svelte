@@ -240,7 +240,7 @@
 
   let operableOnly = false;
   const OWNER_LABELS = { manual: "實機", acceptance: "他驗" };
-  const VALIDITY_LABELS = { no_recorder: "需重驗：沒有記錄者", fingerprint: "需重驗：內容已變更" };
+  const VALIDITY_LABELS = { no_recorder: "需重驗：沒有記錄者", fingerprint: "需重驗：內容已變更", released: "需重驗：之後重新執行過" };
 
   function visibleDocument(document) {
     const ordered = orderChecklistItems(document, capsuleOrder);

@@ -8,13 +8,15 @@ internal sealed record ChecklistBindingInfo(
     string ScopeId,
     string TaskId,
     string ItemId,
-    IReadOnlySet<string> ExecutorSessions);
+    IReadOnlySet<string> ExecutorSessions,
+    DateTimeOffset? ReleasedAt);
 
 internal static class ChecklistBinding
 {
     /// <summary>
     ///   Returns the item whose <c>document_ref</c> names this checklist, with
-    ///   every session that started or took it over; null when nothing binds it.
+    ///   every session that started or took it over and its latest release;
+    ///   null when nothing binds it.
     /// </summary>
     public static ChecklistBindingInfo? Find(string checklistPath)
     {
@@ -45,7 +47,8 @@ internal static class ChecklistBinding
                         scope,
                         task.GetProperty("id").GetString()!,
                         item.GetProperty("id").GetString()!,
-                        ExecutorSessions(item));
+                        ExecutorSessions(item),
+                        LatestRelease(item));
                 }
             }
         }
@@ -70,5 +73,21 @@ internal static class ChecklistBinding
                 sessions.Add(id);
         }
         return sessions;
+    }
+
+    private static DateTimeOffset? LatestRelease(JsonElement item)
+    {
+        DateTimeOffset? latest = null;
+        if (!item.TryGetProperty("activity", out var activity)) return latest;
+        foreach (var entry in activity.EnumerateArray())
+        {
+            if (!entry.TryGetProperty("event", out var eventName) || eventName.GetString() != "released") continue;
+            if (entry.TryGetProperty("at", out var at)
+                && DateTimeOffset.TryParse(at.GetString(), System.Globalization.CultureInfo.InvariantCulture,
+                    System.Globalization.DateTimeStyles.RoundtripKind, out var parsed)
+                && (latest is null || parsed > latest))
+                latest = parsed;
+        }
+        return latest;
     }
 }

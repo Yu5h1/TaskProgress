@@ -55,6 +55,26 @@ class ReportCliTests(unittest.TestCase):
         execute(self.root, "apply", self.request([op(event="disputed", note="條件與規格 3.2 一致，不需修改")], session="s3"))
         self.assertEqual(self.item()["activity"][-1]["note"], "條件與規格 3.2 一致，不需修改")
 
+    def test_release_frees_only_the_writers_claim_unless_recovered(self):
+        op = lambda **kw: {"op": "item.event", "task_id": "one", "item_id": "item", "event": "released", **kw}
+        execute(self.root, "apply", self.request([{"op": "item.update", "task_id": "one", "item_id": "item", "set": {"status": "in_progress"}}], session="s1"))
+        for actor, session, code in (("codex", "s2", "claim_conflict"), ("claude", None, "claim_conflict"), ("codex", None, "claim_unverified")):
+            with self.assertRaises(ReportError) as raised:
+                execute(self.root, "apply", self.request([op()], actor=actor, session=session))
+            self.assertEqual(raised.exception.code, code)
+        self.assertEqual(self.item()["status"], "in_progress")
+        for claim in ("takeover", "bogus"):
+            with self.assertRaises(ReportError):
+                execute(self.root, "apply", self.request([op(claim=claim)], session="s2"))
+        with self.assertRaises(ReportError):
+            execute(self.root, "apply", self.request([{"op": "item.update", "task_id": "one", "item_id": "item", "set": {"title": "X"}, "claim": "recover"}], session="s1"))
+        with self.assertRaises(ReportError):
+            execute(self.root, "apply", self.request([op(event="disputed", note="理由", claim="recover")], session="s2"))
+        execute(self.root, "apply", self.request([op(claim="recover")], session="s2"))
+        self.assertEqual(self.item()["status"], "planned")
+        self.assertEqual([(e["event"], e.get("session_id")) for e in self.item()["activity"]], [("started", "s1"), ("released", "s2")],
+                         "a recovery release records no takeover, so the recovering session is not an executor")
+
     def test_waits_reject_self_unknown_and_loops(self):
         wait = lambda item: [{"scope_id": "sample", "task_id": "one", "item_id": item}]
         execute(self.root, "apply", self.request([{"op": "item.add", "task_id": "one", "value": {"id": "b", "title": "B"}}]))

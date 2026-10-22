@@ -86,15 +86,27 @@ Write one checklist per item, bound with `document_ref`, by checklist-round:
 2. Do the work. Tick untagged checks in the file by checklist-round's marker rules. For an item with
    `[acceptance]`, every commit message carries the item ID.
 3. For `manual`, complete the `[manual]` drafts (links that answer, steps).
-4. `task-progress.exe checklist validate <file>`, commit, then release:
-   `{"op": "item.event", "task_id": "<card>", "item_id": "<item>", "event": "released"}`.
+4. `task-progress.exe checklist validate <file>`, release
+   (`{"op": "item.event", "task_id": "<card>", "item_id": "<item>", "event": "released"}`), then
+   commit the work and the release's `report.json` change together, so an interruption never leaves
+   only one of them saved.
 5. An item with `[acceptance]` now shows 待他驗: tell the user to accept it from another session.
    This session executed it and must not accept it.
 
 Needs-fix items (an `[acceptance]` failed as 實作不符, or the user failed a `[manual]`): claim, fix,
-commit with the item ID, release. Do not add work items for a fix whose `Expect` is unchanged. If a
-fix changes something a `[manual]` already passed, mark that check `[!]` with `Observed` naming the
-change.
+release, commit with the item ID. Do not add work items for a fix whose `Expect` is unchanged. The
+release voids every tagged pass recorded before it, so the acceptor and the user re-verify those as
+well; nothing needs marking by hand.
+
+### Recover a stale claim
+
+A `run` candidate claimed by a session that has ended, whose work is committed but never released
+(typically `needs_fix` with the fix already in `git log --grep <item-id>`, committed after the
+failing result's `Recorded` time), needs only the release. Check that no uncommitted change touches
+its paths, tell the user what you found, and on their yes release it with `"claim": "recover"`. This
+records no takeover, so you are not its executor. Unfinished work is not a recovery: ask for a
+takeover as task-progress-report's claim rule says. In `awaiting_acceptance` or `done` a stale claim
+blocks nothing; leave it, because a release there would void the passes recorded since.
 
 Conditions-to-revise items (an `[acceptance]` failed as 條件不符) belong to the author: if you agree,
 revise the `[acceptance]` text and commit with the item ID and 「條件修訂」; if you disagree, record
@@ -131,7 +143,9 @@ will follow — moving or renaming files, fixing links — is direct work: no it
 Pick items whose `derived_state` (from `report get`) is `awaiting_acceptance` and that this session
 never started or took over. For each `[acceptance]` check, after reading the cited spec and
 `git log --grep <item-id>`, pipe a UTF-8 message to
-`task-progress.exe checklist request --file <checklist>`:
+`task-progress.exe checklist request --file <checklist>`. That includes checks already `[x]` whose
+`load` snapshot shows `"validity": "released"`: they passed before the latest release and count as
+pending until recorded again.
 
 ```json
 {"version":1,"id":"a1","type":"set","actor":"<actor>","sessionId":"<session id>",

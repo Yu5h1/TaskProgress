@@ -228,7 +228,8 @@ Never type a tagged marker or a `Recorded` line by hand.
   confirming 「確認修改 agent 紀錄嗎？」.
 - A tagged result without `Recorded` fails `checklist validate` and reads as
   needing re-verification; one whose fingerprint no longer matches its text reads
-  the same way. Results recorded before these rules are stamped `legacy` with
+  the same way, and so does a pass recorded before the bound item's latest
+  `released` (snapshot `validity: "released"`). Results recorded before these rules are stamped `legacy` with
   `task-progress checklist migrate <file>`, run deliberately; reading never
   converts them.
 

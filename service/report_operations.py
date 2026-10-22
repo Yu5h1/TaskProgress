@@ -30,7 +30,7 @@ PERMANENT_EVENTS = {"started", "takeover"}
 LATEST_EVENTS = {"released", "disputed"}
 ITEM_EVENTS = LATEST_EVENTS
 ACTOR_PATTERN = re.compile(r"^[a-z][a-z0-9-]{0,31}$")
-CLAIMS = {"own", "takeover"}
+CLAIMS = {"own", "takeover", "recover"}
 WAIT_DEPTH_LIMIT = 50
 
 
@@ -181,14 +181,37 @@ def claim_relation(item, actor):
     return "unverified", claimant
 
 
+def claimant_label(claimant):
+    label = claimant.get("session") or claimant.get("session_id")
+    return claimant["actor"] + (" (" + label + ")" if label else "")
+
+
+def check_release(item, operation, actor):
+    """A release frees only the writer's own claim, unless the user confirmed a recovery of another session's."""
+    relation, claimant = claim_relation(item, actor)
+    claim = operation.get("claim")
+    require(claim is None or claim in ("own", "recover"), "A release takes claim own or recover", "claim")
+    if relation is None:
+        return
+    who = claimant_label(claimant)
+    if relation == "conflict" and claim != "recover":
+        raise ReportError("claim_conflict", "Item is claimed by " + who + " since " + claimant["at"]
+                          + "; release only your own claim. If that session ended after committing its work, "
+                          "ask the user, then retry with claim: recover", field="claim")
+    if relation == "unverified" and claim is None:
+        raise ReportError("claim_unverified", "Item is claimed by " + who + " since " + claimant["at"]
+                          + " and the session ID cannot be compared; retry with claim: own if you started it, "
+                          "otherwise ask the user and retry with claim: recover", field="claim")
+
+
 def check_claim(item, operation, actor, at):
     relation, claimant = claim_relation(item, actor)
     claim = operation.get("claim")
     require(claim is None or claim in CLAIMS, "claim must be own or takeover", "claim")
+    require(claim != "recover", "claim recover only applies to a released event", "claim")
     if relation is None:
         return
-    label = claimant.get("session") or claimant.get("session_id")
-    who = claimant["actor"] + (" (" + label + ")" if label else "")
+    who = claimant_label(claimant)
     if relation == "conflict" and claim != "takeover":
         raise ReportError("claim_conflict", "Item is in progress by " + who + " since " + claimant["at"]
                           + "; ask the user, then retry with claim: takeover", field="claim")
@@ -251,7 +274,7 @@ def apply_operations(report, overlay, operations, actor=None, at=None):
             if name == "item.move":
                 keys = {"op", "task_id", "item_id", "position", "claim"}
             if name == "item.event":
-                keys = {"op", "task_id", "item_id", "event", "note"}
+                keys = {"op", "task_id", "item_id", "event", "note", "claim"}
             require(set(operation) <= keys, "Unknown operation property")
             task_id = operation.get("task_id")
             if name == "report.update":
@@ -314,6 +337,10 @@ def apply_operations(report, overlay, operations, actor=None, at=None):
                         require(note is None or (isinstance(note, str) and 0 < len(note.strip()) <= 300),
                                 "note must be a non-empty string of at most 300 characters", "note")
                         require(event != "disputed" or note is not None, "A dispute needs a note with the reason", "note")
+                        if event == "released":
+                            check_release(item, operation, actor)
+                        else:
+                            require("claim" not in operation, "Only a released event takes claim", "claim")
                         append_activity(item, activity_entry(event, actor, at, note.strip() if note else None))
                         if event == "released" and item.get("status") == "in_progress":
                             item["status"] = "planned"

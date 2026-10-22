@@ -31,7 +31,8 @@ internal enum ChecklistRejectReason
 
 /// <summary>
 ///   Who recorded a tagged result, when, and against which content. A result
-///   whose fingerprint no longer matches its check's Action and Expect is void.
+///   whose fingerprint no longer matches its check's Action and Expect is void,
+///   and so is a pass recorded before the bound item's latest release.
 /// </summary>
 internal sealed record ChecklistRecord(
     string Recorder,
@@ -45,6 +46,7 @@ internal enum ChecklistResultValidity
     Valid,
     NoRecorder,
     FingerprintMismatch,
+    PassedBeforeRelease,
 }
 
 internal sealed record ChecklistCheck(
@@ -100,7 +102,8 @@ internal sealed record ChecklistWriter(
     string Recorder,
     bool IsUser,
     string? SessionId,
-    IReadOnlySet<string> ExecutorSessions)
+    IReadOnlySet<string> ExecutorSessions,
+    DateTimeOffset? ReleasedAt = null)
 {
     public static ChecklistWriter User { get; } = new("user", true, null, new HashSet<string>());
 }
@@ -358,7 +361,7 @@ internal sealed class ChecklistDocument
                 {
                     throw new CliException("執行者的檢查尚未全部完成，標籤檢查還不能記錄結果。");
                 }
-                if (check.IsManual && !current.AcceptanceComplete)
+                if (check.IsManual && !current.IsAcceptanceComplete(writer.ReleasedAt))
                 {
                     throw new CliException("[acceptance] 尚未全部通過，[manual] 還不能記錄結果。");
                 }
@@ -450,26 +453,35 @@ internal sealed class ChecklistDocument
         Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(check.Action + "\n" + check.Expect)))
             .ToLowerInvariant()[..12];
 
-    public static ChecklistResultValidity Validity(ChecklistCheck check)
+    /// <summary>
+    ///   <paramref name="releasedAt"/> is the bound item's latest release: work
+    ///   released after a pass was recorded voids that pass. Failures stay, so a
+    ///   release can still mark them fixed.
+    /// </summary>
+    public static ChecklistResultValidity Validity(ChecklistCheck check, DateTimeOffset? releasedAt = null)
     {
         if (!check.IsTagged || check.Status == ChecklistStatus.Pending) return ChecklistResultValidity.Valid;
         if (check.Record is null) return ChecklistResultValidity.NoRecorder;
-        return string.Equals(check.Record.Fingerprint, Fingerprint(check), StringComparison.Ordinal)
-            ? ChecklistResultValidity.Valid
-            : ChecklistResultValidity.FingerprintMismatch;
+        if (!string.Equals(check.Record.Fingerprint, Fingerprint(check), StringComparison.Ordinal))
+            return ChecklistResultValidity.FingerprintMismatch;
+        return check.Status == ChecklistStatus.Passed && releasedAt is { } released && check.Record.At < released
+            ? ChecklistResultValidity.PassedBeforeRelease
+            : ChecklistResultValidity.Valid;
     }
 
     /// <summary>A tagged result that is void counts as not yet recorded.</summary>
-    public static ChecklistStatus EffectiveStatus(ChecklistCheck check) =>
-        Validity(check) == ChecklistResultValidity.Valid ? check.Status : ChecklistStatus.Pending;
+    public static ChecklistStatus EffectiveStatus(ChecklistCheck check, DateTimeOffset? releasedAt = null) =>
+        Validity(check, releasedAt) == ChecklistResultValidity.Valid ? check.Status : ChecklistStatus.Pending;
 
     private IEnumerable<ChecklistCheck> AllChecks => Items.SelectMany(item => item.Checks);
 
     public bool UntaggedComplete =>
         AllChecks.Where(check => !check.IsTagged).All(check => check.Status == ChecklistStatus.Passed);
 
-    public bool AcceptanceComplete =>
-        AllChecks.Where(check => check.IsAcceptance).All(check => EffectiveStatus(check) == ChecklistStatus.Passed);
+    public bool AcceptanceComplete => IsAcceptanceComplete(null);
+
+    public bool IsAcceptanceComplete(DateTimeOffset? releasedAt) =>
+        AllChecks.Where(check => check.IsAcceptance).All(check => EffectiveStatus(check, releasedAt) == ChecklistStatus.Passed);
 
     public bool HasAcceptance => AllChecks.Any(check => check.IsAcceptance);
 

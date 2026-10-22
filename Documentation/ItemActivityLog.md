@@ -44,6 +44,8 @@
 | 工具不同，或雙方 `session_id` 都有但不同 | 別人（`claim_conflict`） | 先問使用者；同意後帶 `claim: "takeover"`，記一筆 `takeover` |
 | 工具相同，但任一方沒有 `session_id` | 分不出來（`claim_unverified`） | agent 自己認得是它開始的就帶 `claim: "own"`；認不出來就問使用者，再帶 `claim: "takeover"` |
 
+`released` 照同一張表判定，只能釋放自己的認領。別人的認領（或分不出來、又不是自己開始的）要先問使用者，同意後帶 `claim: "recover"`：只記一筆 `released`，不記 `takeover`，代為釋放的 session 不算執行者。這條給「認領者已提交工作、還沒釋放就中斷」的恢復用（[驗證流程選項〈認領〉](AcceptanceChainPlan.md#認領)）。
+
 認領只比對 `session_id`，不比對名稱：名稱可以重複或改名，不能證明是同一個 session。
 
 只檢查寫入，不擋讀取；不鎖整張卡，其他子項照常寫入。狀態不是 `in_progress` 時沒有執行者，不檢查。
