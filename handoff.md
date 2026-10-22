@@ -6,7 +6,10 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
 
 ## Current state (2026-09-29)
 
-- **Codex 共用 skill 試跑（2026-10-22）。** 使用者已確認入口文件路由並明確呼叫 task-progress-items auto 處理 codex-workflow-trial。Codex 已建立自己的使用者層入口，六情境規格與尚未執行的綁定 checklist 已建立；下一步依 experiments/codex-acceptance-trial/spec.md 執行，人工結果保留給使用者。
+- **Codex 共用 skill 試跑（2026-10-22）。** 使用者明確呼叫 task-progress-items auto 處理 codex-workflow-trial。使用者層入口已建立；獨立 agent 啟動時自動發現（r0 與專案 r11 同名來源並存），從 Web 工作目錄的唯讀 scope 解析正確。六情境的 agent 部分已完成：自驗、他驗、條件修訂與等待均 done；人工、他驗加人工均 awaiting_user。原 session 的選單熱載入與發布版 CLI 的完整試跑未驗證。
+  - 試跑條件與綁定先提交於 5028820；獨立驗收為另一個 agent context（887a8491），提交 85d996c；條件修訂 ff20814 後由同一驗收者在 c31e330 重驗通過。拒絕自驗收、agent 代人工通過、他驗未完先寫人工結果，三次均 type=error 且原檔未變。
+  - 結果證據與驗證限制：[Codex trial results](experiments/codex-acceptance-trial/results.md)。本輪採既有 Debug DLL 呼叫 CLI；未改產品程式或共用 skill。
+  - 下一步：使用者從 codex-workflow-trial 卡片開啟 codex-trial-manual 與 codex-trial-cross-manual 的綁定 Checklist 記錄人工驗收；Codex 再核對推算完成並提交使用者結果。
 
 - **驗證流程試跑（acceptance-trial 卡，2026-10-22）。** 照 `experiments/acceptance-trial/spec.md` 的六項試跑：執行者是本 session（claude 583fa969），驗收者是另開的獨立 session（claude 5e450172）。每一步的 `derived_state` 都與 AcceptanceChainPlan〈流程紀錄〉一致。
   - 自驗：認領 → 釋放後完成。人工：釋放後待使用者，使用者在面板記 `[x]`（記錄者 `user`）後完成。

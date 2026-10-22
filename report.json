@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-10-22T13:29:30.358886+00:00",
+  "updated_at": "2026-10-22T13:31:36.670529+00:00",
   "tasks": [
     {
       "id": "item-selection",
@@ -1864,50 +1864,8 @@
       "priority": 1,
       "status": "in_progress",
       "id": "codex-workflow-trial",
-      "summary": "共用流程已由 Claude 實作並核對；Codex 已初始化使用者層入口，正依獨立六情境規格試跑。人工驗收由使用者記錄。",
+      "summary": "Codex 入口自動發現與跨專案路由已驗證；自驗、他驗、條件修訂、等待均完成，三項權限拒絕符合預期。人工與他驗加人工兩項待使用者在綁定 Checklist 驗收。",
       "pending_items": [
-        {
-          "title": "Codex 使用者層入口已建立且讀回一致；檢查跨專案路由與新 agent 發現結果",
-          "priority": 1,
-          "status": "in_progress",
-          "id": "user-skill-routing",
-          "activity": [
-            {
-              "event": "created",
-              "actor": "codex",
-              "at": "2026-10-22T12:01:44.796977+00:00",
-              "session": "共用 skill 與 Codex 驗證試跑"
-            },
-            {
-              "event": "started",
-              "actor": "codex",
-              "at": "2026-10-22T13:23:40.517962+00:00",
-              "session": "Codex 共用 skill 驗證試跑",
-              "session_id": "365a4d62-02ee-4e28-9da7-63783c089d24"
-            }
-          ]
-        },
-        {
-          "title": "建立 Codex 專用六情境規格與綁定 checklist，提交後由 Codex 試跑；他驗交獨立 session，人工結果交使用者",
-          "priority": 1,
-          "status": "in_progress",
-          "id": "codex-verification-trial",
-          "activity": [
-            {
-              "event": "created",
-              "actor": "codex",
-              "at": "2026-10-22T12:01:44.796977+00:00",
-              "session": "共用 skill 與 Codex 驗證試跑"
-            },
-            {
-              "event": "started",
-              "actor": "codex",
-              "at": "2026-10-22T13:23:40.517962+00:00",
-              "session": "Codex 共用 skill 驗證試跑",
-              "session_id": "365a4d62-02ee-4e28-9da7-63783c089d24"
-            }
-          ]
-        },
         {
           "document_ref": {
             "kind": "checklist",
@@ -2128,6 +2086,62 @@
         }
       ],
       "completed_items": [
+        {
+          "title": "六情境的 agent 執行與獨立他驗已完成；兩項人工驗收由下列綁定子項繼續追蹤",
+          "priority": 1,
+          "status": "done",
+          "id": "codex-verification-trial",
+          "activity": [
+            {
+              "event": "created",
+              "actor": "codex",
+              "at": "2026-10-22T12:01:44.796977+00:00",
+              "session": "共用 skill 與 Codex 驗證試跑"
+            },
+            {
+              "event": "started",
+              "actor": "codex",
+              "at": "2026-10-22T13:23:40.517962+00:00",
+              "session": "Codex 共用 skill 驗證試跑",
+              "session_id": "365a4d62-02ee-4e28-9da7-63783c089d24"
+            },
+            {
+              "event": "done",
+              "actor": "codex",
+              "at": "2026-10-22T13:31:36.670529+00:00",
+              "session": "Codex 共用 skill 驗證試跑",
+              "session_id": "365a4d62-02ee-4e28-9da7-63783c089d24"
+            }
+          ]
+        },
+        {
+          "title": "Codex 入口已建立且重複檢查不變；獨立 agent 自動發現，Web 工作目錄唯讀路由仍使用 Web scope",
+          "priority": 1,
+          "status": "done",
+          "id": "user-skill-routing",
+          "activity": [
+            {
+              "event": "created",
+              "actor": "codex",
+              "at": "2026-10-22T12:01:44.796977+00:00",
+              "session": "共用 skill 與 Codex 驗證試跑"
+            },
+            {
+              "event": "started",
+              "actor": "codex",
+              "at": "2026-10-22T13:23:40.517962+00:00",
+              "session": "Codex 共用 skill 驗證試跑",
+              "session_id": "365a4d62-02ee-4e28-9da7-63783c089d24"
+            },
+            {
+              "event": "done",
+              "actor": "codex",
+              "at": "2026-10-22T13:31:36.670529+00:00",
+              "session": "Codex 共用 skill 驗證試跑",
+              "session_id": "365a4d62-02ee-4e28-9da7-63783c089d24"
+            }
+          ]
+        },
         {
           "title": "已核對 Claude 更新的共用流程：agent 差異、認領、釋放、驗收、條件修訂與佇列契約",
           "priority": 1,
