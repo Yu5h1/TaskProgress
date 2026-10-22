@@ -28,12 +28,12 @@ card or child item of the scope, resolved as § Resolve the target says.
 
 | Form | Does |
 |---|---|
-| (none) | Evaluate the scope and create items; run nothing |
-| `<target>` | A card: evaluate only that card and create its items; run nothing. An item: report its `derived_state` and the command that acts on it; change nothing |
+| (none) | Evaluate the scope, create items and list direct work; run nothing |
+| `<target>` | A card: evaluate only that card, create its items and list its direct work; run nothing. An item: report its `derived_state` and the command that acts on it; change nothing |
 | `<instruction>` | Write that one instruction as an item, then execute it in this session |
 | `run [target]` | Execution queue; a card narrows it to that card's items, an item to that item |
 | `accept [target]` | Acceptance queue, narrowed the same way |
-| `auto [target]` | Evaluate, execute and accept; a card narrows all three to that card, an item skips evaluation and executes then accepts that item |
+| `auto [target]` | Evaluate, do the direct work, execute and accept; a card narrows all of it to that card, an item skips evaluation and executes then accepts that item |
 
 ### Resolve the target
 
@@ -101,6 +101,31 @@ revise the `[acceptance]` text and commit with the item ID and 「條件修訂�
 `{"op": "item.event", …, "event": "disputed", "note": "<why>"}`. The acceptor who raised it never
 revises it.
 
+### Unbound items
+
+An item with no bound checklist (one the user tracks by hand) is executable too, with no
+verification stages:
+
+1. `run` and `auto` take it in the same order as bound items, by its derived state (`not_started`,
+   or `in_progress` not claimed by another session); `accept` never takes it.
+2. Claim it, do the work, check the result against the item's title and description, and commit with
+   the item ID.
+3. Finish with `item.update` `status: done`, never `released`: release sets the status back to
+   `planned`, and the item would return to the queue.
+4. Evaluation counts it as existing work and never creates another item for it.
+
+## Direct work
+
+An evaluation finding becomes an item only when someone or something will read the record back: it
+needs `[acceptance]` or `[manual]`, another item waits on it, it goes to another session, or the user
+wants to follow it on the Report. Mechanical work whose commit alone shows the result and that nobody
+will follow — moving or renaming files, fixing links — is direct work: no item, no checklist.
+
+- An evaluation that runs nothing (no verb, or a card target) lists it in the report, each with one
+  sentence the user can hand to an agent.
+- `auto` does it in the evaluating session before executing items, commits each piece, and lists what
+  it did in the report; it writes nothing to the Report.
+
 ## Accept (`accept`)
 
 Pick items whose `derived_state` (from `report get`) is `awaiting_acceptance` and that this session
@@ -121,8 +146,9 @@ agent; a refusal is a reply with `"type":"error"` while the exit code stays 0, s
 
 ## Queues and sessions
 
-Read `report get` and act on `derived_state`: `run` takes `not_started`, `in_progress` not claimed
-by another session, `needs_fix` and `conditions_to_revise` (not those whose condition you raised);
+Read `report get` and act on `derived_state`, for bound and unbound items alike (§ Unbound items):
+`run` takes `not_started`, `in_progress` not claimed by another session, `needs_fix` and
+`conditions_to_revise` (not those whose condition you raised);
 `accept` takes `awaiting_acceptance`. Skip `waiting`, `awaiting_user` and `awaiting_user_dispute`
 (the user's) and `done`. Order: priority, then card order. A target narrows the queue; an item
 target in a state the queue does not take is reported with its `derived_state`, never forced.
@@ -133,8 +159,8 @@ writes before starting the next. Without that ability, `run`/`accept` stop after
 the next candidate; `auto` executes everything itself and lists the items with `[acceptance]` left
 for acceptance from another session.
 
-End every command with a short report: items created (verification and reason), executed, accepted
-or rejected, and what waits on the user.
+End every command with a short report: items created (verification and reason), direct work listed
+or done, items executed, accepted or rejected, and what waits on the user.
 
 ## Agent specifics
 
