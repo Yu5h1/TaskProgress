@@ -8,6 +8,13 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
 
 - **共用任務 skill 與 Codex 試跑建卡（2026-10-22）。** 任務卡 `codex-workflow-trial` 的設計入口為 [CodexWorkflowTrial](Documentation/CodexWorkflowTrial.md)；先確認共用來源與使用者層路由，再實作 skill、安裝入口與進行六情境試跑。目前只建卡與記錄設計提案，未安裝或試跑。下一步由使用者確認該文件的〈尚未決定〉，確認後才將試跑規格拆成綁定 checklist。
 
+- **驗證流程試跑（acceptance-trial 卡，2026-10-22）。** 照 `experiments/acceptance-trial/spec.md` 的六項試跑：執行者是本 session（claude 583fa969），驗收者是另開的獨立 session（claude 5e450172）。每一步的 `derived_state` 都與 AcceptanceChainPlan〈流程紀錄〉一致。
+  - 自驗：認領 → 釋放後完成。人工：釋放後待使用者，使用者在面板記 `[x]`（記錄者 `user`）後完成。
+  - 他驗：釋放後待他驗，驗收者通過後完成。他驗＋人工：驗收者以「實作不符」退回（第二行時間比建立早 8 秒，是執行者預先取的值）→ 需修正 → 執行者認領修正、釋放 → 待他驗 → 驗收者以 `resolved` 通過 → 待使用者。
+  - 條件不符：驗收者以「條件不符」退回 → 條件待修 → 建立者提交「條件修訂」後指紋失效 → 待他驗 → 驗收者接受新條件後完成。等待：前置未完成時為等待中，trial-cross 完成後轉為未開始，執行後完成。
+  - 拒絕行為實測：執行者記 `[acceptance]`、agent 記 `[manual]` `[x]`、他驗未通過前記 `[manual]`，三者都回 `type: error` 且未寫入（exit code 仍為 0，已寫進 task-progress-items）。
+  - 未完成：trial-cross-manual 的 `[manual]` 等使用者在面板驗收；未試：條件爭議（`disputed`、第二次條件不符）、`run` 以子 session 逐項執行、`auto`、接手。使用者對已 `[x]` 的 trial-manual 再點一次時，只更新了 `Recorded` 的時間。
+
 - **task-progress-items 改為共用來源加使用者層入口（2026-10-22）。** 依使用者確認的流程：唯一來源 `.agents/skills/task-progress-items/SKILL.md`（共用流程，agent 差異集中在〈Agent specifics〉）；原 `.claude/skills/task-progress-items` 已刪除，避免兩份流程並存。`taskprogress-capabilities` 新增〈Initialize the user-level entry〉：依目前 agent 的使用者層 skills 目錄建立只含路由的入口（不存在才建立、相同則略過、不同或來源失效則回報衝突、不用符號連結、只初始化目前 agent、不啟動任務）。共用索引那一列改為先經 capabilities 初始化。這回答了 [CodexWorkflowTrial](Documentation/CodexWorkflowTrial.md)〈尚未決定〉的共用來源與路由位置，但採入口檔而非連結；該文件與 Codex 的 handoff 項目未改動。
   - TaskProgress 的 `.claude` 資料夾整個刪除（含只放兩條 allow 規則的 `settings.local.json`），本 repo 不再有 agent 專屬 skill 資料夾。`/checklist` 經使用者決定不保留（共用來源與 Claude 入口都刪除），checklist 頁面由 Report 卡片的綁定項目或手組 URL 開啟。
   - 同日清理：`.agents` 的 agent-executable-items 縮成只剩判斷準則（項目位置、評估、資格、形狀、單一寫入者），流程全歸 task-progress-items；共用索引只剩一列，所有 agent 都只經明確呼叫 `task-progress-items`，舊短語不啟動（AcceptanceChainPlan 第 26 點與〈入口邊界〉同步）。task-progress-report 的驗證步驟改為開啟後不讀回頁面，只告訴使用者應看到什麼。

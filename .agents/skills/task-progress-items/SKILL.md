@@ -98,9 +98,11 @@ never started or took over. For each `[acceptance]` check, after reading the cit
  "payload":{"workItemId":2,"checkIndex":1,"status":"failed","observed":"Spec 3.2 rounds half up; code truncates.","reason":"implementation"}}
 ```
 
-Use `"reason":"condition"` when the condition itself contradicts the spec. Passing a check that
+`workItemId` counts from 1; `checkIndex` counts from 0 within that work item. Use
+`"reason":"condition"` when the condition itself contradicts the spec. Passing a check that
 failed before needs `"resolved"`. The CLI refuses an executor's session, results before the
-executor's checks pass, and `[manual]` `[x]` from an agent.
+executor's checks pass, `[manual]` before every `[acceptance]` passes, and `[manual]` `[x]` from an
+agent; a refusal is a reply with `"type":"error"` while the exit code stays 0, so read `type`.
 
 ## Queues and sessions
 
