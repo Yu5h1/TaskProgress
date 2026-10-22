@@ -4,10 +4,10 @@ Current round: `experiments/acceptance-trial/spec.md#他驗與人工試跑`.
 
 驗證方式：他驗＋人工。本檔只有一輪；執行與驗收必須是不同的 session，他驗通過後才輪到使用者。
 
-- [ ] **1. 建立 cross-manual.txt**
+- [x] **1. 建立 cross-manual.txt**
   Outcome: experiments/acceptance-trial/cross-manual.txt 存在。
   Checks:
-    - [ ] **檔案存在**
+    - [x] **檔案存在**
       - Action: 讀取 experiments/acceptance-trial/cross-manual.txt。
       - Expect: 有兩行。
 
