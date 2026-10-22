@@ -1,0 +1,12 @@
+# 自驗試跑 Checklist
+
+Current round: `experiments/acceptance-trial/spec.md#自驗試跑`.
+
+驗證方式：自驗。本檔只有一輪。
+
+- [ ] **1. 建立 self.txt**
+  Outcome: experiments/acceptance-trial/self.txt 符合規格。
+  Checks:
+    - [ ] **內容正確**
+      - Action: 讀取 experiments/acceptance-trial/self.txt。
+      - Expect: 只有一行 self ok。

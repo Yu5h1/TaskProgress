@@ -16,3 +16,4 @@ Current round: `Documentation/InlineReportLinks.md#驗收`.
       - Action: 在測試報告的摘要與子項描述中加入文件範例，檢查底線，點擊前往，再以窄視窗操作更多與收合，並以 Tab／Enter 操作連結。
       - Expect: 可前往對應 Checklist／Decision；連結不啟動卡片拖曳，收合不截成部分連結，鍵盤焦點可見且穩定。
       - Reason: 需要實際瀏覽器確認字寬、導覽及焦點外觀。
+      - Recorded: legacy; at=2026-10-22T11:34:55Z; fp=1e33fd90b8d1

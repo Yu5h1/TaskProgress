@@ -125,7 +125,10 @@ test("category counts describe the whole document and include empty tags", () =>
 });
 
 test("filtering never reaches a save", () => {
-  const session = createChecklistEditorSession(fixture());
+  const ready = fixture();
+  ready.items[1].checks = [check(0, "passed")];
+  ready.items[2].checks = [check(0, "passed")];
+  const session = createChecklistEditorSession(ready);
   session.dispatch({ type: "cycle-result", workItemId: 1, checkIndex: 1 });
   assert.deepEqual(session.prepareSave().results, [
     { workItemId: 1, checkIndex: 1, status: "passed", observed: null },
@@ -142,6 +145,7 @@ test("the Checklist screen wires one strip with no owner capsules", async () => 
   // Owner is still shown on each check; it is simply not a filter capsule.
   assert.match(app, /const FILTER_TAGS = \["pending", "passed", "failed"\];/u);
   assert.doesNotMatch(app, /owner:|OWNER_FILTER/u, "owner is not a filter");
-  assert.match(app, /filterChecklistBySelection\(orderChecklistItems\(/u);
+  assert.match(app, /filterChecklistBySelection\(visibleDocument\(/u);
+  assert.match(app, /const ordered = orderChecklistItems\(document, capsuleOrder\);/u);
   assert.match(app, /defaultLit=\{isDefaultLit\(selection\)\}/u);
 });

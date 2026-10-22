@@ -22,3 +22,4 @@ Current round: `Documentation/EditorHistory.md#決策歷史`.
       - Action: 在測試決策文件選取答案 → 離焦 → 復原 → 重做；切換已決策標籤並重新整理。
       - Expect: 保存後可復原與重做；新分頁預設隱藏已決策，既有篩選選擇在重新整理後保留。
       - Reason: 需要核查實際滑鼠焦點與卡片延遲篩選的互動。
+      - Recorded: legacy; at=2026-10-22T11:34:55Z; fp=9a2be67bfb07

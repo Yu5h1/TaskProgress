@@ -94,7 +94,7 @@ internal static partial class Program
             Equal(initial.Items[0].Checks[0], saved.Items[0].Checks[0], "reset all preserves resolved agent");
             Equal(initial.Items[1].Checks[0], saved.Items[1].Checks[0], "reset all preserves failed agent");
             Equal(ChecklistStatus.Pending, saved.Items[0].Status, "reset all derives pending parent");
-            Equal(ChecklistStatus.Failed, saved.Items[1].Status, "agent failure still determines parent");
+            Equal(ChecklistStatus.Pending, saved.Items[1].Status, "reset all leaves passed agent and pending manual");
             Equal(saved.Revision, response.RootElement.GetProperty("payload").GetProperty("revision").GetString(),
                 "reset returns persisted revision");
             True(saved.HasUtf8Bom && saved.NewLine == "\r\n", "writes preserve BOM and newline");
@@ -165,7 +165,7 @@ internal static partial class Program
             Console.SetIn(input);
             Console.SetOut(output);
             Console.SetError(error);
-            exitCode = ChecklistCommand.Request(["--file", path]);
+            exitCode = ChecklistCommand.Request(["--viewer", "--file", path]);
         }
         finally
         {
@@ -207,12 +207,11 @@ internal static partial class Program
                   - Reason: Needs interaction.
 
             - [!] **2. Failed work**
-              Outcome: Agent failures remain evidence after manual reset.
+              Outcome: Agent evidence remains after manual reset.
               Checks:
-                - [!] **Agent failure**
+                - [x] **Agent proof two**
                   - Action: Execute proof.
                   - Expect: Proof passes.
-                  - Observed: Agent proof failed.
                 - [!] **Manual failure** `[manual]`
                   - Action: Inspect control.
                   - Expect: Control works.

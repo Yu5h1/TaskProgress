@@ -1,8 +1,11 @@
 """ID-addressed Report operations; candidates are isolated until the entire batch validates."""
 from __future__ import annotations
 
+import json
+import os
 import re
 from copy import deepcopy
+from pathlib import Path
 
 from .report_store import validate_documents
 
@@ -17,14 +20,18 @@ class ReportError(ValueError):
 FIELDS = {
     "report.update": ({"title", "summary"}, {"summary"}),
     "task.update": ({"title", "summary", "status", "priority", "progress"}, {"priority", "progress"}),
-    "item.update": ({"title", "status", "priority"}, {"priority"}),
+    "item.update": ({"title", "status", "priority", "waits_for"}, {"priority", "waits_for"}),
     "dev.update": ({"next_step", "blockers", "decisions", "routes"}, {"next_step", "blockers", "decisions", "routes"}),
 }
 
 
 ACTIVITY_RECENT_LIMIT = 3
+PERMANENT_EVENTS = {"started", "takeover"}
+LATEST_EVENTS = {"released", "disputed"}
+ITEM_EVENTS = LATEST_EVENTS
 ACTOR_PATTERN = re.compile(r"^[a-z][a-z0-9-]{0,31}$")
 CLAIMS = {"own", "takeover"}
+WAIT_DEPTH_LIMIT = 50
 
 
 def require(condition, message, field=None):
@@ -63,19 +70,92 @@ def place_pending_item(task, item, position, *, moving=False):
 
 
 def append_activity(item, entry):
-    """Keeps the first created entry forever and only the most recent other entries."""
+    """Keeps the first created entry and every start or takeover, the latest release and dispute,
+    and only the most recent other entries; the executor record must never be pushed out."""
     entries = [*item.get("activity", []), entry]
-    created = next((e for e in entries if e["event"] == "created"), None)
-    recent = [e for e in entries if e["event"] != "created"][-ACTIVITY_RECENT_LIMIT:]
-    item["activity"] = ([created] if created else []) + recent
+    created = next((i for i, e in enumerate(entries) if e["event"] == "created"), None)
+    latest = {e["event"]: i for i, e in enumerate(entries) if e["event"] in LATEST_EVENTS}
+    others = [i for i, e in enumerate(entries)
+              if e["event"] not in PERMANENT_EVENTS | LATEST_EVENTS | {"created"}][-ACTIVITY_RECENT_LIMIT:]
+    keep = {i for i, e in enumerate(entries) if e["event"] in PERMANENT_EVENTS}
+    keep |= set(latest.values()) | set(others) | ({created} if created is not None else set())
+    item["activity"] = [e for i, e in enumerate(entries) if i in keep]
 
 
-def activity_entry(event, actor, at):
+def activity_entry(event, actor, at, note=None):
     entry = {"event": event, "actor": actor["actor"], "at": at}
     for key in ("session", "session_id"):
         if actor.get(key):
             entry[key] = actor[key]
+    if note:
+        entry["note"] = note
     return entry
+
+
+def scope_registry():
+    """Registered scope folders, from the same scopes.json the CLI writes."""
+    home = os.environ.get("TASK_PROGRESS_HOME") or os.path.join(os.environ.get("LOCALAPPDATA", ""), "TaskProgress")
+    path = Path(home) / "scopes.json"
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return {}
+    scopes = data.get("scopes", data) if isinstance(data, dict) else {}
+    return {key: value for key, value in scopes.items() if isinstance(key, str) and isinstance(value, str)}
+
+
+def find_item(report, task_id, item_id):
+    task = next((t for t in report.get("tasks", []) if t.get("id") == task_id), None)
+    if task is None:
+        return None
+    return next((i for key in ("pending_items", "completed_items") for i in task.get(key, [])
+                 if isinstance(i, dict) and i.get("id") == item_id), None)
+
+
+def check_waits(report, task_id, item):
+    """Rejects waits on items that cannot be found and any wait that closes a loop."""
+    waits = item.get("waits_for")
+    if waits is None:
+        return
+    require(isinstance(waits, list) and 0 < len(waits) <= 20, "waits_for must list 1–20 items", "waits_for")
+    own_scope = report["scope_id"]
+    registry, loaded = scope_registry(), {own_scope: report}
+
+    def load(scope):
+        if scope not in loaded:
+            folder = registry.get(scope)
+            require(folder is not None, "waits_for scope is not registered: " + scope, "waits_for")
+            try:
+                loaded[scope] = json.loads((Path(folder) / "report.json").read_text(encoding="utf-8"))
+            except (OSError, ValueError) as error:
+                raise ReportError("invalid_operation", "Cannot read the report of scope " + scope + ": " + str(error),
+                                  field="waits_for") from error
+        return loaded[scope]
+
+    start = (own_scope, task_id, item["id"])
+    seen = set()
+    for wait in waits:
+        require(isinstance(wait, dict) and set(wait) == {"scope_id", "task_id", "item_id"}
+                and all(isinstance(wait[k], str) and wait[k] for k in wait),
+                "Each waits_for entry needs scope_id, task_id and item_id", "waits_for")
+        key = (wait["scope_id"], wait["task_id"], wait["item_id"])
+        require(key != start, "An item cannot wait for itself", "waits_for")
+        require(key not in seen, "Duplicate waits_for entry", "waits_for")
+        seen.add(key)
+        require(find_item(load(key[0]), key[1], key[2]) is not None,
+                "waits_for item was not found: " + "/".join(key), "waits_for")
+
+    stack, visited = [(key, 1) for key in seen], set()
+    while stack:
+        key, depth = stack.pop()
+        require(key != start, "waits_for would form a loop back to this item", "waits_for")
+        if key in visited or depth > WAIT_DEPTH_LIMIT:
+            continue
+        visited.add(key)
+        target = find_item(load(key[0]), key[1], key[2]) if key[0] in registry or key[0] == own_scope else None
+        for wait in (target or {}).get("waits_for", []) if isinstance(target, dict) else []:
+            if isinstance(wait, dict) and {"scope_id", "task_id", "item_id"} <= set(wait):
+                stack.append(((wait["scope_id"], wait["task_id"], wait["item_id"]), depth + 1))
 
 
 def status_event(previous_status, status):
@@ -88,9 +168,11 @@ def claim_relation(item, actor):
     """None when the writer may proceed; otherwise conflict (someone else) or unverified (cannot tell)."""
     if item.get("status") != "in_progress":
         return None, None
-    claimant = next((e for e in reversed(item.get("activity", [])) if e["event"] in ("started", "takeover")), None)
-    if claimant is None:
+    activity = item.get("activity", [])
+    index = next((i for i in range(len(activity) - 1, -1, -1) if activity[i]["event"] in ("started", "takeover")), None)
+    if index is None or any(e["event"] == "released" for e in activity[index + 1:]):
         return None, None
+    claimant = activity[index]
     mine, theirs = actor.get("session_id"), claimant.get("session_id")
     if claimant["actor"] == actor["actor"] and mine and theirs and mine == theirs:
         return None, claimant
@@ -157,7 +239,8 @@ def apply_operations(report, overlay, operations, actor=None, at=None):
         try:
             require(isinstance(operation, dict), "Operation must be an object")
             name = operation.get("op")
-            require(isinstance(name, str) and name in {*FIELDS, "task.add", "item.add", "item.move"}, "Unknown operation", "op")
+            require(isinstance(name, str) and name in {*FIELDS, "task.add", "item.add", "item.move", "item.event"},
+                    "Unknown operation", "op")
             keys = {"op", "set", "unset"}
             if name != "report.update":
                 keys.add("task_id")
@@ -167,6 +250,8 @@ def apply_operations(report, overlay, operations, actor=None, at=None):
                 keys = {"op", "task_id", "value", "position"} if name == "item.add" else {"op", "value"}
             if name == "item.move":
                 keys = {"op", "task_id", "item_id", "position", "claim"}
+            if name == "item.event":
+                keys = {"op", "task_id", "item_id", "event", "note"}
             require(set(operation) <= keys, "Unknown operation property")
             task_id = operation.get("task_id")
             if name == "report.update":
@@ -209,6 +294,7 @@ def apply_operations(report, overlay, operations, actor=None, at=None):
                     require("activity" not in value, "activity is written by the CLI, not supplied", "value.activity")
                     value = deepcopy(value)
                     value.setdefault("status", "planned")
+                    check_waits(report, task_id, value)
                     stamp_new_item(value, actor, at)
                     key = "completed_items" if value["status"] == "done" else "pending_items"
                     if "position" in operation:
@@ -222,6 +308,18 @@ def apply_operations(report, overlay, operations, actor=None, at=None):
                     found = [(key, item) for key in ("completed_items", "pending_items") for item in task.get(key, []) if isinstance(item, dict) and item.get("id") == item_id]
                     require(len(found) == 1, "Item ID was not found; legacy string items require migration", "item_id")
                     previous, item = found[0]
+                    if name == "item.event":
+                        event, note = operation.get("event"), operation.get("note")
+                        require(event in ITEM_EVENTS, "event must be released or disputed", "event")
+                        require(note is None or (isinstance(note, str) and 0 < len(note.strip()) <= 300),
+                                "note must be a non-empty string of at most 300 characters", "note")
+                        require(event != "disputed" or note is not None, "A dispute needs a note with the reason", "note")
+                        append_activity(item, activity_entry(event, actor, at, note.strip() if note else None))
+                        if event == "released" and item.get("status") == "in_progress":
+                            item["status"] = "planned"
+                        validate_documents(report, overlay)
+                        summaries.append({"op": name, "task_id": task_id, "fields": ["activity"], "item_id": item_id})
+                        continue
                     check_claim(item, operation, actor, at)
                     before_item = without_activity(item)
                     if name == "item.move":
@@ -232,6 +330,8 @@ def apply_operations(report, overlay, operations, actor=None, at=None):
                             append_activity(item, activity_entry("updated", actor, at))
                     else:
                         update(item, operation, name)
+                        if "waits_for" in operation.get("set", {}):
+                            check_waits(report, task_id, item)
                         if without_activity(item) != before_item:
                             event = status_event(before_item.get("status"), item.get("status")) or "updated"
                             append_activity(item, activity_entry(event, actor, at))

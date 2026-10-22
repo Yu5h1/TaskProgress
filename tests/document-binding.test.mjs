@@ -47,9 +47,11 @@ test("documentBindingKey and documentBindingHref generate distinct routes per sc
   assert.equal(documentBindingHref(decRef), "/decisions/?scope=ux&task=menu-design");
 });
 
+const summary = ({ ok, completed, total, passed, failed, manual }) => ({ ok, completed, total, passed, failed, manual });
+
 test("evaluateChecklistDocument requires at least 1 check and all checks passed", () => {
   // Empty document
-  assert.deepEqual(evaluateChecklistDocument({ items: [] }), {
+  assert.deepEqual(summary(evaluateChecklistDocument({ items: [] })), {
     ok: true,
     completed: false,
     total: 0,
@@ -65,7 +67,7 @@ test("evaluateChecklistDocument requires at least 1 check and all checks passed"
       { checks: [{ status: "passed" }] },
     ],
   };
-  assert.deepEqual(evaluateChecklistDocument(fullPassed), {
+  assert.deepEqual(summary(evaluateChecklistDocument(fullPassed)), {
     ok: true,
     completed: true,
     total: 3,
@@ -80,7 +82,7 @@ test("evaluateChecklistDocument requires at least 1 check and all checks passed"
       { checks: [{ status: "passed" }, { status: "pending" }] },
     ],
   };
-  assert.deepEqual(evaluateChecklistDocument(partial), {
+  assert.deepEqual(summary(evaluateChecklistDocument(partial)), {
     ok: true,
     completed: false,
     total: 2,
@@ -95,7 +97,7 @@ test("evaluateChecklistDocument requires at least 1 check and all checks passed"
       { checks: [{ status: "passed" }, { status: "failed" }] },
     ],
   };
-  assert.deepEqual(evaluateChecklistDocument(withFailure), {
+  assert.deepEqual(summary(evaluateChecklistDocument(withFailure)), {
     ok: true,
     completed: false,
     total: 2,

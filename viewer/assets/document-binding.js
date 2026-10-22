@@ -1,6 +1,7 @@
 import { createChecklistHttpTransport } from "./checklist-http-transport.js";
 import { createDecisionHttpTransport } from "./decision-transport.js";
-import { mergeReports } from "./report-model.js";
+import { deriveItemState, ITEM_STATE_META, waitsText } from "./item-state.js";
+import { mergeReports, reportPathForScope } from "./report-model.js";
 
 /**
  * Normalizes a document_ref object into a standard shape.
@@ -63,17 +64,90 @@ export function documentBindingTitle(sourceRef) {
 
 /**
  * Evaluates whether a loaded checklist document is fully completed.
- * Condition: at least one check, and ALL checks are "passed". `manual` marks a checklist holding any `[manual]` check.
+ * Condition: at least one check, and ALL checks are "passed" once void tagged results count as pending.
+ * `manual` marks a checklist holding any `[manual]` check; `checks` keeps what the item state needs.
  */
 export function evaluateChecklistDocument(payload) {
-  const items = payload?.document?.items ?? payload?.items ?? [];
-  const checks = items.flatMap((item) => item?.checks ?? []);
+  const document = payload?.document ?? payload ?? {};
+  const items = document.items ?? [];
+  const raw = items.flatMap((item) => item?.checks ?? []);
+  const checks = raw.map((c) => ({
+    tag: c?.tag ?? (c?.isManual ? "manual" : null),
+    status: c?.status,
+    effectiveStatus: c?.effectiveStatus ?? c?.status,
+    validity: c?.validity ?? "valid",
+    recorder: c?.recorder ?? null,
+    recordedAt: c?.recordedAt ?? null,
+    rejectReason: c?.rejectReason ?? null,
+    conditionCount: c?.conditionCount ?? 0,
+  }));
   const total = checks.length;
-  const passed = checks.filter((c) => c?.status === "passed").length;
-  const failed = checks.filter((c) => c?.status === "failed").length;
+  const passed = checks.filter((c) => c.effectiveStatus === "passed").length;
+  const failed = checks.filter((c) => c.effectiveStatus === "failed").length;
   const completed = total > 0 && passed === total;
-  const manual = checks.some((c) => c?.isManual === true);
-  return { ok: true, completed, total, passed, failed, manual };
+  const manual = checks.some((c) => c.tag === "manual");
+  const acceptance = checks.some((c) => c.tag === "acceptance");
+  const untaggedComplete = document.untaggedComplete ?? checks.filter((c) => !c.tag).every((c) => c.status === "passed");
+  const acceptanceComplete = document.acceptanceComplete
+    ?? checks.filter((c) => c.tag === "acceptance").every((c) => c.effectiveStatus === "passed");
+  return { ok: true, completed, total, passed, failed, manual, acceptance, checks, untaggedComplete, acceptanceComplete };
+}
+
+/** Stable key for one waited item across scopes. */
+export function waitKey(wait) {
+  return `wait:${wait?.scope_id}:${wait?.task_id}:${wait?.item_id}`;
+}
+
+function waitTargets(tasks) {
+  const targets = new Map();
+  for (const task of tasks ?? []) {
+    for (const field of ["completed_items", "pending_items"]) {
+      for (const item of task[field] ?? []) {
+        for (const wait of Array.isArray(item?.waits_for) ? item.waits_for : []) {
+          if (wait?.scope_id && wait?.task_id && wait?.item_id) targets.set(waitKey(wait), wait);
+        }
+      }
+    }
+  }
+  return targets;
+}
+
+/**
+ * Resolves whether each waited item is finished, reading the target scope's report and, for a bound
+ * target, its checklist. A target that cannot be read stays unfinished and is marked unavailable.
+ */
+export async function evaluateWaitTargets(tasks, options = {}) {
+  const { fetchImpl = globalThis.fetch, concurrency = DEFAULT_DOCUMENT_BINDING_CONCURRENCY, ...bindingOptions } = options;
+  const targets = waitTargets(tasks);
+  const results = new Map();
+  if (!targets.size) return results;
+  const reports = new Map();
+  for (const scope of new Set([...targets.values()].map((wait) => wait.scope_id))) {
+    try {
+      const response = await fetchImpl(reportPathForScope(scope), { cache: "no-store" });
+      reports.set(scope, response.ok ? await response.json() : null);
+    } catch {
+      reports.set(scope, null);
+    }
+  }
+  await mapConcurrent([...targets.entries()], concurrency, async ([key, wait]) => {
+    const task = (reports.get(wait.scope_id)?.tasks ?? []).find((candidate) => candidate?.id === wait.task_id);
+    const item = ["pending_items", "completed_items"].flatMap((field) => task?.[field] ?? [])
+      .find((candidate) => candidate && typeof candidate === "object" && candidate.id === wait.item_id);
+    const label = `${task?.title ?? wait.task_id} › ${item?.title ?? wait.item_id}`;
+    const href = `/?scope=${encodeURIComponent(wait.scope_id)}&pin=${encodeURIComponent(wait.task_id)}`;
+    if (!item) {
+      results.set(key, { done: false, available: false, label, href });
+      return;
+    }
+    let done = (item.status ?? "planned") === "done";
+    if (normalizeDocumentRef(item.document_ref)?.kind === "checklist") {
+      const evaluation = await fetchDocumentBinding(item.document_ref, { fetchImpl, ...bindingOptions });
+      done = Boolean(evaluation.ok && evaluation.completed);
+    }
+    results.set(key, { done, available: true, label, href });
+  });
+  return results;
 }
 
 /**
@@ -212,8 +286,33 @@ export async function evaluateAllDocumentBindings(tasks, options = {}) {
     const result = await fetchDocumentBinding(ref, bindingOptions);
     evaluations.set(key, result);
   });
+  for (const [key, result] of await evaluateWaitTargets(tasks, { concurrency, ...bindingOptions })) {
+    evaluations.set(key, result);
+  }
 
   return evaluations;
+}
+
+function pendingWaitsOf(item, evaluations) {
+  return (Array.isArray(item?.waits_for) ? item.waits_for : [])
+    .map((wait) => evaluations.get(waitKey(wait)) ?? { done: false, available: false, label: `${wait?.task_id} › ${wait?.item_id}`, href: null })
+    .filter((result) => !result.done);
+}
+
+function withDerivedState(item, evaluation, evaluations) {
+  const pendingWaits = pendingWaitsOf(item, evaluations);
+  const derivedState = deriveItemState(item, evaluation, pendingWaits);
+  if (!derivedState) return item;
+  const meta = ITEM_STATE_META[derivedState];
+  const suffix = waitsText(pendingWaits);
+  return {
+    ...item,
+    derivedState,
+    derivedStateLabel: meta.label,
+    derivedStateTone: meta.tone,
+    pendingWaits,
+    displayTitle: suffix ? `${item.title}　${suffix}` : item.title,
+  };
 }
 
 /**
@@ -237,8 +336,9 @@ export function projectTasksWithBindings(tasks, evaluations = new Map()) {
 
       const itemKey = documentBindingKey(item.document_ref);
       if (!itemKey) {
-        if (defaultOriginField === "completed_items") completedItems.push(item);
-        else pendingItems.push(item);
+        const projected = withDerivedState(item, null, evaluations);
+        if (defaultOriginField === "completed_items") completedItems.push(projected);
+        else pendingItems.push(projected);
         return;
       }
 
@@ -263,11 +363,11 @@ export function projectTasksWithBindings(tasks, evaluations = new Map()) {
       };
       itemSourceRef.title = documentBindingTitle(itemSourceRef);
 
-      const projectedItem = {
+      const projectedItem = withDerivedState({
         ...item,
         status: derivedStatus,
         sourceRef: itemSourceRef,
-      };
+      }, norm.kind === "checklist" ? evalResult : null, evaluations);
 
       if (derivedStatus === "done") {
         (defaultOriginField === "pending_items" ? promotedItems : completedItems).push(projectedItem);

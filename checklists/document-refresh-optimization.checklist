@@ -56,6 +56,7 @@ Current round: `plan.md#文件讀取效能與前景局部刷新優化`.
       - Action: 在瀏覽器開啟 Report 與 Checklist 頁面，於終端機/編輯器與瀏覽器間來回切換焦點，確認無白屏重載且極速就地更新。
       - Expect: 切換回焦時無卡頓白屏，Checklist 互動狀態保留，Report 進度即時反映。
       - Reason: 需要使用者在真實多視窗環境確認體感流暢度與互動歷史保留。
+      - Recorded: legacy; at=2026-10-22T11:34:55Z; fp=7715235ff75c
 
 - [x] **6. 驗收缺口修正與深度回歸測試**
   Depends on: 5.

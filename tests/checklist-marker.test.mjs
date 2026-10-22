@@ -41,7 +41,7 @@ test("the marker box is one component with three states", () => {
 test("a manual check has exactly one interactive marker", () => {
   const buttons = checkHeading.match(/<button/gu) ?? [];
   assert.equal(buttons.length, 0, "the marker is the shared component, not a local button");
-  assert.match(checkHeading, /<MarkerBox[\s\S]*interactive=\{check\.isManual && !resetBusy\}/u);
+  assert.match(checkHeading, /<MarkerBox[\s\S]*interactive=\{isTagged\(check\) && !resetBusy && \(!locked \|\| check\.status !== "pending"\)\}/u);
   assert.match(checkHeading, /onCycle=\{\(\) => cycleResult\(item\.id, check\)\}/u);
   assert.match(app, /type: "cycle-result"/u);
   assert.doesNotMatch(template, /checklist-result-controls/u);
@@ -49,8 +49,8 @@ test("a manual check has exactly one interactive marker", () => {
 });
 
 test("Agent checks and work-item markers stay read-only", () => {
-  // `interactive` requires isManual (and no reset in flight), so an Agent check gets the plain box.
-  assert.match(checkHeading, /interactive=\{check\.isManual && !resetBusy\}/u);
+  // `interactive` requires a tag (and no reset in flight), so an Agent check gets the plain box.
+  assert.match(checkHeading, /interactive=\{isTagged\(check\) && !resetBusy && \(!locked \|\| check\.status !== "pending"\)\}/u);
   const itemHeader = template.slice(
     template.indexOf("checklist-item-header"),
     template.indexOf("checklist-checks"),
@@ -60,12 +60,12 @@ test("Agent checks and work-item markers stay read-only", () => {
 });
 
 test("a failure draft exposes one inline Observed field", () => {
-  const observed = template.slice(template.indexOf("{#if check.isManual && check.status === \"failed\"}"));
+  const observed = template.slice(template.indexOf("{#if isTagged(check) && check.status === \"failed\"}"));
   assert.match(observed, /class="checklist-observed"/u);
   assert.equal((observed.match(/<textarea/gu) ?? []).length, 1);
   assert.match(observed, /type: "set-observed"/u);
   // The read-only Observed line steps aside for the editable field.
-  assert.match(template, /\{#if check\.observed && !\(check\.isManual && check\.status === "failed"\)\}/u);
+  assert.match(template, /\{#if check\.observed && !\(isTagged\(check\) && check\.status === "failed"\)\}/u);
 });
 
 test("the Checklist uses the shared theme control and claims no scheme of its own", () => {

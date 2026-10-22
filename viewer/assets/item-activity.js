@@ -1,17 +1,30 @@
 /** Item activity log: who created, started, changed, finished or took over a Report child item. */
 
 export const ACTIVITY_RECENT_LIMIT = 3;
-export const ACTIVITY_EVENTS = Object.freeze(["created", "started", "updated", "done", "takeover"]);
+export const ACTIVITY_MAX_ITEMS = 64;
+export const ACTIVITY_EVENTS = Object.freeze(["created", "started", "updated", "done", "takeover", "released", "disputed"]);
+const PERMANENT_EVENTS = new Set(["started", "takeover"]);
+const LATEST_EVENTS = new Set(["released", "disputed"]);
 const ACTOR_PATTERN = /^[a-z][a-z0-9-]{0,31}$/u;
 const ITEM_FIELDS = ["pending_items", "completed_items"];
-const LABELS = { created: "建立", started: "開始", updated: "修改", done: "完成", takeover: "接手" };
+const LABELS = { created: "建立", started: "開始", updated: "修改", done: "完成", takeover: "接手", released: "釋放", disputed: "爭議" };
 
-/** Appends an entry, keeping the first created entry and only the most recent others. */
+/**
+ * Appends an entry, keeping the first created entry and every start or takeover so the executors stay
+ * known, the latest release and dispute, and only the most recent other entries.
+ */
 export function appendActivity(activity, entry) {
   const list = [...(Array.isArray(activity) ? activity : []), entry];
-  const created = list.find(item => item.event === "created");
-  const recent = list.filter(item => item.event !== "created").slice(-ACTIVITY_RECENT_LIMIT);
-  return created ? [created, ...recent] : recent;
+  const created = list.findIndex(item => item.event === "created");
+  const latest = new Map();
+  list.forEach((item, index) => { if (LATEST_EVENTS.has(item.event)) latest.set(item.event, index); });
+  const others = list.map((item, index) => index)
+    .filter(index => list[index].event !== "created" && !PERMANENT_EVENTS.has(list[index].event) && !LATEST_EVENTS.has(list[index].event))
+    .slice(-ACTIVITY_RECENT_LIMIT);
+  const keep = new Set([...latest.values(), ...others]);
+  if (created >= 0) keep.add(created);
+  list.forEach((item, index) => { if (PERMANENT_EVENTS.has(item.event)) keep.add(index); });
+  return list.filter((item, index) => keep.has(index));
 }
 
 /** The event a change from `before` to `after` records; `before` is null for a new item. */
@@ -87,15 +100,16 @@ export function recordUserActivity(before, after, at = new Date().toISOString())
 
 export function validateActivity(value, path, errors, issue) {
   if (value === undefined) return;
-  if (!Array.isArray(value) || value.length > ACTIVITY_RECENT_LIMIT + 1) {
-    errors.push(issue("invalid_activity", path, `${path} 必須是最多 ${ACTIVITY_RECENT_LIMIT + 1} 筆的陣列。`));
+  if (!Array.isArray(value) || value.length > ACTIVITY_MAX_ITEMS) {
+    errors.push(issue("invalid_activity", path, `${path} 必須是最多 ${ACTIVITY_MAX_ITEMS} 筆的陣列。`));
     return;
   }
   value.forEach((entry, index) => {
     const entryPath = `${path}[${index}]`;
     const keys = entry && typeof entry === "object" && !Array.isArray(entry) ? Object.keys(entry) : null;
     const valid = keys
-      && keys.every(key => ["event", "actor", "session", "session_id", "at"].includes(key))
+      && keys.every(key => ["event", "actor", "session", "session_id", "at", "note"].includes(key))
+      && (entry.note === undefined || (typeof entry.note === "string" && entry.note.length > 0 && entry.note.length <= 300))
       && ACTIVITY_EVENTS.includes(entry.event)
       && typeof entry.actor === "string" && ACTOR_PATTERN.test(entry.actor)
       && ["session", "session_id"].every(key => entry[key] === undefined || (typeof entry[key] === "string" && entry[key].length > 0 && entry[key].length <= 100))
@@ -120,6 +134,7 @@ export function formatActivity(activity, now = Date.now()) {
   return activity.map((entry) => {
     const who = entry.session ? `${entry.actor} (${entry.session})` : entry.actor;
     const when = relative(entry.at, now);
-    return `${LABELS[entry.event] ?? entry.event}：${who}${when ? ` · ${when}` : ""}`;
+    const note = entry.note ? `：${entry.note}` : "";
+    return `${LABELS[entry.event] ?? entry.event}：${who}${when ? ` · ${when}` : ""}${note}`;
   }).join("\n");
 }

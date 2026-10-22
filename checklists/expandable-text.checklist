@@ -15,7 +15,9 @@ Current round: `Documentation/ExpandableText.md#實作契約`.
       - Action: 重新載入 Viewer，比較短說明與長說明；按長說明的「…更多」及「收合」，再調整視窗寬度。
       - Expect: 短說明無按鈕；長說明預設兩行，可展開全文並收合；控制不遮住文字，窄視窗也正常。
       - Reason: 由使用者確認實際閱讀密度及控制位置。
+      - Recorded: legacy; at=2026-10-22T11:34:55Z; fp=373d50005f1f
     - [x] **已完成模組設計核查** `[manual]`
       - Action: 閱讀 Documentation/ExpandableText.md 的模組邊界。
       - Expect: 確認原生 JS 與 CSS 可獨立移植，Svelte 僅為接入層，符合後續 Web 抽離需求。
       - Reason: 使用者要求已完成的設計也提供核查入口。
+      - Recorded: legacy; at=2026-10-22T11:34:55Z; fp=309e4bad39ff

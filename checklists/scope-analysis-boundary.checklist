@@ -21,3 +21,4 @@ Current round: `plan.md#scope-重算邊界與未估算投影`.
       - Action: 更新部署並結束舊 worker → 使用可拋棄測試 scope 啟動及同步服務 → 檢查快照檔案與 Viewer 未估算顯示。
       - Expect: 同步不改快照；未估算以項目數呈現，仍可開啟估算入口。
       - Reason: 需要使用者安排 resident worker 與應用部署切換；本輪不重啟共用服務。
+      - Recorded: legacy; at=2026-10-22T11:34:55Z; fp=0a53ffc32f50

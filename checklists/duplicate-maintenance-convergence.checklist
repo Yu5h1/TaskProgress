@@ -61,7 +61,9 @@ Current round: `Documentation/DuplicateMaintenanceConvergencePlan.md#acceptance`
       - Action: In the formal Viewer, edit a normal field in auto mode, switch to cautious mode, and exercise Save, Discard, Undo, and Redo.
       - Expect: Auto edits persist after their proper scheduling; cautious edits wait for Save; Discard and history commands produce the visible expected state.
       - Reason: Requires direct interaction with the production Viewer and visible persistence timing.
+      - Recorded: legacy; at=2026-10-22T11:34:55Z; fp=d9b2650549de
     - [x] **Exercise high-impact confirmation** `[manual]`
       - Action: Change the delivery date and initiate a permanent deletion in the formal Viewer.
       - Expect: Both operations still require their intended preview or confirmation before persistence.
       - Reason: Requires direct judgment of modal behavior before any canonical write.
+      - Recorded: legacy; at=2026-10-22T11:34:55Z; fp=10f0455ad463

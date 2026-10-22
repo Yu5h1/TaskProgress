@@ -22,6 +22,7 @@ Current round: `Documentation/EditorHistory.md#歷史工具模組`.
       - Action: 在測試決策頁選答案 → 開啟歷史 → 復原一步 → 重做一步；清除歷史先取消、再確認，並以 Escape 關閉面板。
       - Expect: 顯示操作名稱與目前位置；取消不清紀錄，確認只清紀錄且答案保留；關閉後焦點回到歷史圖示。
       - Reason: 需要實際確認圖示辨識、焦點與操作感受。
+      - Recorded: legacy; at=2026-10-22T11:34:55Z; fp=374ac95e0d43
 
 - [x] **3. 亮暗主題配色**
   Outcome: 歷史工具與決策頁背景、文字使用同一組主題色。

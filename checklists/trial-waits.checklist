@@ -1,0 +1,12 @@
+# 等待試跑 Checklist
+
+Current round: `experiments/acceptance-trial/spec.md#等待試跑`.
+
+驗證方式：自驗。本檔只有一輪；子項宣告等待「他驗試跑」，那一項完成前不執行。
+
+- [ ] **1. 建立 waits.txt**
+  Outcome: experiments/acceptance-trial/waits.txt 符合規格。
+  Checks:
+    - [ ] **內容正確**
+      - Action: 讀取 experiments/acceptance-trial/waits.txt。
+      - Expect: 只有一行 waited。

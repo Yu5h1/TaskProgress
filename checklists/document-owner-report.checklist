@@ -17,3 +17,4 @@ Current round: `Documentation/DocumentOwnerReport.md#行為`.
       - Action: 重新整理 Checklist 與 Decision 網頁 → 查看標題下方擁有者 → 點擊報告名稱。
       - Expect: 兩頁顯示所屬 Report 名稱，點擊到正確 scope 的 Report，連結可用鍵盤聚焦及開啟。
       - Reason: 需要確認實際頁面排版與導覽操作。
+      - Recorded: legacy; at=2026-10-22T11:34:55Z; fp=acdfd13eccf4

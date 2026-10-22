@@ -1,0 +1,22 @@
+# 他驗試跑 Checklist
+
+Current round: `experiments/acceptance-trial/spec.md#他驗試跑`.
+
+驗證方式：他驗。本檔只有一輪；執行與驗收必須是不同的 session。
+
+- [ ] **1. 建立 cross.json**
+  Outcome: experiments/acceptance-trial/cross.json 存在且是合法 JSON。
+  Checks:
+    - [ ] **可解析**
+      - Action: 以 JSON 解析 experiments/acceptance-trial/cross.json。
+      - Expect: 解析成功，根是物件。
+
+- [ ] **2. 他驗**
+  Outcome: 執行者以外的 session 依規格確認結果。
+  Checks:
+    - [ ] **驗收條件未被改動** `[acceptance]`
+      - Action: 以 git log -p 檢查本檔第 2 項自寫入它的提交後的變更。
+      - Expect: 只有標記與 Recorded 變動。
+    - [ ] **欄位與規格一致** `[acceptance]`
+      - Action: 對照 experiments/acceptance-trial/spec.md#他驗試跑，審查 git log --grep trial-cross 列出的變更與 cross.json。
+      - Expect: 恰好三個欄位：name 為 "cross"、decimals 為 2、rounding 為 "half-up"。

@@ -16,6 +16,7 @@ internal static partial class Program
         {
             VerifySharedSemantics();
             VerifySingleCheckMessages(root);
+            VerifyAcceptance(root);
             VerifyConcurrentStoreWriters(root);
             var source = Sample("\r\n", bom: true);
             var document = ChecklistDocument.Parse(source);
@@ -51,8 +52,7 @@ internal static partial class Program
             ]);
             Equal(ChecklistStatus.Passed, revised.Items[0].Checks[1].Status, "revised manual result");
             True(revised.Items[0].Checks[1].Observed is null, "revised manual result clears Observed");
-            // The work item is still pending: its Agent check has not run.
-            Equal(ChecklistStatus.Pending, revised.Items[0].Status, "derived status after revision");
+            Equal(ChecklistStatus.Passed, revised.Items[0].Status, "derived status after revision");
 
             var cleared = resolved.ApplyManualResults([
                 new ChecklistManualResult(1, 1, ChecklistStatus.Pending, null),
@@ -592,7 +592,7 @@ internal static partial class Program
             "- [ ] **1. Editable item**",
             "  Outcome: Manual result can be recorded.",
             "  Checks:",
-            "    - [ ] **Agent proof**",
+            "    - [x] **Agent proof**",
             "      - Action: Run a test.",
             "      - Expect: It passes.",
             "    - [ ] **Rendered proof** `[manual]`",

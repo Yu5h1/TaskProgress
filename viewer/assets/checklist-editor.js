@@ -66,6 +66,7 @@ export function summarizeChecklist(document) {
         action: check.action,
         expect: check.expect,
         isManual: check.isManual,
+        isAcceptance: Boolean(check.isAcceptance),
       };
       if (check.status === "failed" && !failedStep) failedStep = step;
       if (check.status === "pending" && !blocked && !pendingStep) pendingStep = step;
@@ -81,33 +82,69 @@ export function summarizeChecklist(document) {
 }
 
 const CYCLE = { pending: "passed", passed: "failed", failed: "pending" };
+export const REJECT_REASONS = Object.freeze(["implementation", "condition"]);
+
+export function isTagged(check) {
+  return Boolean(check?.isManual || check?.isAcceptance);
+}
+
+/**
+ * Why a tagged check cannot take a result yet: acceptance waits for the executor's checks,
+ * manual also waits for acceptance. Null when it may be recorded.
+ */
+export function lockReason(document, check) {
+  const checks = (document?.items ?? []).flatMap((item) => item.checks ?? []);
+  const executorDone = checks.filter((candidate) => !isTagged(candidate)).every((candidate) => candidate.status === "passed");
+  const acceptanceDone = checks.filter((candidate) => candidate.isAcceptance)
+    .every((candidate) => candidate.status === "passed" && (candidate.validity ?? "valid") === "valid");
+  if (check?.isAcceptance && !executorDone) return "等執行者的檢查全部完成";
+  if (check?.isManual && !executorDone) return "等執行者的檢查全部完成";
+  if (check?.isManual && !acceptanceDone) return "等他驗全部通過";
+  return null;
+}
 
 function reduce(document, command) {
   const { item, check } = findCheck(document, command.workItemId, command.checkIndex);
-  // Manual results stay editable after they are saved; Agent results are frozen
-  // execution evidence.
-  if (!check.isManual) throw new Error("Agent check 是唯讀的。");
+  if (!isTagged(check)) throw new Error("Agent check 是唯讀的。");
   if (command.type === "set-result" || command.type === "cycle-result") {
     const next = command.type === "cycle-result"
       ? CYCLE[check.status] ?? "pending"
       : command.status;
     if (!["pending", "passed", "failed"].includes(next)) {
-      throw new Error("不支援的實機檢查狀態。");
+      throw new Error("不支援的檢查狀態。");
     }
+    const locked = next === "pending" ? null : lockReason(document, check);
+    if (locked) throw new Error(`「${check.title}」還不能記錄：${locked}。`);
     check.status = next;
     if (next !== "failed") {
-      // Leaving a failure drops the result it described.
       check.observed = null;
       check.resolved = null;
+      check.rejectReason = null;
+    } else if (check.isAcceptance) {
+      check.rejectReason = check.rejectReason ?? "implementation";
     }
   } else if (command.type === "set-observed") {
     if (check.status !== "failed") throw new Error("只有失敗草稿可以填寫 Observed。");
     check.observed = String(command.value ?? "");
+  } else if (command.type === "set-reason") {
+    if (!check.isAcceptance || check.status !== "failed") throw new Error("只有不通過的 [acceptance] 可以選擇原因。");
+    if (!REJECT_REASONS.includes(command.value)) throw new Error("原因只能是實作不符或條件不符。");
+    check.rejectReason = command.value;
   } else {
     throw new Error(`不支援的 Checklist command：${command.type}`);
   }
   item.status = itemStatus(item);
   return document;
+}
+
+/** Keeps only the checks this panel's user can record, for 「只顯示我能操作的檢查」. */
+export function filterOperableChecks(document) {
+  return {
+    ...document,
+    items: document.items
+      .map((item) => ({ ...item, checks: item.checks.filter(isTagged) }))
+      .filter((item) => item.checks.length > 0),
+  };
 }
 
 // Revision and the saved comparison baseline belong to the session, never history.
@@ -211,11 +248,12 @@ export function createChecklistEditorSession(document, options = {}) {
     const results = [];
     const errors = [];
     transaction.derived.items.forEach((item) => item.checks.forEach((check) => {
-      if (!check.isManual) return;
+      if (!isTagged(check)) return;
       const observed = String(check.observed ?? "").trim();
       const savedCheck = findCheck(persisted, item.id, check.index).check;
       const persistedObserved = String(savedCheck.observed ?? "").trim();
-      if (check.status === savedCheck.status && observed === persistedObserved) return;
+      if (check.status === savedCheck.status && observed === persistedObserved
+        && (check.rejectReason ?? null) === (savedCheck.rejectReason ?? null)) return;
       if (check.status === "failed" && !observed) {
         errors.push({
           code: "observed_required",
@@ -225,12 +263,14 @@ export function createChecklistEditorSession(document, options = {}) {
         });
         return;
       }
-      results.push({
+      const result = {
         workItemId: item.id,
         checkIndex: check.index,
         status: check.status,
         observed: check.status === "failed" ? observed : null,
-      });
+      };
+      if (check.isAcceptance && check.status === "failed") result.reason = check.rejectReason ?? "implementation";
+      results.push(result);
     }));
     if (transaction.dirty && results.length === 0 && errors.length === 0) {
       errors.push({ code: "empty_change", message: "沒有可儲存的實機檢查結果。" });

@@ -1,0 +1,22 @@
+# 條件不符試跑 Checklist
+
+Current round: `experiments/acceptance-trial/spec.md#條件不符試跑`.
+
+驗證方式：他驗。本檔只有一輪；第 2 項的第二個檢查故意寫錯（規格是 3），用來試跑驗收者標「條件不符」與建立者修改條件的流程。
+
+- [ ] **1. 建立 condition.txt**
+  Outcome: experiments/acceptance-trial/condition.txt 符合規格。
+  Checks:
+    - [ ] **內容正確**
+      - Action: 讀取 experiments/acceptance-trial/condition.txt，並對照 experiments/acceptance-trial/spec.md#條件不符試跑。
+      - Expect: 只有一行數字，與規格一致。
+
+- [ ] **2. 他驗**
+  Outcome: 執行者以外的 session 依規格確認結果。
+  Checks:
+    - [ ] **驗收條件未被改動** `[acceptance]`
+      - Action: 以 git log -p 檢查本檔第 2 項自寫入它的提交或最近一次「條件修訂」提交後的變更。
+      - Expect: 只有標記與 Recorded 變動。
+    - [ ] **數字與規格一致** `[acceptance]`
+      - Action: 對照 experiments/acceptance-trial/spec.md#條件不符試跑，讀取 condition.txt。
+      - Expect: 內容是數字 2。

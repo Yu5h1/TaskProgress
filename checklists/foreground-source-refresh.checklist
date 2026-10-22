@@ -36,3 +36,4 @@ This round adds one Browser-host lifecycle rule shared by the Report Viewer and 
       - Action: Open one Report and one Checklist in the Browser Preview Panel; leave the panel, modify each source externally, then return once with a clean page and once while the page has an unsaved or pending edit.
       - Expect: Each clean return reloads once and shows the external change; the unsafe return does not reload or discard the in-memory edit.
       - Reason: Requires the user's Codex Preview Panel focus lifecycle and direct confirmation that a draft remains visible.
+      - Recorded: legacy; at=2026-10-22T11:34:55Z; fp=a3de6c5f3f07

@@ -11,13 +11,21 @@ internal sealed class ChecklistBridge
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
     };
+    private static readonly System.Text.RegularExpressions.Regex ActorPattern = new("^[a-z][a-z0-9-]{0,31}$");
     private readonly string checklistPath;
     private readonly ChecklistDocumentStore store;
+    private readonly bool fromUser;
+    private ChecklistWriter writer = ChecklistWriter.User;
 
-    public ChecklistBridge(string checklistPath, ChecklistDocumentStore? store = null)
+    /// <summary>
+    ///   <paramref name="fromUser"/> is true for the panels the user operates;
+    ///   a direct CLI caller is an agent and must say who it is on every write.
+    /// </summary>
+    public ChecklistBridge(string checklistPath, ChecklistDocumentStore? store = null, bool fromUser = true)
     {
         this.checklistPath = ChecklistDocumentStore.ValidatePath(checklistPath);
         this.store = store ?? new ChecklistDocumentStore();
+        this.fromUser = fromUser;
     }
 
     public string Handle(string requestJson)
@@ -28,10 +36,11 @@ internal sealed class ChecklistBridge
             using var request = JsonDocument.Parse(requestJson);
             var root = request.RootElement;
             RequireObject(root, "request");
-            RejectUnknown(root, "request", "version", "id", "type", "payload");
+            RejectUnknown(root, "request", "version", "id", "type", "payload", "actor", "sessionId");
             RequireInteger(root, "version", ProtocolVersion);
             id = RequireString(root, "id", 64);
             var type = RequireString(root, "type", 16);
+            if (type != "load") writer = ResolveWriter(root, type);
             object payload = type switch
             {
                 "load" => Load(root),
@@ -149,9 +158,31 @@ internal sealed class ChecklistBridge
 
     private object Persist(ChecklistDocument source, IEnumerable<ChecklistManualResult> results)
     {
-        var updated = source.ApplyManualResults(results);
+        var updated = source.ApplyTaggedResults(results, writer, DateTimeOffset.UtcNow);
         store.Save(checklistPath, source.Revision, updated);
         return Snapshot(store.Load(checklistPath));
+    }
+
+    private ChecklistWriter ResolveWriter(JsonElement root, string type)
+    {
+        var hasActor = root.TryGetProperty("actor", out _);
+        if (fromUser)
+        {
+            if (hasActor || root.TryGetProperty("sessionId", out _))
+                throw new ChecklistBridgeException("invalid_request", "面板寫入不帶 actor 或 sessionId。");
+            return ChecklistWriter.User;
+        }
+        if (type == "reset") throw new ChecklistBridgeException("forbidden", "agent 不能清空結果。");
+        if (!hasActor || !root.TryGetProperty("sessionId", out _))
+            throw new ChecklistBridgeException("invalid_request", "agent 寫入必須帶 actor 與 sessionId。");
+        var actor = RequireString(root, "actor", 32);
+        var session = RequireString(root, "sessionId", 100);
+        if (!ActorPattern.IsMatch(actor) || actor == "user" || actor == "legacy")
+            throw new ChecklistBridgeException("invalid_request", "actor 必須是寫入工具的小寫名稱，例如 claude，且不能是 user 或 legacy。");
+        if (session.Contains(';')) throw new ChecklistBridgeException("invalid_request", "sessionId 不可包含分號。");
+        var binding = ChecklistBinding.Find(checklistPath)
+            ?? throw new ChecklistBridgeException("forbidden", "這份 checklist 沒有綁定 Report 子項，agent 不能寫入標籤檢查。");
+        return new ChecklistWriter($"{actor}:{session}", false, session, binding.ExecutorSessions);
     }
 
     private static JsonElement RequirePayload(JsonElement root, string type)
@@ -167,7 +198,7 @@ internal sealed class ChecklistBridge
     private static ChecklistManualResult ParseManualResult(JsonElement result)
     {
         RequireObject(result, "manual result");
-        RejectUnknown(result, "manual result", "workItemId", "checkIndex", "status", "observed");
+        RejectUnknown(result, "manual result", "workItemId", "checkIndex", "status", "observed", "resolved", "reason");
         var status = RequireString(result, "status", 16) switch
         {
             "pending" => ChecklistStatus.Pending,
@@ -177,11 +208,20 @@ internal sealed class ChecklistBridge
                 "invalid_request",
                 "manual result status 只能是 pending、passed 或 failed。"),
         };
+        ChecklistRejectReason? reason = OptionalString(result, "reason", 16) switch
+        {
+            null => null,
+            "implementation" => ChecklistRejectReason.Implementation,
+            "condition" => ChecklistRejectReason.Condition,
+            _ => throw new ChecklistBridgeException("invalid_request", "reason 只能是 implementation 或 condition。"),
+        };
         return new ChecklistManualResult(
             RequireInteger(result, "workItemId", minimum: 1),
             RequireInteger(result, "checkIndex", minimum: 0),
             status,
-            OptionalString(result, "observed", 4000));
+            OptionalString(result, "observed", 4000),
+            OptionalString(result, "resolved", 4000),
+            reason);
     }
 
     private object Snapshot(ChecklistDocument document) => new
@@ -189,6 +229,8 @@ internal sealed class ChecklistBridge
         fileName = Path.GetFileName(checklistPath),
         revision = document.Revision,
         roundIdentity = document.RoundIdentity,
+        untaggedComplete = document.UntaggedComplete,
+        acceptanceComplete = document.AcceptanceComplete,
         items = document.Items.Select(item => new
         {
             id = item.Id,
@@ -200,13 +242,36 @@ internal sealed class ChecklistBridge
             {
                 index,
                 status = StatusValue(check.Status),
+                effectiveStatus = StatusValue(ChecklistDocument.EffectiveStatus(check)),
                 title = check.Title,
+                tag = check.Tag switch
+                {
+                    ChecklistTag.Manual => "manual",
+                    ChecklistTag.Acceptance => "acceptance",
+                    _ => (string?)null,
+                },
                 isManual = check.IsManual,
+                isAcceptance = check.IsAcceptance,
                 action = check.Action,
                 expect = check.Expect,
                 reason = check.Reason,
                 observed = check.Observed,
                 resolved = check.Resolved,
+                validity = ChecklistDocument.Validity(check) switch
+                {
+                    ChecklistResultValidity.NoRecorder => "no_recorder",
+                    ChecklistResultValidity.FingerprintMismatch => "fingerprint",
+                    _ => "valid",
+                },
+                recorder = check.Record?.Recorder,
+                recordedAt = check.Record?.At,
+                rejectReason = check.Record?.RejectReason switch
+                {
+                    ChecklistRejectReason.Implementation => "implementation",
+                    ChecklistRejectReason.Condition => "condition",
+                    _ => null,
+                },
+                conditionCount = check.Record?.ConditionCount ?? 0,
             }),
         }),
     };

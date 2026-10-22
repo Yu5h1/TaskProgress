@@ -40,6 +40,34 @@ class ReportCliTests(unittest.TestCase):
         return next(i for key in ("pending_items", "completed_items") for i in task.get(key, [])
                     if isinstance(i, dict) and i["id"] == identity)
 
+    def test_release_frees_the_claim_and_dispute_needs_a_note(self):
+        op = lambda **kw: {"op": "item.event", "task_id": "one", "item_id": "item", **kw}
+        execute(self.root, "apply", self.request([{"op": "item.update", "task_id": "one", "item_id": "item", "set": {"status": "in_progress"}}], session="s1"))
+        execute(self.root, "apply", self.request([op(event="released")], session="s1"))
+        self.assertEqual(self.item()["status"], "planned")
+        execute(self.root, "apply", self.request([{"op": "item.update", "task_id": "one", "item_id": "item", "set": {"status": "in_progress"}}], actor="claude", session="s2"))
+        self.assertEqual([(e["event"], e.get("session_id")) for e in self.item()["activity"]],
+                         [("started", "s1"), ("released", "s1"), ("started", "s2")])
+        with self.assertRaises(ReportError):
+            execute(self.root, "apply", self.request([op(event="disputed")], session="s3"))
+        with self.assertRaises(ReportError):
+            execute(self.root, "apply", self.request([op(event="done")], session="s3"))
+        execute(self.root, "apply", self.request([op(event="disputed", note="條件與規格 3.2 一致，不需修改")], session="s3"))
+        self.assertEqual(self.item()["activity"][-1]["note"], "條件與規格 3.2 一致，不需修改")
+
+    def test_waits_reject_self_unknown_and_loops(self):
+        wait = lambda item: [{"scope_id": "sample", "task_id": "one", "item_id": item}]
+        execute(self.root, "apply", self.request([{"op": "item.add", "task_id": "one", "value": {"id": "b", "title": "B"}}]))
+        for waits in (wait("item"), wait("missing"), [{"scope_id": "nowhere", "task_id": "one", "item_id": "b"}]):
+            with self.assertRaises(ReportError):
+                execute(self.root, "apply", self.request([{"op": "item.update", "task_id": "one", "item_id": "item", "set": {"waits_for": waits}}]))
+        execute(self.root, "apply", self.request([{"op": "item.update", "task_id": "one", "item_id": "item", "set": {"waits_for": wait("b")}}]))
+        self.assertEqual(self.item()["waits_for"], wait("b"))
+        with self.assertRaises(ReportError):
+            execute(self.root, "apply", self.request([{"op": "item.update", "task_id": "one", "item_id": "b", "set": {"waits_for": wait("item")}}]))
+        execute(self.root, "apply", self.request([{"op": "item.update", "task_id": "one", "item_id": "item", "unset": ["waits_for"]}]))
+        self.assertNotIn("waits_for", self.item())
+
     def test_activity_records_created_started_done_and_keeps_three_recent(self):
         execute(self.root, "apply", self.request([{"op": "item.add", "task_id": "one", "value": {"id": "log", "title": "Log"}}], session="s1", name="Report 修正"))
         self.assertEqual([(e["event"], e["actor"], e.get("session"), e.get("session_id")) for e in self.item("log")["activity"]],
@@ -48,7 +76,7 @@ class ReportCliTests(unittest.TestCase):
             execute(self.root, "apply", self.request([{"op": "item.update", "task_id": "one", "item_id": "log", "set": {"title": title}}], session="s1"))
         execute(self.root, "apply", self.request([{"op": "item.update", "task_id": "one", "item_id": "log", "set": {"status": "in_progress"}}], session="s1"))
         execute(self.root, "apply", self.request([{"op": "item.update", "task_id": "one", "item_id": "log", "set": {"status": "done"}}], session="s1"))
-        self.assertEqual([e["event"] for e in self.item("log")["activity"]], ["created", "updated", "started", "done"])
+        self.assertEqual([e["event"] for e in self.item("log")["activity"]], ["created", "updated", "updated", "started", "done"])
 
     def test_activity_noop_stays_noop_and_actor_is_required(self):
         execute(self.root, "apply", self.request([{"op": "item.add", "task_id": "one", "value": {"id": "log", "title": "Log"}}]))

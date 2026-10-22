@@ -27,3 +27,4 @@ Current round: `Documentation/TrayWorkerPlan.md#驗收`.
       - Action: 發布後退出舊 TrayHost，執行 start，再次 start，停止服務後再 start；另在 Tray 關閉時雙擊 checklist 並使用 validate/request。
       - Expect: 首次等待服務就緒，後續重用同一 Tray；服務可恢復，no-browser 不開瀏覽器；本地 checklist 預覽與純命令不要求 Tray。
       - Reason: 需要部署與實際 GUI／常駐服務操作；依使用者安排維持後排。
+      - Recorded: legacy; at=2026-10-22T11:34:55Z; fp=202dba3700ec

@@ -14,6 +14,7 @@ Current round: `Documentation/TrayWorkerPlan.md#啟動入口start`.
       - Action: 閱讀本項 Outcome 與已通過的自動檢查說明後勾選。
       - Expect: 確認預設啟動、明確選項與 CLI 相容行為符合需求，不需重做自動測試。
       - Reason: 使用者要求完成說明也保留可勾選核查。
+      - Recorded: legacy; at=2026-10-22T11:34:55Z; fp=4ff40c19fd4a
 
 - [x] **2. 有界本機日誌與輪替**
   Outcome: 日誌不公開、保留量受限，觀察器辨識完整 UTF-8 行與輪替。
@@ -25,6 +26,7 @@ Current round: `Documentation/TrayWorkerPlan.md#啟動入口start`.
       - Action: 閱讀本項 Outcome 與已通過的自動檢查說明後勾選。
       - Expect: 確認日誌範圍與輪替行為符合需求，不需重做自動測試。
       - Reason: 使用者要求完成說明也保留可勾選核查。
+      - Recorded: legacy; at=2026-10-22T11:34:55Z; fp=187b1449537f
 
 - [x] **3. 雙擊啟動與通知**
   Outcome: 無參數啟動不閃 Console、不開 browser，Tray 通知實際服務狀態。
@@ -33,10 +35,12 @@ Current round: `Documentation/TrayWorkerPlan.md#啟動入口start`.
       - Action: 在 Windows 雙擊本輪發布的 Build/win-x64/task-progress.exe → 確認通知 → 再雙擊一次。
       - Expect: 沒有黑窗或瀏覽器；第一次顯示已啟動，第二次顯示已在執行，Tray 保持單一實例。
       - Reason: 需要實際 Windows 桌面與通知呈現確認。
+      - Recorded: legacy; at=2026-10-22T11:34:55Z; fp=840fdf2a063f
     - [x] **明確開啟瀏覽器** `[manual]`
       - Action: 在專案 PowerShell 執行 .\Build\win-x64\task-progress.exe start --browser。
       - Expect: 沿用服務並開啟 Viewer；預設 start 不開啟。
       - Reason: 需要確認使用者預設瀏覽器與桌面行為。
+      - Recorded: legacy; at=2026-10-22T11:34:55Z; fp=1c9b6f313ed8
 
 - [x] **4. 觀察窗與服務生命週期分離**
   Outcome: 觀察窗持續顯示服務訊息，關閉觀察不停止服務。
@@ -45,7 +49,9 @@ Current round: `Documentation/TrayWorkerPlan.md#啟動入口start`.
       - Action: 在專案 PowerShell 執行 .\Build\win-x64\task-progress.exe start --console → 在 Viewer 重載頁面 → 按 Ctrl+C → 再執行 service status。再以相同命令開啟觀察並關閉視窗，於新 PowerShell 查 service status。
       - Expect: 日誌持續更新，兩種離開方式後服務仍 Running，Tray 仍在。
       - Reason: 需要 Windows Console 實際關閉事件與已部署服務。
+      - Recorded: legacy; at=2026-10-22T11:34:55Z; fp=8841d09a40de
     - [x] **Tray 結束服務** `[manual]`
       - Action: 完成並保存測試工作 → Tray 選單 Exit → 執行 .\Build\win-x64\task-progress.exe service status。
       - Expect: Tray 消失且服務停止。
       - Reason: 此操作影響使用者共用服務，須在可結束服務時執行。
+      - Recorded: legacy; at=2026-10-22T11:34:55Z; fp=0ce67890a9ac

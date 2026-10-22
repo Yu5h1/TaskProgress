@@ -64,8 +64,9 @@
   // same as it always did.
   $: itemStatus = item.status ?? (field === "completed_items" ? "done" : "planned");
   $: statusValue = itemStatus;
-  $: statusEntry = statuses.find((entry) => entry.value === itemStatus)
-    ?? { label: itemStatus, tone: "muted" };
+  $: statusEntry = item.derivedState && item.derivedState !== "done"
+    ? { label: item.derivedStateLabel, tone: item.derivedStateTone }
+    : statuses.find((entry) => entry.value === itemStatus) ?? { label: itemStatus, tone: "muted" };
   $: statusLabel = statusEntry.label;
 
   // One command: the host relocates the item when the new status requires
@@ -198,7 +199,7 @@
             </span>
           {/if}
         {/if}
-        <ExpandableText text={item.title} lines={1} expanded={leadItem} />
+        <ExpandableText text={item.displayTitle ?? item.title} lines={1} expanded={leadItem} />
       </div>
 
     {/if}

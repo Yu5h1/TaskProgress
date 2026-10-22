@@ -115,6 +115,7 @@ internal static class ReportCommand
 
     private static async Task<int> ExecuteAsync(Request request, string? input, CancellationToken cancellationToken)
     {
+        if (request.Action == "apply" && input is not null) RequireSessionForAcceptanceItems(request.Folder, input);
         var script = FindScript();
         var start = new ProcessStartInfo
         {
@@ -164,12 +165,94 @@ internal static class ReportCommand
                 || process.ExitCode is not (0 or 2 or 3 or 4)
                 || ok.GetBoolean() != (process.ExitCode == 0))
                 throw new InvalidOperationException("Report backend returned an invalid JSON result or exit code.");
-            Console.WriteLine(root.GetRawText());
+            Console.WriteLine(request.Action == "get" && process.ExitCode == 0
+                ? WithDerivedStates(request.Folder, stdout)
+                : root.GetRawText());
             return process.ExitCode;
         }
         finally
         {
             Kill(process);
+        }
+    }
+
+    /// <summary>
+    ///   Adds each object item's <c>derived_state</c>, the state readers and
+    ///   queues act on; the stored status stays as written.
+    /// </summary>
+    internal static string WithDerivedStates(string folder, string result)
+    {
+        if (System.Text.Json.Nodes.JsonNode.Parse(result) is not System.Text.Json.Nodes.JsonObject root) return result;
+        var report = root["report"] as System.Text.Json.Nodes.JsonObject
+            ?? System.Text.Json.Nodes.JsonNode.Parse(File.ReadAllBytes(Path.Combine(folder, "report.json"))) as System.Text.Json.Nodes.JsonObject;
+        var scope = report?["scope_id"]?.GetValue<string>();
+        if (report is null || scope is null) return result;
+        var resolver = new ItemStateResolver(folder, report);
+        var tasks = root["report"] is System.Text.Json.Nodes.JsonObject full
+            ? (full["tasks"] as System.Text.Json.Nodes.JsonArray)?.OfType<System.Text.Json.Nodes.JsonObject>() ?? []
+            : root["task"] is System.Text.Json.Nodes.JsonObject single ? [single] : [];
+        foreach (var task in tasks)
+        {
+            foreach (var list in new[] { "pending_items", "completed_items" })
+            {
+                if (task[list] is not System.Text.Json.Nodes.JsonArray items) continue;
+                foreach (var item in items.OfType<System.Text.Json.Nodes.JsonObject>())
+                    item["derived_state"] = resolver.StateOf(scope, item);
+            }
+        }
+        return root.ToJsonString();
+    }
+
+    /// <summary>
+    ///   Writes to an item whose checklist carries [acceptance] must name their
+    ///   session, or executor and acceptor cannot be told apart.
+    /// </summary>
+    private static void RequireSessionForAcceptanceItems(string folder, string input)
+    {
+        System.Text.Json.Nodes.JsonObject? request;
+        try
+        {
+            request = System.Text.Json.Nodes.JsonNode.Parse(input) as System.Text.Json.Nodes.JsonObject;
+        }
+        catch (JsonException)
+        {
+            return;
+        }
+        if (request is null || request["session_id"] is not null || request["operations"] is not System.Text.Json.Nodes.JsonArray operations)
+            return;
+        var reportPath = Path.Combine(folder, "report.json");
+        if (!File.Exists(reportPath)
+            || System.Text.Json.Nodes.JsonNode.Parse(File.ReadAllBytes(reportPath)) is not System.Text.Json.Nodes.JsonObject report
+            || report["tasks"] is not System.Text.Json.Nodes.JsonArray tasks)
+            return;
+        foreach (var operation in operations.OfType<System.Text.Json.Nodes.JsonObject>())
+        {
+            var itemId = operation["item_id"]?.GetValue<string>();
+            var taskId = operation["task_id"]?.GetValue<string>();
+            if (itemId is null || taskId is null) continue;
+            var item = tasks.OfType<System.Text.Json.Nodes.JsonObject>()
+                .Where(task => task["id"]?.GetValue<string>() == taskId)
+                .SelectMany(task => new[] { task["pending_items"], task["completed_items"] })
+                .OfType<System.Text.Json.Nodes.JsonArray>()
+                .SelectMany(list => list.OfType<System.Text.Json.Nodes.JsonObject>())
+                .FirstOrDefault(entry => entry["id"]?.GetValue<string>() == itemId);
+            if (item?["document_ref"] is not System.Text.Json.Nodes.JsonObject reference
+                || reference["kind"]?.GetValue<string>() != "checklist"
+                || reference["task"]?.GetValue<string>() is not { } stem)
+                continue;
+            var path = Path.Combine(folder, "checklists", stem + ".checklist");
+            if (!File.Exists(path)) continue;
+            ChecklistDocument document;
+            try
+            {
+                document = ChecklistDocument.Parse(File.ReadAllBytes(path));
+            }
+            catch (CliException)
+            {
+                continue;
+            }
+            if (document.HasAcceptance)
+                throw new CliException($"子項 {itemId} 的 checklist 含 [acceptance]，寫入必須帶 session_id，才能區分執行者與驗收者。");
         }
     }
 

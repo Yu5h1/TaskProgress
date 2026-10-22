@@ -72,7 +72,11 @@ internal static class TimeAnalysisGenerator
 
         var diagnostics = new List<Diagnostic>();
         var config = ReadConfig(configSource, report, asOf, diagnostics);
-        var reportTasks = ReadReportTasks(report);
+        var states = new ItemStateResolver(reportFolder.DirectoryPath, report);
+        var reportTasks = ReadReportTasks(report, item => item["document_ref"] is JsonObject reference
+            && reference["kind"]?.GetValue<string>() == "checklist"
+                ? states.StateOf(scopeId, item) == ItemStates.Done
+                : null);
         var activeEstimates = ReadActiveEstimates(estimatesSource, reportTasks);
         var analysisTasks = new JsonArray();
         var composition = new Dictionary<string, int>(StringComparer.Ordinal)
@@ -460,7 +464,11 @@ internal static class TimeAnalysisGenerator
             roundDays);
     }
 
-    private static List<ReportTask> ReadReportTasks(JsonObject report)
+    /// <summary>
+    ///   <paramref name="derivedDone"/> answers for items bound to a checklist,
+    ///   whose completion comes from the checklist rather than the array they sit in.
+    /// </summary>
+    private static List<ReportTask> ReadReportTasks(JsonObject report, Func<JsonObject, bool?> derivedDone)
     {
         var tasks = RequiredArray(report, "tasks", "report.json");
         var result = new List<ReportTask>();
@@ -484,6 +492,7 @@ internal static class TimeAnalysisGenerator
                 itemIds,
                 items,
                 completed: true,
+                derivedDone,
                 ref legacyItemCount,
                 ref completedCount);
             ReadItems(
@@ -492,6 +501,7 @@ internal static class TimeAnalysisGenerator
                 itemIds,
                 items,
                 completed: false,
+                derivedDone,
                 ref legacyItemCount,
                 ref pendingCount);
             int? progressCompleted = null;
@@ -520,6 +530,7 @@ internal static class TimeAnalysisGenerator
         HashSet<string> ids,
         List<ReportItem> items,
         bool completed,
+        Func<JsonObject, bool?> derivedDone,
         ref int legacyCount,
         ref int listCount)
     {
@@ -541,7 +552,7 @@ internal static class TimeAnalysisGenerator
             var id = RequiredString(item, "id", "report item");
             ScopeId.Validate(id);
             if (!ids.Add(id)) throw new CliException($"{taskId} 的 item id 重複：{id}");
-            items.Add(new ReportItem(id, completed));
+            items.Add(new ReportItem(id, derivedDone(item) ?? completed));
         }
     }
 

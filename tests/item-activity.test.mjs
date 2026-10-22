@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
-import { ACTIVITY_RECENT_LIMIT, appendActivity, formatActivity, recordUserActivity, validateActivity } from "../viewer/assets/item-activity.js";
+import { ACTIVITY_MAX_ITEMS, ACTIVITY_RECENT_LIMIT, appendActivity, formatActivity, recordUserActivity, validateActivity } from "../viewer/assets/item-activity.js";
 import { validateReport } from "../viewer/assets/report-model.js";
 
 const at = "2026-10-21T08:00:00.000Z";
@@ -14,12 +14,16 @@ const report = (items) => ({
   tasks: [{ id: "t", title: "T", summary: "S", status: "in_progress", pending_items: items, completed_items: [] }],
 });
 
-test("the created entry stays and only the three most recent others remain", () => {
+test("created, every start and takeover, the latest release and dispute, and three other entries remain", () => {
   let activity = [];
   activity = appendActivity(activity, { event: "created", actor: "codex", at });
-  for (const event of ["updated", "started", "updated", "done"]) activity = appendActivity(activity, { event, actor: "codex", at });
-  assert.deepEqual(activity.map(entry => entry.event), ["created", "started", "updated", "done"]);
-  assert.equal(activity.length, ACTIVITY_RECENT_LIMIT + 1);
+  for (const event of ["updated", "started", "released", "updated", "takeover", "updated", "released", "disputed", "done", "updated"]) {
+    activity = appendActivity(activity, { event, actor: "codex", at });
+  }
+  assert.deepEqual(activity.map(entry => entry.event),
+    ["created", "started", "takeover", "updated", "released", "disputed", "done", "updated"]);
+  assert.equal(activity.filter(entry => !["created", "started", "takeover", "released", "disputed"].includes(entry.event)).length,
+    ACTIVITY_RECENT_LIMIT);
 });
 
 test("the Viewer records user entries only for created, changed and moved items", () => {
@@ -48,7 +52,7 @@ test("validation rejects malformed or overlong activity", () => {
   const errors = [];
   validateActivity([{ event: "created", actor: "Codex", at }], "x", errors, issue);
   validateActivity([{ event: "created", actor: "codex", at, extra: 1 }], "y", errors, issue);
-  validateActivity(Array.from({ length: 5 }, () => ({ event: "updated", actor: "codex", at })), "z", errors, issue);
+  validateActivity(Array.from({ length: ACTIVITY_MAX_ITEMS + 1 }, () => ({ event: "updated", actor: "codex", at })), "z", errors, issue);
   assert.deepEqual(errors.map(error => error.path), ["x[0]", "y[0]", "z"]);
 });
 
@@ -66,5 +70,9 @@ test("JS, Python and the schema keep the same retention", async () => {
   const python = await readFile(new URL("../service/report_operations.py", import.meta.url), "utf8");
   const schema = JSON.parse(await readFile(new URL("../schemas/report.schema.json", import.meta.url), "utf8"));
   assert.match(python, new RegExp(`^ACTIVITY_RECENT_LIMIT = ${ACTIVITY_RECENT_LIMIT}$`, "mu"));
-  assert.equal(schema.$defs.item.properties.activity.maxItems, ACTIVITY_RECENT_LIMIT + 1);
+  assert.match(python, /^PERMANENT_EVENTS = \{"started", "takeover"\}$/mu);
+  assert.match(python, /^LATEST_EVENTS = \{"released", "disputed"\}$/mu);
+  assert.equal(schema.$defs.item.properties.activity.maxItems, ACTIVITY_MAX_ITEMS);
+  assert.deepEqual(schema.$defs.activityEntry.properties.event.enum,
+    ["created", "started", "updated", "done", "takeover", "released", "disputed"]);
 });

@@ -1307,6 +1307,7 @@ h1 {
 .item-status-capsule.status-active { color: var(--blue); background: var(--blue-soft); }
 .item-status-capsule.status-success { color: var(--moss); background: var(--moss-soft); }
 .item-status-capsule.status-danger { color: var(--red); background: var(--red-soft); }
+.item-status-capsule.status-warning { color: var(--amber); background: var(--amber-soft); }
 
 .inline-add-shell {
   display: flex;

@@ -650,7 +650,7 @@ def install_edit_api(
             async with cli_semaphore:
                 completed = await asyncio.to_thread(
                     subprocess.run,
-                    [*analyzer_command, "checklist", "request", "--file", str(checklist_path)],
+                    [*analyzer_command, "checklist", "request", "--viewer", "--file", str(checklist_path)],
                     input=body_bytes,
                     capture_output=True,
                     timeout=30,
@@ -806,7 +806,7 @@ def install_edit_api(
             async with cli_semaphore:
                 completed = await asyncio.to_thread(
                     subprocess.run,
-                    [*analyzer_command, "checklist", "request", "--file", str(checklist_path)],
+                    [*analyzer_command, "checklist", "request", "--viewer", "--file", str(checklist_path)],
                     input=body,
                     capture_output=True,
                     timeout=30,

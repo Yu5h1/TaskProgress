@@ -1,0 +1,30 @@
+# 他驗與人工試跑 Checklist
+
+Current round: `experiments/acceptance-trial/spec.md#他驗與人工試跑`.
+
+驗證方式：他驗＋人工。本檔只有一輪；執行與驗收必須是不同的 session，他驗通過後才輪到使用者。
+
+- [ ] **1. 建立 cross-manual.txt**
+  Outcome: experiments/acceptance-trial/cross-manual.txt 存在。
+  Checks:
+    - [ ] **檔案存在**
+      - Action: 讀取 experiments/acceptance-trial/cross-manual.txt。
+      - Expect: 有兩行。
+
+- [ ] **2. 他驗**
+  Outcome: 執行者以外的 session 依規格確認結果。
+  Checks:
+    - [ ] **驗收條件未被改動** `[acceptance]`
+      - Action: 以 git log -p 檢查本檔第 2 項自寫入它的提交後的變更。
+      - Expect: 只有標記與 Recorded 變動。
+    - [ ] **內容與規格一致** `[acceptance]`
+      - Action: 對照 experiments/acceptance-trial/spec.md#他驗與人工試跑，審查 git log --grep trial-cross-manual 列出的變更與 cross-manual.txt。
+      - Expect: 第一行 cross manual ok，第二行是 UTC 的 ISO 8601 時間。
+
+- [ ] **3. 人工驗收**
+  Outcome: 使用者確認 Checklist 面板的他驗呈現。
+  Checks:
+    - [ ] **他驗標籤與鎖** `[manual]`
+      - Action: 開啟 [這份 checklist](http://127.0.0.1:8001/checklist/?scope=task-progress&task=trial-cross-manual)。
+      - Expect: 第 2 項的檢查顯示「他驗」標籤與記錄者；他驗通過前，本項顯示「等他驗全部通過」且無法點選。
+      - Reason: 畫面由使用者判。

@@ -201,10 +201,26 @@
         "document_ref": {
           "$ref": "#/$defs/documentRef"
         },
-        "activity": {
-          "$comment": "Written by the Report CLI and the Viewer, never by hand. The created entry is kept forever; only the most recent 3 other entries are kept after it.",
+        "waits_for": {
+          "$comment": "Items this item waits for, possibly in other registered scopes. While any is unfinished the item shows as waiting and run skips it. Written by the Report CLI, which rejects loops.",
           "type": "array",
-          "maxItems": 4,
+          "minItems": 1,
+          "maxItems": 20,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["scope_id", "task_id", "item_id"],
+            "properties": {
+              "scope_id": { "type": "string", "minLength": 1, "maxLength": 80 },
+              "task_id": { "$ref": "#/$defs/id" },
+              "item_id": { "$ref": "#/$defs/id" }
+            }
+          }
+        },
+        "activity": {
+          "$comment": "Written by the Report CLI and the Viewer, never by hand. The created entry and every started and takeover entry are kept forever, so the executors stay known; the latest released and disputed entries are kept; only the most recent 3 other entries are kept.",
+          "type": "array",
+          "maxItems": 64,
           "items": { "$ref": "#/$defs/activityEntry" }
         }
       }
@@ -214,7 +230,11 @@
       "additionalProperties": false,
       "required": ["event", "actor", "at"],
       "properties": {
-        "event": { "enum": ["created", "started", "updated", "done", "takeover"] },
+        "event": { "enum": ["created", "started", "updated", "done", "takeover", "released", "disputed"] },
+        "note": {
+          "$comment": "Why the session disputes a condition; required for disputed.",
+          "type": "string", "minLength": 1, "maxLength": 300
+        },
         "actor": {
           "$comment": "The writing tool, such as claude, codex or antigravity; user for the Viewer.",
           "type": "string",

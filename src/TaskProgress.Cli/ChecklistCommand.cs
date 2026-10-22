@@ -31,6 +31,11 @@ internal static class ChecklistCommand
             return Request(args[1..]);
         }
 
+        if (args.Length > 0 && string.Equals(args[0], "migrate", StringComparison.OrdinalIgnoreCase))
+        {
+            return Migrate(args[1..]);
+        }
+
         return Run(
             args,
             openDesktop ?? ChecklistDesktopHost.Run,
@@ -139,11 +144,18 @@ internal static class ChecklistCommand
 
             var path = ChecklistDocumentStore.ValidatePath(args[0]);
             var document = new ChecklistDocumentStore().Load(path);
+            var issues = document.Issues();
+            if (issues.Count > 0)
+            {
+                foreach (var issue in issues) Console.Error.WriteLine($"錯誤：{issue}");
+                return 1;
+            }
             var checks = document.Items.Sum(item => item.Checks.Count);
             var manual = document.Items.Sum(item => item.Checks.Count(check => check.IsManual));
+            var acceptance = document.Items.Sum(item => item.Checks.Count(check => check.IsAcceptance));
             Console.WriteLine($"Checklist 格式正確：{path}");
             Console.WriteLine($"  Current round：{document.RoundIdentity}");
-            Console.WriteLine($"  work items {document.Items.Count}，checks {checks}（manual {manual}）");
+            Console.WriteLine($"  work items {document.Items.Count}，checks {checks}（manual {manual}，acceptance {acceptance}）");
             return 0;
         }
         catch (CliException error)
@@ -171,8 +183,14 @@ internal static class ChecklistCommand
         try
         {
             string? file = null;
+            var viewer = false;
             for (var index = 0; index < args.Length; index++)
             {
+                if (string.Equals(args[index], "--viewer", StringComparison.OrdinalIgnoreCase))
+                {
+                    viewer = true;
+                    continue;
+                }
                 if (!string.Equals(args[index], "--file", StringComparison.OrdinalIgnoreCase))
                 {
                     throw new CliException($"不支援的參數：{args[index]}");
@@ -185,13 +203,58 @@ internal static class ChecklistCommand
             }
             if (file is null)
             {
-                throw new CliException("用法：task-progress checklist request --file <task.checklist>");
+                throw new CliException("用法：task-progress checklist request --file <task.checklist> [--viewer]");
             }
 
-            var bridge = new ChecklistBridge(file);
+            var bridge = new ChecklistBridge(file, fromUser: viewer);
             var requestJson = Console.In.ReadToEnd();
             Console.WriteLine(bridge.Handle(requestJson));
             return 0;
+        }
+        catch (CliException error)
+        {
+            Console.Error.WriteLine($"錯誤：{error.Message}");
+            return 1;
+        }
+    }
+
+    /// <summary>
+    ///   Stamps tagged results recorded before recorder rules existed as
+    ///   <c>legacy</c>. Run deliberately per file; reading never converts.
+    /// </summary>
+    internal static int Migrate(string[] args)
+    {
+        ArgumentNullException.ThrowIfNull(args);
+        try
+        {
+            var dryRun = args.Contains("--dry-run", StringComparer.OrdinalIgnoreCase);
+            var files = args.Where(arg => !string.Equals(arg, "--dry-run", StringComparison.OrdinalIgnoreCase)).ToArray();
+            if (files.Length == 0)
+            {
+                throw new CliException("用法：task-progress checklist migrate <task.checklist>... [--dry-run]");
+            }
+            var store = new ChecklistDocumentStore();
+            var total = 0;
+            var failed = 0;
+            foreach (var file in files)
+            {
+                try
+                {
+                    var path = ChecklistDocumentStore.ValidatePath(file);
+                    var source = store.Load(path);
+                    var updated = source.MigrateLegacyResults(DateTimeOffset.UtcNow, out var migrated);
+                    if (migrated > 0 && !dryRun) store.Save(path, source.Revision, updated);
+                    total += migrated;
+                    Console.WriteLine($"{(dryRun ? "將遷移" : "已遷移")} {migrated} 個結果：{path}");
+                }
+                catch (CliException error)
+                {
+                    failed++;
+                    Console.Error.WriteLine($"錯誤：{file}：{error.Message}");
+                }
+            }
+            Console.WriteLine($"共 {total} 個結果{(dryRun ? "（dry run，未寫入）" : string.Empty)}{(failed > 0 ? $"，{failed} 個檔案無法處理" : string.Empty)}。");
+            return failed > 0 ? 1 : 0;
         }
         catch (CliException error)
         {

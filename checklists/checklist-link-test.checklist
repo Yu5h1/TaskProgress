@@ -11,3 +11,4 @@ Current round: `Documentation/InlineReportLinks.md#checklist-欄位`.
       - Action: 點擊 [TaskProgress Report](http://127.0.0.1:8001/?scope=task-progress)。
       - Expect: 連結有底線；點擊後開啟 TaskProgress 開發進度 Report 頁。
       - Reason: 點擊與導覽由使用者確認。
+      - Recorded: legacy; at=2026-10-22T11:34:55Z; fp=127ea0dc7f24

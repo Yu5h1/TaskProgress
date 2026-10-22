@@ -3787,14 +3787,18 @@ Object.freeze([
 	"started",
 	"updated",
 	"done",
-	"takeover"
+	"takeover",
+	"released",
+	"disputed"
 ]);
 var Uo = {
 	created: "建立",
 	started: "開始",
 	updated: "修改",
 	done: "完成",
-	takeover: "接手"
+	takeover: "接手",
+	released: "釋放",
+	disputed: "爭議"
 };
 function Wo(e, t) {
 	let n = Math.floor((t - Date.parse(e)) / 6e4);
@@ -3806,8 +3810,8 @@ function Wo(e, t) {
 }
 function Go(e, t = Date.now()) {
 	return !Array.isArray(e) || !e.length ? "" : e.map((e) => {
-		let n = e.session ? `${e.actor} (${e.session})` : e.actor, r = Wo(e.at, t);
-		return `${Uo[e.event] ?? e.event}：${n}${r ? ` · ${r}` : ""}`;
+		let n = e.session ? `${e.actor} (${e.session})` : e.actor, r = Wo(e.at, t), i = e.note ? `：${e.note}` : "";
+		return `${Uo[e.event] ?? e.event}：${n}${r ? ` · ${r}` : ""}${i}`;
 	}).join("\n");
 }
 //#endregion
@@ -3868,8 +3872,11 @@ function ss(e, t) {
 		I(f, _().status ?? (g() === "completed_items" ? "done" : "planned"));
 	}), B(() => U(f), () => {
 		I(ae, U(f));
-	}), B(() => (G(ie()), U(f)), () => {
-		I(p, ie().find((e) => e.value === U(f)) ?? {
+	}), B(() => (G(_()), G(ie()), U(f)), () => {
+		I(p, _().derivedState && _().derivedState !== "done" ? {
+			label: _().derivedStateLabel,
+			tone: _().derivedStateTone
+		} : ie().find((e) => e.value === U(f)) ?? {
 			label: U(f),
 			tone: "muted"
 		});
@@ -3966,15 +3973,21 @@ function ss(e, t) {
 		};
 		X(i, (e) => {
 			G(_()), W(() => _().sourceRef) && e(a);
-		}), Bo(z(i, 2), {
-			get text() {
-				return G(_()), W(() => _().title);
-			},
-			lines: 1,
-			get expanded() {
-				return ee();
-			}
-		}), M(t), J(e, t);
+		});
+		var o = z(i, 2);
+		{
+			let e = /* @__PURE__ */ N(() => (G(_()), W(() => _().displayTitle ?? _().title)));
+			Bo(o, {
+				get text() {
+					return U(e);
+				},
+				lines: 1,
+				get expanded() {
+					return ee();
+				}
+			});
+		}
+		M(t), J(e, t);
 	};
 	X(ge, (e) => {
 		v() ? e(_e) : e(ve, -1);

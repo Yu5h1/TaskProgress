@@ -6,6 +6,9 @@
     checklistFilterCategories,
     createChecklistEditorSession,
     filterChecklistBySelection,
+    filterOperableChecks,
+    isTagged,
+    lockReason,
     orderChecklistItems,
   } from "../../../viewer/assets/checklist-editor.js";
   import {
@@ -235,8 +238,20 @@
     }
   }
 
-  // One marker per manual check, cycling [ ] → [x] → [!] → [ ].
+  let operableOnly = false;
+  const OWNER_LABELS = { manual: "實機", acceptance: "他驗" };
+  const VALIDITY_LABELS = { no_recorder: "需重驗：沒有記錄者", fingerprint: "需重驗：內容已變更" };
+
+  function visibleDocument(document) {
+    const ordered = orderChecklistItems(document, capsuleOrder);
+    return operableOnly ? filterOperableChecks(ordered) : ordered;
+  }
+
+  // One marker per tagged check, cycling [ ] → [x] → [!] → [ ]. An agent's
+  // acceptance record is only changed after the user confirms it.
   function cycleResult(itemId, check) {
+    if (check.isAcceptance && check.recorder && check.recorder !== "user"
+      && !window.confirm("確認修改 agent 紀錄嗎？")) return;
     apply({ type: "cycle-result", workItemId: itemId, checkIndex: check.index });
   }
 
@@ -304,15 +319,20 @@
         href={`#check-${view.summary.nextStep.workItemId}-${view.summary.nextStep.checkIndex}`}
         onclick={showNextStep}
         title={view.summary.nextStep.title}>
-        <span>{view.summary.nextStep.isManual ? "需實機驗證" : "下一步 · Agent"}：</span>
+        <span>{view.summary.nextStep.isManual ? "需實機驗證" : view.summary.nextStep.isAcceptance ? "下一步 · 他驗" : "下一步 · Agent"}：</span>
         <strong>{view.summary.nextStep.title}</strong>
       </a>
     {/if}
 
 
 
+    <label class="checklist-operable-toggle">
+      <input type="checkbox" bind:checked={operableOnly} />
+      <span>只顯示我能操作的檢查</span>
+    </label>
+
     <section class="checklist-items" aria-label="Implementation checklist items">
-      <CardList bind:this={cardList} expanded={defaultExpanded} onToggleAll={setAllExpanded} items={filterChecklistBySelection(orderChecklistItems(view.document, capsuleOrder), selection.selected).items}
+      <CardList bind:this={cardList} expanded={defaultExpanded} onToggleAll={setAllExpanded} items={filterChecklistBySelection(visibleDocument(view.document), selection.selected).items}
         allIds={orderChecklistItems(view.document, capsuleOrder).items.map(item => item.id)}
         storageKey={new URLSearchParams(location.search).has("scope")
           ? `taskprogress.cards.checklist.v1:${location.pathname}:${new URLSearchParams(location.search).get("scope")}:${new URLSearchParams(location.search).get("task")}:${view.document.roundIdentity}`
@@ -354,32 +374,58 @@
               {/if}
 
             {#each item.checks as check (check.index)}
+              {@const tag = check.isAcceptance ? "acceptance" : check.isManual ? "manual" : null}
+              {@const locked = isTagged(check) ? lockReason(view.document, check) : null}
               <section
                 id={`check-${item.id}-${check.index}`}
                 tabindex="-1"
-                class={`checklist-check checklist-${check.status}${check.isManual ? " checklist-manual" : ""}`}
+                class={`checklist-check checklist-${check.status}${tag ? ` checklist-${tag}` : ""}`}
               >
                 <div class="checklist-check-heading">
                   <MarkerBox
                     status={check.status}
-                    interactive={check.isManual && !resetBusy}
+                    interactive={isTagged(check) && !resetBusy && (!locked || check.status !== "pending")}
                     label={check.title}
                     onCycle={() => cycleResult(item.id, check)}
                   />
                   <strong>{check.title}</strong>
-                  <span class={`checklist-owner${check.isManual ? " checklist-owner-manual" : ""}`}
-                  >{check.isManual ? "實機" : "Agent"}</span>
+                  <span class={`checklist-owner${tag ? ` checklist-owner-${tag}` : ""}`}
+                  >{OWNER_LABELS[tag] ?? "Agent"}</span>
                 </div>
+                {#if locked && check.status === "pending"}<p class="checklist-lock">{locked}</p>{/if}
                 <dl>
                   <div><dt>Action</dt><dd><InlineLinks text={check.action} /></dd></div>
                   <div><dt>Expect</dt><dd><InlineLinks text={check.expect} /></dd></div>
                   {#if check.reason}<div><dt>Reason</dt><dd>{check.reason}</dd></div>{/if}
-                  {#if check.observed && !(check.isManual && check.status === "failed")}
+                  {#if check.observed && !(isTagged(check) && check.status === "failed")}
                     <div><dt>Observed</dt><dd>{check.observed}</dd></div>
                   {/if}
                   {#if check.resolved}<div><dt>Resolved</dt><dd>{check.resolved}</dd></div>{/if}
+                  {#if check.validity && check.validity !== "valid"}
+                    <div><dt>狀態</dt><dd class="checklist-void">{VALIDITY_LABELS[check.validity]}</dd></div>
+                  {:else if check.recorder}
+                    <div><dt>記錄</dt><dd>{check.recorder === "user" ? "使用者" : check.recorder}</dd></div>
+                  {/if}
                 </dl>
-                {#if check.isManual && check.status === "failed"}
+                {#if check.isAcceptance && check.status === "failed"}
+                  <label class="checklist-observed">
+                    <span>不通過的原因</span>
+                    <select
+                      disabled={resetBusy}
+                      value={check.rejectReason ?? "implementation"}
+                      onchange={(event) => apply({
+                        type: "set-reason",
+                        workItemId: item.id,
+                        checkIndex: check.index,
+                        value: event.currentTarget.value,
+                      })}
+                    >
+                      <option value="implementation">實作不符</option>
+                      <option value="condition">條件不符</option>
+                    </select>
+                  </label>
+                {/if}
+                {#if isTagged(check) && check.status === "failed"}
                   <label class="checklist-observed">
                     <span>Observed</span>
                     <textarea

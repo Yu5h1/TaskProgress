@@ -26,7 +26,7 @@ test("Viewer, Demo, and shared Svelte components consume one presentation contra
   assert.match(taskCard, /task-card editor-task-card /u);
   assert.match(itemRow, /class="editor-item-row"/u);
   assert.match(itemRow, /class="inline-edit-input"[\s\S]*?title=\{item\.title\}/u);
-  assert.match(itemRow, /<ExpandableText text=\{item\.title\}/u);
+  assert.match(itemRow, /<ExpandableText text=\{item\.displayTitle \?\? item\.title\}/u);
 });
 
 test("shared presentation owns geometry only and leaves host themes independent", async () => {
