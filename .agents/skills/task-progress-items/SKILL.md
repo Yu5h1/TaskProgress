@@ -90,8 +90,9 @@ Write one checklist per item, bound with `document_ref`, by checklist-round:
    (`{"op": "item.event", "task_id": "<card>", "item_id": "<item>", "event": "released"}`), then
    commit the work and the release's `report.json` change together, so an interruption never leaves
    only one of them saved.
-5. An item with `[acceptance]` now shows 待他驗: tell the user to accept it from another session.
-   This session executed it and must not accept it.
+5. An item with `[acceptance]` now shows 待他驗: hand it to an independent acceptance context
+   (§ Independent acceptance). This context executed it and must not accept it, under any session
+   ID.
 
 Needs-fix items (an `[acceptance]` failed as 實作不符, or the user failed a `[manual]`): claim, fix,
 release, commit with the item ID. Do not add work items for a fix whose `Expect` is unchanged. The
@@ -138,9 +139,30 @@ will follow — moving or renaming files, fixing links — is direct work: no it
 - `auto` does it in the evaluating session before executing items, commits each piece, and lists what
   it did in the report; it writes nothing to the Report.
 
+## Independent acceptance
+
+`[acceptance]` is recorded by an independent acceptance context that took no part in implementing or
+fixing the item, so the executor never grades its own assumptions or lowers the bar to pass. The
+acceptor:
+
+- judges from the original requirement, the committed conditions, the artifacts and the change history;
+- inherits none of the executor's conversation, reasoning or expected conclusion;
+- may obtain the execution facts, test evidence and operating steps it needs;
+- ignores any hint that it should pass, and never lowers the bar to fit the implementation;
+- may fail the work as 實作不符 or 條件不符, recording the grounds.
+
+A new chat, a separate session, or a sub-agent started without the parent's context qualifies (see
+§ Agent specifics for each tool). When the executor starts that sub-agent, the prompt names only the
+item and the `accept` command: no summary of the work, no expected result. Staying in the executor's
+context and switching roles, or only changing the session ID, does not qualify. The acceptor may keep
+its own acceptance history and re-verify the same item's fixes without a fresh context each time.
+
+The session ID is identity, not independence: it records who wrote a result and lets the CLI refuse
+the executor's. A sub-agent uses its own stable ID and never borrows or changes to the executor's.
+
 ## Accept (`accept`)
 
-Pick items whose `derived_state` (from `report get`) is `awaiting_acceptance` and that this session
+Run only in an independent acceptance context. Pick items whose `derived_state` (from `report get`) is `awaiting_acceptance` and that this session
 never started or took over. For each `[acceptance]` check, after reading the cited spec and
 `git log --grep <item-id>`, pipe a UTF-8 message to
 `task-progress.exe checklist request --file <checklist>`. That includes checks already `[x]` whose
@@ -170,8 +192,9 @@ target in a state the queue does not take is reported with its `derived_state`, 
 Several items: when this agent can start sessions (§ Agent specifics), start one per item, one at a
 time per scope — wait for its completion notice before the next, and finish your own acceptance
 writes before starting the next. Without that ability, `run`/`accept` stop after one item and name
-the next candidate; `auto` executes everything itself and lists the items with `[acceptance]` left
-for acceptance from another session.
+the next candidate; `auto` executes everything itself and hands the items with `[acceptance]` to an
+independent acceptance context: a sub-agent started without this context when the tool has one,
+otherwise listed for the user to accept from a new chat.
 
 End every command with a short report: items created (verification and reason), direct work listed
 or done, items executed, accepted or rejected, and what waits on the user.
@@ -181,11 +204,12 @@ or done, items executed, accepted or rejected, and what waits on the user.
 Every report write on an item whose checklist has `[acceptance]` carries `"actor"` and
 `"session_id"`; every checklist write carries `"actor"` and `"sessionId"`.
 
-| Agent | Command syntax | `actor` | Session ID | Starting sessions |
-|---|---|---|---|---|
-| Claude Code | `/task-progress-items [verb …]` (user-level skill) | `claude` | The SessionStart hook's `session_id`; if none is shown, generate one UUID and reuse it for the session | The Claude desktop app can start sessions; the plain CLI cannot |
-| Codex | An explicit `$task-progress-items` skill mention | `codex` | The session ID the tool exposes; otherwise one generated UUID for the session | Treat as unavailable until documented |
-| Gemini / Antigravity | The tool's own explicit invocation of the `task-progress-items` skill | `antigravity` | The session ID the tool exposes; otherwise one generated UUID for the session | Treat as unavailable until documented |
+| Agent | Command syntax | `actor` | Session ID | Starting sessions | Independent acceptance context |
+|---|---|---|---|---|---|
+| Claude Code | `/task-progress-items [verb …]` (user-level skill) | `claude` | The SessionStart hook's `session_id`; if none is shown, generate one UUID and reuse it for the session | The Claude desktop app can start sessions; the plain CLI cannot | A new chat or session; or an Agent-tool sub-agent of a non-fork type, which starts without this conversation |
+| Codex | An explicit `$task-progress-items` skill mention | `codex` | The session ID the tool exposes; otherwise one generated UUID for the session | Treat as unavailable until documented | A new chat; or a sub-agent the tool starts without the parent's history, once confirmed for the version in use |
+| Gemini / Antigravity | The tool's own explicit invocation of the `task-progress-items` skill | `antigravity` | The session ID the tool exposes; otherwise one generated UUID for the session | Treat as unavailable until documented | A new chat; sub-agents count once documented to start without the parent's history |
 
-A session never changes its session ID to pass as another session; independent acceptance needs a
-genuinely separate session.
+A sub-agent without a session ID of its own generates one UUID and keeps it for its acceptance
+history. No context changes its session ID to pass as another: a new ID does not make the same
+context independent (§ Independent acceptance).

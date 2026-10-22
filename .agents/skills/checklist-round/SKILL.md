@@ -1,6 +1,6 @@
 ---
 name: checklist-round
-description: Split a settled spec into a per-task `.checklist` file, shape its work items and nested checks — untagged for the executor, `[acceptance]` for another session, `[manual]` for the user — run one round to completion, and record tagged results through the CLI. Use when the project carries a `checklists/` directory and a task's spec has been accepted.
+description: Split a settled spec into a per-task `.checklist` file, shape its work items and nested checks — untagged for the executor, `[acceptance]` for an independent acceptance context, `[manual]` for the user — run one round to completion, and record tagged results through the CLI. Use when the project carries a `checklists/` directory and a task's spec has been accepted.
 ---
 
 # Checklist Round
@@ -20,7 +20,8 @@ independently executable task owns one direct child named
 `checklists/<task-id>.checklist`; use the stable task ID from its canonical route
 or assignment, and do not create an index merely to find the file. Without that
 directory, skip all of this. One checklist per item holds the executor's checks
-and, when the item needs them, `[acceptance]` checks for another session and
+and, when the item needs them, `[acceptance]` checks for an independent acceptance
+context (task-progress-items § Independent acceptance) and
 `[manual]` checks for the user (§ Tagged checks). The user checks a screen in seconds where the agent spends a round
 of tool calls that then sit in context for the rest of the session, so do not
 drive a page to judge what the user can see. A standing instruction to run
@@ -290,7 +291,7 @@ else needs to track staleness.
    `[ ]`. Commit before execution starts.
 2. The executor implements the work and runs each untagged check once, then
    completes the `[manual]` drafts.
-3. When every untagged check is `[x]`, `[acceptance]` goes to another session,
+3. When every untagged check is `[x]`, `[acceptance]` goes to an independent acceptance context,
    then `[manual]` to the user. Hand over through the task card: give the card
    link from `task-progress.exe open --scope <scope> --pin <task> --no-browser`
    (or open the card in the browser pane), never loose URLs or file paths.
