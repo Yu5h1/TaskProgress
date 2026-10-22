@@ -1,0 +1,28 @@
+# 修正既有子項目的陣列歸屬狀態推算 Checklist
+
+Current round: `.agents/skills/task-progress-report/SKILL.md#maintain-child-items`.
+
+2026-10-23 評估 task-progress scope 時，正式 CLI 的 report get 將 viewer-core 的 item-viewer-core-done-1（位於 completed_items、未寫 status、未綁定文件）推算為 not_started；其他相同形狀的完成項目也受影響。既有契約要求缺少 status 時依 completed_items／pending_items 歸屬判斷。本項修正狀態推算，避免執行佇列重做已完成工作；保留既有資料，不以批次補 status 規避問題，不重做歷史工作，也不修改驗收流程或部署服務。驗證採 cross，因為狀態相容性與跨項目等待容易被局部修正漏掉。
+
+- [ ] **1. 恢復未明寫 status 的既有項目狀態語意**
+  Outcome: CLI 與依賴判斷依既有資料契約識別完成項目。
+  Checks:
+    - [ ] **狀態解析與等待**
+      - Action: 由 src/TaskProgress.Cli/ItemState.cs 與 ReportCommand.cs 追查 report get、跨項目 waits_for 和分析器的狀態解析，修正缺少 status 時的陣列歸屬判斷；保留明寫 status 與綁定文件的既有規則。
+      - Expect: 未綁定且沒有 status 的 completed_items 子項為 done，pending_items 子項為 not_started；依賴前者的 waits_for 可解除等待；明寫狀態及 checklist 推算不被陣列歸屬覆蓋。
+    - [ ] **定向回歸證據**
+      - Action: 加入並執行涵蓋兩種陣列、明寫狀態、綁定文件與依賴完成項目的定向測試；以暫存 report fixture 核對 report get 的整份與 --task 回傳，不修改真實報告的歷史項目。
+      - Expect: 各路徑對同一項目給出一致狀態；原先 completed_items 無 status 的重現案例回傳 done；定向測試通過。
+
+- [ ] **2. 狀態相容性獨立驗收**
+  Outcome: 獨立驗收者依原始契約確認修正與相容性。
+  Checks:
+    - [ ] **驗收條件未被改動** `[acceptance]`
+      - Action: 依 .agents/skills/checklist-round/SKILL.md 的 Tagged checks，核對 git log --grep derived-state-array-fallback 與本檔建立提交或最近「條件修訂」提交，確認 acceptance 文字未被執行者改動。
+      - Expect: 本項驗收條件與建立提交或最近「條件修訂」提交一致。
+    - [ ] **陣列歸屬與既有狀態** `[acceptance]`
+      - Action: 依 .agents/skills/task-progress-report/SKILL.md 的 Maintain child items（缺少 status 依陣列歸屬；綁定 checklist 由文件推算），獨立檢查實作及 fixture 的完整與 --task 輸出，覆蓋無 status 的兩種陣列、明寫狀態及綁定 checklist。
+      - Expect: 無 status 且未綁定的 completed_items 為 done、pending_items 為 not_started；明寫狀態與綁定 checklist 的推算保持原契約，真實歷史報告未被批次重寫。
+    - [ ] **等待與佇列不重做已完成工作** `[acceptance]`
+      - Action: 依 Documentation/AcceptanceChainPlan.md 的未綁定的既有項目條款及 .agents/skills/task-progress-items/SKILL.md 的 Queues and sessions，獨立重現一項等待無 status 完成子項的 fixture，核對依賴與佇列候選。
+      - Expect: 前置完成子項為 done 且不屬於 run 候選；等待它的項目不再因該前置被判為 waiting；證據涵蓋 resolver 的依賴路徑。

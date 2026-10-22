@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-10-22T16:19:28.893202+00:00",
+  "updated_at": "2026-10-22T17:42:17.485247+00:00",
   "tasks": [
     {
       "title": "共用任務 skill 與 Codex 驗證試跑",
@@ -764,6 +764,26 @@
           "id": "item-viewer-core-pointer-ref-route",
           "title": "受保護、scope allowlist 限定的路由，用來建立或更換 report_ref；第一版指路卡本身已完成，這條路由仍待設計，目前指路關係由維護者直接編輯 report.json 建立",
           "priority": 2
+        },
+        {
+          "priority": 0,
+          "id": "derived-state-array-fallback",
+          "title": "修正無 status 既有子項目的陣列歸屬推算，避免執行佇列重做已完成工作",
+          "status": "planned",
+          "document_ref": {
+            "scope_id": "task-progress",
+            "task": "derived-state-array-fallback",
+            "kind": "checklist"
+          },
+          "activity": [
+            {
+              "event": "created",
+              "actor": "codex",
+              "at": "2026-10-22T17:42:17.485247+00:00",
+              "session": "TaskProgress 項目評估",
+              "session_id": "b1e0cb51-43db-4fcd-9437-d5b9e566f873"
+            }
+          ]
         }
       ]
     },
