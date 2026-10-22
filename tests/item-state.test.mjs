@@ -52,6 +52,11 @@ test("passes voided by a later release reopen acceptance before the user is aske
   assert.equal(deriveItemState(started, evaluation([untagged, reaccepted, manual])), "awaiting_user");
 });
 
+test("a waited item's title keeps only link text, so its own links never break the wait link", () => {
+  const pending = [{ done: false, available: true, label: "卡片 › NF02 驗收；完成後供 [UX 開工](/?scope=ux&pin=f) 核對 [manual]", href: "/?scope=web&pin=card" }];
+  assert.equal(waitsText(pending), "等待：[卡片 › NF02 驗收；完成後供 UX 開工 核對 ［manual］](/?scope=web&pin=card)");
+});
+
 test("waits make an unfinished item waiting and list links for unfinished targets", () => {
   const wait = { scope_id: "web", task_id: "card", item_id: "w1" };
   const item = { id: "u", title: "收尾", waits_for: [wait] };

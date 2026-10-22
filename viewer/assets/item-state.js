@@ -3,6 +3,8 @@
  * a bound checklist decides completion and who acts next; waits apply to every item.
  */
 
+import { parseInlineLinks } from "./inline-links.js";
+
 export const ITEM_STATE_META = Object.freeze({
   done: { label: "完成", tone: "success" },
   waiting: { label: "等待中", tone: "muted" },
@@ -71,11 +73,20 @@ export function deriveItemState(item, evaluation, pendingWaits = []) {
   return fromChecklist;
 }
 
+/**
+ * A waited item's title as link text: links inside the title keep only their text, and brackets
+ * become full-width, so the label can never open or close a link of its own.
+ */
+function plainLabel(text) {
+  return parseInlineLinks(text).map((part) => part.text).join("").replace(/\[/gu, "［").replace(/\]/gu, "］");
+}
+
 /** Inline-link text listing unfinished waited items, appended to the expanded row. */
 export function waitsText(pendingWaits) {
   if (!pendingWaits.length) return "";
-  const links = pendingWaits.map((wait) => wait.available
-    ? `[${wait.label}](${wait.href})`
-    : `${wait.label}（無法讀取）`);
+  const links = pendingWaits.map((wait) => {
+    const label = plainLabel(wait.label);
+    return wait.available ? `[${label}](${wait.href})` : `${label}（無法讀取）`;
+  });
   return `等待：${links.join("、")}`;
 }
