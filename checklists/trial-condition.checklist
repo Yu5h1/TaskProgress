@@ -11,15 +11,16 @@ Current round: `experiments/acceptance-trial/spec.md#條件不符試跑`.
       - Action: 讀取 experiments/acceptance-trial/condition.txt，並對照 experiments/acceptance-trial/spec.md#條件不符試跑。
       - Expect: 只有一行數字，與規格一致。
 
-- [!] **2. 他驗**
+- [x] **2. 他驗**
   Outcome: 執行者以外的 session 依規格確認結果。
   Checks:
     - [x] **驗收條件未被改動** `[acceptance]`
       - Action: 以 git log -p 檢查本檔第 2 項自寫入它的提交或最近一次「條件修訂」提交後的變更。
       - Expect: 只有標記與 Recorded 變動。
       - Recorded: claude:5e450172-dd59-4625-92e0-cb738be324a1; at=2026-10-22T12:41:43Z; fp=0263af144632
-    - [!] **數字與規格一致** `[acceptance]`
+    - [x] **數字與規格一致** `[acceptance]`
       - Action: 對照 experiments/acceptance-trial/spec.md#條件不符試跑，讀取 condition.txt。
       - Expect: 內容是數字 3。
       - Observed: 規格〈條件不符試跑〉要求 condition.txt 只有一行數字 3；檔案內容是 3，符合規格。本檢查的 Expect「內容是數字 2」與規格矛盾。
-      - Recorded: claude:5e450172-dd59-4625-92e0-cb738be324a1; at=2026-10-22T12:41:44Z; fp=dda23731593e; reason=condition; count=1
+      - Resolved: 接受條件修訂 4f0c675：Expect 改為「內容是數字 3」，與規格〈條件不符試跑〉一致；condition.txt 內容是 3。
+      - Recorded: claude:5e450172-dd59-4625-92e0-cb738be324a1; at=2026-10-22T12:43:40Z; fp=48f6b8c27f82

@@ -11,18 +11,19 @@ Current round: `experiments/acceptance-trial/spec.md#他驗與人工試跑`.
       - Action: 讀取 experiments/acceptance-trial/cross-manual.txt。
       - Expect: 有兩行。
 
-- [!] **2. 他驗**
+- [x] **2. 他驗**
   Outcome: 執行者以外的 session 依規格確認結果。
   Checks:
     - [x] **驗收條件未被改動** `[acceptance]`
       - Action: 以 git log -p 檢查本檔第 2 項自寫入它的提交後的變更。
       - Expect: 只有標記與 Recorded 變動。
       - Recorded: claude:5e450172-dd59-4625-92e0-cb738be324a1; at=2026-10-22T12:41:43Z; fp=689bf500550f
-    - [!] **內容與規格一致** `[acceptance]`
+    - [x] **內容與規格一致** `[acceptance]`
       - Action: 對照 experiments/acceptance-trial/spec.md#他驗與人工試跑，審查 git log --grep trial-cross-manual 列出的變更與 cross-manual.txt。
       - Expect: 第一行 cross manual ok，第二行是 UTC 的 ISO 8601 時間。
       - Observed: 第一行 cross manual ok 符合。第二行 2026-10-22T12:38:18Z 是 UTC ISO 8601，但規格〈他驗與人工試跑〉要求它是建立時間：檔案實際建立於 2026-10-22T12:38:26.65Z（檔案建立時間；提交 7cfaa65 於 12:38:26Z），此值早約 8 秒，也早於本項認領（12:38:26.27Z），是預先取得的時間，不是建立時間。
-      - Recorded: claude:5e450172-dd59-4625-92e0-cb738be324a1; at=2026-10-22T12:41:43Z; fp=e9aa42fb6e99; reason=implementation
+      - Resolved: 8db1676 把第二行改成 2026-10-22T12:42:55Z，與這次寫入檔案的時間（12:42:55.39Z）和提交時間一致，落在重新認領（12:42:54.56Z）之後，是建立內容當下的時間，不再是預先取得的值。第一行 cross manual ok 不變。檔案系統的建立時間仍是 12:38:26Z，因為修正是原地覆寫。
+      - Recorded: claude:5e450172-dd59-4625-92e0-cb738be324a1; at=2026-10-22T12:43:39Z; fp=e9aa42fb6e99
 
 - [ ] **3. 人工驗收**
   Outcome: 使用者確認 Checklist 面板的他驗呈現。
