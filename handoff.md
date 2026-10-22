@@ -9,7 +9,8 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
 - **共用任務 skill 與 Codex 試跑建卡（2026-10-22）。** 任務卡 `codex-workflow-trial` 的設計入口為 [CodexWorkflowTrial](Documentation/CodexWorkflowTrial.md)；先確認共用來源與使用者層路由，再實作 skill、安裝入口與進行六情境試跑。目前只建卡與記錄設計提案，未安裝或試跑。下一步由使用者確認該文件的〈尚未決定〉，確認後才將試跑規格拆成綁定 checklist。
 
 - **task-progress-items 改為共用來源加使用者層入口（2026-10-22）。** 依使用者確認的流程：唯一來源 `.agents/skills/task-progress-items/SKILL.md`（共用流程，agent 差異集中在〈Agent specifics〉）；原 `.claude/skills/task-progress-items` 已刪除，避免兩份流程並存。`taskprogress-capabilities` 新增〈Initialize the user-level entry〉：依目前 agent 的使用者層 skills 目錄建立只含路由的入口（不存在才建立、相同則略過、不同或來源失效則回報衝突、不用符號連結、只初始化目前 agent、不啟動任務）。共用索引那一列改為先經 capabilities 初始化。這回答了 [CodexWorkflowTrial](Documentation/CodexWorkflowTrial.md)〈尚未決定〉的共用來源與路由位置，但採入口檔而非連結；該文件與 Codex 的 handoff 項目未改動。
-  - 下一步：Codex／Gemini 在自己的 session 依 capabilities 初始化 `%USERPROFILE%\.agents\skills\task-progress-items`；六情境試跑未開始。
+  - 同日 `checklist` 也改用同一套：唯一來源 `.agents/skills/checklist/SKILL.md`（scope 改為使用者指定或目前專案），初始化表列出兩個入口；TaskProgress 的 `.claude` 資料夾整個刪除（含只放兩條 allow 規則的 `settings.local.json`），本 repo 不再有 agent 專屬 skill 資料夾。
+  - 下一步：Codex／Gemini 在自己的 session 依 capabilities 初始化 `%USERPROFILE%\.agents\skills` 下的兩個入口；六情境試跑未開始。
 
 - **驗證流程選項已實作並提交（2026-10-22，feb859b）。** 依 `Documentation/AcceptanceChainPlan.md`：
   - C#：`ChecklistDocument` 登記 `[acceptance]`、`Recorded` 行（記錄者、時間、指紋、原因、次數）、寫入權限與先後、`Issues()`（沒有記錄者）、`MigrateLegacyResults`；`ChecklistBridge` 以 `--viewer` 區分面板與 agent（agent 需 `actor`／`sessionId`、需綁定子項、不得是執行者）；`checklist migrate`；`ItemStateResolver`（`report get` 加 `derived_state`、時間分析用推算完成）；`report apply` 對含 `[acceptance]` 的子項要求 `session_id`。
