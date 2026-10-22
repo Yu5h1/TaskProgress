@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-10-22T11:49:09.671297+00:00",
+  "updated_at": "2026-10-22T12:01:44.796977+00:00",
   "tasks": [
     {
       "id": "item-selection",
@@ -1763,6 +1763,71 @@
               "at": "2026-10-22T11:49:09.671297+00:00",
               "session": "TaskProgress 維護開發",
               "session_id": "583fa969-9dcf-4def-98dd-196efef59cea"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "共用任務 skill 與 Codex 驗證試跑",
+      "priority": 1,
+      "status": "planned",
+      "id": "codex-workflow-trial",
+      "summary": "參考既有驗證流程，由 Codex 試跑六種情境。先確認 skill 共用來源及使用者層路由，再實作並測試；提案與驗收範圍見 Documentation/CodexWorkflowTrial.md。",
+      "pending_items": [
+        {
+          "title": "確認共用 skill 設計與使用者層路由位置：一份流程，各 agent 保留入口、身分與 session 能力差異",
+          "priority": 1,
+          "status": "planned",
+          "id": "shared-skill-design",
+          "activity": [
+            {
+              "event": "created",
+              "actor": "codex",
+              "at": "2026-10-22T12:01:44.796977+00:00",
+              "session": "共用 skill 與 Codex 驗證試跑"
+            }
+          ]
+        },
+        {
+          "title": "依確認的設計抽出共用任務 skill，接上 Codex 入口與 actor／session 身分，保留原有驗證契約",
+          "priority": 1,
+          "status": "planned",
+          "id": "shared-skill-implementation",
+          "activity": [
+            {
+              "event": "created",
+              "actor": "codex",
+              "at": "2026-10-22T12:01:44.796977+00:00",
+              "session": "共用 skill 與 Codex 驗證試跑"
+            }
+          ]
+        },
+        {
+          "title": "依確認的位置安裝共用 skill 路由，檢查同名入口並驗證本機發現結果",
+          "priority": 1,
+          "status": "planned",
+          "id": "user-skill-routing",
+          "activity": [
+            {
+              "event": "created",
+              "actor": "codex",
+              "at": "2026-10-22T12:01:44.796977+00:00",
+              "session": "共用 skill 與 Codex 驗證試跑"
+            }
+          ]
+        },
+        {
+          "title": "建立 Codex 專用六情境規格與綁定 checklist，提交後由 Codex 試跑；他驗交獨立 session，人工結果交使用者",
+          "priority": 1,
+          "status": "planned",
+          "id": "codex-verification-trial",
+          "activity": [
+            {
+              "event": "created",
+              "actor": "codex",
+              "at": "2026-10-22T12:01:44.796977+00:00",
+              "session": "共用 skill 與 Codex 驗證試跑"
             }
           ]
         }
