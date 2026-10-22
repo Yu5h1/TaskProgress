@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-10-22T04:33:22.589304+00:00",
+  "updated_at": "2026-10-22T05:19:56.005448+00:00",
   "tasks": [
     {
       "id": "item-selection",
@@ -1365,7 +1365,7 @@
       "pending_items": [
         {
           "id": "checklist-acceptance-chain",
-          "title": "可執行項 checklist 串聯驗收 checklist：執行 checklist 的最後一項綁定另一份驗收 checklist（需要 CLI 參數入口），執行方做完其餘項目、最後一項保留不勾；驗收 checklist 全部完成時那最後一項自動標記，report refresh 即可見；驗收方只做驗收 checklist 的工作",
+          "title": "他驗流程實作（計畫 Documentation/AcceptanceChainPlan.md 已定案）：checklist 新增 [acceptance] 標記與 Accepted by 綁定、讀取時推導、快取依賴、Report CLI 的 session 比對與撰寫者不得執行、驗收完成時一併完成執行子項、Viewer「待驗收」，最後改寫 checklist-round 與 agent-executable-items 為自驗／他驗兩套流程",
           "status": "planned",
           "activity": [
             {
@@ -1374,6 +1374,25 @@
               "at": "2026-10-21T18:50:15.732539+00:00",
               "session": "Yu5h1Lib.UX 流程審查",
               "session_id": "12d6407d-b4d7-444b-be2e-d9b16a7f3b37"
+            },
+            {
+              "event": "updated",
+              "actor": "claude",
+              "at": "2026-10-22T05:19:56.005448+00:00",
+              "session": "TaskProgress 維護開發"
+            }
+          ]
+        },
+        {
+          "id": "acceptance-flow-trial",
+          "title": "他驗流程端到端試跑：實作完成後挑一個實際的小項目，以「寫成他驗可執行項目」由 session A 建立兩份 checklist，session B 執行、session C 驗收，途中故意讓一項驗收 [!] 走一次退回與重跑；確認 Viewer 依序顯示待驗收、驗收未通過、完成，且同 session 驗收、撰寫者執行、缺 session_id 三種情況都被 CLI 拒絕",
+          "status": "planned",
+          "activity": [
+            {
+              "event": "created",
+              "actor": "claude",
+              "at": "2026-10-22T05:19:56.005448+00:00",
+              "session": "TaskProgress 維護開發"
             }
           ]
         }
