@@ -23,10 +23,11 @@ Current round: `experiments/gemini-acceptance-trial/spec.md#他驗與人工試�
       - Expect: 第一行 cross manual ok，第二行為寫入當下的 UTC ISO 8601 時間，與寫入時間相差不超過兩秒。
       - Recorded: antigravity:sub-session-verifier-01; at=2026-10-22T16:18:07Z; fp=a713a229dc57
 
-- [ ] **3. 人工驗收**
+- [x] **3. 人工驗收**
   Outcome: 使用者接受本情境的狀態與面板呈現。
   Checks:
-    - [ ] **面板與狀態** `[manual]`
+    - [x] **面板與狀態** `[manual]`
       - Action: 開啟 [Gemini 試跑卡片](http://127.0.0.1:8001/?scope=task-progress&pin=gemini-workflow-trial)，再開啟本項 Checklist，確認狀態後標記通過。
       - Expect: 第 2 項顯示他驗標籤與獨立記錄者；他驗通過前人工檢查鎖住，通過後才可操作。
       - Reason: 畫面呈現與操作由使用者驗收。
+      - Recorded: user; at=2026-10-22T17:45:53Z; fp=92b64bbd386f
