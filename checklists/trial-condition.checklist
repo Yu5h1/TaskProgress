@@ -20,6 +20,6 @@ Current round: `experiments/acceptance-trial/spec.md#條件不符試跑`.
       - Recorded: claude:5e450172-dd59-4625-92e0-cb738be324a1; at=2026-10-22T12:41:43Z; fp=0263af144632
     - [!] **數字與規格一致** `[acceptance]`
       - Action: 對照 experiments/acceptance-trial/spec.md#條件不符試跑，讀取 condition.txt。
-      - Expect: 內容是數字 2。
+      - Expect: 內容是數字 3。
       - Observed: 規格〈條件不符試跑〉要求 condition.txt 只有一行數字 3；檔案內容是 3，符合規格。本檢查的 Expect「內容是數字 2」與規格矛盾。
       - Recorded: claude:5e450172-dd59-4625-92e0-cb738be324a1; at=2026-10-22T12:41:44Z; fp=dda23731593e; reason=condition; count=1
