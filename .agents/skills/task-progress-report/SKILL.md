@@ -189,12 +189,10 @@ The bound routes exist only on the local service. Keep `document_ref` out of a r
 & "<task-progress-exe>" open "<project-root>" --no-browser
 ```
 
-   It prints nothing when run directly; the Viewer URL is `http://127.0.0.1:8001/?scope=<scope-id>`. `open` rejects `--port`; the tray's service uses the default port. Open that URL in the Browser pane using the available browser tools, reusing the relevant tab when present. Read the loaded URL and page content; do not treat command success as page-load evidence.
+   It prints nothing when run directly; the Viewer URL is `http://127.0.0.1:8001/?scope=<scope-id>`. `open` rejects `--port`; the tray's service uses the default port. Navigate the Browser pane to that URL, reusing the relevant tab, and stop there: no waiting, page read-back, port probe or retry, as that procedure says. The user sees the pane.
 
-7. Verify the generated URL uses `?scope=<scope-id>`, the Viewer loads, and no validation diagnostic appears. If `report.dev.json` is absent, confirm no `dev=` query and no Developer overlay. If `time.analysis.json` is absent, confirm the Viewer shows no time placeholders; if present, confirm the delivery capsule, item hours, and three detail tabs appear.
-   For estimate-only analysis, confirm the neutral `交付日未定 ›` capsule, project/task/item estimates, and engineering details appear without a risk lamp, countdown, capacity tab, or deadline refresh.
-   With `document_ref`, confirm each bound entry shows its source link and the completion its document implies, with no unavailable source.
-8. Report the files written and the validation performed. Do not claim Viewer validation if only JSON parsing was performed.
+7. Tell the user what the Viewer should now show for this change, from this list, so they can see it at a glance: no validation diagnostic; no Developer overlay when `report.dev.json` is absent; no time placeholders when `time.analysis.json` is absent, otherwise the delivery capsule, item hours and three detail tabs (estimate-only: the neutral `交付日未定 ›` capsule and estimates, without risk lamp, countdown, capacity tab or deadline refresh); with `document_ref`, each bound entry's source link and the completion its document implies. Diagnose only when the user says something is wrong, per that procedure's closing paragraph.
+8. Report the files written and the validation performed. The Viewer itself was not checked by you; say so rather than claiming it.
 
 ## Register a reusable local scope
 

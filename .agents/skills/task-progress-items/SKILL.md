@@ -9,8 +9,9 @@ The one shared procedure behind every agent's `task-progress-items` entry. Desig
 behind every rule: [AcceptanceChainPlan](../../../Documentation/AcceptanceChainPlan.md) (Task ID
 `checklist-acceptance-chain`). The checklist format belongs to
 [checklist-round](../checklist-round/SKILL.md), report writes to
-[task-progress-report](../task-progress-report/SKILL.md), and what to evaluate to
-[agent-executable-items § Evaluate a scope](../../../../.agents/skills/agent-executable-items/SKILL.md#evaluate-a-scope).
+[task-progress-report](../task-progress-report/SKILL.md), and where an item lives, what to evaluate,
+what qualifies and how an item's checklist is shaped to
+[agent-executable-items](../../../../.agents/skills/agent-executable-items/SKILL.md).
 This file only sequences them.
 
 ## Scope
@@ -36,8 +37,8 @@ A leading `self`, `manual`, `cross` or `cross manual` forces the verification of
 creates; otherwise choose per item by the criteria below and report each choice with its reason.
 
 When the user uses an old phrase (「請繼續發展任務」, 「請評估 <scope> 並建立可執行項目」,
-「請執行 <scope> report 的可執行項目」, 「寫成可執行項目」), an agent whose entry is this command starts
-nothing: it replies with the matching command. Editing an existing checklist or report on request
+「請執行 <scope> report 的可執行項目」, 「寫成可執行項目」), no agent starts anything: reply with the
+matching invocation. Editing an existing checklist or report on request
 follows those documents' own rules and starts no flow.
 
 ## Verification and its checklist
@@ -125,8 +126,8 @@ Every report write on an item whose checklist has `[acceptance]` carries `"actor
 | Agent | Command syntax | `actor` | Session ID | Starting sessions |
 |---|---|---|---|---|
 | Claude Code | `/task-progress-items [verb …]` (user-level skill) | `claude` | The SessionStart hook's `session_id`; if none is shown, generate one UUID and reuse it for the session | The Claude desktop app can start sessions; the plain CLI cannot |
-| Codex | The tool's own explicit skill invocation of `task-progress-items`, as the user aligns it | `codex` | The session ID the tool exposes; otherwise one generated UUID for the session | Treat as unavailable until documented |
-| Gemini / Antigravity | The tool's own explicit skill invocation of `task-progress-items`, as the user aligns it | `antigravity` | The session ID the tool exposes; otherwise one generated UUID for the session | Treat as unavailable until documented |
+| Codex | An explicit `$task-progress-items` skill mention | `codex` | The session ID the tool exposes; otherwise one generated UUID for the session | Treat as unavailable until documented |
+| Gemini / Antigravity | The tool's own explicit invocation of the `task-progress-items` skill | `antigravity` | The session ID the tool exposes; otherwise one generated UUID for the session | Treat as unavailable until documented |
 
 A session never changes its session ID to pass as another session; independent acceptance needs a
 genuinely separate session.

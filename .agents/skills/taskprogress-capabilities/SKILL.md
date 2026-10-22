@@ -1,6 +1,6 @@
 ---
 name: taskprogress-capabilities
-description: Find the TaskProgress entrance that already exists — a CLI verb, a page the local service serves, or a documented skill — before building anything against a `.checklist` or `.decisions` file, a report, or a scope, and make sure the acting agent has its user-level TaskProgress entries (task-progress-items, checklist). Use when work in any project touches TaskProgress data, before creating a `.decisions` file to ask the user something, or before answering that some TaskProgress capability is missing.
+description: Find the TaskProgress entrance that already exists — a CLI verb, a page the local service serves, or a documented skill — before building anything against a `.checklist` or `.decisions` file, a report, or a scope, and make sure the acting agent has its user-level TaskProgress entry (task-progress-items). Use when work in any project touches TaskProgress data, before creating a `.decisions` file to ask the user something, or before answering that some TaskProgress capability is missing.
 ---
 
 # TaskProgress capabilities
@@ -20,8 +20,6 @@ acting agent (2026-10-22), so no further question is needed for that case.
 | `<NAME>` | Shared source (in this repository) | `<DESCRIPTION>` |
 |---|---|---|
 | `task-progress-items` | `.agents/skills/task-progress-items/SKILL.md` | TaskProgress executable items — evaluate a project into items, write one instruction as an item and run it, run the execution or acceptance queue, or do all of it. Use only when the user explicitly invokes task-progress-items (in Claude Code, the /task-progress-items command); answer paraphrases with the invocation instead. |
-| `checklist` | `.agents/skills/checklist/SKILL.md` | Open a TaskProgress `.checklist` round in the in-app Browser pane by name. Use when the user asks to open, show, or look at a checklist — `/checklist <name>`, "開 checklist", "看一下 <name> 那份清單", a bare checklist stem with no other verb, or a recency word standing in for one (最近, 目前, 這輪, current, latest, recent). |
-
 For each row:
 
 1. Resolve the acting agent's user-level skills directory from that agent's own documentation.
@@ -96,7 +94,7 @@ missing. Each is cheap; none is sufficient alone.
 |---|---|
 | Create, run or accept executable items with verification options | The acting agent's user-level `task-progress-items` entry (§ Initialize the user-level entry), which routes to [task-progress-items](../task-progress-items/SKILL.md). |
 | Open a task card pinned to the top of its report | `task-progress.exe open --scope <scope-id> --pin <task-id>` (or a report folder). See [Update existing Report through CLI](../task-progress-report/SKILL.md#update-existing-report-through-cli). |
-| View or tick a `.checklist` round in a browser | The acting agent's user-level `checklist` entry, which routes to [checklist](../checklist/SKILL.md) — the service's `/checklist/?scope=&task=` page in the Browser pane. Same read/write engine as the desktop host. |
+| View or tick a `.checklist` round in a browser | The service's `/checklist/?scope=<scope-id>&task=<stem>` page in the Browser pane, reached as [Reaching the browser entrance from another project](#reaching-the-browser-entrance-from-another-project) says; the user normally opens it from the bound item on the Report card. Same read/write engine as the desktop host. |
 | Write, mark, or complete a round | `.agents/skills/checklist-round/SKILL.md` — the document contract. |
 | Check that a `.checklist` parses | `task-progress checklist validate <file>` — console only, non-zero exit on failure. |
 | View or answer a `.decisions` file in a browser | `/decisions/?scope=<scope-id>&task=<stem>` (one file) or `/decisions/?scope=<scope-id>` (scope overview) in the Browser pane. Behavior: [DecisionItemsUsage](../../../Documentation/DecisionItemsUsage.md#browser-與-report). |
@@ -134,8 +132,7 @@ question: their cost outweighs a question that needs no record.
 
 ## Reaching the browser entrance from another project
 
-The user-level `checklist` entry works from any project, and a hand-built URL works without it.
-Either way, three preconditions, in order:
+Build the checklist URL by hand; it works from any project. Three preconditions, in order:
 
 1. The project carries `checklists/<stem>.checklist` or `decisions/<stem>.decisions`.
 2. The project is a registered scope: `task-progress scope list` to check, `scope add <scope-id>

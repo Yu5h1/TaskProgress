@@ -53,7 +53,7 @@ Agent 自己寫步驟、自己執行時，交給更高階的模型驗收後，�
 23. 驗收者發現條件本身與原始規格對不上時，標 `[!]` 並選原因「條件不符」，交給建立者修改條件；建立者改完，由驗收者對照規格確認。建立者不同意，或驗收者不接受修改，才交給使用者決定（見〈條件不符〉）。
 24. `[acceptance]` 是執行者以外的獨立判斷，不是共識：判斷實作是否符合時，驗收者單獨決定，執行者沒有表決權；只有條件本身被質疑時，才需要建立者與驗收者取得共識，談不攏由使用者裁決。
 25. 一個子項只綁一份 checklist；其他相關的 checklist 以連結寫在子項描述裡，不綁定。
-26. 對 Claude，`/task-progress-items` 是啟動可執行項目流程的唯一入口（見〈入口邊界〉）。一般開發要求、「請繼續發展任務」等舊短語、單獨提供項目 ID，以及專案有 `checklists/`，都不構成啟動條件；讀取 checklist 或 Report 的格式與權限規則，也不等於啟動流程。其他 agent 沿用現有入口，由使用者另外對齊。
+26. 對每個 agent，明確呼叫 `task-progress-items`（Claude 為 `/task-progress-items`）是啟動可執行項目流程的唯一入口（見〈入口邊界〉；2026-10-22 起其他 agent 也對齊，經各自的使用者層入口）。一般開發要求、「請繼續發展任務」等舊短語、單獨提供項目 ID，以及專案有 `checklists/`，都不構成啟動條件；讀取 checklist 或 Report 的格式與權限規則，也不等於啟動流程。
 
 ## 一份 checklist 的樣子
 
@@ -104,11 +104,11 @@ scope 預設是目前所在的專案，只有需要時才另外指定。
 
 ### 入口邊界
 
-- 對 Claude，只有 `/task-progress-items` 會建立項目、認領、執行或啟動驗收。
-- 使用者用了舊短語（「請繼續發展任務」「請評估 <scope> 並建立可執行項目」「請執行 <scope> report 的可執行項目」等）時，Claude 不啟動流程，回一句對應的命令，例如「要評估並建立項目，請用 `/task-progress-items`」，讓使用者知道沒有被忽略。
+- 對每個 agent，只有明確呼叫 `task-progress-items` 會建立項目、認領、執行或啟動驗收。
+- 使用者用了舊短語（「請繼續發展任務」「請評估 <scope> 並建立可執行項目」「請執行 <scope> report 的可執行項目」等）時，agent 不啟動流程，回一句對應的命令，例如「要評估並建立項目，請用 `/task-progress-items`」，讓使用者知道沒有被忽略。
 - 一般開發要求照一般方式處理，不因專案有 `checklists/` 就建立 checklist 或項目。
 - 直接操作既有 checklist 或 Report（例如調整某份 checklist 的步驟）時，照該文件的格式、寫入權限與驗證規則處理；載入這些規則不授權建立項目、執行工作或啟動驗收。
-- 共用索引 `.agents/AgentsKnowledgeIndex.md` 中路由可執行項目的那一列，分開寫明：Claude 只經 `/task-progress-items`（依本計畫）；其他 agent 沿用現有短語，直到使用者對齊。規則仍只有這一處出處，Claude 讀索引時也不會被舊短語繞過入口。
+- 共用索引 `.agents/AgentsKnowledgeIndex.md` 只有一列路由可執行項目：所有 agent 先經 taskprogress-capabilities 確認使用者層入口，再由入口讀共用的 task-progress-items；舊短語不啟動任何 agent 的流程。`agent-executable-items` 只留項目的判斷準則（位置、評估、資格、形狀），不再是流程入口（2026-10-22）。
 - 生效時機：skill 完成（實作項目第 6 項）時才一起改索引與舊 skill；在那之前現有入口照常可用，避免中間有一段時間叫不動任何流程。
 
 ### 驗證方式
