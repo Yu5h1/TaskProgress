@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-10-21T18:50:15.732539+00:00",
+  "updated_at": "2026-10-22T04:33:22.589304+00:00",
   "tasks": [
     {
       "id": "item-selection",
@@ -1374,6 +1374,27 @@
               "at": "2026-10-21T18:50:15.732539+00:00",
               "session": "Yu5h1Lib.UX 流程審查",
               "session_id": "12d6407d-b4d7-444b-be2e-d9b16a7f3b37"
+            }
+          ]
+        }
+      ],
+      "completed_items": [
+        {
+          "id": "item-card-reference-links",
+          "title": "Report 項目提到另一張卡片（同 scope 或跨 scope）時，以指向該卡片的行內連結（/?scope=…&pin=<卡片 ID>）標註，不只寫名稱或 ID，讓使用者直接點過去；規則寫進 task-progress-report skill 的行內連結段，並修正 UX numericfield-goal-1-web 對 Web 卡片 ux-numericfield 的引用",
+          "status": "done",
+          "activity": [
+            {
+              "event": "created",
+              "actor": "claude",
+              "at": "2026-10-22T04:31:29.794341+00:00",
+              "session": "TaskProgress 維護開發"
+            },
+            {
+              "event": "done",
+              "actor": "claude",
+              "at": "2026-10-22T04:33:22.589304+00:00",
+              "session": "TaskProgress 維護開發"
             }
           ]
         }
