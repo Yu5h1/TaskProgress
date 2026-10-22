@@ -35,11 +35,10 @@ entrance, and not the one asked for here. A page that will not load is reported,
 
 The page is `http://127.0.0.1:<port>/checklist/?scope=<scope-id>&task=<stem>`.
 `<scope-id>` is the registered scope owning that `checklists/` directory —
-`task-progress` for this repository. Before navigating, follow
-`.agents/skills/taskprogress-capabilities/SKILL.md#ensure-the-checklist-service`:
-reuse the running service, or follow that procedure's approved unsandboxed startup and manual
-fallback when stopped. Require the connected status that procedure describes. Use the confirmed
-port for the URL and provide a clickable link to the resolved round.
+`task-progress` for this repository. Run `open` and navigate per
+`.agents/skills/taskprogress-capabilities/SKILL.md#ensure-the-checklist-service`,
+without waiting for output or checking the service or page. Name the resolved
+round in the reply.
 
 Read the pane's tab list first (`tabs_context`) and pick the tool by what it
 reports. With the pane open, navigate the existing active tab by its id —
@@ -48,23 +47,8 @@ which reads as a page that failed to load. With the pane closed
 (`browserOpen: false`), open it with `preview_start` carrying the url;
 `navigate` is refused from that state.
 
-Confirm what actually landed by reading the page (`get_page_text`), then report
-the round identity and the check tally. The tab list's hidden/displayed flag
-does not say whether the user can see the page — a tab id from an earlier call
-can be gone, and the pane can be showing a blank tab while the tools still
-answer for a stale one. The loaded URL and title are the evidence; that flag is
-not.
-
-## When it does not load
-
-A failed navigation has two unrelated causes, and they are told apart before
-anything is reported. Run `task-progress service status`, read per that same
-procedure. When status confirms the service is connected,
-retry the pane with `preview_start`; report any remaining load error. When it is
-stopped, use the same service-startup procedure above, at most once per invocation,
-then retry navigation after availability is confirmed. Report a failed startup
-instead of repeatedly launching it. A bad name is neither, and was already settled
-while resolving the stem.
+When the user says the page did not load, diagnose per that procedure's
+closing paragraph.
 
 To check a file's format rather than look at it, use
 `task-progress checklist validate <file>` — console only, no window. The

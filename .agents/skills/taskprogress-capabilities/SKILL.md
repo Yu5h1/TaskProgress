@@ -17,8 +17,8 @@ as navigation. Resolve the file and scope, [ensure the service](#ensure-the-chec
 and navigate the Browser pane — nothing more.
 
 Do not enumerate the capability surface, inspect the document for mistakes, run `validate` or
-`request`, execute checks, change markers or answers, or diagnose the document. If the opened page
-reports a parse or load error, relay that error and stop. A request to open and also check or
+`request`, execute checks, change markers or answers, or diagnose the document. If the user
+reports a parse or load error on the page, relay that error and stop. A request to open and also check or
 validate authorizes only the additional action the user named.
 
 ## Enumerate the entrances first
@@ -90,49 +90,42 @@ it — build the URL by hand instead. Three preconditions, in order:
    `{"schema_version":"1.0","report_id":"…","scope_id":"…","title":"…","updated_at":"…","tasks":[]}`
    satisfies it without adopting TaskProgress reporting for that project. Say so when adding one, so
    an empty report is never mistaken for real tracked progress.
-3. The service is running per [Ensure the Checklist service](#ensure-the-checklist-service).
+3. `open` has run per [Ensure the Checklist service](#ensure-the-checklist-service).
 
-Then open `/checklist/?scope=<scope-id>&task=<stem>` (or `/decisions/…`) on the confirmed port in
-the Browser pane, reusing the relevant tab. Read the loaded URL and page content to confirm the
-requested document loaded; a successful navigation call alone is insufficient.
+Then navigate the Browser pane to `/checklist/?scope=<scope-id>&task=<stem>` (or `/decisions/…`)
+per that procedure's last step.
 
 ## Ensure the Checklist service
 
-The shared service-readiness procedure for opening Checklist, Decision, and Report pages. Opening
-one includes starting the service when stopped. It does not authorize stopping or replacing a
-running service. Report route synchronization is in
+The shared procedure for opening Checklist, Decision, and Report pages: run `open`, then put the
+URL in the Browser pane. It does not authorize stopping or replacing a running service. Report
+route synchronization is in
 [the Report skill](../task-progress-report/SKILL.md#start-or-synchronize-the-shared-viewer).
 
 1. Resolve `Build/win-x64/task-progress.exe` from the TaskProgress repository, not the consuming
    project's working directory; use its absolute path.
-2. Check whether `http://127.0.0.1:8001/` (or the explicitly requested port) answers one HTTP
-   request. If it does, the service is up: skip step 3.
-3. Otherwise run `task-progress.exe open --scope <scope-id> --no-browser` (add `--pin <card-id>`
-   when a card is the target; a report folder may replace `--scope`) once, as a plain direct
-   command, outside the sandbox, as the current ordinary Windows user, using the agent tool's
-   approval mechanism (in Codex, `sandbox_permissions: "require_escalated"` — unsandboxed, not
-   administrator). `open` checks the service and starts the tray service when it is stopped; it
-   is the only way an agent brings the service up. Do not run `start` for readiness, do not stand
-   in a liveness probe (TrayHost, PID, state file, `Get-NetTCPConnection`) for it, and do not
-   start the service through a launcher or wrapper of your own. The EXE is a WinExe and writes
-   nothing to the console when run directly, so do not wait for output and do not wrap the call
-   in `Start-Process` with redirected streams to harvest a link; the link is the known form in
-   step 5 (verified 2026-10-22 with the service stopped: the direct call printed nothing, the port
-   answered afterwards, `service status` showed the new PID). Startup writes scope/catalog state
-   outside the workspace, so never launch the resident TrayHost/worker inside the sandbox. Do not
-   use `RunAs`, change ACLs, or weaken pipe security. If unsandboxed execution is unavailable or
-   denied, give the user the absolute EXE command to run in a normal terminal and resume after
-   they start it; do not route around a denial through another launcher. An old resident worker
-   from an earlier build must be exited by the user before new commands work; do not terminate it
-   automatically.
-4. Repeat the HTTP check of step 2 once. If the port still does not answer, run
-   `task-progress.exe service status` (with `--port <port>` when explicitly requested) with
-   redirected standard output — the direct call prints nothing — and report what it says:
-   connected output shows URL, PID, Instance, Viewer root and registration count (there is no
-   literal `Running`); not-started, an error or a foreign service is reported as is. Stop there:
-   no loops, no second `open`, no `start`, no takeover or restart, no unverified link.
-5. Open the page on the confirmed port in the Browser pane and give a clickable link, URL-encoding
+2. Run `task-progress.exe open --scope <scope-id> --no-browser` (add `--pin <card-id>` when a card
+   is the target; a report folder may replace `--scope`; `--port <port>` only when the user asked
+   for a port) once, every time, with no HTTP check first. `open` starts the tray service when it
+   is stopped and registers the scope's routes on a running one; a port that answers says nothing
+   about the scope (2026-10-22: 8001 answered while `?scope=task-progress` returned the report
+   with HTTP 404 until `open` ran). Run it as a plain direct command, outside the sandbox, as the
+   current ordinary Windows user, using the agent tool's approval mechanism (in Codex,
+   `sandbox_permissions: "require_escalated"` — unsandboxed, not administrator); startup writes
+   scope/catalog state outside the workspace, so never launch the resident TrayHost/worker inside
+   the sandbox. The EXE is a WinExe: it prints nothing and returns at once, so do not wait for
+   output and do not wrap it in `Start-Process` with redirected streams. Do not run `start`, start
+   the service through another launcher or wrapper, use `RunAs`, change ACLs, or weaken pipe
+   security. If unsandboxed execution is unavailable or denied, give the user the absolute EXE
+   command to run in a normal terminal; do not route around the denial. An old resident worker
+   from an earlier build must be exited by the user; do not terminate it automatically.
+3. Navigate the Browser pane straight to the target URL, reusing the relevant tab and URL-encoding
    scope and task values: Report `http://127.0.0.1:8001/?scope=<scope-id>` (`&pin=<card-id>` for a
-   card), Checklist `/checklist/?scope=<scope-id>&task=<stem>`, Decision `/decisions/…`. Read the
-   loaded URL and page content. Report a load or parse error without claiming success or falling
-   back to another UI.
+   card), Checklist `/checklist/?scope=<scope-id>&task=<stem>`, Decision `/decisions/…`. Do not
+   probe the port, run `service status`, read the page back, or retry; the user sees the pane.
+
+Only when the user says the page did not load, run `task-progress.exe service status` (with
+`--port <port>` when one was requested) with redirected standard output — the direct call prints
+nothing — and report what it says: connected output shows URL, PID, Instance, Viewer root and
+registration count (there is no literal `Running`); not-started, an error or a foreign service is
+reported as is. No loops, no `start`, no takeover or restart.
