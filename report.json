@@ -3,8 +3,342 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-10-22T13:31:36.670529+00:00",
+  "updated_at": "2026-10-22T15:28:21.116508+00:00",
   "tasks": [
+    {
+      "title": "共用任務 skill 與 Codex 驗證試跑",
+      "priority": 1,
+      "status": "done",
+      "id": "codex-workflow-trial",
+      "summary": "Codex 使用者層入口與跨專案路由已驗證；六情境全部完成。獨立子 agent 的驗收符合新規範，釋放後失效的舊結果已補驗，兩項人工檢查由使用者通過。",
+      "pending_items": [
+        {
+          "document_ref": {
+            "kind": "checklist",
+            "scope_id": "task-progress",
+            "task": "codex-trial-self"
+          },
+          "id": "codex-trial-self",
+          "priority": 1,
+          "title": "Codex 自驗試跑",
+          "status": "planned",
+          "activity": [
+            {
+              "event": "created",
+              "actor": "codex",
+              "at": "2026-10-22T13:23:40.517962+00:00",
+              "session": "Codex 共用 skill 驗證試跑",
+              "session_id": "365a4d62-02ee-4e28-9da7-63783c089d24"
+            },
+            {
+              "event": "started",
+              "actor": "codex",
+              "at": "2026-10-22T13:24:17.070439+00:00",
+              "session": "Codex 共用 skill 驗證試跑",
+              "session_id": "365a4d62-02ee-4e28-9da7-63783c089d24"
+            },
+            {
+              "event": "released",
+              "actor": "codex",
+              "at": "2026-10-22T13:24:36.661140+00:00",
+              "session": "Codex 共用 skill 驗證試跑",
+              "session_id": "365a4d62-02ee-4e28-9da7-63783c089d24"
+            }
+          ]
+        },
+        {
+          "document_ref": {
+            "kind": "checklist",
+            "scope_id": "task-progress",
+            "task": "codex-trial-manual"
+          },
+          "id": "codex-trial-manual",
+          "priority": 1,
+          "title": "Codex 人工試跑",
+          "status": "planned",
+          "activity": [
+            {
+              "event": "created",
+              "actor": "codex",
+              "at": "2026-10-22T13:23:40.517962+00:00",
+              "session": "Codex 共用 skill 驗證試跑",
+              "session_id": "365a4d62-02ee-4e28-9da7-63783c089d24"
+            },
+            {
+              "event": "started",
+              "actor": "codex",
+              "at": "2026-10-22T13:24:38.512703+00:00",
+              "session": "Codex 共用 skill 驗證試跑",
+              "session_id": "365a4d62-02ee-4e28-9da7-63783c089d24"
+            },
+            {
+              "event": "released",
+              "actor": "codex",
+              "at": "2026-10-22T13:25:02.774007+00:00",
+              "session": "Codex 共用 skill 驗證試跑",
+              "session_id": "365a4d62-02ee-4e28-9da7-63783c089d24"
+            }
+          ]
+        },
+        {
+          "document_ref": {
+            "kind": "checklist",
+            "scope_id": "task-progress",
+            "task": "codex-trial-cross"
+          },
+          "id": "codex-trial-cross",
+          "priority": 1,
+          "title": "Codex 他驗試跑",
+          "status": "planned",
+          "activity": [
+            {
+              "event": "created",
+              "actor": "codex",
+              "at": "2026-10-22T13:23:40.517962+00:00",
+              "session": "Codex 共用 skill 驗證試跑",
+              "session_id": "365a4d62-02ee-4e28-9da7-63783c089d24"
+            },
+            {
+              "event": "started",
+              "actor": "codex",
+              "at": "2026-10-22T13:25:04.630545+00:00",
+              "session": "Codex 共用 skill 驗證試跑",
+              "session_id": "365a4d62-02ee-4e28-9da7-63783c089d24"
+            },
+            {
+              "event": "released",
+              "actor": "codex",
+              "at": "2026-10-22T13:25:28.714975+00:00",
+              "session": "Codex 共用 skill 驗證試跑",
+              "session_id": "365a4d62-02ee-4e28-9da7-63783c089d24"
+            }
+          ]
+        },
+        {
+          "document_ref": {
+            "kind": "checklist",
+            "scope_id": "task-progress",
+            "task": "codex-trial-cross-manual"
+          },
+          "id": "codex-trial-cross-manual",
+          "priority": 1,
+          "title": "Codex 他驗加人工試跑",
+          "status": "planned",
+          "activity": [
+            {
+              "event": "created",
+              "actor": "codex",
+              "at": "2026-10-22T13:23:40.517962+00:00",
+              "session": "Codex 共用 skill 驗證試跑",
+              "session_id": "365a4d62-02ee-4e28-9da7-63783c089d24"
+            },
+            {
+              "event": "started",
+              "actor": "codex",
+              "at": "2026-10-22T13:25:30.614997+00:00",
+              "session": "Codex 共用 skill 驗證試跑",
+              "session_id": "365a4d62-02ee-4e28-9da7-63783c089d24"
+            },
+            {
+              "event": "released",
+              "actor": "codex",
+              "at": "2026-10-22T13:25:59.720755+00:00",
+              "session": "Codex 共用 skill 驗證試跑",
+              "session_id": "365a4d62-02ee-4e28-9da7-63783c089d24"
+            }
+          ]
+        },
+        {
+          "document_ref": {
+            "kind": "checklist",
+            "scope_id": "task-progress",
+            "task": "codex-trial-condition"
+          },
+          "id": "codex-trial-condition",
+          "priority": 1,
+          "title": "Codex 條件不符試跑",
+          "status": "planned",
+          "activity": [
+            {
+              "event": "created",
+              "actor": "codex",
+              "at": "2026-10-22T13:23:40.517962+00:00",
+              "session": "Codex 共用 skill 驗證試跑",
+              "session_id": "365a4d62-02ee-4e28-9da7-63783c089d24"
+            },
+            {
+              "event": "started",
+              "actor": "codex",
+              "at": "2026-10-22T13:26:01.625443+00:00",
+              "session": "Codex 共用 skill 驗證試跑",
+              "session_id": "365a4d62-02ee-4e28-9da7-63783c089d24"
+            },
+            {
+              "event": "started",
+              "actor": "codex",
+              "at": "2026-10-22T13:28:58.697164+00:00",
+              "session": "Codex 共用 skill 驗證試跑",
+              "session_id": "365a4d62-02ee-4e28-9da7-63783c089d24"
+            },
+            {
+              "event": "released",
+              "actor": "codex",
+              "at": "2026-10-22T13:29:04.434074+00:00",
+              "session": "Codex 共用 skill 驗證試跑",
+              "session_id": "365a4d62-02ee-4e28-9da7-63783c089d24"
+            }
+          ]
+        },
+        {
+          "waits_for": [
+            {
+              "task_id": "codex-workflow-trial",
+              "scope_id": "task-progress",
+              "item_id": "codex-trial-cross"
+            }
+          ],
+          "title": "Codex 等待試跑",
+          "document_ref": {
+            "kind": "checklist",
+            "scope_id": "task-progress",
+            "task": "codex-trial-waits"
+          },
+          "priority": 1,
+          "id": "codex-trial-waits",
+          "status": "planned",
+          "activity": [
+            {
+              "event": "created",
+              "actor": "codex",
+              "at": "2026-10-22T13:23:40.517962+00:00",
+              "session": "Codex 共用 skill 驗證試跑",
+              "session_id": "365a4d62-02ee-4e28-9da7-63783c089d24"
+            },
+            {
+              "event": "started",
+              "actor": "codex",
+              "at": "2026-10-22T13:29:07.067241+00:00",
+              "session": "Codex 共用 skill 驗證試跑",
+              "session_id": "365a4d62-02ee-4e28-9da7-63783c089d24"
+            },
+            {
+              "event": "released",
+              "actor": "codex",
+              "at": "2026-10-22T13:29:30.358886+00:00",
+              "session": "Codex 共用 skill 驗證試跑",
+              "session_id": "365a4d62-02ee-4e28-9da7-63783c089d24"
+            }
+          ]
+        }
+      ],
+      "completed_items": [
+        {
+          "title": "六情境執行、獨立他驗與使用者人工驗收均完成",
+          "priority": 1,
+          "status": "done",
+          "id": "codex-verification-trial",
+          "activity": [
+            {
+              "event": "created",
+              "actor": "codex",
+              "at": "2026-10-22T12:01:44.796977+00:00",
+              "session": "共用 skill 與 Codex 驗證試跑"
+            },
+            {
+              "event": "started",
+              "actor": "codex",
+              "at": "2026-10-22T13:23:40.517962+00:00",
+              "session": "Codex 共用 skill 驗證試跑",
+              "session_id": "365a4d62-02ee-4e28-9da7-63783c089d24"
+            },
+            {
+              "event": "done",
+              "actor": "codex",
+              "at": "2026-10-22T13:31:36.670529+00:00",
+              "session": "Codex 共用 skill 驗證試跑",
+              "session_id": "365a4d62-02ee-4e28-9da7-63783c089d24"
+            },
+            {
+              "event": "updated",
+              "actor": "codex",
+              "at": "2026-10-22T15:28:21.116508+00:00",
+              "session": "Codex 共用 skill 驗證試跑",
+              "session_id": "365a4d62-02ee-4e28-9da7-63783c089d24"
+            }
+          ]
+        },
+        {
+          "title": "Codex 入口已建立且重複檢查不變；獨立 agent 自動發現，Web 工作目錄唯讀路由仍使用 Web scope",
+          "priority": 1,
+          "status": "done",
+          "id": "user-skill-routing",
+          "activity": [
+            {
+              "event": "created",
+              "actor": "codex",
+              "at": "2026-10-22T12:01:44.796977+00:00",
+              "session": "共用 skill 與 Codex 驗證試跑"
+            },
+            {
+              "event": "started",
+              "actor": "codex",
+              "at": "2026-10-22T13:23:40.517962+00:00",
+              "session": "Codex 共用 skill 驗證試跑",
+              "session_id": "365a4d62-02ee-4e28-9da7-63783c089d24"
+            },
+            {
+              "event": "done",
+              "actor": "codex",
+              "at": "2026-10-22T13:31:36.670529+00:00",
+              "session": "Codex 共用 skill 驗證試跑",
+              "session_id": "365a4d62-02ee-4e28-9da7-63783c089d24"
+            }
+          ]
+        },
+        {
+          "title": "已核對 Claude 更新的共用流程：agent 差異、認領、釋放、驗收、條件修訂與佇列契約",
+          "priority": 1,
+          "status": "done",
+          "id": "shared-skill-implementation",
+          "activity": [
+            {
+              "event": "created",
+              "actor": "codex",
+              "at": "2026-10-22T12:01:44.796977+00:00",
+              "session": "共用 skill 與 Codex 驗證試跑"
+            },
+            {
+              "event": "done",
+              "actor": "codex",
+              "at": "2026-10-22T13:23:40.517962+00:00",
+              "session": "Codex 共用 skill 驗證試跑",
+              "session_id": "365a4d62-02ee-4e28-9da7-63783c089d24"
+            }
+          ]
+        },
+        {
+          "title": "已確認共用來源與使用者層入口文件路由；初始化只設定目前 agent、遇同名衝突停止",
+          "priority": 1,
+          "status": "done",
+          "id": "shared-skill-design",
+          "activity": [
+            {
+              "event": "created",
+              "actor": "codex",
+              "at": "2026-10-22T12:01:44.796977+00:00",
+              "session": "共用 skill 與 Codex 驗證試跑"
+            },
+            {
+              "event": "done",
+              "actor": "codex",
+              "at": "2026-10-22T13:23:40.517962+00:00",
+              "session": "Codex 共用 skill 驗證試跑",
+              "session_id": "365a4d62-02ee-4e28-9da7-63783c089d24"
+            }
+          ]
+        }
+      ]
+    },
     {
       "id": "item-selection",
       "title": "子項多選與批次複製參照",
@@ -1854,333 +2188,6 @@
               "at": "2026-10-22T12:42:59.375424+00:00",
               "session": "Taskprogress 維護開發",
               "session_id": "583fa969-9dcf-4def-98dd-196efef59cea"
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "title": "共用任務 skill 與 Codex 驗證試跑",
-      "priority": 1,
-      "status": "in_progress",
-      "id": "codex-workflow-trial",
-      "summary": "Codex 入口自動發現與跨專案路由已驗證；自驗、他驗、條件修訂、等待均完成，三項權限拒絕符合預期。人工與他驗加人工兩項待使用者在綁定 Checklist 驗收。",
-      "pending_items": [
-        {
-          "document_ref": {
-            "kind": "checklist",
-            "scope_id": "task-progress",
-            "task": "codex-trial-self"
-          },
-          "id": "codex-trial-self",
-          "priority": 1,
-          "title": "Codex 自驗試跑",
-          "status": "planned",
-          "activity": [
-            {
-              "event": "created",
-              "actor": "codex",
-              "at": "2026-10-22T13:23:40.517962+00:00",
-              "session": "Codex 共用 skill 驗證試跑",
-              "session_id": "365a4d62-02ee-4e28-9da7-63783c089d24"
-            },
-            {
-              "event": "started",
-              "actor": "codex",
-              "at": "2026-10-22T13:24:17.070439+00:00",
-              "session": "Codex 共用 skill 驗證試跑",
-              "session_id": "365a4d62-02ee-4e28-9da7-63783c089d24"
-            },
-            {
-              "event": "released",
-              "actor": "codex",
-              "at": "2026-10-22T13:24:36.661140+00:00",
-              "session": "Codex 共用 skill 驗證試跑",
-              "session_id": "365a4d62-02ee-4e28-9da7-63783c089d24"
-            }
-          ]
-        },
-        {
-          "document_ref": {
-            "kind": "checklist",
-            "scope_id": "task-progress",
-            "task": "codex-trial-manual"
-          },
-          "id": "codex-trial-manual",
-          "priority": 1,
-          "title": "Codex 人工試跑",
-          "status": "planned",
-          "activity": [
-            {
-              "event": "created",
-              "actor": "codex",
-              "at": "2026-10-22T13:23:40.517962+00:00",
-              "session": "Codex 共用 skill 驗證試跑",
-              "session_id": "365a4d62-02ee-4e28-9da7-63783c089d24"
-            },
-            {
-              "event": "started",
-              "actor": "codex",
-              "at": "2026-10-22T13:24:38.512703+00:00",
-              "session": "Codex 共用 skill 驗證試跑",
-              "session_id": "365a4d62-02ee-4e28-9da7-63783c089d24"
-            },
-            {
-              "event": "released",
-              "actor": "codex",
-              "at": "2026-10-22T13:25:02.774007+00:00",
-              "session": "Codex 共用 skill 驗證試跑",
-              "session_id": "365a4d62-02ee-4e28-9da7-63783c089d24"
-            }
-          ]
-        },
-        {
-          "document_ref": {
-            "kind": "checklist",
-            "scope_id": "task-progress",
-            "task": "codex-trial-cross"
-          },
-          "id": "codex-trial-cross",
-          "priority": 1,
-          "title": "Codex 他驗試跑",
-          "status": "planned",
-          "activity": [
-            {
-              "event": "created",
-              "actor": "codex",
-              "at": "2026-10-22T13:23:40.517962+00:00",
-              "session": "Codex 共用 skill 驗證試跑",
-              "session_id": "365a4d62-02ee-4e28-9da7-63783c089d24"
-            },
-            {
-              "event": "started",
-              "actor": "codex",
-              "at": "2026-10-22T13:25:04.630545+00:00",
-              "session": "Codex 共用 skill 驗證試跑",
-              "session_id": "365a4d62-02ee-4e28-9da7-63783c089d24"
-            },
-            {
-              "event": "released",
-              "actor": "codex",
-              "at": "2026-10-22T13:25:28.714975+00:00",
-              "session": "Codex 共用 skill 驗證試跑",
-              "session_id": "365a4d62-02ee-4e28-9da7-63783c089d24"
-            }
-          ]
-        },
-        {
-          "document_ref": {
-            "kind": "checklist",
-            "scope_id": "task-progress",
-            "task": "codex-trial-cross-manual"
-          },
-          "id": "codex-trial-cross-manual",
-          "priority": 1,
-          "title": "Codex 他驗加人工試跑",
-          "status": "planned",
-          "activity": [
-            {
-              "event": "created",
-              "actor": "codex",
-              "at": "2026-10-22T13:23:40.517962+00:00",
-              "session": "Codex 共用 skill 驗證試跑",
-              "session_id": "365a4d62-02ee-4e28-9da7-63783c089d24"
-            },
-            {
-              "event": "started",
-              "actor": "codex",
-              "at": "2026-10-22T13:25:30.614997+00:00",
-              "session": "Codex 共用 skill 驗證試跑",
-              "session_id": "365a4d62-02ee-4e28-9da7-63783c089d24"
-            },
-            {
-              "event": "released",
-              "actor": "codex",
-              "at": "2026-10-22T13:25:59.720755+00:00",
-              "session": "Codex 共用 skill 驗證試跑",
-              "session_id": "365a4d62-02ee-4e28-9da7-63783c089d24"
-            }
-          ]
-        },
-        {
-          "document_ref": {
-            "kind": "checklist",
-            "scope_id": "task-progress",
-            "task": "codex-trial-condition"
-          },
-          "id": "codex-trial-condition",
-          "priority": 1,
-          "title": "Codex 條件不符試跑",
-          "status": "planned",
-          "activity": [
-            {
-              "event": "created",
-              "actor": "codex",
-              "at": "2026-10-22T13:23:40.517962+00:00",
-              "session": "Codex 共用 skill 驗證試跑",
-              "session_id": "365a4d62-02ee-4e28-9da7-63783c089d24"
-            },
-            {
-              "event": "started",
-              "actor": "codex",
-              "at": "2026-10-22T13:26:01.625443+00:00",
-              "session": "Codex 共用 skill 驗證試跑",
-              "session_id": "365a4d62-02ee-4e28-9da7-63783c089d24"
-            },
-            {
-              "event": "started",
-              "actor": "codex",
-              "at": "2026-10-22T13:28:58.697164+00:00",
-              "session": "Codex 共用 skill 驗證試跑",
-              "session_id": "365a4d62-02ee-4e28-9da7-63783c089d24"
-            },
-            {
-              "event": "released",
-              "actor": "codex",
-              "at": "2026-10-22T13:29:04.434074+00:00",
-              "session": "Codex 共用 skill 驗證試跑",
-              "session_id": "365a4d62-02ee-4e28-9da7-63783c089d24"
-            }
-          ]
-        },
-        {
-          "waits_for": [
-            {
-              "task_id": "codex-workflow-trial",
-              "scope_id": "task-progress",
-              "item_id": "codex-trial-cross"
-            }
-          ],
-          "title": "Codex 等待試跑",
-          "document_ref": {
-            "kind": "checklist",
-            "scope_id": "task-progress",
-            "task": "codex-trial-waits"
-          },
-          "priority": 1,
-          "id": "codex-trial-waits",
-          "status": "planned",
-          "activity": [
-            {
-              "event": "created",
-              "actor": "codex",
-              "at": "2026-10-22T13:23:40.517962+00:00",
-              "session": "Codex 共用 skill 驗證試跑",
-              "session_id": "365a4d62-02ee-4e28-9da7-63783c089d24"
-            },
-            {
-              "event": "started",
-              "actor": "codex",
-              "at": "2026-10-22T13:29:07.067241+00:00",
-              "session": "Codex 共用 skill 驗證試跑",
-              "session_id": "365a4d62-02ee-4e28-9da7-63783c089d24"
-            },
-            {
-              "event": "released",
-              "actor": "codex",
-              "at": "2026-10-22T13:29:30.358886+00:00",
-              "session": "Codex 共用 skill 驗證試跑",
-              "session_id": "365a4d62-02ee-4e28-9da7-63783c089d24"
-            }
-          ]
-        }
-      ],
-      "completed_items": [
-        {
-          "title": "六情境的 agent 執行與獨立他驗已完成；兩項人工驗收由下列綁定子項繼續追蹤",
-          "priority": 1,
-          "status": "done",
-          "id": "codex-verification-trial",
-          "activity": [
-            {
-              "event": "created",
-              "actor": "codex",
-              "at": "2026-10-22T12:01:44.796977+00:00",
-              "session": "共用 skill 與 Codex 驗證試跑"
-            },
-            {
-              "event": "started",
-              "actor": "codex",
-              "at": "2026-10-22T13:23:40.517962+00:00",
-              "session": "Codex 共用 skill 驗證試跑",
-              "session_id": "365a4d62-02ee-4e28-9da7-63783c089d24"
-            },
-            {
-              "event": "done",
-              "actor": "codex",
-              "at": "2026-10-22T13:31:36.670529+00:00",
-              "session": "Codex 共用 skill 驗證試跑",
-              "session_id": "365a4d62-02ee-4e28-9da7-63783c089d24"
-            }
-          ]
-        },
-        {
-          "title": "Codex 入口已建立且重複檢查不變；獨立 agent 自動發現，Web 工作目錄唯讀路由仍使用 Web scope",
-          "priority": 1,
-          "status": "done",
-          "id": "user-skill-routing",
-          "activity": [
-            {
-              "event": "created",
-              "actor": "codex",
-              "at": "2026-10-22T12:01:44.796977+00:00",
-              "session": "共用 skill 與 Codex 驗證試跑"
-            },
-            {
-              "event": "started",
-              "actor": "codex",
-              "at": "2026-10-22T13:23:40.517962+00:00",
-              "session": "Codex 共用 skill 驗證試跑",
-              "session_id": "365a4d62-02ee-4e28-9da7-63783c089d24"
-            },
-            {
-              "event": "done",
-              "actor": "codex",
-              "at": "2026-10-22T13:31:36.670529+00:00",
-              "session": "Codex 共用 skill 驗證試跑",
-              "session_id": "365a4d62-02ee-4e28-9da7-63783c089d24"
-            }
-          ]
-        },
-        {
-          "title": "已核對 Claude 更新的共用流程：agent 差異、認領、釋放、驗收、條件修訂與佇列契約",
-          "priority": 1,
-          "status": "done",
-          "id": "shared-skill-implementation",
-          "activity": [
-            {
-              "event": "created",
-              "actor": "codex",
-              "at": "2026-10-22T12:01:44.796977+00:00",
-              "session": "共用 skill 與 Codex 驗證試跑"
-            },
-            {
-              "event": "done",
-              "actor": "codex",
-              "at": "2026-10-22T13:23:40.517962+00:00",
-              "session": "Codex 共用 skill 驗證試跑",
-              "session_id": "365a4d62-02ee-4e28-9da7-63783c089d24"
-            }
-          ]
-        },
-        {
-          "title": "已確認共用來源與使用者層入口文件路由；初始化只設定目前 agent、遇同名衝突停止",
-          "priority": 1,
-          "status": "done",
-          "id": "shared-skill-design",
-          "activity": [
-            {
-              "event": "created",
-              "actor": "codex",
-              "at": "2026-10-22T12:01:44.796977+00:00",
-              "session": "共用 skill 與 Codex 驗證試跑"
-            },
-            {
-              "event": "done",
-              "actor": "codex",
-              "at": "2026-10-22T13:23:40.517962+00:00",
-              "session": "Codex 共用 skill 驗證試跑",
-              "session_id": "365a4d62-02ee-4e28-9da7-63783c089d24"
             }
           ]
         }

@@ -18,10 +18,9 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
   - 使用者已發布 `Build/win-x64`（22:23），新規則生效；兩個試跑項目待使用者請 Codex 在新 session 以 `accept` 重驗。
   - 面板顯示跟進（使用者決定）：失效結果照有效狀態顯示為空框加警示色外框，不顯示 ✓、不自動改成 `[!]`；工作項目標記、進度與點擊都用有效狀態（`checklist-editor.js` `effectiveDocument`、`MarkerBox` `stale`）。瀏覽器版 checklist 頁已實機確認（trial-cross-manual 顯示 1/2）；WebView2 版要等下次發布。
 
-- **Codex 共用 skill 試跑（2026-10-22）。** 使用者明確呼叫 task-progress-items auto 處理 codex-workflow-trial。使用者層入口已建立；獨立 agent 啟動時自動發現（r0 與專案 r11 同名來源並存），從 Web 工作目錄的唯讀 scope 解析正確。六情境的 agent 部分已完成：自驗、他驗、條件修訂與等待均 done；人工、他驗加人工均 awaiting_user。原 session 的選單熱載入與發布版 CLI 的完整試跑未驗證。
-  - 試跑條件與綁定先提交於 5028820；獨立驗收為另一個 agent context（887a8491），提交 85d996c；條件修訂 ff20814 後由同一驗收者在 c31e330 重驗通過。拒絕自驗收、agent 代人工通過、他驗未完先寫人工結果，三次均 type=error 且原檔未變。
-  - 結果證據與驗證限制：[Codex trial results](experiments/codex-acceptance-trial/results.md)。本輪採既有 Debug DLL 呼叫 CLI；未改產品程式或共用 skill。
-  - 下一步：使用者從 codex-workflow-trial 卡片開啟 codex-trial-manual 與 codex-trial-cross-manual 的綁定 Checklist 記錄人工驗收；Codex 再核對推算完成並提交使用者結果。
+- **Codex 共用 skill 試跑已完成（2026-10-22）。** codex-workflow-trial 六情境全部 done，人工兩項已有 user 通過紀錄。依最新〈獨立驗收上下文〉核對，驗收子 agent 以 fork_turns="none" 啟動，沒有繼承父對話或參與建立、實作、條件修訂，符合資格；不用另開 chat。
+  - 「釋放後舊結果失效」規則使 codex-trial-condition 的第一筆驗收需重驗；原獨立驗收者（887a8491）透過 CLI 補驗並提交 b75bba0，兩個 acceptance 均 valid，子項恢復 done。既有條件退回與修訂證據保留。
+  - 使用者層入口自動發現與 Web scope 解析已驗證；結果、提交與未涵蓋範圍見 [Codex trial results](experiments/codex-acceptance-trial/results.md)。原 session 的選單熱載入、完整發布版試跑及延伸排程分支仍未測，不列入本卡完成範圍。本卡無後續待辦。
 
 - **驗證流程試跑（acceptance-trial 卡，2026-10-22）。** 照 `experiments/acceptance-trial/spec.md` 的六項試跑：執行者是本 session（claude 583fa969），驗收者是另開的獨立 session（claude 5e450172）。每一步的 `derived_state` 都與 AcceptanceChainPlan〈流程紀錄〉一致。
   - 自驗：認領 → 釋放後完成。人工：釋放後待使用者，使用者在面板記 `[x]`（記錄者 `user`）後完成。
