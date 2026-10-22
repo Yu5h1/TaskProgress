@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-10-22T08:06:04.439385+00:00",
+  "updated_at": "2026-10-22T09:00:59.553414+00:00",
   "tasks": [
     {
       "id": "item-selection",
@@ -1443,7 +1443,7 @@
         },
         {
           "id": "acceptance-skills",
-          "title": "Skill：改寫 checklist-round 與 agent-executable-items（[manual] 併入同一份 checklist、agent 只能標 [!]、刪除第二個 agent 寫 handoff 的審查）；新增 Claude skill /exec-items，選項 self、manual、cross、cross manual、evaluate、run、accept；他驗提交訊息帶子項 ID",
+          "title": "Skill：改寫 checklist-round 與 agent-executable-items（[manual] 併入同一份 checklist、agent 只能標 [!]、刪除第二個 agent 寫 handoff 的審查）；新增 Claude skill /task-progress-items（評估、指示、run、accept、auto，驗證方式判斷依據，子 session 一次一個）；他驗提交訊息帶子項 ID",
           "status": "planned",
           "activity": [
             {
@@ -1456,6 +1456,12 @@
               "event": "updated",
               "actor": "claude",
               "at": "2026-10-22T08:06:04.439385+00:00",
+              "session": "TaskProgress 維護開發"
+            },
+            {
+              "event": "updated",
+              "actor": "claude",
+              "at": "2026-10-22T09:00:59.553414+00:00",
               "session": "TaskProgress 維護開發"
             }
           ]

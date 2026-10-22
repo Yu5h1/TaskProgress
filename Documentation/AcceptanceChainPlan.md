@@ -30,10 +30,12 @@ Agent 自己寫步驟、自己執行時，交給更高階的模型驗收後，�
 7. 每個 `[acceptance]` 結果都記下記錄者（agent 的 session，或 `user`），沒有記錄者的結果不算數。
 8. `[manual]` 檢查在執行者自己的檢查全部完成後才加入。執行者與驗收者發現缺漏時都可以補上或調整；它的目的始終是「使用者能不能接受這件事完成」。
 9. 執行者與驗收者不能把 `[manual]` 標成 `[x]`，只能標 `[!]`，意思是「需要使用者再驗一次」，並在 `Observed` 寫明原因。只有使用者能標 `[x]`。
-10. 驗證方式是可選的，由一個 Claude skill 加選項觸發（斜線命令），skill 名稱用英文。其他工具的對齊由使用者另外處理。
-11. 「評估」選項由 agent 依任務複雜度替每一項選驗證方式，並在報告中寫出每一項的選擇與理由。其他選項由使用者指定。
+10. 入口是一個 Claude skill，斜線命令 `/task-progress-items`（見〈命令〉）。其他工具的對齊由使用者另外處理。
+11. 沒有指定驗證方式時，由 agent 依〈驗證方式的判斷依據〉替每一項選擇，並在回報中寫出每一項的選擇與理由。使用者想強制時，在指示前加 `self`、`manual`、`cross` 或 `cross manual`。
 12. 驗證流程只在觸發時使用，不依項目內容自動套用。現行「改動規格或程式碼時，另一個 agent 審查並寫在 handoff」的規則刪除，需要獨立驗收時改用 `[acceptance]`。
-13. skill 名為 `exec-items`，選項為 `self`、`manual`、`cross`、`cross manual`、`evaluate`、`run`、`accept`，例如 `/exec-items cross manual`。
+13. 只有他驗需要另一個 session：寫 `[acceptance]` 條件的 session 不得執行，驗收者不得是執行者。自驗與人工可以在同一個 session 規劃並執行，與過去相同。
+14. 一次處理多個項目時，能開子 session 就每項開一個；同一個 scope 一次一個，前一個通知完成才開下一個；不同 scope 可以同時。不能開子 session 時，`run`、`accept` 做完一項就停，列出下一個候補，等使用者說繼續；`auto` 一路做下去，遇到他驗項目停下，請使用者開新 session 執行。
+15. `run`、`accept` 不帶代號時處理全部可處理的項目；帶卡片代號只處理那張卡，帶項目代號只處理那一項。
 
 ## 一份 checklist 的樣子
 
@@ -68,19 +70,54 @@ Agent 自己寫步驟、自己執行時，交給更高階的模型驗收後，�
 
 記錄者欄位的名稱與位置在實作時決定，見〈實作項目〉第 1 項。
 
-## 驗證方式選項
+## 命令
 
-`/exec-items <選項>`：
+scope 預設是目前所在的專案，只有需要時才另外指定。
 
-| 選項 | 做什麼 | checklist 內容 |
+```text
+/task-progress-items                       評估目前專案，建立項目
+/task-progress-items <指示>                 把使用者說的一件事寫成項目
+/task-progress-items run [卡片或項目代號]    執行
+/task-progress-items accept [卡片或項目代號] 驗收
+/task-progress-items auto                  評估、執行、驗收全部做
+```
+
+- 「指示」是一句描述具體工作的話，例如「修正 NumericField 越界時沒有提示」。agent 判斷它屬於哪張卡，在那張卡新增項目並寫好 checklist，只處理這一件。不帶參數時則由 agent 評估整個專案，自己找出要做的事。
+- 在指示前加 `self`、`manual`、`cross` 或 `cross manual` 可以強制驗證方式，例如 `/task-progress-items cross 修正 X`。平常不加。
+
+### 驗證方式
+
+| 方式 | checklist 內容 | 需要的 session |
 |---|---|---|
-| `self` | 建立自驗項目 | 只有不標的檢查 |
-| `manual` | 建立需要人工驗收的項目 | 不標＋`[manual]` |
-| `cross` | 建立需要他驗的項目 | 不標＋`[acceptance]` |
-| `cross manual` | 建立需要他驗與人工驗收的項目 | 三種都有 |
-| `evaluate` | 評估 scope，逐項選上面其中一種（已決定第 11 點） | 依所選 |
-| `run` | 執行佇列：只跑執行者的檢查 | — |
-| `accept` | 驗收佇列：只處理等待他驗、且自己不是執行者的項目 | — |
+| `self` 自驗 | 只有不標的檢查 | 1 |
+| `manual` 人工 | 不標＋`[manual]` | 1，另加使用者 |
+| `cross` 他驗 | 不標＋`[acceptance]` | 2：規劃兼驗收、執行 |
+| `cross manual` 他驗＋人工 | 三種都有 | 2，另加使用者 |
+
+### 驗證方式的判斷依據
+
+沒有指定時，agent 依下列依據替每一項選擇：
+
+- 結果有只有使用者能判斷的部分（外觀、操作感受、要在使用者裝置上確認）→ 加人工。
+- 需求容易被理解錯：要從規格推導實作，或改動已發布的規格、設計資料、案例、程式碼 → 加他驗。
+- 其他 → 自驗。
+
+### `run` 與 `accept` 處理哪些項目
+
+- `run`：綁定 checklist、執行者的檢查還沒全部完成的項目。跳過沒有綁定 checklist 的一般項目、別的 session 正在做的項目、卡在 `[!]` 等使用者處理的項目，以及這個 session 自己寫了 `[acceptance]` 條件的項目。
+- `accept`：執行者的檢查已完成、`[acceptance]` 還沒完成的項目，跳過自己是執行者的項目。
+- 順序：優先級高的先做，同優先級依卡片在 Report 中的順序。一項做完並提交後才做下一項；遇到需要使用者處理的 `[!]` 就停在那一項，其他項目照常進行。
+
+### 一次處理多個項目
+
+| 情況 | 做法 |
+|---|---|
+| 指定一個項目代號 | 在目前的 session 直接做 |
+| 多個項目，能開子 session | 每項開一個子 session；同一個 scope 一次一個，收到前一個完成的通知才開下一個；不同 scope 可以同時 |
+| 多個項目，不能開子 session，`run`／`accept` | 做完一項就停，列出下一個候補，等使用者說繼續 |
+| 多個項目，不能開子 session，`auto` | 一路做下去；遇到他驗項目停下，請使用者開新 session 以 `run` 接手 |
+
+同一個 scope 不同時開多個子 session，是因為每一項都會改同一份 `report.json`、handoff 與程式碼，同時寫會互相覆蓋或混進對方的提交；各自開工作目錄（worktree）則本機服務看不到進度，合併時 `report.json` 也幾乎必定衝突。子 session 由父 session 依序開啟、收集結果，最後給使用者一份簡短回報。有些宿主開子 session 需要使用者在畫面上確認一次。
 
 ## 規則
 
@@ -138,8 +175,8 @@ Agent 自己寫步驟、自己執行時，交給更高階的模型驗收後，�
 | `[manual]` 檢查必須另開檔案，每個頁面一份，各綁一個子項；agent 那一輪完成後才建立，檔案存在就代表可以開始人工驗收 | checklist-round 的 Manual checklists；agent-executable-items 的 Run an item 第 5 步 | `[manual]` 放在同一份 checklist 的工作項目裡，用依賴鎖控制開始時機 |
 | 使用者正在操作的工具，能看到整個 `Expect` 時可以代記人工結果 | checklist-round 的 Recording manual results | agent 一律只能記 `[!]` |
 | 改動規格或程式碼的項目由另一個 agent 審查 diff，結果寫在 handoff | agent-executable-items 的 Run an item 第 4 步 | 刪除；需要時選他驗 |
-| 「agent 不自行選流程」 | 本計畫先前的 AC-04 | 只有「評估」選項可以由 agent 選 |
-| 觸發表按意思比對短語 | agent-executable-items 的 Trigger phrases | 以 skill 斜線命令與選項觸發 |
+| 觸發表按意思比對短語 | agent-executable-items 的 Trigger phrases | 以 `/task-progress-items` 與參數觸發 |
+| 執行佇列在同一個 session 依序跑完所有 🤖 項目 | agent-executable-items 的 Trigger phrases | 依〈一次處理多個項目〉開子 session 或逐項停下 |
 
 既有的 checklist 與子項不遷移，維持建立時的形式。
 
@@ -159,7 +196,7 @@ Agent 自己寫步驟、自己執行時，交給更高階的模型驗收後，�
 3. `acceptance-report-cli`：Report CLI。撰寫者不得執行；含標籤檢查的子項不可手動設 `done`。
 4. `acceptance-checklist-panel`：Checklist 面板。標籤與記錄者顯示、依賴鎖、`[acceptance]` 覆寫確認、只顯示我能操作的檢查。
 5. `acceptance-viewer-states`：Report 子項狀態（待他驗、待人工、需處理）。
-6. `acceptance-skills`：skill。改寫 checklist-round 與 agent-executable-items（依〈取代的現行規則〉）；新增 Claude skill `exec-items` 與選項；他驗提交訊息帶子項 ID。
+6. `acceptance-skills`：skill。改寫 checklist-round 與 agent-executable-items（依〈取代的現行規則〉）；新增 Claude skill `/task-progress-items`（命令、判斷依據、佇列範圍、子 session）；他驗提交訊息帶子項 ID。
 7. `acceptance-flow-trial`：端到端試跑。
 
 ## 驗收
@@ -172,4 +209,4 @@ Agent 自己寫步驟、自己執行時，交給更高階的模型驗收後，�
 
 ## 未決事項
 
-無。AC-06 已於 2026-10-22 決定，見已決定第 13 點。
+無。
