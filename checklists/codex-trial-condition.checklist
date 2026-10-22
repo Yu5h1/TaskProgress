@@ -20,6 +20,6 @@ Current round: `experiments/codex-acceptance-trial/spec.md#條件不符試跑`.
       - Recorded: codex:887a8491-503f-416d-862a-6cba624dd45e; at=2026-10-22T13:28:08Z; fp=a533f9917742
     - [!] **內容與規格一致** `[acceptance]`
       - Action: 對照 experiments/codex-acceptance-trial/spec.md#條件不符試跑，檢查 experiments/codex-acceptance-trial/condition.txt 與 git log --grep codex-trial-condition。
-      - Expect: 內容是數字 2。
+      - Expect: 內容是數字 3。
       - Observed: experiments/codex-acceptance-trial/spec.md#條件不符試跑 requires one line 3; condition.txt contains 3, but this acceptance Expect requires 2.
       - Recorded: codex:887a8491-503f-416d-862a-6cba624dd45e; at=2026-10-22T13:28:08Z; fp=321c15fd98d9; reason=condition; count=1
