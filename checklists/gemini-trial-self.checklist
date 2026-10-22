@@ -1,0 +1,12 @@
+# Gemini 自驗試跑 Checklist
+
+Current round: `experiments/gemini-acceptance-trial/spec.md#自驗試跑`.
+
+本檔只有一輪。依 GeminiWorkflowTrial 試跑共用 skill；只操作 Gemini 專用產物。
+
+- [ ] **1. 建立 self.txt**
+  Outcome: experiments/gemini-acceptance-trial/self.txt 符合規格。
+  Checks:
+    - [ ] **內容正確**
+      - Action: 讀取 experiments/gemini-acceptance-trial/self.txt，對照 experiments/gemini-acceptance-trial/spec.md#自驗試跑。
+      - Expect: 只有一行 self ok。

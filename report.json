@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-10-22T15:28:21.116508+00:00",
+  "updated_at": "2026-10-22T16:13:53.887271+00:00",
   "tasks": [
     {
       "title": "共用任務 skill 與 Codex 驗證試跑",
@@ -2188,6 +2188,142 @@
               "at": "2026-10-22T12:42:59.375424+00:00",
               "session": "Taskprogress 維護開發",
               "session_id": "583fa969-9dcf-4def-98dd-196efef59cea"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "gemini-workflow-trial",
+      "title": "共用任務 skill 與 Gemini (Antigravity) 驗證試跑",
+      "priority": 1,
+      "status": "planned",
+      "summary": "Antigravity 使用者層入口已建立於 ~/.gemini/config/skills/；本卡以六情境規格試跑驗證流程。",
+      "pending_items": [
+        {
+          "id": "gemini-trial-self",
+          "title": "Gemini 自驗試跑",
+          "priority": 1,
+          "status": "planned",
+          "document_ref": {
+            "kind": "checklist",
+            "scope_id": "task-progress",
+            "task": "gemini-trial-self"
+          },
+          "activity": [
+            {
+              "event": "created",
+              "actor": "antigravity",
+              "at": "2026-10-22T16:13:53.887271+00:00",
+              "session": "Gemini 驗證流程試跑",
+              "session_id": "7392a1e9-7abc-4e1a-9c7a-d4dc573fffa8"
+            }
+          ]
+        },
+        {
+          "id": "gemini-trial-manual",
+          "title": "Gemini 人工試跑",
+          "priority": 1,
+          "status": "planned",
+          "document_ref": {
+            "kind": "checklist",
+            "scope_id": "task-progress",
+            "task": "gemini-trial-manual"
+          },
+          "activity": [
+            {
+              "event": "created",
+              "actor": "antigravity",
+              "at": "2026-10-22T16:13:53.887271+00:00",
+              "session": "Gemini 驗證流程試跑",
+              "session_id": "7392a1e9-7abc-4e1a-9c7a-d4dc573fffa8"
+            }
+          ]
+        },
+        {
+          "id": "gemini-trial-cross",
+          "title": "Gemini 他驗試跑",
+          "priority": 1,
+          "status": "planned",
+          "document_ref": {
+            "kind": "checklist",
+            "scope_id": "task-progress",
+            "task": "gemini-trial-cross"
+          },
+          "activity": [
+            {
+              "event": "created",
+              "actor": "antigravity",
+              "at": "2026-10-22T16:13:53.887271+00:00",
+              "session": "Gemini 驗證流程試跑",
+              "session_id": "7392a1e9-7abc-4e1a-9c7a-d4dc573fffa8"
+            }
+          ]
+        },
+        {
+          "id": "gemini-trial-cross-manual",
+          "title": "Gemini 他驗加人工試跑",
+          "priority": 1,
+          "status": "planned",
+          "document_ref": {
+            "kind": "checklist",
+            "scope_id": "task-progress",
+            "task": "gemini-trial-cross-manual"
+          },
+          "activity": [
+            {
+              "event": "created",
+              "actor": "antigravity",
+              "at": "2026-10-22T16:13:53.887271+00:00",
+              "session": "Gemini 驗證流程試跑",
+              "session_id": "7392a1e9-7abc-4e1a-9c7a-d4dc573fffa8"
+            }
+          ]
+        },
+        {
+          "id": "gemini-trial-condition",
+          "title": "Gemini 條件不符試跑",
+          "priority": 1,
+          "status": "planned",
+          "document_ref": {
+            "kind": "checklist",
+            "scope_id": "task-progress",
+            "task": "gemini-trial-condition"
+          },
+          "activity": [
+            {
+              "event": "created",
+              "actor": "antigravity",
+              "at": "2026-10-22T16:13:53.887271+00:00",
+              "session": "Gemini 驗證流程試跑",
+              "session_id": "7392a1e9-7abc-4e1a-9c7a-d4dc573fffa8"
+            }
+          ]
+        },
+        {
+          "id": "gemini-trial-waits",
+          "title": "Gemini 等待試跑",
+          "priority": 1,
+          "status": "planned",
+          "document_ref": {
+            "kind": "checklist",
+            "scope_id": "task-progress",
+            "task": "gemini-trial-waits"
+          },
+          "waits_for": [
+            {
+              "scope_id": "task-progress",
+              "task_id": "gemini-workflow-trial",
+              "item_id": "gemini-trial-cross"
+            }
+          ],
+          "activity": [
+            {
+              "event": "created",
+              "actor": "antigravity",
+              "at": "2026-10-22T16:13:53.887271+00:00",
+              "session": "Gemini 驗證流程試跑",
+              "session_id": "7392a1e9-7abc-4e1a-9c7a-d4dc573fffa8"
             }
           ]
         }
