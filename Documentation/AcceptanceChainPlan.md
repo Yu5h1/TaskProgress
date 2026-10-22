@@ -4,18 +4,25 @@
 
 Report：task-progress › agent-workflow。
 
-一個可執行項目綁定一份 checklist。checklist 裡有哪些檢查標籤，就決定這個項目要經過哪些驗證：
+一個可執行項目綁定一份 checklist。checklist 裡有哪些檢查標籤，就決定這個項目要經過哪些驗證；子項的狀態從 checklist 推算出來，不另外存：
 
 ```text
 執行者跑完自己的檢查（不標）
 ├─ 有 [acceptance] → 另一個 agent 驗收
 └─ 有 [manual]     → 使用者驗收
-全部 [x] → 子項完成
+全部 [x] → 子項顯示完成
 ```
+
+改任何規則前，先照〈流程紀錄〉的情境重走一遍，確認沒有規則互相衝突。
 
 ## 為什麼
 
 Agent 自己寫步驟、自己執行時，交給更高階的模型驗收後，約兩成項目是做錯或沒對齊需求意圖（不是沒做）。Report 目前分不出「執行者做完」和「驗收通過」，做錯的項目看起來和完成的一樣。高階模型多半能在執行時自行驗收通過，所以獨立驗收是可選的，不是每一項都要。
+
+這套流程會長期使用，每條規則都以兩個標準判斷（使用者 2026-10-22）：
+
+- **有效**：任務更對齊、完成度更有保證；零散的任務能歸類、流程化、可追蹤。
+- **高效**：agent 用這套流程就能和使用者對齊任務，減少反覆詢問目前狀態與流程；子項之間以連結互相指向，依賴的任務一點就到。
 
 ## 已決定
 
@@ -24,19 +31,25 @@ Agent 自己寫步驟、自己執行時，交給更高階的模型驗收後，�
 1. 只有「驗收通過」才算完成；Report 要分得出執行者做完、等待驗收、驗收不通過。
 2. 檢查標籤是權限標籤，只接受程式登記過的標籤：不標（執行者）、`[manual]`（使用者）、`[acceptance]`（執行者以外的 agent）。
 3. 一個可執行項目只綁一份 checklist，執行、他驗、人工檢查都在同一份。
-4. `[acceptance]` 的檢查條件在規劃時寫好，從原始需求推導；寫的人不能是執行者。
+4. `[acceptance]` 的檢查條件在規劃時寫好並先提交，才開始執行；條件從原始需求推導，每個 `[acceptance]` 檢查寫明它對照的規格出處。寫條件的人可以就是執行者（AC-07）：要防的是「看過實作才寫條件」，這由順序、提交與改動檢查擋住，不靠換人；規劃者自己誤解需求的風險，則靠驗收者回頭對照原始需求。
 5. 「執行者以外」以 session 為單位判定：不同 session 就算不同。
 6. `[acceptance]` 主要由 agent 記錄。使用者可以在面板改它的結果，改之前跳出確認「確認修改 agent 紀錄嗎？」。
 7. 每個 `[acceptance]` 與 `[manual]` 結果都記下記錄者（agent 的 session，或 `user`）與記錄當下該檢查內容的指紋。沒有記錄者的結果不算數；內容改過、指紋對不上時，結果自動失效，顯示「需重驗」。
-8. `[manual]` 檢查在執行者自己的檢查全部完成後才加入。執行者與驗收者發現缺漏時都可以補上或調整；它的目的始終是「使用者能不能接受這件事完成」。
+8. `[manual]` 檢查在規劃時就寫好初稿；執行與驗收之後，執行者與驗收者可以補上或調整得更明確。它的目的始終是「使用者能不能接受這件事完成」。
 9. 執行者與驗收者不能把 `[manual]` 標成 `[x]`，只能標 `[!]`，意思是「需要使用者再驗一次」，並在 `Observed` 寫明原因。只有使用者能標 `[x]`。
 10. 入口是一個 Claude skill，斜線命令 `/task-progress-items`（見〈命令〉）。其他工具的對齊由使用者另外處理。
 11. 沒有指定驗證方式時，由 agent 依〈驗證方式的判斷依據〉替每一項選擇，並在回報中寫出每一項的選擇與理由。使用者想強制時，在指示前加 `self`、`manual`、`cross` 或 `cross manual`。
 12. 驗證流程只在觸發時使用，不依項目內容自動套用。現行「改動規格或程式碼時，另一個 agent 審查並寫在 handoff」的規則刪除，需要獨立驗收時改用 `[acceptance]`。
-13. 只有他驗需要另一個 session：寫 `[acceptance]` 條件的 session 不得執行，驗收者不得是執行者。自驗與人工可以在同一個 session 規劃並執行，與過去相同。
-14. 一次處理多個項目時，能開子 session 就每項開一個；同一個 scope 一次一個，前一個通知完成才開下一個；不同 scope 可以同時。不能開子 session 時，`run`、`accept` 做完一項就停，列出下一個候補，等使用者說繼續；`auto` 一路做下去，遇到他驗項目停下，請使用者開新 session 執行。
+13. 只有他驗需要另一個 session，而且只要求驗收者不是執行者。自驗與人工可以在同一個 session 規劃並執行，與過去相同。
+14. 一次處理多個項目時，能開子 session 就每項開一個；同一個 scope 一次一個，前一個通知完成才開下一個；不同 scope 可以同時。
 15. `run`、`accept` 不帶代號時處理全部可處理的項目；帶卡片代號只處理那張卡，帶項目代號只處理那一項。
-16. 2026-10-22 第二次檢查的 9 項修正全部採用，寫在下面各節：驗收不通過時由子項狀態交回執行者、修好後交回驗收者；完成的子項出現 `[!]` 時退回進行中；活動紀錄永久保留每一筆開始與接手；驗收者須與所有執行過的 session 不同；他驗流程的寫入一律帶 session ID；規劃者的 session 指定單項執行時改開子 session；父 session 驗收也算一個寫入者。
+16. 綁定 checklist 的子項，狀態一律從 checklist 推算；存起來的只有「誰認領了」。重驗出問題時，子項自動重新顯示為未完成。
+17. 標籤檢查一律等所有不標的工作項目完成才能記結果，由程式判斷，不在 checklist 裡寫依賴清單。
+18. `/task-progress-items <指示>` 建立項目後直接執行；他驗項目執行完，請使用者在另一個 session 驗收。
+19. 計畫保留〈流程紀錄〉，改規則時照它重走。
+20. 子項可以宣告它在等哪些子項（可跨 scope），推算出「等待中」；被等的全部完成後自動解除，不需要手動設受阻（AC-08）。收合時子項仍是一行，只多「等待中」標籤；展開後列出每個被等子項的連結（見〈等待〉）。
+21. 既有 checklist 一次遷移（AC-09）：替所有已登記 scope 中，已有結果卻沒有記錄者的標籤檢查補上記錄者 `legacy` 與內容指紋。遷移工具保留為命令，之後發現漏掉的舊檔也用它轉換。程式不在讀取時自動轉換，因為分不出「新規則前的舊結果」與「新規則後直接改檔案打的勾」。
+22. 沒有記錄者的標籤結果：`checklist validate` 失敗並說明處理方式；面板與 Report 照常開啟，只把那幾個結果顯示為「需重驗」並註明原因，子項依此推算為未完成。
 
 ## 一份 checklist 的樣子
 
@@ -49,7 +62,6 @@ Agent 自己寫步驟、自己執行時，交給更高階的模型驗收後，�
       - Expect: 全部通過。
 
 - [ ] **2. 他驗**
-  Depends on: 1.
   Outcome: 執行者以外的 agent 依原始需求確認結果。
   Checks:
     - [ ] **驗收條件未被改動** `[acceptance]`
@@ -60,7 +72,6 @@ Agent 自己寫步驟、自己執行時，交給更高階的模型驗收後，�
       - Expect: 每一列都有對應實作與測試。
 
 - [ ] **3. 人工驗收**
-  Depends on: 1.
   Outcome: 使用者接受這項修改。
   Checks:
     - [ ] **設定分頁的小數輸入** `[manual]`
@@ -69,22 +80,23 @@ Agent 自己寫步驟、自己執行時，交給更高階的模型驗收後，�
       - Reason: 操作感受由使用者判。
 ```
 
-記錄者與內容指紋的欄位名稱、位置與指紋算法在實作時決定，見〈實作項目〉第 1 項。
+第 2、3 項不寫 `Depends on`：含標籤檢查的工作項目，程式自動讓它等第 1 項這類不標的工作項目全部完成（已決定第 17 點）。記錄者與內容指紋的欄位名稱、位置與指紋算法在實作時決定。
 
 ## 命令
 
 scope 預設是目前所在的專案，只有需要時才另外指定。
 
 ```text
-/task-progress-items                       評估目前專案，建立項目
-/task-progress-items <指示>                 把使用者說的一件事寫成項目
+/task-progress-items                       評估目前專案，建立項目（不執行）
+/task-progress-items <指示>                 把使用者說的一件事寫成項目，接著直接執行
 /task-progress-items run [卡片或項目代號]    執行
 /task-progress-items accept [卡片或項目代號] 驗收
 /task-progress-items auto                  評估、執行、驗收全部做
 ```
 
-- 「指示」是一句描述具體工作的話，例如「修正 NumericField 越界時沒有提示」。agent 判斷它屬於哪張卡，在那張卡新增項目並寫好 checklist，只處理這一件。不帶參數時則由 agent 評估整個專案，自己找出要做的事。
+- 「指示」是一句描述具體工作的話，例如「修正 NumericField 越界時沒有提示」。agent 判斷它屬於哪張卡，新增項目、寫好 checklist 並提交，然後在同一個 session 執行。驗證方式含他驗時，執行完告訴使用者在另一個 session 執行 `accept <項目代號>`。
 - 在指示前加 `self`、`manual`、`cross` 或 `cross manual` 可以強制驗證方式，例如 `/task-progress-items cross 修正 X`。平常不加。
+- 評估的回報要列出每一項選了哪種驗證方式與理由。
 
 ### 驗證方式
 
@@ -92,7 +104,7 @@ scope 預設是目前所在的專案，只有需要時才另外指定。
 |---|---|---|
 | `self` 自驗 | 只有不標的檢查 | 1 |
 | `manual` 人工 | 不標＋`[manual]` | 1，另加使用者 |
-| `cross` 他驗 | 不標＋`[acceptance]` | 2：規劃兼驗收、執行 |
+| `cross` 他驗 | 不標＋`[acceptance]` | 2：執行（可兼規劃）、驗收 |
 | `cross manual` 他驗＋人工 | 三種都有 | 2，另加使用者 |
 
 ### 驗證方式的判斷依據
@@ -105,81 +117,143 @@ scope 預設是目前所在的專案，只有需要時才另外指定。
 
 ### `run` 與 `accept` 處理哪些項目
 
-`[!]` 依記錄者分成三種，決定由誰接手：
+依〈子項狀態〉推算出的狀態挑選，只看綁定 checklist 的子項：
 
-| `[!]` 出現在 | 意思 | 由誰接手 |
-|---|---|---|
-| 執行者自己的檢查 | 執行時遇到環境或規格問題 | 使用者介入（現行規則） |
-| `[acceptance]`，或使用者記的 `[manual]` | 驗收不通過 | 執行者修正（`run`） |
-| agent 記的 `[manual]` | 改過內容，請使用者重看 | 使用者重驗 |
-
-- `run`：綁定 checklist 的項目中，執行者的檢查還沒全部完成的，以及狀態為 `blocked`（驗收不通過、等待修正）的。跳過沒有綁定 checklist 的一般項目、別的 session 正在做的項目、等使用者介入或重驗的項目，以及這個 session 自己寫了 `[acceptance]` 條件的項目。
-- `accept`：狀態為 `in_progress`、執行者的檢查已完成、`[acceptance]` 還沒全部 `[x]` 的項目，跳過自己執行過的項目。
-- 順序：優先級高的先做，同優先級依卡片在 Report 中的順序。一項做完並提交後才做下一項；遇到需要使用者處理的 `[!]` 就停在那一項，其他項目照常進行。
+- `run`：未開始、執行中且沒有別人認領、需修正且沒有人認領的項目。等待中的不挑。
+- `accept`：待他驗的項目，跳過這個 session 執行過的項目。
+- 執行者自己的 `[!]`（環境或規格問題）讓子項停在待使用者，`run` 不會自動挑。使用者處理完、以 `run <項目代號>` 指名時才重跑那一項（checklist-round 現行規則：介入完成後重跑一次）。
+- 順序：優先級高的先做，同優先級依卡片在 Report 中的順序。一項做完並提交後才做下一項。
 
 ### 一次處理多個項目
 
 | 情況 | 做法 |
 |---|---|
-| 指定一個項目代號 | 在目前的 session 直接做；若這個 session 寫了該項的 `[acceptance]` 條件（`run`）或執行過該項（`accept`），改開子 session，不能開時請使用者換一個 session |
+| 指定一個項目代號 | 在目前的 session 直接做；`accept` 而這個 session 執行過該項時，改開子 session，不能開時請使用者換一個 session |
 | 多個項目，能開子 session | 每項開一個子 session；同一個 scope 一次一個，收到前一個完成的通知才開下一個；不同 scope 可以同時 |
 | 多個項目，不能開子 session，`run`／`accept` | 做完一項就停，列出下一個候補，等使用者說繼續 |
-| 多個項目，不能開子 session，`auto` | 一路做下去；遇到他驗項目停下，請使用者開新 session 以 `run` 接手 |
+| 多個項目，不能開子 session，`auto` | 全部自己執行；他驗項目的驗收留著，最後列出來，請使用者在另一個 session 執行 `accept` |
 
 同一個 scope 不同時開多個子 session，是因為每一項都會改同一份 `report.json`、handoff 與程式碼，同時寫會互相覆蓋或混進對方的提交；各自開工作目錄（worktree）則本機服務看不到進度，合併時 `report.json` 也幾乎必定衝突。子 session 由父 session 依序開啟、收集結果，最後給使用者一份簡短回報。父 session 自己驗收時也在寫同一個 scope，所以驗收完才開下一個子 session。有些宿主開子 session 需要使用者在畫面上確認一次。
 
 ## 規則
 
+### 角色
+
+| 角色 | 怎麼認定 |
+|---|---|
+| 執行者 | 每一個開始或接手過這個子項的 session（`started`、`takeover`），不只最後一個；可以就是寫 checklist 的 session |
+| 驗收者 | 記錄 `[acceptance]` 結果的 session，不得是任何一個執行者 |
+| 使用者 | 唯一能把 `[manual]` 標成 `[x]` 的人 |
+
+他驗流程的每一次寫入（Report 與 checklist）都必須帶 `session_id`，缺少時拒絕；沒有內建 session ID 的工具，在 session 開始時自己產生一個並全程沿用。
+
+### 認領
+
+- 存起來的只有認領：開始或接手時記 `started`／`takeover`，做完或修完時記 `released`（新事件）。最後一筆開始或接手之後沒有 `released`，就是被那個 session 認領中。
+- 認領的衝突判斷沿用 ItemActivityLog 現行規則。
+- 活動紀錄保留規則：`created` 與每一筆 `started`、`takeover` 永久保留；`released`、`rejected` 各保留最近一筆；其他事件只留最近 3 筆。
+
+### 子項狀態（推算）
+
+綁定 checklist 的子項，Viewer、`report get`、時間分析與佇列都用下面的推算結果，不讀存起來的 `status`。依序判斷，第一個成立的就是它的狀態：
+
+| 狀態 | 條件 |
+|---|---|
+| 完成 | 每一項檢查都是 `[x]`，且標籤檢查都有記錄者、指紋都對得上 |
+| 等待中 | 宣告等待的子項中，有任何一個還沒完成（見〈等待〉） |
+| 需修正 | 有 `[acceptance]` 的 `[!]` 或使用者記的 `[manual]` `[!]`，且最近一次 `rejected` 晚於最近一次 `released`（還沒修好） |
+| 待使用者 | 有執行者自己的 `[!]`（環境或規格問題）、agent 記的 `[manual]` `[!]`、「需重驗」的 `[manual]`（指紋失效或沒有記錄者），或 `[manual]` 尚未完成而其餘都完成 |
+| 待他驗 | 不標的工作項目全部 `[x]`，`[acceptance]` 未完成（含修好後等重驗，以及「需重驗」的 `[acceptance]`） |
+| 執行中 | 有人認領，或曾經開始過 |
+| 未開始 | 以上皆非 |
+
+待他驗與待使用者的人工部分可以同時成立，Viewer 兩個都顯示。
+
+### 等待
+
+- 子項新增欄位，列出它在等的子項，每一筆以 scope、卡片、子項代號指定，可以跨 scope。schema 的子項目前不接受額外欄位，需要一併新增；由 Report CLI 寫入。
+- 被等的子項是否完成，用它自己的推算狀態判斷；沒有綁定 checklist 的子項，照現行做法看它存起來的狀態。跨 scope 時讀取該 scope 登記的 Report 與 checklist。被等的子項不存在或讀不到時，視為未完成，並在畫面上標出無法讀取。
+- 互相等待（A 等 B、B 等 A，或更長的環）會讓雙方永遠等待中：`report validate` 與 Report CLI 寫入時拒絕形成環的宣告。
+- 子項在等待中時，`run` 不挑它；全部完成後自動回到原本推算的狀態。
+- 畫面：收合時子項維持一行，只在右側多一個「等待中」標籤。展開（「…更多」）後，完整標題下方列出「等待：」與每個還沒完成的被等子項，各為一個連結，文字為「卡片 › 子項」，點下去開啟對方卡片並置頂。已完成的不再列出。沿用現有的行內連結與描述展開元件；卡片第一個未完成子項本來就預設展開，因此不必點也看得到。
+- 不用 tooltip 放連結：滑鼠移開就消失，觸控與鍵盤也無法操作。
+
 ### 寫入與記錄者
 
 - 不標的檢查照現行做法，由執行者直接編輯檔案記錄。
-- `[acceptance]` 與 `[manual]` 的結果只經 CLI（`checklist request`，帶 actor 與 session）或面板寫入。寫入時檢查權限：
-  - `[acceptance]`：session 與任一執行過的 session 相同時拒絕；使用者經面板寫入時先確認。
+- `[acceptance]` 與 `[manual]` 的結果只經 CLI（`checklist request`，帶 actor 與 session）或面板寫入，寫入時記下記錄者與該檢查 `Action`、`Expect` 的內容指紋。權限：
+  - `[acceptance]`：session 與任一執行者相同時拒絕；使用者經面板寫入時先確認。
   - `[manual]`：agent 只能寫 `[!]`，且必須附 `Observed`。
-- 標籤檢查的結果寫入時，同時記下記錄者與該檢查 `Action`、`Expect` 的內容指紋。
-- 驗證時，有 `[x]`／`[!]` 卻沒有記錄者的標籤檢查，會讓整份 checklist 不通過並指出行號；這擋的是執行者直接改檔案替它打勾。
-- 讀取時重算指紋；內容改過、對不上的結果自動失效，面板與 Report 顯示「需重驗」，不論內容是經命令還是直接改檔案改的。
-- 執行者是綁定這份 checklist 的 Report 子項上，每一筆 `started`／`takeover` 的 session，不只最後一筆。checklist 沒有綁定子項時，標籤檢查一律拒絕寫入。
-- 他驗流程的每一次寫入（Report 與 checklist）都必須帶 `session_id`，缺少時拒絕；沒有內建 session ID 的工具，在 session 開始時自己產生一個並全程沿用。
-
-### 依賴鎖
-
-`[acceptance]` 與 `[manual]` 所在工作項目的 `Depends on` 由 CLI 與面板強制：依賴的工作項目還沒全部 `[x]` 時，拒絕寫入結果。這也保證「`[manual]` 在執行者完成後才加入、才開始驗」。
+- `[acceptance]` 或使用者的 `[manual]` 寫入 `[!]` 時，同時在子項記一筆 `rejected`。
+- 不標的工作項目還沒全部 `[x]` 時，拒絕寫入標籤檢查的結果（已決定第 17 點）。
+- checklist 沒有綁定子項時，標籤檢查一律拒絕寫入。
+- 有 `[x]`／`[!]` 卻沒有記錄者的標籤檢查：`checklist validate` 失敗，指出行號並提示「新規則前的舊結果請執行遷移命令，否則重新記錄」；面板與 Report 照常開啟，該結果顯示為「需重驗」並註明沒有記錄者。這擋的是執行者直接改檔案替它打勾。
+- 讀取時重算指紋；內容改過的結果自動失效為「需重驗」，不論是經命令還是直接改檔案改的。
+- 遷移命令（名稱實作時定）替指定檔案中沒有記錄者的標籤結果補上記錄者 `legacy` 與指紋。只由人或 agent 明確執行，程式不在讀取時自動轉換。
 
 ### 內容凍結
 
-- 不標的檢查與 `[acceptance]`：記過結果後凍結標題、`Action`、`Expect`（現行規則）。`[acceptance]` 若仍被改動，指紋對不上，驗收結果失效。
-- `[manual]`：記過結果後仍可修改或新增。內容一改，指紋對不上，原結果自動失效為「需重驗」；新增的檢查從 `[ ]` 開始。
+- 不標的檢查與 `[acceptance]`：記過結果後凍結標題、`Action`、`Expect`（現行規則）。
+- `[manual]`：可以隨時修改或新增（已決定第 8 點）；改過的結果因指紋失效而需重驗。
 
-### 撰寫者不得執行
+### 交接
 
-選了他驗時，撰寫 `[acceptance]` 條件的 session（Report 子項的 `created`）不得開始執行：Report CLI 在該子項設為 `in_progress` 或 `takeover` 時，比對 `created` 的 session，相同就拒絕。撰寫者可以擔任驗收者。
+- 含 `[acceptance]` 的 checklist 與綁定先提交，才開始執行，即使執行的是同一個 session；這個提交是「驗收條件未被改動」的比對基準。
+- 他驗項目的執行者，每個提交訊息都帶子項 ID，驗收者以 `git log --grep <子項 ID>` 找出變更。
+- 他驗工作項目的第一個檢查固定是「驗收條件未被改動」：以 git 確認 `[acceptance]` 的內容自那次提交後沒有被改。
+- 每個 `[acceptance]` 檢查的 `Action` 寫明對照的規格出處，驗收者據此回頭看原始需求，而不只看 checklist 的寫法。
 
-### 子項狀態
+## 流程紀錄
 
-- 執行者開始時把子項設為 `in_progress`。
-- 含標籤檢查的子項，Report CLI 拒絕手動設為 `done`；由完成整份 checklist 的那一次標籤寫入，把子項設為 `done`，活動紀錄記為記錄者的事件。這是寫入端自動完成的狀態變更，不受認領檢查阻擋。只有不標檢查的子項（自驗），照現行做法由執行者設 `done`。
-- 驗收不通過：`[acceptance]` 或使用者的 `[manual]` 寫入 `[!]` 時，子項自動改為 `blocked`（等待修正）。執行者修好後設回 `in_progress`，這一筆記為 `started`，修正者因此也算執行過。
-- 退回：任何讓 checklist 從全部完成變回未完成的寫入（新的 `[!]`、指紋失效、新增 `[manual]`），都把 `done` 的子項改回 `in_progress`。
-- 驗收者寫結果不改變子項的執行者紀錄（不經 `takeover`）。
-- 活動紀錄的保留規則改為：`created` 與每一筆 `started`、`takeover` 永久保留，其他事件只留最近 3 筆。否則執行者紀錄會被後來的事件擠掉。
+以下情境依本計畫的規則逐步走過。改規則時，每個情境都要重走一遍，確認每一步都有規則可依、沒有兩條規則衝突。
 
-### 驗收者要知道驗什麼
+### 1. 自驗，一個 session（A）
 
-- 選了他驗時，執行者每個提交訊息都帶子項 ID，驗收者以 `git log --grep <子項 ID>` 找出變更。
-- 他驗工作項目的第一個檢查固定是「驗收條件未被改動」：以 git 確認 `[acceptance]` 檢查的內容自規劃者提交後沒有被改。
+1. A：`/task-progress-items 修正 X`。建立子項、寫 checklist（只有不標的檢查）、綁定。
+2. A 認領（`started` A），執行，在檔案裡勾 `[x]`，提交，釋放（`released`）。
+3. 推算：全部 `[x]` → 完成。
 
-### 驗收不通過
+### 2. 人工，一個 session（A）加使用者
 
-1. 驗收者記 `[!]` 與 `Observed`，子項自動改為 `blocked`，顯示「需處理」。
-2. `run` 挑到它，執行者修正並提交，不新增工作項目，再把子項設回 `in_progress`。
-3. `accept` 挑到它，驗收者重跑失敗的檢查，通過時改 `[x]`，保留 `Observed` 並加上 `Resolved`。驗收者須與所有執行過的 session 不同；驗收者若自己動手修正，就成了執行者，須以 `takeover` 接手，交給另一個 session 驗收。
-4. 修正改到 `[manual]` 已驗過的內容時，執行者把那幾項標 `[!]`，請使用者再驗；只改了 `[manual]` 的文字時，指紋失效會自動標示。
+1. A：`/task-progress-items manual 修正 X`。checklist 含不標的檢查與 `[manual]` 初稿；綁定、認領、執行、勾 `[x]`，補上 `[manual]` 的連結，提交、釋放。推算：待使用者。
+2. 使用者在面板標 `[!]` → 記 `rejected` → 推算：需修正。
+3. `run` 挑到它。A（或其他 session）認領、修正、提交、釋放 → `released` 晚於 `rejected` → 推算：待使用者（重驗）。
+4. 使用者改標 `[x]` → 完成。之後若有人改了 `[manual]` 的內容，指紋失效 → 推算回到待使用者。
+
+### 3. 他驗，A 建立兼執行、B 驗收
+
+1. A：`/task-progress-items cross 修正 X`。寫 checklist（不標的檢查與 `[acceptance]`，後者寫明規格出處）、綁定、提交。
+2. A 認領（`started` A）、執行、提交時帶子項 ID、釋放。推算：待他驗。A 提示使用者在另一個 session 執行 `accept`。
+3. B：`accept`。B 不是執行者。第一項確認驗收條件自 A 的提交後未被改動；另一項對照規格不通過 → 記 `[!]`（記錄者 B）與 `rejected` → 推算：需修正。`accept` 不再挑它。
+4. A：`run` 挑到它，認領、修正、提交、釋放 → 推算：待他驗。
+5. B：`accept` 重跑失敗的檢查，通過時改 `[x]` 並加 `Resolved` → 完成。若 B 在第 4 步自己動手修正，B 就成了執行者，須由第三個 session 驗收。
+
+### 4. `auto`，能開子 session，父 session P
+
+1. P 評估，建立 I1（他驗＋人工）與 I2（自驗），綁定、提交。
+2. P 開子 session C1 執行 I1：C1 認領、執行、補 `[manual]` 連結、提交、釋放，通知 P。
+3. P 驗收 I1（P 不是執行者）。通過後推算：待使用者。
+4. P 開 C2 執行 I2 → 完成。P 回報：I1 等使用者人工驗收。
+
+### 5. `auto`，不能開子 session，session P
+
+1. P 評估，建立 I1（他驗）與 I2（自驗），綁定、提交。
+2. P 自己執行 I2 → 完成；執行 I1 → 待他驗。
+3. P 回報：I1 等待驗收，請使用者在另一個 session 執行 `accept I1`。
+
+### 6. 例外情況
+
+- 子項事先由使用者建立，A 之後寫 checklist、綁定、提交並執行：允許；驗收者只要不是 A。
+- B 執行到一半停住，經使用者同意由 C 接手：執行者是 B 與 C，驗收者不能是兩者之一。
+- 執行中途新增一個不標的工作項目：標籤檢查自動等它完成，不需改依賴。
+- 完成後有人改了 `[manual]` 的內容：指紋失效，推算回到待使用者。
+- 漏遷移的舊檔：某份 checklist 的 `[manual]` 有 `[x]` 但沒有記錄者。`checklist validate` 失敗並提示遷移；面板照常開啟，該項顯示「需重驗（沒有記錄者）」，子項推算為待使用者。確認是舊結果後執行遷移命令 → 記錄者 `legacy` → 恢復完成；若其實是 agent 直接打的勾，則由使用者重新驗收。
+- 等待：UX 的收尾子項 U 宣告等 Web 的子項 W1、W2。W1、W2 任一未完成 → U 推算為等待中，`run` 不挑它；U 收合時顯示「等待中」，展開列出 W1、W2 的連結。W1 完成後只剩 W2 的連結；W2 也完成 → U 自動回到未開始，`run` 才挑到它。
 
 ## 面板與 Viewer
 
-- Checklist 面板：顯示每項的標籤與記錄者；依賴未完成時鎖住；`[acceptance]` 可點，但先跳出確認；提供「只顯示我能操作的檢查」。
-- Report 子項狀態：執行中、待他驗（執行者的檢查完成、`[acceptance]` 未完成）、待人工（`[manual]` 未完成，含指紋失效的「需重驗」）、需處理（任何 `[!]`）、完成。待他驗與待人工可以同時成立。
+- Checklist 面板：顯示每項的標籤與記錄者；不標的工作項目未完成時，標籤檢查鎖住；`[acceptance]` 可點，但先跳出確認；提供「只顯示我能操作的檢查」。
+- Report 子項狀態：未開始、執行中、等待中、待他驗、待使用者、需修正、完成，依〈子項狀態（推算）〉。等待中的畫面見〈等待〉。
 
 ## 取代的現行規則
 
@@ -187,18 +261,19 @@ scope 預設是目前所在的專案，只有需要時才另外指定。
 
 | 現行規則 | 所在 | 改為 |
 |---|---|---|
-| `[manual]` 檢查必須另開檔案，每個頁面一份，各綁一個子項；agent 那一輪完成後才建立，檔案存在就代表可以開始人工驗收 | checklist-round 的 Manual checklists；agent-executable-items 的 Run an item 第 5 步 | `[manual]` 放在同一份 checklist 的工作項目裡，用依賴鎖控制開始時機 |
+| `[manual]` 檢查必須另開檔案，每個頁面一份，各綁一個子項；agent 那一輪完成後才建立，檔案存在就代表可以開始人工驗收 | checklist-round 的 Manual checklists；agent-executable-items 的 Run an item 第 5 步 | `[manual]` 在規劃時寫進同一份 checklist，執行後再調整 |
 | 使用者正在操作的工具，能看到整個 `Expect` 時可以代記人工結果 | checklist-round 的 Recording manual results | agent 一律只能記 `[!]` |
 | 改動規格或程式碼的項目由另一個 agent 審查 diff，結果寫在 handoff | agent-executable-items 的 Run an item 第 4 步 | 刪除；需要時選他驗 |
 | 觸發表按意思比對短語 | agent-executable-items 的 Trigger phrases | 以 `/task-progress-items` 與參數觸發 |
-| 執行佇列在同一個 session 依序跑完所有 🤖 項目 | agent-executable-items 的 Trigger phrases | 依〈一次處理多個項目〉開子 session 或逐項停下 |
-| 活動紀錄除 `created` 外只留最近 3 筆 | ItemActivityLog 的保留規則 | `created` 與每一筆 `started`、`takeover` 永久保留，其他只留最近 3 筆 |
+| 執行佇列在同一個 session 依序跑完所有 🤖 項目 | agent-executable-items 的 Trigger phrases | 依〈一次處理多個項目〉 |
+| 執行者做完把子項設為 `done` | agent-executable-items 的 Run an item 第 3 步 | 綁定 checklist 的子項狀態由推算決定，執行者只認領與釋放 |
+| 活動紀錄除 `created` 外只留最近 3 筆；事件只有 `created`、`started`、`updated`、`done`、`takeover` | ItemActivityLog | 新增 `released`、`rejected`，保留規則見〈認領〉 |
 
-既有的 checklist 與子項不遷移，維持建立時的形式。
+既有的 checklist 與子項維持建立時的結構（例如另開檔案的人工 checklist 不合併）；只有既有的標籤結果依已決定第 21 點補上記錄者與指紋。
 
 ## 已知限制
 
-- 身分是自報的：actor、session 與記錄者欄位都由寫入端提供，刻意偽造記錄者欄位仍然擋不住；這套設計擋的是誠實的失誤。
+- 身分是自報的：actor、session 與記錄者欄位都由寫入端提供，刻意偽造擋不住；這套設計擋的是誠實的失誤。
 - 不標檢查由執行者直接編輯檔案，系統不知道是誰勾的，與現況相同。
 - 驗收者直接修改程式而不接手子項時，系統看不出來。
 - 同一個模型換 session 驗收，仍可能帶著同樣的理解偏差；他驗的效果主要來自規劃時寫好的條件。
@@ -207,25 +282,27 @@ scope 預設是目前所在的專案，只有需要時才另外指定。
 
 對應 Report agent-workflow 卡的子項：
 
-1. `checklist-acceptance-chain`：checklist 格式。登記 `[acceptance]`，未登記的標籤拒絕；標籤檢查的記錄者與內容指紋欄位，讀取時比對指紋；依賴鎖的驗證；`checklist validate` 對應錯誤。
-2. `acceptance-checklist-write`：標籤寫入。`checklist request` 帶 actor 與 `session_id`；從綁定子項取得所有執行過的 session；`[acceptance]` 與 `[manual]` 的權限；寫入時記下記錄者與指紋；依結果自動把子項設為 `done`、`blocked` 或退回 `in_progress`。
-3. `acceptance-report-cli`：Report CLI 與活動紀錄。撰寫者不得執行；含標籤檢查的子項不可手動設 `done`；他驗流程缺 `session_id` 拒絕；`started`、`takeover` 永久保留（Python、JS、schema 三處）。
-4. `acceptance-checklist-panel`：Checklist 面板。標籤與記錄者顯示、依賴鎖、`[acceptance]` 覆寫確認、只顯示我能操作的檢查。
-5. `acceptance-viewer-states`：Report 子項狀態（待他驗、待人工、需處理）。
-6. `acceptance-skills`：skill。改寫 checklist-round 與 agent-executable-items（依〈取代的現行規則〉）；新增 Claude skill `/task-progress-items`（命令、判斷依據、`[!]` 的三種接手方、佇列範圍、子 session）；他驗提交訊息帶子項 ID；ItemActivityLog 的保留規則同步改寫。
-7. `acceptance-flow-trial`：端到端試跑。
+1. `checklist-acceptance-chain`：checklist 格式。登記 `[acceptance]`，未登記的標籤拒絕；標籤檢查的記錄者與內容指紋欄位，讀取時比對；標籤檢查自動等待不標的工作項目；`checklist validate` 對應錯誤。
+2. `acceptance-checklist-write`：標籤寫入。`checklist request` 帶 actor 與 `session_id`；從綁定子項取得執行者；權限檢查；記下記錄者、指紋與 `rejected`。
+3. `acceptance-report-cli`：Report CLI 與活動紀錄。`released`、`rejected` 事件與保留規則（Python、JS、schema 三處）；他驗流程缺 `session_id` 拒絕；狀態推算在 C#、Python、JS 三處一致，`report get` 與時間分析改用推算狀態。
+4. `acceptance-checklist-panel`：Checklist 面板。標籤與記錄者顯示、標籤檢查鎖、`[acceptance]` 覆寫確認、只顯示我能操作的檢查。
+5. `acceptance-viewer-states`：Report 子項顯示七種推算狀態。
+6. `acceptance-skills`：skill。改寫 checklist-round、agent-executable-items 與 ItemActivityLog（依〈取代的現行規則〉）；新增 Claude skill `/task-progress-items`。
+7. `item-waits`：等待。子項的等待欄位（schema、Report CLI 寫入、環的拒絕）、跨 scope 讀取被等子項的狀態、等待中的推算與畫面（收合標籤、展開後的連結）。
+8. `checklist-legacy-migrate`：遷移。遷移命令；新規則上線時，對所有已登記 scope 執行一次（2026-10-22 統計 UX、Web、TaskProgress 有 27 份 checklist、46 個 `[manual]` 結果，其餘 scope 執行前再統計）；執行前檢查各 repo 是否有他人未提交的工作，只提交遷移改到的檔案。
+9. `acceptance-flow-trial`：端到端試跑，照〈流程紀錄〉的情境各走一次。
 
 ## 驗收
 
-- `checklist validate`：未登記的標籤、沒有記錄者的標籤結果、依賴未完成就有標籤結果，都回非零並指出行號。
-- 指紋：記過結果後直接改檔案修改 `[manual]` 或 `[acceptance]` 的 `Action`／`Expect`，重新讀取時該結果顯示「需重驗」。
-- 寫入：與任一執行過的 session 相同時寫 `[acceptance]` 被拒；agent 寫 `[manual]` `[x]` 被拒、寫 `[!]` 沒有 `Observed` 被拒；依賴未完成時寫入被拒；未綁定子項時寫入被拒；他驗流程缺 `session_id` 被拒；使用者經面板改 `[acceptance]` 會先確認。
-- 子項狀態：完成 checklist 的那次寫入讓子項變成 `done`；驗收 `[!]` 讓子項變成 `blocked`；`done` 的子項出現新的 `[!]` 或指紋失效時退回 `in_progress`。
-- Report CLI：撰寫者的 session 開始執行被拒；含標籤檢查的子項手動設 `done` 被拒；連續寫入多筆其他事件後，`started`／`takeover` 仍在。
-- 佇列：`run` 挑到 `blocked` 的項目、跳過等使用者的項目；`accept` 只挑修好後回到 `in_progress` 的項目；規劃者的 session 指定單項執行時改開子 session。
-- 面板與 Viewer：五種子項狀態各自正確顯示；「只顯示我能操作的檢查」對使用者只留 `[manual]` 與 `[acceptance]`。
-- 試跑：以「他驗＋人工」實際做小項目兩次，一次用兩個 session（規劃兼驗收、執行），一次用三個 session；途中讓 `[acceptance]` 與 `[manual]` 各標一次 `[!]`，走完修正與重驗。
+- 〈流程紀錄〉的每個情境，在實作後實際走一遍，每一步的推算狀態與佇列挑選都和紀錄一致。
+- `checklist validate`：未登記的標籤、沒有記錄者的標籤結果、不標的工作項目未完成就有標籤結果，都回非零並指出行號。
+- 指紋：記過結果後直接改檔案修改標籤檢查的 `Action`／`Expect`，重新讀取時該結果顯示「需重驗」。
+- 沒有記錄者：直接改檔案替標籤檢查打勾，`checklist validate` 失敗並提示遷移；面板照常開啟，該項顯示「需重驗（沒有記錄者）」。
+- 遷移：遷移後，原有 `[manual]` 結果照常顯示為完成，記錄者為 `legacy`；遷移命令對已有記錄者的結果不做任何改動。
+- 寫入：與任一執行者相同的 session 寫 `[acceptance]` 被拒；agent 寫 `[manual]` `[x]` 被拒、寫 `[!]` 沒有 `Observed` 被拒；未綁定子項時寫入被拒；他驗流程缺 `session_id` 被拒；使用者經面板改 `[acceptance]` 會先確認。
+- Report CLI：連續寫入多筆其他事件後，`created`、`started`、`takeover` 仍在；`report get` 與時間分析的狀態和 Viewer 一致。
+- 等待：被等子項未完成時顯示等待中、`run` 不挑；跨 scope 的被等子項完成後自動解除；形成環的宣告被拒；收合時子項高度不變，展開後連結可點、開啟對方卡片並置頂。
 
 ## 未決事項
 
-無。
+無。AC-07～AC-09 已決定，見已決定第 4、20～22 點。

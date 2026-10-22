@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-10-22T09:20:16.000625+00:00",
+  "updated_at": "2026-10-22T10:36:11.832346+00:00",
   "tasks": [
     {
       "id": "item-selection",
@@ -1365,7 +1365,7 @@
       "pending_items": [
         {
           "id": "checklist-acceptance-chain",
-          "title": "checklist 格式：登記 [acceptance] 標籤並拒絕未登記的標籤；標籤檢查記錄記錄者與內容指紋，讀取時指紋對不上就顯示需重驗；標籤檢查的依賴鎖；checklist validate 指出對應錯誤",
+          "title": "checklist 格式：登記 [acceptance] 標籤並拒絕未登記的標籤；標籤檢查記錄記錄者與內容指紋，讀取時指紋對不上就顯示需重驗；標籤檢查自動等待所有不標的工作項目；checklist validate 指出對應錯誤",
           "status": "planned",
           "activity": [
             {
@@ -1378,12 +1378,6 @@
             {
               "event": "updated",
               "actor": "claude",
-              "at": "2026-10-22T05:19:56.005448+00:00",
-              "session": "TaskProgress 維護開發"
-            },
-            {
-              "event": "updated",
-              "actor": "claude",
               "at": "2026-10-22T08:03:52.926818+00:00",
               "session": "TaskProgress 維護開發"
             },
@@ -1391,13 +1385,19 @@
               "event": "updated",
               "actor": "claude",
               "at": "2026-10-22T09:20:16.000625+00:00",
+              "session": "TaskProgress 維護開發"
+            },
+            {
+              "event": "updated",
+              "actor": "claude",
+              "at": "2026-10-22T09:56:54.247286+00:00",
               "session": "TaskProgress 維護開發"
             }
           ]
         },
         {
           "id": "acceptance-checklist-write",
-          "title": "標籤寫入：checklist request 帶 actor 與 session_id；[acceptance] 拒絕任一執行過的 session、[manual] 只准 agent 寫 [!]（附 Observed）；未綁定子項時拒絕；依結果自動把子項設為 done、blocked（驗收不通過）或退回 in_progress",
+          "title": "標籤寫入：checklist request 帶 actor 與 session_id；從綁定子項取得所有執行者；[acceptance] 拒絕執行者的 session、[manual] 只准 agent 寫 [!]（附 Observed）；未綁定子項時拒絕；驗收不通過時記 rejected",
           "status": "planned",
           "activity": [
             {
@@ -1410,13 +1410,25 @@
               "event": "updated",
               "actor": "claude",
               "at": "2026-10-22T09:20:16.000625+00:00",
+              "session": "TaskProgress 維護開發"
+            },
+            {
+              "event": "updated",
+              "actor": "claude",
+              "at": "2026-10-22T09:56:54.247286+00:00",
+              "session": "TaskProgress 維護開發"
+            },
+            {
+              "event": "updated",
+              "actor": "claude",
+              "at": "2026-10-22T10:05:41.564245+00:00",
               "session": "TaskProgress 維護開發"
             }
           ]
         },
         {
           "id": "acceptance-report-cli",
-          "title": "Report CLI 與活動紀錄：撰寫 [acceptance] 條件的 session 不得開始執行；含標籤檢查的子項不可手動設 done；他驗流程缺 session_id 拒絕；started、takeover 永久保留不被擠掉",
+          "title": "Report CLI 與活動紀錄：新增 released、rejected 事件與保留規則；他驗流程缺 session_id 拒絕；綁定 checklist 的子項狀態改為推算，C#、Python、JS 三處一致，report get 與時間分析改用推算狀態",
           "status": "planned",
           "activity": [
             {
@@ -1429,6 +1441,18 @@
               "event": "updated",
               "actor": "claude",
               "at": "2026-10-22T09:20:16.000625+00:00",
+              "session": "TaskProgress 維護開發"
+            },
+            {
+              "event": "updated",
+              "actor": "claude",
+              "at": "2026-10-22T09:56:54.247286+00:00",
+              "session": "TaskProgress 維護開發"
+            },
+            {
+              "event": "updated",
+              "actor": "claude",
+              "at": "2026-10-22T10:05:41.564245+00:00",
               "session": "TaskProgress 維護開發"
             }
           ]
@@ -1448,13 +1472,25 @@
         },
         {
           "id": "acceptance-viewer-states",
-          "title": "Report 子項狀態：執行中、待他驗、待人工、需處理、完成，待他驗與待人工可同時顯示",
+          "title": "Report 子項顯示七種推算狀態：未開始、執行中、等待中、待他驗、待使用者、需修正、完成",
           "status": "planned",
           "activity": [
             {
               "event": "created",
               "actor": "claude",
               "at": "2026-10-22T08:03:52.926818+00:00",
+              "session": "TaskProgress 維護開發"
+            },
+            {
+              "event": "updated",
+              "actor": "claude",
+              "at": "2026-10-22T09:56:54.247286+00:00",
+              "session": "TaskProgress 維護開發"
+            },
+            {
+              "event": "updated",
+              "actor": "claude",
+              "at": "2026-10-22T10:25:18.430872+00:00",
               "session": "TaskProgress 維護開發"
             }
           ]
@@ -1485,8 +1521,34 @@
           ]
         },
         {
+          "id": "item-waits",
+          "title": "等待：子項可宣告在等哪些子項（可跨 scope，schema 新增欄位、Report CLI 寫入、拒絕互相等待的環）；被等的未完成時推算為等待中、run 不挑；收合時只多「等待中」標籤，展開後列出被等子項的連結",
+          "status": "planned",
+          "activity": [
+            {
+              "event": "created",
+              "actor": "claude",
+              "at": "2026-10-22T10:25:18.430872+00:00",
+              "session": "TaskProgress 維護開發"
+            }
+          ]
+        },
+        {
+          "id": "checklist-legacy-migrate",
+          "title": "遷移：遷移命令替沒有記錄者的標籤結果補上記錄者 legacy 與指紋；新規則上線時對所有已登記 scope 執行一次，執行前確認各 repo 沒有他人未提交的工作，只提交遷移改到的檔案",
+          "status": "planned",
+          "activity": [
+            {
+              "event": "created",
+              "actor": "claude",
+              "at": "2026-10-22T10:36:11.832346+00:00",
+              "session": "TaskProgress 維護開發"
+            }
+          ]
+        },
+        {
           "id": "acceptance-flow-trial",
-          "title": "端到端試跑：以「他驗＋人工」實際做一個小項目，三個 session 分別撰寫、執行、驗收，途中讓一項 [acceptance] 與一項 [manual] 各標一次 [!] 走完修正；確認五種子項狀態與各種拒絕情況",
+          "title": "端到端試跑：照計畫〈流程紀錄〉的情境各實際走一次（含等待與漏遷移的舊檔），每一步的推算狀態與佇列挑選都和紀錄一致",
           "status": "planned",
           "activity": [
             {
@@ -1499,6 +1561,18 @@
               "event": "updated",
               "actor": "claude",
               "at": "2026-10-22T08:03:52.926818+00:00",
+              "session": "TaskProgress 維護開發"
+            },
+            {
+              "event": "updated",
+              "actor": "claude",
+              "at": "2026-10-22T09:56:54.247286+00:00",
+              "session": "TaskProgress 維護開發"
+            },
+            {
+              "event": "updated",
+              "actor": "claude",
+              "at": "2026-10-22T10:36:11.832346+00:00",
               "session": "TaskProgress 維護開發"
             }
           ]
