@@ -6,7 +6,7 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
 
 ## Current state (2026-09-29)
 
-- **他驗流程計畫已定案（2026-10-22）。** `Documentation/AcceptanceChainPlan.md`（Task ID `checklist-acceptance-chain`）：自驗／他驗兩套流程，他驗以 `[acceptance]` 串接驗收 checklist、讀取時推導、驗收子項、以 session 為單位的身分比對、撰寫者不得執行、驗收完成時一併完成執行子項、Viewer「待驗收」、快取依賴。AC-01～AC-05 已決定，無未決事項。未實作；端到端試跑項目 `acceptance-flow-trial` 已加在 agent-workflow 卡。現行 agent-executable-items「第二個 agent 驗收後寫在 handoff」仍有效，直到計畫第 6 步改寫 skill。
+- **驗證流程選項計畫（2026-10-22）。** `Documentation/AcceptanceChainPlan.md`（Task ID `checklist-acceptance-chain`）：一個可執行項目一份 checklist，權限標籤只有不標（執行者）、`[manual]`（使用者）、`[acceptance]`（執行者以外的 agent，以 session 判定）；`[acceptance]` 結果記錄者、依賴鎖、agent 對 `[manual]` 只能標 `[!]`、撰寫者不得執行、含標籤檢查的子項由完成寫入設 `done`；Claude skill `/exec-items <self|manual|cross|cross manual|evaluate|run|accept>` 觸發。設計已定，無未決事項。未實作；實作拆成 agent-workflow 卡的 7 個子項。實作完成前，checklist-round 與 agent-executable-items 的現行規則照舊有效。
 
 - **開啟入口一律經 Tray（2026-10-22）。** 先前只有無參數／`start` 經 TrayHost；`open`、資料夾參數（Explorer `%V`）與 `task-progress://open` 在 CLI 程序內直接以隱藏方式啟動 LocalWebService，沒有 Tray（當天實況：服務在跑、父程序已結束、無 TrayHost）。現在三者由 `Program.OpenThroughTrayAsync` 交給 TrayHost invoke，worker 用原 `OpenAsync` 執行；資料夾以完整路徑轉送；`open` 拒絕 `--port`。契約 `Documentation/TrayWorkerPlan.md#開啟入口open資料夾參數與-protocol`。未加 `--no-tray`（無使用者）。
   - 已驗證：Debug build 0 warning；`--tray-launcher-only`（新增 open 轉送、完整路徑、輸出、取消）、`--open-pin-only`、`--worker-only`、`--document-open-only` 通過。未啟動真實 Tray／服務。
@@ -503,8 +503,7 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
 
 ## Open decisions
 
-- [Web UI 替換計畫／尚未決定](Documentation/WebUiReplacementPlan.md#尚未決定)：WUI-01 目標環境與資料量、WUI-02 成本預算、WUI-03 依賴交付。
-> Where each kind of statement lives: `plan.md` holds the design — what to build, why, and how it is accepted — and changes only when a design is added, revised or removed. Everything time-bound lives here: what is built, what is approved but unbuilt, what is deferred, and what is still undecided. A decision sits in this section until it is taken, then moves into `plan.md` as design and leaves this list. Writing progress into `plan.md` is what produced the drift found on 2026-08-19, where one section still claimed the shared progress summary and next-step card were unbuilt weeks after they shipped.
+- [Web UI 替換計畫／尚未決定](Documentation/WebUiReplacementPlan.md#尚未決定)：WUI-01 目標環境與資料量、WUI-02 成本預算、WUI-03 依賴交付。> Where each kind of statement lives: `plan.md` holds the design — what to build, why, and how it is accepted — and changes only when a design is added, revised or removed. Everything time-bound lives here: what is built, what is approved but unbuilt, what is deferred, and what is still undecided. A decision sits in this section until it is taken, then moves into `plan.md` as design and leaves this list. Writing progress into `plan.md` is what produced the drift found on 2026-08-19, where one section still claimed the shared progress summary and next-step card were unbuilt weeks after they shipped.
 
 
 Each needs the user's answer before the work it blocks can be specced. Nothing here is scheduled. Report pointer cards (`plan.md#report-指路任務卡與單層-scope-導航`) are now fully built and verified — see Current state; nothing about them is still an open decision. The remaining `report_ref` creation-route work in Next steps is unbuilt, not undecided.
@@ -533,6 +532,7 @@ Each needs the user's answer before the work it blocks can be specced. Nothing h
 - Artifact-hosted Checklist was removed by user decision on 2026-08-22. A sandbox snapshot／export page would be a third host that cannot directly read or write the canonical `.checklist`, while the product needs only Browser／HTTP and Desktop／WebView2 entrances. Do not reintroduce an Artifact transport or fake `chrome.webview` shim; a future shareable read-only page would be a separate publishing requirement, not an editing host. 設計快照不受此限：重建外觀供決策、不連任何資料來源的一次性頁面（2026-08-15 的 `cda82b48`、2026-08-27 的 Cost 預覽）是可接受的；被禁止的是可編輯的 transport。
 - The time-reference Demo (`experiments/time-reference/demo/`) is **retired, not frozen** (2026-08-05 user decision). It throws on load because `createModeController`/`createSaveBar`/`createAddControl` no longer exist in `editor-surface-runtime.js`. Do not repair it by restoring those functions — keeping a parallel vanilla implementation alive just to keep the Demo running is exactly what the one-UI-source rule forbids. If a `file://` demo is ever needed again, rebuild it on the shared components (it can no longer be opened without a build). Source and tests are kept for reference only.
 - Local capacity/delivery editor form: no separate open/close toggle exists or should be added — its visibility is deliberately tied to the same global `setEditing()` call the whole-report edit session already makes.
+- 他驗用兩份 checklist（執行 checklist 最後一項 `[acceptance]` 以 `Accepted by` 綁定另一份驗收 checklist、讀取時推導、驗收 checklist 另掛一個子項），2026-10-22 寫進 `AcceptanceChainPlan.md` 後同日由使用者改掉。理由：`[manual]` 本身就是同一份文件裡的二次驗收，`[acceptance]` 放在同一份文件即可；分成兩份要額外付出推導、快取依賴、第二個子項與跨檔對應的成本，且讓使用者看不出兩份文件的對應關係。不要再用跨檔綁定來表達驗收。
 
 ## Blockers / open items
 

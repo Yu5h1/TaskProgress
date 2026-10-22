@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-10-22T05:19:56.005448+00:00",
+  "updated_at": "2026-10-22T08:06:04.439385+00:00",
   "tasks": [
     {
       "id": "item-selection",
@@ -1361,11 +1361,11 @@
       "id": "agent-workflow",
       "title": "優化 agent workflow",
       "status": "planned",
-      "summary": "讓執行與驗收在 report 上分得開：可執行項目的 checklist 串聯另一份驗收 checklist，執行方只做執行、驗收方只做驗收，report refresh 就看得到結果。",
+      "summary": "可執行項目的驗證方式變成選項：一份 checklist 用權限標籤區分執行者（不標）、他驗（[acceptance]，執行者以外的 agent）與人工（[manual]），Report 分得出待他驗、待人工、需處理與完成。計畫 Documentation/AcceptanceChainPlan.md。",
       "pending_items": [
         {
           "id": "checklist-acceptance-chain",
-          "title": "他驗流程實作（計畫 Documentation/AcceptanceChainPlan.md 已定案）：checklist 新增 [acceptance] 標記與 Accepted by 綁定、讀取時推導、快取依賴、Report CLI 的 session 比對與撰寫者不得執行、驗收完成時一併完成執行子項、Viewer「待驗收」，最後改寫 checklist-round 與 agent-executable-items 為自驗／他驗兩套流程",
+          "title": "checklist 格式：登記 [acceptance] 標籤並拒絕未登記的標籤；[acceptance] 結果的記錄者欄位；標籤檢查的依賴鎖；[manual] 內容修改後改為 [!]；checklist validate 指出對應錯誤",
           "status": "planned",
           "activity": [
             {
@@ -1380,18 +1380,101 @@
               "actor": "claude",
               "at": "2026-10-22T05:19:56.005448+00:00",
               "session": "TaskProgress 維護開發"
+            },
+            {
+              "event": "updated",
+              "actor": "claude",
+              "at": "2026-10-22T08:03:52.926818+00:00",
+              "session": "TaskProgress 維護開發"
+            }
+          ]
+        },
+        {
+          "id": "acceptance-checklist-write",
+          "title": "標籤寫入：checklist request 帶 actor 與 session；從綁定子項取得執行者；[acceptance] 拒絕執行者的 session、[manual] 只准 agent 寫 [!]（附 Observed）；未綁定子項時拒絕；完成整份 checklist 的那次寫入把子項設為 done",
+          "status": "planned",
+          "activity": [
+            {
+              "event": "created",
+              "actor": "claude",
+              "at": "2026-10-22T08:03:52.926818+00:00",
+              "session": "TaskProgress 維護開發"
+            }
+          ]
+        },
+        {
+          "id": "acceptance-report-cli",
+          "title": "Report CLI：選了他驗時，撰寫 [acceptance] 條件的 session 不得開始執行；含標籤檢查的子項不可手動設為 done",
+          "status": "planned",
+          "activity": [
+            {
+              "event": "created",
+              "actor": "claude",
+              "at": "2026-10-22T08:03:52.926818+00:00",
+              "session": "TaskProgress 維護開發"
+            }
+          ]
+        },
+        {
+          "id": "acceptance-checklist-panel",
+          "title": "Checklist 面板：顯示標籤與記錄者；依賴未完成時鎖住；使用者改 [acceptance] 前跳出「確認修改 agent 紀錄嗎？」；提供只顯示我能操作的檢查",
+          "status": "planned",
+          "activity": [
+            {
+              "event": "created",
+              "actor": "claude",
+              "at": "2026-10-22T08:03:52.926818+00:00",
+              "session": "TaskProgress 維護開發"
+            }
+          ]
+        },
+        {
+          "id": "acceptance-viewer-states",
+          "title": "Report 子項狀態：執行中、待他驗、待人工、需處理、完成，待他驗與待人工可同時顯示",
+          "status": "planned",
+          "activity": [
+            {
+              "event": "created",
+              "actor": "claude",
+              "at": "2026-10-22T08:03:52.926818+00:00",
+              "session": "TaskProgress 維護開發"
+            }
+          ]
+        },
+        {
+          "id": "acceptance-skills",
+          "title": "Skill：改寫 checklist-round 與 agent-executable-items（[manual] 併入同一份 checklist、agent 只能標 [!]、刪除第二個 agent 寫 handoff 的審查）；新增 Claude skill /exec-items，選項 self、manual、cross、cross manual、evaluate、run、accept；他驗提交訊息帶子項 ID",
+          "status": "planned",
+          "activity": [
+            {
+              "event": "created",
+              "actor": "claude",
+              "at": "2026-10-22T08:03:52.926818+00:00",
+              "session": "TaskProgress 維護開發"
+            },
+            {
+              "event": "updated",
+              "actor": "claude",
+              "at": "2026-10-22T08:06:04.439385+00:00",
+              "session": "TaskProgress 維護開發"
             }
           ]
         },
         {
           "id": "acceptance-flow-trial",
-          "title": "他驗流程端到端試跑：實作完成後挑一個實際的小項目，以「寫成他驗可執行項目」由 session A 建立兩份 checklist，session B 執行、session C 驗收，途中故意讓一項驗收 [!] 走一次退回與重跑；確認 Viewer 依序顯示待驗收、驗收未通過、完成，且同 session 驗收、撰寫者執行、缺 session_id 三種情況都被 CLI 拒絕",
+          "title": "端到端試跑：以「他驗＋人工」實際做一個小項目，三個 session 分別撰寫、執行、驗收，途中讓一項 [acceptance] 與一項 [manual] 各標一次 [!] 走完修正；確認五種子項狀態與各種拒絕情況",
           "status": "planned",
           "activity": [
             {
               "event": "created",
               "actor": "claude",
               "at": "2026-10-22T05:19:56.005448+00:00",
+              "session": "TaskProgress 維護開發"
+            },
+            {
+              "event": "updated",
+              "actor": "claude",
+              "at": "2026-10-22T08:03:52.926818+00:00",
               "session": "TaskProgress 維護開發"
             }
           ]
