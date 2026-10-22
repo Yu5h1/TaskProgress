@@ -1,0 +1,20 @@
+# Codex 人工試跑 Checklist
+
+Current round: `experiments/codex-acceptance-trial/spec.md#人工試跑`.
+
+本檔只有一輪。依 CodexWorkflowTrial 試跑共用 skill；只操作 Codex 專用產物。
+
+- [ ] **1. 建立 manual.txt**
+  Outcome: experiments/codex-acceptance-trial/manual.txt 符合規格。
+  Checks:
+    - [ ] **內容正確**
+      - Action: 讀取 experiments/codex-acceptance-trial/manual.txt，對照 experiments/codex-acceptance-trial/spec.md#人工試跑。
+      - Expect: 只有一行 manual ok。
+
+- [ ] **2. 人工驗收**
+  Outcome: 使用者接受本情境的狀態與面板呈現。
+  Checks:
+    - [ ] **面板與狀態** `[manual]`
+      - Action: 開啟 [Codex 試跑卡片](http://127.0.0.1:8001/?scope=task-progress&pin=codex-workflow-trial)，再開啟本項 Checklist，確認狀態後標記通過。
+      - Expect: 此子項在人工通過前顯示待使用者；使用者標記通過後重新整理 Report，該子項顯示完成。
+      - Reason: 畫面呈現與操作由使用者驗收。

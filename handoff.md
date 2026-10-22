@@ -6,7 +6,7 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
 
 ## Current state (2026-09-29)
 
-- **共用任務 skill 與 Codex 試跑建卡（2026-10-22）。** 任務卡 `codex-workflow-trial` 的設計入口為 [CodexWorkflowTrial](Documentation/CodexWorkflowTrial.md)；先確認共用來源與使用者層路由，再實作 skill、安裝入口與進行六情境試跑。目前只建卡與記錄設計提案，未安裝或試跑。下一步由使用者確認該文件的〈尚未決定〉，確認後才將試跑規格拆成綁定 checklist。
+- **Codex 共用 skill 試跑（2026-10-22）。** 使用者已確認入口文件路由並明確呼叫 task-progress-items auto 處理 codex-workflow-trial。Codex 已建立自己的使用者層入口，六情境規格與尚未執行的綁定 checklist 已建立；下一步依 experiments/codex-acceptance-trial/spec.md 執行，人工結果保留給使用者。
 
 - **驗證流程試跑（acceptance-trial 卡，2026-10-22）。** 照 `experiments/acceptance-trial/spec.md` 的六項試跑：執行者是本 session（claude 583fa969），驗收者是另開的獨立 session（claude 5e450172）。每一步的 `derived_state` 都與 AcceptanceChainPlan〈流程紀錄〉一致。
   - 自驗：認領 → 釋放後完成。人工：釋放後待使用者，使用者在面板記 `[x]`（記錄者 `user`）後完成。
@@ -526,7 +526,6 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
 
 ## Open decisions
 
-- [共用任務 skill 與 Codex 試跑／尚未決定](Documentation/CodexWorkflowTrial.md#尚未決定)：先確認共用來源與使用者層路由位置，再實作 skill 與開始試跑。
 
 - [Web UI 替換計畫／尚未決定](Documentation/WebUiReplacementPlan.md#尚未決定)：WUI-01 目標環境與資料量、WUI-02 成本預算、WUI-03 依賴交付。> Where each kind of statement lives: `plan.md` holds the design — what to build, why, and how it is accepted — and changes only when a design is added, revised or removed. Everything time-bound lives here: what is built, what is approved but unbuilt, what is deferred, and what is still undecided. A decision sits in this section until it is taken, then moves into `plan.md` as design and leaves this list. Writing progress into `plan.md` is what produced the drift found on 2026-08-19, where one section still claimed the shared progress summary and next-step card were unbuilt weeks after they shipped.
 

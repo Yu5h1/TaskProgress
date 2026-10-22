@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-10-22T12:42:59.375424+00:00",
+  "updated_at": "2026-10-22T13:23:40.517962+00:00",
   "tasks": [
     {
       "id": "item-selection",
@@ -1862,42 +1862,14 @@
     {
       "title": "共用任務 skill 與 Codex 驗證試跑",
       "priority": 1,
-      "status": "planned",
+      "status": "in_progress",
       "id": "codex-workflow-trial",
-      "summary": "參考既有驗證流程，由 Codex 試跑六種情境。先確認 skill 共用來源及使用者層路由，再實作並測試；提案與驗收範圍見 Documentation/CodexWorkflowTrial.md。",
+      "summary": "共用流程已由 Claude 實作並核對；Codex 已初始化使用者層入口，正依獨立六情境規格試跑。人工驗收由使用者記錄。",
       "pending_items": [
         {
-          "title": "確認共用 skill 設計與使用者層路由位置：一份流程，各 agent 保留入口、身分與 session 能力差異",
+          "title": "Codex 使用者層入口已建立且讀回一致；檢查跨專案路由與新 agent 發現結果",
           "priority": 1,
-          "status": "planned",
-          "id": "shared-skill-design",
-          "activity": [
-            {
-              "event": "created",
-              "actor": "codex",
-              "at": "2026-10-22T12:01:44.796977+00:00",
-              "session": "共用 skill 與 Codex 驗證試跑"
-            }
-          ]
-        },
-        {
-          "title": "依確認的設計抽出共用任務 skill，接上 Codex 入口與 actor／session 身分，保留原有驗證契約",
-          "priority": 1,
-          "status": "planned",
-          "id": "shared-skill-implementation",
-          "activity": [
-            {
-              "event": "created",
-              "actor": "codex",
-              "at": "2026-10-22T12:01:44.796977+00:00",
-              "session": "共用 skill 與 Codex 驗證試跑"
-            }
-          ]
-        },
-        {
-          "title": "依確認的位置安裝共用 skill 路由，檢查同名入口並驗證本機發現結果",
-          "priority": 1,
-          "status": "planned",
+          "status": "in_progress",
           "id": "user-skill-routing",
           "activity": [
             {
@@ -1905,13 +1877,20 @@
               "actor": "codex",
               "at": "2026-10-22T12:01:44.796977+00:00",
               "session": "共用 skill 與 Codex 驗證試跑"
+            },
+            {
+              "event": "started",
+              "actor": "codex",
+              "at": "2026-10-22T13:23:40.517962+00:00",
+              "session": "Codex 共用 skill 驗證試跑",
+              "session_id": "365a4d62-02ee-4e28-9da7-63783c089d24"
             }
           ]
         },
         {
           "title": "建立 Codex 專用六情境規格與綁定 checklist，提交後由 Codex 試跑；他驗交獨立 session，人工結果交使用者",
           "priority": 1,
-          "status": "planned",
+          "status": "in_progress",
           "id": "codex-verification-trial",
           "activity": [
             {
@@ -1919,6 +1898,184 @@
               "actor": "codex",
               "at": "2026-10-22T12:01:44.796977+00:00",
               "session": "共用 skill 與 Codex 驗證試跑"
+            },
+            {
+              "event": "started",
+              "actor": "codex",
+              "at": "2026-10-22T13:23:40.517962+00:00",
+              "session": "Codex 共用 skill 驗證試跑",
+              "session_id": "365a4d62-02ee-4e28-9da7-63783c089d24"
+            }
+          ]
+        },
+        {
+          "document_ref": {
+            "kind": "checklist",
+            "scope_id": "task-progress",
+            "task": "codex-trial-self"
+          },
+          "id": "codex-trial-self",
+          "priority": 1,
+          "title": "Codex 自驗試跑",
+          "status": "planned",
+          "activity": [
+            {
+              "event": "created",
+              "actor": "codex",
+              "at": "2026-10-22T13:23:40.517962+00:00",
+              "session": "Codex 共用 skill 驗證試跑",
+              "session_id": "365a4d62-02ee-4e28-9da7-63783c089d24"
+            }
+          ]
+        },
+        {
+          "document_ref": {
+            "kind": "checklist",
+            "scope_id": "task-progress",
+            "task": "codex-trial-manual"
+          },
+          "id": "codex-trial-manual",
+          "priority": 1,
+          "title": "Codex 人工試跑",
+          "status": "planned",
+          "activity": [
+            {
+              "event": "created",
+              "actor": "codex",
+              "at": "2026-10-22T13:23:40.517962+00:00",
+              "session": "Codex 共用 skill 驗證試跑",
+              "session_id": "365a4d62-02ee-4e28-9da7-63783c089d24"
+            }
+          ]
+        },
+        {
+          "document_ref": {
+            "kind": "checklist",
+            "scope_id": "task-progress",
+            "task": "codex-trial-cross"
+          },
+          "id": "codex-trial-cross",
+          "priority": 1,
+          "title": "Codex 他驗試跑",
+          "status": "planned",
+          "activity": [
+            {
+              "event": "created",
+              "actor": "codex",
+              "at": "2026-10-22T13:23:40.517962+00:00",
+              "session": "Codex 共用 skill 驗證試跑",
+              "session_id": "365a4d62-02ee-4e28-9da7-63783c089d24"
+            }
+          ]
+        },
+        {
+          "document_ref": {
+            "kind": "checklist",
+            "scope_id": "task-progress",
+            "task": "codex-trial-cross-manual"
+          },
+          "id": "codex-trial-cross-manual",
+          "priority": 1,
+          "title": "Codex 他驗加人工試跑",
+          "status": "planned",
+          "activity": [
+            {
+              "event": "created",
+              "actor": "codex",
+              "at": "2026-10-22T13:23:40.517962+00:00",
+              "session": "Codex 共用 skill 驗證試跑",
+              "session_id": "365a4d62-02ee-4e28-9da7-63783c089d24"
+            }
+          ]
+        },
+        {
+          "document_ref": {
+            "kind": "checklist",
+            "scope_id": "task-progress",
+            "task": "codex-trial-condition"
+          },
+          "id": "codex-trial-condition",
+          "priority": 1,
+          "title": "Codex 條件不符試跑",
+          "status": "planned",
+          "activity": [
+            {
+              "event": "created",
+              "actor": "codex",
+              "at": "2026-10-22T13:23:40.517962+00:00",
+              "session": "Codex 共用 skill 驗證試跑",
+              "session_id": "365a4d62-02ee-4e28-9da7-63783c089d24"
+            }
+          ]
+        },
+        {
+          "waits_for": [
+            {
+              "task_id": "codex-workflow-trial",
+              "scope_id": "task-progress",
+              "item_id": "codex-trial-cross"
+            }
+          ],
+          "title": "Codex 等待試跑",
+          "document_ref": {
+            "kind": "checklist",
+            "scope_id": "task-progress",
+            "task": "codex-trial-waits"
+          },
+          "priority": 1,
+          "id": "codex-trial-waits",
+          "status": "planned",
+          "activity": [
+            {
+              "event": "created",
+              "actor": "codex",
+              "at": "2026-10-22T13:23:40.517962+00:00",
+              "session": "Codex 共用 skill 驗證試跑",
+              "session_id": "365a4d62-02ee-4e28-9da7-63783c089d24"
+            }
+          ]
+        }
+      ],
+      "completed_items": [
+        {
+          "title": "已核對 Claude 更新的共用流程：agent 差異、認領、釋放、驗收、條件修訂與佇列契約",
+          "priority": 1,
+          "status": "done",
+          "id": "shared-skill-implementation",
+          "activity": [
+            {
+              "event": "created",
+              "actor": "codex",
+              "at": "2026-10-22T12:01:44.796977+00:00",
+              "session": "共用 skill 與 Codex 驗證試跑"
+            },
+            {
+              "event": "done",
+              "actor": "codex",
+              "at": "2026-10-22T13:23:40.517962+00:00",
+              "session": "Codex 共用 skill 驗證試跑",
+              "session_id": "365a4d62-02ee-4e28-9da7-63783c089d24"
+            }
+          ]
+        },
+        {
+          "title": "已確認共用來源與使用者層入口文件路由；初始化只設定目前 agent、遇同名衝突停止",
+          "priority": 1,
+          "status": "done",
+          "id": "shared-skill-design",
+          "activity": [
+            {
+              "event": "created",
+              "actor": "codex",
+              "at": "2026-10-22T12:01:44.796977+00:00",
+              "session": "共用 skill 與 Codex 驗證試跑"
+            },
+            {
+              "event": "done",
+              "actor": "codex",
+              "at": "2026-10-22T13:23:40.517962+00:00",
+              "session": "Codex 共用 skill 驗證試跑",
+              "session_id": "365a4d62-02ee-4e28-9da7-63783c089d24"
             }
           ]
         }

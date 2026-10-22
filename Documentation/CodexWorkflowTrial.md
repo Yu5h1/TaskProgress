@@ -7,7 +7,7 @@
 ```text
 TaskProgress
 ├─ 驗證流程契約：AcceptanceChainPlan.md
-├─ 共用任務 skill（提案，待確認）
+├─ 共用任務 skill（入口文件路由）
 │  ├─ 共用：建立、綁定、認領、執行、釋放、驗收
 │  └─ agent 差異：入口、actor、session 身分與子 session 能力
 └─ Codex 試跑
@@ -21,16 +21,16 @@ TaskProgress
 
 驗證語意沿用 [驗證流程選項](AcceptanceChainPlan.md)。既有 [Claude 試跑規格](../experiments/acceptance-trial/spec.md) 提供六種情境的參考；Codex 不改寫或執行 Claude 的試跑項目。
 
-## 共用設計提案
+## 共用設計
 
-流程本體由 TaskProgress 維護，建議唯一來源為 `.agents/skills/task-progress-items/`。各 agent 的命令語法、actor、session 身分取得與子 session 能力分開說明，共用流程不寫死 Claude hook 或命令語法。
+流程本體由 TaskProgress 維護，唯一來源為 `.agents/skills/task-progress-items/`。各 agent 的命令語法、actor、session 身分取得與子 session 能力分開說明，共用流程不寫死 Claude hook 或命令語法。
 
-建議的本機路由：
+本機路由採使用者層入口文件，不使用符號連結：
 
 | 入口 | 目的地或用途 |
 |---|---|
-| `C:\Users\Yu5h1\.agents\skills\task-progress-items` | 連結到本專案共用 skill，供 Codex 與 Gemini 發現 |
-| `C:\Users\Yu5h1\.claude\skills\task-progress-items` | 連結到同一份 skill，保留 Claude 的命令入口 |
+| `C:\Users\Yu5h1\.agents\skills\task-progress-items` | 入口文件指向本專案共用 skill，供 Codex 與 Gemini 發現 |
+| `C:\Users\Yu5h1\.claude\skills\task-progress-items` | 入口文件指向同一份 skill，保留 Claude 的命令入口 |
 
 Codex 官方文件列出使用者層 `.agents/skills`，因此此提案不要求新增 `.codex/skills` 副本；Gemini 也支援 `.agents/skills`。安裝時須確認現有同名入口與實際工具版本，保留既有內容，不覆蓋其他 agent 的檔案。
 
@@ -51,8 +51,12 @@ Codex 官方文件列出使用者層 `.agents/skills`，因此此提案不要求
 
 ## 不包含
 
-本次建卡不安裝使用者層路由、不改其他 provider 的入口、不發布或重啟服務，也不執行尚未確認設計的試跑。
+Codex 只初始化自己的使用者層入口，不改其他 provider 的入口、不發布或重啟服務。人工驗收留給使用者。
 
 ## 尚未決定
 
-是否採用本文件的共用來源與使用者層路由位置？建議採用；確認後才建立或搬移 skill、處理原 Claude 入口，並開始 Codex 試跑。
+無。共用來源與使用者層入口文件路由已由使用者確認；初始化依 taskprogress-capabilities 執行。
+
+## 本輪試跑規格
+
+[Codex 六情境規格](../experiments/codex-acceptance-trial/spec.md) 定義產物與每一步預期狀態。Codex 執行者與獨立驗收者依該規格記錄結果；桌面命令選單的熱載入不以入口檔存在代替驗證。
