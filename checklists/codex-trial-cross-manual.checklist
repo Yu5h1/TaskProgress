@@ -4,10 +4,10 @@ Current round: `experiments/codex-acceptance-trial/spec.md#他驗與人工試跑
 
 本檔只有一輪。依 CodexWorkflowTrial 試跑共用 skill；只操作 Codex 專用產物。
 
-- [ ] **1. 建立 cross-manual.txt**
+- [x] **1. 建立 cross-manual.txt**
   Outcome: experiments/codex-acceptance-trial/cross-manual.txt 符合規格。
   Checks:
-    - [ ] **內容正確**
+    - [x] **內容正確**
       - Action: 讀取 experiments/codex-acceptance-trial/cross-manual.txt，對照 experiments/codex-acceptance-trial/spec.md#他驗與人工試跑。
       - Expect: 第一行 cross manual ok，第二行為寫入當下的 UTC ISO 8601 時間，與寫入時間相差不超過兩秒。
 
