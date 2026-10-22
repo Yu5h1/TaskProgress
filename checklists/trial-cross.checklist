@@ -4,10 +4,10 @@ Current round: `experiments/acceptance-trial/spec.md#他驗試跑`.
 
 驗證方式：他驗。本檔只有一輪；執行與驗收必須是不同的 session。
 
-- [ ] **1. 建立 cross.json**
+- [x] **1. 建立 cross.json**
   Outcome: experiments/acceptance-trial/cross.json 存在且是合法 JSON。
   Checks:
-    - [ ] **可解析**
+    - [x] **可解析**
       - Action: 以 JSON 解析 experiments/acceptance-trial/cross.json。
       - Expect: 解析成功，根是物件。
 
