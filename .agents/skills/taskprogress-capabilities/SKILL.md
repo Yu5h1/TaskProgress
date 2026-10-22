@@ -1,6 +1,6 @@
 ---
 name: taskprogress-capabilities
-description: Find the TaskProgress entrance that already exists — a CLI verb, a page the local service serves, or a documented skill — before building anything against a `.checklist` or `.decisions` file, a report, or a scope. Use when work in any project touches TaskProgress data, before creating a `.decisions` file to ask the user something, or before answering that some TaskProgress capability is missing.
+description: Find the TaskProgress entrance that already exists — a CLI verb, a page the local service serves, or a documented skill — before building anything against a `.checklist` or `.decisions` file, a report, or a scope, and make sure the acting agent has its user-level task-progress-items entry. Use when work in any project touches TaskProgress data, before creating a `.decisions` file to ask the user something, or before answering that some TaskProgress capability is missing.
 ---
 
 # TaskProgress capabilities
@@ -9,6 +9,51 @@ An **entrance** is a shipped way in: a CLI verb, a page the local service serves
 skill. TaskProgress has more entrances than any single router row names. This skill exists to stop
 two failures: building a substitute for an entrance that already ships, and telling the user a
 capability is absent after reading only part of the source.
+
+## Initialize the user-level entry
+
+Every agent reaches the shared [task-progress-items](../task-progress-items/SKILL.md) procedure
+through one small entry in its own user-level skills directory. Check it whenever you are routed
+here; the user authorized creating this one entry for the acting agent (2026-10-22), so no further
+question is needed for that case.
+
+1. Resolve the acting agent's user-level skills directory from that agent's own documentation.
+   Known today: Claude Code `%USERPROFILE%\.claude\skills`; Codex and Gemini read
+   `%USERPROFILE%\.agents\skills` (see [CodexWorkflowTrial](../../../Documentation/CodexWorkflowTrial.md)
+   for the sources), so an entry there serves both. If your tool is not listed or you cannot confirm
+   its directory, stop and ask the user.
+2. Resolve the shared source as the absolute path of `.agents/skills/task-progress-items/SKILL.md`
+   in the TaskProgress repository the index routed you through. It must exist; never assume the
+   session works inside TaskProgress.
+3. Look at `<user skills directory>/task-progress-items/SKILL.md`:
+   - absent → create it with the template below, `<SOURCE>` replaced by the resolved path;
+   - present and identical to the template with this source (ignoring line-ending style) → leave it;
+   - present but different, or naming a source that does not exist → report a conflict with both
+     contents and stop; never overwrite.
+   Also report, without changing it, any project-level `task-progress-items` skill the agent would
+   see beside the entry (for Claude, a `.claude/skills/task-progress-items` in the working project),
+   since it would shadow or duplicate the entry.
+4. Initialize only the acting agent. Write another agent's directory only when the user names that
+   agent.
+5. Initialization ends there: it starts no task, no queue and no acceptance. Do not use symbolic
+   links.
+
+The entry template (UTF-8, LF):
+
+```markdown
+---
+name: task-progress-items
+description: TaskProgress executable items — evaluate a project into items, write one instruction as an item and run it, run the execution or acceptance queue, or do all of it. Use only when the user explicitly invokes task-progress-items (in Claude Code, the /task-progress-items command); answer paraphrases with the invocation instead.
+---
+
+# task-progress-items (user-level entry)
+
+This entry holds no procedure. Before acting, read and follow the shared skill:
+
+<SOURCE>
+
+The scope is the project the user names or the project this session works in, never TaskProgress merely because the shared skill lives there. Created by taskprogress-capabilities § Initialize the user-level entry; do not edit by hand.
+```
 
 ## Open-only requests
 
@@ -42,6 +87,7 @@ missing. Each is cheap; none is sufficient alone.
 
 | Want | Entrance |
 |---|---|
+| Create, run or accept executable items with verification options | The acting agent's user-level `task-progress-items` entry (§ Initialize the user-level entry), which routes to [task-progress-items](../task-progress-items/SKILL.md). |
 | Open a task card pinned to the top of its report | `task-progress.exe open --scope <scope-id> --pin <task-id>` (or a report folder). See [Update existing Report through CLI](../task-progress-report/SKILL.md#update-existing-report-through-cli). |
 | View or tick a `.checklist` round in a browser | `.claude/skills/checklist/SKILL.md` — the service's `/checklist/?scope=&task=` page in the Browser pane. Same read/write engine as the desktop host. |
 | Write, mark, or complete a round | `.agents/skills/checklist-round/SKILL.md` — the document contract. |

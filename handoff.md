@@ -8,14 +8,17 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
 
 - **共用任務 skill 與 Codex 試跑建卡（2026-10-22）。** 任務卡 `codex-workflow-trial` 的設計入口為 [CodexWorkflowTrial](Documentation/CodexWorkflowTrial.md)；先確認共用來源與使用者層路由，再實作 skill、安裝入口與進行六情境試跑。目前只建卡與記錄設計提案，未安裝或試跑。下一步由使用者確認該文件的〈尚未決定〉，確認後才將試跑規格拆成綁定 checklist。
 
-- **驗證流程選項已實作，未部署、未提交（2026-10-22）。** 依 `Documentation/AcceptanceChainPlan.md`：
+- **task-progress-items 改為共用來源加使用者層入口（2026-10-22）。** 依使用者確認的流程：唯一來源 `.agents/skills/task-progress-items/SKILL.md`（共用流程，agent 差異集中在〈Agent specifics〉）；原 `.claude/skills/task-progress-items` 已刪除，避免兩份流程並存。`taskprogress-capabilities` 新增〈Initialize the user-level entry〉：依目前 agent 的使用者層 skills 目錄建立只含路由的入口（不存在才建立、相同則略過、不同或來源失效則回報衝突、不用符號連結、只初始化目前 agent、不啟動任務）。共用索引那一列改為先經 capabilities 初始化。這回答了 [CodexWorkflowTrial](Documentation/CodexWorkflowTrial.md)〈尚未決定〉的共用來源與路由位置，但採入口檔而非連結；該文件與 Codex 的 handoff 項目未改動。
+  - 下一步：Codex／Gemini 在自己的 session 依 capabilities 初始化 `%USERPROFILE%\.agents\skills\task-progress-items`；六情境試跑未開始。
+
+- **驗證流程選項已實作並提交（2026-10-22，feb859b）。** 依 `Documentation/AcceptanceChainPlan.md`：
   - C#：`ChecklistDocument` 登記 `[acceptance]`、`Recorded` 行（記錄者、時間、指紋、原因、次數）、寫入權限與先後、`Issues()`（沒有記錄者）、`MigrateLegacyResults`；`ChecklistBridge` 以 `--viewer` 區分面板與 agent（agent 需 `actor`／`sessionId`、需綁定子項、不得是執行者）；`checklist migrate`；`ItemStateResolver`（`report get` 加 `derived_state`、時間分析用推算完成）；`report apply` 對含 `[acceptance]` 的子項要求 `session_id`。
   - Python：`item.event`（`released` 並改回 `planned`、`disputed` 需 `note`）、保留規則、`waits_for` 與環檢查；服務的 checklist 呼叫加 `--viewer`。
   - JS／Svelte：`item-state.js`、`document-binding.js` 推算狀態與等待連結、`ItemRow` 狀態膠囊、Checklist 面板（他驗標籤、記錄者、需重驗、鎖、原因選單、只顯示我能操作的），三個 bundle 已重建。
-  - Skill：新增 `.claude/skills/task-progress-items`；改寫 checklist-round、task-progress-report、ItemActivityLog、`.agents` 的 agent-executable-items 與共用索引那一列、referenced-module-acceptance 連結。
+  - Skill：新增 task-progress-items（之後移為共用來源，見上一項）；改寫 checklist-round、task-progress-report、ItemActivityLog、`.agents` 的 agent-executable-items 與共用索引那一列、referenced-module-acceptance 連結。
   - 遷移：unity-extension 13、task-progress 35、winform 18、yu5h1lib-web 11 個結果已補 `legacy`（UX 0），各 repo 檔案未提交。HealthAI（W:）未遷移，其中數份 checklist 本來就無法解析。
   - 驗證：Checklist 311 checks、CLI pure 與各定向套件、Node 630、Python 83 全部通過；`report get` 實測輸出 `derived_state`。
-  - 未做：正式 `Build/win-x64` 未發布，目前在跑的是舊版、無 Tray 的服務（PID 29084）；端到端試跑；`/task-progress-items` 只在 TaskProgress 底下可用，跨專案的安裝位置待使用者決定。
+  - 使用者已發布 `Build/win-x64` 並經 Tray 啟動；Winform 的遷移隨使用者的合併提交（48911cc）。端到端試跑未開始；HealthAI 未遷移。
 
 - **驗證流程選項計畫（2026-10-22）。** `Documentation/AcceptanceChainPlan.md`（Task ID `checklist-acceptance-chain`）：一個可執行項目一份 checklist，權限標籤只有不標（執行者）、`[manual]`（使用者）、`[acceptance]`（執行者以外的 agent，以 session 判定）；`[acceptance]` 結果記錄者、依賴鎖、agent 對 `[manual]` 只能標 `[!]`、撰寫者不得執行、含標籤檢查的子項由完成寫入設 `done`；Claude skill `/task-progress-items`（不帶參數評估、`<指示>`、`run`、`accept`、`auto`）觸發，未指定驗證方式時由 agent 依判斷依據選擇；只有他驗需要另一個 session；多個項目時每項開子 session，同一 scope 一次一個。2026-10-22 改以流程模擬檢查：綁定 checklist 的子項狀態改由 checklist 推算，只存認領（新增 `released`、`rejected` 事件）；標籤結果記錄記錄者與內容指紋；寫驗收條件的 session 可以執行，只要求驗收者不是執行者（條件先提交、驗收檢查改動與出處）；子項可宣告等待其他子項，推算為等待中、展開顯示連結；既有 checklist 以遷移命令補上記錄者 `legacy`，沒有記錄者的結果只讓 validate 失敗、畫面顯示需重驗；`[manual]` 等 `[acceptance]` 通過才開放；驗收者發現條件本身錯了可標「條件不符」交建立者修改、驗收者確認，談不攏才交使用者；計畫的〈流程紀錄〉有使用者流程與 Agent 流程兩份、各 8 個情境，改規則時都重走；對 Claude，`/task-progress-items` 是唯一入口，舊短語只回對應命令，共用索引那一列分開寫 Claude 與其他 agent，skill 完成時才生效。設計已定，無未決事項。未實作；實作拆成 agent-workflow 卡的 7 個子項。實作完成前，checklist-round 與 agent-executable-items 的現行規則照舊有效。
 
