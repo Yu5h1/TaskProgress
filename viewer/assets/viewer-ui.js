@@ -4211,12 +4211,20 @@ Object.freeze([
 ]);
 //#endregion
 //#region experiments/editor-svelte-spike/src/TaskCard.svelte
-var ps = /* @__PURE__ */ q("<textarea class=\"task-summary-input\" aria-label=\"任務描述\" maxlength=\"1000\" rows=\"3\"></textarea>"), ms = /* @__PURE__ */ q("<div class=\"task-summary\"><!></div>"), hs = /* @__PURE__ */ q("<button type=\"button\" class=\"completed-more\"><svg viewBox=\"0 0 16 16\" width=\"14\" height=\"14\" aria-hidden=\"true\"><path fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"></path></svg> </button>"), gs = /* @__PURE__ */ q("<section><h4 class=\"detail-heading\"> </h4> <ul class=\"detail-list\"></ul> <!></section>"), _s = /* @__PURE__ */ q("<option> </option>"), vs = /* @__PURE__ */ q("<div class=\"spike-add-form\"><input aria-label=\"新增子項目描述\" placeholder=\"新增待處理項目\" maxlength=\"500\"/> <select aria-label=\"新增子項目優先級\"></select> <button type=\"button\">新增</button> <button type=\"button\">取消</button> <p class=\"spike-field-error\" role=\"alert\"> </p></div>"), ys = /* @__PURE__ */ q("<button class=\"spike-add-button\" type=\"button\">＋</button>"), bs = /* @__PURE__ */ q("<div class=\"spike-add-shell\"><!></div>"), xs = /* @__PURE__ */ q("<!> <!> <div class=\"work-columns\"><!> <section class=\"task-adder-section\"><!></section></div>", 1), Ss = /* @__PURE__ */ q("<div class=\"time-task-status-line\"><select class=\"inline-status-select\"></select> <select class=\"inline-priority-select\"></select></div>"), Cs = /* @__PURE__ */ q("<input class=\"task-title-input\" aria-label=\"任務名稱\" maxlength=\"160\"/>"), ws = /* @__PURE__ */ q("<h3> </h3>"), Ts = /* @__PURE__ */ q("<span> </span>"), Es = /* @__PURE__ */ q("<div class=\"task-module-totals\"></div>"), Ds = /* @__PURE__ */ q("<header slot=\"header\" class=\"task-header\"><div class=\"task-title-group\"><!> <div class=\"time-task-title-line\"><!></div> <!></div> <div class=\"task-header-meta\"><strong class=\"task-fraction\"> </strong> <span> </span> <code class=\"task-id\"> </code></div></header>"), Os = /* @__PURE__ */ q("<article><!></article>");
+var ps = /* @__PURE__ */ q("<textarea class=\"task-summary-input\" aria-label=\"任務描述\" maxlength=\"1000\" rows=\"3\"></textarea>"), ms = /* @__PURE__ */ q("<div class=\"task-summary\"><!></div>"), hs = /* @__PURE__ */ q("<button type=\"button\" class=\"completed-more\"><svg viewBox=\"0 0 16 16\" width=\"14\" height=\"14\" aria-hidden=\"true\"><path fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"></path></svg> </button>"), gs = /* @__PURE__ */ q("<section><h4 class=\"detail-heading\"> </h4> <ul class=\"detail-list\"></ul> <!></section>"), _s = /* @__PURE__ */ q("<option> </option>"), vs = /* @__PURE__ */ q("<div class=\"spike-add-form\"><input aria-label=\"新增子項目描述\" placeholder=\"新增待處理項目\" maxlength=\"500\"/> <select aria-label=\"新增子項目優先級\"></select> <button type=\"button\">新增</button> <button type=\"button\">取消</button> <p class=\"spike-field-error\" role=\"alert\"> </p></div>"), ys = /* @__PURE__ */ q("<button class=\"spike-add-button\" type=\"button\">＋</button>"), bs = /* @__PURE__ */ q("<div class=\"spike-add-shell\"><!></div>"), xs = /* @__PURE__ */ q("<!> <!> <div class=\"work-columns\"><!> <section class=\"task-adder-section\"><!></section></div>", 1), Ss = /* @__PURE__ */ q("<div class=\"time-task-status-line\"><select class=\"inline-status-select\"></select> <select class=\"inline-priority-select\"></select></div>"), Cs = /* @__PURE__ */ q("<input class=\"task-title-input\" aria-label=\"任務名稱\" maxlength=\"160\"/>"), ws = /* @__PURE__ */ q("<button type=\"button\"> </button> <h3> </h3>", 1), Ts = /* @__PURE__ */ q("<span> </span>"), Es = /* @__PURE__ */ q("<div class=\"task-module-totals\"></div>"), Ds = /* @__PURE__ */ q("<header slot=\"header\" class=\"task-header\"><div class=\"task-title-group\"><!> <div class=\"time-task-title-line\"><!></div> <!></div> <div class=\"task-header-meta\"><strong class=\"task-fraction\"> </strong> <span> </span> <code class=\"task-id\"> </code></div></header>"), Os = /* @__PURE__ */ q("<article><!></article>");
 function ks(e, t) {
 	Ke(t, !1);
 	let n = /* @__PURE__ */ F(), r = /* @__PURE__ */ F(), i = /* @__PURE__ */ F(), a = /* @__PURE__ */ F(), o = $(t, "visibilityEnabled", 8, !1), s = $(t, "visible", 8, !0), c = $(t, "onVisibleChange", 8, () => {}), l = $(t, "expanded", 8, !0), u = $(t, "onToggle", 8, () => {}), d = $(t, "task", 8), f = $(t, "progress", 8), p = $(t, "editing", 8), m = $(t, "policy", 8), h = $(t, "onCommand", 8), g = $(t, "onAddItem", 8);
 	$(t, "timeTask", 8, null);
-	let _ = $(t, "itemCapsules", 24, () => /* @__PURE__ */ new Map()), v = $(t, "onModuleActivate", 8, () => {}), y = $(t, "moduleOrder", 24, () => ["time"]), b = $(t, "onModuleReorder", 8, () => {}), x = $(t, "statusOrder", 24, () => ["done", "planned"]), S = $(t, "moduleTotals", 24, () => []), C = $(t, "lead", 8, !1), w = $(t, "scopeId", 8, null), ee = $(t, "reorderable", 8, !1), T = $(t, "onReorder", 8, () => {}), te = $(t, "selection", 8, null), E = /* @__PURE__ */ F(!1), D = [
+	let _ = $(t, "itemCapsules", 24, () => /* @__PURE__ */ new Map()), v = $(t, "onModuleActivate", 8, () => {}), y = $(t, "moduleOrder", 24, () => ["time"]), b = $(t, "onModuleReorder", 8, () => {}), x = $(t, "statusOrder", 24, () => ["done", "planned"]), S = $(t, "moduleTotals", 24, () => []), C = $(t, "lead", 8, !1), w = $(t, "scopeId", 8, null), ee = $(t, "reorderable", 8, !1), T = $(t, "onReorder", 8, () => {}), te = $(t, "selection", 8, null), E = /* @__PURE__ */ F(""), D;
+	async function O() {
+		clearTimeout(D);
+		let e = await Ho(d().id);
+		I(E, e ? "已複製" : "無法複製"), D = setTimeout(() => {
+			I(E, "");
+		}, 1500);
+	}
+	let ne = /* @__PURE__ */ F(!1), k = [
 		{
 			value: "planned",
 			label: "待處理",
@@ -4242,18 +4250,18 @@ function ks(e, t) {
 			label: "已封存",
 			tone: "muted"
 		}
-	], O = /* @__PURE__ */ F(!1), ne = /* @__PURE__ */ F(""), k = /* @__PURE__ */ F(m().creationDefaultValue), re = /* @__PURE__ */ F(""), ie = /* @__PURE__ */ F(d().status), ae = /* @__PURE__ */ F(m().normalize(d().priority, m().fallbackValue));
-	function oe() {
-		I(O, !1), I(ne, ""), I(k, m().creationDefaultValue), I(re, "");
+	], re = /* @__PURE__ */ F(!1), ie = /* @__PURE__ */ F(""), ae = /* @__PURE__ */ F(m().creationDefaultValue), oe = /* @__PURE__ */ F(""), se = /* @__PURE__ */ F(d().status), ce = /* @__PURE__ */ F(m().normalize(d().priority, m().fallbackValue));
+	function le() {
+		I(re, !1), I(ie, ""), I(ae, m().creationDefaultValue), I(oe, "");
 	}
-	let se = /* @__PURE__ */ F(null), ce = /* @__PURE__ */ F(null), le = /* @__PURE__ */ F(null);
-	function ue() {
-		I(se, null), I(ce, null), I(le, null);
+	let ue = /* @__PURE__ */ F(null), de = /* @__PURE__ */ F(null), fe = /* @__PURE__ */ F(null);
+	function pe() {
+		I(ue, null), I(de, null), I(fe, null);
 	}
-	function de(e, t) {
+	function me(e, t) {
 		return m().normalize(e.priority, m().fallbackValue) === m().normalize(t.priority, m().fallbackValue);
 	}
-	function fe(e, t, n) {
+	function he(e, t, n) {
 		let r = (d().pending_items ?? []).map((e) => e?.id), i = r.filter((t) => t !== e);
 		if (i.splice(i.indexOf(t) + +!!n, 0, e), i.every((e, t) => e === r[t])) return;
 		let a = n ? { after: t } : { before: t };
@@ -4268,50 +4276,50 @@ function ks(e, t) {
 			position: a
 		});
 	}
-	function pe(e, t, n, r, i) {
+	function ge(e, t, n, r, i) {
 		let a = t.find((e) => e.id === n);
 		return {
 			side: r?.id === e.id ? r.after ? "after" : "before" : null,
 			armed: i === e.id,
 			dragging: n === e.id,
 			arm(t) {
-				p() || t.button !== 0 || t.pointerType !== "mouse" || t.target.closest("a, button, input, select, textarea, label, [contenteditable], span, strong, code, svg") || I(le, e.id);
+				p() || t.button !== 0 || t.pointerType !== "mouse" || t.target.closest("a, button, input, select, textarea, label, [contenteditable], span, strong, code, svg") || I(fe, e.id);
 			},
 			disarm() {
-				U(le) === e.id && U(se) !== e.id && I(le, null);
+				U(fe) === e.id && U(ue) !== e.id && I(fe, null);
 			},
 			start(t) {
-				t.stopPropagation(), I(se, e.id), t.dataTransfer.effectAllowed = "move", t.dataTransfer.setData("text/plain", e.id);
+				t.stopPropagation(), I(ue, e.id), t.dataTransfer.effectAllowed = "move", t.dataTransfer.setData("text/plain", e.id);
 			},
-			end: ue,
+			end: pe,
 			over(t) {
-				if (!a || a.id === e.id || !de(a, e)) return;
+				if (!a || a.id === e.id || !me(a, e)) return;
 				t.preventDefault(), t.stopPropagation(), t.dataTransfer.dropEffect = "move";
 				let n = (t.currentTarget.querySelector(".item-row-description") ?? t.currentTarget).getBoundingClientRect();
-				I(ce, {
+				I(de, {
 					id: e.id,
 					after: t.clientY >= n.top + n.height / 2
 				});
 			},
 			leave(t) {
-				!t.currentTarget.contains(t.relatedTarget) && U(ce)?.id === e.id && I(ce, null);
+				!t.currentTarget.contains(t.relatedTarget) && U(de)?.id === e.id && I(de, null);
 			},
 			drop(t) {
-				!a || U(ce)?.id !== e.id || (t.preventDefault(), t.stopPropagation(), fe(a.id, e.id, U(ce).after), ue());
+				!a || U(de)?.id !== e.id || (t.preventDefault(), t.stopPropagation(), he(a.id, e.id, U(de).after), pe());
 			},
 			keydown(n) {
 				if (!n.altKey || !["ArrowUp", "ArrowDown"].includes(n.key)) return;
 				n.preventDefault(), n.stopPropagation();
-				let r = t.filter((t) => t.id && de(t, e)), i = r[r.findIndex((t) => t.id === e.id) + (n.key === "ArrowUp" ? -1 : 1)];
+				let r = t.filter((t) => t.id && me(t, e)), i = r[r.findIndex((t) => t.id === e.id) + (n.key === "ArrowUp" ? -1 : 1)];
 				if (!i) return;
 				let a = CSS.escape(`${d().id}/${e.id}`);
-				Promise.resolve(fe(e.id, i.id, n.key === "ArrowDown")).then(() => Sr()).then(() => document.querySelector(`[data-item-ref="${a}"]`)?.focus());
+				Promise.resolve(he(e.id, i.id, n.key === "ArrowDown")).then(() => Sr()).then(() => document.querySelector(`[data-item-ref="${a}"]`)?.focus());
 			}
 		};
 	}
-	function me() {
-		let e = g()(U(ne), Number(U(k)));
-		I(re, e.error), U(re) || oe();
+	function _e() {
+		let e = g()(U(ie), Number(U(ae)));
+		I(oe, e.error), U(oe) || le();
 	}
 	B(() => (G(d()), fs), () => {
 		I(n, [{
@@ -4335,23 +4343,23 @@ function ks(e, t) {
 	}), B(() => (G(m()), G(d())), () => {
 		I(i, m().metadata(d().priority));
 	}), B(() => G(d()), () => {
-		I(ie, d().status);
+		I(se, d().status);
 	}), B(() => (G(m()), G(d())), () => {
-		I(ae, m().normalize(d().priority, m().fallbackValue));
+		I(ce, m().normalize(d().priority, m().fallbackValue));
 	}), B(() => G(d()), () => {
-		I(a, D.find((e) => e.value === d().status) ?? {
+		I(a, k.find((e) => e.value === d().status) ?? {
 			label: d().status,
 			tone: "muted"
 		});
-	}), B(() => (G(p()), U(O)), () => {
-		!p() && U(O) && oe();
+	}), B(() => (G(p()), U(re)), () => {
+		!p() && U(re) && le();
 	}), B(() => G(p()), () => {
-		p(), ue();
+		p(), pe();
 	}), Fn(), qi();
-	var he = Os(), ge = L(he);
+	var ve = Os(), ye = L(ve);
 	{
 		let e = /* @__PURE__ */ N(() => (G(d()), W(() => `task-body-${d().id}`)));
-		_o(ge, {
+		_o(ye, {
 			get visibilityEnabled() {
 				return o();
 			},
@@ -4408,9 +4416,9 @@ function ks(e, t) {
 						var n = gs(), r = L(n), i = L(r, !0);
 						M(r);
 						var a = z(r, 2);
-						si(a, 7, () => (U(t), U(E), W(() => U(t).status === "done" && !U(E) ? U(t).items.slice(0, 1) : U(t).items)), (e) => e.id, (e, n, r) => {
+						si(a, 7, () => (U(t), U(ne), W(() => U(t).status === "done" && !U(ne) ? U(t).items.slice(0, 1) : U(t).items)), (e) => e.id, (e, n, r) => {
 							{
-								let i = /* @__PURE__ */ N(() => (G(_()), U(n), W(() => _().get(U(n).id) ?? []))), a = /* @__PURE__ */ N(() => (G(C()), U(t), G(U(r)), W(() => C() && U(t).status === "planned" && U(r) === 0))), o = /* @__PURE__ */ N(() => p() ? null : te()), s = /* @__PURE__ */ N(() => (G(p()), G(ee()), U(t), U(n), U(se), U(ce), U(le), W(() => (p() || ee()) && U(t).status === "planned" && U(n).id && !U(n).legacy ? pe(U(n), U(t).items, U(se), U(ce), U(le)) : null)));
+								let i = /* @__PURE__ */ N(() => (G(_()), U(n), W(() => _().get(U(n).id) ?? []))), a = /* @__PURE__ */ N(() => (G(C()), U(t), G(U(r)), W(() => C() && U(t).status === "planned" && U(r) === 0))), o = /* @__PURE__ */ N(() => p() ? null : te()), s = /* @__PURE__ */ N(() => (G(p()), G(ee()), U(t), U(n), U(ue), U(de), U(fe), W(() => (p() || ee()) && U(t).status === "planned" && U(n).id && !U(n).legacy ? ge(U(n), U(t).items, U(ue), U(de), U(fe)) : null)));
 								ss(e, {
 									get taskId() {
 										return G(d()), W(() => d().id);
@@ -4434,7 +4442,7 @@ function ks(e, t) {
 										return U(i);
 									},
 									get statuses() {
-										return D;
+										return k;
 									},
 									get onModuleActivate() {
 										return v();
@@ -4465,8 +4473,8 @@ function ks(e, t) {
 							M(r);
 							var a = z(r);
 							M(n), V(() => {
-								Q(n, "aria-expanded", U(E)), Q(n, "aria-controls", (G(d()), U(t), W(() => `task-${d().id}-${U(t).field}`))), Q(i, "d", U(E) ? "M3 10l5-5 5 5" : "M3 6l5 5 5-5"), Y(a, ` ${U(E), U(t), W(() => U(E) ? "收合" : `顯示更多（${U(t).items.length - 1}項）`) ?? ""}`);
-							}), K("click", n, () => I(E, !U(E))), J(e, n);
+								Q(n, "aria-expanded", U(ne)), Q(n, "aria-controls", (G(d()), U(t), W(() => `task-${d().id}-${U(t).field}`))), Q(i, "d", U(ne) ? "M3 10l5-5 5 5" : "M3 6l5 5 5-5"), Y(a, ` ${U(ne), U(t), W(() => U(ne) ? "收合" : `顯示更多（${U(t).items.length - 1}項）`) ?? ""}`);
+							}), K("click", n, () => I(ne, !U(ne))), J(e, n);
 						};
 						X(o, (e) => {
 							U(t), W(() => U(t).status === "done" && U(t).items.length > 1) && e(s);
@@ -4493,18 +4501,18 @@ function ks(e, t) {
 						}), M(r);
 						var i = z(r, 2), a = z(i, 2), o = z(a, 2), s = L(o, !0);
 						M(o), M(t), V(() => {
-							Q(o, "hidden", !U(re)), Y(s, U(re));
+							Q(o, "hidden", !U(oe)), Y(s, U(oe));
 						}), K("keydown", n, (e) => {
-							e.key === "Enter" && me(), e.key === "Escape" && oe();
-						}), Bi(n, () => U(ne), (e) => I(ne, e)), Oi(r, () => U(k), (e) => I(k, e)), K("click", i, me), K("click", a, oe), J(e, t);
+							e.key === "Enter" && _e(), e.key === "Escape" && le();
+						}), Bi(n, () => U(ie), (e) => I(ie, e)), Oi(r, () => U(ae), (e) => I(ae, e)), K("click", i, _e), K("click", a, le), J(e, t);
 					}, i = (e) => {
 						var t = ys();
 						V(() => Q(t, "aria-label", (G(d()), W(() => `在「${d().title}」新增子項目`)))), K("click", t, () => {
-							I(O, !0);
+							I(re, !0);
 						}), J(e, t);
 					};
 					X(n, (e) => {
-						U(O) ? e(r) : e(i, -1);
+						U(re) ? e(r) : e(i, -1);
 					}), M(t), J(e, t);
 				};
 				X(f, (e) => {
@@ -4516,7 +4524,7 @@ function ks(e, t) {
 				header: (e, t) => {
 					var n = Ds(), r = L(n), i = L(r), o = (e) => {
 						var t = Ss(), n = L(t);
-						si(n, 5, () => D, (e) => e.value, (e, t) => {
+						si(n, 5, () => k, (e) => e.value, (e, t) => {
 							var n = _s(), r = L(n, !0);
 							M(n);
 							var i = {};
@@ -4538,13 +4546,13 @@ function ks(e, t) {
 							type: "set-task-field",
 							taskId: d().id,
 							field: "status",
-							value: U(ie)
-						})), Oi(n, () => U(ie), (e) => I(ie, e)), K("change", r, () => h()({
+							value: U(se)
+						})), Oi(n, () => U(se), (e) => I(se, e)), K("change", r, () => h()({
 							type: "set-task-field",
 							taskId: d().id,
 							field: "priority",
-							value: Number(U(ae))
-						})), Oi(r, () => U(ae), (e) => I(ae, e)), J(e, t);
+							value: Number(U(ce))
+						})), Oi(r, () => U(ce), (e) => I(ce, e)), J(e, t);
 					};
 					X(i, (e) => {
 						p() && e(o);
@@ -4560,10 +4568,17 @@ function ks(e, t) {
 							value: e.currentTarget.value
 						})), J(e, t);
 					}, u = (e) => {
-						var t = ws(), n = L(t, !0);
-						M(t), V(() => {
-							Q(t, "id", (G(d()), W(() => `task-${d().id}-title`))), Y(n, (G(d()), W(() => d().title)));
-						}), J(e, t);
+						var t = ws(), n = R(t);
+						let r;
+						var i = L(n, !0);
+						M(n);
+						var a = z(n, 2), o = L(a, !0);
+						M(a), V(() => {
+							r = Z(n, 1, "task-id-copy", null, r, {
+								"is-done": U(E),
+								"is-copied": U(E) === "已複製"
+							}), Q(n, "aria-label", (U(E), G(d()), W(() => U(E) || `複製「${d().title}」的卡片 ID`))), Q(n, "title", (U(E), G(d()), W(() => U(E) || d().id))), Y(i, U(E) === "已複製" ? "✓" : U(E) ? "✕" : "⧉"), Q(a, "id", (G(d()), W(() => `task-${d().id}-title`))), Y(o, (G(d()), W(() => d().title)));
+						}), K("click", n, O), J(e, t);
 					};
 					X(c, (e) => {
 						p() ? e(l) : e(u, -1);
@@ -4592,9 +4607,9 @@ function ks(e, t) {
 			}
 		});
 	}
-	M(he), V(() => {
-		Z(he, 1, (U(i), W(() => `task-card editor-task-card priority-${U(i)?.tone ?? "unspecified"}`))), Q(he, "aria-labelledby", (G(d()), W(() => `task-${d().id}-title`)));
-	}), J(e, he), qe();
+	M(ve), V(() => {
+		Z(ve, 1, (U(i), W(() => `task-card editor-task-card priority-${U(i)?.tone ?? "unspecified"}`))), Q(ve, "aria-labelledby", (G(d()), W(() => `task-${d().id}-title`)));
+	}), J(e, ve), qe();
 }
 jr([
 	"input",

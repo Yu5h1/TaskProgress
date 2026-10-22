@@ -10,6 +10,7 @@
   import ItemRow from "./ItemRow.svelte";
   import { stableSortTaskItemsByPriority } from "../../../viewer/assets/report-model.js";
   import ExpandableText from "./ExpandableText.svelte";
+  import { copyText } from "../../../viewer/assets/item-reference.js";
 
   export let task;
   export let progress;
@@ -37,6 +38,15 @@
   export let reorderable = false;
   export let onReorder = () => {};
   export let selection = null;
+  let idCopyState = "";
+  let idCopyTimer;
+
+  async function copyTaskId() {
+    clearTimeout(idCopyTimer);
+    const copied = await copyText(task.id);
+    idCopyState = copied ? "已複製" : "無法複製";
+    idCopyTimer = setTimeout(() => { idCopyState = ""; }, 1500);
+  }
   const completedPreviewCount = 1;
   let showAllCompleted = false;
 
@@ -234,6 +244,15 @@
             })}
           >
         {:else}
+          <button
+            type="button"
+            class="task-id-copy"
+            class:is-done={idCopyState}
+            class:is-copied={idCopyState === "已複製"}
+            aria-label={idCopyState || `複製「${task.title}」的卡片 ID`}
+            title={idCopyState || task.id}
+            onclick={copyTaskId}
+          >{idCopyState === "已複製" ? "✓" : idCopyState ? "✕" : "⧉"}</button>
           <h3 id={`task-${task.id}-title`}>{task.title}</h3>
         {/if}
       </div>

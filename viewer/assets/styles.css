@@ -3190,6 +3190,29 @@ footer {
 .item-row-copy:hover { color: var(--color-accent); }
 .item-row-copy.is-copied { color: var(--moss); }
 .item-row-copy:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 1px; }
+.task-id-copy {
+  flex: 0 0 18px;
+  width: 18px;
+  height: 18px;
+  margin-right: -4px;
+  padding: 0;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 0.75rem;
+  line-height: 18px;
+  text-align: center;
+  cursor: pointer;
+  opacity: 0;
+}
+.time-task-title-line:hover .task-id-copy,
+.task-id-copy:focus-visible,
+.task-id-copy.is-done { opacity: 1; }
+.task-id-copy:hover { color: var(--color-accent); }
+.task-id-copy.is-copied { color: var(--moss); }
+.task-id-copy:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 1px; }
 .card-list-tools .task-search {
   position: relative;
   display: flex;
