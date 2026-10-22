@@ -91,12 +91,15 @@ Agent 自己寫步驟、自己執行時，交給更高階的模型驗收後，�
 scope 預設是目前所在的專案，只有需要時才另外指定。
 
 ```text
-/task-progress-items                       評估目前專案，建立項目（不執行）
-/task-progress-items <指示>                 把使用者說的一件事寫成項目，接著直接執行
-/task-progress-items run [卡片或項目代號]    執行
-/task-progress-items accept [卡片或項目代號] 驗收
-/task-progress-items auto                  評估、執行、驗收全部做
+/task-progress-items                  評估目前專案，建立項目（不執行）
+/task-progress-items <卡片或項目>       卡片：只評估這張卡並建立項目（不執行）；項目：回報它的狀態與下一步命令
+/task-progress-items <指示>            把使用者說的一件事寫成項目，接著直接執行
+/task-progress-items run [卡片或項目]    執行
+/task-progress-items accept [卡片或項目] 驗收
+/task-progress-items auto [卡片或項目]   評估、執行、驗收全部做；卡片只做這張卡，項目略過評估
 ```
+
+- 「卡片或項目」可以是代號、從 Viewer 複製的項目參照，或完全相同的卡名／項目名（不分大小寫）。只部分符合某個名稱，或同名不只一個時，列出候選與代號後停下，不建立任何項目，避免打錯的卡名變成新項目（2026-10-22）。
 
 - 「指示」是一句描述具體工作的話，例如「修正 NumericField 越界時沒有提示」。agent 判斷它屬於哪張卡，新增項目、寫好 checklist 並提交，然後在同一個 session 執行。驗證方式含他驗時，執行完告訴使用者在另一個 session 執行 `accept <項目代號>`。
 - 在指示前加 `self`、`manual`、`cross` 或 `cross manual` 可以強制驗證方式，例如 `/task-progress-items cross 修正 X`。平常不加。

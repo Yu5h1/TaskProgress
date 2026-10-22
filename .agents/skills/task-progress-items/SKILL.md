@@ -23,15 +23,30 @@ TaskProgress repository (`Build/win-x64/task-progress.exe`), not from the scope.
 
 ## Commands
 
-The verbs are the same for every agent; how they are typed is in § Agent specifics.
+The verbs are the same for every agent; how they are typed is in § Agent specifics. `<target>` is a
+card or child item of the scope, resolved as § Resolve the target says.
 
-| Verb | Does |
+| Form | Does |
 |---|---|
 | (none) | Evaluate the scope and create items; run nothing |
+| `<target>` | A card: evaluate only that card and create its items; run nothing. An item: report its `derived_state` and the command that acts on it; change nothing |
 | `<instruction>` | Write that one instruction as an item, then execute it in this session |
-| `run [card or item ID]` | Execution queue |
-| `accept [card or item ID]` | Acceptance queue |
-| `auto` | Evaluate, execute and accept |
+| `run [target]` | Execution queue; a card narrows it to that card's items, an item to that item |
+| `accept [target]` | Acceptance queue, narrowed the same way |
+| `auto [target]` | Evaluate, execute and accept; a card narrows all three to that card, an item skips evaluation and executes then accepts that item |
+
+### Resolve the target
+
+Read `report get` for the scope. The argument is a target when it is, in this order: a card or item
+ID; a pasted item reference `<scope-id> › <task-id> › <item-id>`; a card or item title matched
+exactly, ignoring case and surrounding spaces. Several exact matches (one title on two cards) list
+the candidates with their IDs and stop. Text that matches none of these is an instruction, except
+when it partially matches a card or item title: then list those candidates with their IDs and stop,
+creating nothing, so a misspelled card name never becomes a new item.
+
+Evaluating a card reads the same sources as evaluating the scope, but creates only items whose work
+belongs to that card; findings for other cards are named in the report with the command that starts
+them, not created.
 
 A leading `self`, `manual`, `cross` or `cross manual` forces the verification of the items it
 creates; otherwise choose per item by the criteria below and report each choice with its reason.
@@ -109,7 +124,8 @@ agent; a refusal is a reply with `"type":"error"` while the exit code stays 0, s
 Read `report get` and act on `derived_state`: `run` takes `not_started`, `in_progress` not claimed
 by another session, `needs_fix` and `conditions_to_revise` (not those whose condition you raised);
 `accept` takes `awaiting_acceptance`. Skip `waiting`, `awaiting_user` and `awaiting_user_dispute`
-(the user's) and `done`. Order: priority, then card order. A card or item ID narrows the queue.
+(the user's) and `done`. Order: priority, then card order. A target narrows the queue; an item
+target in a state the queue does not take is reported with its `derived_state`, never forced.
 
 Several items: when this agent can start sessions (§ Agent specifics), start one per item, one at a
 time per scope — wait for its completion notice before the next, and finish your own acceptance
