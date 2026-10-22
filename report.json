@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-10-22T12:01:44.796977+00:00",
+  "updated_at": "2026-10-22T12:38:30.635328+00:00",
   "tasks": [
     {
       "id": "item-selection",
@@ -1661,6 +1661,20 @@
               "at": "2026-10-22T11:49:09.671297+00:00",
               "session": "TaskProgress 維護開發",
               "session_id": "583fa969-9dcf-4def-98dd-196efef59cea"
+            },
+            {
+              "event": "started",
+              "actor": "claude",
+              "at": "2026-10-22T12:37:43.527237+00:00",
+              "session": "Taskprogress 維護開發",
+              "session_id": "583fa969-9dcf-4def-98dd-196efef59cea"
+            },
+            {
+              "event": "released",
+              "actor": "claude",
+              "at": "2026-10-22T12:37:52.771317+00:00",
+              "session": "Taskprogress 維護開發",
+              "session_id": "583fa969-9dcf-4def-98dd-196efef59cea"
             }
           ]
         },
@@ -1679,6 +1693,20 @@
               "actor": "claude",
               "at": "2026-10-22T11:49:09.671297+00:00",
               "session": "TaskProgress 維護開發",
+              "session_id": "583fa969-9dcf-4def-98dd-196efef59cea"
+            },
+            {
+              "event": "started",
+              "actor": "claude",
+              "at": "2026-10-22T12:38:19.618862+00:00",
+              "session": "Taskprogress 維護開發",
+              "session_id": "583fa969-9dcf-4def-98dd-196efef59cea"
+            },
+            {
+              "event": "released",
+              "actor": "claude",
+              "at": "2026-10-22T12:38:22.140194+00:00",
+              "session": "Taskprogress 維護開發",
               "session_id": "583fa969-9dcf-4def-98dd-196efef59cea"
             }
           ]
@@ -1699,6 +1727,20 @@
               "at": "2026-10-22T11:49:09.671297+00:00",
               "session": "TaskProgress 維護開發",
               "session_id": "583fa969-9dcf-4def-98dd-196efef59cea"
+            },
+            {
+              "event": "started",
+              "actor": "claude",
+              "at": "2026-10-22T12:38:23.510435+00:00",
+              "session": "Taskprogress 維護開發",
+              "session_id": "583fa969-9dcf-4def-98dd-196efef59cea"
+            },
+            {
+              "event": "released",
+              "actor": "claude",
+              "at": "2026-10-22T12:38:24.978853+00:00",
+              "session": "Taskprogress 維護開發",
+              "session_id": "583fa969-9dcf-4def-98dd-196efef59cea"
             }
           ]
         },
@@ -1718,6 +1760,20 @@
               "at": "2026-10-22T11:49:09.671297+00:00",
               "session": "TaskProgress 維護開發",
               "session_id": "583fa969-9dcf-4def-98dd-196efef59cea"
+            },
+            {
+              "event": "started",
+              "actor": "claude",
+              "at": "2026-10-22T12:38:26.271668+00:00",
+              "session": "Taskprogress 維護開發",
+              "session_id": "583fa969-9dcf-4def-98dd-196efef59cea"
+            },
+            {
+              "event": "released",
+              "actor": "claude",
+              "at": "2026-10-22T12:38:27.892689+00:00",
+              "session": "Taskprogress 維護開發",
+              "session_id": "583fa969-9dcf-4def-98dd-196efef59cea"
             }
           ]
         },
@@ -1736,6 +1792,20 @@
               "actor": "claude",
               "at": "2026-10-22T11:49:09.671297+00:00",
               "session": "TaskProgress 維護開發",
+              "session_id": "583fa969-9dcf-4def-98dd-196efef59cea"
+            },
+            {
+              "event": "started",
+              "actor": "claude",
+              "at": "2026-10-22T12:38:29.186621+00:00",
+              "session": "Taskprogress 維護開發",
+              "session_id": "583fa969-9dcf-4def-98dd-196efef59cea"
+            },
+            {
+              "event": "released",
+              "actor": "claude",
+              "at": "2026-10-22T12:38:30.635328+00:00",
+              "session": "Taskprogress 維護開發",
               "session_id": "583fa969-9dcf-4def-98dd-196efef59cea"
             }
           ]
