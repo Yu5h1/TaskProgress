@@ -209,7 +209,7 @@ Every report write on an item whose checklist has `[acceptance]` carries `"actor
 |---|---|---|---|---|---|
 | Claude Code | `/task-progress-items [verb …]` (user-level skill) | `claude` | The SessionStart hook's `session_id`; if none is shown, generate one UUID and reuse it for the session | The Claude desktop app can start sessions; the plain CLI cannot | A new chat or session; or an Agent-tool sub-agent of a non-fork type, which starts without this conversation |
 | Codex | An explicit `$task-progress-items` skill mention | `codex` | The session ID the tool exposes; otherwise one generated UUID for the session | Treat as unavailable until documented | A new chat; or a sub-agent the tool starts without the parent's history, once confirmed for the version in use |
-| Gemini / Antigravity | The tool's own explicit invocation of the `task-progress-items` skill | `antigravity` | The session ID the tool exposes; otherwise one generated UUID for the session | Treat as unavailable until documented | A new chat; sub-agents count once documented to start without the parent's history |
+| Antigravity | The tool's own explicit invocation of the `task-progress-items` skill | `antigravity` | The session ID the tool exposes; otherwise one generated UUID for the session | Treat as unavailable until documented | A new chat; sub-agents count once documented to start without the parent's history |
 
 A sub-agent without a session ID of its own generates one UUID and keeps it for its acceptance
 history. No context changes its session ID to pass as another: a new ID does not make the same

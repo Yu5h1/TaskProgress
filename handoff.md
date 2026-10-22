@@ -6,6 +6,11 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
 
 ## Current state (2026-09-29)
 
+- **使用者層 skill 目錄更正（2026-10-22，Gemini 反饋）。** 先前文件依 Gemini CLI 文件寫成「Codex 與 Gemini 都讀 `~\.agents\skills`」；Antigravity 實際讀 `~\.gemini\config\skills`（內建 `agy-customizations`）。Codex 讀 `~\.agents\skills`，Codex session 紀錄的 skill 根目錄 r0 為證；`~\.codex` 是它的設定家目錄。taskprogress-capabilities〈Initialize the user-level entry〉改為逐一列出各工具的目錄與依據：只用自己那一列、不從家目錄名稱或別的產品推論、只寫自己的目錄、不搬動或刪除別人的入口、建立後在新 session 確認工具列出才算就緒。CodexWorkflowTrial 與 task-progress-items〈Agent specifics〉（改名 Antigravity）同步。
+  - Gemini 修正時把 Codex 的入口從 `~\.agents\skills` 搬到 `~\.gemini\config\skills`（檔案時間 21:21 是 Codex 原建立時間），Codex 的入口因此消失。
+  - 下一步：Codex 在新 session 依 capabilities 重建 `~\.agents\skills\task-progress-items`，並確認技能清單列出它。
+  - 下一步：Antigravity 在新 session 確認斜線選單列出 `task-progress-items`。
+
 - **他驗資格改為「獨立驗收上下文」（2026-10-22，Codex 反饋，使用者同意）。** [AcceptanceChainPlan〈獨立驗收上下文〉](Documentation/AcceptanceChainPlan.md#獨立驗收上下文)、task-progress-items § Independent acceptance 與 checklist-round 同步：驗收者不繼承執行者的對話與推理；新的 chat、獨立 session 或不繼承父上下文的子 agent 都可擔任；`session_id` 只是身分，不證明獨立；子 agent 用自己的穩定 ID。〈Agent specifics〉新增各工具的獨立驗收方式（Codex 子 agent 須先確認該版本不繼承父歷史）。上下文獨立列入〈已知限制〉。codex-workflow-trial 的狀態與紀錄未動，由 Codex 收尾。
   - 同日使用者決定建立者也不能驗收（「規劃者」就是建立者，不另設角色；代為修改條件的 session 也算建立者）。已決定第 13 點、角色表與 `auto` 流程同步：`auto` 的他驗交給不繼承上下文的子 agent。CLI 的 `ChecklistBinding` 把 `created` 的 session 一併列入不得驗收（`ExcludedAcceptors`）；代為修改條件的 session 沒有活動事件，CLI 擋不到，靠規則約束。Checklist 336 checks 通過。
 
@@ -32,7 +37,7 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
 - **task-progress-items 改為共用來源加使用者層入口（2026-10-22）。** 依使用者確認的流程：唯一來源 `.agents/skills/task-progress-items/SKILL.md`（共用流程，agent 差異集中在〈Agent specifics〉）；原 `.claude/skills/task-progress-items` 已刪除，避免兩份流程並存。`taskprogress-capabilities` 新增〈Initialize the user-level entry〉：依目前 agent 的使用者層 skills 目錄建立只含路由的入口（不存在才建立、相同則略過、不同或來源失效則回報衝突、不用符號連結、只初始化目前 agent、不啟動任務）。共用索引那一列改為先經 capabilities 初始化。這回答了 [CodexWorkflowTrial](Documentation/CodexWorkflowTrial.md)〈尚未決定〉的共用來源與路由位置，但採入口檔而非連結；該文件與 Codex 的 handoff 項目未改動。
   - TaskProgress 的 `.claude` 資料夾整個刪除（含只放兩條 allow 規則的 `settings.local.json`），本 repo 不再有 agent 專屬 skill 資料夾。`/checklist` 經使用者決定不保留（共用來源與 Claude 入口都刪除），checklist 頁面由 Report 卡片的綁定項目或手組 URL 開啟。
   - 同日清理：`.agents` 的 agent-executable-items 縮成只剩判斷準則（項目位置、評估、資格、形狀、單一寫入者），流程全歸 task-progress-items；共用索引只剩一列，所有 agent 都只經明確呼叫 `task-progress-items`，舊短語不啟動（AcceptanceChainPlan 第 26 點與〈入口邊界〉同步）。task-progress-report 的驗證步驟改為開啟後不讀回頁面，只告訴使用者應看到什麼。
-  - 下一步：Codex／Gemini 在自己的 session 依 capabilities 初始化 `%USERPROFILE%\.agents\skills\task-progress-items`。
+  - 下一步：Codex／Antigravity 在自己的 session 依 capabilities 初始化各自的入口（目錄見本節 2026-10-22 使用者層目錄更正）。
 
 - **驗證流程選項已實作並提交（2026-10-22，feb859b）。** 依 `Documentation/AcceptanceChainPlan.md`：
   - C#：`ChecklistDocument` 登記 `[acceptance]`、`Recorded` 行（記錄者、時間、指紋、原因、次數）、寫入權限與先後、`Issues()`（沒有記錄者）、`MigrateLegacyResults`；`ChecklistBridge` 以 `--viewer` 區分面板與 agent（agent 需 `actor`／`sessionId`、需綁定子項、不得是執行者）；`checklist migrate`；`ItemStateResolver`（`report get` 加 `derived_state`、時間分析用推算完成）；`report apply` 對含 `[acceptance]` 的子項要求 `session_id`。
