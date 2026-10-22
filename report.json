@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-10-22T09:00:59.553414+00:00",
+  "updated_at": "2026-10-22T09:20:16.000625+00:00",
   "tasks": [
     {
       "id": "item-selection",
@@ -1365,7 +1365,7 @@
       "pending_items": [
         {
           "id": "checklist-acceptance-chain",
-          "title": "checklist 格式：登記 [acceptance] 標籤並拒絕未登記的標籤；[acceptance] 結果的記錄者欄位；標籤檢查的依賴鎖；[manual] 內容修改後改為 [!]；checklist validate 指出對應錯誤",
+          "title": "checklist 格式：登記 [acceptance] 標籤並拒絕未登記的標籤；標籤檢查記錄記錄者與內容指紋，讀取時指紋對不上就顯示需重驗；標籤檢查的依賴鎖；checklist validate 指出對應錯誤",
           "status": "planned",
           "activity": [
             {
@@ -1386,12 +1386,18 @@
               "actor": "claude",
               "at": "2026-10-22T08:03:52.926818+00:00",
               "session": "TaskProgress 維護開發"
+            },
+            {
+              "event": "updated",
+              "actor": "claude",
+              "at": "2026-10-22T09:20:16.000625+00:00",
+              "session": "TaskProgress 維護開發"
             }
           ]
         },
         {
           "id": "acceptance-checklist-write",
-          "title": "標籤寫入：checklist request 帶 actor 與 session；從綁定子項取得執行者；[acceptance] 拒絕執行者的 session、[manual] 只准 agent 寫 [!]（附 Observed）；未綁定子項時拒絕；完成整份 checklist 的那次寫入把子項設為 done",
+          "title": "標籤寫入：checklist request 帶 actor 與 session_id；[acceptance] 拒絕任一執行過的 session、[manual] 只准 agent 寫 [!]（附 Observed）；未綁定子項時拒絕；依結果自動把子項設為 done、blocked（驗收不通過）或退回 in_progress",
           "status": "planned",
           "activity": [
             {
@@ -1399,18 +1405,30 @@
               "actor": "claude",
               "at": "2026-10-22T08:03:52.926818+00:00",
               "session": "TaskProgress 維護開發"
+            },
+            {
+              "event": "updated",
+              "actor": "claude",
+              "at": "2026-10-22T09:20:16.000625+00:00",
+              "session": "TaskProgress 維護開發"
             }
           ]
         },
         {
           "id": "acceptance-report-cli",
-          "title": "Report CLI：選了他驗時，撰寫 [acceptance] 條件的 session 不得開始執行；含標籤檢查的子項不可手動設為 done",
+          "title": "Report CLI 與活動紀錄：撰寫 [acceptance] 條件的 session 不得開始執行；含標籤檢查的子項不可手動設 done；他驗流程缺 session_id 拒絕；started、takeover 永久保留不被擠掉",
           "status": "planned",
           "activity": [
             {
               "event": "created",
               "actor": "claude",
               "at": "2026-10-22T08:03:52.926818+00:00",
+              "session": "TaskProgress 維護開發"
+            },
+            {
+              "event": "updated",
+              "actor": "claude",
+              "at": "2026-10-22T09:20:16.000625+00:00",
               "session": "TaskProgress 維護開發"
             }
           ]
