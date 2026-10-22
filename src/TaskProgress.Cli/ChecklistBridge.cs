@@ -182,7 +182,7 @@ internal sealed class ChecklistBridge
         if (session.Contains(';')) throw new ChecklistBridgeException("invalid_request", "sessionId 不可包含分號。");
         var binding = ChecklistBinding.Find(checklistPath)
             ?? throw new ChecklistBridgeException("forbidden", "這份 checklist 沒有綁定 Report 子項，agent 不能寫入標籤檢查。");
-        return new ChecklistWriter($"{actor}:{session}", false, session, binding.ExecutorSessions, binding.ReleasedAt);
+        return new ChecklistWriter($"{actor}:{session}", false, session, binding.ExcludedAcceptors, binding.ReleasedAt);
     }
 
     /// <summary>The bound item for reads and panel writes, which still work beside an unreadable report.</summary>

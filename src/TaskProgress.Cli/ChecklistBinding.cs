@@ -8,14 +8,15 @@ internal sealed record ChecklistBindingInfo(
     string ScopeId,
     string TaskId,
     string ItemId,
-    IReadOnlySet<string> ExecutorSessions,
+    IReadOnlySet<string> ExcludedAcceptors,
     DateTimeOffset? ReleasedAt);
 
 internal static class ChecklistBinding
 {
     /// <summary>
     ///   Returns the item whose <c>document_ref</c> names this checklist, with
-    ///   every session that started or took it over and its latest release;
+    ///   every session that created, started or took it over (none of them may
+    ///   accept it) and its latest release;
     ///   null when nothing binds it.
     /// </summary>
     public static ChecklistBindingInfo? Find(string checklistPath)
@@ -47,7 +48,7 @@ internal static class ChecklistBinding
                         scope,
                         task.GetProperty("id").GetString()!,
                         item.GetProperty("id").GetString()!,
-                        ExecutorSessions(item),
+                        ExcludedAcceptors(item),
                         LatestRelease(item));
                 }
             }
@@ -61,14 +62,14 @@ internal static class ChecklistBinding
         && reference.TryGetProperty("scope_id", out var scopeId) && scopeId.GetString() == scope
         && reference.TryGetProperty("task", out var task) && task.GetString() == stem;
 
-    private static IReadOnlySet<string> ExecutorSessions(JsonElement item)
+    private static IReadOnlySet<string> ExcludedAcceptors(JsonElement item)
     {
         var sessions = new HashSet<string>(StringComparer.Ordinal);
         if (!item.TryGetProperty("activity", out var activity)) return sessions;
         foreach (var entry in activity.EnumerateArray())
         {
             var name = entry.TryGetProperty("event", out var eventName) ? eventName.GetString() : null;
-            if (name is not ("started" or "takeover")) continue;
+            if (name is not ("created" or "started" or "takeover")) continue;
             if (entry.TryGetProperty("session_id", out var session) && session.GetString() is { Length: > 0 } id)
                 sessions.Add(id);
         }

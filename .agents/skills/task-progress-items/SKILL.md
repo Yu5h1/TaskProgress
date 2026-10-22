@@ -62,7 +62,7 @@ follows those documents' own rules and starts no flow.
 |---|---|---|
 | `self` | untagged checks only | 1 |
 | `manual` | untagged + `[manual]` | 1, plus the user |
-| `cross` | untagged + `[acceptance]` | 2: executor (may be the planner), acceptor |
+| `cross` | untagged + `[acceptance]` | 2: executor (may be the creator), acceptor |
 | `cross manual` | all three | 2, plus the user |
 
 Choose: user-only judgment (appearance, feel, the user's device) → add `manual`; a requirement easy
@@ -141,8 +141,8 @@ will follow — moving or renaming files, fixing links — is direct work: no it
 
 ## Independent acceptance
 
-`[acceptance]` is recorded by an independent acceptance context that took no part in implementing or
-fixing the item, so the executor never grades its own assumptions or lowers the bar to pass. The
+`[acceptance]` is recorded by an independent acceptance context that took no part in creating,
+implementing or fixing the item, so the executor never grades its own assumptions or lowers the bar to pass. The
 acceptor:
 
 - judges from the original requirement, the committed conditions, the artifacts and the change history;
@@ -163,7 +163,7 @@ the executor's. A sub-agent uses its own stable ID and never borrows or changes 
 ## Accept (`accept`)
 
 Run only in an independent acceptance context. Pick items whose `derived_state` (from `report get`) is `awaiting_acceptance` and that this session
-never started or took over. For each `[acceptance]` check, after reading the cited spec and
+never created, started or took over, and whose conditions it never revised. For each `[acceptance]` check, after reading the cited spec and
 `git log --grep <item-id>`, pipe a UTF-8 message to
 `task-progress.exe checklist request --file <checklist>`. That includes checks already `[x]` whose
 `load` snapshot shows `"validity": "released"`: they passed before the latest release and count as
@@ -176,7 +176,7 @@ pending until recorded again.
 
 `workItemId` counts from 1; `checkIndex` counts from 0 within that work item. Use
 `"reason":"condition"` when the condition itself contradicts the spec. Passing a check that
-failed before needs `"resolved"`. The CLI refuses an executor's session, results before the
+failed before needs `"resolved"`. The CLI refuses the creator's or an executor's session, results before the
 executor's checks pass, `[manual]` before every `[acceptance]` passes, and `[manual]` `[x]` from an
 agent; a refusal is a reply with `"type":"error"` while the exit code stays 0, so read `type`.
 
@@ -190,8 +190,9 @@ Read `report get` and act on `derived_state`, for bound and unbound items alike 
 target in a state the queue does not take is reported with its `derived_state`, never forced.
 
 Several items: when this agent can start sessions (§ Agent specifics), start one per item, one at a
-time per scope — wait for its completion notice before the next, and finish your own acceptance
-writes before starting the next. Without that ability, `run`/`accept` stop after one item and name
+time per scope — wait for its completion notice before the next. An item with `[acceptance]` then
+goes to an independent acceptance context, never this one when it created the item; wait for that
+acceptance too before starting the next item. Without that ability, `run`/`accept` stop after one item and name
 the next candidate; `auto` executes everything itself and hands the items with `[acceptance]` to an
 independent acceptance context: a sub-agent started without this context when the tool has one,
 otherwise listed for the user to accept from a new chat.

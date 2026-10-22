@@ -6,7 +6,8 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
 
 ## Current state (2026-09-29)
 
-- **他驗資格改為「獨立驗收上下文」（2026-10-22，Codex 反饋，使用者同意）。** [AcceptanceChainPlan〈獨立驗收上下文〉](Documentation/AcceptanceChainPlan.md#獨立驗收上下文)、task-progress-items § Independent acceptance 與 checklist-round 同步：驗收者不繼承執行者的對話與推理；新的 chat、獨立 session 或不繼承父上下文的子 agent 都可擔任；`session_id` 只是身分，不證明獨立；子 agent 用自己的穩定 ID。〈Agent specifics〉新增各工具的獨立驗收方式（Codex 子 agent 須先確認該版本不繼承父歷史）。CLI 檢查不變，上下文獨立列入〈已知限制〉。codex-workflow-trial 的狀態與紀錄未動，由 Codex 收尾。
+- **他驗資格改為「獨立驗收上下文」（2026-10-22，Codex 反饋，使用者同意）。** [AcceptanceChainPlan〈獨立驗收上下文〉](Documentation/AcceptanceChainPlan.md#獨立驗收上下文)、task-progress-items § Independent acceptance 與 checklist-round 同步：驗收者不繼承執行者的對話與推理；新的 chat、獨立 session 或不繼承父上下文的子 agent 都可擔任；`session_id` 只是身分，不證明獨立；子 agent 用自己的穩定 ID。〈Agent specifics〉新增各工具的獨立驗收方式（Codex 子 agent 須先確認該版本不繼承父歷史）。上下文獨立列入〈已知限制〉。codex-workflow-trial 的狀態與紀錄未動，由 Codex 收尾。
+  - 同日使用者決定建立者也不能驗收（「規劃者」就是建立者，不另設角色；代為修改條件的 session 也算建立者）。已決定第 13 點、角色表與 `auto` 流程同步：`auto` 的他驗交給不繼承上下文的子 agent。CLI 的 `ChecklistBinding` 把 `created` 的 session 一併列入不得驗收（`ExcludedAcceptors`）；代為修改條件的 session 沒有活動事件，CLI 擋不到，靠規則約束。Checklist 336 checks 通過。
 
 - **中斷恢復與重做後驗收失效（2026-10-22，回應 Codex 試跑反饋）。** 設計寫入 [AcceptanceChainPlan〈認領〉與〈寫入與記錄者〉](Documentation/AcceptanceChainPlan.md#認領)，流程紀錄八個情境已重走。
   - 執行步驟改為「validate → 釋放 → 工作與 `report.json` 同一個提交」（task-progress-items § Execute 與 Needs-fix）。
@@ -540,7 +541,6 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
 
 ## Open decisions
 
-- **規劃者可以驗收嗎？** Codex 的提案寫「未參與該項目規劃、實作或修正」，但 [AcceptanceChainPlan 已決定第 13 點](Documentation/AcceptanceChainPlan.md#已決定) 只要求驗收者不是執行者，〈Agent 流程〉6 的 `auto` 也由規劃者 P 驗收子 session 執行的項目。若排除規劃者，`auto` 要改由不繼承上下文的子 agent 驗收。建議排除：第 4 點把「規劃者誤解需求」交給驗收者回頭對照原始需求，規劃者自己驗收就失去這層檢查。
 
 - [Web UI 替換計畫／尚未決定](Documentation/WebUiReplacementPlan.md#尚未決定)：WUI-01 目標環境與資料量、WUI-02 成本預算、WUI-03 依賴交付。> Where each kind of statement lives: `plan.md` holds the design — what to build, why, and how it is accepted — and changes only when a design is added, revised or removed. Everything time-bound lives here: what is built, what is approved but unbuilt, what is deferred, and what is still undecided. A decision sits in this section until it is taken, then moves into `plan.md` as design and leaves this list. Writing progress into `plan.md` is what produced the drift found on 2026-08-19, where one section still claimed the shared progress summary and next-step card were unbuilt weeks after they shipped.
 

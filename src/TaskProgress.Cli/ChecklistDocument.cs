@@ -95,14 +95,14 @@ internal sealed record ChecklistManualResult(
 
 /// <summary>
 ///   The party writing tagged results. The user may record any tagged check;
-///   an agent session may record acceptance checks it did not execute and may
+///   an agent session may record acceptance checks it did not create or execute and may
 ///   only fail manual checks.
 /// </summary>
 internal sealed record ChecklistWriter(
     string Recorder,
     bool IsUser,
     string? SessionId,
-    IReadOnlySet<string> ExecutorSessions,
+    IReadOnlySet<string> ExcludedAcceptors,
     DateTimeOffset? ReleasedAt = null)
 {
     public static ChecklistWriter User { get; } = new("user", true, null, new HashSet<string>());
@@ -395,9 +395,9 @@ internal sealed class ChecklistDocument
             {
                 throw new CliException("agent 只能把 [manual] 標成 [!]，[x] 只有使用者能標。");
             }
-            if (check.IsAcceptance && writer.ExecutorSessions.Contains(writer.SessionId))
+            if (check.IsAcceptance && writer.ExcludedAcceptors.Contains(writer.SessionId))
             {
-                throw new CliException("驗收者不能是執行過這個子項的 session。");
+                throw new CliException("驗收者不能是建立或執行過這個子項的 session。");
             }
         }
         if (result.Status == ChecklistStatus.Pending)

@@ -128,7 +128,11 @@ internal static partial class Program
                         {
                             id = "decimals",
                             document_ref = new { kind = "checklist", scope_id = "acc", task = "decimals" },
-                            activity = new object[] { new { @event = "started", actor = "claude", session_id = "exec-1", at = "2026-10-22T09:00:00Z" } },
+                            activity = new object[]
+                            {
+                                new { @event = "created", actor = "claude", session_id = "plan-1", at = "2026-10-22T08:00:00Z" },
+                                new { @event = "started", actor = "claude", session_id = "exec-1", at = "2026-10-22T09:00:00Z" },
+                            },
                         },
                     },
                 },
@@ -137,6 +141,7 @@ internal static partial class Program
         Equal("invalid_request", ErrorCode(agent, "set", accept, null, null), "agent write needs actor");
         Equal("invalid_request", ErrorCode(agent, "set", accept, "user", "acc-1"), "agent cannot claim user");
         Equal("invalid_request", ErrorCode(agent, "set", accept, "claude", "exec-1"), "executor session rejected");
+        Equal("invalid_request", ErrorCode(agent, "set", accept, "claude", "plan-1"), "creator session rejected");
         Equal("forbidden", ErrorCode(agent, "reset", new { }, "claude", "acc-1"), "agent cannot reset");
         Equal(null, ErrorCode(agent, "set", accept, "claude", "acc-1"), "other session accepts");
         Equal("claude:acc-1", new ChecklistDocumentStore().Load(path).Items[1].Checks[0].Record!.Recorder, "bridge stamps recorder");
