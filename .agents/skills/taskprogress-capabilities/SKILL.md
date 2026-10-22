@@ -105,30 +105,34 @@ running service. Report route synchronization is in
 
 1. Resolve `Build/win-x64/task-progress.exe` from the TaskProgress repository, not the consuming
    project's working directory; use its absolute path.
-2. Run `task-progress.exe service status` (with `--port <port>` when explicitly requested). It
-   connects to the service and checks its identity; do not substitute TrayHost liveness, a PID, an
-   occupied port, or a state file.
-   - **Connected**: output shows URL, PID, Instance, Viewer root, and registration count (there is
-     no literal `Running`). Reuse it.
-   - **Not started**: both outcomes can exit 0, so read the output. A health timeout can also
-     produce not-started. Before startup, check TCP listeners on the port (default 8001), e.g. a
-     successful `Get-NetTCPConnection -State Listen` filtered by `LocalPort`. If a listener remains
-     or the check fails, report unavailable/unknown and stop.
-   - **Error or foreign service**: report it; do not take over or restart.
-3. Only when status is not-started and the port has no listener, run `task-progress.exe start`
-   once, outside the sandbox, as the current ordinary Windows user, using the agent tool's approval
-   mechanism (in Codex, `sandbox_permissions: "require_escalated"` — unsandboxed, not administrator).
-   Startup writes scope/catalog state outside the workspace, so never launch the resident
-   TrayHost/worker inside the sandbox. Do not use `RunAs`, change ACLs, or weaken pipe security.
-   If unsandboxed execution is unavailable or denied, give the user the absolute EXE command to run
-   in a normal terminal and resume after they start it; do not route around a denial through
-   another launcher. `start` takes neither `--tray` nor `--port`; the worker uses
-   `LauncherSettings.DefaultPort`. An old resident worker from an earlier build must be exited by
-   the user before new commands work; do not terminate it automatically.
-4. Run `service status` again in the ordinary-user context and require the connected output from
-   step 2. Exit code 0 or a "tray ready" message alone is insufficient. If startup fails, the
-   service stays unavailable, or its port differs from an explicitly requested port, report the
-   actual error and stop: no loops, no second startup, no unverified link.
+2. Check whether `http://127.0.0.1:8001/` (or the explicitly requested port) answers one HTTP
+   request. If it does, the service is up: skip step 3.
+3. Otherwise run `task-progress.exe open --scope <scope-id> --no-browser` (add `--pin <card-id>`
+   when a card is the target; a report folder may replace `--scope`) once, as a plain direct
+   command, outside the sandbox, as the current ordinary Windows user, using the agent tool's
+   approval mechanism (in Codex, `sandbox_permissions: "require_escalated"` — unsandboxed, not
+   administrator). `open` checks the service and starts the tray service when it is stopped; it
+   is the only way an agent brings the service up. Do not run `start` for readiness, do not stand
+   in a liveness probe (TrayHost, PID, state file, `Get-NetTCPConnection`) for it, and do not
+   start the service through a launcher or wrapper of your own. The EXE is a WinExe and writes
+   nothing to the console when run directly, so do not wait for output and do not wrap the call
+   in `Start-Process` with redirected streams to harvest a link; the link is the known form in
+   step 5 (verified 2026-10-22 with the service stopped: the direct call printed nothing, the port
+   answered afterwards, `service status` showed the new PID). Startup writes scope/catalog state
+   outside the workspace, so never launch the resident TrayHost/worker inside the sandbox. Do not
+   use `RunAs`, change ACLs, or weaken pipe security. If unsandboxed execution is unavailable or
+   denied, give the user the absolute EXE command to run in a normal terminal and resume after
+   they start it; do not route around a denial through another launcher. An old resident worker
+   from an earlier build must be exited by the user before new commands work; do not terminate it
+   automatically.
+4. Repeat the HTTP check of step 2 once. If the port still does not answer, run
+   `task-progress.exe service status` (with `--port <port>` when explicitly requested) with
+   redirected standard output — the direct call prints nothing — and report what it says:
+   connected output shows URL, PID, Instance, Viewer root and registration count (there is no
+   literal `Running`); not-started, an error or a foreign service is reported as is. Stop there:
+   no loops, no second `open`, no `start`, no takeover or restart, no unverified link.
 5. Open the page on the confirmed port in the Browser pane and give a clickable link, URL-encoding
-   scope and task values. Read the loaded URL and page content. Report a load or parse error
-   without claiming success or falling back to another UI.
+   scope and task values: Report `http://127.0.0.1:8001/?scope=<scope-id>` (`&pin=<card-id>` for a
+   card), Checklist `/checklist/?scope=<scope-id>&task=<stem>`, Decision `/decisions/…`. Read the
+   loaded URL and page content. Report a load or parse error without claiming success or falling
+   back to another UI.
