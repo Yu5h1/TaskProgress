@@ -186,7 +186,8 @@ export async function evaluateWaitTargets(tasks, options = {}) {
       results.set(key, { done: false, available: false, card, label, href });
       return;
     }
-    let done = (item.status ?? "planned") === "done";
+    const inCompleted = (task?.completed_items ?? []).includes(item);
+    let done = (item.status ?? (inCompleted ? "done" : "planned")) === "done";
     if (normalizeDocumentRef(item.document_ref)?.kind === "checklist") {
       const evaluation = await fetchDocumentBinding(item.document_ref, { fetchImpl, ...bindingOptions });
       done = Boolean(evaluation.ok && evaluation.completed);

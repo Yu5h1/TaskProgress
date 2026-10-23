@@ -39,12 +39,18 @@ internal sealed class ItemStateResolver
         if (report["scope_id"]?.GetValue<string>() is { } scope) reports[scope] = (folder, report);
     }
 
-    public string StateOf(string scope, JsonObject item, int depth = 0)
+    /// <summary>
+    ///   The item's derived state. An unbound item with no stored status takes it from its array:
+    ///   <c>completed_items</c> means done. <paramref name="completed"/> names that array when the
+    ///   caller knows it; otherwise it is looked up in the scope's report.
+    /// </summary>
+    public string StateOf(string scope, JsonObject item, int depth = 0, bool? completed = null)
     {
         var checklist = BoundChecklist(scope, item, out var bound);
         var stored = item["status"]?.GetValue<string>();
         if (bound && checklist is not null && IsDone(checklist, LatestAt(item, "released"))) return ItemStates.Done;
         if (!bound && stored == "done") return ItemStates.Done;
+        if (!bound && stored is null && (completed ?? InCompleted(scope, item))) return ItemStates.Done;
         if (Waits(item, depth)) return ItemStates.Waiting;
         if (!bound || checklist is null)
         {
@@ -62,8 +68,8 @@ internal sealed class ItemStateResolver
     public bool IsDone(string scope, string taskId, string itemId, int depth)
     {
         if (depth > DepthLimit) return false;
-        var found = FindItem(scope, taskId, itemId);
-        return found is not null && StateOf(scope, found, depth + 1) == ItemStates.Done;
+        var (found, completed) = FindItem(scope, taskId, itemId);
+        return found is not null && StateOf(scope, found, depth + 1, completed) == ItemStates.Done;
     }
 
     private bool Waits(JsonObject item, int depth)
@@ -178,16 +184,23 @@ internal sealed class ItemStateResolver
         return document;
     }
 
-    private JsonObject? FindItem(string scope, string taskId, string itemId)
+    private (JsonObject? Item, bool Completed) FindItem(string scope, string taskId, string itemId)
     {
-        if (Report(scope)?.Report["tasks"] is not JsonArray tasks) return null;
+        if (Report(scope)?.Report["tasks"] is not JsonArray tasks) return (null, false);
         var task = tasks.OfType<JsonObject>().FirstOrDefault(t => t["id"]?.GetValue<string>() == taskId);
-        return new[] { "pending_items", "completed_items" }
-            .Select(list => task?[list] as JsonArray)
-            .Where(list => list is not null)
-            .SelectMany(list => list!.OfType<JsonObject>())
-            .FirstOrDefault(entry => entry["id"]?.GetValue<string>() == itemId);
+        foreach (var list in new[] { "pending_items", "completed_items" })
+        {
+            var found = (task?[list] as JsonArray)?.OfType<JsonObject>()
+                .FirstOrDefault(entry => entry["id"]?.GetValue<string>() == itemId);
+            if (found is not null) return (found, list == "completed_items");
+        }
+        return (null, false);
     }
+
+    private bool InCompleted(string scope, JsonObject item) =>
+        Report(scope)?.Report["tasks"] is JsonArray tasks
+        && tasks.OfType<JsonObject>().Any(task =>
+            (task["completed_items"] as JsonArray)?.Any(entry => ReferenceEquals(entry, item)) == true);
 
     private (string Folder, JsonObject Report)? Report(string scope)
     {

@@ -263,7 +263,7 @@ internal static class ReportCommand
             {
                 if (task[list] is not System.Text.Json.Nodes.JsonArray items) continue;
                 foreach (var item in items.OfType<System.Text.Json.Nodes.JsonObject>())
-                    item["derived_state"] = resolver.StateOf(scope, item);
+                    item["derived_state"] = resolver.StateOf(scope, item, completed: list == "completed_items");
             }
         }
         root["next_effective"] = NextMarker.Effective(report, scope, resolver);

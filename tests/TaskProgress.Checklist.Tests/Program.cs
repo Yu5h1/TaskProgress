@@ -18,6 +18,7 @@ internal static partial class Program
             VerifySingleCheckMessages(root);
             VerifyAcceptance(root);
             VerifyNextMarker(root);
+            VerifyArrayFallback(root);
             VerifyConcurrentStoreWriters(root);
             var source = Sample("\r\n", bom: true);
             var document = ChecklistDocument.Parse(source);

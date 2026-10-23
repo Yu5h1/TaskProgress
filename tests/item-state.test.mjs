@@ -120,3 +120,12 @@ test("a wait on a checklist work item clears only when every check in that work 
   assert.deepEqual([missing.get(waitKey(wait)).done, missing.get(waitKey(wait)).available], [false, false]);
   assert.equal(checklistWorkItemDone(payload("passed"), 9), null);
 });
+
+test("a waited item with no status counts as done when it sits in completed_items", async () => {
+  const other = { tasks: [{ id: "card", title: "卡片", pending_items: [{ id: "open", title: "o" }], completed_items: [{ id: "finished", title: "f" }] }] };
+  const fetchImpl = async () => ({ ok: true, json: async () => other });
+  const waits = [{ scope_id: "web", task_id: "card", item_id: "finished" }, { scope_id: "web", task_id: "card", item_id: "open" }];
+  const results = await evaluateWaitTargets([{ id: "t", pending_items: [{ id: "u", waits_for: waits }] }], { fetchImpl });
+  assert.equal(results.get(waitKey(waits[0])).done, true, "completed_items without status is done");
+  assert.equal(results.get(waitKey(waits[1])).done, false, "pending_items without status is not");
+});
