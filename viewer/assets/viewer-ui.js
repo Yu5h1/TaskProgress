@@ -4400,13 +4400,7 @@ Object.freeze([
 	"pending_items",
 	"progress",
 	"priority"
-]), Object.freeze([
-	"done",
-	"waiting",
-	"awaiting_user",
-	"awaiting_user_dispute",
-	"awaiting_acceptance"
-]);
+]), Object.freeze(["done", "waiting"]);
 function Ts(e) {
 	return typeof e == "object" && !!e && !Array.isArray(e);
 }

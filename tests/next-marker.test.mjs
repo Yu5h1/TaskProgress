@@ -33,7 +33,7 @@ test("the marker resolves only to an unfinished item that waits on nobody", () =
   assert.equal(resolveNext({ task_id: "pointer", item_id: "x" }, list), null);
   assert.equal(resolveNext(null, list), null);
   list[1].pending_items[1].derivedState = "awaiting_user";
-  assert.equal(resolveNext({ task_id: "card", item_id: "low" }, list), null, "an item in the user's hands is not a Next");
+  assert.equal(resolveNext({ task_id: "card", item_id: "low" }, list)?.itemId, "low", "an item in the user's hands is still the scope's Next");
 });
 
 test("the derived next step is the first unfinished, non-waiting item by card order then priority", () => {

@@ -5,19 +5,16 @@ import { stableSortTaskItemsByPriority, taskKind } from "./report-model.js";
  * falls back to. Design: Documentation/NextMarkerPlan.md.
  *
  * A marker is effective while the item it names is still an unfinished object
- * item of its task and nobody else is waited on for it. Once the item
- * completes, waits, or is in someone else's hands, the Viewer advances the
+ * item of its task that waits on no other item. Once the item completes or
+ * starts waiting, the Viewer advances the
  * marker to the derived next step and writes it, so the state itself moves on;
  * nothing is ever shown as "derived". A cleared marker stays cleared until the
  * user or the next evaluation sets one.
  */
-export const INEFFECTIVE_STATES = Object.freeze([
-  "done",
-  "waiting",
-  "awaiting_user",
-  "awaiting_user_dispute",
-  "awaiting_acceptance",
-]);
+// Only a finished item or one blocked by other items stops being a Next: an
+// item awaiting the user or an acceptor is still the scope's one thing to do,
+// in that person's hands.
+export const INEFFECTIVE_STATES = Object.freeze(["done", "waiting"]);
 
 function isObject(value) {
   return value !== null && typeof value === "object" && !Array.isArray(value);

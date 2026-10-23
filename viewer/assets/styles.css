@@ -3187,7 +3187,7 @@ footer {
 .item-row-copy {
   position: absolute;
   z-index: 1;
-  transform: translateX(-22px);
+  transform: translateX(-30px);
   width: 18px;
   height: 18px;
   padding: 0;
