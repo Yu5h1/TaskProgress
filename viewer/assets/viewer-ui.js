@@ -4551,7 +4551,7 @@ function Is(e, t) {
 						var a = R(r, 2);
 						si(a, 7, () => (U(t), U(E), W(() => U(t).status === "done" && !U(E) ? U(t).items.slice(0, 1) : U(t).items)), (e) => e.id, (e, n, r) => {
 							{
-								let i = /* @__PURE__ */ M(() => (G(_()), U(n), W(() => _().get(U(n).id) ?? []))), a = /* @__PURE__ */ M(() => (G(C()), U(t), G(U(r)), U(n), G(ne()), W(() => C() && U(t).status === "planned" && U(r) === 0 || U(n).id === ne()))), o = /* @__PURE__ */ M(() => (U(n), G(ne()), W(() => U(n).id === ne()))), s = /* @__PURE__ */ M(() => (G(p()), U(t), U(n), G(re()), W(() => !p() && U(t).status === "planned" && U(n).id && !U(n).legacy ? re() : null))), c = /* @__PURE__ */ M(() => p() ? null : te()), l = /* @__PURE__ */ M(() => (G(p()), G(ee()), U(t), U(n), U(ue), U(de), U(fe), W(() => (p() || ee()) && U(t).status === "planned" && U(n).id && !U(n).legacy ? ge(U(n), U(t).items, U(ue), U(de), U(fe)) : null)));
+								let i = /* @__PURE__ */ M(() => (G(_()), U(n), W(() => _().get(U(n).id) ?? []))), a = /* @__PURE__ */ M(() => (G(C()), U(t), G(U(r)), U(n), G(ne()), W(() => C() && U(t).status === "planned" && U(r) === 0 || U(n).id === ne()))), o = /* @__PURE__ */ M(() => (U(n), G(ne()), W(() => U(n).id === ne()))), s = /* @__PURE__ */ M(() => (G(p()), U(t), U(n), G(re()), W(() => !p() && U(t).status === "planned" && U(n).id && !U(n).legacy && U(n).status !== "archive" && U(n).status !== "done" ? re() : null))), c = /* @__PURE__ */ M(() => p() ? null : te()), l = /* @__PURE__ */ M(() => (G(p()), G(ee()), U(t), U(n), U(ue), U(de), U(fe), W(() => (p() || ee()) && U(t).status === "planned" && U(n).id && !U(n).legacy ? ge(U(n), U(t).items, U(ue), U(de), U(fe)) : null)));
 								us(e, {
 									get taskId() {
 										return G(d()), W(() => d().id);

@@ -798,6 +798,56 @@ h1 {
   border-color: var(--color-warning-border);
 }
 
+/* One action notice at a time (`notice-toast.js`); it fades in and out. */
+.notice-toast {
+  position: fixed;
+  z-index: 60;
+  bottom: 16px;
+  left: 50%;
+  max-width: min(560px, calc(100vw - 32px));
+  padding: 10px 16px;
+  color: var(--color-danger-text);
+  background: var(--color-panel-bg);
+  border: 1px solid var(--color-danger-border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow);
+  opacity: 0;
+  transform: translate(-50%, 6px);
+  transition: opacity 400ms ease, transform 400ms ease;
+  cursor: default;
+}
+
+.notice-toast[hidden] {
+  display: none;
+}
+
+.notice-toast-visible {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+.notice-toast[data-level="warning"] {
+  color: var(--color-warning-text);
+  border-color: var(--color-warning-border);
+}
+
+.notice-toast[data-level="info"] {
+  color: var(--color-heading);
+  border-color: var(--color-border);
+}
+
+.notice-toast p {
+  margin: 0;
+  font-size: 0.83rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .notice-toast {
+    transform: translate(-50%, 0);
+    transition: opacity 150ms linear;
+  }
+}
+
 .overview-grid {
   display: flex;
   flex-wrap: wrap;
@@ -2782,6 +2832,10 @@ footer {
   .project-title-line {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .project-title-line > #report-summary {
+    flex-basis: auto;
   }
 
   .time-task-title-line {

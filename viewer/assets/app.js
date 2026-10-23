@@ -41,6 +41,8 @@ import {
   bindHistoryShortcuts,
 } from "./editor-surface.js";
 import { createEditHostClient } from "./edit-host-client.js";
+import { createNoticeToast } from "./notice-toast.js";
+import { createPreviewHistory } from "./preview-history.js";
 import {
   createTimeInputDraft,
 } from "./time-input-draft.js";
@@ -239,6 +241,8 @@ const state = {
 
 let viewModeToggleView = null;
 let saveBarView = null;
+const actionNotice = createNoticeToast(document);
+const previewHistory = createPreviewHistory();
 let reportSummaryView = null;
 
 /*
@@ -1098,7 +1102,7 @@ function advanceStaleNext(rankedTasks) {
   state.nextAdvanceAttempted = key;
   const fallback = fallbackNext(rankedTasks);
   if (!fallback) return;
-  setNextInPreview({ taskId: fallback.taskId, itemId: fallback.itemId, clear: false });
+  setNextInPreview({ taskId: fallback.taskId, itemId: fallback.itemId, clear: false, automatic: true });
 }
 
 function renderTasks() {
@@ -1287,11 +1291,7 @@ async function startEditing() {
     renderReport();
     return true;
   } catch (error) {
-    state.diagnostics.push({
-      level: "error",
-      message: error instanceof Error ? error.message : "無法進入編輯模式。",
-    });
-    renderDiagnostics();
+    actionNotice.show({ level: "error", message: error instanceof Error ? error.message : "無法進入編輯模式。" });
     return false;
   }
 }
@@ -1420,12 +1420,14 @@ async function saveReportDraft(payload) {
 }
 
 /**
- * Saves one unfinished-item move made in preview. The move applies only when
- * report.json still matches what the page shows; otherwise nothing is written
- * and the page reloads. The session's If-Match covers the rest of the window.
+ * The one path for writes preview mode makes straight to report.json. The
+ * write applies only when report.json still matches what the page shows;
+ * otherwise nothing is written and the page reloads. The session's If-Match
+ * covers the rest of the window. `build` receives the persisted report and
+ * returns the report to write; `onWritten` sees the reports before and after.
  */
-async function reorderInPreview(command) {
-  if (!state.editor.available || state.editor.editing || state.previewReorderBusy) return;
+async function writeInPreview({ build, staleMessage, failureMessage, onWritten = null }) {
+  if (!state.editor.available || state.editor.editing || state.previewReorderBusy) return false;
   state.previewReorderBusy = true;
   const client = state.editor.client;
   try {
@@ -1433,12 +1435,12 @@ async function reorderInPreview(command) {
     const request = resolveReportRequest(new URLSearchParams(location.search));
     const current = await fetchJson(request.reportSource, "report.json");
     if (JSON.stringify(current) !== JSON.stringify(state.persistedReport)) {
-      state.diagnostics.push({ level: "warning", message: "報告已被其他人更新，已重新載入；請再拖一次。" });
-      renderDiagnostics();
+      actionNotice.show({ level: "warning", message: staleMessage });
       await refreshForegroundSilently();
-      return;
+      return false;
     }
-    const report = recordUserActivity(state.persistedReport, moveUnfinishedItem(state.persistedReport, command));
+    const before = state.persistedReport;
+    const report = build(before);
     report.updated_at = new Date().toISOString();
     const errors = validateReport(report);
     if (errors.length) throw new Error(String(errors[0]?.message ?? errors[0]));
@@ -1446,58 +1448,71 @@ async function reorderInPreview(command) {
     await client.save(payload);
     state.report = payload.report;
     state.persistedReport = structuredClone(payload.report);
+    onWritten?.(before, state.persistedReport);
     rebuildMergedTasks();
     renderReport();
     await refreshDocumentBindings();
+    return true;
   } catch (error) {
-    state.diagnostics.push({ level: "error", message: error instanceof Error ? error.message : "換位儲存失敗；原始檔案未變更。" });
-    renderDiagnostics();
+    actionNotice.show({ level: "error", message: error instanceof Error ? error.message : failureMessage });
     await refreshForegroundSilently();
+    return false;
   } finally {
     await client.close();
     state.previewReorderBusy = false;
   }
 }
 
+/** Saves one unfinished-item move made in preview; undoable. */
+async function reorderInPreview(command) {
+  await writeInPreview({
+    build: (report) => recordUserActivity(report, moveUnfinishedItem(report, command)),
+    staleMessage: "報告已被其他人更新，已重新載入；請再拖一次。",
+    failureMessage: "換位儲存失敗；原始檔案未變更。",
+    onWritten: (before, after) => previewHistory.record(before, after),
+  });
+}
+
 /*
- * Preview-mode write of the Next marker, through the same local edit host and
- * the same stale-report check as a preview reorder. A long press on a row sets
- * it; a long press on the Next row clears it.
+ * Preview-mode write of the Next marker. A long press on a row sets it; a
+ * long press on the Next row clears it. Only a user's press is undoable; the
+ * automatic advance of a stale marker is not a step of theirs.
  */
-async function setNextInPreview({ taskId, itemId, clear }) {
-  if (!state.editor.available || state.editor.editing || state.previewReorderBusy) return;
-  state.previewReorderBusy = true;
-  const client = state.editor.client;
-  try {
-    await client.start();
-    const request = resolveReportRequest(new URLSearchParams(location.search));
-    const current = await fetchJson(request.reportSource, "report.json");
-    if (JSON.stringify(current) !== JSON.stringify(state.persistedReport)) {
-      state.diagnostics.push({ level: "warning", message: "報告已被其他人更新，已重新載入；請再長按一次。" });
-      renderDiagnostics();
-      await refreshForegroundSilently();
-      return;
-    }
-    const edited = clear ? clearNextMarker(state.persistedReport) : setNextMarker(state.persistedReport, { taskId, itemId });
-    const report = recordUserActivity(state.persistedReport, edited);
-    report.updated_at = new Date().toISOString();
-    const errors = validateReport(report);
-    if (errors.length) throw new Error(String(errors[0]?.message ?? errors[0]));
-    const payload = { report, inputs: {}, changes: [] };
-    await client.save(payload);
-    state.report = payload.report;
-    state.persistedReport = structuredClone(payload.report);
-    rebuildMergedTasks();
-    renderReport();
-    await refreshDocumentBindings();
-  } catch (error) {
-    state.diagnostics.push({ level: "error", message: error instanceof Error ? error.message : "Next 儲存失敗；原始檔案未變更。" });
-    renderDiagnostics();
-    await refreshForegroundSilently();
-  } finally {
-    await client.close();
-    state.previewReorderBusy = false;
+async function setNextInPreview({ taskId, itemId, clear, automatic = false }) {
+  await writeInPreview({
+    build: (report) => recordUserActivity(report, clear ? clearNextMarker(report) : setNextMarker(report, { taskId, itemId })),
+    staleMessage: "報告已被其他人更新，已重新載入；請再長按一次。",
+    failureMessage: "Next 儲存失敗；原始檔案未變更。",
+    onWritten: automatic ? null : (before, after) => previewHistory.record(before, after),
+  });
+}
+
+/*
+ * Ctrl+Z / Ctrl+Y (Ctrl+Shift+Z) in preview: steps the preview writes back
+ * and forth with no on-screen control. A step whose report has changed since
+ * is refused and the history dropped, so nothing written elsewhere is undone.
+ */
+function stepPreviewHistory(direction) {
+  if (!state.editor.available || state.editor.editing || state.previewReorderBusy) return false;
+  const restore = previewHistory.target(direction, state.persistedReport);
+  if (restore === null) return false;
+  if (restore === "stale") {
+    previewHistory.clear();
+    actionNotice.show({ level: "warning", message: "報告之後已有其他修改，無法再復原或重做先前的操作。" });
+    return true;
   }
+  void writeInPreview({
+    build: () => restore,
+    staleMessage: "報告已被其他人更新，已重新載入；先前的操作無法再復原。",
+    failureMessage: direction === "undo" ? "復原失敗；原始檔案未變更。" : "重做失敗；原始檔案未變更。",
+    onWritten: (_before, after) => previewHistory.complete(direction, after),
+  });
+  return true;
+}
+
+function isTextEntryFocused() {
+  const active = document.activeElement;
+  return Boolean(active?.closest?.("input, textarea, select, [contenteditable=\"true\"]"));
 }
 
 async function loadScopeCatalog() {
@@ -1809,6 +1824,11 @@ bindHistoryShortcuts(document, {
   isActive: () => state.editor.editing && !state.editor.persistenceView?.saving,
   onUndo: () => applyEditorHistory("undo"),
   onRedo: () => applyEditorHistory("redo"),
+});
+bindHistoryShortcuts(document, {
+  isActive: () => !state.editor.editing && state.editor.available && !isTextEntryFocused(),
+  onUndo: () => stepPreviewHistory("undo"),
+  onRedo: () => stepPreviewHistory("redo"),
 });
 // The clock-driven refresh moved into the module's start()/dispose(): a
 // module knows whether its own projection depends on the current time, and

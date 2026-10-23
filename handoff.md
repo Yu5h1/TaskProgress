@@ -6,6 +6,10 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
 
 ## Current state (2026-09-29)
 
+- **預覽模式復原、動作錯誤 popup、窄寬度標頭（2026-10-23）。** 依 [NextMarkerPlan〈實作紀錄〉](Documentation/NextMarkerPlan.md#實作紀錄2026-10-23)：預覽模式 Next 與換位可 Ctrl+Z／Ctrl+Y，無介面；動作錯誤改為底部淡出 popup、同時寫 console，不再疊加橫幅；封存子項不再接受長按設 Next（原本每按一次多一條「不是待處理的子項目」橫幅）。窄於 600px 時 `#report-summary` 的 `flex: 1 1 320px` 在直向排列下變成 320px 高，標頭空出一大塊，已在該 media query 改 `flex-basis: auto`。
+  - 已驗證：Node 641 項中 637 通過（4 項既有 `active-checklist-format` 失敗），新增 `tests/preview-history.test.mjs`；Browser 在 task-progress scope 實測 Next 設定→復原→重做、Alt+↓ 換位→復原、外部修改後復原被拒並保留外部修改；unity-extension 封存項 Shift+Enter 不寫入。測試用的 report.json 已從備份還原。viewer-ui bundle 已重建。
+  - 未驗證：popup 位置與淡出手感由使用者實機確認；`Build/win-x64` 未重新 Publish。
+
 - **等待可指向 checklist 工作項目（2026-10-23）。** `waits_for` 新增 `{scope_id, checklist, work_item}`：該工作項目每個檢查都有效通過才算完成（綁定子項的釋放會使舊結果失效）。CLI `ItemStateResolver`、Viewer `document-binding.js` 同一規則，Report CLI 寫入時檢查檔案與工作項目存在；schema 同步。規則寫在 task-progress-report〈Inline links〉與 checklist-round（等待不記執行者 `[!]`，`[!]` 會送到使用者且不會自動解除）。
   - 起因：UX `ux-foundation › input-goal-1-closure` 以標題文字與自己 checklist 的 `[!]` 表達等待 UnityExtension 兩個未綁子項的 `[manual]`，兩項通過後仍是 `awaiting_user`。已改為 `waits_for` 兩個工作項目、狀態 `planned`；該 `[!]` 依 checklist-round 重跑後改 `[x]` 並加 Resolved，新 CLI 與 Viewer 都推算為 `not_started`。UnityExtension 兩份 checklist 的使用者勾選仍未提交，未動。
   - 已驗證：Checklist 346 checks、Python 86、Node 638（4 項既有 `active-checklist-format` 失敗）。
