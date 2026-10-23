@@ -176,6 +176,21 @@ internal static partial class Program
         var reopenedCheck = reopenedPayload.GetProperty("items")[1].GetProperty("checks")[0];
         Equal("released", reopenedCheck.GetProperty("validity").GetString(), "snapshot names the release");
         Equal("pending", reopenedCheck.GetProperty("effectiveStatus").GetString(), "snapshot counts the voided pass as pending");
+
+        string WaitingOn(int workItem) => new ItemStateResolver(scopeRoot, report).StateOf("acc", new System.Text.Json.Nodes.JsonObject
+        {
+            ["id"] = "closure",
+            ["status"] = "blocked",
+            ["waits_for"] = new System.Text.Json.Nodes.JsonArray(new System.Text.Json.Nodes.JsonObject
+            {
+                ["scope_id"] = "acc",
+                ["checklist"] = "decimals",
+                ["work_item"] = workItem,
+            }),
+        });
+        Equal(ItemStates.Blocked, WaitingOn(1), "a passed work item releases the wait to the stored status");
+        Equal(ItemStates.Waiting, WaitingOn(2), "a pass voided by the bound item's release keeps the wait");
+        Equal(ItemStates.Waiting, WaitingOn(9), "an unknown work item keeps the wait");
     }
 
     private static string? ErrorCode(ChecklistBridge bridge, string type, object payload, string? actor, string? session)

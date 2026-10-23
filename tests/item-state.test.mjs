@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { deriveItemState, waitsText } from "../viewer/assets/item-state.js";
-import { evaluateChecklistDocument, projectTasksWithBindings, waitKey } from "../viewer/assets/document-binding.js";
+import { checklistWorkItemDone, evaluateChecklistDocument, evaluateWaitTargets, projectTasksWithBindings, waitKey } from "../viewer/assets/document-binding.js";
 
 const check = (overrides) => ({ status: "pending", effectiveStatus: "pending", validity: "valid", ...overrides });
 const evaluation = (checks) => evaluateChecklistDocument({ items: [{ checks }] });
@@ -77,4 +77,30 @@ test("waits make an unfinished item waiting and list links for unfinished target
   evaluations.set(waitKey(wait), { ...pending[0], done: true });
   const [cleared] = projectTasksWithBindings([{ id: "t", status: "planned", pending_items: [item] }], evaluations);
   assert.equal(cleared.pending_items[0].derivedState, undefined);
+});
+
+test("a wait on a checklist work item clears only when every check in that work item passes", async () => {
+  const wait = { scope_id: "unity", checklist: "uitk-input", work_item: 5 };
+  const item = { id: "u", title: "收尾", waits_for: [wait] };
+  const tasks = [{ id: "t", status: "planned", pending_items: [item] }];
+  const payload = (status) => ({ document: { items: [
+    { id: 4, checks: [{ status: "passed" }] },
+    { id: 5, checks: [{ status: "passed" }, { tag: "manual", status, effectiveStatus: status }] },
+  ] } });
+  const evaluate = (document) => evaluateWaitTargets(tasks, {
+    createChecklistTransport: ({ scope, task }) => {
+      assert.deepEqual([scope, task], ["unity", "uitk-input"]);
+      return { load: async () => { if (!document) throw new Error("gone"); return document; } };
+    },
+  });
+  const pending = await evaluate(payload("pending"));
+  const [waiting] = projectTasksWithBindings(tasks, pending);
+  assert.equal(waiting.pending_items[0].derivedState, "waiting");
+  assert.equal(waiting.pending_items[0].displayTitle,
+    "收尾　等待：[uitk-input.checklist](/checklist/?scope=unity&task=uitk-input)（1 項未完成）");
+  const [cleared] = projectTasksWithBindings(tasks, await evaluate(payload("passed")));
+  assert.equal(cleared.pending_items[0].derivedState, undefined);
+  const missing = await evaluate(null);
+  assert.deepEqual([missing.get(waitKey(wait)).done, missing.get(waitKey(wait)).available], [false, false]);
+  assert.equal(checklistWorkItemDone(payload("passed"), 9), null);
 });

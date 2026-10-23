@@ -112,8 +112,11 @@ def find_item(report, task_id, item_id):
                  if isinstance(i, dict) and i.get("id") == item_id), None)
 
 
-def check_waits(report, task_id, item):
-    """Rejects waits on items that cannot be found and any wait that closes a loop."""
+CHECKLIST_WORK_ITEM = re.compile(r"^- \[[ x!]\] \*\*(\d+)\.", re.MULTILINE)
+
+
+def check_waits(report, task_id, item, folder=None):
+    """Rejects waits on items or checklist work items that cannot be found and any wait that closes a loop."""
     waits = item.get("waits_for")
     if waits is None:
         return
@@ -132,9 +135,31 @@ def check_waits(report, task_id, item):
                                   field="waits_for") from error
         return loaded[scope]
 
+    def folder_of(scope):
+        found = folder if scope == own_scope and folder is not None else registry.get(scope)
+        require(found is not None, "waits_for scope is not registered: " + scope, "waits_for")
+        return Path(found)
+
     start = (own_scope, task_id, item["id"])
-    seen = set()
+    seen, seen_checks = set(), set()
     for wait in waits:
+        if isinstance(wait, dict) and "checklist" in wait:
+            require(set(wait) == {"scope_id", "checklist", "work_item"}
+                    and isinstance(wait["scope_id"], str) and wait["scope_id"]
+                    and isinstance(wait["checklist"], str) and re.fullmatch(r"[A-Za-z0-9._-]+", wait["checklist"])
+                    and isinstance(wait["work_item"], int) and not isinstance(wait["work_item"], bool) and wait["work_item"] > 0,
+                    "A checklist waits_for entry needs scope_id, checklist and a positive work_item", "waits_for")
+            check = (wait["scope_id"], wait["checklist"], wait["work_item"])
+            require(check not in seen_checks, "Duplicate waits_for entry", "waits_for")
+            seen_checks.add(check)
+            path = folder_of(check[0]) / "checklists" / (check[1] + ".checklist")
+            try:
+                numbers = {int(n) for n in CHECKLIST_WORK_ITEM.findall(path.read_text(encoding="utf-8"))}
+            except OSError:
+                numbers = None
+            require(numbers is not None, "waits_for checklist was not found: " + check[0] + "/" + check[1], "waits_for")
+            require(check[2] in numbers, "waits_for work item was not found: " + "/".join(map(str, check)), "waits_for")
+            continue
         require(isinstance(wait, dict) and set(wait) == {"scope_id", "task_id", "item_id"}
                 and all(isinstance(wait[k], str) and wait[k] for k in wait),
                 "Each waits_for entry needs scope_id, task_id and item_id", "waits_for")
@@ -269,7 +294,7 @@ def update(target, operation, name):
         target.pop(key, None)
 
 
-def apply_operations(report, overlay, operations, actor=None, at=None):
+def apply_operations(report, overlay, operations, actor=None, at=None, folder=None):
     require(isinstance(actor, dict) and isinstance(actor.get("actor"), str) and bool(ACTOR_PATTERN.match(actor["actor"])),
             "actor is required: the writing tool in lowercase, such as claude, codex or antigravity", "actor")
     for key in ("session", "session_id"):
@@ -342,7 +367,7 @@ def apply_operations(report, overlay, operations, actor=None, at=None):
                     require("activity" not in value, "activity is written by the CLI, not supplied", "value.activity")
                     value = deepcopy(value)
                     value.setdefault("status", "planned")
-                    check_waits(report, task_id, value)
+                    check_waits(report, task_id, value, folder)
                     stamp_new_item(value, actor, at)
                     key = "completed_items" if value["status"] == "done" else "pending_items"
                     if "position" in operation:
@@ -383,7 +408,7 @@ def apply_operations(report, overlay, operations, actor=None, at=None):
                     else:
                         update(item, operation, name)
                         if "waits_for" in operation.get("set", {}):
-                            check_waits(report, task_id, item)
+                            check_waits(report, task_id, item, folder)
                         if without_activity(item) != before_item:
                             event = status_event(before_item.get("status"), item.get("status")) or "updated"
                             append_activity(item, activity_entry(event, actor, at))

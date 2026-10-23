@@ -93,9 +93,16 @@ export function evaluateChecklistDocument(payload) {
   return { ok: true, completed, total, passed, failed, manual, acceptance, checks, untaggedComplete, acceptanceComplete };
 }
 
-/** Stable key for one waited item across scopes. */
+/** A wait on one work item of a checklist rather than on a Report item. */
+export function isChecklistWait(wait) {
+  return typeof wait?.scope_id === "string" && typeof wait?.checklist === "string" && Number.isInteger(wait?.work_item);
+}
+
+/** Stable key for one waited item or checklist work item across scopes. */
 export function waitKey(wait) {
-  return `wait:${wait?.scope_id}:${wait?.task_id}:${wait?.item_id}`;
+  return isChecklistWait(wait)
+    ? `wait:checklist:${wait.scope_id}:${wait.checklist}:${wait.work_item}`
+    : `wait:${wait?.scope_id}:${wait?.task_id}:${wait?.item_id}`;
 }
 
 function waitTargets(tasks) {
@@ -104,7 +111,7 @@ function waitTargets(tasks) {
     for (const field of ["completed_items", "pending_items"]) {
       for (const item of task[field] ?? []) {
         for (const wait of Array.isArray(item?.waits_for) ? item.waits_for : []) {
-          if (wait?.scope_id && wait?.task_id && wait?.item_id) targets.set(waitKey(wait), wait);
+          if (isChecklistWait(wait) || (wait?.scope_id && wait?.task_id && wait?.item_id)) targets.set(waitKey(wait), wait);
         }
       }
     }
@@ -113,14 +120,52 @@ function waitTargets(tasks) {
 }
 
 /**
+ * Whether one work item of a loaded checklist has every check passed, void tagged results counting
+ * as pending; null when the work item does not exist.
+ */
+export function checklistWorkItemDone(payload, workItem) {
+  const items = (payload?.document ?? payload ?? {}).items ?? [];
+  const work = items.find((candidate) => Number(candidate?.id) === workItem);
+  if (!work) return null;
+  const checks = work.checks ?? [];
+  return checks.length > 0 && checks.every((check) => (check?.effectiveStatus ?? check?.status) === "passed");
+}
+
+async function evaluateChecklistWaits(targets, { fetchImpl, concurrency, createChecklistTransport = createChecklistHttpTransport }, results) {
+  const documents = new Map();
+  for (const wait of targets.values()) documents.set(`${wait.scope_id}:${wait.checklist}`, wait);
+  const loaded = new Map();
+  await mapConcurrent([...documents.entries()], concurrency, async ([key, wait]) => {
+    try {
+      loaded.set(key, await createChecklistTransport({ scope: wait.scope_id, task: wait.checklist, fetchImpl }).load());
+    } catch {
+      loaded.set(key, null);
+    }
+  });
+  for (const [key, wait] of targets) {
+    const card = `${wait.checklist}.checklist`;
+    const label = `${card} 第 ${wait.work_item} 項`;
+    const href = `/checklist/?scope=${encodeURIComponent(wait.scope_id)}&task=${encodeURIComponent(wait.checklist)}`;
+    const payload = loaded.get(`${wait.scope_id}:${wait.checklist}`);
+    const done = payload ? checklistWorkItemDone(payload, wait.work_item) : null;
+    results.set(key, done === null
+      ? { done: false, available: false, card, label, href }
+      : { done, available: true, card, label, href });
+  }
+}
+
+/**
  * Resolves whether each waited item is finished, reading the target scope's report and, for a bound
  * target, its checklist. A target that cannot be read stays unfinished and is marked unavailable.
  */
 export async function evaluateWaitTargets(tasks, options = {}) {
   const { fetchImpl = globalThis.fetch, concurrency = DEFAULT_DOCUMENT_BINDING_CONCURRENCY, ...bindingOptions } = options;
-  const targets = waitTargets(tasks);
+  const allTargets = waitTargets(tasks);
   const results = new Map();
-  if (!targets.size) return results;
+  if (!allTargets.size) return results;
+  const checklistTargets = new Map([...allTargets].filter(([, wait]) => isChecklistWait(wait)));
+  await evaluateChecklistWaits(checklistTargets, { fetchImpl, concurrency, ...bindingOptions }, results);
+  const targets = new Map([...allTargets].filter(([, wait]) => !isChecklistWait(wait)));
   const reports = new Map();
   for (const scope of new Set([...targets.values()].map((wait) => wait.scope_id))) {
     try {
@@ -296,7 +341,12 @@ export async function evaluateAllDocumentBindings(tasks, options = {}) {
 
 function pendingWaitsOf(item, evaluations) {
   return (Array.isArray(item?.waits_for) ? item.waits_for : [])
-    .map((wait) => evaluations.get(waitKey(wait)) ?? { done: false, available: false, label: `${wait?.task_id} › ${wait?.item_id}`, href: null })
+    .map((wait) => evaluations.get(waitKey(wait)) ?? {
+      done: false,
+      available: false,
+      label: isChecklistWait(wait) ? `${wait.checklist}.checklist 第 ${wait.work_item} 項` : `${wait?.task_id} › ${wait?.item_id}`,
+      href: null,
+    })
     .filter((result) => !result.done);
 }
 

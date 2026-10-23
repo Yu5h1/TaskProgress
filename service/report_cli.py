@@ -99,7 +99,7 @@ def execute(folder, action, request=None, *, task=None, dry_run=False, analyzer=
             raise ReportError("revision_conflict", "Source revision changed; load it again", 3)
         stamp = datetime.now(timezone.utc).isoformat()
         writer = {"actor": request["actor"], "session": request.get("session"), "session_id": request.get("session_id")}
-        candidate, next_overlay, summaries = apply_operations(report, overlay, request["operations"], writer, stamp)
+        candidate, next_overlay, summaries = apply_operations(report, overlay, request["operations"], writer, stamp, folder)
         changed_report, changed_overlay = candidate != report, next_overlay != overlay
         changed = changed_report or changed_overlay
         analysis = changed_report and needs_analysis(sources)

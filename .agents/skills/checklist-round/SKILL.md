@@ -112,6 +112,11 @@ clicked.
 | `[x]` | The check ran and matched `Expect` | Preserve it |
 | `[!]` | The check ran and did not match `Expect` | Add `Observed`; pause automatic retries and dependent work |
 
+A check that can run only after another item or another checklist's work item finishes has not
+failed: leave it `[ ]` and declare the wait in the bound Report item's `waits_for`
+([task-progress-report § Inline links](../task-progress-report/SKILL.md#inline-links-in-report-descriptions)).
+An executor `[!]` sends the item to the user, and nothing lifts it when the waited work passes.
+
 The parent is `[x]` only when every required check is `[x]`, `[!]` when any check
 is `[!]`, and `[ ]` otherwise. The executor runs and records every untagged check
 by editing the file; tagged results are written only through the CLI or the panel

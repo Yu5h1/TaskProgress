@@ -273,31 +273,60 @@
           "$ref": "#/$defs/documentRef"
         },
         "waits_for": {
-          "$comment": "Items this item waits for, possibly in other registered scopes. While any is unfinished the item shows as waiting and run skips it. Written by the Report CLI, which rejects loops.",
+          "$comment": "Items or checklist work items this item waits for, possibly in other registered scopes. While any is unfinished the item shows as waiting and run skips it; a checklist work item is finished when every check in it passes. Written by the Report CLI, which rejects loops and targets it cannot find.",
           "type": "array",
           "minItems": 1,
           "maxItems": 20,
           "items": {
-            "type": "object",
-            "additionalProperties": false,
-            "required": [
-              "scope_id",
-              "task_id",
-              "item_id"
-            ],
-            "properties": {
-              "scope_id": {
-                "type": "string",
-                "minLength": 1,
-                "maxLength": 80
+            "oneOf": [
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "scope_id",
+                  "task_id",
+                  "item_id"
+                ],
+                "properties": {
+                  "scope_id": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 80
+                  },
+                  "task_id": {
+                    "$ref": "#/$defs/id"
+                  },
+                  "item_id": {
+                    "$ref": "#/$defs/id"
+                  }
+                }
               },
-              "task_id": {
-                "$ref": "#/$defs/id"
-              },
-              "item_id": {
-                "$ref": "#/$defs/id"
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "scope_id",
+                  "checklist",
+                  "work_item"
+                ],
+                "properties": {
+                  "scope_id": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 80
+                  },
+                  "checklist": {
+                    "type": "string",
+                    "pattern": "^[A-Za-z0-9._-]+$",
+                    "maxLength": 120
+                  },
+                  "work_item": {
+                    "type": "integer",
+                    "minimum": 1
+                  }
+                }
               }
-            }
+            ]
           }
         },
         "activity": {

@@ -112,6 +112,18 @@ class ReportCliTests(unittest.TestCase):
         execute(self.root, "apply", self.request([{"op": "item.update", "task_id": "one", "item_id": "item", "unset": ["waits_for"]}]))
         self.assertNotIn("waits_for", self.item())
 
+    def test_waits_on_a_checklist_work_item_need_the_file_and_the_work_item(self):
+        (self.root / "checklists").mkdir()
+        (self.root / "checklists" / "manual.checklist").write_text(
+            "# Manual\n\n- [x] **1. A**\n  Checks:\n    - [x] **a**\n\n- [ ] **2. B**\n", encoding="utf-8")
+        wait = lambda **kw: [{"scope_id": "sample", "checklist": "manual", "work_item": 2, **kw}]
+        for waits in (wait(work_item=3), wait(checklist="missing"), wait(work_item=0), wait(task_id="one"),
+                      [{"scope_id": "nowhere", "checklist": "manual", "work_item": 1}], wait() + wait()):
+            with self.assertRaises(ReportError):
+                execute(self.root, "apply", self.request([{"op": "item.update", "task_id": "one", "item_id": "item", "set": {"waits_for": waits}}]))
+        execute(self.root, "apply", self.request([{"op": "item.update", "task_id": "one", "item_id": "item", "set": {"waits_for": wait()}}]))
+        self.assertEqual(self.item()["waits_for"], wait())
+
     def test_activity_records_created_started_done_and_keeps_three_recent(self):
         execute(self.root, "apply", self.request([{"op": "item.add", "task_id": "one", "value": {"id": "log", "title": "Log"}}], session="s1", name="Report 修正"))
         self.assertEqual([(e["event"], e["actor"], e.get("session"), e.get("session_id")) for e in self.item("log")["activity"]],

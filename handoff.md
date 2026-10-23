@@ -6,6 +6,11 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
 
 ## Current state (2026-09-29)
 
+- **等待可指向 checklist 工作項目（2026-10-23）。** `waits_for` 新增 `{scope_id, checklist, work_item}`：該工作項目每個檢查都有效通過才算完成（綁定子項的釋放會使舊結果失效）。CLI `ItemStateResolver`、Viewer `document-binding.js` 同一規則，Report CLI 寫入時檢查檔案與工作項目存在；schema 同步。規則寫在 task-progress-report〈Inline links〉與 checklist-round（等待不記執行者 `[!]`，`[!]` 會送到使用者且不會自動解除）。
+  - 起因：UX `ux-foundation › input-goal-1-closure` 以標題文字與自己 checklist 的 `[!]` 表達等待 UnityExtension 兩個未綁子項的 `[manual]`，兩項通過後仍是 `awaiting_user`。已改為 `waits_for` 兩個工作項目、狀態 `planned`；該 `[!]` 依 checklist-round 重跑後改 `[x]` 並加 Resolved，新 CLI 與 Viewer 都推算為 `not_started`。UnityExtension 兩份 checklist 的使用者勾選仍未提交，未動。
+  - 已驗證：Checklist 346 checks、Python 86、Node 638（4 項既有 `active-checklist-format` 失敗）。
+  - **待 Publish**：`Build/win-x64/task-progress.exe` 仍是舊版，舊 `report get` 把 checklist 等待視為未完成，該 UX 子項會顯示 `waiting`，`run` 會跳過它，直到使用者重新 Publish。
+
 - **Next 標記、完成堆疊與隱藏項目連結已實作（2026-10-23）。** 依 [NextMarkerPlan](Documentation/NextMarkerPlan.md)〈實作紀錄〉與 [CompletedStackingPlan](Documentation/CompletedStackingPlan.md)：report.json 頂層 `next`、CLI `next.set`／`next.clear`；Viewer 提前 Next 卡與子項（釘選仍在上）、頂端 Next 卡、金色語意色 `next`、子項列長按（`viewer/assets/long-press.js`，UX Input 3.0.1）或 Shift+Enter 設定／取消；卡片 Developer 區「Next Step :」改「後續：」；Checklist 畫面的下一步連結刪除；Checklist／Decision 頁已完成集合由新到舊堆疊；三個面板清單底部「…顯示隱藏項目(N)」重設篩選。
   - 已驗證：Node 637 通過（4 項 `active-checklist-format` 既有失敗，HEAD 同樣失敗）、Python Report CLI 22 通過；Browser 實測 Report 的 Next 卡、金色 pin、Next 膠囊、Shift+Enter 設定與取消、Checklist 堆疊、Decision 頁隱藏連結。四個 UI bundle 已重建。
   - 未做：編輯模式的 Next 寫入（`next-marker › next-edit-mode`）；長按的手感與顏色由使用者實機確認（`next-manual-check`）；`Build/win-x64` 未重新 Publish，桌面版 checklist-ui 仍是舊的。

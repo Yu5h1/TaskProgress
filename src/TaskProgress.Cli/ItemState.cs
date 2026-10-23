@@ -71,12 +71,34 @@ internal sealed class ItemStateResolver
         if (item["waits_for"] is not JsonArray waits) return false;
         foreach (var wait in waits.OfType<JsonObject>())
         {
+            if (wait["checklist"] is JsonValue stemValue)
+            {
+                if (!stemValue.TryGetValue<string>(out var stem)
+                    || !IsWorkItemDone(wait["scope_id"]?.GetValue<string>(), stem, wait["work_item"])) return true;
+                continue;
+            }
             var scope = wait["scope_id"]?.GetValue<string>();
             var task = wait["task_id"]?.GetValue<string>();
             var target = wait["item_id"]?.GetValue<string>();
             if (scope is null || task is null || target is null || !IsDone(scope, task, target, depth)) return true;
         }
         return false;
+    }
+
+    /// <summary>
+    ///   A waited checklist work item is done when it exists and every check
+    ///   in it passes, a tagged result voided by its bound item's release
+    ///   counting as pending.
+    /// </summary>
+    private bool IsWorkItemDone(string? scope, string stem, JsonNode? workItem)
+    {
+        if (scope is null || workItem is not JsonValue number || !number.TryGetValue<int>(out var id)
+            || Report(scope) is not { } owner) return false;
+        var path = Path.Combine(owner.Folder, "checklists", stem + ".checklist");
+        var work = LoadChecklist(path)?.Items.FirstOrDefault(candidate => candidate.Id == id);
+        if (work is null || work.Checks.Count == 0) return false;
+        var released = ChecklistBinding.Find(path)?.ReleasedAt;
+        return work.Checks.All(check => ChecklistDocument.EffectiveStatus(check, released) == ChecklistStatus.Passed);
     }
 
     private static string FromChecklist(ChecklistDocument checklist, JsonObject item)
@@ -136,7 +158,11 @@ internal sealed class ItemStateResolver
         var task = reference["task"]?.GetValue<string>();
         if (refScope is null || task is null || Report(refScope) is not { } owner) return null;
         bound = true;
-        var path = Path.Combine(owner.Folder, "checklists", task + ".checklist");
+        return LoadChecklist(Path.Combine(owner.Folder, "checklists", task + ".checklist"));
+    }
+
+    private ChecklistDocument? LoadChecklist(string path)
+    {
         if (!checklists.TryGetValue(path, out var document))
         {
             try
