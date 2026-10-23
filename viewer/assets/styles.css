@@ -599,11 +599,13 @@ code {
 }
 .scope-directory-link a {
   display: inline-flex;
+  align-items: center;
   gap: 6px;
   color: var(--color-accent);
   text-decoration: none;
 }
 .scope-directory-link .owner-name { text-decoration: underline; }
+.scope-directory-link .owner-arrow { font-size: 2.1em; font-weight: 700; line-height: 0.8; }
 
 .hero {
   display: grid;
