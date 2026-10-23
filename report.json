@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-10-23T18:20:48.216443+00:00",
+  "updated_at": "2026-10-23T18:22:16.170657+00:00",
   "tasks": [
     {
       "id": "next-marker",
@@ -1072,6 +1072,21 @@
               "actor": "claude",
               "at": "2026-10-23T14:48:31.505789+00:00",
               "session": "Report 讀取 worktree 計畫",
+              "session_id": "8db3d9df-8d4e-461e-96c2-37ca30b33c56"
+            }
+          ]
+        },
+        {
+          "id": "item-quick-manual-confirm",
+          "title": "子項簡易人工驗證：不需要寫 checklist，子項本身就是一個讓使用者確認的勾選（例如「確認已收到貼圖」），使用者在 Report 上直接勾就完成",
+          "status": "planned",
+          "priority": 2,
+          "activity": [
+            {
+              "event": "created",
+              "actor": "claude",
+              "at": "2026-10-23T18:22:16.170657+00:00",
+              "session": "子項簡易人工驗證",
               "session_id": "8db3d9df-8d4e-461e-96c2-37ca30b33c56"
             }
           ]
