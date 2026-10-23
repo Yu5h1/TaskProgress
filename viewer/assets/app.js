@@ -1,7 +1,7 @@
 import { requestedCardPin } from "./card-order.js";
 import { moveUnfinishedItem } from "./item-reorder.js";
 import { recordUserActivity } from "./item-activity.js";
-import { clearNextMarker, effectiveNext, liftNextTask, nextRefusal, setNextMarker } from "./next-marker.js";
+import { clearNextMarker, liftNextTask, nextRefusal, resolveNext, setNextMarker } from "./next-marker.js";
 import { SELECT_KEY_ATTRIBUTE, createItemSelection } from "./item-selection.js";
 import { isSelectionIgnoredTarget } from "./selection-input.js";
 import { parseReference, referenceTask, searchTask, searchTerms } from "./task-search.js";
@@ -1098,9 +1098,9 @@ function renderTasks() {
     (task) => task.status,
     stableSortTasksByPriority,
   );
-  // The scope's Next leads every card: the stored marker while it is effective,
-  // else the derived next step. Deriving writes nothing.
-  const marked = effectiveNext(state.report.next, state.tasks);
+  // The scope's Next leads every card while the stored marker is effective; the
+  // Viewer never derives or writes one of its own.
+  const marked = resolveNext(state.report.next, state.tasks);
   const orderedTasks = liftNextTask(rankedTasks, marked?.taskId ?? null);
   // Filtering only hides, and it applies at both levels: a card survives when
   // it matches or when it still holds a matching item, and it then shows only

@@ -1,4 +1,4 @@
-// Checks that report get's effective Next follows the Viewer's rule: stored while it needs taking up, else derived.
+// Checks the Next rules the CLI shares with the Viewer: shown while it needs taking up, derived only on request.
 using System.Text.Json.Nodes;
 using TaskProgress;
 
@@ -24,30 +24,35 @@ internal static partial class Program
               ]
             }
             """)!.AsObject();
-        string? Effective(JsonObject report, string field) =>
-            NextMarker.Effective(report, "nm", new ItemStateResolver(scopeRoot, report))?[field]?.GetValue<string>();
+        JsonObject Fresh(string? next) => Report(next);
+        ItemStateResolver For(JsonObject report) => new(scopeRoot, report);
+        string? Field(JsonObject? marker, string field) => marker?[field]?.GetValue<string>();
 
-        var withLow = Report("low");
-        Equal("low", Effective(withLow, "item_id"), "an item that needs taking up stays the Next");
-        Equal("stored", Effective(withLow, "source"), "the stored marker is reported as stored");
+        var withLow = Fresh("low");
+        Equal("low", Field(NextMarker.Effective(withLow, "nm", For(withLow)), "item_id"), "an item that needs taking up stays the Next");
+        True(NextMarker.Keeps(withLow, "nm", For(withLow))?.Contains("仍有效") == true, "report next keeps an effective marker");
 
-        foreach (var stale in new[] { "mid", "wait", "finished", "shelved", "gone" })
+        foreach (var stale in new[] { "wait", "finished", "shelved", "gone" })
         {
-            var report = Report(stale);
-            Equal("u1", Effective(report, "item_id"), $"a Next on {stale} falls back to the derived step, card priority first");
-            Equal("derived", Effective(report, "source"), $"the fallback from {stale} is reported as derived");
+            var report = Fresh(stale);
+            True(NextMarker.Effective(report, "nm", For(report)) is null, $"a Next on {stale} is not shown");
+            True(NextMarker.Keeps(report, "nm", For(report)) is null, $"report next may replace a Next on {stale}");
+            Equal("u1", Field(NextMarker.Derive(report, "nm", For(report)), "item_id"), $"deriving after {stale} takes card priority first");
         }
 
-        var cleared = Report(null);
-        True(NextMarker.Effective(cleared, "nm", new ItemStateResolver(scopeRoot, cleared)) is null, "a cleared marker shows no Next");
+        var inProgress = Fresh("mid");
+        True(NextMarker.Effective(inProgress, "nm", For(inProgress)) is null, "an in-progress Next is not shown");
+        True(NextMarker.Keeps(inProgress, "nm", For(inProgress))?.Contains("執行中") == true, "report next keeps an in-progress Next");
 
-        var released = Report("mid");
+        var cleared = Fresh(null);
+        True(NextMarker.Effective(cleared, "nm", For(cleared)) is null, "a cleared marker shows no Next");
+        True(NextMarker.Keeps(cleared, "nm", For(cleared)) is null, "report next may set a cleared marker");
+        Equal("low", Field(NextMarker.Derive(cleared, "nm", For(cleared), "card"), "item_id"), "a card narrows the choice; waiting, in-progress and archived items are skipped");
+        True(NextMarker.Derive(cleared, "nm", For(cleared), "pointer") is null, "a pointer card offers nothing");
+
+        var released = Fresh("mid");
         released["tasks"]![1]!["pending_items"]![2]!.AsObject().Remove("status");
-        Equal("mid", Effective(released, "item_id"), "a released item is the Next again");
-
-        var onlyCard = Report("mid");
-        onlyCard["tasks"]!.AsArray().RemoveAt(2);
-        Equal("low", Effective(onlyCard, "item_id"), "waiting, in-progress and archived items are skipped");
+        Equal("mid", Field(NextMarker.Effective(released, "nm", For(released)), "item_id"), "a released item is the Next again");
 
         var refusals = Report(null);
         var resolver = new ItemStateResolver(scopeRoot, refusals);

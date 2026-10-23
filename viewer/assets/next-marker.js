@@ -1,15 +1,13 @@
-import { stableSortTaskItemsByPriority, stableSortTasksByPriority, taskKind } from "./report-model.js";
+import { taskKind } from "./report-model.js";
 
 /*
- * The scope's one Next marker (`report.next`), and the derived next step shown
- * in its place. Design: Documentation/NextMarkerPlan.md.
+ * The scope's one Next marker (`report.next`). Design: Documentation/NextMarkerPlan.md.
  *
- * A marker is effective while the item it names still needs someone to take it
- * up: unfinished, waiting on nobody and held by nobody. While it is not, the
- * derived next step is shown as the Next, unlabelled, and nothing is written:
- * the stored marker stays, so an item released back to not started is the Next
- * again. A cleared marker stays cleared until the user or an evaluation sets
- * one. `report get` derives the same way (C# NextMarker).
+ * A marker is shown while the item it names still needs someone to take it up:
+ * unfinished, waiting on nobody and held by nobody. Otherwise the Report shows
+ * no Next; the stored marker stays, so an item released back to not started is
+ * the Next again. The Viewer never picks or writes a Next of its own: only the
+ * user's long press and an agent's `next.set`／`next.derive` (C# NextMarker) do.
  */
 // An item awaiting the user or an acceptor still needs that person, so it stays
 // the Next; a finished item, one waiting on others, or one already being worked
@@ -30,11 +28,6 @@ function unfinished(item) {
     && !INEFFECTIVE_STATES.includes(currentState(item));
 }
 
-function actionable(task) {
-  return isObject(task) && taskKind(task) !== "report_pointer"
-    && task.status !== "done" && task.status !== "archive";
-}
-
 /** The marker's target while it is effective; null otherwise. */
 export function resolveNext(next, tasks) {
   if (!isObject(next) || typeof next.task_id !== "string" || typeof next.item_id !== "string") return null;
@@ -43,26 +36,6 @@ export function resolveNext(next, tasks) {
   const item = (task.pending_items ?? []).find((entry) => isObject(entry) && entry.id === next.item_id);
   if (!item || !unfinished(item)) return null;
   return { taskId: task.id, itemId: item.id, task, item, derived: false };
-}
-
-/**
- * The derived next step: the first item that needs taking up, by card priority
- * (then the card's highest item priority, then source order) and item priority.
- * The view's own grouping never changes it, so the CLI derives the same item.
- */
-export function fallbackNext(tasks) {
-  for (const task of stableSortTasksByPriority(tasks ?? [])) {
-    if (!actionable(task)) continue;
-    const item = stableSortTaskItemsByPriority(task.pending_items).find(unfinished);
-    if (item) return { taskId: task.id, itemId: item.id, task, item, derived: true };
-  }
-  return null;
-}
-
-/** What the Report shows as the Next: the stored marker while effective, else the derived step; none when cleared. */
-export function effectiveNext(next, tasks) {
-  if (!isObject(next)) return null;
-  return resolveNext(next, tasks) ?? fallbackNext(tasks);
 }
 
 /** The Next card leads every other card. */

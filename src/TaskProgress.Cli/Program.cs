@@ -690,6 +690,8 @@ internal static class Program
         Console.WriteLine("  report get <folder> [--task <id>] 取得 Report／任務及來源 revision，輸出 JSON");
         Console.WriteLine("  report validate <folder>        驗證 Report 與 developer overlay，輸出 JSON");
         Console.WriteLine("  report apply <folder> --input <file|-> [--dry-run]  提交操作；- 使用 UTF-8 stdin");
+        Console.WriteLine("  report next <folder> --actor <tool> [--task <id>] [--session <名稱>] [--session-id <id>] [--dry-run]");
+        Console.WriteLine("                                  把推算出的下一個子項寫成 Next；有效或執行中的 Next 不改寫");
         Console.WriteLine("    item.add 可帶 position；item.move 以 position.before／after 指定待處理子項目 ID");
         Console.WriteLine("    請求必須帶 actor（寫入工具，例如 codex），session（名稱）與 session_id 可省略；子項由他人執行中時以 claim: own／takeover 認領");
         Console.WriteLine("  report <動作> --scope <id>       以已登記 scope 取代 folder；exit code 0／2／3／4");

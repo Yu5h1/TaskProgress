@@ -20,9 +20,11 @@ internal static class ReportCommand
             var request = Parse(args, store);
             var input = request.Input is null ? null
                 : request.Input == "-"
-                    ? (await Console.In.ReadToEndAsync(cancellationToken)).TrimStart('﻿')
+                    ? (await Console.In.ReadToEndAsync(cancellationToken)).TrimStart('\uFEFF')
                     : await ReadInputAsync(request.Input, cancellationToken);
-            return await ExecuteAsync(request, input, cancellationToken);
+            return request.Action == "next"
+                ? await DeriveNextAsync(request, cancellationToken)
+                : await ExecuteAsync(request, input, cancellationToken);
         }
         catch (CliException error)
         {
@@ -41,14 +43,17 @@ internal static class ReportCommand
     private static Request Parse(string[] args, ScopeStore store)
     {
         if (args.Length == 0)
-            throw new CliException("用法：report get|validate|apply <folder>|--scope <id> [選項]");
+            throw new CliException("用法：report get|validate|apply|next <folder>|--scope <id> [選項]");
         var action = args[0].ToLowerInvariant();
-        if (action is not ("get" or "validate" or "apply"))
+        if (action is not ("get" or "validate" or "apply" or "next"))
             throw new CliException($"不支援的 report 命令：{args[0]}");
         string? folder = null;
         string? scope = null;
         string? task = null;
         string? input = null;
+        string? actor = null;
+        string? session = null;
+        string? sessionId = null;
         var dryRun = false;
         var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         for (var index = 1; index < args.Length; index++)
@@ -61,7 +66,7 @@ internal static class ReportCommand
                 continue;
             }
             var option = argument.ToLowerInvariant();
-            if (option is not ("--scope" or "--task" or "--input" or "--dry-run"))
+            if (option is not ("--scope" or "--task" or "--input" or "--dry-run" or "--actor" or "--session" or "--session-id"))
                 throw new CliException($"不支援的 report 選項：{argument}");
             if (!seen.Add(option)) throw new CliException($"重複選項：{argument}");
             if (option == "--dry-run")
@@ -77,14 +82,20 @@ internal static class ReportCommand
                 case "--scope": scope = args[index]; break;
                 case "--task": task = args[index]; break;
                 case "--input": input = args[index]; break;
+                case "--actor": actor = args[index]; break;
+                case "--session": session = args[index]; break;
+                case "--session-id": sessionId = args[index]; break;
             }
         }
         if ((folder is null) == (scope is null))
             throw new CliException("請指定 folder 或 --scope，兩者不可同時指定。");
-        if (task is not null && action != "get") throw new CliException("--task 僅適用於 report get。");
-        if ((input is not null || dryRun) && action != "apply")
-            throw new CliException("--input 與 --dry-run 僅適用於 report apply。");
+        if (task is not null && action is not ("get" or "next")) throw new CliException("--task 僅適用於 report get 與 report next。");
+        if (input is not null && action != "apply") throw new CliException("--input 僅適用於 report apply。");
+        if (dryRun && action is not ("apply" or "next")) throw new CliException("--dry-run 僅適用於 report apply 與 report next。");
         if (action == "apply" && input is null) throw new CliException("report apply 需要 --input <file|->。");
+        if ((actor ?? session ?? sessionId) is not null && action != "next")
+            throw new CliException("--actor、--session、--session-id 僅適用於 report next；apply 寫在請求 JSON 裡。");
+        if (action == "next" && actor is null) throw new CliException("report next 需要 --actor <tool>（例如 claude、codex）。");
         folder = scope is null ? folder : store.Resolve(scope);
         try
         {
@@ -95,7 +106,7 @@ internal static class ReportCommand
         {
             throw new CliException($"無效的 report folder：{error.Message}");
         }
-        return new Request(action, folder, task, input, dryRun);
+        return new Request(action, folder, task, input, dryRun, actor, session, sessionId);
     }
 
     private static async Task<string> ReadInputAsync(string path, CancellationToken cancellationToken)
@@ -120,6 +131,59 @@ internal static class ReportCommand
             RequireSessionForAcceptanceItems(request.Folder, input);
             RequireNextTargetsToTakeUp(request.Folder, input);
         }
+        var (exitCode, stdout) = await RunBackendAsync(request, input, cancellationToken);
+        Console.WriteLine(request.Action == "get" && exitCode == 0 ? WithDerivedStates(request.Folder, stdout) : stdout);
+        return exitCode;
+    }
+
+    /// <summary>
+    ///   <c>report next</c>: writes the derived Next (<see cref="NextMarker.Derive"/>) through the
+    ///   ordinary apply path, so revision checks and item activity apply. Refuses to replace an
+    ///   effective or in-progress marker; <c>--task</c> narrows the choice to one card.
+    /// </summary>
+    private static async Task<int> DeriveNextAsync(Request request, CancellationToken cancellationToken)
+    {
+        var (getExit, getOutput) = await RunBackendAsync(request with { Action = "get", Task = null, DryRun = false }, null, cancellationToken);
+        if (getExit != 0)
+        {
+            Console.WriteLine(getOutput);
+            return getExit;
+        }
+        if (System.Text.Json.Nodes.JsonNode.Parse(getOutput) is not System.Text.Json.Nodes.JsonObject root
+            || root["report"] is not System.Text.Json.Nodes.JsonObject report
+            || report["scope_id"]?.GetValue<string>() is not { } scope)
+            throw new InvalidOperationException("Report backend returned no report.");
+        var resolver = new ItemStateResolver(request.Folder, report);
+        if (NextMarker.Keeps(report, scope, resolver) is { } kept) throw new CliException(kept);
+        if (request.Task is not null
+            && (report["tasks"] as System.Text.Json.Nodes.JsonArray)?.OfType<System.Text.Json.Nodes.JsonObject>()
+                .Any(task => task["id"]?.GetValue<string>() == request.Task) != true)
+            throw new CliException($"找不到任務「{request.Task}」。");
+        var target = NextMarker.Derive(report, scope, resolver, request.Task)
+            ?? throw new CliException(request.Task is null
+                ? "沒有可設為 Next 的子項：每一項都已完成、等待中、執行中或封存。"
+                : $"任務「{request.Task}」裡沒有可設為 Next 的子項。");
+        var apply = new System.Text.Json.Nodes.JsonObject
+        {
+            ["version"] = "1",
+            ["expected_revision"] = root["revision"]?.DeepClone(),
+            ["actor"] = request.Actor,
+            ["operations"] = new System.Text.Json.Nodes.JsonArray(new System.Text.Json.Nodes.JsonObject
+            {
+                ["op"] = "next.set",
+                ["task_id"] = target["task_id"]?.DeepClone(),
+                ["item_id"] = target["item_id"]?.DeepClone(),
+            }),
+        };
+        if (request.Session is not null) apply["session"] = request.Session;
+        if (request.SessionId is not null) apply["session_id"] = request.SessionId;
+        var (exitCode, stdout) = await RunBackendAsync(request with { Action = "apply", Task = null }, apply.ToJsonString(), cancellationToken);
+        Console.WriteLine(stdout);
+        return exitCode;
+    }
+
+    private static async Task<(int ExitCode, string Output)> RunBackendAsync(Request request, string? input, CancellationToken cancellationToken)
+    {
         var script = FindScript();
         var start = new ProcessStartInfo
         {
@@ -169,10 +233,7 @@ internal static class ReportCommand
                 || process.ExitCode is not (0 or 2 or 3 or 4)
                 || ok.GetBoolean() != (process.ExitCode == 0))
                 throw new InvalidOperationException("Report backend returned an invalid JSON result or exit code.");
-            Console.WriteLine(request.Action == "get" && process.ExitCode == 0
-                ? WithDerivedStates(request.Folder, stdout)
-                : root.GetRawText());
-            return process.ExitCode;
+            return (process.ExitCode, process.ExitCode == 0 && request.Action == "get" ? stdout : root.GetRawText());
         }
         finally
         {
@@ -346,5 +407,6 @@ internal static class ReportCommand
         return exitCode;
     }
 
-    private sealed record Request(string Action, string Folder, string? Task, string? Input, bool DryRun);
+    private sealed record Request(string Action, string Folder, string? Task, string? Input, bool DryRun,
+        string? Actor = null, string? Session = null, string? SessionId = null);
 }

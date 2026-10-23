@@ -10,10 +10,9 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
 
 - **Checklist 延後排序（2026-10-24，使用者要求）。** `ChecklistApp.svelte` 透過 `CardList.svelte` 的 `onSelectionChange` 在選取期間保留卡片與檢查項目的顯示位置，結果與進度仍即時更新；取消選取（點外部、焦點移出、Escape 或視窗失焦）才重套排序與篩選。桌面與瀏覽器 bundle 均已重建，`Publish.cmd --nopause --restart` 成功。此輪 34 項相關 Node 測試通過；尚未實際操作瀏覽器確認連續勾選手感。
 
-- **Next 改為讀取時推算（2026-10-24，使用者決定）。** Viewer 不再寫入推算的 Next（刪除 `advanceStaleNext`）；完成、等待中、執行中都算失效，Viewer 與 `report get` 的 `next_effective`（C# `NextMarker`，與 `next-marker.js` 同一規則：卡依優先級、卡內最高子項優先級、原順序）顯示推算的下一項，存著的 `next` 不動，釋放後自動恢復。`next.set`（CLI 預先檢查）與長按都拒絕已完成、封存、等待中、執行中的子項。技能：Settle Next 讀 `next_effective`，執行中的 Next 不改寫。設計：[NextMarkerPlan](Documentation/NextMarkerPlan.md) 第 3、4、11 點。
-  - 順手修正：`report apply --input -` 讀 stdin 時沒去掉 BOM，C# 的預先檢查（含「含 [acceptance] 的子項寫入要帶 session_id」）在 PowerShell 管線輸入時會靜默略過；已去掉 BOM。
-  - 已驗證：Node 652 中 648 通過（4 項既有格式失敗）、Checklist 366 checks、CLI 整合測試、Python report CLI 23 通過；Debug CLI 實測 `next_effective` 與封存子項 `next.set` 被拒（檔案與 stdin 兩種輸入）；Viewer 開啟後 report.json 未被改寫。
-  - 未處理：UnityExtension 的 report.json 仍有舊 Viewer 自動推進留下的未提交 `next`（→ `write-back-test`），由使用者決定提交或還原。
+- **Next 不再自動補位；agent 用 `report next` 選擇性推算（2026-10-24，使用者決定）。** Viewer 只顯示仍有效的存值（完成、等待中、執行中都算失效，失效時不顯示），不推算也不寫入；`report get` 的 `next_effective` 同樣只回有效存值。推算規則在 C# `NextMarker.Derive`，入口 `task-progress.exe report next <folder>|--scope <id> --actor <tool> [--task <card>] [--session …] [--session-id …] [--dry-run]`：經一般 apply 路徑寫入 `next.set`，有效或執行中的 Next 拒絕改寫。`next.set` 與長按拒絕已完成、封存、等待中、執行中的子項。原因：各 scope 出現 Viewer 自動推進留下、沒有價值的 report.json 改動（UX 的 `report.json` 仍有一筆 01:27 的這類未提交改動，來自載入舊版 app.js 的分頁，未動，由使用者決定）。設計：[NextMarkerPlan](Documentation/NextMarkerPlan.md) 第 3、4、11 點。
+  - 順手修正（2026-10-24）：`report apply --input -` 讀 stdin 時去掉 BOM；先前 PowerShell 管線輸入會讓 C# 預先檢查（含「含 [acceptance] 的子項寫入要帶 session_id」）靜默略過。`decisions request` 有同樣問題，記在 `decision-example` 卡的「問題：」子項。
+  - 已驗證：Node 651 中 647 通過（4 項既有格式失敗）、Checklist 372 checks、CLI 整合測試、Python report CLI 23 通過；Debug CLI 實測 `report next`：有效 Next 拒絕改寫、缺 `--actor` 拒絕、在 example 複本寫入推算的 `pages-deployment › build-deployment-artifact`。
 
 - **`/task-progress-items plan all`（2026-10-23，使用者要求）。** 對 `scope list` 的每個 scope 依序做 `plan`，各自設定 Next；讀不到或有其他 session 未 commit 的 report／decisions／checklists 時略過並說明；各 repo 依路徑分別 commit；最後彙整成一份報告。只有 `plan` 接受 `all`。寫在 task-progress-items〈Plan all scopes〉與 AcceptanceChainPlan〈命令〉；尚未實際執行過。
 
@@ -576,7 +575,7 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
 
 ## Open decisions
 
-- [同一 repo 的多 agent 平行執行／尚未決定](Documentation/WorktreeReportPlan.md#尚未決定)：目標 2026-10-24 對齊為平行執行；決策檔 [worktree-report.decisions](decisions/worktree-report.decisions) 第 1～5 題已答並寫入計畫〈已決定〉，第 6～10 題（階段順序、檔案範圍、誰合併、分派期間認領、單一檔案產物）待答。決定前不實作。
+- [同一 repo 的多 agent 平行執行／尚未決定](Documentation/WorktreeReportPlan.md#尚未決定)：目標 2026-10-24 對齊為平行執行；決策檔 [worktree-report.decisions](decisions/worktree-report.decisions) 第 1～10 題已答並寫入計畫〈已決定〉；第 11 題（Unity Editor、MCP、固定 port 這類共用資源怎麼排）待答。
 
 - [NextMarkerPlan／尚未決定](Documentation/NextMarkerPlan.md#尚未決定)：設定 Next 的控制項形狀（三個候選），實作前要定。
 

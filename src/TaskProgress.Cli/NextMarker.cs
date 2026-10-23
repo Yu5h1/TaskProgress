@@ -4,10 +4,10 @@ using System.Text.Json.Nodes;
 namespace TaskProgress;
 
 /// <summary>
-///   The scope's Next as <c>report get</c> reports it, by the same rule as the Viewer's
-///   <c>next-marker.js</c> (Documentation/NextMarkerPlan.md, decision 3). A marker is effective
-///   while its item still needs someone to take it up; otherwise the first such item is derived.
-///   Deriving writes nothing, and a cleared marker yields no Next.
+///   The scope's Next (Documentation/NextMarkerPlan.md, decision 3). A stored marker is effective
+///   while its item still needs someone to take it up, by the same rule as the Viewer's
+///   <c>next-marker.js</c>. Nothing derives a Next on its own: <see cref="Derive"/> runs only
+///   when an agent asks for it through <c>report next</c>.
 /// </summary>
 internal static class NextMarker
 {
@@ -18,27 +18,59 @@ internal static class NextMarker
     };
 
     /// <summary>
-    ///   Returns <c>{ task_id, item_id, source }</c> with source <c>stored</c> or
-    ///   <c>derived</c>, or null when the marker is cleared or nothing can be taken up.
+    ///   The stored marker as <c>{ task_id, item_id }</c> while it is effective; null when it is
+    ///   cleared or its item no longer needs taking up.
     /// </summary>
     internal static JsonObject? Effective(JsonObject report, string scope, ItemStateResolver resolver)
     {
-        if (report["next"] is not JsonObject stored) return null;
-        var tasks = (report["tasks"] as JsonArray)?.OfType<JsonObject>().ToList() ?? [];
-        var taskId = Text(stored["task_id"]);
-        var itemId = Text(stored["item_id"]);
-        var task = tasks.FirstOrDefault(candidate => Text(candidate["id"]) == taskId);
-        if (task is not null && Actionable(task)
-            && Pending(task).FirstOrDefault(item => Text(item["id"]) == itemId) is { } marked
-            && TakesUp(scope, marked, resolver))
-            return Marker(taskId!, itemId!, "stored");
+        var marked = StoredItem(report, out var taskId, out var itemId);
+        return marked is not null && TakesUp(scope, marked, resolver) ? Marker(taskId!, itemId!) : null;
+    }
 
-        foreach (var candidate in RankTasks(tasks).Where(Actionable))
+    /// <summary>
+    ///   Why <c>report next</c> must not replace the stored marker, or null when it may: an
+    ///   effective marker stays, and so does one whose item is only in progress.
+    /// </summary>
+    internal static string? Keeps(JsonObject report, string scope, ItemStateResolver resolver)
+    {
+        var marked = StoredItem(report, out _, out var itemId);
+        if (marked is null) return null;
+        if (TakesUp(scope, marked, resolver)) return $"Next「{itemId}」仍有效，不改寫；要換請用 next.set。";
+        return resolver.StateOf(scope, marked) == ItemStates.InProgress
+            ? $"Next「{itemId}」執行中，不改寫；釋放後它會恢復。"
+            : null;
+    }
+
+    /// <summary>
+    ///   The first item that needs taking up, by card priority, the card's highest item priority
+    ///   and source order, then item priority; within one card when <paramref name="taskId"/> is
+    ///   given. Null when nothing qualifies.
+    /// </summary>
+    internal static JsonObject? Derive(JsonObject report, string scope, ItemStateResolver resolver, string? taskId = null)
+    {
+        var tasks = (report["tasks"] as JsonArray)?.OfType<JsonObject>().ToList() ?? [];
+        foreach (var candidate in RankTasks(tasks).Where(Actionable)
+                     .Where(task => taskId is null || Text(task["id"]) == taskId))
         {
             var first = RankItems(Pending(candidate)).FirstOrDefault(item => TakesUp(scope, item, resolver));
-            if (first is not null) return Marker(Text(candidate["id"])!, Text(first["id"])!, "derived");
+            if (first is not null) return Marker(Text(candidate["id"])!, Text(first["id"])!);
         }
         return null;
+    }
+
+    private static JsonObject? StoredItem(JsonObject report, out string? taskId, out string? itemId)
+    {
+        taskId = null;
+        itemId = null;
+        if (report["next"] is not JsonObject stored) return null;
+        taskId = Text(stored["task_id"]);
+        itemId = Text(stored["item_id"]);
+        var id = taskId;
+        var task = (report["tasks"] as JsonArray)?.OfType<JsonObject>().FirstOrDefault(candidate => Text(candidate["id"]) == id);
+        var item = itemId;
+        return task is not null && Actionable(task)
+            ? Pending(task).FirstOrDefault(entry => Text(entry["id"]) == item)
+            : null;
     }
 
     /// <summary>
@@ -106,6 +138,6 @@ internal static class NextMarker
     private static string? Text(JsonNode? node) =>
         node is JsonValue value && value.TryGetValue<string>(out var text) ? text : null;
 
-    private static JsonObject Marker(string taskId, string itemId, string source) =>
-        new() { ["task_id"] = taskId, ["item_id"] = itemId, ["source"] = source };
+    private static JsonObject Marker(string taskId, string itemId) =>
+        new() { ["task_id"] = taskId, ["item_id"] = itemId };
 }

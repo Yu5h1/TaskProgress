@@ -10,7 +10,7 @@ task-progress.exe report validate "C:\Project"
 task-progress.exe report get --scope project
 ```
 
-`get` 回傳 `revision`，局部讀取仍使用整組來源的 revision。每個物件子項另附 `derived_state`；根層另附 `next_effective`（`task_id`、`item_id`、`source`：`stored` 為存著且有效的 Next，`derived` 為失效時推算的下一項；`next` 被清除時為 null），與 Viewer 顯示的 Next 相同。`developer` 是對應 overlay，缺少時為 null。
+`get` 回傳 `revision`，局部讀取仍使用整組來源的 revision。每個物件子項另附 `derived_state`；根層另附 `next_effective`（`task_id`、`item_id`）：存著的 Next 仍有效時就是它，失效或清除時為 null，與 Viewer 顯示的 Next 相同。`developer` 是對應 overlay，缺少時為 null。
 
 ## 更新卡片及子項
 
@@ -118,7 +118,13 @@ task-progress.exe report apply "C:\Project" --input changes.json
 ]
 ```
 
-子項完成、等待中或待使用者後，`next` 仍留在檔案裡；Viewer 與評估把它視為失效並退回推算，下一次 `next.set` 取代它。
+子項完成、等待中或執行中時，`next` 仍留在檔案裡但失效，Viewer 不顯示也不自行補位。要依規則補位時用 `report next`：
+
+```powershell
+task-progress.exe report next "C:\Project" --actor codex [--task feature-b] [--session <名稱>] [--session-id <id>] [--dry-run]
+```
+
+它讀取目前 revision，依 NextMarkerPlan 第 3 點的規則挑出第一個未完成、不在等待、沒人在做的子項（`--task` 只在該卡內挑），再以一般 apply 路徑寫入 `next.set`，所以 revision 檢查與子項活動紀錄照常。Next 仍有效或只是執行中時拒絕改寫；沒有可挑的子項時回錯誤。
 
 ## 身分與認領
 

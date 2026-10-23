@@ -1,13 +1,11 @@
-// The scope's one Next marker: effective only while its item is unfinished and
-// waits on nobody, lifted above every card and item, falling back to the
-// derived next step. Design: Documentation/NextMarkerPlan.md.
+// The scope's one Next marker: shown only while its item still needs someone to
+// take it up, lifted above every card and item; the Viewer never derives one.
+// Design: Documentation/NextMarkerPlan.md.
 import test from "node:test";
 import assert from "node:assert/strict";
 
 import {
   clearNextMarker,
-  effectiveNext,
-  fallbackNext,
   liftNextItem,
   liftNextTask,
   nextRefusal,
@@ -36,14 +34,6 @@ test("the marker resolves only to an unfinished item that waits on nobody", () =
   assert.equal(resolveNext(null, list), null);
   list[1].pending_items[1].derivedState = "awaiting_user";
   assert.equal(resolveNext({ task_id: "card", item_id: "low" }, list)?.itemId, "low", "an item in the user's hands is still the scope's Next");
-});
-
-test("the derived next step is the first unfinished, non-waiting item by card order then priority", () => {
-  const list = tasks();
-  assert.equal(fallbackNext(list)?.itemId, "u1");
-  assert.equal(fallbackNext(list.slice(1))?.itemId, "mid", "waiting items are skipped, priority ranks the rest");
-  assert.equal(fallbackNext([list[2]]), null);
-  assert.equal(resolveNext({ task_id: "card", item_id: "done" }, list), null, "a stale marker resolves to nothing; effectiveNext shows the derived step");
 });
 
 test("the Next card and item lead, whatever their priority, and nothing else moves", () => {
@@ -87,21 +77,11 @@ test("an item someone is already working on is not the Next, and comes back when
   delete list[1].pending_items[2].status;
   list[1].pending_items[2].derivedState = "in_progress";
   assert.equal(resolveNext({ task_id: "card", item_id: "mid" }, list), null, "a bound item derived in progress");
-  assert.equal(fallbackNext(list.slice(1))?.itemId, "low", "the derived step skips it");
   list[1].pending_items[2].derivedState = "not_started";
-  assert.equal(effectiveNext({ task_id: "card", item_id: "mid" }, list)?.itemId, "mid", "the stored marker is effective again");
+  assert.equal(resolveNext({ task_id: "card", item_id: "mid" }, list)?.itemId, "mid", "the stored marker is effective again");
   list[1].pending_items[2].derivedState = "awaiting_acceptance";
   list[1].pending_items[2].status = "in_progress";
   assert.equal(resolveNext({ task_id: "card", item_id: "mid" }, list)?.itemId, "mid", "the derived state outranks the stored claim");
-});
-
-test("the shown Next is the stored marker, else the derived step, and nothing when cleared", () => {
-  const list = tasks();
-  assert.deepEqual(effectiveNext({ task_id: "card", item_id: "low" }, list) && [effectiveNext({ task_id: "card", item_id: "low" }, list).itemId, effectiveNext({ task_id: "card", item_id: "low" }, list).derived], ["low", false]);
-  const stale = effectiveNext({ task_id: "card", item_id: "done" }, list);
-  assert.deepEqual([stale.itemId, stale.derived], ["u1", true]);
-  assert.equal(effectiveNext(undefined, list), null, "a cleared marker shows no Next");
-  assert.equal(fallbackNext([...list].reverse())?.itemId, "u1", "the derived step follows priority, not the order the view passes");
 });
 
 test("a press on a row the Report shows as done, waiting or in progress is refused", () => {
@@ -110,4 +90,11 @@ test("a press on a row the Report shows as done, waiting or in progress is refus
   assert.equal(nextRefusal(report, { taskId: "card", itemId: "open", derivedState: "waiting" }), "等待中的子項目不能設為 Next。");
   assert.equal(nextRefusal(report, { taskId: "card", itemId: "open", derivedState: "done" }), "已完成的子項目不能設為 Next。");
   assert.equal(nextRefusal(report, { taskId: "card", itemId: "claimed", derivedState: "awaiting_acceptance" }), null);
+});
+
+test("an ineffective or cleared marker shows no Next; nothing is derived", () => {
+  const list = tasks();
+  assert.equal(resolveNext({ task_id: "card", item_id: "done" }, list), null, "a finished item");
+  assert.equal(resolveNext({ task_id: "card", item_id: "wait" }, list), null, "a waiting item");
+  assert.equal(resolveNext(undefined, list), null, "a cleared marker");
 });

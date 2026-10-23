@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-10-23T17:01:47.716453+00:00",
+  "updated_at": "2026-10-23T17:33:39.723110+00:00",
   "tasks": [
     {
       "id": "next-marker",
@@ -2785,7 +2785,7 @@
       "title": "同一 repo 的多 agent 平行執行",
       "status": "planned",
       "priority": 1,
-      "summary": "討論中：讓 agent 規劃出可平行的項目，交給不同 agent 在同一個 repo 同時執行並安全合併，過程中可在 Report 追蹤（使用者 2026-10-24 對齊）。已決定 5 點，待決 5 題；目標、已知問題、可行性與三階段在 [計畫](https://github.com/Yu5h1/TaskProgress/blob/main/Documentation/WorktreeReportPlan.md)；決定前不實作。",
+      "summary": "方向已定案、尚未實作：讓 agent 規劃出可平行的項目，交給不同 agent 在同一個 repo 同時執行並安全合併，過程中可在 Report 追蹤。已決定 10 點（含先做第 1 階段平行執行）；待決 1 題：Unity Editor 這類共用資源怎麼排。見 [計畫](https://github.com/Yu5h1/TaskProgress/blob/main/Documentation/WorktreeReportPlan.md)。",
       "pending_items": [
         {
           "id": "worktree-report-decisions",
@@ -2794,7 +2794,7 @@
             "scope_id": "task-progress",
             "task": "worktree-report"
           },
-          "title": "決定 [平行執行計畫](https://github.com/Yu5h1/TaskProgress/blob/main/Documentation/WorktreeReportPlan.md) 的待決題：1～5 已答（worktree 文件、歸屬、認領、雙版本、執行紀錄），6～10 待答（階段順序、檔案範圍、誰合併、分派期間認領、單一檔案產物）",
+          "title": "決定 [平行執行計畫](https://github.com/Yu5h1/TaskProgress/blob/main/Documentation/WorktreeReportPlan.md) 的待決題：1～10 已答；第 11 題待答（Unity Editor、MCP、固定 port 這類共用資源怎麼排）",
           "status": "planned",
           "priority": 1,
           "activity": [
@@ -2824,6 +2824,13 @@
               "actor": "claude",
               "at": "2026-10-23T17:01:47.716453+00:00",
               "session": "worktree-report 目標對齊",
+              "session_id": "8db3d9df-8d4e-461e-96c2-37ca30b33c56"
+            },
+            {
+              "event": "updated",
+              "actor": "claude",
+              "at": "2026-10-23T17:33:39.723110+00:00",
+              "session": "worktree-report 共用資源",
               "session_id": "8db3d9df-8d4e-461e-96c2-37ca30b33c56"
             }
           ]
