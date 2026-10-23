@@ -1,7 +1,7 @@
 import { requestedCardPin } from "./card-order.js";
 import { moveUnfinishedItem } from "./item-reorder.js";
 import { recordUserActivity } from "./item-activity.js";
-import { clearNextMarker, fallbackNext, liftNextTask, resolveNext, setNextMarker } from "./next-marker.js";
+import { clearNextMarker, fallbackNext, liftNextTask, nextRefusal, resolveNext, setNextMarker } from "./next-marker.js";
 import { SELECT_KEY_ATTRIBUTE, createItemSelection } from "./item-selection.js";
 import { isSelectionIgnoredTarget } from "./selection-input.js";
 import { parseReference, referenceTask, searchTask, searchTerms } from "./task-search.js";
@@ -1479,6 +1479,11 @@ async function reorderInPreview(command) {
  * automatic advance of a stale marker is not a step of theirs.
  */
 async function setNextInPreview({ taskId, itemId, clear, automatic = false }) {
+  const refusal = clear ? null : nextRefusal(state.persistedReport, { taskId, itemId });
+  if (refusal) {
+    actionNotice.show({ level: "warning", message: refusal });
+    return;
+  }
   await writeInPreview({
     build: (report) => recordUserActivity(report, clear ? clearNextMarker(report) : setNextMarker(report, { taskId, itemId })),
     staleMessage: "報告已被其他人更新，已重新載入；請再長按一次。",

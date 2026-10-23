@@ -304,7 +304,7 @@
                 {onModuleReorder}
                 leadItem={(lead && group.status === "planned" && index === 0) || item.id === nextItemId}
                 isNext={item.id === nextItemId}
-                onSetNext={!editing && group.status === "planned" && item.id && !item.legacy && item.status !== "archive" && item.status !== "done" ? onSetNext : null}
+                onSetNext={!editing && item.id && !item.legacy ? onSetNext : null}
                 {scopeId}
                 selection={editing ? null : selection}
                 reorder={(editing || reorderable) && group.status === "planned" && item.id && !item.legacy ? itemReorder(item, group.items, draggingId, dropTarget, armedId) : null}

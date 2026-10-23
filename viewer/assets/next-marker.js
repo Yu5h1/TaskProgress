@@ -70,13 +70,23 @@ export function liftNextItem(items, nextItemId) {
   return [items[index], ...items.slice(0, index), ...items.slice(index + 1)];
 }
 
+/** Why the item cannot become the Next, in words for the user; null when it can. */
+export function nextRefusal(report, { taskId, itemId }) {
+  const task = report?.tasks?.find((entry) => entry?.id === taskId);
+  if (!task) return `找不到任務「${taskId}」。`;
+  const item = [...(task.pending_items ?? []), ...(task.completed_items ?? [])]
+    .find((entry) => isObject(entry) && entry.id === itemId);
+  if (!item) return `找不到子項目「${itemId}」。`;
+  if (item.status === "archive") return "已封存的子項目不能設為 Next。";
+  if (item.status === "done" || !(task.pending_items ?? []).includes(item)) return "已完成的子項目不能設為 Next。";
+  return null;
+}
+
 /** A copy of the raw report with the marker set; the target must be an unfinished object item of that task. */
 export function setNextMarker(report, { taskId, itemId }) {
+  const refusal = nextRefusal(report, { taskId, itemId });
+  if (refusal) throw new Error(refusal);
   const next = structuredClone(report);
-  const task = next.tasks?.find((entry) => entry?.id === taskId);
-  if (!task) throw new Error(`找不到任務「${taskId}」。`);
-  const item = (task.pending_items ?? []).find((entry) => isObject(entry) && entry.id === itemId);
-  if (!item || item.status === "done" || item.status === "archive") throw new Error(`「${itemId}」不是待處理的子項目，不能設為 Next。`);
   next.next = { task_id: taskId, item_id: itemId };
   return next;
 }

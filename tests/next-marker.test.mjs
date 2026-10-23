@@ -9,6 +9,7 @@ import {
   fallbackNext,
   liftNextItem,
   liftNextTask,
+  nextRefusal,
   resolveNext,
   setNextMarker,
 } from "../viewer/assets/next-marker.js";
@@ -66,4 +67,14 @@ test("setting and clearing the marker edits a copy and validates the target", ()
   assert.equal(validateReport({ ...report, next: { task_id: "card" } }).length, 1, "both IDs are required");
   assert.equal(validateReport({ ...report, next: { task_id: "card", item_id: "low", extra: 1 } }).length, 1);
   assert.deepEqual(validateReport({ ...report, next: { task_id: "card", item_id: "gone" } }), [], "a stale target is derived, not refused");
+});
+
+test("a refused Next says why, for the warning popup", () => {
+  const report = { tasks: [{ id: "card", pending_items: [{ id: "open" }, { id: "shelved", status: "archive" }], completed_items: [{ id: "finished", status: "done" }] }] };
+  assert.equal(nextRefusal(report, { taskId: "card", itemId: "open" }), null);
+  assert.equal(nextRefusal(report, { taskId: "card", itemId: "shelved" }), "已封存的子項目不能設為 Next。");
+  assert.equal(nextRefusal(report, { taskId: "card", itemId: "finished" }), "已完成的子項目不能設為 Next。");
+  assert.match(nextRefusal(report, { taskId: "card", itemId: "gone" }), /找不到子項目/u);
+  assert.match(nextRefusal(report, { taskId: "none", itemId: "open" }), /找不到任務/u);
+  assert.throws(() => setNextMarker(report, { taskId: "card", itemId: "shelved" }), /已封存/u);
 });
