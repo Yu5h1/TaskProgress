@@ -117,7 +117,7 @@ clicked.
 
 A check that can run only after another item or another checklist's work item finishes has not
 failed: leave it `[ ]` and declare the wait in the bound Report item's `waits_for`
-([task-progress-report § Inline links](../task-progress-report/SKILL.md#inline-links-in-report-descriptions)).
+([task-progress-report § Maintain child items](../task-progress-report/SKILL.md#maintain-child-items)).
 An executor `[!]` sends the item to the user, and nothing lifts it when the waited work passes.
 
 The parent is `[x]` only when every required check is `[x]`, `[!]` when any check
