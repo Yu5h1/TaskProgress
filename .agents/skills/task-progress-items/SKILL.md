@@ -30,11 +30,22 @@ card or child item of the scope, resolved as § Resolve the target says.
 |---|---|
 | (none) | Same as `auto`: evaluate, do the direct work, execute and accept (user, 2026-10-23) |
 | `plan [target]` | Evaluate the scope, create items, list direct work and settle Next; run nothing. A card narrows it to that card. An item: report its `derived_state` and the command that acts on it; change nothing |
+| `plan all` | `plan` for every registered scope in turn (§ Plan all scopes); the only form that crosses scopes |
 | `<target>` | Same as `auto <target>`: a card narrows all of it to that card, an item skips evaluation and executes then accepts that item |
 | `<instruction>` | Write that one instruction as an item, then execute it in this session |
 | `run [target]` | Execution queue; a card narrows it to that card's items, an item to that item |
 | `accept [target]` | Acceptance queue, narrowed the same way |
 | `auto [target]` | Evaluate, do the direct work, execute and accept; a card narrows all of it to that card, an item skips evaluation and executes then accepts that item |
+
+### Plan all scopes
+
+`all` after `plan` names every scope in `task-progress.exe scope list`, never a card; no other verb
+takes it. Plan each scope exactly as `plan` does, one scope at a time, each with its own Next. A
+scope whose folder or report cannot be read, or whose repository has another session's uncommitted
+changes in its `report.json`, `decisions/` or `checklists/`, is skipped and named with the reason.
+Commit each scope's writes in its own repository, by path. End with one report: a section per
+scope in the § Queues and sessions report shape, then the scopes with nothing to do and the skipped
+ones.
 
 ### Resolve the target
 

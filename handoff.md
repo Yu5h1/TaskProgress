@@ -6,6 +6,8 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
 
 ## Current state (2026-09-29)
 
+- **`/task-progress-items plan all`（2026-10-23，使用者要求）。** 對 `scope list` 的每個 scope 依序做 `plan`，各自設定 Next；讀不到或有其他 session 未 commit 的 report／decisions／checklists 時略過並說明；各 repo 依路徑分別 commit；最後彙整成一份報告。只有 `plan` 接受 `all`。寫在 task-progress-items〈Plan all scopes〉與 AcceptanceChainPlan〈命令〉；尚未實際執行過。
+
 - **Agent 發布流程（2026-10-23，使用者要求）。** `Publish.cmd [--nopause] [--restart]`：先以 Winform TrayHost 新增的 `exit` 命令關閉 TaskProgress tray（與選單 Exit 同路徑），再 publish，`--restart` 成功後 `start --no-browser`。taskprogress-capabilities〈Publish and restart〉：只在 `Build/win-x64` 才生效的改動由 agent 直接發布，先告知「這次要重新建置 task-progress.exe，服務會短暫中斷，請等待重啟。」；關閉失敗請使用者從 tray Exit 一次，不得直接終止程序。README 已補參數。
   - 已驗證：服務執行中跑 `Publish.cmd --nopause --restart`，6 秒內 tray 結束、publish 成功、服務以新 PID 重新上線。EXE 這次內容未變，覆寫鎖定檔案的情況沒有實際發生。
 

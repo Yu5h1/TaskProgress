@@ -96,6 +96,7 @@ scope 預設是目前所在的專案，只有需要時才另外指定。
 ```text
 /task-progress-items                  等同 auto：評估、做掉直接做的工作、執行、驗收
 /task-progress-items plan [卡片或項目]   只評估：建立項目並列出直接做的工作，不執行；卡片只評估這張卡；項目回報它的狀態與下一步命令
+/task-progress-items plan all            對每個已註冊 scope 依序做 plan，各自設定 Next，最後彙整成一份報告；只有 plan 能用 all（使用者 2026-10-23）
 /task-progress-items <卡片或項目>       等同 auto <卡片或項目>
 /task-progress-items <指示>            把使用者說的一件事寫成項目，接著直接執行
 /task-progress-items run [卡片或項目]    執行
