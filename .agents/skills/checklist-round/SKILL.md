@@ -28,9 +28,12 @@ it alone is [agent-work-route § Hand verification over](../../../../.agents/ski
 Only project development work belongs in the checklist: product behavior, code,
 configuration, schemas, migrations, and the verification needed to prove those
 changes against the spec. Keep repository administration and record maintenance
-out of it — commits, staging, pushes, handoff/plan/report updates, recording
-results, and checks that validate only those status artifacts are normal
-closeout work, never checklist items.
+out of it — commits, staging, pushes, report updates, recording results, handoff
+next steps and gotchas, and checks that validate only those status artifacts are
+normal closeout work, never checklist items. Closeout never copies status into
+the plan or the handoff: per-check results stay in the checklist and progress in
+the report, and the others link them
+([AgentArtifactGuide § Single ownership](../../../../.agents/AgentArtifactGuide.md#single-ownership)).
 
 The current task's `.checklist` file is nevertheless part of the development commit's evidence.
 When a commit implements, verifies, fails, or supersedes a checklist item, stage
