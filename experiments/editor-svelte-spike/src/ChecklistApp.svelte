@@ -168,6 +168,16 @@
   }
 
   let cardList;
+  let selectedCard = null;
+  let heldItems = null;
+  let heldOrder = null;
+  function selectCard(id) {
+    if (id === selectedCard) return;
+    selectedCard = id;
+    if (id === null) { heldItems = null; heldOrder = null; return; }
+    heldItems = filterChecklistBySelection(visibleDocument(view.document), selection.selected).items;
+    heldOrder = cardList?.orderedIds(heldItems) ?? heldItems.map(item => item.id);
+  }
   let defaultExpanded = true;
   let expandedItems = {};
   $: disclosureKey = view?.document
@@ -247,7 +257,17 @@
     const stacked = { ...ordered, items: stackChecklistItems(ordered.items, { asWritten }) };
     return operableOnly ? filterOperableChecks(stacked) : stacked;
   }
-  $: visibleItems = view ? filterChecklistBySelection(visibleDocument(view.document), selection.selected).items : [];
+  // Keep the selected card and its checks in place while showing live results.
+  // Reapply sorting and filtering only after CardList clears its selection.
+  $: visibleItems = view ? heldItems
+    ? heldItems.flatMap(held => {
+      const item = view.document.items.find(candidate => candidate.id === held.id);
+      return item ? [{ ...item, checks: held.checks.flatMap(previous => {
+        const check = item.checks.find(candidate => candidate.index === previous.index);
+        return check ? [check] : [];
+      }) }] : [];
+    })
+    : filterChecklistBySelection(visibleDocument(view.document), selection.selected).items : [];
 
   // One marker per tagged check, cycling [ ] → [x] → [!] → [ ]. An agent's
   // acceptance record is only changed after the user confirms it.
@@ -325,6 +345,7 @@
 
     <section class="checklist-items" aria-label="Implementation checklist items">
       <CardList bind:this={cardList} expanded={defaultExpanded} onToggleAll={setAllExpanded} items={visibleItems}
+        {heldOrder} onSelectionChange={selectCard}
         hiddenCount={view.document.items.length - visibleItems.length} onShowHidden={showHiddenItems}
         allIds={orderChecklistItems(view.document, capsuleOrder).items.map(item => item.id)}
         storageKey={new URLSearchParams(location.search).has("scope")

@@ -2,7 +2,7 @@
   import IconChoice from "./IconChoice.svelte";
   import VisibilityMenu from "./VisibilityMenu.svelte";
   import { isCardVisible, chooseVisibility } from "../../../viewer/assets/card-visibility.js";
-  import { tick } from "svelte";
+  import { onMount, tick } from "svelte";
   import { displayCards, orderCards, moveVisibleCard, promotePin } from "../../../viewer/assets/card-order.js";
   export let items = [];
   export let allIds = [];
@@ -10,6 +10,7 @@
   export let pinEnabled = false;
   export let requestedPin = null;
   export let heldOrder = null;
+  export let onSelectionChange = null;
   // The card holding the scope's Next item: it leads every pin and its pin icon takes the next colour.
   export let nextId = null;
   // Hidden-by-filter count and the one action that resets every filter tag.
@@ -49,6 +50,23 @@
   $: movable = ordered.filter(item => isCardVisible(item.id, visibilityMode, hiddenIds) && !(pinEnabled && pinnedIds.includes(item.id)));
   let order = null;
   let selected = null;
+  $: onSelectionChange?.(selected);
+  onMount(() => {
+    if (!onSelectionChange) return;
+    const trackSelection = event => {
+      const card = event.target?.closest?.(".arrangeable-card");
+      if (!card || !root?.contains(card)) selected = null;
+    };
+    const clearSelection = () => { selected = null; };
+    document.addEventListener("pointerdown", trackSelection, true);
+    document.addEventListener("focusin", trackSelection, true);
+    window.addEventListener("blur", clearSelection);
+    return () => {
+      document.removeEventListener("pointerdown", trackSelection, true);
+      document.removeEventListener("focusin", trackSelection, true);
+      window.removeEventListener("blur", clearSelection);
+    };
+  });
   let armed = null;
   let dragging = null;
   let target = null;
@@ -134,7 +152,10 @@
     if (pinEnabled && (pinnedIds.includes(id) || pinnedIds.includes(targetId))) return;
     if (id === targetId) return;
     save(moveVisibleCard(allIds, order, movable.map(item => item.id), id, targetId, after));
+    // An intentional move replaces the held layout immediately.
+    onSelectionChange?.(null);
     selected = id;
+    onSelectionChange?.(selected);
     await tick();
     [...root.querySelectorAll("[data-card-id]")].find(button => button.dataset.cardId === String(id))?.focus();
   }
