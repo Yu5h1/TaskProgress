@@ -1,7 +1,7 @@
 {
   "schema_version": "1.1",
   "task_id": "worktree-report",
-  "updated_at": "2026-10-23T16:48:44.974389+00:00",
+  "updated_at": "2026-10-23T17:01:29.827494+00:00",
   "decisions": [
     {
       "id": "worktree-writes",
@@ -31,8 +31,16 @@
         "reason": "決策題卡住的是 agent 的進度，越早回答越好；驗收清單要對應確定的程式版本，合併後再勾比較不會驗錯版本。"
       },
       "allow_other": true,
-      "status": "pending",
-      "answer": null
+      "status": "decided",
+      "answer": {
+        "kind": "option",
+        "option_id": "decisions-only",
+        "confirmed_at": "2026-10-23T16:52:20.3948621+00:00"
+      },
+      "last_request": {
+        "request_id": "e4c64f8a-3c9f-44b2-a971-8fed337722dd",
+        "fingerprint": "c24a2b9c407d02a3e93b85e3787188f40d19bb0b5a982a9d431b08c89a2e316b"
+      }
     },
     {
       "id": "item-source",
@@ -57,8 +65,16 @@
         "reason": "改名不會斷，一個檔案一行，多個 agent 同時加檔案也不會互相衝突；檔名仍可隨意取。"
       },
       "allow_other": true,
-      "status": "pending",
-      "answer": null
+      "status": "decided",
+      "answer": {
+        "kind": "option",
+        "option_id": "file-header",
+        "confirmed_at": "2026-10-23T16:52:32.0177937+00:00"
+      },
+      "last_request": {
+        "request_id": "51ff56da-d254-4200-8bf1-30b78d0b330d",
+        "fingerprint": "92890b716c7e2e12f86850e3e77580177e43eacb090ce2558f1881d15e1e2392"
+      }
     },
     {
       "id": "claim-location",
@@ -83,8 +99,16 @@
         "reason": "不需要新機制、不會留下過期登記；殘留的 worktree 在 Report 上看得到，處理起來直接。"
       },
       "allow_other": true,
-      "status": "pending",
-      "answer": null
+      "status": "decided",
+      "answer": {
+        "kind": "option",
+        "option_id": "worktree-presence",
+        "confirmed_at": "2026-10-23T16:52:40.1855067+00:00"
+      },
+      "last_request": {
+        "request_id": "92149d5e-83fa-4386-a965-5cd2ed2cdc27",
+        "fingerprint": "cc685999e684b4bb8f78987a078cf886a58775da72a1518373c65f5619f4abfb"
+      }
     },
     {
       "id": "dual-version",
@@ -109,8 +133,16 @@
         "reason": "你要看的是現在做到哪；舊的那份在主線上，合併時自然會被取代。"
       },
       "allow_other": true,
-      "status": "pending",
-      "answer": null
+      "status": "decided",
+      "answer": {
+        "kind": "option",
+        "option_id": "worktree-when-different",
+        "confirmed_at": "2026-10-23T16:52:56.1895419+00:00"
+      },
+      "last_request": {
+        "request_id": "28f0a88c-fe6f-4fb5-b1ec-6b00d3e1fd7b",
+        "fingerprint": "2f0670d72ed6422ae6df14d81b79d25c14f31d3dd8813f415b8897d9f22e6374"
+      }
     },
     {
       "id": "acceptance-record",
@@ -135,35 +167,156 @@
         "reason": "可行性評估裡這一層成本最高；合併時寫入就能完全避開，他驗規則照舊。"
       },
       "allow_other": true,
+      "status": "decided",
+      "answer": {
+        "kind": "option",
+        "option_id": "on-merge",
+        "confirmed_at": "2026-10-23T16:53:27.5215682+00:00"
+      },
+      "last_request": {
+        "request_id": "ebefb52e-b3d0-42e5-b7b2-0299eb65b18f",
+        "fingerprint": "ba178171e84ebe0fc2e520a6d85c439760063080adca133e1d495f9028d94b30"
+      }
+    },
+    {
+      "id": "phases",
+      "version": 2,
+      "status": "pending",
+      "answer": null,
+      "last_request": {
+        "request_id": "7139c2d3-29a8-48d3-ae36-2d57c57d954d",
+        "fingerprint": "fdd5f6abab12857d8286de4690a39c48093cd578114a0926a27eb01a5ef8f9b6"
+      },
+      "question": "6. 平行執行計畫的三個階段，先做哪個？",
+      "context": "目標改為「讓不同 agent 在同一個 repo 平行執行」（2026-10-24 對齊）後，階段重新定義：\n1. 平行執行：放寬「每個 scope 一次一項」的規則、項目寫明會改哪些檔案並據此分組、分派者開 worktree、合併與產物重建規則。Report 暫時看不到 worktree 進度，由分派者回報。\n2. 追蹤：Report 唯讀顯示 worktree 進度，決策題可作答。\n3. worktree 內新增項目：不寫 report.json 也能新增項目。\n原本第 6 題的「先做只讀顯示」是舊定義，只做那一步仍無法平行，所以重問。",
+      "source_ref": "../Documentation/WorktreeReportPlan.md#尚未決定",
+      "options": [
+        {
+          "id": "parallel-first",
+          "label": "先做第 1 階段（平行執行），再做追蹤",
+          "description": "最快達成目標；主要是規則與流程，程式改動很少。平行期間要靠分派者回報進度。"
+        },
+        {
+          "id": "tracking-first",
+          "label": "先做第 2 階段（追蹤），再做平行",
+          "description": "先在 Report 看得到 worktree，再開始平行；達成目標較慢。"
+        },
+        {
+          "id": "both",
+          "label": "第 1、2 階段一起做",
+          "description": "平行開始時就看得到進度；一次的改動和驗證範圍較大。"
+        }
+      ],
+      "recommendation": {
+        "option_id": "parallel-first",
+        "reason": "目標是平行執行；第 1 階段就能讓兩個 agent 同時工作，追蹤可在實際跑過後再補。"
+      },
+      "allow_other": true
+    },
+    {
+      "id": "touched-paths",
+      "version": 1,
+      "question": "7. 項目怎麼說明自己會改哪些檔案，好判斷能不能平行？",
+      "context": "例子：Claude 規劃出 UX 的 Toggle 規格修正和 Motion 的補間文件兩項，交給兩個 agent 在各自的 worktree 同時做。\n風險：如果兩項其實都改到 UX 的同一份規格，平行做會在合併時衝突。",
+      "source_ref": "../Documentation/WorktreeReportPlan.md#尚未決定",
+      "options": [
+        {
+          "id": "paths-line",
+          "label": "在驗收清單開頭寫一行「Paths:」列出範圍",
+          "description": "規劃時就能比對、分組；漏寫的檔案要到合併才發現。"
+        },
+        {
+          "id": "planner-judges",
+          "label": "不寫下來，由規劃的 agent 當下判斷",
+          "description": "省一行，但判斷依據沒有留下，下一個 agent 無法核對。"
+        }
+      ],
+      "recommendation": {
+        "option_id": "paths-line",
+        "reason": "範圍寫在項目上，分組有依據、可以被檢查，也讓之後的 agent 知道哪些項目不能同時做。"
+      },
+      "allow_other": true,
       "status": "pending",
       "answer": null
     },
     {
-      "id": "phases",
+      "id": "merge-owner",
       "version": 1,
-      "question": "6. 要怎麼排實作？",
-      "context": "計畫分三階段：\n1. 只讀顯示：Report 看得到 worktree 裡、綁在既有項目上的驗收清單進度。\n2. 認領與依賴：worktree 即認領、撞到同一項時標示衝突、文件開頭宣告等待。\n3. 自動新增項目：worktree 不寫 report.json 也能新增項目。",
+      "question": "8. 各組做完後，由誰合併回主線？",
+      "context": "例子：Claude 規劃出 UX 的 Toggle 規格修正和 Motion 的補間文件兩項，交給兩個 agent 在各自的 worktree 同時做。\n合併時要依順序、重建產物、寫入執行紀錄，遇到衝突要交回去修。",
       "source_ref": "../Documentation/WorktreeReportPlan.md#尚未決定",
       "options": [
         {
-          "id": "phase-one-first",
-          "label": "先做第 1 階段，用實際 worktree 工作驗證後再決定 2、3",
-          "description": "每一步都能單獨交付；第 1 階段就能解決「看不到」的問題。"
+          "id": "dispatcher",
+          "label": "開 session 分派的那個 agent",
+          "description": "它知道有哪些組、順序和依賴，合併後接著寫紀錄、重建產物。"
         },
         {
-          "id": "all-phases",
-          "label": "三階段一起規劃並依序做完",
-          "description": "一次到位，但第 2、3 階段的細節要在沒有實際經驗前就定下來。"
+          "id": "acceptor",
+          "label": "各組的驗收者",
+          "description": "沿用現行「驗收者合併分支」的做法；但多組時誰先合併要另外協調。"
         },
         {
-          "id": "phase-one-only",
-          "label": "只做第 1 階段",
-          "description": "只要看得到就好，認領和自動新增先不做。"
+          "id": "user",
+          "label": "使用者自己合併",
+          "description": "最可控，但每次平行完都要你動手。"
         }
       ],
       "recommendation": {
-        "option_id": "phase-one-first",
-        "reason": "第 1 階段成本最低、效果最明顯；後兩階段的取捨用實際跑過的經驗來定比較準。"
+        "option_id": "dispatcher",
+        "reason": "合併順序取決於依賴，只有分派者同時看得到所有組；他驗仍在合併之後照常進行。"
+      },
+      "allow_other": true,
+      "status": "pending",
+      "answer": null
+    },
+    {
+      "id": "assignment-claim",
+      "version": 1,
+      "question": "9. 分派出去到合併回來之間，怎麼避免別的 agent 拿走同一項？",
+      "context": "例子：Claude 規劃出 UX 的 Toggle 規格修正和 Motion 的補間文件兩項，交給兩個 agent 在各自的 worktree 同時做。\n已決定第 3 題「worktree 存在即認領」要等 Report 能掃描 worktree（第 2 階段）才看得到；在那之前別的 agent 看不到。",
+      "source_ref": "../Documentation/WorktreeReportPlan.md#尚未決定",
+      "options": [
+        {
+          "id": "dispatcher-records",
+          "label": "分派者在主線 report 上先標記「已分派給某組」",
+          "description": "第 1 階段就能防止重複；主線 report 仍只有分派者在寫。"
+        },
+        {
+          "id": "wait-for-scan",
+          "label": "等第 2 階段 worktree 掃描",
+          "description": "不多寫一筆，但第 1 階段期間沒有保護。"
+        }
+      ],
+      "recommendation": {
+        "option_id": "dispatcher-records",
+        "reason": "平行一開始就需要防撞；主線只有分派者一個寫入者，不會產生衝突。"
+      },
+      "allow_other": true,
+      "status": "pending",
+      "answer": null
+    },
+    {
+      "id": "generated-artifacts",
+      "version": 1,
+      "question": "10. 像 Viewer bundle 這種單一檔案的產物怎麼處理？",
+      "context": "情況：兩組都改了 Viewer 的介面元件，各自重建 viewer-ui.js；兩份重建結果無法合併。",
+      "source_ref": "../Documentation/WorktreeReportPlan.md#尚未決定",
+      "options": [
+        {
+          "id": "rebuild-after-merge",
+          "label": "分支不提交產物，合併後在主線重建",
+          "description": "每組只提交原始檔；合併完成由合併者重建一次並提交。"
+        },
+        {
+          "id": "one-owner",
+          "label": "指定一組負責產物，其他組不碰相關原始檔",
+          "description": "不用重建，但會讓更多項目無法平行。"
+        }
+      ],
+      "recommendation": {
+        "option_id": "rebuild-after-merge",
+        "reason": "原始檔能合併、產物不能；在主線重建一次就好，也不會因此減少可平行的項目。"
       },
       "allow_other": true,
       "status": "pending",

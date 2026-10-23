@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-10-23T16:49:13.168465+00:00",
+  "updated_at": "2026-10-23T17:01:47.716453+00:00",
   "tasks": [
     {
       "id": "next-marker",
@@ -892,6 +892,21 @@
             "scope_id": "task-progress",
             "task": "decision-example"
           }
+        },
+        {
+          "id": "problem-decisions-stdin-bom",
+          "title": "問題：decisions request 從 stdin 讀入時沒去掉 BOM，PowerShell 管線送入會失敗（'0xEF' is an invalid start of a value）；report apply 的同一問題已在 5b56ef2 修正",
+          "status": "planned",
+          "priority": 2,
+          "activity": [
+            {
+              "event": "created",
+              "actor": "claude",
+              "at": "2026-10-23T17:01:47.716453+00:00",
+              "session": "worktree-report 目標對齊",
+              "session_id": "8db3d9df-8d4e-461e-96c2-37ca30b33c56"
+            }
+          ]
         }
       ],
       "completed_items": []
@@ -2767,10 +2782,10 @@
     },
     {
       "id": "worktree-report",
-      "title": "Report 讀取 worktree（同一 repo 多 agent 並行）",
+      "title": "同一 repo 的多 agent 平行執行",
       "status": "planned",
       "priority": 1,
-      "summary": "討論中：讓 Report 讀取 worktree 的工作狀態與項目依賴，worktree 裡的 agent 不必寫 main line 的 report.json。目標、已知問題、可行性評估與待決題在 [WorktreeReportPlan](https://github.com/Yu5h1/TaskProgress/blob/main/Documentation/WorktreeReportPlan.md)；決定前不實作。",
+      "summary": "討論中：讓 agent 規劃出可平行的項目，交給不同 agent 在同一個 repo 同時執行並安全合併，過程中可在 Report 追蹤（使用者 2026-10-24 對齊）。已決定 5 點，待決 5 題；目標、已知問題、可行性與三階段在 [計畫](https://github.com/Yu5h1/TaskProgress/blob/main/Documentation/WorktreeReportPlan.md)；決定前不實作。",
       "pending_items": [
         {
           "id": "worktree-report-decisions",
@@ -2779,7 +2794,7 @@
             "scope_id": "task-progress",
             "task": "worktree-report"
           },
-          "title": "決定 [WorktreeReportPlan](https://github.com/Yu5h1/TaskProgress/blob/main/Documentation/WorktreeReportPlan.md) 的 6 個待決題：worktree 文件能否寫入、項目來源、認領位置、雙版本顯示、他驗紀錄時機、是否分三階段",
+          "title": "決定 [平行執行計畫](https://github.com/Yu5h1/TaskProgress/blob/main/Documentation/WorktreeReportPlan.md) 的待決題：1～5 已答（worktree 文件、歸屬、認領、雙版本、執行紀錄），6～10 待答（階段順序、檔案範圍、誰合併、分派期間認領、單一檔案產物）",
           "status": "planned",
           "priority": 1,
           "activity": [
@@ -2802,6 +2817,13 @@
               "actor": "claude",
               "at": "2026-10-23T16:49:13.168465+00:00",
               "session": "worktree-report 待決題",
+              "session_id": "8db3d9df-8d4e-461e-96c2-37ca30b33c56"
+            },
+            {
+              "event": "updated",
+              "actor": "claude",
+              "at": "2026-10-23T17:01:47.716453+00:00",
+              "session": "worktree-report 目標對齊",
               "session_id": "8db3d9df-8d4e-461e-96c2-37ca30b33c56"
             }
           ]

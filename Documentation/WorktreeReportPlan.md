@@ -1,98 +1,105 @@
-# Report 讀取 worktree
+# 同一 repo 的多 agent 平行執行
 
 > Task ID: worktree-report
 >
-> 狀態：討論中。目標與已知問題由使用者提出（2026-10-23）；設計與可行性評估是待決草稿，決定前不實作。
+> 狀態：討論中。目標由使用者對齊（2026-10-24）；已決定的 5 點來自 [worktree-report.decisions](../decisions/worktree-report.decisions) 第 1～5 題（使用者 2026-10-24）；其餘設計是待決草稿，決定前不實作。
 >
-> 與其他文件的關係：綁定現況見 [DocumentBindingPlan](DocumentBindingPlan.md)；認領、釋放與他驗規則見 [AcceptanceChainPlan](AcceptanceChainPlan.md)；Next 見 [NextMarkerPlan](NextMarkerPlan.md)。
+> 與其他文件的關係：綁定見 [DocumentBindingPlan](DocumentBindingPlan.md)；認領、釋放與他驗見 [AcceptanceChainPlan](AcceptanceChainPlan.md)；Next 見 [NextMarkerPlan](NextMarkerPlan.md)。
 
 ## 系統階層與關係
 
 ```text
 TaskProgress
-└─ Report（一個已註冊 scope）
-   ├─ main line：report.json、checklists/、decisions/（現在唯一的來源）
-   ├─ worktree 掃描：git 記錄的同一 repo 其他工作目錄 ← 本計畫新增
-   │  └─ 依命名辨識的 checklist／decision → 顯示為該卡片的項目（唯讀）
+└─ 平行執行（一個已註冊 scope、一個 repo）
+   ├─ 規劃：評估把項目分成可平行的組（不碰同一批檔案）與必須依序的組
+   ├─ 分派：每組一個 agent、一個 worktree 與分支；同組依序，組與組同時進行
    ├─ 認領：同一項目同時只有一個 agent
-   └─ 依賴：waits_for（已存在）＋ worktree 項目自己宣告的等待
+   ├─ 追蹤：Report 唯讀顯示 worktree 進度，決策題可作答
+   ├─ 合併：依依賴順序合併回主線，合併時寫入執行紀錄，之後才他驗
+   └─ 共用資源：主線 report.json 只有一個寫入者；單一檔案產物合併後重建
         ↑
-   服務（127.0.0.1:8001，所有 worktree 與 main line 唯一共用的程序）
+   git（記錄所有 worktree）＋ 服務（127.0.0.1:8001，掃描 worktree）
 ```
 
-服務是掃描與認領的擁有者：每個 worktree 都是獨立資料夾，只有服務能同時看到全部。Viewer 與 `report get` 只讀服務整理後的結果。
+規劃決定哪些項目能同時做；分派讓它們在各自的 worktree 同時進行；合併把成果安全帶回主線。追蹤只是讓使用者在過程中看得到，不是平行本身的前提。
 
 ## 問題與目標
 
-**問題。** 多個 agent 在同一個 repo 工作時會互相衝突。改用 worktree 能分開工作目錄，但 Report 只讀 main line 的資料夾，worktree 裡的工作看不到、無法追蹤；而要讓它被看到，就得寫 main line 的 `report.json`，多個 agent 同時寫同一份檔案又會衝突。
+**問題。** 同一個 repo 多處同時修改會衝突，現在只能一次一個 agent 做一個 scope，阻礙發展。worktree 能分開工作目錄，但只靠它不夠：現行規則禁止同一 scope 平行；Report 看不到 worktree；兩個 worktree 改到同一個檔案，衝突只是延到合併時才發生。
 
-**目標。**
+**目標。** agent 規劃出可以平行的多個項目，交給不同 agent 在同一個 repo 同時執行，完成後安全合併回主線；過程中使用者能在 Report 上追蹤。
 
-1. Report 能讀取 worktree 的工作狀態，讓 agent 在 worktree 工作時，使用者仍能在 Report 上追蹤。
-2. Report 能表達項目之間的依賴關係，包括 worktree 裡的項目。
-3. 以上不需要 worktree 裡的 agent 寫 main line 的 `report.json`，使同一 repo 能同時有多個 agent 工作。
+**明確非目標。** 不支援另外 clone 的資料夾或其他電腦；不讓使用者在 Viewer 裡修改 worktree 的程式；會改到同一批檔案的項目不平行，依序做。
 
-**明確非目標。** 不支援另外 clone 的資料夾或其他電腦上的工作；不讓使用者在 Viewer 裡直接修改 worktree 裡的程式。
+## 已決定
+
+使用者 2026-10-24 在 [worktree-report.decisions](../decisions/worktree-report.decisions) 第 1～5 題選定：
+
+1. **worktree 文件。** Report 唯讀顯示 worktree 裡的驗收清單；只有決策題可以在 Report 作答，因為決策常在工作途中就需要。
+2. **項目歸屬。** worktree 裡的文件在開頭寫一行 `Report: <卡片代號>` 表示屬於哪張卡；檔名不承擔歸屬。
+3. **認領。** 某個 worktree 裡有某項目的文件，就算它認領了那一項；worktree 合併或刪除後認領自動消失。被丟著不管的 worktree 在 Report 上可見，由使用者清除。
+4. **同一份文件兩個版本。** 內容相同只算主線；不同時顯示 worktree 那份並標分支名。
+5. **執行紀錄。** worktree 階段只做執行；合併回主線時，由驗收者在 report.json 一次寫入建立、執行與釋放紀錄，之後才開始他驗。他驗規則本身不改。
 
 ## 已知問題
 
-由使用者提出：
-
-1. **認領。** 同一個項目不得有多個 agent 處理；項目所依賴的其他項目，也不得被別的 agent 同時處理。
-
-討論中發現：
-
-2. **worktree 裡的文件寫入。** 使用者在 Viewer 勾選 checklist、回答 decision，現在寫入 main line 的檔案。worktree 裡的檔案若可寫，可能和該 worktree 的 agent 同時修改同一份檔案；若唯讀，使用者在工作途中就無法回答決策題。
-3. **他驗與釋放依賴 report.json。** 「誰建立、誰執行、誰不能驗收」與「釋放之前的結果失效」都讀 `report.json` 子項的活動紀錄（CLI `ChecklistBinding`、`ItemStateResolver`；Viewer `document-binding.js`）。worktree 的 agent 不寫 report.json，這些紀錄就沒有地方寫。
-4. **同一份文件有兩個版本。** worktree 從 main line 分出時帶著舊檔；worktree 推進後，main 與 worktree 各有一份同名檔案，Report 要決定顯示哪一份。
-5. **由檔名推導項目。** 卡片改 ID 時檔名要跟著改；命名不能用 PowerShell 會當萬用字元的 `[` `]`。
-6. **合併時的轉換。** worktree 的項目合併回 main 後，要成為正式項目，ID 不能改變，Next、`waits_for` 才不會斷。
-7. **殘留的 worktree。** 被丟著不管的 worktree 會一直顯示為「有人在做」。
-8. **掃描成本與範圍。** 每次重新整理都執行 git 會拖慢 Viewer；非 git 的 scope、已刪除資料夾的 worktree（git 標為 prunable）要略過。
+1. **現行規則禁止平行。** task-progress-items〈Queues and sessions〉規定每個 scope 一次只開一個 session、做一項；agent-executable-items〈One writer per scope〉規定有 session 在寫一個 scope 時，不得把項目交給別人。不改這兩條，其他做得再多也不能平行。
+2. **衝突只是延到合併。** 兩組改到同一個原始碼檔案，合併時仍會衝突。要在規劃時依「會改哪些檔案」分組（agent-work-route〈Work alongside another agent〉：依能否合併分工，不依任務分工）。
+3. **單一檔案產物無法合併。** 例如 TaskProgress 的 `viewer/assets/viewer-ui.js` 與兩個 checklist／decision bundle、lockfile：兩個分支各自重建後無法合併。
+4. **誰合併、順序與衝突。** 多組完成後由誰合併、依什麼順序、合併衝突交給誰修。
+5. **規劃要能判斷平行。** 項目要能說明自己會改哪些檔案，評估才能分組；說明不準時，合併才會發現。
+6. **主線 report.json 的寫入者。** worktree 裡的 agent 不寫 report.json；平行期間的分派、Next、新項目要有一個主線上的寫入者。
+7. **分派到合併之間的認領。** 已決定 3 依靠 Report 掃描 worktree；在掃描做好之前，其他 agent 看不到哪些項目已被分派。
+8. **agent 能力差異。** Claude 桌面版能自己開 worktree session 分派；Codex、Antigravity 尚未記載，需要使用者手動開 session。
+9. **殘留 worktree、掃描成本與範圍。** 掃描不能拖慢 Viewer；非 git 的 scope、資料夾已刪除的 worktree（git 標為 prunable）要略過。
 
 ## 設計（草稿）
 
-以下皆為候選做法，對應的選擇列在〈尚未決定〉。
+以下對應〈尚未決定〉的選項；已決定的部分照〈已決定〉。
 
-- **找到 worktree。** 服務對每個已註冊 scope 執行 `git worktree list --porcelain`，用 scope 相對 repo 根目錄的路徑換算出每個 worktree 裡的同一個 scope。只在 `.git/worktrees/` 或 worktree 的 `checklists/`、`decisions/` 有變動時重新掃描。
-- **辨識參與的 worktree。** 不需要登記：worktree 的 `checklists/`、`decisions/` 裡有 `<卡片ID>--<名稱>.checklist`／`.decisions` 命名的檔案，就是在處理那張卡；沒有就是一般 worktree（例如只用來 build），不顯示。
-- **認領。** 一個 worktree 裡有某項目的檔案，就代表這個 worktree 認領了它；worktree 移除或合併，認領自動消失。兩個 worktree 出現同一項目的檔案時，Report 標示衝突。agent 開工前以 `report get` 查詢，結果要包含 worktree 的認領。
-- **依賴。** 既有的 `waits_for` 已能指向任何 scope 的子項與 checklist 工作項目。worktree 裡的新項目沒有 report.json 可寫，改在 checklist 檔頭宣告等待（例如 `Waits for: <scope> › <卡片> › <項目>`），由服務一併推算「等待中」。
-- **認領涵蓋依賴。** 已被認領項目所等待的項目，不再交給其他 agent 處理；`run` 的佇列與 Report 都要顯示這層關係。
-- **他驗與釋放。** worktree 階段只做執行；合併回 main line 時，由合併的人（驗收者）在 report.json 一次寫入建立、執行與釋放紀錄，之後才進入他驗。
+- **規劃。** 評估時每個項目在 checklist 開頭寫一行 `Paths:`，列出會改的檔案或資料夾範圍。兩個項目範圍重疊，或都會碰到同一個單一檔案產物，就放進同一組依序做；不重疊的分到不同組。跨組的依賴用既有 `waits_for`，被等的那組排前面。
+- **分派。** `run`／`auto` 每組開一個 session，各自一個 worktree 與分支；同組依序，組與組同時進行。主線上開 session 的那個 session（分派者）是平行期間唯一寫主線 report.json 的人。
+- **worktree 裡的寫入。** 只寫自己的程式與文件，不寫 report.json，不重建單一檔案產物。
+- **追蹤。** 服務以 `git worktree list` 找出同一 repo 的 worktree，依已決定 1、2、4 顯示；決策題可作答。
+- **合併。** 每組完成後依依賴順序合併回主線，在主線重建單一檔案產物，寫入執行紀錄（已決定 5），再進入他驗。合併衝突：停下回報，交回那一組在它的分支修正。
 
 ## 可行性評估
 
-**能做到，技術上沒有阻礙；成本集中在認領與他驗那一層。**
+**可行。第一個能交付「平行」的階段主要是規則與流程，程式改動很少；Report 讀 worktree 的成本在後面的階段。**
 
 | 部分 | 現況（量測） | 評估 |
 |---|---|---|
-| 找到 worktree | 服務已在多處以 `subprocess` 呼叫外部程式；git 在本機可用 | 低成本。要處理非 git scope、prunable、快取 |
-| 讀取 worktree 文件 | checklist 路由固定讀 `<report 資料夾>/checklists/<stem>.checklist`（`taskprogress_host.py`，1,948 行），decision 路由同樣 | 中等。路由要能指定 worktree，且只接受 git 列出的路徑，安全邊界要重新檢查 |
-| 顯示 worktree 項目 | Viewer 綁定與推算在 `document-binding.js`（527 行）、`item-state.js`（104 行） | 中等。項目要分「report.json 裡的」與「由檔案推導的」兩種來源，CLI `report get` 要同樣推導 |
-| 依賴 | `waits_for` 已支援跨 scope 子項與 checklist 工作項目，CLI 與 Viewer 同一規則 | 低到中。只需加入檔頭宣告的來源 |
-| 認領 | 認領記在 report.json 子項活動，CLI `check_claim` 擋衝突（`report_operations.py`） | 中等。worktree 認領是新來源，兩種要合併判斷 |
-| 他驗與釋放 | 驗收資格與結果失效都讀 report.json 活動（`ChecklistBinding.cs` 94 行、`ItemState.cs` 210 行） | **最高**。改動 AcceptanceChainPlan 的核心規則；建議以「合併時才寫入」避開，不改他驗本身 |
+| 放寬平行規則 | 兩條規則各一段文字 | 低。改寫 task-progress-items 與 agent-executable-items |
+| 依檔案分組 | 沒有前例；agent-work-route 已有「依能否合併分工」原則 | 中，有風險：`Paths:` 宣告可能漏寫，漏掉的檔案在合併時才衝突 |
+| 分派到 worktree | Claude 桌面版已能開 worktree session（本專案在用） | Claude 低；其他 agent 要使用者手動開 session |
+| 合併 | referenced-module-acceptance 已有「驗收者合併分支、刪除 worktree」的流程 | 中。沿用該流程，加上依賴順序與產物重建 |
+| 單一檔案產物 | TaskProgress CI 會檢查 bundle 是否過期 | 低到中。分支不提交產物、合併後在主線重建，CI 照常檢查主線 |
+| 他驗 | 已決定 5：合併時寫入 | 低。他驗規則不改 |
+| Report 讀 worktree | checklist／decision 路由只讀主線資料夾（`taskprogress_host.py`）；推算在 `document-binding.js`、`item-state.js` 與 C# `ItemStateResolver` | 中。路由要能指定 worktree；項目來源分主線與 worktree 兩種 |
+| 掃描 worktree | 服務已會呼叫外部程式；git 可用 | 低。處理非 git scope、prunable 與快取 |
 
 規模（依 agent-work-route〈Size the work in the spec〉）：
 
 ```
-Volume:    觸及服務、CLI、Viewer 約 6 個檔案、約 3,300 行的既有程式；新增掃描與推導約數百行
-Precedent: worktree 掃描與檔名推導是新做法；waits_for、綁定推算有既有實作可沿用
-Proof:     單元測試可涵蓋推導與認領；worktree 顯示需要瀏覽器實測
+Volume:    第 1 階段：2～3 份 skill 文字；第 2、3 階段：服務、CLI、Viewer 約 6 個檔案、約 3,300 行既有程式
+Precedent: 合併流程有先例；依檔案分組與 worktree 掃描是新做法
+Proof:     第 1 階段要實際讓兩個 agent 平行做兩個不重疊的項目並合併；第 2 階段需要瀏覽器實測
 ```
 
-**建議分三階段**，每一階段都能單獨交付：
+**階段**（取代原本的三階段；順序待〈尚未決定〉第 6 題）：
 
-1. **只讀顯示。** 服務掃描 worktree，Report 把 worktree 裡、已綁定在既有項目上的 checklist 進度顯示出來（唯讀，標示分支）。不改認領、不推導新項目。
-2. **認領與依賴。** worktree 即認領、衝突標示、檔頭宣告的等待；`report get` 與佇列一併採用。
-3. **由檔名推導項目。** worktree 不必寫 report.json 就能新增項目；合併時轉為正式項目。
+1. **平行執行。** 放寬兩條規則；`Paths:` 宣告與分組；分派者開 worktree session；合併、產物重建與衝突處理規則。Report 暫時看不到 worktree 進度，由分派者回報。
+2. **追蹤。** 服務掃描 worktree，Report 唯讀顯示進度，決策題可作答（已決定 1、4）。
+3. **worktree 內新增項目。** 以檔頭歸屬（已決定 2），worktree 即認領（已決定 3），worktree 不寫 report.json 也能新增項目。
+
+完成標準（第 1 階段）：兩個 agent 同時在兩個 worktree 各做一個 `Paths:` 不重疊的項目，依順序合併回主線且沒有衝突，產物在主線重建，執行紀錄在合併時寫入，之後他驗照常進行。
 
 ## 尚未決定
 
-1. **worktree 文件能不能從 Viewer 寫入。** 全部唯讀／只允許回答 decision／checklist 與 decision 都可寫。建議：只允許回答 decision，因為決策常在工作途中需要；checklist 勾選等合併後。
-2. **項目來源。** 由檔名推導（`<卡片ID>--<名稱>`）／由檔頭宣告（例如 `Report: <卡片ID>`）。建議：檔頭宣告，卡片改 ID 時不必改檔名；命名只作為快速篩選。
-3. **認領的位置。** worktree 存在即認領／另由服務維護一份有期限、需續約的登記。建議：worktree 存在即認領，不會留下過期登記；殘留的 worktree 在 Report 上可見，由使用者清除。
-4. **同名文件兩個版本時顯示哪一份。** 一律顯示 worktree 版並標示分支／main 與 worktree 並列。建議：內容相同只算 main；不同時顯示 worktree 版並標示分支。
-5. **他驗紀錄何時寫入。** 合併時由驗收者寫入 report.json／把活動紀錄搬進 checklist 檔案。建議：合併時寫入，不改他驗規則。
-6. **是否照三階段進行。** 建議先做第 1 階段，用實際的 worktree 工作驗證後再決定第 2、3 階段。
+[worktree-report.decisions](../decisions/worktree-report.decisions) 第 6～10 題：
+
+6. 階段順序（依新的三階段重寫）。
+7. 項目怎麼說明會改哪些檔案。
+8. 誰合併。
+9. 分派到合併之間怎麼避免別人拿走同一項。
+10. 單一檔案產物怎麼處理。

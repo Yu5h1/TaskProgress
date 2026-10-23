@@ -572,7 +572,7 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
 
 ## Open decisions
 
-- [Report 讀取 worktree／尚未決定](Documentation/WorktreeReportPlan.md#尚未決定)：worktree 文件能否寫入、項目來源、認領位置、雙版本顯示、他驗紀錄時機、是否分三階段（2026-10-23 討論草稿，含可行性評估；決定前不實作）。
+- [同一 repo 的多 agent 平行執行／尚未決定](Documentation/WorktreeReportPlan.md#尚未決定)：目標 2026-10-24 對齊為平行執行；決策檔 [worktree-report.decisions](decisions/worktree-report.decisions) 第 1～5 題已答並寫入計畫〈已決定〉，第 6～10 題（階段順序、檔案範圍、誰合併、分派期間認領、單一檔案產物）待答。決定前不實作。
 
 - [NextMarkerPlan／尚未決定](Documentation/NextMarkerPlan.md#尚未決定)：設定 Next 的控制項形狀（三個候選），實作前要定。
 
