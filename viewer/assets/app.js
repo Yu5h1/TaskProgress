@@ -1,7 +1,7 @@
 import { requestedCardPin } from "./card-order.js";
 import { moveUnfinishedItem } from "./item-reorder.js";
 import { recordUserActivity } from "./item-activity.js";
-import { clearNextMarker, currentNext, liftNextTask, setNextMarker } from "./next-marker.js";
+import { clearNextMarker, fallbackNext, liftNextTask, resolveNext, setNextMarker } from "./next-marker.js";
 import { SELECT_KEY_ATTRIBUTE, createItemSelection } from "./item-selection.js";
 import { isSelectionIgnoredTarget } from "./selection-input.js";
 import { parseReference, referenceTask, searchTask, searchTerms } from "./task-search.js";
@@ -1084,6 +1084,23 @@ function showHiddenEntries() {
   renderTasks();
 }
 
+/*
+ * Once per stale marker: when the item it names is done, waiting or in someone
+ * else's hands, write the derived next step as the new Next. A cleared marker
+ * (none stored) is left alone, so cancelling is final until the user or the
+ * next evaluation sets one.
+ */
+function advanceStaleNext(rankedTasks) {
+  const stored = state.report.next;
+  if (!stored || !state.editor.available || state.editor.editing || state.previewReorderBusy) return;
+  const key = JSON.stringify(stored);
+  if (state.nextAdvanceAttempted === key) return;
+  state.nextAdvanceAttempted = key;
+  const fallback = fallbackNext(rankedTasks);
+  if (!fallback) return;
+  setNextInPreview({ taskId: fallback.taskId, itemId: fallback.itemId, clear: false });
+}
+
 function renderNextStep(next) {
   const props = { next: null };
   if (next) {
@@ -1092,7 +1109,6 @@ function renderNextStep(next) {
     props.next = {
       title: next.item.displayTitle ?? next.item.title,
       cardTitle: next.task.title,
-      derived: next.derived,
       stateLabel: next.item.derivedStateLabel ?? null,
       href: `?${query.toString()}`,
     };
@@ -1112,12 +1128,13 @@ function renderTasks() {
     (task) => task.status,
     stableSortTasksByPriority,
   );
-  // The scope's Next marker leads every card while it is effective; the
-  // derived fallback only fills the card at the top and moves nothing.
-  const next = currentNext(state.report.next, rankedTasks);
-  const marked = next && !next.derived ? next : null;
+  // The scope's Next marker leads every card while it is effective. A marker
+  // whose item has finished or is waiting is advanced to the derived next step
+  // and written back, so the state moves on instead of showing a guess.
+  const marked = resolveNext(state.report.next, rankedTasks);
+  if (!marked) advanceStaleNext(rankedTasks);
   const orderedTasks = liftNextTask(rankedTasks, marked?.taskId ?? null);
-  renderNextStep(next);
+  renderNextStep(marked);
   // Filtering only hides, and it applies at both levels: a card survives when
   // it matches or when it still holds a matching item, and it then shows only
   // those items. Ordering above is untouched by any of it. A pointer card

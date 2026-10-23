@@ -6,10 +6,10 @@ import { stableSortTaskItemsByPriority, taskKind } from "./report-model.js";
  *
  * A marker is effective while the item it names is still an unfinished object
  * item of its task and nobody else is waited on for it. Once the item
- * completes, waits, or is in someone else's hands, the marker stays in the
- * file (who changed it is in the activity log) but stops ordering anything,
- * and the derived next step takes its place until the next evaluation resets
- * the marker.
+ * completes, waits, or is in someone else's hands, the Viewer advances the
+ * marker to the derived next step and writes it, so the state itself moves on;
+ * nothing is ever shown as "derived". A cleared marker stays cleared until the
+ * user or the next evaluation sets one.
  */
 export const INEFFECTIVE_STATES = Object.freeze([
   "done",
@@ -55,10 +55,6 @@ export function fallbackNext(orderedTasks) {
     if (item) return { taskId: task.id, itemId: item.id, task, item, derived: true };
   }
   return null;
-}
-
-export function currentNext(next, orderedTasks) {
-  return resolveNext(next, orderedTasks) ?? fallbackNext(orderedTasks);
 }
 
 /** The Next card leads every other card; pins are applied by the list afterwards and stay above it. */

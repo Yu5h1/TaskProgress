@@ -6,7 +6,6 @@ import assert from "node:assert/strict";
 
 import {
   clearNextMarker,
-  currentNext,
   fallbackNext,
   liftNextItem,
   liftNextTask,
@@ -42,10 +41,7 @@ test("the derived next step is the first unfinished, non-waiting item by card or
   assert.equal(fallbackNext(list)?.itemId, "u1");
   assert.equal(fallbackNext(list.slice(1))?.itemId, "mid", "waiting items are skipped, priority ranks the rest");
   assert.equal(fallbackNext([list[2]]), null);
-  const derived = currentNext({ task_id: "card", item_id: "done" }, list);
-  assert.equal(derived?.itemId, "u1");
-  assert.equal(derived?.derived, true, "an ineffective marker falls back and says so");
-  assert.equal(currentNext({ task_id: "card", item_id: "low" }, list)?.derived, false);
+  assert.equal(resolveNext({ task_id: "card", item_id: "done" }, list), null, "a stale marker is advanced by the host, never shown as derived");
 });
 
 test("the Next card and item lead, whatever their priority, and nothing else moves", () => {
