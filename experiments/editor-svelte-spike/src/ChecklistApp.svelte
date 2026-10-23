@@ -32,6 +32,7 @@
   import FilterStrip from "./FilterStrip.svelte";
   import InlineLinks from "./InlineLinks.svelte";
   import MarkerBox from "./MarkerBox.svelte";
+  import CopyIdButton from "./CopyIdButton.svelte";
   import ProgressSummary from "./ProgressSummary.svelte";
   import SaveBar from "./SaveBar.svelte";
   import ThemeControl from "./ThemeControl.svelte";
@@ -351,6 +352,7 @@
             contentId={`checklist-body-${item.id}`} label={item.title}>
           <header slot="header" class="checklist-item-header">
             <MarkerBox status={item.status} label={`工作項目 ${item.id}`} />
+            <CopyIdButton id={item.id} label={item.title} />
             <div>
               <h2>{item.id}. {item.title}</h2>
 

@@ -5,6 +5,7 @@
   import FocusShield from "./FocusShield.svelte";
   import DialogShell from "./DialogShell.svelte";
   import InlineLinks from "./InlineLinks.svelte";
+  import CopyIdButton from "./CopyIdButton.svelte";
   import HistoryTools from "./HistoryTools.svelte";
   import CardDisclosure from "./CardDisclosure.svelte";
   import FilterStrip from "./FilterStrip.svelte";
@@ -243,7 +244,7 @@
       <article class="checklist-item decision-card" class:decision-has-visibility={visibilityEnabled}>
         <CardDisclosure {visibilityEnabled} {visible} {onVisibleChange} expanded={overrides[item.id] ?? expanded}
           onToggle={value => disclose(item.id, value)} contentId={`body-${item.id}`} label={item.question}>
-          <header slot="header" class="checklist-item-header"><h2 id={`decision-${item.id}`} tabindex="-1">{item.question}</h2><span class="checklist-status">{item.status === "pending" ? "待決策" : "已決策"}</span></header>
+          <header slot="header" class="checklist-item-header"><CopyIdButton id={item.id} label={item.question} /><h2 id={`decision-${item.id}`} tabindex="-1">{item.question}</h2><span class="checklist-status">{item.status === "pending" ? "待決策" : "已決策"}</span></header>
           <div class="decision-content">
           {#if item.source_ref}
             {@const override = sourceOverrides[item.id]}

@@ -3087,9 +3087,48 @@ function _a(e, t) {
 	})), Y(e, i);
 }
 //#endregion
+//#region viewer/assets/item-reference.js
+async function va(e, t = globalThis.document) {
+	try {
+		return await t.defaultView.navigator.clipboard.writeText(e), !0;
+	} catch {
+		let n = t.createElement("textarea");
+		n.value = e, n.setAttribute("readonly", ""), n.style.position = "fixed", n.style.opacity = "0";
+		let r = t.activeElement;
+		t.body.append(n), n.select();
+		let i = t.execCommand("copy");
+		return n.remove(), r?.focus?.(), i;
+	}
+}
+//#endregion
+//#region experiments/editor-svelte-spike/src/CopyIdButton.svelte
+var ya = /* @__PURE__ */ J("<button type=\"button\"> </button>");
+function ba(e, t) {
+	He(t, !1);
+	let n = $(t, "id", 8), r = $(t, "label", 8), i = /* @__PURE__ */ L(""), a;
+	async function o(e) {
+		e.stopPropagation(), clearTimeout(a);
+		let t = await va(n());
+		R(i, t ? "已複製" : "無法複製"), a = setTimeout(() => {
+			R(i, "");
+		}, 1500);
+	}
+	Di();
+	var s = ya();
+	let c;
+	var l = z(s, !0);
+	N(s), V(() => {
+		c = si(s, 1, "task-id-copy", null, c, {
+			"is-done": W(i),
+			"is-copied": W(i) === "已複製"
+		}), Q(s, "aria-label", W(i) || `複製「${r()}」的卡片 ID`), Q(s, "title", W(i) || n()), X(l, W(i) === "已複製" ? "✓" : W(i) ? "✕" : "⧉");
+	}), q("click", s, o), Y(e, s), Ue();
+}
+Er(["click"]);
+//#endregion
 //#region experiments/editor-svelte-spike/src/HistoryTools.svelte
-var va = /* @__PURE__ */ J("<li class=\"history-cursor svelte-zh2lyg\" aria-current=\"step\">目前位置：保留紀錄的起點</li>"), ya = /* @__PURE__ */ J("<li class=\"history-cursor svelte-zh2lyg\" aria-current=\"step\">目前位置</li>"), ba = /* @__PURE__ */ J("<li><span class=\"svelte-zh2lyg\"> </span><small class=\"svelte-zh2lyg\"> </small></li> <!>", 1), xa = /* @__PURE__ */ J("<ol class=\"history-entries svelte-zh2lyg\" aria-label=\"操作紀錄\"><!> <!></ol>"), Sa = /* @__PURE__ */ J("<p class=\"history-note svelte-zh2lyg\">尚無操作紀錄。</p>"), Ca = /* @__PURE__ */ J("<p class=\"svelte-zh2lyg\">清除全部復原與重做紀錄？目前內容與已保存資料會保留，清除後無法復原這些紀錄。</p> <div class=\"history-actions svelte-zh2lyg\"><button type=\"button\" class=\"svelte-zh2lyg\">確認清除歷史</button> <button type=\"button\" class=\"svelte-zh2lyg\">取消</button></div>", 1), wa = /* @__PURE__ */ J("<button type=\"button\" class=\"svelte-zh2lyg\">清除歷史…</button>"), Ta = /* @__PURE__ */ J("<div class=\"history-panel svelte-zh2lyg\"><p class=\"history-note svelte-zh2lyg\">紀錄只保留在目前頁面，重新整理或離開後會清除。復原與重做仍依編輯器的保存方式處理。</p> <div class=\"history-actions svelte-zh2lyg\" role=\"group\" aria-label=\"逐步操作歷史\"><button type=\"button\" class=\"svelte-zh2lyg\">復原一步</button> <button type=\"button\" class=\"svelte-zh2lyg\">重做一步</button></div> <p class=\"history-position svelte-zh2lyg\" role=\"status\"> </p> <!> <div class=\"history-clear svelte-zh2lyg\"><!></div></div>"), Ea = /* @__PURE__ */ J("<div class=\"history-capsule svelte-zh2lyg\" role=\"group\" aria-label=\"編輯歷史\"><button type=\"button\" class=\"svelte-zh2lyg\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\" class=\"svelte-zh2lyg\"><path d=\"M9 4 4 9l5 5M4 9h9a7 7 0 0 1 0 14\" transform=\"translate(0 -2)\"></path></svg></button> <button type=\"button\" class=\"svelte-zh2lyg\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\" class=\"svelte-zh2lyg\"><path d=\"m15 4 5 5-5 5m5-5h-9a7 7 0 0 0 0 14\" transform=\"translate(0 -2)\"></path></svg></button> <button type=\"button\" aria-label=\"開啟歷史面板\" title=\"歷史面板\" aria-haspopup=\"dialog\" class=\"svelte-zh2lyg\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\" class=\"svelte-zh2lyg\"><rect x=\"3\" y=\"3\" width=\"18\" height=\"18\" rx=\"3\"></rect><path d=\"M8 3v18m4-12h5m-5 4h5m-5 4h3\"></path></svg></button></div> <!>", 1);
-function Da(e, t) {
+var xa = /* @__PURE__ */ J("<li class=\"history-cursor svelte-zh2lyg\" aria-current=\"step\">目前位置：保留紀錄的起點</li>"), Sa = /* @__PURE__ */ J("<li class=\"history-cursor svelte-zh2lyg\" aria-current=\"step\">目前位置</li>"), Ca = /* @__PURE__ */ J("<li><span class=\"svelte-zh2lyg\"> </span><small class=\"svelte-zh2lyg\"> </small></li> <!>", 1), wa = /* @__PURE__ */ J("<ol class=\"history-entries svelte-zh2lyg\" aria-label=\"操作紀錄\"><!> <!></ol>"), Ta = /* @__PURE__ */ J("<p class=\"history-note svelte-zh2lyg\">尚無操作紀錄。</p>"), Ea = /* @__PURE__ */ J("<p class=\"svelte-zh2lyg\">清除全部復原與重做紀錄？目前內容與已保存資料會保留，清除後無法復原這些紀錄。</p> <div class=\"history-actions svelte-zh2lyg\"><button type=\"button\" class=\"svelte-zh2lyg\">確認清除歷史</button> <button type=\"button\" class=\"svelte-zh2lyg\">取消</button></div>", 1), Da = /* @__PURE__ */ J("<button type=\"button\" class=\"svelte-zh2lyg\">清除歷史…</button>"), Oa = /* @__PURE__ */ J("<div class=\"history-panel svelte-zh2lyg\"><p class=\"history-note svelte-zh2lyg\">紀錄只保留在目前頁面，重新整理或離開後會清除。復原與重做仍依編輯器的保存方式處理。</p> <div class=\"history-actions svelte-zh2lyg\" role=\"group\" aria-label=\"逐步操作歷史\"><button type=\"button\" class=\"svelte-zh2lyg\">復原一步</button> <button type=\"button\" class=\"svelte-zh2lyg\">重做一步</button></div> <p class=\"history-position svelte-zh2lyg\" role=\"status\"> </p> <!> <div class=\"history-clear svelte-zh2lyg\"><!></div></div>"), ka = /* @__PURE__ */ J("<div class=\"history-capsule svelte-zh2lyg\" role=\"group\" aria-label=\"編輯歷史\"><button type=\"button\" class=\"svelte-zh2lyg\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\" class=\"svelte-zh2lyg\"><path d=\"M9 4 4 9l5 5M4 9h9a7 7 0 0 1 0 14\" transform=\"translate(0 -2)\"></path></svg></button> <button type=\"button\" class=\"svelte-zh2lyg\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\" class=\"svelte-zh2lyg\"><path d=\"m15 4 5 5-5 5m5-5h-9a7 7 0 0 0 0 14\" transform=\"translate(0 -2)\"></path></svg></button> <button type=\"button\" aria-label=\"開啟歷史面板\" title=\"歷史面板\" aria-haspopup=\"dialog\" class=\"svelte-zh2lyg\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\" class=\"svelte-zh2lyg\"><rect x=\"3\" y=\"3\" width=\"18\" height=\"18\" rx=\"3\"></rect><path d=\"M8 3v18m4-12h5m-5 4h5m-5 4h3\"></path></svg></button></div> <!>", 1);
+function Aa(e, t) {
 	He(t, !1);
 	let n = $(t, "id", 8, "history-tools"), r = $(t, "history", 24, () => ({
 		entries: [],
@@ -3106,7 +3145,7 @@ function Da(e, t) {
 		i() || !r().canClear || (s()(), R(u, !1));
 	}
 	Di();
-	var p = Ea(), m = pn(p), h = z(m), g = B(h, 2), _ = B(g, 2);
+	var p = ka(), m = pn(p), h = z(m), g = B(h, 2), _ = B(g, 2);
 	N(m);
 	var v = B(m, 2);
 	{
@@ -3124,25 +3163,25 @@ function Da(e, t) {
 			},
 			onClose: () => d(!1),
 			children: (e, t) => {
-				var n = Ta(), s = B(z(n), 2), c = z(s), l = B(c, 2);
+				var n = Oa(), s = B(z(n), 2), c = z(s), l = B(c, 2);
 				N(s);
 				var d = B(s, 2), p = z(d);
 				N(d);
 				var m = B(d, 2), h = (e) => {
-					var t = xa(), n = z(t), i = (e) => {
-						Y(e, va());
+					var t = wa(), n = z(t), i = (e) => {
+						Y(e, xa());
 					};
 					Z(n, (e) => {
 						K(r()), G(() => r().undoDepth === 0) && e(i);
 					}), Gr(B(n, 2), 1, () => (K(r()), G(() => r().entries)), (e) => e.id, (e, t) => {
-						var n = ba(), i = pn(n);
+						var n = Ca(), i = pn(n);
 						let a;
 						var o = z(i), s = z(o, !0);
 						N(o);
 						var c = B(o), l = z(c, !0);
 						N(c), N(i);
 						var u = B(i, 2), d = (e) => {
-							Y(e, ya());
+							Y(e, Sa());
 						};
 						Z(u, (e) => {
 							W(t), K(r()), G(() => W(t).applied && W(t).id === r().entries[r().undoDepth - 1]?.id) && e(d);
@@ -3151,18 +3190,18 @@ function Da(e, t) {
 						}), Y(e, n);
 					}), N(t), Y(e, t);
 				}, g = (e) => {
-					Y(e, Sa());
+					Y(e, Ta());
 				};
 				Z(m, (e) => {
 					K(r()), G(() => r().entries.length) ? e(h) : e(g, -1);
 				});
 				var _ = B(m, 2), v = z(_), y = (e) => {
-					var t = Ca(), n = B(pn(t), 2), a = z(n), o = B(a, 2);
+					var t = Ea(), n = B(pn(t), 2), a = z(n), o = B(a, 2);
 					N(n), V(() => a.disabled = (K(i()), K(r()), G(() => i() || !r().canClear))), q("click", a, f), q("click", o, () => {
 						R(u, !1);
 					}), Y(e, t);
 				}, b = (e) => {
-					var t = wa();
+					var t = Da();
 					V(() => t.disabled = (K(i()), K(r()), G(() => i() || !r().canClear))), q("click", t, () => {
 						R(u, !0);
 					}), Y(e, t);
@@ -3191,17 +3230,17 @@ function Da(e, t) {
 Er(["click"]);
 //#endregion
 //#region experiments/editor-svelte-spike/src/CardDisclosure.svelte
-var Oa = /* @__PURE__ */ J("<button type=\"button\" class=\"card-visibility-toggle card-toolbar-icon\"><!></button>"), ka = /* @__PURE__ */ J("<div><button type=\"button\" class=\"card-disclosure-toggle\"><span aria-hidden=\"true\"> </span></button> <!> <!></div> <div class=\"card-disclosure-body\"><!></div>", 1);
-function Aa(e, t) {
+var ja = /* @__PURE__ */ J("<button type=\"button\" class=\"card-visibility-toggle card-toolbar-icon\"><!></button>"), Ma = /* @__PURE__ */ J("<div><button type=\"button\" class=\"card-disclosure-toggle\"><span aria-hidden=\"true\"> </span></button> <!> <!></div> <div class=\"card-disclosure-body\"><!></div>", 1);
+function Na(e, t) {
 	He(t, !1);
 	let n = $(t, "visibilityEnabled", 8, !1), r = $(t, "visible", 8, !0), i = $(t, "onVisibleChange", 8, () => {}), a = $(t, "expanded", 8, !0), o = $(t, "contentId", 8), s = $(t, "label", 8, "卡片"), c = $(t, "onToggle", 8, () => {});
 	Di();
-	var l = ka(), u = pn(l);
+	var l = Ma(), u = pn(l);
 	let d;
 	var f = z(u), p = z(f), m = z(p, !0);
 	N(p), N(f);
 	var h = B(f, 2), g = (e) => {
-		var t = Oa(), n = z(t);
+		var t = ja(), n = z(t);
 		{
 			let e = /* @__PURE__ */ F(() => !r());
 			Hi(n, { get closed() {
@@ -3223,8 +3262,8 @@ function Aa(e, t) {
 Er(["click"]);
 //#endregion
 //#region experiments/editor-svelte-spike/src/HorizontalCapsuleStrip.svelte
-var ja = /* @__PURE__ */ J("<span></span>"), Ma = /* @__PURE__ */ J("<span class=\"time-chevron\">›</span>"), Na = /* @__PURE__ */ J("<button type=\"button\"><span> </span> <!> <!></button>"), Pa = /* @__PURE__ */ J("<div role=\"toolbar\"></div>");
-function Fa(e, t) {
+var Pa = /* @__PURE__ */ J("<span></span>"), Fa = /* @__PURE__ */ J("<span class=\"time-chevron\">›</span>"), Ia = /* @__PURE__ */ J("<button type=\"button\"><span> </span> <!> <!></button>"), La = /* @__PURE__ */ J("<div role=\"toolbar\"></div>");
+function Ra(e, t) {
 	He(t, !1);
 	let n = $(t, "items", 24, () => []), r = $(t, "className", 8, ""), i = $(t, "ariaLabel", 8, "可排序膠囊列"), a = $(t, "onActivate", 8, () => {}), o = $(t, "onReorder", 8, () => {}), s = /* @__PURE__ */ L(null), c = /* @__PURE__ */ L(null), l = !1, u = null, d = /* @__PURE__ */ L(null), f = /* @__PURE__ */ L();
 	async function p() {
@@ -3323,20 +3362,20 @@ function Fa(e, t) {
 	On(() => (K(n()), W(d)), () => {
 		n() && W(d) && p();
 	}), kn(), Di();
-	var D = Pa();
+	var D = La();
 	Gr(D, 5, n, (e) => e.id, (e, t) => {
 		let n = /* @__PURE__ */ F(() => (W(t), G(() => W(t).sortable !== !1)));
-		var r = Na(), i = z(r), a = z(i, !0);
+		var r = Ia(), i = z(r), a = z(i, !0);
 		N(i);
 		var o = B(i, 2), l = (e) => {
-			var n = ja();
+			var n = Pa();
 			V(() => si(n, 1, (W(t), G(() => `time-risk-dot ${W(t).dotClass ?? ""}`)))), Y(e, n);
 		};
 		Z(o, (e) => {
 			W(t), G(() => W(t).showDot) && e(l);
 		});
 		var u = B(o, 2), d = (e) => {
-			Y(e, Ma());
+			Y(e, Fa());
 		};
 		Z(u, (e) => {
 			W(t), G(() => W(t).showChevron) && e(d);
@@ -3376,19 +3415,19 @@ Er([
 ]);
 //#endregion
 //#region viewer/assets/filter-selection.js
-var Ia = "__default__";
-function La(e) {
+var za = "__default__";
+function Ba(e) {
 	return [...new Set(e)];
 }
-function Ra(e = []) {
-	let t = La(e);
+function Va(e = []) {
+	let t = Ba(e);
 	return Object.freeze({
 		tags: t,
 		selected: new Set(t)
 	});
 }
-function za(e, t, n, r = t) {
-	let i = Ra(t), a = Object.freeze({
+function Ha(e, t, n, r = t) {
+	let i = Va(t), a = Object.freeze({
 		tags: i.tags,
 		selected: new Set(r.filter((e) => i.tags.includes(e)))
 	});
@@ -3403,15 +3442,15 @@ function za(e, t, n, r = t) {
 		return a;
 	}
 }
-function Ba(e, t, n) {
+function Ua(e, t, n) {
 	if (e) try {
 		(n ?? globalThis.sessionStorage).setItem(e, JSON.stringify([...t.selected]));
 	} catch {}
 }
-function Va(e) {
+function Wa(e) {
 	return e.tags.length > 0 && e.tags.every((t) => e.selected.has(t));
 }
-function Ha(e, t) {
+function Ga(e, t) {
 	if (!e.tags.includes(t)) return e;
 	let n = new Set(e.selected);
 	return n.has(t) ? n.delete(t) : n.add(t), Object.freeze({
@@ -3419,8 +3458,8 @@ function Ha(e, t) {
 		selected: n
 	});
 }
-function Ua(e) {
-	let t = Va(e) ? /* @__PURE__ */ new Set() : new Set(e.tags);
+function Ka(e) {
+	let t = Wa(e) ? /* @__PURE__ */ new Set() : new Set(e.tags);
 	return Object.freeze({
 		tags: e.tags,
 		selected: t
@@ -3428,7 +3467,7 @@ function Ua(e) {
 }
 //#endregion
 //#region experiments/editor-svelte-spike/src/FilterStrip.svelte
-function Wa(e, t) {
+function qa(e, t) {
 	He(t, !1);
 	let n = /* @__PURE__ */ L(), r = /* @__PURE__ */ L(), i = /* @__PURE__ */ L(), a = /* @__PURE__ */ L(), o = $(t, "categories", 24, () => []), s = $(t, "order", 24, () => []), c = $(t, "selected", 24, () => /* @__PURE__ */ new Set()), l = $(t, "defaultLit", 8, !1), u = $(t, "defaultLabel", 8, "預設"), d = $(t, "ariaLabel", 8, "篩選"), f = $(t, "className", 8, ""), p = $(t, "reorderable", 8, !1), m = $(t, "onSelect", 8, () => {}), h = $(t, "onSelectDefault", 8, () => {}), g = $(t, "onReorder", 8, () => {}), _ = (e) => e.count === void 0 || e.count === null ? e.label : `${e.label} ${e.count}`, v = (e, t, n) => {
 		let r = n && e.sortable !== !1;
@@ -3447,7 +3486,7 @@ function Wa(e, t) {
 	}
 	On(() => (K(u()), K(p()), K(l())), () => {
 		R(n, {
-			id: Ia,
+			id: za,
 			label: u(),
 			className: `filter-button filter-default${p() ? " status-sortable" : ""}`,
 			sortable: p(),
@@ -3458,13 +3497,13 @@ function Wa(e, t) {
 	}), On(() => K(o()), () => {
 		R(r, new Map(o().map((e) => [e.id, e])));
 	}), On(() => (K(s()), K(o())), () => {
-		R(i, s().length > 0 ? s() : [Ia, ...o().map((e) => e.id)]);
+		R(i, s().length > 0 ? s() : [za, ...o().map((e) => e.id)]);
 	}), On(() => (W(i), W(n), W(r), K(c()), K(p())), () => {
 		R(a, W(i).map((e) => e === "__default__" ? W(n) : W(r).get(e)).filter(Boolean).map((e) => e === W(n) ? e : v(e, c(), p())));
 	}), kn(), Di();
 	{
 		let t = /* @__PURE__ */ F(() => `filter-strip ${f()}`);
-		Fa(e, {
+		Ra(e, {
 			get items() {
 				return W(a);
 			},
@@ -3484,25 +3523,25 @@ function Wa(e, t) {
 }
 //#endregion
 //#region viewer/assets/completed-stacking.js
-function Ga(e) {
+function Ja(e) {
 	let t = typeof e == "string" ? Date.parse(e) : NaN;
 	return Number.isNaN(t) ? null : t;
 }
-function Ka(e) {
+function Ya(e) {
 	let t = (e ?? []).map((e, t) => ({
 		decision: e,
 		index: t
-	})), n = t.filter(({ decision: e }) => e?.status !== "decided"), r = t.filter(({ decision: e }) => e?.status === "decided").sort((e, t) => (Ga(t.decision.answer?.confirmed_at) ?? -1) - (Ga(e.decision.answer?.confirmed_at) ?? -1) || e.index - t.index);
+	})), n = t.filter(({ decision: e }) => e?.status !== "decided"), r = t.filter(({ decision: e }) => e?.status === "decided").sort((e, t) => (Ja(t.decision.answer?.confirmed_at) ?? -1) - (Ja(e.decision.answer?.confirmed_at) ?? -1) || e.index - t.index);
 	return [...n, ...r].map(({ decision: e }) => e);
 }
 //#endregion
 //#region viewer/assets/theme-model.js
-var qa = "task-progress.theme.v1", Ja = [
+var Xa = "task-progress.theme.v1", Za = [
 	"system",
 	"light",
 	"dark",
 	"custom"
-], Ya = [
+], Qa = [
 	{
 		key: "pageBackground",
 		cssVariable: "--color-page-bg",
@@ -3543,7 +3582,7 @@ var qa = "task-progress.theme.v1", Ja = [
 		cssVariable: "--color-accent",
 		label: "強調色"
 	}
-], Xa = Object.freeze({
+], $a = Object.freeze({
 	light: Object.freeze({
 		pageBackground: "#f5f3ec",
 		panelBackground: "#fffdf8",
@@ -3564,90 +3603,90 @@ var qa = "task-progress.theme.v1", Ja = [
 		border: "#343c49",
 		accent: "#7f9fd1"
 	})
-}), Za = Object.freeze({
+}), eo = Object.freeze({
 	version: 1,
 	mode: "system"
-}), Qa = /^#[0-9a-f]{6}$/i;
-function $a(e) {
+}), to = /^#[0-9a-f]{6}$/i;
+function no(e) {
 	return typeof e == "object" && !!e && !Array.isArray(e);
 }
-function eo(e) {
-	return typeof e == "string" && Qa.test(e);
+function ro(e) {
+	return typeof e == "string" && to.test(e);
 }
-function to(e = "light", t = {}) {
-	let n = e === "dark" ? "dark" : "light", r = Xa[n], i = { base: n };
-	for (let e of Ya) {
+function io(e = "light", t = {}) {
+	let n = e === "dark" ? "dark" : "light", r = $a[n], i = { base: n };
+	for (let e of Qa) {
 		let n = t[e.key];
-		i[e.key] = eo(n) ? n.toLowerCase() : r[e.key];
+		i[e.key] = ro(n) ? n.toLowerCase() : r[e.key];
 	}
 	return i;
 }
-function no(e) {
-	if (!$a(e) || e.version !== 1 || !Ja.includes(e.mode)) return { ...Za };
+function ao(e) {
+	if (!no(e) || e.version !== 1 || !Za.includes(e.mode)) return { ...eo };
 	let t = {
 		version: 1,
 		mode: e.mode
 	};
-	return $a(e.custom) ? t.custom = to(e.custom.base, e.custom) : e.mode === "custom" && (t.custom = to()), t;
+	return no(e.custom) ? t.custom = io(e.custom.base, e.custom) : e.mode === "custom" && (t.custom = io()), t;
 }
-function ro(e) {
+function oo(e) {
 	try {
-		let t = e?.getItem(qa);
-		return t ? no(JSON.parse(t)) : { ...Za };
+		let t = e?.getItem(Xa);
+		return t ? ao(JSON.parse(t)) : { ...eo };
 	} catch {
-		return { ...Za };
+		return { ...eo };
 	}
 }
-function io(e, t) {
-	let n = no(t);
+function so(e, t) {
+	let n = ao(t);
 	try {
-		e?.setItem(qa, JSON.stringify(n));
+		e?.setItem(Xa, JSON.stringify(n));
 	} catch {}
 	return n;
 }
-function ao(e) {
+function co(e) {
 	try {
 		return e?.("(prefers-color-scheme: dark)")?.matches ? "dark" : "light";
 	} catch {
 		return "light";
 	}
 }
-function oo(e, t) {
-	let n = no(t);
+function lo(e, t) {
+	let n = ao(t);
 	e.dataset.theme = n.mode;
-	for (let t of Ya) e.style.removeProperty(t.cssVariable);
+	for (let t of Qa) e.style.removeProperty(t.cssVariable);
 	if (delete e.dataset.themeBase, n.mode === "custom") {
-		let t = n.custom ?? to();
+		let t = n.custom ?? io();
 		e.dataset.themeBase = t.base;
-		for (let n of Ya) e.style.setProperty(n.cssVariable, t[n.key]);
+		for (let n of Qa) e.style.setProperty(n.cssVariable, t[n.key]);
 		e.style.colorScheme = t.base;
 	} else n.mode === "system" ? e.style.colorScheme = "light dark" : e.style.colorScheme = n.mode;
 	return n;
 }
-function so(e, t, n = "light") {
-	let r = no(e), i = {
+function uo(e, t, n = "light") {
+	let r = ao(e), i = {
 		version: 1,
 		mode: t
 	};
-	return r.custom && (i.custom = r.custom), t === "custom" && !i.custom && (i.custom = to(n)), no(i);
+	return r.custom && (i.custom = r.custom), t === "custom" && !i.custom && (i.custom = io(n)), ao(i);
 }
-function co(e) {
+function fo(e) {
 	let t = e / 255;
 	return t <= .04045 ? t / 12.92 : ((t + .055) / 1.055) ** 2.4;
 }
-function lo(e, t) {
-	if (!eo(e) || !eo(t)) return 1;
+function po(e, t) {
+	if (!ro(e) || !ro(t)) return 1;
 	let n = (e) => {
 		let t = e.slice(1), n = [
 			0,
 			2,
 			4
-		].map((e) => co(Number.parseInt(t.slice(e, e + 2), 16)));
+		].map((e) => fo(Number.parseInt(t.slice(e, e + 2), 16)));
 		return .2126 * n[0] + .7152 * n[1] + .0722 * n[2];
 	}, r = n(e), i = n(t);
 	return (Math.max(r, i) + .05) / (Math.min(r, i) + .05);
 }
-function uo(e) {
+function mo(e) {
 	return [
 		[
 			"大標題",
@@ -3669,12 +3708,12 @@ function uo(e) {
 			e.secondaryText,
 			e.panelBackground
 		]
-	].filter(([, e, t]) => lo(e, t) < 4.5).map(([e]) => `${e}對比低於 4.5:1`);
+	].filter(([, e, t]) => po(e, t) < 4.5).map(([e]) => `${e}對比低於 4.5:1`);
 }
 //#endregion
 //#region experiments/editor-svelte-spike/src/ThemeControl.svelte
-var fo = /* @__PURE__ */ J("<option> </option>"), po = /* @__PURE__ */ J("<label class=\"theme-color-field\"><span> </span> <span class=\"theme-color-controls\"><input type=\"color\"/> <input type=\"text\" inputmode=\"text\" maxlength=\"7\"/></span></label>"), mo = /* @__PURE__ */ J("<p class=\"theme-dialog-description\">選擇基底後調整主要介面顏色；任務狀態色會沿用基底，保持完成、進行中與受阻容易辨識。</p> <label class=\"theme-base-field\" for=\"theme-custom-base\"><span>狀態色基底</span> <select id=\"theme-custom-base\"><option>亮色基底</option><option>暗色基底</option></select></label> <div class=\"theme-color-fields\" id=\"theme-color-fields\"></div> <p id=\"theme-dialog-status\" aria-live=\"polite\"> </p> <div class=\"theme-dialog-actions\"><button class=\"secondary-button\" id=\"theme-reset\" type=\"button\">恢復基底預設</button> <span class=\"theme-dialog-action-spacer\"></span> <button class=\"secondary-button\" id=\"theme-cancel\" type=\"button\">取消</button> <button class=\"primary-button\" id=\"theme-apply\" type=\"button\">套用自訂主題</button></div>", 1), ho = /* @__PURE__ */ J("<label class=\"theme-picker\" for=\"theme-select\"><span>主題</span> <select id=\"theme-select\" aria-label=\"顯示主題\"></select></label> <!>", 1);
-function go(e, t) {
+var ho = /* @__PURE__ */ J("<option> </option>"), go = /* @__PURE__ */ J("<label class=\"theme-color-field\"><span> </span> <span class=\"theme-color-controls\"><input type=\"color\"/> <input type=\"text\" inputmode=\"text\" maxlength=\"7\"/></span></label>"), _o = /* @__PURE__ */ J("<p class=\"theme-dialog-description\">選擇基底後調整主要介面顏色；任務狀態色會沿用基底，保持完成、進行中與受阻容易辨識。</p> <label class=\"theme-base-field\" for=\"theme-custom-base\"><span>狀態色基底</span> <select id=\"theme-custom-base\"><option>亮色基底</option><option>暗色基底</option></select></label> <div class=\"theme-color-fields\" id=\"theme-color-fields\"></div> <p id=\"theme-dialog-status\" aria-live=\"polite\"> </p> <div class=\"theme-dialog-actions\"><button class=\"secondary-button\" id=\"theme-reset\" type=\"button\">恢復基底預設</button> <span class=\"theme-dialog-action-spacer\"></span> <button class=\"secondary-button\" id=\"theme-cancel\" type=\"button\">取消</button> <button class=\"primary-button\" id=\"theme-apply\" type=\"button\">套用自訂主題</button></div>", 1), vo = /* @__PURE__ */ J("<label class=\"theme-picker\" for=\"theme-select\"><span>主題</span> <select id=\"theme-select\" aria-label=\"顯示主題\"></select></label> <!>", 1);
+function yo(e, t) {
 	He(t, !1);
 	let n = /* @__PURE__ */ L(), r = /* @__PURE__ */ L(), i = /* @__PURE__ */ L(), a = $(t, "mode", 8, "system"), o = $(t, "custom", 8, null), s = $(t, "systemScheme", 8, "light"), c = $(t, "onModeChange", 8, () => {}), l = $(t, "onApplyCustom", 8, () => {}), u = [
 		{
@@ -3693,9 +3732,9 @@ function go(e, t) {
 			value: "custom",
 			label: "自訂…"
 		}
-	], d = /^#[0-9a-f]{6}$/i, f = /* @__PURE__ */ L(!1), p = /* @__PURE__ */ L([]), m = /* @__PURE__ */ L(a()), h = /* @__PURE__ */ L(o()?.base ?? s()), g = /* @__PURE__ */ L(v(to(W(h)))), _ = /* @__PURE__ */ L({ ...W(g) });
+	], d = /^#[0-9a-f]{6}$/i, f = /* @__PURE__ */ L(!1), p = /* @__PURE__ */ L([]), m = /* @__PURE__ */ L(a()), h = /* @__PURE__ */ L(o()?.base ?? s()), g = /* @__PURE__ */ L(v(io(W(h)))), _ = /* @__PURE__ */ L({ ...W(g) });
 	function v(e) {
-		return Object.fromEntries(Ya.map((t) => [t.key, e[t.key]]));
+		return Object.fromEntries(Qa.map((t) => [t.key, e[t.key]]));
 	}
 	function y(e) {
 		R(h, e.base), R(g, v(e)), R(_, { ...W(g) });
@@ -3710,13 +3749,13 @@ function go(e, t) {
 		c()(t);
 	}
 	function x() {
-		y(o() ? to(o().base, o()) : to(s())), R(f, !0);
+		y(o() ? io(o().base, o()) : io(s())), R(f, !0);
 	}
 	function S() {
 		R(f, !1);
 	}
 	function C(e) {
-		y(to(e.currentTarget.value));
+		y(io(e.currentTarget.value));
 	}
 	function w(e, t, n) {
 		let r = n.currentTarget.value;
@@ -3747,20 +3786,20 @@ function go(e, t) {
 			e.reportValidity();
 			return;
 		}
-		l()(to(W(h), W(_))), S();
+		l()(io(W(h), W(_))), S();
 	}
 	On(() => K(a()), () => {
 		R(m, a());
 	}), On(() => (W(h), W(_)), () => {
-		R(n, to(W(h), W(_)));
+		R(n, io(W(h), W(_)));
 	}), On(() => W(n), () => {
-		R(r, uo(W(n)));
+		R(r, mo(W(n)));
 	}), On(() => W(r), () => {
 		R(i, W(r).length ? `注意：${W(r).join("；")}。仍可套用，但可能較難閱讀。` : "目前的文字與背景色彩對比符合 4.5:1。");
 	}), kn(), Di();
-	var ne = ho(), E = pn(ne), D = B(z(E), 2);
+	var ne = vo(), E = pn(ne), D = B(z(E), 2);
 	Gr(D, 5, () => u, (e) => e.value, (e, t) => {
-		var n = fo(), r = z(n, !0);
+		var n = ho(), r = z(n, !0);
 		N(n);
 		var i = {};
 		V(() => {
@@ -3777,15 +3816,15 @@ function go(e, t) {
 		closeLabel: "關閉自訂主題",
 		onClose: ee,
 		children: (e, t) => {
-			var a = mo(), o = B(pn(a), 2), s = B(z(o), 2), c = z(s);
+			var a = _o(), o = B(pn(a), 2), s = B(z(o), 2), c = z(s);
 			c.value = c.__value = "light";
 			var l = B(c);
 			l.value = l.__value = "dark", N(s);
 			var u;
 			di(s), N(o);
 			var d = B(o, 2);
-			Gr(d, 7, () => Ya, (e) => e.key, (e, t, r) => {
-				var i = po(), a = z(i), o = z(a, !0);
+			Gr(d, 7, () => Qa, (e) => e.key, (e, t, r) => {
+				var i = go(), a = z(i), o = z(a, !0);
 				N(a);
 				var s = B(a, 2), c = z(s);
 				vi(c);
@@ -3801,7 +3840,7 @@ function go(e, t) {
 			var v = B(f, 2), b = z(v), x = B(b, 4), S = B(x, 2);
 			N(v), V(() => {
 				u !== (u = W(h)) && (s.value = (s.__value = W(h)) ?? "", ui(s, W(h))), m = si(f, 1, "theme-dialog-status", null, m, { "theme-status-warning": W(r).length > 0 }), X(_, W(i));
-			}), q("change", s, C), q("click", b, () => y(to(W(h)))), q("click", x, ee), q("click", S, te), Y(e, a);
+			}), q("change", s, C), q("click", b, () => y(io(W(h)))), q("click", x, ee), q("click", S, te), Y(e, a);
 		},
 		$$slots: { default: !0 }
 	}), q("change", D, b), fi(D, () => W(m), (e) => R(m, e)), Y(e, ne), Ue();
@@ -3813,11 +3852,11 @@ Er([
 ]);
 //#endregion
 //#region viewer/assets/theme-control.js
-function _o({ root: e = globalThis.document?.documentElement, storage: t = globalThis.localStorage, matchMedia: n = globalThis.matchMedia?.bind(globalThis) } = {}) {
-	let r = ro(t);
-	e && oo(e, r);
+function bo({ root: e = globalThis.document?.documentElement, storage: t = globalThis.localStorage, matchMedia: n = globalThis.matchMedia?.bind(globalThis) } = {}) {
+	let r = oo(t);
+	e && lo(e, r);
 	function i(n) {
-		return r = io(t, n), e && oo(e, r), r;
+		return r = so(t, n), e && lo(e, r), r;
 	}
 	return {
 		get mode() {
@@ -3827,16 +3866,16 @@ function _o({ root: e = globalThis.document?.documentElement, storage: t = globa
 			return r.custom ?? null;
 		},
 		get systemScheme() {
-			return ao(n);
+			return co(n);
 		},
 		setMode(e) {
-			return i(so(r, e, ao(n)));
+			return i(uo(r, e, co(n)));
 		},
 		applyCustom(e) {
 			return i({
 				version: 1,
 				mode: "custom",
-				custom: to(e?.base, e ?? {})
+				custom: io(e?.base, e ?? {})
 			});
 		}
 	};
@@ -3926,18 +3965,18 @@ function _o({ root: e = globalThis.document?.documentElement, storage: t = globa
 })(globalThis);
 //#endregion
 //#region viewer/assets/editor-transaction.js
-var { createEditorTransaction: vo } = globalThis.TaskProgressEditorTransactionRuntime, yo = (e) => structuredClone(e), bo = (e) => e && typeof e == "object" ? Array.isArray(e) ? e.map(bo) : Object.fromEntries(Object.keys(e).sort().map((t) => [t, bo(e[t])])) : e, xo = (e, t) => JSON.stringify(bo(e)) === JSON.stringify(bo(t));
-function So(e) {
-	let t = yo(e), n = Object.create(null), r = null, i = null, a = !1, o = (e) => t.document.decisions.find((t) => t.id === e), s = (e) => ({
+var { createEditorTransaction: xo } = globalThis.TaskProgressEditorTransactionRuntime, So = (e) => structuredClone(e), Co = (e) => e && typeof e == "object" ? Array.isArray(e) ? e.map(Co) : Object.fromEntries(Object.keys(e).sort().map((t) => [t, Co(e[t])])) : e, wo = (e, t) => JSON.stringify(Co(e)) === JSON.stringify(Co(t));
+function To(e) {
+	let t = So(e), n = Object.create(null), r = null, i = null, a = !1, o = (e) => t.document.decisions.find((t) => t.id === e), s = (e) => ({
 		choice: e.answer?.kind === "other" ? "__other" : e.answer?.option_id ?? "",
 		other: e.answer?.kind === "other" ? e.answer.text : ""
 	}), c = () => Object.fromEntries(t.document.decisions.map((e) => [e.id, {
 		choice: n[e.id]?.choice ?? (e.answer?.kind === "other" ? "__other" : e.answer?.option_id ?? ""),
 		other: n[e.id]?.other ?? (e.answer?.kind === "other" ? e.answer.text : "")
-	}])), l = vo(c());
+	}])), l = xo(c());
 	function u(e) {
 		let t = n[e], i = o(e);
-		t && i && !t.conflict && r?.decision_id !== e && xo({
+		t && i && !t.conflict && r?.decision_id !== e && wo({
 			choice: t.choice,
 			other: t.other
 		}, s(i)) && delete n[e];
@@ -3948,12 +3987,12 @@ function So(e) {
 		let t = c();
 		if (!l[e]()) return [];
 		let r = [];
-		for (let [e, i] of Object.entries(l.draft)) xo(t[e], i) || (n[e] = {
-			base: yo(o(e)),
-			...yo(i),
+		for (let [e, i] of Object.entries(l.draft)) wo(t[e], i) || (n[e] = {
+			base: So(o(e)),
+			...So(i),
 			cleared: !i.choice,
 			conflict: !1
-		}, xo(i, s(o(e))) && delete n[e], r.push(e));
+		}, wo(i, s(o(e))) && delete n[e], r.push(e));
 		return r;
 	}
 	let p = (e) => {
@@ -3974,25 +4013,25 @@ function So(e) {
 				canUndo: !d() && l.history.canUndo,
 				canRedo: !d() && l.history.canRedo
 			},
-			snapshot: yo(t),
-			drafts: yo(n),
-			pending: yo(r),
+			snapshot: So(t),
+			drafts: So(n),
+			pending: So(r),
 			busy: a,
 			dirty: Object.keys(n).length > 0
 		};
 	}
 	function h(e, r = !1) {
-		let i = !xo(t.document, e.document);
+		let i = !wo(t.document, e.document);
 		for (let [t, r] of Object.entries(n)) {
 			let n = e.document.decisions.find((e) => e.id === t);
-			r.conflict = !n || !xo(r.base, n);
+			r.conflict = !n || !wo(r.base, n);
 		}
-		t = yo(e), i && !r && l.commit(c());
+		t = So(e), i && !r && l.commit(c());
 	}
 	return {
 		view: m,
 		updateSources(e) {
-			t.sources = yo(e);
+			t.sources = So(e);
 		},
 		undo: () => f("undo"),
 		redo: () => f("redo"),
@@ -4016,7 +4055,7 @@ function So(e) {
 			if (r && !a || r?.operation === "clear_all" || !o(e)) return;
 			let i = o(e).answer;
 			n[e] ??= {
-				base: yo(o(e)),
+				base: So(o(e)),
 				choice: i?.kind === "other" ? "__other" : i?.option_id ?? "",
 				other: i?.kind === "other" ? i.text : "",
 				conflict: !1
@@ -4039,7 +4078,7 @@ function So(e) {
 		},
 		rebase(e) {
 			let t = o(e), r = n[e];
-			!r || !t || (r.choice && (r.choice !== "__other" && !t.options.some((e) => e.id === r.choice) || r.choice === "__other" && !t.allow_other) && (r.choice = "", r.cleared = !1), r.base = yo(t), r.conflict = !1, r.cleared && !r.other && !t.answer && delete n[e], l.commit(c()));
+			!r || !t || (r.choice && (r.choice !== "__other" && !t.options.some((e) => e.id === r.choice) || r.choice === "__other" && !t.allow_other) && (r.choice = "", r.cleared = !1), r.base = So(t), r.conflict = !1, r.cleared && !r.other && !t.answer && delete n[e], l.commit(c()));
 		},
 		merge: h,
 		beginClearAll() {
@@ -4049,7 +4088,7 @@ function So(e) {
 				expected_revision: t.revision,
 				request_id: crypto.randomUUID(),
 				payload: {}
-			}, i = null, a = !0, yo(r);
+			}, i = null, a = !0, So(r);
 		},
 		begin(e, s = "confirm") {
 			if (r || a) throw Error("請先查核上一筆請求的結果。");
@@ -4074,11 +4113,11 @@ function So(e) {
 				expected_version: c.version,
 				request_id: crypto.randomUUID(),
 				payload: u
-			}, i = l ? yo(l) : null, a = !0, yo(r);
+			}, i = l ? So(l) : null, a = !0, So(r);
 		},
 		retry() {
 			if (!r || a) throw Error("沒有待查核請求。");
-			return a = !0, yo(r);
+			return a = !0, So(r);
 		},
 		failed() {
 			a = !1;
@@ -4088,24 +4127,24 @@ function So(e) {
 				r = null, i = null;
 				return;
 			}
-			let s = yo(t.document);
-			for (let e of s.decisions) (r?.operation === "clear_all" || e.id === r?.decision_id) && (e.answer = r?.operation === "confirm" ? yo(r.payload) : null, e.status = e.answer ? "decided" : "pending");
+			let s = So(t.document);
+			for (let e of s.decisions) (r?.operation === "clear_all" || e.id === r?.decision_id) && (e.answer = r?.operation === "confirm" ? So(r.payload) : null, e.status = e.answer ? "decided" : "pending");
 			let d = (e) => e.decisions.map(({ last_request: e, answer: t, ...n }) => ({
 				...n,
 				answer: t ? Object.fromEntries(Object.entries(t).filter(([e]) => e !== "confirmed_at")) : null
-			})), f = xo(d(s), d(e.document));
+			})), f = wo(d(s), d(e.document));
 			if (r?.operation === "clear_all") {
 				n = Object.create(null), r = null, i = null, h(e, !0), f && l.apply({ type: "clear_all" }, () => c()), l.commit(c(), { keepHistory: f });
 				return;
 			}
-			let p = r?.decision_id, m = n[p], g = m && i && (m.choice !== i.choice || m.other !== i.other), _ = m && (g || m.choice !== "__other" && m.other || r?.operation === "reopen" && (!m.cleared || m.other)) ? yo(m) : null;
+			let p = r?.decision_id, m = n[p], g = m && i && (m.choice !== i.choice || m.other !== i.other), _ = m && (g || m.choice !== "__other" && m.other || r?.operation === "reopen" && (!m.cleared || m.other)) ? So(m) : null;
 			if (r && delete n[r.decision_id], r = null, i = null, h(e, !0), _) {
 				let e = o(p), t = (e) => {
 					if (!e) return null;
 					let { answer: t, status: n, last_request: r, ...i } = e;
 					return i;
 				};
-				_.conflict = !e || !xo(t(_.base), t(e)) || !xo(d({ decisions: [s.decisions.find((e) => e.id === p)] }), d({ decisions: [e] })), _.conflict || (_.base = yo(e)), _.cleared && !_.other && !_.conflict && !e.answer || (n[p] = _);
+				_.conflict = !e || !wo(t(_.base), t(e)) || !wo(d({ decisions: [s.decisions.find((e) => e.id === p)] }), d({ decisions: [e] })), _.conflict || (_.base = So(e)), _.cleared && !_.other && !_.conflict && !e.answer || (n[p] = _);
 			}
 			u(p), l.commit(c(), { keepHistory: f });
 		}
@@ -4113,7 +4152,7 @@ function So(e) {
 }
 //#endregion
 //#region viewer/assets/card-disclosure-state.js
-function Co(e, t) {
+function Eo(e, t) {
 	try {
 		let n = JSON.parse((t ?? globalThis.sessionStorage).getItem(e));
 		if (typeof n?.expanded != "boolean") return {
@@ -4132,7 +4171,7 @@ function Co(e, t) {
 		};
 	}
 }
-function wo(e, t, n, r) {
+function Do(e, t, n, r) {
 	try {
 		(r ?? globalThis.sessionStorage).setItem(e, JSON.stringify({
 			expanded: t,
@@ -4142,12 +4181,12 @@ function wo(e, t, n, r) {
 }
 //#endregion
 //#region experiments/editor-svelte-spike/src/DecisionApp.svelte
-var To = /* @__PURE__ */ J("<p class=\"document-owner\">擁有者：<a> </a></p>"), Eo = /* @__PURE__ */ J("<p role=\"status\"> </p>"), Do = /* @__PURE__ */ J("<article class=\"checklist-item\"><a> </a> <p> </p></article>"), Oo = /* @__PURE__ */ J("<p>尚未建立決策文件。</p>"), ko = /* @__PURE__ */ J("<p> </p> <!> <!>", 1), Ao = /* @__PURE__ */ J("<button class=\"svelte-17meywc\"> </button>"), jo = /* @__PURE__ */ J("<p>目前沒有符合條件的決策項目。</p>"), Mo = /* @__PURE__ */ J("<button type=\"button\" class=\"source-link svelte-17meywc\"> </button>"), No = /* @__PURE__ */ J("<button type=\"button\" class=\"source-link svelte-17meywc\">重新檢查來源</button>"), Po = /* @__PURE__ */ J("<span> </span><small class=\"svelte-17meywc\"> </small> <!>", 1), Fo = /* @__PURE__ */ J("<div class=\"decision-source svelte-17meywc\"><!></div>"), Io = /* @__PURE__ */ J("<p class=\"decision-text svelte-17meywc\"><!></p>"), Lo = /* @__PURE__ */ J("<p> <!></p>"), Ro = /* @__PURE__ */ J("<div class=\"decision-description svelte-17meywc\"><!> <!></div>"), zo = /* @__PURE__ */ J("<small class=\"svelte-17meywc\"><!></small>"), Bo = /* @__PURE__ */ J("<label class=\"decision-option svelte-17meywc\"><input type=\"radio\" class=\"svelte-17meywc\"/> <span class=\"svelte-17meywc\"> <!></span></label>"), Vo = /* @__PURE__ */ J("<label class=\"decision-option svelte-17meywc\"><input type=\"radio\" class=\"svelte-17meywc\"/><span class=\"svelte-17meywc\">其他</span></label> <div class=\"decision-other svelte-17meywc\"><label>其他方案與理由</label><textarea class=\"svelte-17meywc\"></textarea></div>", 1), Ho = /* @__PURE__ */ J("<p role=\"alert\"> </p> <button class=\"svelte-17meywc\">已核對最新題目，套用選擇</button>", 1), Uo = /* @__PURE__ */ J("<button class=\"svelte-17meywc\">重試保存</button>"), Wo = /* @__PURE__ */ J("<div class=\"decision-content svelte-17meywc\"><!> <!> <fieldset class=\"svelte-17meywc\"><legend class=\"decision-visually-hidden svelte-17meywc\"> </legend> <!> <!></fieldset> <!> <div class=\"decision-actions svelte-17meywc\"><!></div></div>"), Go = /* @__PURE__ */ J("<header slot=\"header\" class=\"checklist-item-header svelte-17meywc\"><h2 tabindex=\"-1\" class=\"svelte-17meywc\"> </h2><span class=\"checklist-status\"> </span></header>"), Ko = /* @__PURE__ */ J("<article><!></article>"), qo = /* @__PURE__ */ J("<p role=\"alert\"> </p> <button class=\"svelte-17meywc\">關閉已移除題目提示</button>", 1), Jo = /* @__PURE__ */ J("<div class=\"decision-overview svelte-17meywc\"><p class=\"svelte-17meywc\"> </p> <p class=\"svelte-17meywc\">選項可隨時修改；選取「其他」後，文字更動會自動保存，空白則為待決策。未選取時可點擊文字欄編輯本頁草稿。保存失敗會保留修改供重試。</p></div> <div class=\"decision-controls svelte-17meywc\"><!> <button class=\"svelte-17meywc\">下一項待決策</button> <button class=\"svelte-17meywc\">清除全部答案</button></div> <!> <!> <!> <!>", 1), Yo = /* @__PURE__ */ J("<p class=\"decision-text svelte-17meywc\"> </p>"), Xo = /* @__PURE__ */ J("<span> </span>"), Zo = /* @__PURE__ */ J("<pre class=\"source-content svelte-17meywc\" aria-label=\"來源文件內容\"></pre>"), Qo = /* @__PURE__ */ J("<!> <!> <!>", 1), $o = /* @__PURE__ */ J("<p> </p> <p>清除成功後可在本頁按「復原」還原；重新整理或離開頁面後，歷史不會保留。</p> <form class=\"theme-dialog-actions\"><button type=\"button\" class=\"secondary-button svelte-17meywc\">取消</button> <button type=\"submit\" class=\"primary-button svelte-17meywc\">確認清除全部</button></form>", 1), es = /* @__PURE__ */ J("<!> <main class=\"checklist-shell decisions-shell svelte-17meywc\"><header class=\"checklist-header\"><div><h1>決策項目</h1> <!></div> <!></header> <!> <!></main> <!> <!>", 1);
-function ts(e, t) {
+var Oo = /* @__PURE__ */ J("<p class=\"document-owner\">擁有者：<a> </a></p>"), ko = /* @__PURE__ */ J("<p role=\"status\"> </p>"), Ao = /* @__PURE__ */ J("<article class=\"checklist-item\"><a> </a> <p> </p></article>"), jo = /* @__PURE__ */ J("<p>尚未建立決策文件。</p>"), Mo = /* @__PURE__ */ J("<p> </p> <!> <!>", 1), No = /* @__PURE__ */ J("<button class=\"svelte-17meywc\"> </button>"), Po = /* @__PURE__ */ J("<p>目前沒有符合條件的決策項目。</p>"), Fo = /* @__PURE__ */ J("<button type=\"button\" class=\"source-link svelte-17meywc\"> </button>"), Io = /* @__PURE__ */ J("<button type=\"button\" class=\"source-link svelte-17meywc\">重新檢查來源</button>"), Lo = /* @__PURE__ */ J("<span> </span><small class=\"svelte-17meywc\"> </small> <!>", 1), Ro = /* @__PURE__ */ J("<div class=\"decision-source svelte-17meywc\"><!></div>"), zo = /* @__PURE__ */ J("<p class=\"decision-text svelte-17meywc\"><!></p>"), Bo = /* @__PURE__ */ J("<p> <!></p>"), Vo = /* @__PURE__ */ J("<div class=\"decision-description svelte-17meywc\"><!> <!></div>"), Ho = /* @__PURE__ */ J("<small class=\"svelte-17meywc\"><!></small>"), Uo = /* @__PURE__ */ J("<label class=\"decision-option svelte-17meywc\"><input type=\"radio\" class=\"svelte-17meywc\"/> <span class=\"svelte-17meywc\"> <!></span></label>"), Wo = /* @__PURE__ */ J("<label class=\"decision-option svelte-17meywc\"><input type=\"radio\" class=\"svelte-17meywc\"/><span class=\"svelte-17meywc\">其他</span></label> <div class=\"decision-other svelte-17meywc\"><label>其他方案與理由</label><textarea class=\"svelte-17meywc\"></textarea></div>", 1), Go = /* @__PURE__ */ J("<p role=\"alert\"> </p> <button class=\"svelte-17meywc\">已核對最新題目，套用選擇</button>", 1), Ko = /* @__PURE__ */ J("<button class=\"svelte-17meywc\">重試保存</button>"), qo = /* @__PURE__ */ J("<div class=\"decision-content svelte-17meywc\"><!> <!> <fieldset class=\"svelte-17meywc\"><legend class=\"decision-visually-hidden svelte-17meywc\"> </legend> <!> <!></fieldset> <!> <div class=\"decision-actions svelte-17meywc\"><!></div></div>"), Jo = /* @__PURE__ */ J("<header slot=\"header\" class=\"checklist-item-header svelte-17meywc\"><!><h2 tabindex=\"-1\" class=\"svelte-17meywc\"> </h2><span class=\"checklist-status\"> </span></header>"), Yo = /* @__PURE__ */ J("<article><!></article>"), Xo = /* @__PURE__ */ J("<p role=\"alert\"> </p> <button class=\"svelte-17meywc\">關閉已移除題目提示</button>", 1), Zo = /* @__PURE__ */ J("<div class=\"decision-overview svelte-17meywc\"><p class=\"svelte-17meywc\"> </p> <p class=\"svelte-17meywc\">選項可隨時修改；選取「其他」後，文字更動會自動保存，空白則為待決策。未選取時可點擊文字欄編輯本頁草稿。保存失敗會保留修改供重試。</p></div> <div class=\"decision-controls svelte-17meywc\"><!> <button class=\"svelte-17meywc\">下一項待決策</button> <button class=\"svelte-17meywc\">清除全部答案</button></div> <!> <!> <!> <!>", 1), Qo = /* @__PURE__ */ J("<p class=\"decision-text svelte-17meywc\"> </p>"), $o = /* @__PURE__ */ J("<span> </span>"), es = /* @__PURE__ */ J("<pre class=\"source-content svelte-17meywc\" aria-label=\"來源文件內容\"></pre>"), ts = /* @__PURE__ */ J("<!> <!> <!>", 1), ns = /* @__PURE__ */ J("<p> </p> <p>清除成功後可在本頁按「復原」還原；重新整理或離開頁面後，歷史不會保留。</p> <form class=\"theme-dialog-actions\"><button type=\"button\" class=\"secondary-button svelte-17meywc\">取消</button> <button type=\"submit\" class=\"primary-button svelte-17meywc\">確認清除全部</button></form>", 1), rs = /* @__PURE__ */ J("<!> <main class=\"checklist-shell decisions-shell svelte-17meywc\"><header class=\"checklist-header\"><div><h1>決策項目</h1> <!></div> <!></header> <!> <!></main> <!> <!>", 1);
+function is(e, t) {
 	He(t, !1);
-	let n = /* @__PURE__ */ L(), r = /* @__PURE__ */ L(), i = /* @__PURE__ */ L(), a = /* @__PURE__ */ L(), o = /* @__PURE__ */ L(), s = $(t, "transport", 8), c = $(t, "onPersistenceChange", 8, () => {}), l = $(t, "bindRefresh", 8, () => {}), u = /* @__PURE__ */ L(null), d = /* @__PURE__ */ L(), f = /* @__PURE__ */ L(), p = /* @__PURE__ */ L(), m = /* @__PURE__ */ L("載入中…"), g = /* @__PURE__ */ L(!0), _ = /* @__PURE__ */ L({}), v = /* @__PURE__ */ L(), y = /* @__PURE__ */ L(za(null, ["pending", "decided"], void 0, ["pending"])), b = null;
+	let n = /* @__PURE__ */ L(), r = /* @__PURE__ */ L(), i = /* @__PURE__ */ L(), a = /* @__PURE__ */ L(), o = /* @__PURE__ */ L(), s = $(t, "transport", 8), c = $(t, "onPersistenceChange", 8, () => {}), l = $(t, "bindRefresh", 8, () => {}), u = /* @__PURE__ */ L(null), d = /* @__PURE__ */ L(), f = /* @__PURE__ */ L(), p = /* @__PURE__ */ L(), m = /* @__PURE__ */ L("載入中…"), g = /* @__PURE__ */ L(!0), _ = /* @__PURE__ */ L({}), v = /* @__PURE__ */ L(), y = /* @__PURE__ */ L(Ha(null, ["pending", "decided"], void 0, ["pending"])), b = null;
 	function x(e) {
-		R(y, e), Ba(b, W(y));
+		R(y, e), Ua(b, W(y));
 	}
 	let S = /* @__PURE__ */ L(), C = /* @__PURE__ */ L(), w = /* @__PURE__ */ L(/* @__PURE__ */ new Set()), T = /* @__PURE__ */ L(!1), ee = /* @__PURE__ */ L(!1), te = /* @__PURE__ */ L(!1), ne = /* @__PURE__ */ L(!1), E = /* @__PURE__ */ L(null), D = /* @__PURE__ */ L(""), O = 0, k = /* @__PURE__ */ L({});
 	function re() {
@@ -4234,10 +4273,10 @@ function ts(e, t) {
 		R(_, {
 			...W(_),
 			[e]: t
-		}), wo(W(o), W(g), W(_));
+		}), Do(W(o), W(g), W(_));
 	}
 	function Se(e) {
-		R(g, e), R(_, {}), wo(W(o), W(g), W(_));
+		R(g, e), R(_, {}), Do(W(o), W(g), W(_));
 	}
 	async function Ce() {
 		try {
@@ -4249,8 +4288,8 @@ function ts(e, t) {
 				R(p, e), R(m, "");
 				return;
 			}
-			R(d, So(e)), me(), b = `taskprogress.filters.decisions.v1:${e.document_key}`, R(y, za(b, ["pending", "decided"], void 0, ["pending"]));
-			let t = Co(`taskprogress.decisions:${e.document_key}`);
+			R(d, To(e)), me(), b = `taskprogress.filters.decisions.v1:${e.document_key}`, R(y, Ha(b, ["pending", "decided"], void 0, ["pending"]));
+			let t = Eo(`taskprogress.decisions:${e.document_key}`);
 			R(g, t.expanded), R(_, t.overrides), R(m, "");
 		} catch (e) {
 			R(m, e.message);
@@ -4267,10 +4306,10 @@ function ts(e, t) {
 					return;
 				}
 				if (!W(d)) {
-					R(d, So(e)), me();
+					R(d, To(e)), me();
 					return;
 				}
-				e.revision === W(f)?.snapshot?.revision ? xo(e.sources, W(f)?.snapshot?.sources) || (typeof W(d).updateSources == "function" ? W(d).updateSources(e.sources) : W(d).merge(e), R(k, {}), me()) : (W(d).merge(e), R(k, {}), me());
+				e.revision === W(f)?.snapshot?.revision ? wo(e.sources, W(f)?.snapshot?.sources) || (typeof W(d).updateSources == "function" ? W(d).updateSources(e.sources) : W(d).merge(e), R(k, {}), me()) : (W(d).merge(e), R(k, {}), me());
 			} catch (e) {
 				console.warn("Decision foreground refresh failed:", e);
 			} finally {
@@ -4279,7 +4318,7 @@ function ts(e, t) {
 		}
 	}
 	ki(() => {
-		R(S, _o()), pe(), Ce();
+		R(S, bo()), pe(), Ce();
 		let e = (e) => {
 			W(a) && (e.preventDefault(), e.returnValue = "");
 		};
@@ -4321,14 +4360,14 @@ function ts(e, t) {
 	}
 	async function Te() {
 		let e = W(i).find((e) => e.status === "pending");
-		e && (W(y).selected.has("pending") || x(Ha(W(y), "pending")), xe(e.id, !0), await hr(), W(v)?.revealCard(e.id), await hr(), document.getElementById(`decision-${e.id}`)?.focus());
+		e && (W(y).selected.has("pending") || x(Ga(W(y), "pending")), xe(e.id, !0), await hr(), W(v)?.revealCard(e.id), await hr(), document.getElementById(`decision-${e.id}`)?.focus());
 	}
 	On(() => W(f), () => {
 		R(i, W(f)?.snapshot.document.decisions ?? []);
 	}), On(() => (W(f), W(T), W(i)), () => {
 		R(n, !!W(f) && !W(f).pending && !W(f).busy && !W(T) && (W(i).some((e) => e.answer) || W(f).dirty));
 	}), On(() => (W(i), W(ce), W(y)), () => {
-		R(r, Ka(W(i).filter((e) => W(ce) ? W(ce).includes(e.id) : W(y).selected.has(e.status))));
+		R(r, Ya(W(i).filter((e) => W(ce) ? W(ce).includes(e.id) : W(y).selected.has(e.status))));
 	}), On(() => W(f), () => {
 		R(a, !!W(f)?.dirty || !!W(f)?.pending);
 	}), On(() => (K(c()), W(a), W(f), W(ee), W(ne), W(te), W(T)), () => {
@@ -4342,10 +4381,10 @@ function ts(e, t) {
 	}), On(() => K(l()), () => {
 		l()(we);
 	}), kn(), Di();
-	var Ee = es(), De = pn(Ee);
+	var Ee = rs(), De = pn(Ee);
 	ca(De, {});
 	var Oe = B(De, 2), ke = z(Oe), j = z(ke), Ae = B(z(j), 2), M = (e) => {
-		var t = To(), n = B(z(t)), r = z(n, !0);
+		var t = Oo(), n = B(z(t)), r = z(n, !0);
 		N(n), N(t), V(() => {
 			Q(n, "href", (W(u), G(() => W(u).href))), X(r, (W(u), G(() => W(u).title)));
 		}), Y(e, t);
@@ -4354,7 +4393,7 @@ function ts(e, t) {
 		W(u) && e(M);
 	}), N(j);
 	var je = B(j, 2), Me = (e) => {
-		go(e, {
+		yo(e, {
 			get mode() {
 				return W(C), G(() => W(C).mode);
 			},
@@ -4376,18 +4415,18 @@ function ts(e, t) {
 		W(C) && e(Me);
 	}), N(ke);
 	var Pe = B(ke, 2), Fe = (e) => {
-		var t = Eo(), n = z(t, !0);
+		var t = ko(), n = z(t, !0);
 		N(t), V(() => X(n, W(m))), Y(e, t);
 	};
 	Z(Pe, (e) => {
 		W(m) && e(Fe);
 	});
 	var Ie = B(Pe, 2), Le = (e) => {
-		var t = ko(), n = pn(t), r = z(n);
+		var t = Mo(), n = pn(t), r = z(n);
 		N(n);
 		var i = B(n, 2);
 		Gr(i, 1, () => (W(p), G(() => W(p).files)), Vr, (e, t) => {
-			var n = Do(), r = z(n), i = z(r, !0);
+			var n = Ao(), r = z(n), i = z(r, !0);
 			N(r);
 			var a = B(r, 2), o = z(a, !0);
 			N(a), N(n), V((e) => {
@@ -4395,18 +4434,18 @@ function ts(e, t) {
 			}, [() => (W(p), W(t), G(() => `?scope=${encodeURIComponent(W(p).scope_id)}&task=${encodeURIComponent(W(t).task_id)}`))]), Y(e, n);
 		});
 		var a = B(i, 2), o = (e) => {
-			Y(e, Oo());
+			Y(e, jo());
 		};
 		Z(a, (e) => {
 			W(p), G(() => !W(p).files.length) && e(o);
 		}), V(() => X(r, `待決策 ${W(p), G(() => W(p).pending) ?? ""}${W(p), G(() => W(p).incomplete ? "（統計不完整）" : "") ?? ""}`)), Y(e, t);
 	}, Re = (e) => {
-		var t = Jo(), a = pn(t), s = z(a), c = z(s);
+		var t = Zo(), a = pn(t), s = z(a), c = z(s);
 		N(s), Ne(2), N(a);
 		var l = B(a, 2), u = z(l);
 		{
 			let e = /* @__PURE__ */ F(() => W(T) || W(ee) || W(ne));
-			Da(u, {
+			Aa(u, {
 				id: "decision-history",
 				get history() {
 					return W(f), G(() => W(f).history);
@@ -4427,14 +4466,14 @@ function ts(e, t) {
 		var p = B(u, 2), m = B(p, 2);
 		N(l);
 		var b = B(l, 2), S = (e) => {
-			var t = Ao(), n = z(t, !0);
+			var t = No(), n = z(t, !0);
 			N(t), V(() => X(n, (W(f), G(() => W(f).pending.operation === "clear_all" ? "查詢／重送清除操作" : "查詢／重送保存操作")))), q("click", t, () => A(null, null, !0)), Y(e, t);
 		};
 		Z(b, (e) => {
 			W(f), G(() => W(f).pending && !W(f).busy) && e(S);
 		});
 		var C = B(b, 2), E = (e) => {
-			Y(e, jo());
+			Y(e, Po());
 		};
 		Z(C, (e) => {
 			W(r), G(() => !W(r).length) && e(E);
@@ -4461,7 +4500,7 @@ function ts(e, t) {
 				get hiddenCount() {
 					return W(n);
 				},
-				onShowHidden: () => x(Ra(["pending", "decided"])),
+				onShowHidden: () => x(Va(["pending", "decided"])),
 				get expanded() {
 					return W(g);
 				},
@@ -4470,12 +4509,12 @@ function ts(e, t) {
 				$$slots: {
 					default: (e, t) => {
 						let n = /* @__PURE__ */ F(() => t.item), r = /* @__PURE__ */ F(() => t.visibilityEnabled), i = /* @__PURE__ */ F(() => t.visible), a = /* @__PURE__ */ F(() => t.onVisibleChange), o = /* @__PURE__ */ F(() => (W(f), K(W(n)), G(() => Object.hasOwn(W(f).drafts, W(n).id) ? W(f).drafts[W(n).id] : null))), s = /* @__PURE__ */ F(() => (K(W(o)), K(W(n)), G(() => W(o) ? W(o).choice : W(n).answer?.kind === "other" ? "__other" : W(n).answer?.option_id ?? "")));
-						var c = Ko();
+						var c = Yo();
 						let l;
 						var u = z(c);
 						{
 							let e = /* @__PURE__ */ F(() => (W(_), K(W(n)), W(g), G(() => W(_)[W(n).id] ?? W(g)))), t = /* @__PURE__ */ F(() => (K(W(n)), G(() => `body-${W(n).id}`)));
-							Aa(u, {
+							Na(u, {
 								get visibilityEnabled() {
 									return W(r);
 								},
@@ -4496,18 +4535,18 @@ function ts(e, t) {
 									return K(W(n)), G(() => W(n).question);
 								},
 								children: (e, t) => {
-									var r = Wo(), i = z(r), a = (e) => {
+									var r = qo(), i = z(r), a = (e) => {
 										let t = /* @__PURE__ */ F(() => (W(k), K(W(n)), G(() => W(k)[W(n).id]))), r = /* @__PURE__ */ F(() => (K(W(t)), K(W(n)), W(f), G(() => W(t)?.reference === W(n).source_ref && W(t)?.revision === W(f).snapshot.revision ? W(t) : W(f).snapshot.sources?.[W(n).id])));
-										var i = Fo(), a = z(i), o = (e) => {
-											var t = Mo(), r = z(t);
+										var i = Ro(), a = z(i), o = (e) => {
+											var t = Fo(), r = z(t);
 											N(t), V(() => X(r, `來源：${K(W(n)), G(() => W(n).source_ref) ?? ""}`)), q("click", t, () => ie(W(n).id)), Y(e, t);
 										}, s = (e) => {
-											var t = Po(), i = pn(t), a = z(i, !0);
+											var t = Lo(), i = pn(t), a = z(i, !0);
 											N(i);
 											var o = B(i), s = z(o, !0);
 											N(o);
 											var c = B(o, 2), l = (e) => {
-												var t = No();
+												var t = Io();
 												q("click", t, () => ie(W(n).id)), Y(e, t);
 											};
 											Z(c, (e) => {
@@ -4524,8 +4563,8 @@ function ts(e, t) {
 										K(W(n)), G(() => W(n).source_ref) && e(a);
 									});
 									var c = B(i, 2), l = (e) => {
-										var t = Ro(), r = z(t), i = (e) => {
-											var t = Io();
+										var t = Vo(), r = z(t), i = (e) => {
+											var t = zo();
 											_a(z(t), { get text() {
 												return K(W(n)), G(() => W(n).context);
 											} }), N(t), Y(e, t);
@@ -4534,7 +4573,7 @@ function ts(e, t) {
 											K(W(n)), G(() => W(n).context) && e(i);
 										});
 										var a = B(r, 2), o = (e) => {
-											var t = Lo(), r = z(t);
+											var t = Bo(), r = z(t);
 											_a(B(r), { get text() {
 												return K(W(n)), G(() => W(n).recommendation.reason);
 											} }), N(t), V((e) => X(r, `建議：${e ?? ""} — `), [() => (K(W(n)), G(() => W(n).options.find((e) => e.id === W(n).recommendation.option_id)?.label))]), Y(e, t);
@@ -4550,10 +4589,10 @@ function ts(e, t) {
 									N(p);
 									var h = B(p, 2);
 									Gr(h, 1, () => (K(W(n)), G(() => W(n).options)), Vr, (e, t, r) => {
-										var i = Bo(), a = z(i);
+										var i = Uo(), a = z(i);
 										vi(a);
 										var o = B(a, 2), c = z(o), l = B(c), u = (e) => {
-											var n = zo();
+											var n = Ho();
 											_a(z(n), { get text() {
 												return W(t), G(() => W(t).description);
 											} }), N(n), Y(e, n);
@@ -4567,7 +4606,7 @@ function ts(e, t) {
 										}), Y(e, i);
 									});
 									var g = B(h, 2), _ = (e) => {
-										var t = Vo(), r = pn(t), i = z(r);
+										var t = Wo(), r = pn(t), i = z(r);
 										vi(i), Ne(), N(r);
 										var a = B(r, 2), c = z(a), l = B(c);
 										it(l), N(a), V(() => {
@@ -4585,7 +4624,7 @@ function ts(e, t) {
 										K(W(n)), G(() => W(n).allow_other) && e(_);
 									}), N(u);
 									var v = B(u, 2), y = (e) => {
-										var t = Ho(), r = pn(t), i = z(r);
+										var t = Go(), r = pn(t), i = z(r);
 										N(r);
 										var a = B(r, 2);
 										V(() => {
@@ -4598,7 +4637,7 @@ function ts(e, t) {
 										K(W(o)), G(() => W(o)?.conflict) && e(y);
 									});
 									var b = B(v, 2), x = z(b), S = (e) => {
-										var t = Uo();
+										var t = Ko();
 										V(() => t.disabled = W(T)), q("click", t, () => ge(W(n).id)), Y(e, t);
 									}, C = /* @__PURE__ */ bt(() => (W(w), K(W(n)), K(W(o)), W(f), G(() => W(w).has(W(n).id) && W(o) && !W(o).conflict && !W(f).pending)));
 									Z(x, (e) => {
@@ -4610,11 +4649,20 @@ function ts(e, t) {
 								$$slots: {
 									default: !0,
 									header: (e, t) => {
-										var r = Go(), i = z(r), a = z(i, !0);
-										N(i);
-										var o = B(i), s = z(o, !0);
-										N(o), N(r), V(() => {
-											Q(i, "id", (K(W(n)), G(() => `decision-${W(n).id}`))), X(a, (K(W(n)), G(() => W(n).question))), X(s, (K(W(n)), G(() => W(n).status === "pending" ? "待決策" : "已決策")));
+										var r = Jo(), i = z(r);
+										ba(i, {
+											get id() {
+												return K(W(n)), G(() => W(n).id);
+											},
+											get label() {
+												return K(W(n)), G(() => W(n).question);
+											}
+										});
+										var a = B(i), o = z(a, !0);
+										N(a);
+										var s = B(a), c = z(s, !0);
+										N(s), N(r), V(() => {
+											Q(a, "id", (K(W(n)), G(() => `decision-${W(n).id}`))), X(o, (K(W(n)), G(() => W(n).question))), X(c, (K(W(n)), G(() => W(n).status === "pending" ? "待決策" : "已決策")));
 										}), Y(e, r);
 									}
 								}
@@ -4625,11 +4673,11 @@ function ts(e, t) {
 					filters: (e, t) => {
 						{
 							let t = /* @__PURE__ */ F(() => [
-								Ia,
+								za,
 								"pending",
 								"decided"
-							]), n = /* @__PURE__ */ F(() => (K(Va), W(y), G(() => Va(W(y)))));
-							Wa(e, {
+							]), n = /* @__PURE__ */ F(() => (K(Wa), W(y), G(() => Wa(W(y)))));
+							qa(e, {
 								categories: [{
 									id: "pending",
 									label: "待決策"
@@ -4647,8 +4695,8 @@ function ts(e, t) {
 									return W(n);
 								},
 								defaultLabel: "全部",
-								onSelect: (e) => x(Ha(W(y), e)),
-								onSelectDefault: () => x(Ua(W(y)))
+								onSelect: (e) => x(Ga(W(y), e)),
+								onSelectDefault: () => x(Ka(W(y)))
 							});
 						}
 					}
@@ -4659,7 +4707,7 @@ function ts(e, t) {
 		Gr(B(D, 2), 1, () => (W(f), W(i), G(() => Object.entries(W(f).drafts).filter(([e]) => !W(i).some((t) => t.id === e)))), Vr, (e, t) => {
 			var n = /* @__PURE__ */ bt(() => h(W(t), 2));
 			let r = () => W(n)[0], i = () => W(n)[1];
-			var a = qo(), o = pn(a), s = z(o);
+			var a = Xo(), o = pn(a), s = z(o);
 			N(o);
 			var c = B(o, 2);
 			V(() => X(s, `已移除題目 ${r() ?? ""} 的原草稿：${i(), G(() => i().choice) ?? ""} ${i(), G(() => i().other) ?? ""}`)), q("click", c, () => {
@@ -4683,24 +4731,24 @@ function ts(e, t) {
 		titleId: "decision-source-title",
 		onClose: re,
 		children: (e, t) => {
-			var n = Qo(), r = pn(n), i = (e) => {
-				var t = Yo(), n = z(t, !0);
+			var n = ts(), r = pn(n), i = (e) => {
+				var t = Qo(), n = z(t, !0);
 				N(t), V(() => X(n, (W(E), G(() => W(E).reference)))), Y(e, t);
 			};
 			Z(r, (e) => {
 				W(E) && e(i);
 			});
 			var a = B(r, 2), o = (e) => {
-				var t = Eo(), n = z(t, !0);
+				var t = ko(), n = z(t, !0);
 				N(t), V(() => X(n, W(D))), Y(e, t);
 			};
 			Z(a, (e) => {
 				W(D) && e(o);
 			});
 			var s = B(a, 2), c = (e) => {
-				var t = Zo();
+				var t = es();
 				Gr(t, 5, () => (W(E), G(() => W(E).content.replace(/\r\n/g, "\n").split("\n"))), Vr, (e, t, n) => {
-					var r = Xo();
+					var r = $o();
 					Q(r, "id", `source-line-${n + 1}`);
 					let i;
 					var a = z(r);
@@ -4728,7 +4776,7 @@ function ts(e, t) {
 		children: de,
 		$$slots: { default: (e, t) => {
 			let r = /* @__PURE__ */ F(() => t.close);
-			var a = $o(), o = pn(a), s = z(o);
+			var a = ns(), o = pn(a), s = z(o);
 			N(o);
 			var c = B(o, 4), l = z(c), u = B(l, 2);
 			N(c), V(() => {
@@ -4844,11 +4892,11 @@ Er(["click", "input"]), (function(e) {
 		tone: "muted"
 	}
 });
-var ns = globalThis.TaskProgressPriorityPolicy;
-Object.freeze(Object.fromEntries(ns.levels.map((e) => [e.value, e]))), ns.fallbackValue;
-var rs = /^[a-z0-9]+(?:[._-][a-z0-9]+)*$/;
-function is(e, t = "auto") {
-	if (typeof e != "string" || e.length > 100 || !rs.test(e)) throw Error("scope 無效。");
+var as = globalThis.TaskProgressPriorityPolicy;
+Object.freeze(Object.fromEntries(as.levels.map((e) => [e.value, e]))), as.fallbackValue;
+var os = /^[a-z0-9]+(?:[._-][a-z0-9]+)*$/;
+function ss(e, t = "auto") {
+	if (typeof e != "string" || e.length > 100 || !os.test(e)) throw Error("scope 無效。");
 	if (![
 		"auto",
 		"none",
@@ -4857,8 +4905,8 @@ function is(e, t = "auto") {
 	let n = new URLSearchParams({ scope: e });
 	return t === "none" && n.set("dev", "none"), t === "explicit" && n.set("dev", `../reports/${e}/report.dev.json`), `?${n}`;
 }
-function as(e) {
-	if (typeof e != "string" || e.length > 100 || !rs.test(e)) throw Error("scope 必須是小寫英數字組成的穩定 ID，可使用點、底線或連字號。");
+function cs(e) {
+	if (typeof e != "string" || e.length > 100 || !os.test(e)) throw Error("scope 必須是小寫英數字組成的穩定 ID，可使用點、底線或連字號。");
 	return `../reports/${e}/report.json`;
 }
 Object.freeze([
@@ -4871,9 +4919,9 @@ Object.freeze([
 ]);
 //#endregion
 //#region viewer/assets/owner-report.js
-async function os(e, t = globalThis.fetch) {
+async function ls(e, t = globalThis.fetch) {
 	try {
-		let n = await t(as(e), {
+		let n = await t(cs(e), {
 			cache: "no-store",
 			signal: AbortSignal.timeout(5e3)
 		});
@@ -4881,7 +4929,7 @@ async function os(e, t = globalThis.fetch) {
 		let r = await n.json();
 		return r?.scope_id !== e || typeof r.title != "string" || !r.title.trim() || !Array.isArray(r.tasks) ? null : {
 			title: r.title,
-			href: `/${is(e)}`
+			href: `/${ss(e)}`
 		};
 	} catch {
 		return null;
@@ -4889,9 +4937,9 @@ async function os(e, t = globalThis.fetch) {
 }
 //#endregion
 //#region viewer/assets/decision-transport.js
-var ss = (e) => /^[a-z0-9]+(?:[._-][a-z0-9]+)*$/.test(e ?? "") && e.length <= 100;
-function cs(e, t) {
-	if (!ss(e) || t && !ss(t)) throw Error("無效的 scope 或 task。");
+var us = (e) => /^[a-z0-9]+(?:[._-][a-z0-9]+)*$/.test(e ?? "") && e.length <= 100;
+function ds(e, t) {
+	if (!us(e) || t && !us(t)) throw Error("無效的 scope 或 task。");
 	let n = `/__taskprogress/v1/decisions/${encodeURIComponent(e)}`;
 	async function r(e, t) {
 		let n = await fetch(e, {
@@ -4927,12 +4975,12 @@ function cs(e, t) {
 		return n.json();
 	}
 	return {
-		loadOwnerReport: () => os(e),
+		loadOwnerReport: () => ls(e),
 		load: () => t ? r(`${n}/${encodeURIComponent(t)}`, { operation: "load" }) : r(n, {}),
 		request: (e) => r(`${n}/${encodeURIComponent(t)}`, e)
 	};
 }
-function ls(e) {
+function fs(e) {
 	let t = /* @__PURE__ */ new Map();
 	e.addEventListener("message", (e) => {
 		let n = t.get(e.data.request_id);
@@ -4960,12 +5008,12 @@ function ls(e) {
 }
 //#endregion
 //#region viewer/assets/foreground-refresh.js
-function us(e, t) {
+function ps(e, t) {
 	if (!e || typeof e.addEventListener != "function" || typeof e.removeEventListener != "function") throw TypeError(`${t} 必須支援事件監聽。`);
 	return e;
 }
-function ds({ windowTarget: e = globalThis.window, documentTarget: t = globalThis.document, canRefresh: n = () => !0, reload: r = () => e.location.reload(), schedule: i = (e) => globalThis.queueMicrotask(e) } = {}) {
-	if (us(e, "windowTarget"), us(t, "documentTarget"), typeof n != "function") throw TypeError("canRefresh 必須是函式。");
+function ms({ windowTarget: e = globalThis.window, documentTarget: t = globalThis.document, canRefresh: n = () => !0, reload: r = () => e.location.reload(), schedule: i = (e) => globalThis.queueMicrotask(e) } = {}) {
+	if (ps(e, "windowTarget"), ps(t, "documentTarget"), typeof n != "function") throw TypeError("canRefresh 必須是函式。");
 	if (typeof r != "function") throw TypeError("reload 必須是函式。");
 	if (typeof i != "function") throw TypeError("schedule 必須是函式。");
 	let a = !1, o = !1, s = !1, c = !1;
@@ -4999,26 +5047,26 @@ function ds({ windowTarget: e = globalThis.window, documentTarget: t = globalThi
 }
 //#endregion
 //#region experiments/editor-svelte-spike/src/decisions-main.js
-var fs = null, ps, ms;
+var hs = null, gs, _s;
 try {
 	let e = new URLSearchParams(location.search);
-	ms = window.chrome?.webview ? ls(window.chrome.webview) : cs(e.get("scope"), e.get("task"));
+	_s = window.chrome?.webview ? fs(window.chrome.webview) : ds(e.get("scope"), e.get("task"));
 } catch (e) {
-	ms = { load: () => Promise.reject(e) };
+	_s = { load: () => Promise.reject(e) };
 }
-window.chrome?.webview || ds({
-	canRefresh: () => !ps?.dirty && !ps?.saving && !ps?.pending,
+window.chrome?.webview || ms({
+	canRefresh: () => !gs?.dirty && !gs?.saving && !gs?.pending,
 	reload: async () => {
-		fs && await fs();
+		hs && await hs();
 	}
-}), Ir(ts, {
+}), Ir(is, {
 	target: document.querySelector("#app"),
 	props: {
-		transport: ms,
+		transport: _s,
 		bindRefresh: (e) => {
-			fs = e;
+			hs = e;
 		},
-		onPersistenceChange: (e) => ps = e
+		onPersistenceChange: (e) => gs = e
 	}
 });
 //#endregion

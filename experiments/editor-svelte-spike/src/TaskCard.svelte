@@ -11,7 +11,7 @@
   import { stableSortTaskItemsByPriority } from "../../../viewer/assets/report-model.js";
   import { liftNextItem } from "../../../viewer/assets/next-marker.js";
   import ExpandableText from "./ExpandableText.svelte";
-  import { copyText } from "../../../viewer/assets/item-reference.js";
+  import CopyIdButton from "./CopyIdButton.svelte";
 
   export let task;
   export let progress;
@@ -42,15 +42,6 @@
   // The scope's Next item when it sits on this card; it leads the unfinished rows.
   export let nextItemId = null;
   export let onSetNext = null;
-  let idCopyState = "";
-  let idCopyTimer;
-
-  async function copyTaskId() {
-    clearTimeout(idCopyTimer);
-    const copied = await copyText(task.id);
-    idCopyState = copied ? "已複製" : "無法複製";
-    idCopyTimer = setTimeout(() => { idCopyState = ""; }, 1500);
-  }
   const completedPreviewCount = 1;
   let showAllCompleted = false;
 
@@ -248,15 +239,7 @@
             })}
           >
         {:else}
-          <button
-            type="button"
-            class="task-id-copy"
-            class:is-done={idCopyState}
-            class:is-copied={idCopyState === "已複製"}
-            aria-label={idCopyState || `複製「${task.title}」的卡片 ID`}
-            title={idCopyState || task.id}
-            onclick={copyTaskId}
-          >{idCopyState === "已複製" ? "✓" : idCopyState ? "✕" : "⧉"}</button>
+          <CopyIdButton id={task.id} label={task.title} />
           <h3 id={`task-${task.id}-title`}>{task.title}</h3>
         {/if}
       </div>

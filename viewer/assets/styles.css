@@ -3187,7 +3187,7 @@ footer {
 .item-row-copy {
   position: absolute;
   z-index: 1;
-  transform: translateX(-30px);
+  transform: translateX(-28px);
   width: 18px;
   height: 18px;
   padding: 0;
@@ -3228,6 +3228,7 @@ footer {
   opacity: 0;
 }
 .time-task-title-line:hover .task-id-copy,
+.checklist-item-header:hover .task-id-copy,
 .task-id-copy:focus-visible,
 .task-id-copy.is-done { opacity: 1; }
 .task-id-copy:hover { color: var(--color-accent); }
