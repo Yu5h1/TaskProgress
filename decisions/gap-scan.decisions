@@ -1,0 +1,178 @@
+{
+  "schema_version": "1.1",
+  "task_id": "gap-scan",
+  "updated_at": "2026-10-23T19:36:32.721277+00:00",
+  "decisions": [
+    {
+      "id": "scan-range",
+      "version": 1,
+      "question": "1. 盤點要找哪些缺口？",
+      "context": "例子：Web 的設定面板已經有「匯入／匯出設定」，UX 的 Configuration 規格沒有這項；UX 的 Toggle 規格有目標，Unity 還沒實作。今天評估 UX 或 Unity，都不會提出這兩件事。\n範圍越大，候選越多、越吵；越小，越容易漏。",
+      "source_ref": "../Documentation/GapScanPlan.md#尚未決定",
+      "options": [
+        {
+          "id": "modules-specs",
+          "label": "只找模組與規格的缺口",
+          "description": "某平台已有、規格還沒有的能力；規格目標還沒被某平台實作。例子中的兩件都會被找到。"
+        },
+        {
+          "id": "plus-plan-goals",
+          "label": "模組與規格，加上計畫目標沒人負責的部分",
+          "description": "另外比對各專案 plan.md 的目標，找出沒有卡片、沒有規格在推進的目標。"
+        },
+        {
+          "id": "everything",
+          "label": "再加程式品質（測試缺口、TODO、過時文件）",
+          "description": "最全面，但候選會很多，多數不是你想決定的方向。"
+        }
+      ],
+      "recommendation": {
+        "option_id": "plus-plan-goals",
+        "reason": "你說的「專案缺口」包含模組和計畫目標；程式品質類的缺口數量多、價值不一，適合在評估或收斂時處理，不必每次拿來讓你選。"
+      },
+      "allow_other": true,
+      "status": "pending",
+      "answer": null
+    },
+    {
+      "id": "scan-all",
+      "version": 1,
+      "question": "2. 要不要允許一次盤點所有專案？",
+      "context": "例子：Web 的設定面板已經有「匯入／匯出設定」，UX 的 Configuration 規格沒有這項；UX 的 Toggle 規格有目標，Unity 還沒實作。今天評估 UX 或 Unity，都不會提出這兩件事。\n跨平台的缺口本來就橫跨兩個專案（Web 有、UX 沒有），只看單一專案會漏掉一半。",
+      "source_ref": "../Documentation/GapScanPlan.md#尚未決定",
+      "options": [
+        {
+          "id": "allow-all",
+          "label": "允許「盤點全部」，逐一盤點後彙整成一份候選",
+          "description": "最能找到跨專案的缺口；一次讀的東西多、時間長。"
+        },
+        {
+          "id": "single-only",
+          "label": "一次只盤點一個專案",
+          "description": "成本低；跨專案的缺口要靠你分別盤點兩邊才看得出來。"
+        }
+      ],
+      "recommendation": {
+        "option_id": "allow-all",
+        "reason": "跨平台缺口是這次問題的主要例子；成本高的時候你可以改用單一專案。"
+      },
+      "allow_other": true,
+      "status": "pending",
+      "answer": null
+    },
+    {
+      "id": "integrate-relation",
+      "version": 1,
+      "question": "3. 和現在的「把 ## 整合進 UX」要怎麼分工？",
+      "context": "現況：「整合進 UX」由跨平台模組規格的技能負責，它會列一張候選表等你選，選定後寫規格，但不會產生卡片或子項。",
+      "source_ref": "../Documentation/GapScanPlan.md#尚未決定",
+      "options": [
+        {
+          "id": "scan-owns-discovery",
+          "label": "盤點負責找候選；「整合進 UX」只負責選定之後寫規格",
+          "description": "找缺口集中在一個入口，規格技能專心寫規格。你仍然可以直接說「把某功能整合進 UX」跳過盤點。"
+        },
+        {
+          "id": "both-discover",
+          "label": "兩邊都保留找候選的能力",
+          "description": "不用改規格技能；但同一類缺口會有兩個入口，結果可能不一致。"
+        }
+      ],
+      "recommendation": {
+        "option_id": "scan-owns-discovery",
+        "reason": "一個入口負責找缺口，結果才會一致；直接點名的捷徑仍保留。"
+      },
+      "allow_other": true,
+      "status": "pending",
+      "answer": null
+    },
+    {
+      "id": "scan-output",
+      "version": 1,
+      "question": "4. 盤點的結果用什麼形式交給你？",
+      "context": "例子：Web 的設定面板已經有「匯入／匯出設定」，UX 的 Configuration 規格沒有這項；UX 的 Toggle 規格有目標，Unity 還沒實作。今天評估 UX 或 Unity，都不會提出這兩件事。",
+      "source_ref": "../Documentation/GapScanPlan.md#尚未決定",
+      "options": [
+        {
+          "id": "decision-file",
+          "label": "一份決策題，綁在專案的卡片上",
+          "description": "每個候選附證據和建議；你在決策頁選，選擇會被記錄，下一個 agent 讀得到。"
+        },
+        {
+          "id": "chat-table",
+          "label": "對話裡的一張表",
+          "description": "最輕；但選擇只留在對話裡，換 session 就要重講。"
+        },
+        {
+          "id": "cards-directly",
+          "label": "直接建卡片",
+          "description": "最快進入流程；但等於由 agent 決定下一步要做什麼，違反「下一個由你點名」。"
+        }
+      ],
+      "recommendation": {
+        "option_id": "decision-file",
+        "reason": "選擇要留下紀錄、讓後續的評估接得上；也保留「下一步由你決定」。"
+      },
+      "allow_other": true,
+      "status": "pending",
+      "answer": null
+    },
+    {
+      "id": "after-selection",
+      "version": 1,
+      "question": "5. 你選定一個缺口之後，它先變成什麼？",
+      "context": "例子：Web 的設定面板已經有「匯入／匯出設定」，UX 的 Configuration 規格沒有這項；UX 的 Toggle 規格有目標，Unity 還沒實作。今天評估 UX 或 Unity，都不會提出這兩件事。\n例如你選了「Unity 實作 Toggle」。",
+      "source_ref": "../Documentation/GapScanPlan.md#尚未決定",
+      "options": [
+        {
+          "id": "goal-then-plan",
+          "label": "先寫成規格目標、計畫段落或卡片，下一次評估再拆成子項",
+          "description": "沿用現有流程：評估本來就會讀規格目標並建子項。"
+        },
+        {
+          "id": "items-directly",
+          "label": "盤點直接建好子項",
+          "description": "少一步；但子項要先有規格和驗收條件，跳過評估容易建出條件不清的子項。"
+        }
+      ],
+      "recommendation": {
+        "option_id": "goal-then-plan",
+        "reason": "規格目標或卡片是子項的依據；讓評估照既有規則拆，條件才會完整。"
+      },
+      "allow_other": true,
+      "status": "pending",
+      "answer": null
+    },
+    {
+      "id": "verb-name",
+      "version": 1,
+      "question": "6. 新動詞叫什麼？",
+      "context": "會加在現有的 plan、run、accept、auto 旁邊。",
+      "source_ref": "../Documentation/GapScanPlan.md#尚未決定",
+      "options": [
+        {
+          "id": "scan",
+          "label": "scan",
+          "description": "例如 /task-progress-items scan ux、scan all。"
+        },
+        {
+          "id": "gaps",
+          "label": "gaps",
+          "description": "例如 /task-progress-items gaps ux。"
+        },
+        {
+          "id": "plan-discover",
+          "label": "plan 的選項（plan --discover）",
+          "description": "不新增動詞，掛在評估底下；但評估和盤點的規則不同，放在一起容易混淆。"
+        }
+      ],
+      "recommendation": {
+        "option_id": "scan",
+        "reason": "和 plan、run 一樣是一個簡短的動作詞；與評估分開，不會混淆。"
+      },
+      "allow_other": true,
+      "status": "pending",
+      "answer": null
+    }
+  ]
+}
