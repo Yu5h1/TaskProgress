@@ -1,0 +1,173 @@
+{
+  "schema_version": "1.1",
+  "task_id": "worktree-report",
+  "updated_at": "2026-10-23T16:48:44.974389+00:00",
+  "decisions": [
+    {
+      "id": "worktree-writes",
+      "version": 1,
+      "question": "1. worktree 裡的驗收清單和決策題，能不能直接在 Report 上操作？",
+      "context": "例子：Codex 在自己的 worktree 修 UX 的 Toggle 規格，途中建了一份驗收清單和一份決策題；同時 Claude 在主線上做別的卡。\n現況：Report 只看得到主線的檔案；worktree 裡的檔案還在被那個 agent 修改。\n本題決定：Report 讀到 worktree 的文件後，你能不能在上面打勾或作答。",
+      "source_ref": "../Documentation/WorktreeReportPlan.md#尚未決定",
+      "options": [
+        {
+          "id": "read-only",
+          "label": "全部唯讀",
+          "description": "只看進度，打勾和作答都等合併回主線。不會和 worktree 裡的 agent 同時改同一個檔案。"
+        },
+        {
+          "id": "decisions-only",
+          "label": "只允許回答決策題",
+          "description": "決策常在工作途中就需要；驗收清單的勾選等合併後。決策檔只有你在寫答案，衝突機會小。"
+        },
+        {
+          "id": "all-writable",
+          "label": "驗收清單和決策題都可操作",
+          "description": "最方便，但你勾的那份驗收清單驗的是 worktree 的程式，可能和那個 agent 的修改撞在一起。"
+        }
+      ],
+      "recommendation": {
+        "option_id": "decisions-only",
+        "reason": "決策題卡住的是 agent 的進度，越早回答越好；驗收清單要對應確定的程式版本，合併後再勾比較不會驗錯版本。"
+      },
+      "allow_other": true,
+      "status": "pending",
+      "answer": null
+    },
+    {
+      "id": "item-source",
+      "version": 1,
+      "question": "2. worktree 裡的文件，Report 怎麼知道它屬於哪張卡？",
+      "context": "例子：Codex 在自己的 worktree 修 UX 的 Toggle 規格，途中建了一份驗收清單和一份決策題；同時 Claude 在主線上做別的卡。\n現況：主線靠子項上的綁定欄位；worktree 裡的 agent 不寫 report.json，所以要另一種方式。",
+      "source_ref": "../Documentation/WorktreeReportPlan.md#尚未決定",
+      "options": [
+        {
+          "id": "file-name",
+          "label": "看檔名",
+          "description": "檔名開頭寫卡片代號，例如「ux-toggle--規格修正」。簡單，但卡片改代號時檔名要跟著改。"
+        },
+        {
+          "id": "file-header",
+          "label": "看檔案開頭的一行",
+          "description": "在檔案開頭寫一行「Report: 卡片代號」。改檔名不影響；卡片改代號時改這一行。"
+        }
+      ],
+      "recommendation": {
+        "option_id": "file-header",
+        "reason": "改名不會斷，一個檔案一行，多個 agent 同時加檔案也不會互相衝突；檔名仍可隨意取。"
+      },
+      "allow_other": true,
+      "status": "pending",
+      "answer": null
+    },
+    {
+      "id": "claim-location",
+      "version": 1,
+      "question": "3. 「這個項目有人在做」記在哪裡？",
+      "context": "例子：Codex 在自己的 worktree 修 UX 的 Toggle 規格，途中建了一份驗收清單和一份決策題；同時 Claude 在主線上做別的卡。\n本題要擋的情況：Claude 也想做同一個 Toggle 項目。\n現況：認領記在 report.json 的子項上，但 worktree 裡的 agent 不寫 report.json。",
+      "source_ref": "../Documentation/WorktreeReportPlan.md#尚未決定",
+      "options": [
+        {
+          "id": "worktree-presence",
+          "label": "有 worktree 在做就算認領",
+          "description": "某個 worktree 裡出現這個項目的文件，就算它認領了；worktree 合併或刪除，認領自動消失。被丟著不管的 worktree 會一直顯示有人在做，要你清掉。"
+        },
+        {
+          "id": "service-registry",
+          "label": "由服務維護登記，有期限",
+          "description": "agent 開工前向服務登記，工作期間定時續約；沒續約就失效。不會殘留，但要新增續約機制。"
+        }
+      ],
+      "recommendation": {
+        "option_id": "worktree-presence",
+        "reason": "不需要新機制、不會留下過期登記；殘留的 worktree 在 Report 上看得到，處理起來直接。"
+      },
+      "allow_other": true,
+      "status": "pending",
+      "answer": null
+    },
+    {
+      "id": "dual-version",
+      "version": 1,
+      "question": "4. 同一份文件主線和 worktree 各有一份時，Report 顯示哪一份？",
+      "context": "例子：Codex 在自己的 worktree 修 UX 的 Toggle 規格，途中建了一份驗收清單和一份決策題；同時 Claude 在主線上做別的卡。\n情況：Codex 開 worktree 時帶著主線那份舊的 Toggle 驗收清單，之後在 worktree 改了它。",
+      "source_ref": "../Documentation/WorktreeReportPlan.md#尚未決定",
+      "options": [
+        {
+          "id": "worktree-when-different",
+          "label": "內容相同只算主線；不同就顯示 worktree 那份並標分支名",
+          "description": "畫面上一張卡只有一份，看到的是最新進度。"
+        },
+        {
+          "id": "side-by-side",
+          "label": "兩份並列",
+          "description": "主線版和 worktree 版都列出來，你自己比較；畫面會變長。"
+        }
+      ],
+      "recommendation": {
+        "option_id": "worktree-when-different",
+        "reason": "你要看的是現在做到哪；舊的那份在主線上，合併時自然會被取代。"
+      },
+      "allow_other": true,
+      "status": "pending",
+      "answer": null
+    },
+    {
+      "id": "acceptance-record",
+      "version": 1,
+      "question": "5. 「誰做的、誰不能驗收」的紀錄，worktree 的工作什麼時候寫進去？",
+      "context": "例子：Codex 在自己的 worktree 修 UX 的 Toggle 規格，途中建了一份驗收清單和一份決策題；同時 Claude 在主線上做別的卡。\n現況：他驗規則（執行者不能驗收、釋放之前的驗收結果作廢）都讀 report.json 上的紀錄；worktree 裡的 agent 不寫 report.json。",
+      "source_ref": "../Documentation/WorktreeReportPlan.md#尚未決定",
+      "options": [
+        {
+          "id": "on-merge",
+          "label": "合併回主線時，由驗收者一次寫入",
+          "description": "worktree 階段只做執行；合併時補上執行紀錄，之後才開始他驗。他驗規則本身不用改。"
+        },
+        {
+          "id": "in-checklist",
+          "label": "把紀錄搬進驗收清單檔案",
+          "description": "worktree 階段就能完整記錄，但要改他驗的核心規則和三套程式。"
+        }
+      ],
+      "recommendation": {
+        "option_id": "on-merge",
+        "reason": "可行性評估裡這一層成本最高；合併時寫入就能完全避開，他驗規則照舊。"
+      },
+      "allow_other": true,
+      "status": "pending",
+      "answer": null
+    },
+    {
+      "id": "phases",
+      "version": 1,
+      "question": "6. 要怎麼排實作？",
+      "context": "計畫分三階段：\n1. 只讀顯示：Report 看得到 worktree 裡、綁在既有項目上的驗收清單進度。\n2. 認領與依賴：worktree 即認領、撞到同一項時標示衝突、文件開頭宣告等待。\n3. 自動新增項目：worktree 不寫 report.json 也能新增項目。",
+      "source_ref": "../Documentation/WorktreeReportPlan.md#尚未決定",
+      "options": [
+        {
+          "id": "phase-one-first",
+          "label": "先做第 1 階段，用實際 worktree 工作驗證後再決定 2、3",
+          "description": "每一步都能單獨交付；第 1 階段就能解決「看不到」的問題。"
+        },
+        {
+          "id": "all-phases",
+          "label": "三階段一起規劃並依序做完",
+          "description": "一次到位，但第 2、3 階段的細節要在沒有實際經驗前就定下來。"
+        },
+        {
+          "id": "phase-one-only",
+          "label": "只做第 1 階段",
+          "description": "只要看得到就好，認領和自動新增先不做。"
+        }
+      ],
+      "recommendation": {
+        "option_id": "phase-one-first",
+        "reason": "第 1 階段成本最低、效果最明顯；後兩階段的取捨用實際跑過的經驗來定比較準。"
+      },
+      "allow_other": true,
+      "status": "pending",
+      "answer": null
+    }
+  ]
+}

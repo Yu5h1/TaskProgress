@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-10-23T14:59:10.576178+00:00",
+  "updated_at": "2026-10-23T16:49:13.168465+00:00",
   "tasks": [
     {
       "id": "next-marker",
@@ -2774,6 +2774,11 @@
       "pending_items": [
         {
           "id": "worktree-report-decisions",
+          "document_ref": {
+            "kind": "decision",
+            "scope_id": "task-progress",
+            "task": "worktree-report"
+          },
           "title": "決定 [WorktreeReportPlan](https://github.com/Yu5h1/TaskProgress/blob/main/Documentation/WorktreeReportPlan.md) 的 6 個待決題：worktree 文件能否寫入、項目來源、認領位置、雙版本顯示、他驗紀錄時機、是否分三階段",
           "status": "planned",
           "priority": 1,
@@ -2783,6 +2788,20 @@
               "actor": "claude",
               "at": "2026-10-23T14:48:31.505789+00:00",
               "session": "Report 讀取 worktree 計畫",
+              "session_id": "8db3d9df-8d4e-461e-96c2-37ca30b33c56"
+            },
+            {
+              "event": "started",
+              "actor": "claude",
+              "at": "2026-10-23T16:48:11.262182+00:00",
+              "session": "worktree-report 待決題",
+              "session_id": "8db3d9df-8d4e-461e-96c2-37ca30b33c56"
+            },
+            {
+              "event": "released",
+              "actor": "claude",
+              "at": "2026-10-23T16:49:13.168465+00:00",
+              "session": "worktree-report 待決題",
               "session_id": "8db3d9df-8d4e-461e-96c2-37ca30b33c56"
             }
           ]
