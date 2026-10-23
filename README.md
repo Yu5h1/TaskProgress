@@ -164,8 +164,11 @@ C# launcher 的原始碼位於 `src\TaskProgress.Cli`。正式本機編輯功能
 發布 Windows x64 single-file EXE 時使用根目錄 `Publish.cmd`；Viewer UI bundle 由 `npm.cmd run viewer:ui:build` 獨立產生並由既有 CI staleness gate 檢查：
 
 ```powershell
-.\Publish.cmd
+.\Publish.cmd                      # 互動使用：結尾 pause
+.\Publish.cmd --nopause --restart  # agent 使用：不 pause，publish 後重新啟動服務
 ```
+
+腳本先以 Winform TrayHost 的 `exit` 命令關閉執行中的 TaskProgress tray（與 tray 選單 Exit 同一路徑，worker 與 Web 服務正常停止），再 publish；`--restart` 在成功後執行 `task-progress.exe start --no-browser`。Exit code 0 為成功；關閉失敗時請先從 tray 選單 Exit 一次。TrayHost 位置預設為 `..\Winformin\TrayHost\Release\Yu5h1Lib.TrayHost.exe`，可用 `TASK_PROGRESS_TRAY_HOST` 覆寫。
 
 發布後 `Build\win-x64` 仍只包含 `task-progress.exe`；Viewer 與 edit host 由 repository 提供，公開 Pages 只取得 `viewer/` 產物。
 

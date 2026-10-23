@@ -6,6 +6,9 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
 
 ## Current state (2026-09-29)
 
+- **Agent 發布流程（2026-10-23，使用者要求）。** `Publish.cmd [--nopause] [--restart]`：先以 Winform TrayHost 新增的 `exit` 命令關閉 TaskProgress tray（與選單 Exit 同路徑），再 publish，`--restart` 成功後 `start --no-browser`。taskprogress-capabilities〈Publish and restart〉：只在 `Build/win-x64` 才生效的改動由 agent 直接發布，先告知「這次要重新建置 task-progress.exe，服務會短暫中斷，請等待重啟。」；關閉失敗請使用者從 tray Exit 一次，不得直接終止程序。README 已補參數。
+  - 已驗證：服務執行中跑 `Publish.cmd --nopause --restart`，6 秒內 tray 結束、publish 成功、服務以新 PID 重新上線。EXE 這次內容未變，覆寫鎖定檔案的情況沒有實際發生。
+
 - **預覽模式復原、動作錯誤 popup、窄寬度標頭（2026-10-23）。** 依 [NextMarkerPlan〈實作紀錄〉](Documentation/NextMarkerPlan.md#實作紀錄2026-10-23)：預覽模式 Next 與換位可 Ctrl+Z／Ctrl+Y，無介面；動作錯誤改為底部淡出 popup、同時寫 console，不再疊加橫幅；封存子項不再接受長按設 Next（原本每按一次多一條「不是待處理的子項目」橫幅）。窄於 600px 時 `#report-summary` 的 `flex: 1 1 320px` 在直向排列下變成 320px 高，標頭空出一大塊，已在該 media query 改 `flex-basis: auto`。
   - 已驗證：Node 641 項中 637 通過（4 項既有 `active-checklist-format` 失敗），新增 `tests/preview-history.test.mjs`；Browser 在 task-progress scope 實測 Next 設定→復原→重做、Alt+↓ 換位→復原、外部修改後復原被拒並保留外部修改；unity-extension 封存項 Shift+Enter 不寫入。測試用的 report.json 已從備份還原。viewer-ui bundle 已重建。
   - 未驗證：popup 位置與淡出手感由使用者實機確認；`Build/win-x64` 未重新 Publish。

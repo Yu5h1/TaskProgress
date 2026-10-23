@@ -167,8 +167,8 @@ route synchronization is in
    state outside the workspace. The EXE is a WinExe that prints nothing and returns at once: do not
    wait for output or wrap it in `Start-Process` with redirected streams. Do not run `start`, use
    another launcher, `RunAs`, ACL changes or weakened pipe security; if unsandboxed execution is
-   denied, give the user the absolute EXE command to run in a normal terminal. An old resident
-   worker from an earlier build is exited by the user, never terminated automatically.
+   denied, give the user the absolute EXE command to run in a normal terminal. A resident worker
+   from an earlier build is replaced through § Publish and restart, never terminated directly.
 3. Navigate the Browser pane straight to the target URL, reusing the relevant tab and URL-encoding
    scope and task values: Report `http://127.0.0.1:8001/?scope=<scope-id>` (`&pin=<card-id>` for a
    card), Checklist `/checklist/?scope=<scope-id>&task=<stem>`, Decision `/decisions/…`. Do not
@@ -179,3 +179,19 @@ Only when the user says the page did not load, run `task-progress.exe service st
 nothing — and report what it says: connected output shows URL, PID, Instance, Viewer root and
 registration count (there is no literal `Running`); not-started, an error or a foreign service is
 reported as is. No loops, no `start`, no takeover or restart.
+
+## Publish and restart
+
+A change that only takes effect in the published `Build/win-x64` output (the C# CLI under
+`src/TaskProgress.Cli`, or the desktop Checklist/Decision UI it ships) is published by the agent
+that made it, without asking. Say it in one line first —
+「這次要重新建置 task-progress.exe，服務會短暫中斷，請等待重啟。」 — then run `<TaskProgress>\Publish.cmd --nopause --restart` as a plain direct
+command outside the sandbox and read its exit code. Changes the service serves from the repository
+(`viewer/`, `service/`) need no publish.
+
+The script closes the TaskProgress tray with TrayHost's `exit` command, which takes the tray's own
+Exit path and stops the worker and web service the way the menu does; it then publishes and starts
+the service again. Exit 0 means the new build is serving; tell the user to reload open pages. A
+non-zero close code means a tray built before that command, or one that did not end: ask the user
+to choose Exit in the TaskProgress tray menu once, then run the script again. Never kill the tray,
+worker or web service processes.
