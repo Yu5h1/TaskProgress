@@ -28,8 +28,9 @@ card or child item of the scope, resolved as § Resolve the target says.
 
 | Form | Does |
 |---|---|
-| (none) | Evaluate the scope, create items and list direct work; run nothing |
-| `<target>` | A card: evaluate only that card, create its items and list its direct work; run nothing. An item: report its `derived_state` and the command that acts on it; change nothing |
+| (none) | Same as `auto`: evaluate, do the direct work, execute and accept (user, 2026-10-23) |
+| `plan [target]` | Evaluate the scope, create items and list direct work; run nothing. A card narrows it to that card. An item: report its `derived_state` and the command that acts on it; change nothing |
+| `<target>` | Same as `auto <target>`: a card narrows all of it to that card, an item skips evaluation and executes then accepts that item |
 | `<instruction>` | Write that one instruction as an item, then execute it in this session |
 | `run [target]` | Execution queue; a card narrows it to that card's items, an item to that item |
 | `accept [target]` | Acceptance queue, narrowed the same way |
@@ -47,6 +48,14 @@ creating nothing, so a misspelled card name never becomes a new item.
 Evaluating a card reads the same sources as evaluating the scope, but creates only items whose work
 belongs to that card; findings for other cards are named in the report with the command that starts
 them, not created.
+
+Evaluation never ends at a stop. A decision question it raises is answered on the spot when
+[agent-executable-items § Evaluate a scope](../../../../.agents/skills/agent-executable-items/SKILL.md#evaluate-a-scope)
+rates it low-risk: record the recommendation as the answer through `decisions request`
+(`confirm`, the recommended `option_id`, `reason` 「採建議，未經使用者確認」) and continue; the
+report names every answer taken this way so the user can overturn it on the decisions page. Other
+questions wait for the user. Before sorting anything, read the scope's decisions files for answers
+already given whose consequences are not yet in the plan, handoff or items, and act on those first.
 
 A leading `self`, `manual`, `cross` or `cross manual` forces the verification of the items it
 creates; otherwise choose per item by the criteria below and report each choice with its reason.
@@ -134,10 +143,9 @@ needs `[acceptance]` or `[manual]`, another item waits on it, it goes to another
 wants to follow it on the Report. Mechanical work whose commit alone shows the result and that nobody
 will follow — moving or renaming files, fixing links — is direct work: no item, no checklist.
 
-- An evaluation that runs nothing (no verb, or a card target) lists it in the report, each with one
-  sentence the user can hand to an agent.
-- `auto` does it in the evaluating session before executing items, commits each piece, and lists what
-  it did in the report; it writes nothing to the Report.
+- `plan` lists it in the report, each with one sentence the user can hand to an agent.
+- `auto` (and the bare form) does it in the evaluating session before executing items, commits each
+  piece, and lists what it did in the report; it writes nothing to the Report.
 
 ## Independent acceptance
 
@@ -197,8 +205,9 @@ the next candidate; `auto` executes everything itself and hands the items with `
 independent acceptance context: a sub-agent started without this context when the tool has one,
 otherwise listed for the user to accept from a new chat.
 
-End every command with a short report: items created (verification and reason), direct work listed
-or done, items executed, accepted or rejected, and what waits on the user.
+End every command with a short report: items created (verification and reason), decisions answered
+by recommendation, direct work listed or done, items executed, accepted or rejected, problems
+recorded as 「問題：」 items (AgentsRule § Core contract), and what waits on the user.
 
 ## Agent specifics
 

@@ -53,6 +53,9 @@ Agent 自己寫步驟、自己執行時，交給更高階的模型驗收後，�
 23. 驗收者發現條件本身與原始規格對不上時，標 `[!]` 並選原因「條件不符」，交給建立者修改條件；建立者改完，由驗收者對照規格確認。建立者不同意，或驗收者不接受修改，才交給使用者決定（見〈條件不符〉）。
 24. `[acceptance]` 是執行者以外的獨立判斷，不是共識：判斷實作是否符合時，驗收者單獨決定，執行者沒有表決權；只有條件本身被質疑時，才需要建立者與驗收者取得共識，談不攏由使用者裁決。
 25. 一個子項只綁一份 checklist；其他相關的 checklist 以連結寫在子項描述裡，不綁定。
+27. 不帶參數的 `/task-progress-items` 等同 `auto`；只評估不執行改為 `plan` 動詞；帶卡片或項目代號也等同 `auto <代號>`，`plan <代號>` 只評估那張卡或回報那一項的狀態（使用者 2026-10-23，[agent-workflow.decisions](../decisions/agent-workflow.decisions) 第 1 題）。
+28. 評估產生的決策題，屬低風險（可逆、不改已發布規格或設計資料、不跨 scope、不屬產品偏好）時由 agent 直接採建議作答並執行，答案的 reason 記「採建議，未經使用者確認」，回報列出；其餘等使用者。評估先讀已答但未落實的決策（第 2 題）。
+29. agent 執行、分析、評估中發現且不在本項目範圍內的問題，記為擁有卡上標題前綴「問題：」的子項（優先級 2、不綁 checklist、經 report CLI 新增）；找不到擁有 scope 的進 `.agents` 的 known-issues 卡。覆盤就是對那張卡執行評估，把「問題：」項目分到修正項目、決策題或 ruled out（第 4 題）。
 26. 對每個 agent，明確呼叫 `task-progress-items`（Claude 為 `/task-progress-items`）是啟動可執行項目流程的唯一入口（見〈入口邊界〉；2026-10-22 起其他 agent 也對齊，經各自的使用者層入口）。一般開發要求、「請繼續發展任務」等舊短語、單獨提供項目 ID，以及專案有 `checklists/`，都不構成啟動條件；讀取 checklist 或 Report 的格式與權限規則，也不等於啟動流程。
 
 ## 一份 checklist 的樣子
@@ -91,8 +94,9 @@ Agent 自己寫步驟、自己執行時，交給更高階的模型驗收後，�
 scope 預設是目前所在的專案，只有需要時才另外指定。
 
 ```text
-/task-progress-items                  評估目前專案，建立項目並列出直接做的工作（不執行）
-/task-progress-items <卡片或項目>       卡片：只評估這張卡，建立項目並列出直接做的工作（不執行）；項目：回報它的狀態與下一步命令
+/task-progress-items                  等同 auto：評估、做掉直接做的工作、執行、驗收
+/task-progress-items plan [卡片或項目]   只評估：建立項目並列出直接做的工作，不執行；卡片只評估這張卡；項目回報它的狀態與下一步命令
+/task-progress-items <卡片或項目>       等同 auto <卡片或項目>
 /task-progress-items <指示>            把使用者說的一件事寫成項目，接著直接執行
 /task-progress-items run [卡片或項目]    執行
 /task-progress-items accept [卡片或項目] 驗收
@@ -311,10 +315,10 @@ scope 預設是目前所在的專案，只有需要時才另外指定。
 
 #### 6. 評估整個專案
 
-1. 你：`/task-progress-items`。Agent 評估，建立多個子項，回報每一項選了哪種驗證方式與理由；不執行。
+1. 你：`/task-progress-items plan`。Agent 評估，建立多個子項，回報每一項選了哪種驗證方式與理由；不執行。低風險的決策題 agent 已採建議作答並在回報列出，你不同意就在決策頁改答案。
 2. 你：`/task-progress-items run`。能開子 session 時，每項一個子 session，依序執行；不能開時做完一項就停，列出下一個候補。
 3. 有他驗的項目：Report 顯示「待他驗」，由獨立驗收上下文執行 `accept`；agent 不能開不繼承上下文的子 agent 時，你在新的 chat 執行。
-4. `/task-progress-items auto` 等於第 1、2 步連續做完；原本的 session 建立了這些項目，所以不自己驗收，他驗交給不繼承上下文的子 agent，不能開時留給你在新的 chat 執行。
+4. `/task-progress-items auto`（不帶參數時的預設）等於第 1、2 步連續做完；原本的 session 建立了這些項目，所以不自己驗收，他驗交給不繼承上下文的子 agent，不能開時留給你在新的 chat 執行。
 
 #### 7. 等待
 
@@ -372,7 +376,7 @@ A、B、C 代表不同的 session；「推算」指〈子項狀態（推算）�
 
 #### 6. 評估整個專案
 
-1. P 評估，建立子項並逐項選驗證方式，綁定、提交；回報選擇與理由，不執行。
+1. P `plan`：先讀已答但未落實的決策並落實；評估，低風險決策題採建議作答（reason「採建議，未經使用者確認」）；建立子項並逐項選驗證方式，綁定、提交；回報選擇、理由與代答的題，不執行。
 2. `run`：能開子 session 時，P 依序為每項開子 session C1、C2……，同一 scope 一次一個；子 session 認領、執行、釋放後通知 P。不能開時，P 做完一項就停，列出下一個候補。
 3. `auto`：同上連續做完。P 是建立者，不驗收：他驗項目交給不繼承上下文的子 agent 驗收，驗收完才開下一個子 session。不能開子 session 時，P 自己執行全部項目，驗收同樣交給子 agent；也不能開子 agent 時，列給使用者在新的 chat 執行。
 
@@ -454,11 +458,4 @@ A、B、C 代表不同的 session；「推算」指〈子項狀態（推算）�
 
 ## 未決事項
 
-AC-07～AC-09 已決定，見已決定第 4、20～22 點。2026-10-23 流程檢視（評估停在「沒有可執行、沒有決策」，答完的決策沒有落實，執行中發現的問題沒有記錄管道）新增四題，答案唯一來源是 [agent-workflow.decisions](../decisions/agent-workflow.decisions)（Report agent-workflow 卡的子項 `decide-next-step-flow`）：
-
-1. 不帶參數的 `/task-progress-items` 預設做什麼（只評估，或等同 `auto`）。影響〈命令〉與已決定第 26 點。
-2. 評估產生的決策題是否預設採建議執行並標記未確認。影響 agent-executable-items〈Evaluate a scope〉。
-3. 模組目標達成後下一個模組怎麼點名（出題附建議，或維持使用者點名）。影響「等人」項目用 `waits_for` 還是 blocked。
-4. agent 執行中發現的問題記在哪裡（擁有卡前綴「問題：」、Issue 卡或 schema 欄位）。影響 AgentsRule 核心契約與本 skill 的收尾回報。
-
-答完後把答案寫進對應 skill 與本計畫的〈命令〉、〈入口邊界〉，這一節回到「無」。
+AC-07～AC-09 已決定，見已決定第 4、20～22 點。2026-10-23 流程檢視的四題中，第 1、2、4 題已決定（第 27～29 點）；第 3 題「模組目標達成後下一個模組怎麼點名」使用者改問「TaskProgress 先前設計的 report 層『下一步』指示是否消失」，待查明後重新出題。答案唯一來源是 [agent-workflow.decisions](../decisions/agent-workflow.decisions)（Report agent-workflow 卡的子項 `decide-next-step-flow`）。

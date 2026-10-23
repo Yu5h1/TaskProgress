@@ -6,6 +6,11 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
 
 ## Current state (2026-09-29)
 
+- **下一步流程的三個決定已落實（2026-10-23，[agent-workflow.decisions](decisions/agent-workflow.decisions) 第 1、2、4 題；AcceptanceChainPlan 已決定第 27～29 點）。** 不帶參數的 `/task-progress-items` 等同 `auto`，只評估改為 `plan`；評估先讀已答未落實的決策，低風險題採建議作答（reason「採建議，未經使用者確認」）並在回報列出；執行中發現的範圍外問題記為擁有卡上「問題：」前綴子項（AgentsRule 核心契約新增一條，AgentArtifactGuide〈Single ownership〉定形狀，`.agents` known-issues 卡解除封存）。task-progress-items〈Commands〉、〈Direct work〉、收尾回報與 agent-executable-items〈Evaluate a scope〉同步。
+  - 第 3 題（下一個模組怎麼點名）使用者改問「report 層的下一步指示是否消失」。查明：共用 NextStepCard（plan〈進度摘要與下一步卡片的共用〉，dd03994）只曾接到 Checklist 畫面，a1e5ca3（2026-09-10）改成一行「下一步 · Agent：…」連結仍在；Report 畫面從未接上，只有 report.dev.json 每張卡的 `next_step`（Developer 區「Next Step :」，未指定時隱藏），而 UX、Web 沒有 report.dev.json。題目已以 `revise` 重寫，待使用者回答。
+  - 未發布：skill 與規則是文字改動，不需重新 Publish。未驗證：新預設在真實 `/task-progress-items` 呼叫上還沒跑過。
+  - 順手發現：`open` 重算分析後在根目錄留下 `time.analysis.json.<guid>.staging.json`，未處理，待記為「問題：」項目。
+
 - **使用者層 skill 目錄更正（2026-10-22，Gemini 反饋）。** 先前文件依 Gemini CLI 文件寫成「Codex 與 Gemini 都讀 `~\.agents\skills`」；Antigravity 實際讀 `~\.gemini\config\skills`（內建 `agy-customizations`）。Codex 讀 `~\.agents\skills`，Codex session 紀錄的 skill 根目錄 r0 為證；`~\.codex` 是它的設定家目錄。taskprogress-capabilities〈Initialize the user-level entry〉不列各工具的目錄（使用者決定：agent 只需知道自己的位置，列表會隨工具增加而膨脹）：用自己工具文件或回報的目錄、無法確認就問、只寫自己的目錄、不搬動或刪除其他位置的入口、建立後在新 session 確認工具列出才算就緒。CodexWorkflowTrial 與 task-progress-items〈Agent specifics〉（改名 Antigravity）同步。
   - Gemini 修正時把 Codex 的入口從 `~\.agents\skills` 搬到 `~\.gemini\config\skills`（檔案時間 21:21 是 Codex 原建立時間），Codex 的入口因此消失。
   - 下一步：Codex 在新 session 依 capabilities 重建 `~\.agents\skills\task-progress-items`，並確認技能清單列出它。

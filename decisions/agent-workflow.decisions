@@ -1,131 +1,159 @@
 {
   "schema_version": "1.1",
   "task_id": "agent-workflow",
-  "updated_at": "2026-10-23T03:14:18.662041+00:00",
+  "updated_at": "2026-10-23T03:30:57.1324307\u002B00:00",
   "decisions": [
     {
       "id": "default-verb",
       "version": 1,
-      "question": "1. 不帶參數的 /task-progress-items 預設做什麼？",
-      "context": "現況（2026-10-23）：\n- 不帶動詞只評估：建立項目、列出直接做的工作，不執行（使用者 2026-10-21 決定；AcceptanceChainPlan〈命令〉、〈入口邊界〉）。\n- `auto` 已經做到「評估、做掉直接做的工作、執行、驗收」，與使用者 2026-10-23 描述的工作方式「有下一步可執行就執行，需要決策就決策」相同。\n- 症狀：使用者在評估回報裡找下一步，agent 評估後停在「沒有可執行、沒有決策」或「等待其他任務」。\n- 本題只改預設動詞與入口文字（task-progress-items〈Commands〉、AcceptanceChainPlan〈命令〉與已決定第 26 點），不改評估的四堆分類。",
-      "source_ref": "../Documentation/AcceptanceChainPlan.md#未決事項",
+      "question": "1. \u4E0D\u5E36\u53C3\u6578\u7684 /task-progress-items \u9810\u8A2D\u505A\u4EC0\u9EBC\uFF1F",
+      "context": "\u73FE\u6CC1\uFF082026-10-23\uFF09\uFF1A\n- \u4E0D\u5E36\u52D5\u8A5E\u53EA\u8A55\u4F30\uFF1A\u5EFA\u7ACB\u9805\u76EE\u3001\u5217\u51FA\u76F4\u63A5\u505A\u7684\u5DE5\u4F5C\uFF0C\u4E0D\u57F7\u884C\uFF08\u4F7F\u7528\u8005 2026-10-21 \u6C7A\u5B9A\uFF1BAcceptanceChainPlan\u3008\u547D\u4EE4\u3009\u3001\u3008\u5165\u53E3\u908A\u754C\u3009\uFF09\u3002\n- \u0060auto\u0060 \u5DF2\u7D93\u505A\u5230\u300C\u8A55\u4F30\u3001\u505A\u6389\u76F4\u63A5\u505A\u7684\u5DE5\u4F5C\u3001\u57F7\u884C\u3001\u9A57\u6536\u300D\uFF0C\u8207\u4F7F\u7528\u8005 2026-10-23 \u63CF\u8FF0\u7684\u5DE5\u4F5C\u65B9\u5F0F\u300C\u6709\u4E0B\u4E00\u6B65\u53EF\u57F7\u884C\u5C31\u57F7\u884C\uFF0C\u9700\u8981\u6C7A\u7B56\u5C31\u6C7A\u7B56\u300D\u76F8\u540C\u3002\n- \u75C7\u72C0\uFF1A\u4F7F\u7528\u8005\u5728\u8A55\u4F30\u56DE\u5831\u88E1\u627E\u4E0B\u4E00\u6B65\uFF0Cagent \u8A55\u4F30\u5F8C\u505C\u5728\u300C\u6C92\u6709\u53EF\u57F7\u884C\u3001\u6C92\u6709\u6C7A\u7B56\u300D\u6216\u300C\u7B49\u5F85\u5176\u4ED6\u4EFB\u52D9\u300D\u3002\n- \u672C\u984C\u53EA\u6539\u9810\u8A2D\u52D5\u8A5E\u8207\u5165\u53E3\u6587\u5B57\uFF08task-progress-items\u3008Commands\u3009\u3001AcceptanceChainPlan\u3008\u547D\u4EE4\u3009\u8207\u5DF2\u6C7A\u5B9A\u7B2C 26 \u9EDE\uFF09\uFF0C\u4E0D\u6539\u8A55\u4F30\u7684\u56DB\u5806\u5206\u985E\u3002",
+      "source_ref": "../Documentation/AcceptanceChainPlan.md#\u672A\u6C7A\u4E8B\u9805",
       "options": [
         {
           "id": "auto-default",
-          "label": "預設改為 auto，新增 plan 動詞保留只評估",
-          "description": "不帶參數 = 評估、直接做、執行、驗收；`/task-progress-items plan` 只評估不執行。卡片與項目目標的語意不變。"
+          "label": "\u9810\u8A2D\u6539\u70BA auto\uFF0C\u65B0\u589E plan \u52D5\u8A5E\u4FDD\u7559\u53EA\u8A55\u4F30",
+          "description": "\u4E0D\u5E36\u53C3\u6578 = \u8A55\u4F30\u3001\u76F4\u63A5\u505A\u3001\u57F7\u884C\u3001\u9A57\u6536\uFF1B\u0060/task-progress-items plan\u0060 \u53EA\u8A55\u4F30\u4E0D\u57F7\u884C\u3002\u5361\u7247\u8207\u9805\u76EE\u76EE\u6A19\u7684\u8A9E\u610F\u4E0D\u8B8A\u3002"
         },
         {
           "id": "keep-evaluate",
-          "label": "維持只評估，執行要明說 auto 或 run",
-          "description": "現狀。每次評估後由使用者再下一次命令。"
+          "label": "\u7DAD\u6301\u53EA\u8A55\u4F30\uFF0C\u57F7\u884C\u8981\u660E\u8AAA auto \u6216 run",
+          "description": "\u73FE\u72C0\u3002\u6BCF\u6B21\u8A55\u4F30\u5F8C\u7531\u4F7F\u7528\u8005\u518D\u4E0B\u4E00\u6B21\u547D\u4EE4\u3002"
         },
         {
           "id": "auto-with-confirm",
-          "label": "預設 auto，但執行前先列清單等一次確認",
-          "description": "評估完列出將執行的項目與直接做的工作，使用者回「繼續」才執行。"
+          "label": "\u9810\u8A2D auto\uFF0C\u4F46\u57F7\u884C\u524D\u5148\u5217\u6E05\u55AE\u7B49\u4E00\u6B21\u78BA\u8A8D",
+          "description": "\u8A55\u4F30\u5B8C\u5217\u51FA\u5C07\u57F7\u884C\u7684\u9805\u76EE\u8207\u76F4\u63A5\u505A\u7684\u5DE5\u4F5C\uFF0C\u4F7F\u7528\u8005\u56DE\u300C\u7E7C\u7E8C\u300D\u624D\u57F7\u884C\u3002"
         }
       ],
       "recommendation": {
         "option_id": "auto-default",
-        "reason": "使用者描述的工作方式就是 auto；只評估的能力以 plan 保留，不失去功能。多一次確認會把「下一步」再變回「問使用者」，正是這次要解決的症狀。"
+        "reason": "\u4F7F\u7528\u8005\u63CF\u8FF0\u7684\u5DE5\u4F5C\u65B9\u5F0F\u5C31\u662F auto\uFF1B\u53EA\u8A55\u4F30\u7684\u80FD\u529B\u4EE5 plan \u4FDD\u7559\uFF0C\u4E0D\u5931\u53BB\u529F\u80FD\u3002\u591A\u4E00\u6B21\u78BA\u8A8D\u6703\u628A\u300C\u4E0B\u4E00\u6B65\u300D\u518D\u8B8A\u56DE\u300C\u554F\u4F7F\u7528\u8005\u300D\uFF0C\u6B63\u662F\u9019\u6B21\u8981\u89E3\u6C7A\u7684\u75C7\u72C0\u3002"
       },
       "allow_other": true,
-      "status": "pending",
-      "answer": null
+      "status": "decided",
+      "answer": {
+        "kind": "option",
+        "option_id": "auto-default",
+        "confirmed_at": "2026-10-23T03:18:08.4427452\u002B00:00"
+      },
+      "last_request": {
+        "request_id": "bed20e18-97c1-4475-b40a-b07bb90eddf9",
+        "fingerprint": "f6ff6ead49b9d3fcce06b2da51379a9b52cfaf27563e3f12815a10226060005a"
+      }
     },
     {
       "id": "recommendation-default",
       "version": 1,
-      "question": "2. 評估產生的決策題，agent 是否預設採建議執行？",
-      "context": "現況（2026-10-23）：\n- 評估把使用者未做的選擇寫成決策題後停下，agent 不自行啟動任何項目或決策（agent-executable-items〈Evaluate a scope〉，使用者 2026-10-21）。\n- UX ux-foundation 98 題統計：66 題以選項作答，其中 63 題選建議、3 題選其他選項；32 題自由文字（多為同意加補充）。\n- 第 98 題 2026-10-21 已答「第一輪之後」，UX plan〈尚未決定〉與 handoff Open decisions 至今仍寫待決：答完沒有人接著落實。\n- 決策檔已有 recommendation 與 answer.reason 欄位，可記「採建議，未經使用者確認」，使用者在決策頁隨時可改答案。\n- 本題影響 agent-executable-items〈Evaluate a scope〉與 task-progress-items 的評估回報；「低風險」的四個條件寫進 skill 時定稿。",
-      "source_ref": "../Documentation/AcceptanceChainPlan.md#未決事項",
+      "question": "2. \u8A55\u4F30\u7522\u751F\u7684\u6C7A\u7B56\u984C\uFF0Cagent \u662F\u5426\u9810\u8A2D\u63A1\u5EFA\u8B70\u57F7\u884C\uFF1F",
+      "context": "\u73FE\u6CC1\uFF082026-10-23\uFF09\uFF1A\n- \u8A55\u4F30\u628A\u4F7F\u7528\u8005\u672A\u505A\u7684\u9078\u64C7\u5BEB\u6210\u6C7A\u7B56\u984C\u5F8C\u505C\u4E0B\uFF0Cagent \u4E0D\u81EA\u884C\u555F\u52D5\u4EFB\u4F55\u9805\u76EE\u6216\u6C7A\u7B56\uFF08agent-executable-items\u3008Evaluate a scope\u3009\uFF0C\u4F7F\u7528\u8005 2026-10-21\uFF09\u3002\n- UX ux-foundation 98 \u984C\u7D71\u8A08\uFF1A66 \u984C\u4EE5\u9078\u9805\u4F5C\u7B54\uFF0C\u5176\u4E2D 63 \u984C\u9078\u5EFA\u8B70\u30013 \u984C\u9078\u5176\u4ED6\u9078\u9805\uFF1B32 \u984C\u81EA\u7531\u6587\u5B57\uFF08\u591A\u70BA\u540C\u610F\u52A0\u88DC\u5145\uFF09\u3002\n- \u7B2C 98 \u984C 2026-10-21 \u5DF2\u7B54\u300C\u7B2C\u4E00\u8F2A\u4E4B\u5F8C\u300D\uFF0CUX plan\u3008\u5C1A\u672A\u6C7A\u5B9A\u3009\u8207 handoff Open decisions \u81F3\u4ECA\u4ECD\u5BEB\u5F85\u6C7A\uFF1A\u7B54\u5B8C\u6C92\u6709\u4EBA\u63A5\u8457\u843D\u5BE6\u3002\n- \u6C7A\u7B56\u6A94\u5DF2\u6709 recommendation \u8207 answer.reason \u6B04\u4F4D\uFF0C\u53EF\u8A18\u300C\u63A1\u5EFA\u8B70\uFF0C\u672A\u7D93\u4F7F\u7528\u8005\u78BA\u8A8D\u300D\uFF0C\u4F7F\u7528\u8005\u5728\u6C7A\u7B56\u9801\u96A8\u6642\u53EF\u6539\u7B54\u6848\u3002\n- \u672C\u984C\u5F71\u97FF agent-executable-items\u3008Evaluate a scope\u3009\u8207 task-progress-items \u7684\u8A55\u4F30\u56DE\u5831\uFF1B\u300C\u4F4E\u98A8\u96AA\u300D\u7684\u56DB\u500B\u689D\u4EF6\u5BEB\u9032 skill \u6642\u5B9A\u7A3F\u3002",
+      "source_ref": "../Documentation/AcceptanceChainPlan.md#\u672A\u6C7A\u4E8B\u9805",
       "options": [
         {
           "id": "adopt-low-stakes",
-          "label": "低風險題採建議執行並標記未確認，其餘等使用者",
-          "description": "低風險＝可逆、不改已發布規格或設計資料、不跨 scope、不屬產品偏好。答案記為「採建議，未經使用者確認」並寫在評估回報；改規格、產品偏好、實作互相衝突的題仍等使用者。"
+          "label": "\u4F4E\u98A8\u96AA\u984C\u63A1\u5EFA\u8B70\u57F7\u884C\u4E26\u6A19\u8A18\u672A\u78BA\u8A8D\uFF0C\u5176\u9918\u7B49\u4F7F\u7528\u8005",
+          "description": "\u4F4E\u98A8\u96AA\uFF1D\u53EF\u9006\u3001\u4E0D\u6539\u5DF2\u767C\u5E03\u898F\u683C\u6216\u8A2D\u8A08\u8CC7\u6599\u3001\u4E0D\u8DE8 scope\u3001\u4E0D\u5C6C\u7522\u54C1\u504F\u597D\u3002\u7B54\u6848\u8A18\u70BA\u300C\u63A1\u5EFA\u8B70\uFF0C\u672A\u7D93\u4F7F\u7528\u8005\u78BA\u8A8D\u300D\u4E26\u5BEB\u5728\u8A55\u4F30\u56DE\u5831\uFF1B\u6539\u898F\u683C\u3001\u7522\u54C1\u504F\u597D\u3001\u5BE6\u4F5C\u4E92\u76F8\u885D\u7A81\u7684\u984C\u4ECD\u7B49\u4F7F\u7528\u8005\u3002"
         },
         {
           "id": "always-wait",
-          "label": "全部等使用者回答",
-          "description": "現狀。每題都停下。"
+          "label": "\u5168\u90E8\u7B49\u4F7F\u7528\u8005\u56DE\u7B54",
+          "description": "\u73FE\u72C0\u3002\u6BCF\u984C\u90FD\u505C\u4E0B\u3002"
         },
         {
           "id": "adopt-all",
-          "label": "全部採建議執行，使用者事後否決",
-          "description": "所有題都先照建議做，答案標記未確認。"
+          "label": "\u5168\u90E8\u63A1\u5EFA\u8B70\u57F7\u884C\uFF0C\u4F7F\u7528\u8005\u4E8B\u5F8C\u5426\u6C7A",
+          "description": "\u6240\u6709\u984C\u90FD\u5148\u7167\u5EFA\u8B70\u505A\uFF0C\u7B54\u6848\u6A19\u8A18\u672A\u78BA\u8A8D\u3002"
         }
       ],
       "recommendation": {
         "option_id": "adopt-low-stakes",
-        "reason": "95% 選建議表示大多數題停下來等是浪費；但 3 題不選建議的都涉及命名與規格，改錯的代價高，保留人工。評估同時要先讀「已答但未落實」的決策，第 98 題是現成的例子。"
+        "reason": "95% \u9078\u5EFA\u8B70\u8868\u793A\u5927\u591A\u6578\u984C\u505C\u4E0B\u4F86\u7B49\u662F\u6D6A\u8CBB\uFF1B\u4F46 3 \u984C\u4E0D\u9078\u5EFA\u8B70\u7684\u90FD\u6D89\u53CA\u547D\u540D\u8207\u898F\u683C\uFF0C\u6539\u932F\u7684\u4EE3\u50F9\u9AD8\uFF0C\u4FDD\u7559\u4EBA\u5DE5\u3002\u8A55\u4F30\u540C\u6642\u8981\u5148\u8B80\u300C\u5DF2\u7B54\u4F46\u672A\u843D\u5BE6\u300D\u7684\u6C7A\u7B56\uFF0C\u7B2C 98 \u984C\u662F\u73FE\u6210\u7684\u4F8B\u5B50\u3002"
       },
       "allow_other": true,
-      "status": "pending",
-      "answer": null
+      "status": "decided",
+      "answer": {
+        "kind": "option",
+        "option_id": "adopt-low-stakes",
+        "confirmed_at": "2026-10-23T03:16:45.2279439\u002B00:00"
+      },
+      "last_request": {
+        "request_id": "953f11e3-80d0-47a7-9617-f374ee239a56",
+        "fingerprint": "a0e6a403ca12edc4781ea48a2eb5a0f46c3b73d8fff4ea95941cd12a6c9fce1e"
+      }
     },
     {
       "id": "next-module-nomination",
-      "version": 1,
-      "question": "3. 模組目標達成後，下一個模組怎麼點名？",
-      "context": "現況（2026-10-23）：\n- 一次一個模組、下一個由使用者點名（UX 第 74 題；標準作業）。\n- 等點名的下游項目目前顯示 blocked：UX `chat-prerequisites` 等 TextField、ScrollView；`appsmenu-verified` 等 Unity 恢復。評估到此停止，Report 上沒有任何地方寫「下一步是使用者點名」。\n- UX handoff Next steps 已列候選順序：TextField、ScrollView，再 ChatPanel、AppsMenu；第 96 題「下一個控件點名哪一個」就是這種題的既有例子，使用者選了建議。\n- 本題影響 agent-executable-items〈Evaluate a scope〉的「等人」處理與 cross-platform-module-spec 的收尾步驤。",
-      "source_ref": "../Documentation/AcceptanceChainPlan.md#未決事項",
+      "version": 2,
+      "status": "pending",
+      "answer": null,
+      "last_request": {
+        "request_id": "8159aeb9-d65a-4b73-8121-e4fa9b86c11e",
+        "fingerprint": "b101d0d32cd5a34ae1b2ef4b318e5a95af41a42afa4736251e702510c0a50032"
+      },
+      "question": "3. Report \u600E\u9EBC\u544A\u8A34\u4F7F\u7528\u8005\u300C\u73FE\u5728\u8A72\u505A\u4EC0\u9EBC\u300D\uFF1F\uFF08\u539F\u300C\u4E0B\u4E00\u500B\u6A21\u7D44\u600E\u9EBC\u9EDE\u540D\u300D\u4F75\u5165\uFF09",
+      "context": "\u73FE\u6CC1\uFF082026-10-23 \u67E5\u660E\uFF09\uFF1A\n- plan\u3008\u9032\u5EA6\u6458\u8981\u8207\u4E0B\u4E00\u6B65\u5361\u7247\u7684\u5171\u7528\u3009\u8A2D\u8A08\u904E\u5171\u7528\u300C\u4E0B\u4E00\u6B65\u5361\u7247\u300D\uFF1A\u4E00\u6B21\u53EA\u986F\u793A\u4E00\u500B\u672A\u5B8C\u6210\u3001\u6C92\u88AB\u76F8\u4F9D\u64CB\u4F4F\u7684\u9805\u76EE\uFF0C\u5BEB\u8A72\u505A\u4EC0\u9EBC\u3001\u600E\u6A23\u7B97\u901A\u904E\uFF0C\u6307\u4EE4\u76F4\u63A5\u653E\u5361\u7247\u88E1\u3002\u5143\u4EF6 \u0060experiments/editor-svelte-spike/src/NextStepCard.svelte\u0060\uFF08dd03994\uFF0C2026-08-15\uFF09\u4ECD\u5728\uFF0C\u4F46\u53EA\u66FE\u63A5\u5230 Checklist \u756B\u9762\uFF1Ba1e5ca3\uFF082026-09-10\uFF09\u628A\u5B83\u6539\u6210\u4E00\u884C\u9023\u7D50\u300C\u4E0B\u4E00\u6B65 \u00B7 Agent\uFF1A\u003C\u6AA2\u67E5\u6A19\u984C\u003E\u300D\uFF0C\u9EDE\u4E86\u6372\u5230\u8A72\u6AA2\u67E5\u3002Checklist \u756B\u9762\u7684\u4E0B\u4E00\u6B65\u6C92\u6709\u6D88\u5931\uFF0C\u53EA\u662F\u5F9E\u5361\u7247\u8B8A\u6210\u4E00\u884C\u3002\n- Report\uFF08\u4EFB\u52D9\u9032\u5EA6\uFF09\u756B\u9762\u5F9E\u672A\u63A5\u4E0A\u4E0B\u4E00\u6B65\u5361\u7247\u3002\u5B83\u73FE\u6709\u7684\u300C\u4E0B\u4E00\u6B65\u300D\u53EA\u6709 report.dev.json \u6BCF\u5F35\u5361\u7684 \u0060next_step\u0060\uFF0F\u0060next_steps\u0060\uFF08Developer \u5340\u986F\u793A\u300CNext Step :\u300D\uFF0C\u672A\u6307\u5B9A\u6642\u96B1\u85CF\uFF0Ca2f5483\uFF09\u3002\u9019\u662F\u624B\u5BEB\u6587\u5B57\uFF1BUX\u3001Web \u6C92\u6709 report.dev.json\uFF0C\u6240\u4EE5\u90A3\u5169\u500B scope \u7684 Report \u5B8C\u5168\u6C92\u6709\u4E0B\u4E00\u6B65\u6307\u793A\u3002\n- \u5B50\u9805\u5DF2\u6709\u63A8\u7B97\u72C0\u614B\uFF08\u672A\u958B\u59CB\u3001\u57F7\u884C\u4E2D\u3001\u7B49\u5F85\u4E2D\u3001\u5F85\u4ED6\u9A57\u3001\u5F85\u4F7F\u7528\u8005\u3001\u9700\u4FEE\u6B63\u3001\u5B8C\u6210\uFF09\u3001\u512A\u5148\u7D1A\u8207 waits_for\uFF0C\u8DB3\u4EE5\u7B97\u51FA\u300C\u73FE\u5728\u552F\u4E00\u8A72\u8655\u7406\u7684\u9805\u76EE\u8207\u8F2A\u5230\u8AB0\u300D\uFF0C\u4E0D\u5FC5\u53E6\u5BEB\u6587\u5B57\u3002\n- \u539F\u7B2C 3 \u984C\u7684\u60C5\u5883\uFF08\u6A21\u7D44\u76EE\u6A19\u9054\u6210\u3001\u7B49\u4F7F\u7528\u8005\u9EDE\u540D\u4E0B\u4E00\u500B\uFF09\u662F\u300C\u5F85\u4F7F\u7528\u8005\u300D\u7684\u4E00\u7A2E\uFF1A\u9EDE\u540D\u984C\u82E5\u662F\u6C7A\u7B56\u5B50\u9805\uFF0CReport \u5C31\u80FD\u76F4\u63A5\u628A\u5B83\u986F\u793A\u70BA\u4E0B\u4E00\u6B65\u3002\u7B2C 1\u30012\u30014 \u984C\u5DF2\u6C7A\u5B9A\uFF08AcceptanceChainPlan \u7B2C 27\uFF5E29 \u9EDE\uFF09\u3002",
+      "source_ref": "../Documentation/AcceptanceChainPlan.md#\u672A\u6C7A\u4E8B\u9805",
       "options": [
         {
-          "id": "auto-question",
-          "label": "目標達成時 agent 立刻出題「下一個點名哪個」附建議",
-          "description": "收尾時出一題決策（現況、候選、建議），等點名的下游項目改用 waits_for 指向該決策所綁的子項，不再用 blocked。配合第 2 題時可直接採建議開工。"
+          "id": "derived-card",
+          "label": "Report \u756B\u9762\u63A5\u4E0A\u5171\u7528\u4E0B\u4E00\u6B65\u5361\u7247\uFF0C\u5167\u5BB9\u7531\u5B50\u9805\u63A8\u7B97\u72C0\u614B\u5F97\u51FA",
+          "description": "\u4F9D\u512A\u5148\u7D1A\u8207\u5361\u7247\u9806\u5E8F\u53D6\u7B2C\u4E00\u500B\u672A\u5B8C\u6210\u4E14\u4E0D\u5728\u7B49\u5F85\u4E2D\u7684\u5B50\u9805\uFF1B\u5F85\u4F7F\u7528\u8005\uFF0F\u5F85\u4ED6\u9A57\u7684\u5B50\u9805\u986F\u793A\u8F2A\u5230\u8AB0\u8207\u5C0D\u61C9\u547D\u4EE4\uFF1B\u53EA\u5269\u7B49\u5F85\u6642\u5217\u51FA\u7B49\u5F85\u7684\u9023\u7D50\u3002\u6A21\u7D44\u6536\u5C3E\u6642 agent \u51FA\u300C\u4E0B\u4E00\u500B\u9EDE\u540D\u54EA\u500B\u300D\u6C7A\u7B56\u5B50\u9805\uFF0C\u5B83\u81EA\u7136\u6210\u70BA\u4E0B\u4E00\u6B65\u3002\u9019\u662F Viewer \u5DE5\u4F5C\uFF0C\u5728 viewer-core \u5361\u958B\u4E00\u500B\u9805\u76EE\u3002"
         },
         {
-          "id": "keep-blocked",
-          "label": "維持現狀，使用者自己點名",
-          "description": "下游項目保持 blocked，使用者在對話中點名。"
+          "id": "dev-next-step",
+          "label": "\u6CBF\u7528 report.dev.json \u7684 next_step\uFF0Cagent \u6536\u5C3E\u6642\u4EE5 dev.update \u5BEB\u6BCF\u5F35\u5361\u7684\u4E0B\u4E00\u6B65",
+          "description": "UX\u3001Web \u5404\u5EFA report.dev.json\uFF1BReport \u5DF2\u6703\u986F\u793A\u3002\u624B\u5BEB\u6587\u5B57\u6703\u904E\u671F\uFF0C\u4E14\u8207 handoff Next steps \u91CD\u8907\u3002"
         },
         {
-          "id": "agent-picks",
-          "label": "取消點名規則，agent 依層序直接開下一個",
-          "description": "依基礎→控件→集合→模組的順序自動開工。"
+          "id": "handoff-only",
+          "label": "\u7DAD\u6301\u73FE\u72C0\uFF1A\u4E0B\u4E00\u6B65\u53EA\u5BEB\u5728 handoff Next steps \u8207\u8A55\u4F30\u56DE\u5831",
+          "description": "Report \u4E0D\u986F\u793A\u4E0B\u4E00\u6B65\u3002"
         }
       ],
       "recommendation": {
-        "option_id": "auto-question",
-        "reason": "保留使用者對模組順序的控制，但把隱形的「等點名」變成 Report 上可見、可答的題；agent-picks 違反一次一模組的理由（使用者要掌握範圖與節奏）。"
+        "option_id": "derived-card",
+        "reason": "\u63A8\u7B97\u51FA\u4F86\u7684\u4E0B\u4E00\u6B65\u4E0D\u6703\u50CF\u624B\u5BEB\u6587\u5B57\u90A3\u6A23\u904E\u671F\uFF08\u7B2C 98 \u984C\u7B54\u5B8C\u5169\u5929 handoff \u4ECD\u5BEB\u5F85\u6C7A\uFF0C\u5C31\u662F\u624B\u5BEB\u7684\u4E0B\u5834\uFF09\uFF1B\u8CC7\u6599\u90FD\u5DF2\u5B58\u5728\uFF0C\u5DEE\u7684\u662F Report \u756B\u9762\u6C92\u63A5\u4E0A\uFF1B\u800C\u4E14\u9019\u672C\u4F86\u5C31\u662F plan \u5BEB\u597D\u7684\u8A2D\u8A08\u3002dev-next-step \u53EF\u7576\u63A5\u4E0A\u524D\u7684\u904E\u6E21\uFF0C\u4E0D\u5EFA\u8B70\u7576\u76EE\u6A19\u3002"
       },
-      "allow_other": true,
-      "status": "pending",
-      "answer": null
+      "allow_other": true
     },
     {
       "id": "issue-item-shape",
       "version": 1,
-      "question": "4. agent 執行、分析、評估中發現的問題（錯誤、缺口、設計不良）怎麼記錄？",
-      "context": "現況（2026-10-23）：\n- AgentArtifactGuide〈Single ownership〉已規定：沒有計畫排程的已知問題，是擁有該問題 scope 的 report 卡片上的一個子項，不另設 issue 清單。但這條只在「建立或更新協調文件前」被路由讀到；AgentsRule 核心契約與 task-progress-items 收尾回報都沒有「發現問題就記」的觸發，agent 實際不做。\n- `.agents` 的 known-issues 卡已封存；摩擦紀錄只有 .agents handoff〈Module-workflow review〉一處，只為模組流程設。\n- 使用者 2026-10-23 提議「依任務添加 Issue 任務卡，agent 發現自提交」。\n- 2026-10-21 使用者因「依執行者分卡讓模組的工作離開使用者看的那張卡」退掉了「Agent 可執行項目」卡。\n- Report CLI 的 item.add 已記 actor 與 session，Viewer 搜尋可比對標題。",
-      "source_ref": "../Documentation/AcceptanceChainPlan.md#未決事項",
+      "question": "4. agent \u57F7\u884C\u3001\u5206\u6790\u3001\u8A55\u4F30\u4E2D\u767C\u73FE\u7684\u554F\u984C\uFF08\u932F\u8AA4\u3001\u7F3A\u53E3\u3001\u8A2D\u8A08\u4E0D\u826F\uFF09\u600E\u9EBC\u8A18\u9304\uFF1F",
+      "context": "\u73FE\u6CC1\uFF082026-10-23\uFF09\uFF1A\n- AgentArtifactGuide\u3008Single ownership\u3009\u5DF2\u898F\u5B9A\uFF1A\u6C92\u6709\u8A08\u756B\u6392\u7A0B\u7684\u5DF2\u77E5\u554F\u984C\uFF0C\u662F\u64C1\u6709\u8A72\u554F\u984C scope \u7684 report \u5361\u7247\u4E0A\u7684\u4E00\u500B\u5B50\u9805\uFF0C\u4E0D\u53E6\u8A2D issue \u6E05\u55AE\u3002\u4F46\u9019\u689D\u53EA\u5728\u300C\u5EFA\u7ACB\u6216\u66F4\u65B0\u5354\u8ABF\u6587\u4EF6\u524D\u300D\u88AB\u8DEF\u7531\u8B80\u5230\uFF1BAgentsRule \u6838\u5FC3\u5951\u7D04\u8207 task-progress-items \u6536\u5C3E\u56DE\u5831\u90FD\u6C92\u6709\u300C\u767C\u73FE\u554F\u984C\u5C31\u8A18\u300D\u7684\u89F8\u767C\uFF0Cagent \u5BE6\u969B\u4E0D\u505A\u3002\n- \u0060.agents\u0060 \u7684 known-issues \u5361\u5DF2\u5C01\u5B58\uFF1B\u6469\u64E6\u7D00\u9304\u53EA\u6709 .agents handoff\u3008Module-workflow review\u3009\u4E00\u8655\uFF0C\u53EA\u70BA\u6A21\u7D44\u6D41\u7A0B\u8A2D\u3002\n- \u4F7F\u7528\u8005 2026-10-23 \u63D0\u8B70\u300C\u4F9D\u4EFB\u52D9\u6DFB\u52A0 Issue \u4EFB\u52D9\u5361\uFF0Cagent \u767C\u73FE\u81EA\u63D0\u4EA4\u300D\u3002\n- 2026-10-21 \u4F7F\u7528\u8005\u56E0\u300C\u4F9D\u57F7\u884C\u8005\u5206\u5361\u8B93\u6A21\u7D44\u7684\u5DE5\u4F5C\u96E2\u958B\u4F7F\u7528\u8005\u770B\u7684\u90A3\u5F35\u5361\u300D\u9000\u6389\u4E86\u300CAgent \u53EF\u57F7\u884C\u9805\u76EE\u300D\u5361\u3002\n- Report CLI \u7684 item.add \u5DF2\u8A18 actor \u8207 session\uFF0CViewer \u641C\u5C0B\u53EF\u6BD4\u5C0D\u6A19\u984C\u3002",
+      "source_ref": "../Documentation/AcceptanceChainPlan.md#\u672A\u6C7A\u4E8B\u9805",
       "options": [
         {
           "id": "owning-card-prefix",
-          "label": "記在擁有卡上，標題前綴「問題：」",
-          "description": "優先級 2、不綁 checklist，agent 經 report CLI 自行新增並在收尾回報列出；找不到擁有卡的跨 scope 問題進 .agents known-issues 卡（解除封存）。覆盤＝對該卡 /task-progress-items 評估，把「問題：」項目分到修正項目、決策題或 ruled out。AgentsRule 核心契約加一句觸發。"
+          "label": "\u8A18\u5728\u64C1\u6709\u5361\u4E0A\uFF0C\u6A19\u984C\u524D\u7DB4\u300C\u554F\u984C\uFF1A\u300D",
+          "description": "\u512A\u5148\u7D1A 2\u3001\u4E0D\u7D81 checklist\uFF0Cagent \u7D93 report CLI \u81EA\u884C\u65B0\u589E\u4E26\u5728\u6536\u5C3E\u56DE\u5831\u5217\u51FA\uFF1B\u627E\u4E0D\u5230\u64C1\u6709\u5361\u7684\u8DE8 scope \u554F\u984C\u9032 .agents known-issues \u5361\uFF08\u89E3\u9664\u5C01\u5B58\uFF09\u3002\u8986\u76E4\uFF1D\u5C0D\u8A72\u5361 /task-progress-items \u8A55\u4F30\uFF0C\u628A\u300C\u554F\u984C\uFF1A\u300D\u9805\u76EE\u5206\u5230\u4FEE\u6B63\u9805\u76EE\u3001\u6C7A\u7B56\u984C\u6216 ruled out\u3002AgentsRule \u6838\u5FC3\u5951\u7D04\u52A0\u4E00\u53E5\u89F8\u767C\u3002"
         },
         {
           "id": "issue-card-per-scope",
-          "label": "每個 scope 一張 Issue 卡集中放",
-          "description": "使用者提議的形狀：問題集中在一張卡，容易總覽；但離開擁有模組的卡。"
+          "label": "\u6BCF\u500B scope \u4E00\u5F35 Issue \u5361\u96C6\u4E2D\u653E",
+          "description": "\u4F7F\u7528\u8005\u63D0\u8B70\u7684\u5F62\u72C0\uFF1A\u554F\u984C\u96C6\u4E2D\u5728\u4E00\u5F35\u5361\uFF0C\u5BB9\u6613\u7E3D\u89BD\uFF1B\u4F46\u96E2\u958B\u64C1\u6709\u6A21\u7D44\u7684\u5361\u3002"
         },
         {
           "id": "issue-kind-field",
-          "label": "report schema 新增子項 kind: issue，Viewer 可篩選",
-          "description": "記在擁有卡上，以欄位而非前綴標示；需改 schema、CLI 與 Viewer。"
+          "label": "report schema \u65B0\u589E\u5B50\u9805 kind: issue\uFF0CViewer \u53EF\u7BE9\u9078",
+          "description": "\u8A18\u5728\u64C1\u6709\u5361\u4E0A\uFF0C\u4EE5\u6B04\u4F4D\u800C\u975E\u524D\u7DB4\u6A19\u793A\uFF1B\u9700\u6539 schema\u3001CLI \u8207 Viewer\u3002"
         }
       ],
       "recommendation": {
         "option_id": "owning-card-prefix",
-        "reason": "與既有的單一擁有者規則一致，不改 schema 與 Viewer，搜尋「問題：」即可總覽；Issue 卡會重演 10-21 退卡的問題；kind 欄位等前綴用法穩定後再評估。"
+        "reason": "\u8207\u65E2\u6709\u7684\u55AE\u4E00\u64C1\u6709\u8005\u898F\u5247\u4E00\u81F4\uFF0C\u4E0D\u6539 schema \u8207 Viewer\uFF0C\u641C\u5C0B\u300C\u554F\u984C\uFF1A\u300D\u5373\u53EF\u7E3D\u89BD\uFF1BIssue \u5361\u6703\u91CD\u6F14 10-21 \u9000\u5361\u7684\u554F\u984C\uFF1Bkind \u6B04\u4F4D\u7B49\u524D\u7DB4\u7528\u6CD5\u7A69\u5B9A\u5F8C\u518D\u8A55\u4F30\u3002"
       },
       "allow_other": true,
-      "status": "pending",
-      "answer": null
+      "status": "decided",
+      "answer": {
+        "kind": "option",
+        "option_id": "owning-card-prefix",
+        "confirmed_at": "2026-10-23T03:22:19.3509405\u002B00:00"
+      },
+      "last_request": {
+        "request_id": "166f0a77-075c-4ce6-9baa-5e0928cf22e1",
+        "fingerprint": "c976f726742e82a11fa7aab69fae09cecec39c7c4b090d7201ace67b6d7e09da"
+      }
     }
   ]
 }
