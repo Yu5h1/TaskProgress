@@ -17,6 +17,7 @@ internal static partial class Program
             VerifySharedSemantics();
             VerifySingleCheckMessages(root);
             VerifyAcceptance(root);
+            VerifyNextMarker(root);
             VerifyConcurrentStoreWriters(root);
             var source = Sample("\r\n", bom: true);
             var document = ChecklistDocument.Parse(source);

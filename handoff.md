@@ -6,6 +6,11 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
 
 ## Current state (2026-09-29)
 
+- **Next 改為讀取時推算（2026-10-24，使用者決定）。** Viewer 不再寫入推算的 Next（刪除 `advanceStaleNext`）；完成、等待中、執行中都算失效，Viewer 與 `report get` 的 `next_effective`（C# `NextMarker`，與 `next-marker.js` 同一規則：卡依優先級、卡內最高子項優先級、原順序）顯示推算的下一項，存著的 `next` 不動，釋放後自動恢復。`next.set`（CLI 預先檢查）與長按都拒絕已完成、封存、等待中、執行中的子項。技能：Settle Next 讀 `next_effective`，執行中的 Next 不改寫。設計：[NextMarkerPlan](Documentation/NextMarkerPlan.md) 第 3、4、11 點。
+  - 順手修正：`report apply --input -` 讀 stdin 時沒去掉 BOM，C# 的預先檢查（含「含 [acceptance] 的子項寫入要帶 session_id」）在 PowerShell 管線輸入時會靜默略過；已去掉 BOM。
+  - 已驗證：Node 652 中 648 通過（4 項既有格式失敗）、Checklist 366 checks、CLI 整合測試、Python report CLI 23 通過；Debug CLI 實測 `next_effective` 與封存子項 `next.set` 被拒（檔案與 stdin 兩種輸入）；Viewer 開啟後 report.json 未被改寫。
+  - 未處理：UnityExtension 的 report.json 仍有舊 Viewer 自動推進留下的未提交 `next`（→ `write-back-test`），由使用者決定提交或還原。
+
 - **`/task-progress-items plan all`（2026-10-23，使用者要求）。** 對 `scope list` 的每個 scope 依序做 `plan`，各自設定 Next；讀不到或有其他 session 未 commit 的 report／decisions／checklists 時略過並說明；各 repo 依路徑分別 commit；最後彙整成一份報告。只有 `plan` 接受 `all`。寫在 task-progress-items〈Plan all scopes〉與 AcceptanceChainPlan〈命令〉；尚未實際執行過。
 
 - **Agent 發布流程（2026-10-23，使用者要求）。** `Publish.cmd [--nopause] [--restart]`：先以 Winform TrayHost 新增的 `exit` 命令關閉 TaskProgress tray（與選單 Exit 同路徑），再 publish，`--restart` 成功後 `start --no-browser`。taskprogress-capabilities〈Publish and restart〉：只在 `Build/win-x64` 才生效的改動由 agent 直接發布，先告知「這次要重新建置 task-progress.exe，服務會短暫中斷，請等待重啟。」；關閉失敗請使用者從 tray Exit 一次，不得直接終止程序。README 已補參數。

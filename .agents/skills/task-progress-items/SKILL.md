@@ -68,10 +68,14 @@ report names every answer taken this way so the user can overturn it on the deci
 questions wait for the user. Before sorting anything, read the scope's decisions files for answers
 already given whose consequences are not yet in the plan, handoff or items, and act on those first.
 
-Every evaluation ends by settling the scope's Next marker (`report get` → `next`). An effective
+Every evaluation ends by settling the scope's Next marker. `report get` returns `next` as stored and
+`next_effective`, the Next the Report shows (`source: stored` while the marker is effective,
+`derived` when it is not, null when cleared); read that, never derive it yourself. An effective
 marker is never replaced, whoever set it; an item awaiting the user or acceptance is still
-effective. When the marker is absent or its item is `done` or `waiting` (a waiting item's progress
-depends on what it waits on, so it cannot be pushed from here), choose within the command's range —
+effective. A marker on an item someone is working on (`in_progress`) is shown derived but left
+stored: it is the Next again if the work is released. When the marker is absent or its item is
+`done` or `waiting` (a waiting item's progress depends on what it waits on, so it cannot be pushed
+from here), choose within the command's range —
 the target card when one is named, otherwise the scope — the first unfinished item that waits on
 nobody, by priority then card order; write it with
 `{"op": "next.set", "task_id": …, "item_id": …}` and say 「Next 已設為 …」 in the report. Never

@@ -1,7 +1,7 @@
 import { requestedCardPin } from "./card-order.js";
 import { moveUnfinishedItem } from "./item-reorder.js";
 import { recordUserActivity } from "./item-activity.js";
-import { clearNextMarker, fallbackNext, liftNextTask, nextRefusal, resolveNext, setNextMarker } from "./next-marker.js";
+import { clearNextMarker, effectiveNext, liftNextTask, nextRefusal, setNextMarker } from "./next-marker.js";
 import { SELECT_KEY_ATTRIBUTE, createItemSelection } from "./item-selection.js";
 import { isSelectionIgnoredTarget } from "./selection-input.js";
 import { parseReference, referenceTask, searchTask, searchTerms } from "./task-search.js";
@@ -1088,23 +1088,6 @@ function showHiddenEntries() {
   renderTasks();
 }
 
-/*
- * Once per stale marker: when the item it names is done, waiting or in someone
- * else's hands, write the derived next step as the new Next. A cleared marker
- * (none stored) is left alone, so cancelling is final until the user or the
- * next evaluation sets one.
- */
-function advanceStaleNext(rankedTasks) {
-  const stored = state.report.next;
-  if (!stored || !state.editor.available || state.editor.editing || state.previewReorderBusy) return;
-  const key = JSON.stringify(stored);
-  if (state.nextAdvanceAttempted === key) return;
-  state.nextAdvanceAttempted = key;
-  const fallback = fallbackNext(rankedTasks);
-  if (!fallback) return;
-  setNextInPreview({ taskId: fallback.taskId, itemId: fallback.itemId, clear: false, automatic: true });
-}
-
 function renderTasks() {
   const requestedPin = requestedCardPin(location.search, state.report.scope_id);
   // Explicit status groups lead; unfinished cards use priority and completed
@@ -1115,11 +1098,9 @@ function renderTasks() {
     (task) => task.status,
     stableSortTasksByPriority,
   );
-  // The scope's Next marker leads every card while it is effective. A marker
-  // whose item has finished or is waiting is advanced to the derived next step
-  // and written back, so the state moves on instead of showing a guess.
-  const marked = resolveNext(state.report.next, rankedTasks);
-  if (!marked) advanceStaleNext(rankedTasks);
+  // The scope's Next leads every card: the stored marker while it is effective,
+  // else the derived next step. Deriving writes nothing.
+  const marked = effectiveNext(state.report.next, state.tasks);
   const orderedTasks = liftNextTask(rankedTasks, marked?.taskId ?? null);
   // Filtering only hides, and it applies at both levels: a card survives when
   // it matches or when it still holds a matching item, and it then shows only
@@ -1475,11 +1456,13 @@ async function reorderInPreview(command) {
 
 /*
  * Preview-mode write of the Next marker. A long press on a row sets it; a
- * long press on the Next row clears it. Only a user's press is undoable; the
- * automatic advance of a stale marker is not a step of theirs.
+ * long press on the Next row clears it, undoably. A row the Report shows as
+ * done, waiting or in progress is refused before anything is written.
  */
-async function setNextInPreview({ taskId, itemId, clear, automatic = false }) {
-  const refusal = clear ? null : nextRefusal(state.persistedReport, { taskId, itemId });
+async function setNextInPreview({ taskId, itemId, clear }) {
+  const shown = (state.tasks ?? []).find((task) => task?.id === taskId)?.pending_items
+    ?.find((item) => item && typeof item === "object" && item.id === itemId);
+  const refusal = clear ? null : nextRefusal(state.persistedReport, { taskId, itemId, derivedState: shown?.derivedState ?? null });
   if (refusal) {
     actionNotice.show({ level: "error", message: refusal });
     return;
@@ -1488,7 +1471,7 @@ async function setNextInPreview({ taskId, itemId, clear, automatic = false }) {
     build: (report) => recordUserActivity(report, clear ? clearNextMarker(report) : setNextMarker(report, { taskId, itemId })),
     staleMessage: "報告已被其他人更新，已重新載入；請再長按一次。",
     failureMessage: "Next 儲存失敗；原始檔案未變更。",
-    onWritten: automatic ? null : (before, after) => previewHistory.record(before, after),
+    onWritten: (before, after) => previewHistory.record(before, after),
   });
 }
 

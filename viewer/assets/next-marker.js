@@ -1,20 +1,24 @@
-import { stableSortTaskItemsByPriority, taskKind } from "./report-model.js";
+import { stableSortTaskItemsByPriority, stableSortTasksByPriority, taskKind } from "./report-model.js";
 
 /*
- * The scope's one Next marker (`report.next`), and the derived next step it
- * falls back to. Design: Documentation/NextMarkerPlan.md.
+ * The scope's one Next marker (`report.next`), and the derived next step shown
+ * in its place. Design: Documentation/NextMarkerPlan.md.
  *
- * A marker is effective while the item it names is still an unfinished object
- * item of its task that waits on no other item. Once the item completes or
- * starts waiting, the Viewer advances the
- * marker to the derived next step and writes it, so the state itself moves on;
- * nothing is ever shown as "derived". A cleared marker stays cleared until the
- * user or the next evaluation sets one.
+ * A marker is effective while the item it names still needs someone to take it
+ * up: unfinished, waiting on nobody and held by nobody. While it is not, the
+ * derived next step is shown as the Next, unlabelled, and nothing is written:
+ * the stored marker stays, so an item released back to not started is the Next
+ * again. A cleared marker stays cleared until the user or an evaluation sets
+ * one. `report get` derives the same way (C# NextMarker).
  */
-// Only a finished item or one blocked by other items stops being a Next: an
-// item awaiting the user or an acceptor is still the scope's one thing to do,
-// in that person's hands.
-export const INEFFECTIVE_STATES = Object.freeze(["done", "waiting"]);
+// An item awaiting the user or an acceptor still needs that person, so it stays
+// the Next; a finished item, one waiting on others, or one already being worked
+// on does not.
+export const INEFFECTIVE_STATES = Object.freeze(["done", "waiting", "in_progress"]);
+
+function currentState(item) {
+  return item.derivedState ?? item.status ?? "planned";
+}
 
 function isObject(value) {
   return value !== null && typeof value === "object" && !Array.isArray(value);
@@ -23,7 +27,7 @@ function isObject(value) {
 function unfinished(item) {
   return isObject(item) && typeof item.id === "string" && !item.legacy
     && item.status !== "done" && item.status !== "archive"
-    && !INEFFECTIVE_STATES.includes(item.derivedState);
+    && !INEFFECTIVE_STATES.includes(currentState(item));
 }
 
 function actionable(task) {
@@ -42,11 +46,12 @@ export function resolveNext(next, tasks) {
 }
 
 /**
- * The derived next step: the first unfinished item that waits on nobody, by
- * card order (already ranked by the caller) and item priority.
+ * The derived next step: the first item that needs taking up, by card priority
+ * (then the card's highest item priority, then source order) and item priority.
+ * The view's own grouping never changes it, so the CLI derives the same item.
  */
-export function fallbackNext(orderedTasks) {
-  for (const task of orderedTasks ?? []) {
+export function fallbackNext(tasks) {
+  for (const task of stableSortTasksByPriority(tasks ?? [])) {
     if (!actionable(task)) continue;
     const item = stableSortTaskItemsByPriority(task.pending_items).find(unfinished);
     if (item) return { taskId: task.id, itemId: item.id, task, item, derived: true };
@@ -54,7 +59,13 @@ export function fallbackNext(orderedTasks) {
   return null;
 }
 
-/** The Next card leads every other card; pins are applied by the list afterwards and stay above it. */
+/** What the Report shows as the Next: the stored marker while effective, else the derived step; none when cleared. */
+export function effectiveNext(next, tasks) {
+  if (!isObject(next)) return null;
+  return resolveNext(next, tasks) ?? fallbackNext(tasks);
+}
+
+/** The Next card leads every other card. */
 export function liftNextTask(orderedTasks, nextTaskId) {
   if (!nextTaskId) return orderedTasks;
   const index = (orderedTasks ?? []).findIndex((task) => task?.id === nextTaskId);
@@ -70,8 +81,11 @@ export function liftNextItem(items, nextItemId) {
   return [items[index], ...items.slice(0, index), ...items.slice(index + 1)];
 }
 
-/** Why the item cannot become the Next, in words for the user; null when it can. */
-export function nextRefusal(report, { taskId, itemId }) {
+/**
+ * Why the item cannot become the Next, in words for the user; null when it can.
+ * `derivedState` is the state the Report shows; without it the stored status decides.
+ */
+export function nextRefusal(report, { taskId, itemId, derivedState = null }) {
   const task = report?.tasks?.find((entry) => entry?.id === taskId);
   if (!task) return `找不到任務「${taskId}」。`;
   const item = [...(task.pending_items ?? []), ...(task.completed_items ?? [])]
@@ -79,6 +93,10 @@ export function nextRefusal(report, { taskId, itemId }) {
   if (!item) return `找不到子項目「${itemId}」。`;
   if (item.status === "archive") return "已封存的子項目不能設為 Next。";
   if (item.status === "done" || !(task.pending_items ?? []).includes(item)) return "已完成的子項目不能設為 Next。";
+  const state = derivedState ?? item.status;
+  if (state === "done") return "已完成的子項目不能設為 Next。";
+  if (state === "waiting") return "等待中的子項目不能設為 Next。";
+  if (state === "in_progress") return "執行中的子項目不能設為 Next。";
   return null;
 }
 

@@ -10,7 +10,7 @@ task-progress.exe report validate "C:\Project"
 task-progress.exe report get --scope project
 ```
 
-`get` 回傳 `revision`，局部讀取仍使用整組來源的 revision。`developer` 是對應 overlay，缺少時為 null。
+`get` 回傳 `revision`，局部讀取仍使用整組來源的 revision。每個物件子項另附 `derived_state`；根層另附 `next_effective`（`task_id`、`item_id`、`source`：`stored` 為存著且有效的 Next，`derived` 為失效時推算的下一項；`next` 被清除時為 null），與 Viewer 顯示的 Next 相同。`developer` 是對應 overlay，缺少時為 null。
 
 ## 更新卡片及子項
 

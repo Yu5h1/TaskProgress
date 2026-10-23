@@ -4407,7 +4407,11 @@ Object.freeze([
 	"pending_items",
 	"progress",
 	"priority"
-]), Object.freeze(["done", "waiting"]);
+]), Object.freeze([
+	"done",
+	"waiting",
+	"in_progress"
+]);
 function Ss(e) {
 	return typeof e == "object" && !!e && !Array.isArray(e);
 }

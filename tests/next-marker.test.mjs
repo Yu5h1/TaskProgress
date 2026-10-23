@@ -6,6 +6,7 @@ import assert from "node:assert/strict";
 
 import {
   clearNextMarker,
+  effectiveNext,
   fallbackNext,
   liftNextItem,
   liftNextTask,
@@ -42,7 +43,7 @@ test("the derived next step is the first unfinished, non-waiting item by card or
   assert.equal(fallbackNext(list)?.itemId, "u1");
   assert.equal(fallbackNext(list.slice(1))?.itemId, "mid", "waiting items are skipped, priority ranks the rest");
   assert.equal(fallbackNext([list[2]]), null);
-  assert.equal(resolveNext({ task_id: "card", item_id: "done" }, list), null, "a stale marker is advanced by the host, never shown as derived");
+  assert.equal(resolveNext({ task_id: "card", item_id: "done" }, list), null, "a stale marker resolves to nothing; effectiveNext shows the derived step");
 });
 
 test("the Next card and item lead, whatever their priority, and nothing else moves", () => {
@@ -77,4 +78,36 @@ test("a refused Next says why, for the warning popup", () => {
   assert.match(nextRefusal(report, { taskId: "card", itemId: "gone" }), /找不到子項目/u);
   assert.match(nextRefusal(report, { taskId: "none", itemId: "open" }), /找不到任務/u);
   assert.throws(() => setNextMarker(report, { taskId: "card", itemId: "shelved" }), /已封存/u);
+});
+
+test("an item someone is already working on is not the Next, and comes back when released", () => {
+  const list = tasks();
+  list[1].pending_items[2].status = "in_progress";
+  assert.equal(resolveNext({ task_id: "card", item_id: "mid" }, list), null, "an unbound item claimed in progress");
+  delete list[1].pending_items[2].status;
+  list[1].pending_items[2].derivedState = "in_progress";
+  assert.equal(resolveNext({ task_id: "card", item_id: "mid" }, list), null, "a bound item derived in progress");
+  assert.equal(fallbackNext(list.slice(1))?.itemId, "low", "the derived step skips it");
+  list[1].pending_items[2].derivedState = "not_started";
+  assert.equal(effectiveNext({ task_id: "card", item_id: "mid" }, list)?.itemId, "mid", "the stored marker is effective again");
+  list[1].pending_items[2].derivedState = "awaiting_acceptance";
+  list[1].pending_items[2].status = "in_progress";
+  assert.equal(resolveNext({ task_id: "card", item_id: "mid" }, list)?.itemId, "mid", "the derived state outranks the stored claim");
+});
+
+test("the shown Next is the stored marker, else the derived step, and nothing when cleared", () => {
+  const list = tasks();
+  assert.deepEqual(effectiveNext({ task_id: "card", item_id: "low" }, list) && [effectiveNext({ task_id: "card", item_id: "low" }, list).itemId, effectiveNext({ task_id: "card", item_id: "low" }, list).derived], ["low", false]);
+  const stale = effectiveNext({ task_id: "card", item_id: "done" }, list);
+  assert.deepEqual([stale.itemId, stale.derived], ["u1", true]);
+  assert.equal(effectiveNext(undefined, list), null, "a cleared marker shows no Next");
+  assert.equal(fallbackNext([...list].reverse())?.itemId, "u1", "the derived step follows priority, not the order the view passes");
+});
+
+test("a press on a row the Report shows as done, waiting or in progress is refused", () => {
+  const report = { tasks: [{ id: "card", pending_items: [{ id: "open" }, { id: "claimed", status: "in_progress" }] }] };
+  assert.equal(nextRefusal(report, { taskId: "card", itemId: "claimed" }), "執行中的子項目不能設為 Next。");
+  assert.equal(nextRefusal(report, { taskId: "card", itemId: "open", derivedState: "waiting" }), "等待中的子項目不能設為 Next。");
+  assert.equal(nextRefusal(report, { taskId: "card", itemId: "open", derivedState: "done" }), "已完成的子項目不能設為 Next。");
+  assert.equal(nextRefusal(report, { taskId: "card", itemId: "claimed", derivedState: "awaiting_acceptance" }), null);
 });

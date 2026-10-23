@@ -20,7 +20,7 @@ internal static class ReportCommand
             var request = Parse(args, store);
             var input = request.Input is null ? null
                 : request.Input == "-"
-                    ? await Console.In.ReadToEndAsync(cancellationToken)
+                    ? (await Console.In.ReadToEndAsync(cancellationToken)).TrimStart('﻿')
                     : await ReadInputAsync(request.Input, cancellationToken);
             return await ExecuteAsync(request, input, cancellationToken);
         }
@@ -115,7 +115,11 @@ internal static class ReportCommand
 
     private static async Task<int> ExecuteAsync(Request request, string? input, CancellationToken cancellationToken)
     {
-        if (request.Action == "apply" && input is not null) RequireSessionForAcceptanceItems(request.Folder, input);
+        if (request.Action == "apply" && input is not null)
+        {
+            RequireSessionForAcceptanceItems(request.Folder, input);
+            RequireNextTargetsToTakeUp(request.Folder, input);
+        }
         var script = FindScript();
         var start = new ProcessStartInfo
         {
@@ -178,7 +182,8 @@ internal static class ReportCommand
 
     /// <summary>
     ///   Adds each object item's <c>derived_state</c>, the state readers and
-    ///   queues act on; the stored status stays as written.
+    ///   queues act on, and the root's <c>next_effective</c>, the Next the
+    ///   Report shows (<see cref="NextMarker"/>); stored values stay as written.
     /// </summary>
     internal static string WithDerivedStates(string folder, string result)
     {
@@ -200,7 +205,42 @@ internal static class ReportCommand
                     item["derived_state"] = resolver.StateOf(scope, item);
             }
         }
+        root["next_effective"] = NextMarker.Effective(report, scope, resolver);
         return root.ToJsonString();
+    }
+
+    /// <summary>
+    ///   A <c>next.set</c> must name an item someone still has to take up: not done,
+    ///   archived, waiting or already in progress, judged by its derived state.
+    /// </summary>
+    private static void RequireNextTargetsToTakeUp(string folder, string input)
+    {
+        System.Text.Json.Nodes.JsonObject? request;
+        try
+        {
+            request = System.Text.Json.Nodes.JsonNode.Parse(input) as System.Text.Json.Nodes.JsonObject;
+        }
+        catch (JsonException)
+        {
+            return;
+        }
+        if (request?["operations"] is not System.Text.Json.Nodes.JsonArray operations) return;
+        var targets = operations.OfType<System.Text.Json.Nodes.JsonObject>()
+            .Where(operation => operation["op"]?.GetValue<string>() == "next.set")
+            .ToList();
+        if (targets.Count == 0) return;
+        var reportPath = Path.Combine(folder, "report.json");
+        if (!File.Exists(reportPath)
+            || System.Text.Json.Nodes.JsonNode.Parse(File.ReadAllBytes(reportPath)) is not System.Text.Json.Nodes.JsonObject report
+            || report["scope_id"]?.GetValue<string>() is not { } scope)
+            return;
+        var resolver = new ItemStateResolver(folder, report);
+        foreach (var operation in targets)
+        {
+            var refusal = NextMarker.Refusal(report, scope,
+                operation["task_id"]?.GetValue<string>(), operation["item_id"]?.GetValue<string>(), resolver);
+            if (refusal is not null) throw new CliException(refusal);
+        }
     }
 
     /// <summary>
