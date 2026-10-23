@@ -3,8 +3,180 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-10-23T12:46:51.106933+00:00",
+  "updated_at": "2026-10-23T14:52:02.030224+00:00",
   "tasks": [
+    {
+      "id": "next-marker",
+      "title": "Next 標記：scope 唯一的下一步",
+      "status": "done",
+      "priority": 1,
+      "summary": "已完成（2026-10-23）：report.json 頂層 next、CLI next.set／next.clear、Viewer 提前 Next 卡與子項（Next 在所有釘選之上）、金色語意色、長按設定／取消、卡片「後續」改名、Checklist 下一步連結刪除；頂端 Next 面板已移除，只留金色 pin 與子項「Next」膠囊。使用者已實機確認；編輯模式設定 Next 由使用者決定不需要。設計 [NextMarkerPlan](https://github.com/Yu5h1/TaskProgress/blob/main/Documentation/NextMarkerPlan.md)。",
+      "pending_items": [
+        {
+          "id": "next-edit-mode",
+          "title": "編輯模式也能設定／取消 Next（Editor Core 命令，與草稿一起儲存）；目前只有預覽模式",
+          "status": "archive",
+          "priority": 2,
+          "activity": [
+            {
+              "event": "created",
+              "actor": "claude",
+              "at": "2026-10-23T05:24:59.641397+00:00",
+              "session": "Agent workflow 流程檢視",
+              "session_id": "990bddf5-22fd-4ca7-a93a-669fa2af3f7d"
+            },
+            {
+              "event": "updated",
+              "actor": "claude",
+              "at": "2026-10-23T14:52:02.030224+00:00",
+              "session": "Next 標記收尾",
+              "session_id": "8db3d9df-8d4e-461e-96c2-37ca30b33c56"
+            }
+          ]
+        }
+      ],
+      "completed_items": [
+        {
+          "id": "next-manual-check",
+          "title": "使用者實機確認：長按子項設為 Next 的手感、金色與優先琥珀的區別",
+          "status": "done",
+          "priority": 1,
+          "activity": [
+            {
+              "event": "created",
+              "actor": "claude",
+              "at": "2026-10-23T05:24:59.641397+00:00",
+              "session": "Agent workflow 流程檢視",
+              "session_id": "990bddf5-22fd-4ca7-a93a-669fa2af3f7d"
+            },
+            {
+              "event": "updated",
+              "actor": "claude",
+              "at": "2026-10-23T10:30:38.811291+00:00",
+              "session": "Remove the big Next panel from TaskProgress Viewer",
+              "session_id": "8db3d9df-8d4e-461e-96c2-37ca30b33c56"
+            },
+            {
+              "event": "done",
+              "actor": "claude",
+              "at": "2026-10-23T14:52:02.030224+00:00",
+              "session": "Next 標記收尾",
+              "session_id": "8db3d9df-8d4e-461e-96c2-37ca30b33c56"
+            }
+          ]
+        },
+        {
+          "id": "next-evaluation-step",
+          "title": "task-progress-items 評估第 0 步：next 為空或失效時依推算寫入並回報",
+          "status": "done",
+          "priority": 2,
+          "activity": [
+            {
+              "event": "created",
+              "actor": "claude",
+              "at": "2026-10-23T04:54:07.379432+00:00",
+              "session": "Agent workflow 流程檢視",
+              "session_id": "990bddf5-22fd-4ca7-a93a-669fa2af3f7d"
+            },
+            {
+              "event": "done",
+              "actor": "claude",
+              "at": "2026-10-23T05:24:59.641397+00:00",
+              "session": "Agent workflow 流程檢視",
+              "session_id": "990bddf5-22fd-4ca7-a93a-669fa2af3f7d"
+            }
+          ]
+        },
+        {
+          "id": "next-control",
+          "title": "控制項已定：子項列長按（UX Input 長按規則）設為 Next、再長按取消，鍵盤 Shift+Enter；NextMarkerPlan 第 9 點",
+          "status": "done",
+          "priority": 2,
+          "activity": [
+            {
+              "event": "created",
+              "actor": "claude",
+              "at": "2026-10-23T04:54:07.379432+00:00",
+              "session": "Agent workflow 流程檢視",
+              "session_id": "990bddf5-22fd-4ca7-a93a-669fa2af3f7d"
+            },
+            {
+              "event": "done",
+              "actor": "claude",
+              "at": "2026-10-23T05:24:59.641397+00:00",
+              "session": "Agent workflow 流程檢視",
+              "session_id": "990bddf5-22fd-4ca7-a93a-669fa2af3f7d"
+            }
+          ]
+        },
+        {
+          "id": "next-appearance",
+          "title": "語意色 next（金色）、Next 卡的 pin 圖示與子項「Next」膠囊；卡片「Next Step」改名「後續」併入後續動作；刪除 Checklist 畫面「下一步 · Agent」",
+          "status": "done",
+          "priority": 1,
+          "activity": [
+            {
+              "event": "created",
+              "actor": "claude",
+              "at": "2026-10-23T04:54:07.379432+00:00",
+              "session": "Agent workflow 流程檢視",
+              "session_id": "990bddf5-22fd-4ca7-a93a-669fa2af3f7d"
+            },
+            {
+              "event": "done",
+              "actor": "claude",
+              "at": "2026-10-23T05:24:59.641397+00:00",
+              "session": "Agent workflow 流程檢視",
+              "session_id": "990bddf5-22fd-4ca7-a93a-669fa2af3f7d"
+            }
+          ]
+        },
+        {
+          "id": "next-ordering-fallback",
+          "title": "Viewer 排序與失效退回：Next 卡與子項排最前（釘選卡仍在上）、失效時退回推算並標「推算」、頂端下一步卡片",
+          "status": "done",
+          "priority": 1,
+          "activity": [
+            {
+              "event": "created",
+              "actor": "claude",
+              "at": "2026-10-23T04:54:07.379432+00:00",
+              "session": "Agent workflow 流程檢視",
+              "session_id": "990bddf5-22fd-4ca7-a93a-669fa2af3f7d"
+            },
+            {
+              "event": "done",
+              "actor": "claude",
+              "at": "2026-10-23T05:24:59.641397+00:00",
+              "session": "Agent workflow 流程檢視",
+              "session_id": "990bddf5-22fd-4ca7-a93a-669fa2af3f7d"
+            }
+          ]
+        },
+        {
+          "id": "next-data-cli",
+          "title": "report.json 頂層 next 欄位、schema 與 Report CLI next.set／next.clear（含活動紀錄與不存在子項的拒絕）",
+          "status": "done",
+          "priority": 1,
+          "activity": [
+            {
+              "event": "created",
+              "actor": "claude",
+              "at": "2026-10-23T04:54:07.379432+00:00",
+              "session": "Agent workflow 流程檢視",
+              "session_id": "990bddf5-22fd-4ca7-a93a-669fa2af3f7d"
+            },
+            {
+              "event": "done",
+              "actor": "claude",
+              "at": "2026-10-23T05:24:59.641397+00:00",
+              "session": "Agent workflow 流程檢視",
+              "session_id": "990bddf5-22fd-4ca7-a93a-669fa2af3f7d"
+            }
+          ]
+        }
+      ]
+    },
     {
       "id": "completed-stacking",
       "title": "Checklist／Decision 頁已完成集合由新到舊堆疊",
@@ -859,6 +1031,21 @@
               "session_id": "b1e0cb51-43db-4fcd-9437-d5b9e566f873"
             }
           ]
+        },
+        {
+          "id": "problem-relative-doc-links",
+          "title": "問題：report 摘要裡的 Documentation/*.md 相對連結在 Viewer 開啟是 404（服務不提供 repo 文件），例如 next-marker 卡的設計連結",
+          "status": "planned",
+          "priority": 2,
+          "activity": [
+            {
+              "event": "created",
+              "actor": "claude",
+              "at": "2026-10-23T14:48:31.505789+00:00",
+              "session": "Report 讀取 worktree 計畫",
+              "session_id": "8db3d9df-8d4e-461e-96c2-37ca30b33c56"
+            }
+          ]
         }
       ]
     },
@@ -1606,6 +1793,21 @@
               "at": "2026-10-23T12:46:51.106933+00:00",
               "session": "UX foundation 評估",
               "session_id": "f62c91dd-fddb-4a19-8799-5bb541945dfc"
+            }
+          ]
+        },
+        {
+          "id": "waiting-capsule-link",
+          "title": "「等待中」膠囊可按下，連到等待對象：等子項時開那張卡片，等 checklist 工作項目時開那份 checklist；等多個對象時列出全部",
+          "status": "planned",
+          "priority": 1,
+          "activity": [
+            {
+              "event": "created",
+              "actor": "claude",
+              "at": "2026-10-23T14:48:31.505789+00:00",
+              "session": "Report 讀取 worktree 計畫",
+              "session_id": "8db3d9df-8d4e-461e-96c2-37ca30b33c56"
             }
           ]
         }
@@ -2550,158 +2752,24 @@
       ]
     },
     {
-      "id": "next-marker",
-      "title": "Next 標記：scope 唯一的下一步",
-      "status": "in_progress",
+      "id": "worktree-report",
+      "title": "Report 讀取 worktree（同一 repo 多 agent 並行）",
+      "status": "planned",
       "priority": 1,
-      "summary": "已實作（2026-10-23）：report.json 頂層 next、CLI next.set／next.clear、Viewer 提前 Next 卡與子項、金色語意色、長按設定／取消、卡片「後續」改名、Checklist 下一步連結刪除。頂端 Next 面板同日由使用者決定刪除，只留金色 pin 與子項「Next」膠囊。待使用者實機確認；編輯模式的寫入另排。設計 [Documentation/NextMarkerPlan.md](Documentation/NextMarkerPlan.md)。",
+      "summary": "討論中：讓 Report 讀取 worktree 的工作狀態與項目依賴，worktree 裡的 agent 不必寫 main line 的 report.json。目標、已知問題、可行性評估與待決題在 [WorktreeReportPlan](https://github.com/Yu5h1/TaskProgress/blob/main/Documentation/WorktreeReportPlan.md)；決定前不實作。",
       "pending_items": [
         {
-          "id": "next-edit-mode",
-          "title": "編輯模式也能設定／取消 Next（Editor Core 命令，與草稿一起儲存）；目前只有預覽模式",
-          "status": "planned",
-          "priority": 2,
-          "activity": [
-            {
-              "event": "created",
-              "actor": "claude",
-              "at": "2026-10-23T05:24:59.641397+00:00",
-              "session": "Agent workflow 流程檢視",
-              "session_id": "990bddf5-22fd-4ca7-a93a-669fa2af3f7d"
-            }
-          ]
-        },
-        {
-          "id": "next-manual-check",
-          "title": "使用者實機確認：長按子項設為 Next 的手感、金色與優先琥珀的區別",
+          "id": "worktree-report-decisions",
+          "title": "決定 [WorktreeReportPlan](https://github.com/Yu5h1/TaskProgress/blob/main/Documentation/WorktreeReportPlan.md) 的 6 個待決題：worktree 文件能否寫入、項目來源、認領位置、雙版本顯示、他驗紀錄時機、是否分三階段",
           "status": "planned",
           "priority": 1,
           "activity": [
             {
               "event": "created",
               "actor": "claude",
-              "at": "2026-10-23T05:24:59.641397+00:00",
-              "session": "Agent workflow 流程檢視",
-              "session_id": "990bddf5-22fd-4ca7-a93a-669fa2af3f7d"
-            },
-            {
-              "event": "updated",
-              "actor": "claude",
-              "at": "2026-10-23T10:30:38.811291+00:00",
-              "session": "Remove the big Next panel from TaskProgress Viewer",
+              "at": "2026-10-23T14:48:31.505789+00:00",
+              "session": "Report 讀取 worktree 計畫",
               "session_id": "8db3d9df-8d4e-461e-96c2-37ca30b33c56"
-            }
-          ]
-        }
-      ],
-      "completed_items": [
-        {
-          "id": "next-evaluation-step",
-          "title": "task-progress-items 評估第 0 步：next 為空或失效時依推算寫入並回報",
-          "status": "done",
-          "priority": 2,
-          "activity": [
-            {
-              "event": "created",
-              "actor": "claude",
-              "at": "2026-10-23T04:54:07.379432+00:00",
-              "session": "Agent workflow 流程檢視",
-              "session_id": "990bddf5-22fd-4ca7-a93a-669fa2af3f7d"
-            },
-            {
-              "event": "done",
-              "actor": "claude",
-              "at": "2026-10-23T05:24:59.641397+00:00",
-              "session": "Agent workflow 流程檢視",
-              "session_id": "990bddf5-22fd-4ca7-a93a-669fa2af3f7d"
-            }
-          ]
-        },
-        {
-          "id": "next-control",
-          "title": "控制項已定：子項列長按（UX Input 長按規則）設為 Next、再長按取消，鍵盤 Shift+Enter；NextMarkerPlan 第 9 點",
-          "status": "done",
-          "priority": 2,
-          "activity": [
-            {
-              "event": "created",
-              "actor": "claude",
-              "at": "2026-10-23T04:54:07.379432+00:00",
-              "session": "Agent workflow 流程檢視",
-              "session_id": "990bddf5-22fd-4ca7-a93a-669fa2af3f7d"
-            },
-            {
-              "event": "done",
-              "actor": "claude",
-              "at": "2026-10-23T05:24:59.641397+00:00",
-              "session": "Agent workflow 流程檢視",
-              "session_id": "990bddf5-22fd-4ca7-a93a-669fa2af3f7d"
-            }
-          ]
-        },
-        {
-          "id": "next-appearance",
-          "title": "語意色 next（金色）、Next 卡的 pin 圖示與子項「Next」膠囊；卡片「Next Step」改名「後續」併入後續動作；刪除 Checklist 畫面「下一步 · Agent」",
-          "status": "done",
-          "priority": 1,
-          "activity": [
-            {
-              "event": "created",
-              "actor": "claude",
-              "at": "2026-10-23T04:54:07.379432+00:00",
-              "session": "Agent workflow 流程檢視",
-              "session_id": "990bddf5-22fd-4ca7-a93a-669fa2af3f7d"
-            },
-            {
-              "event": "done",
-              "actor": "claude",
-              "at": "2026-10-23T05:24:59.641397+00:00",
-              "session": "Agent workflow 流程檢視",
-              "session_id": "990bddf5-22fd-4ca7-a93a-669fa2af3f7d"
-            }
-          ]
-        },
-        {
-          "id": "next-ordering-fallback",
-          "title": "Viewer 排序與失效退回：Next 卡與子項排最前（釘選卡仍在上）、失效時退回推算並標「推算」、頂端下一步卡片",
-          "status": "done",
-          "priority": 1,
-          "activity": [
-            {
-              "event": "created",
-              "actor": "claude",
-              "at": "2026-10-23T04:54:07.379432+00:00",
-              "session": "Agent workflow 流程檢視",
-              "session_id": "990bddf5-22fd-4ca7-a93a-669fa2af3f7d"
-            },
-            {
-              "event": "done",
-              "actor": "claude",
-              "at": "2026-10-23T05:24:59.641397+00:00",
-              "session": "Agent workflow 流程檢視",
-              "session_id": "990bddf5-22fd-4ca7-a93a-669fa2af3f7d"
-            }
-          ]
-        },
-        {
-          "id": "next-data-cli",
-          "title": "report.json 頂層 next 欄位、schema 與 Report CLI next.set／next.clear（含活動紀錄與不存在子項的拒絕）",
-          "status": "done",
-          "priority": 1,
-          "activity": [
-            {
-              "event": "created",
-              "actor": "claude",
-              "at": "2026-10-23T04:54:07.379432+00:00",
-              "session": "Agent workflow 流程檢視",
-              "session_id": "990bddf5-22fd-4ca7-a93a-669fa2af3f7d"
-            },
-            {
-              "event": "done",
-              "actor": "claude",
-              "at": "2026-10-23T05:24:59.641397+00:00",
-              "session": "Agent workflow 流程檢視",
-              "session_id": "990bddf5-22fd-4ca7-a93a-669fa2af3f7d"
             }
           ]
         }

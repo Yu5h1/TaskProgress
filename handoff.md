@@ -21,7 +21,7 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
 - **items 技能只讀技能（2026-10-23，使用者要求）。** task-progress-items 與 task-progress-report 不再連到 AcceptanceChainPlan、NextMarkerPlan、DocumentBindingPlan、TrayWorkerPlan；規則理由只在修改規則時讀（task-progress-items 開頭寫明 Task ID）。共用索引的 agent-work-route、taskprogress-capabilities 兩列不再於 items 執行時觸發（`.agents` handoff 同步）。用法文件（ReportCliUsage、ItemReference、ItemActivityLog、CardPin、InlineReportLinks）保留為按需連結。未在實際執行上驗證。
 - **Next 標記、完成堆疊與隱藏項目連結已實作（2026-10-23）。** 依 [NextMarkerPlan](Documentation/NextMarkerPlan.md)〈實作紀錄〉與 [CompletedStackingPlan](Documentation/CompletedStackingPlan.md)：report.json 頂層 `next`、CLI `next.set`／`next.clear`；Viewer 提前 Next 卡與子項（Next 卡在所有釘選卡與排序方式之上，使用者同日改定）、金色語意色 `next`、子項列長按（`viewer/assets/long-press.js`，UX Input 3.0.1）或 Shift+Enter 設定／取消；卡片 Developer 區「Next Step :」改「後續：」；Checklist 畫面的下一步連結刪除；Checklist／Decision 頁已完成集合由新到舊堆疊；三個面板清單底部「…顯示隱藏項目(N)」重設篩選。
   - 已驗證：Node 637 通過（4 項 `active-checklist-format` 既有失敗，HEAD 同樣失敗）、Python Report CLI 22 通過；Browser 實測 Report 的 Next 卡、金色 pin、Next 膠囊、Shift+Enter 設定與取消、Checklist 堆疊、Decision 頁隱藏連結。四個 UI bundle 已重建。
-  - 未做：編輯模式的 Next 寫入（`next-marker › next-edit-mode`）；長按的手感與顏色由使用者實機確認（`next-manual-check`）；`Build/win-x64` 未重新 Publish，桌面版 checklist-ui 仍是舊的。
+  - 卡片 `next-marker` 已完成（2026-10-23）：使用者實機確認通過（`next-manual-check`）；編輯模式的 Next 寫入由使用者決定不需要，子項 `next-edit-mode` 已封存。
   - 事故：本 session 為了比對 HEAD 基準，在暫存 worktree 以 junction 連到 `node_modules`，`git worktree remove --force` 把真正的 `node_modules` 內容一併刪除；已以 `npm ci --ignore-scripts` 依 lockfile 還原（46 套件），測試重跑通過。教訓：不要在 worktree 裡放指向共用資料夾的 junction。
 - **Next 標記與完成堆疊設計已定（2026-10-23）。** 第 3 題以「其他」定案，設計寫在 [NextMarkerPlan](Documentation/NextMarkerPlan.md)（Task ID `next-marker`）：scope 唯一的 Next 子項、排序最高、金色語意色、失效退回推算、覆盤重設、卡片「Next Step」改名「後續」、Checklist 的下一步一行刪除；控制項形狀待決。[CompletedStackingPlan](Documentation/CompletedStackingPlan.md)（`completed-stacking`）：Checklist／Decision 頁已完成集合由新到舊堆疊，只改顯示。兩張卡已加到 Report，均未實作。agent-workflow 卡四題全部定案。
 - **下一步流程的三個決定已落實（2026-10-23，[agent-workflow.decisions](decisions/agent-workflow.decisions) 第 1、2、4 題；AcceptanceChainPlan 已決定第 27～29 點）。** 不帶參數的 `/task-progress-items` 等同 `auto`，只評估改為 `plan`；評估先讀已答未落實的決策，低風險題採建議作答（reason「採建議，未經使用者確認」）並在回報列出；執行中發現的範圍外問題記為擁有卡上「問題：」前綴子項（AgentsRule 核心契約新增一條，AgentArtifactGuide〈Single ownership〉定形狀，`.agents` known-issues 卡解除封存）。task-progress-items〈Commands〉、〈Direct work〉、收尾回報與 agent-executable-items〈Evaluate a scope〉同步。
@@ -564,6 +564,8 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
   - `open <folder>` 是**加上去**，`start` 會**清掉未登記 scope 的路由**。`reports/example` 與 `reports/rooftop` 都刻意不登記，所以每次 `start` 後要用 `open` 掛回來。
 
 ## Open decisions
+
+- [Report 讀取 worktree／尚未決定](Documentation/WorktreeReportPlan.md#尚未決定)：worktree 文件能否寫入、項目來源、認領位置、雙版本顯示、他驗紀錄時機、是否分三階段（2026-10-23 討論草稿，含可行性評估；決定前不實作）。
 
 - [NextMarkerPlan／尚未決定](Documentation/NextMarkerPlan.md#尚未決定)：設定 Next 的控制項形狀（三個候選），實作前要定。
 

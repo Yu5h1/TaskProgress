@@ -21,7 +21,7 @@ Report 要回答「現在該做哪一件事」。推算的下一步（優先級�
 2. **排最高。** Next 所在的卡排在所有卡之前，含優先級 立即（0）；Next 子項排在卡內所有子項之前。Next 是比釘選（pin）優先級更高的釘選：Next 卡在所有釘選卡之上，任何排序方式（順排、逆排、自由排序）都不改變（使用者 2026-10-23 改定）；釘選仍是瀏覽器本機視圖，排在 Next 卡之後。
 3. **失效即推進。** Next 子項推算為完成或等待中（等其他子項）時，Viewer（本機、非編輯中）直接把推算出的下一個子項（依優先級與卡片順序取第一個未完成且不等待的）寫成新的 Next，狀態直接改變，畫面不另標「推算」（使用者 2026-10-23：不用分）。沒有可推算的子項時沒有 Next，金色標記全部消失。待使用者、待他驗的子項仍是有效的 Next，只是輪到那個人（使用者 2026-10-23 實測後修正）。使用者取消後 `next` 為空，不自動補回，等使用者自己設或下一次評估。
 4. **覆盤重設。** `/task-progress-items` 評估結尾：`next` 為空或失效時，agent 依同一推算規則選一個寫入，回報「Next 已設為 …」。只在本次範圍內選：指定卡片時只在該卡內，未指定才是整個 scope；有效的 Next 不推翻，執行某一項也不等於把它設為 Next（使用者 2026-10-23）。原第 3 題「下一個模組怎麼點名」併入：點名的決策子項設為 Next 即可。
-5. **寫入路徑。** Report CLI 新增 `next.set`（task_id、item_id）與 `next.clear`，帶 `actor`／`session_id`，記活動；Viewer 在預覽與編輯模式都可設定或取消（預覽模式寫入沿用拖曳換位的先例）。兩邊同一個 revision 檢查；指向不存在的子項時拒絕。
+5. **寫入路徑。** Report CLI 新增 `next.set`（task_id、item_id）與 `next.clear`，帶 `actor`／`session_id`，記活動；Viewer 在預覽模式設定或取消（寫入沿用拖曳換位的先例）；編輯模式不提供，使用者 2026-10-23 決定不需要。兩邊同一個 revision 檢查；指向不存在的子項時拒絕。
 6. **語意色。** 新增第四個語意色 `next`，與完成、受阻、警告同級：自訂佈景不覆蓋。暗色約 `#d4a62a`，亮色約 `#9a6b00`（實作時以 4.5:1 對比核定）。金色與優先（1）的琥珀色相近，使用者 2026-10-23 知悉並決定保留，不另換色；Next 的辨識靠填滿的 pin 圖示與「Next」膠囊的形狀，不只靠顏色。
 7. **外觀。** 卡片的 pin 圖示在 Next 卡上以 `next` 色實心顯示（一般釘選維持現狀）；Next 子項那一行左緣 `next` 色色條，加一個 `next` 色「Next」小膠囊。不用整圈外框、不加底色。Report 頂端不另放 Next 面板：Next 卡已排在最前，金色 pin 與子項膠囊就是全部的標示（使用者 2026-10-23）。
 8. **隔離同名標籤。** 卡片 Developer 區藍色「Next Step :」改名「後續」，與「後續動作」清單併為一區，改用次要文字色；Checklist 畫面的「下一步 · Agent：…」一行刪除。「Next」與金色只屬於本標記。
@@ -39,7 +39,7 @@ Report 要回答「現在該做哪一件事」。推算的下一步（優先級�
 - 資料：`schemas/report.schema.json` 頂層 `next`；Report CLI `next.set`／`next.clear`（`service/report_operations.py`，設定時在子項記 `updated`）；`viewer/assets/report-model.js` 只驗形狀。
 - 推算與排序：`viewer/assets/next-marker.js`（有效性、推算、卡與子項提前）；`app.js` 的 `renderTasks` 在狀態分組與優先級排序後提前 Next 卡；`CardList` 把 Next 卡 ID 交給 `card-order.js` 的 `displayCards`，套用排序方式與釘選後再把 Next 卡放到最前；失效的 Next 由 `advanceStaleNext` 寫成推算出的子項（每個失效指標只試一次）；`TaskCard` 提前 Next 子項並展開它。
 - 畫面：語意色 `--theme-next-*`／`--color-next-*` 四個佈景區塊；`.card-pin.is-next`、`.editor-item-row.is-next` 左緣、`.item-next-capsule`。Developer 區「Next Step :」改「後續：」、清單標題改「後續」、顏色改次要文字色；Checklist 畫面的下一步連結與樣式刪除。
-- 寫入：預覽模式長按或 Shift+Enter 經 `setNextInPreview` 走與拖曳換位相同的本機編輯主機與過期檢查；Viewer 寫入時不在子項記活動（CLI 會記）。**編輯模式尚未支援**：編輯 session 持有草稿，需要 Editor Core 的命令，另排。
+- 寫入：預覽模式長按或 Shift+Enter 經 `setNextInPreview` 走與拖曳換位相同的本機編輯主機與過期檢查；Viewer 寫入時不在子項記活動（CLI 會記）。編輯模式不設 Next（已決定第 5 點）。
 - 驗證：Node 637 項通過（4 項既有的 checklist 格式失敗與本次無關）、Python Report CLI 22 項通過；Browser 實測 Report 頂端 Next 卡、金色 pin、Next 膠囊、Shift+Enter 設定與取消。四個 UI bundle 已重建；`Build/win-x64` 的桌面版 checklist-ui 要等下次 Publish。
 - 預覽模式復原（2026-10-23，使用者決定）：預覽模式的 Next 設定／取消與子項換位可用 Ctrl+Z 復原、Ctrl+Y／Ctrl+Shift+Z 重做，沒有畫面按鈕、沒有謹慎模式。`viewer/assets/preview-history.js` 每步記「寫入後」與「被取代」兩份報告；只有已寫入的報告仍與該步「寫入後」完全相同時才執行，之後有編輯模式或外部修改就清空歷史、不覆寫。失效 Next 的自動推進不算使用者的一步。焦點在輸入框時不攔截。三種寫入共用 `app.js` 的 `writeInPreview`。已封存或已完成的子項長按／Shift+Enter 時，`setNextInPreview` 先以 `next-marker.js` 的 `nextRefusal` 判斷，不開寫入 session，改跳紅色錯誤 popup（「已封存的子項目不能設為 Next。」／「已完成的…」），使用者 2026-10-23 要求按了要有回應。
 - 動作錯誤改用 popup（2026-10-23，使用者決定）：預覽寫入、復原／重做與進入編輯模式的錯誤與警告改由 `viewer/assets/notice-toast.js` 顯示在畫面底部中央，新訊息取代舊訊息（不疊加），約 4 秒後淡出，滑鼠停留時暫停、點一下關閉；訊息前有等級圖示（使用者 2026-10-23）：資訊為白色圓形「?」、警告為黃色三角形「!」、錯誤為紅色圓形「×」，圖形填等級色、符號挖空成面板底色；每則都同時寫到 console（`[viewer]` 前綴）。載入時的診斷仍留在橫幅區。
