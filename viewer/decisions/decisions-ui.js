@@ -2683,9 +2683,11 @@ function oa(e, t) {
 			(!t || !W(oe)?.contains(t)) && L(D, null);
 		}, t = () => {
 			L(D, null);
+		}, n = (e) => {
+			e.key === "Escape" && !e.isComposing && _e();
 		};
-		return document.addEventListener("pointerdown", e, !0), document.addEventListener("focusin", e, !0), window.addEventListener("blur", t), () => {
-			document.removeEventListener("pointerdown", e, !0), document.removeEventListener("focusin", e, !0), window.removeEventListener("blur", t);
+		return document.addEventListener("pointerdown", e, !0), document.addEventListener("focusin", e, !0), document.addEventListener("keydown", n, !0), window.addEventListener("blur", t), () => {
+			document.removeEventListener("pointerdown", e, !0), document.removeEventListener("focusin", e, !0), document.removeEventListener("keydown", n, !0), window.removeEventListener("blur", t);
 		};
 	});
 	let O = /* @__PURE__ */ I(null), ie = /* @__PURE__ */ I(null), ae = /* @__PURE__ */ I(null), oe = /* @__PURE__ */ I(), se = /* @__PURE__ */ I("");
@@ -2770,7 +2772,11 @@ function oa(e, t) {
 	function ge() {
 		L(O, null), L(ie, null), L(ae, null);
 	}
-	function _e(e, t) {
+	function _e() {
+		let e = document.activeElement;
+		W(oe)?.contains(e) && e.blur?.(), L(D, null), ge();
+	}
+	function ve(e, t) {
 		if (l() && W(_).includes(e.id) || W(ie) === null || W(ie) === e.id) return;
 		t.preventDefault(), t.dataTransfer.dropEffect = "move";
 		let n = t.currentTarget.getBoundingClientRect();
@@ -2794,22 +2800,22 @@ function oa(e, t) {
 	}), B(() => (K(u()), K(c()), K(s()), K(l())), () => {
 		ce(u(), c(), s(), l());
 	}), kn();
-	var ve = {
+	var ye = {
 		orderedIds: g,
 		revealCard: re
 	};
 	Di();
-	var ye = aa(), be = mn(ye), xe = R(be);
-	Zr(z(R(xe), 2), t, "filters", {}, null), M(xe);
-	var Se = z(xe, 2), Ce = R(Se), we = R(Ce), Te = R(we);
-	M(we), M(Ce);
-	var k = z(Ce, 2);
+	var be = aa(), xe = mn(be), Se = R(xe);
+	Zr(z(R(Se), 2), t, "filters", {}, null), M(Se);
+	var Ce = z(Se, 2), we = R(Ce), Te = R(we), k = R(Te);
+	M(Te), M(we);
+	var Ee = z(we, 2);
 	{
 		let e = /* @__PURE__ */ P(() => G(() => S.map((e) => ({
 			id: e,
 			label: C[e]
 		}))));
-		Li(k, {
+		Li(Ee, {
 			get items() {
 				return W(e);
 			},
@@ -2836,17 +2842,17 @@ function oa(e, t) {
 			} }
 		});
 	}
-	var Ee = z(k, 2);
-	Wi(Ee, {
+	var De = z(Ee, 2);
+	Wi(De, {
 		get mode() {
 			return W(w);
 		},
 		onChoose: te
 	});
-	var De = z(Ee, 2), Oe = R(De, !0);
-	M(De), Zr(z(De, 2), t, "tools", {}, null), M(Se), M(be);
-	var ke = z(be, 2);
-	Gr(ke, 5, () => W(i), (e) => e.id, (e, r) => {
+	var Oe = z(De, 2), ke = R(Oe, !0);
+	M(Oe), Zr(z(Oe, 2), t, "tools", {}, null), M(Ce), M(xe);
+	var Ae = z(xe, 2);
+	Gr(Ae, 5, () => W(i), (e) => e.id, (e, r) => {
 		var i = ra();
 		let o;
 		var s = R(i), c = (e) => {
@@ -2903,30 +2909,30 @@ function oa(e, t) {
 		}), q("pointerup", i, () => {
 			L(O, null);
 		}), q("keydown", i, (e) => {
-			if (e.key === "Escape") {
-				L(D, null), ge();
+			if (e.key === "Escape" && !e.isComposing) {
+				_e();
 				return;
 			}
 			e.target === e.currentTarget && ((e.key === "Enter" || e.key === " ") && (e.preventDefault(), L(D, W(r).id)), W(x) === "free" && e.target === e.currentTarget && e.altKey && ["ArrowUp", "ArrowDown"].includes(e.key) && (e.preventDefault(), he(W(r).id, e.key === "ArrowUp" ? -1 : 1)));
 		}), Tr("dragstart", i, (e) => {
 			W(x) === "free" && W(O) === W(r).id && e.target === e.currentTarget && (L(ie, W(r).id), e.dataTransfer.effectAllowed = "move", e.dataTransfer.setData("text/plain", String(W(r).id)));
-		}), Tr("dragend", i, ge), Tr("dragover", i, (e) => _e(W(r), e)), Tr("dragleave", i, (e) => {
+		}), Tr("dragend", i, ge), Tr("dragover", i, (e) => ve(W(r), e)), Tr("dragleave", i, (e) => {
 			e.currentTarget.contains(e.relatedTarget) || L(ae, null);
 		}), Tr("drop", i, (e) => {
 			W(ie) !== null && W(ae)?.id === W(r).id && (e.preventDefault(), me(W(ie), W(r).id, W(ae).after), ge());
 		}), Y(e, i);
-	}), M(ke), Ei(ke, (e) => L(oe, e), () => W(oe));
-	var Ae = z(ke, 2), A = (e) => {
+	}), M(Ae), Ei(Ae, (e) => L(oe, e), () => W(oe));
+	var A = z(Ae, 2), je = (e) => {
 		var t = ia(), n = R(t), r = R(n);
 		M(n), M(t), V(() => X(r, `…顯示隱藏項目(${m() ?? ""})`)), q("click", n, function(...e) {
 			h()?.apply(this, e);
 		}), Y(e, t);
 	};
-	return Z(Ae, (e) => {
-		m() > 0 && h() && e(A);
+	return Z(A, (e) => {
+		m() > 0 && h() && e(je);
 	}), V(() => {
-		Q(Ce, "aria-label", y() ? "全部收合" : "全部展開"), Q(Ce, "title", y() ? "全部收合" : "全部展開"), Q(Te, "d", y() ? "M5 15l7-7 7 7" : "M5 9l7 7 7-7"), X(Oe, W(se));
-	}), q("click", Ce, () => b()(!y())), Y(e, ye), wi(t, "orderedIds", g), wi(t, "revealCard", re), We(ve);
+		Q(we, "aria-label", y() ? "全部收合" : "全部展開"), Q(we, "title", y() ? "全部收合" : "全部展開"), Q(k, "d", y() ? "M5 15l7-7 7 7" : "M5 9l7 7 7-7"), X(ke, W(se));
+	}), q("click", we, () => b()(!y())), Y(e, be), wi(t, "orderedIds", g), wi(t, "revealCard", re), We(ye);
 }
 Er([
 	"click",

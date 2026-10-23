@@ -58,12 +58,17 @@
       if (!card || !root?.contains(card)) selected = null;
     };
     const clearSelection = () => { selected = null; };
+    const escapeSelection = event => {
+      if (event.key === "Escape" && !event.isComposing) cancelSelection();
+    };
     document.addEventListener("pointerdown", trackSelection, true);
     document.addEventListener("focusin", trackSelection, true);
+    document.addEventListener("keydown", escapeSelection, true);
     window.addEventListener("blur", clearSelection);
     return () => {
       document.removeEventListener("pointerdown", trackSelection, true);
       document.removeEventListener("focusin", trackSelection, true);
+      document.removeEventListener("keydown", escapeSelection, true);
       window.removeEventListener("blur", clearSelection);
     };
   });
@@ -166,6 +171,12 @@
     if (other) move(id, other.id, offset > 0);
   }
   function clearDrag() { armed = null; dragging = null; target = null; }
+  function cancelSelection() {
+    const focused = document.activeElement;
+    if (root?.contains(focused)) focused.blur?.();
+    selected = null;
+    clearDrag();
+  }
   function dragOver(item, event) {
     if (pinEnabled && pinnedIds.includes(item.id)) return;
     if (dragging === null || dragging === item.id) return;
@@ -229,9 +240,8 @@
       oninput={() => { selected = item.id; }}
       onpointerup={() => { armed = null; }}
       onkeydown={event => {
-        if (event.key === "Escape") {
-          selected = null;
-          clearDrag();
+        if (event.key === "Escape" && !event.isComposing) {
+          cancelSelection();
           return;
         }
         if (event.target !== event.currentTarget) return;

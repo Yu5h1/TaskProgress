@@ -6,7 +6,7 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
 
 ## Current state (2026-09-29)
 
-- **Checklist／Decision 的 Esc 取消選取（2026-10-24）。** `CardList.svelte` 在子控制項的鍵盤事件也處理 Escape，清除選取與拖曳狀態；Decision 的 `onSelectionChange` 同步釋放保留的排序。此輪三個 UI build 與 45 項相關 Node 測試通過；未做瀏覽器實際鍵盤操作驗證。
+- **Checklist／Decision 的 Esc 取消選取（2026-10-24）。** `CardList.svelte` 捕捉頁面 Escape，清除選取、拖曳狀態及卡片內的 DOM 焦點，避免 `:focus-visible` 留下藍框；組字中的 Escape 保留給輸入法。Decision 的 `onSelectionChange` 同步釋放保留的排序。三個 UI build 通過；瀏覽器已實測兩個面板選取卡片後按 Esc，確認 `.card-selected` 為零、焦點離開卡片且 outline 為 none。前一版只清 selected、未解除焦點，不能據此判定藍框消失。
 
 - **Checklist 延後排序（2026-10-24，使用者要求）。** `ChecklistApp.svelte` 透過 `CardList.svelte` 的 `onSelectionChange` 在選取期間保留卡片與檢查項目的顯示位置，結果與進度仍即時更新；取消選取（點外部、焦點移出、Escape 或視窗失焦）才重套排序與篩選。桌面與瀏覽器 bundle 均已重建，`Publish.cmd --nopause --restart` 成功。此輪 34 項相關 Node 測試通過；尚未實際操作瀏覽器確認連續勾選手感。
 
