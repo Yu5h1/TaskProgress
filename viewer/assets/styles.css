@@ -33,6 +33,9 @@
   --theme-warning-text: #8a4b10;
   --theme-warning-bg: #f6e5cb;
   --theme-warning-border: #e5bf88;
+  --theme-next-text: #9a6b00;
+  --theme-next-bg: #f7ecc9;
+  --theme-next-border: #e3c766;
   --theme-muted-status-text: #69716c;
   --theme-muted-status-bg: #ebeae5;
 
@@ -69,6 +72,9 @@
   --color-warning-text: var(--theme-warning-text);
   --color-warning-bg: var(--theme-warning-bg);
   --color-warning-border: var(--theme-warning-border);
+  --color-next-text: var(--theme-next-text);
+  --color-next-bg: var(--theme-next-bg);
+  --color-next-border: var(--theme-next-border);
   --color-muted-status-text: var(--theme-muted-status-text);
   --color-muted-status-bg: var(--theme-muted-status-bg);
 
@@ -127,6 +133,9 @@
     --theme-warning-text: #f1c27d;
     --theme-warning-bg: #46331f;
     --theme-warning-border: #725333;
+    --theme-next-text: #e8c25a;
+    --theme-next-bg: #3d3416;
+    --theme-next-border: #7a6422;
     --theme-muted-status-text: #b1bbc8;
     --theme-muted-status-bg: #2b313b;
     --shadow: 0 6px 18px rgba(0, 0, 0, 0.16);
@@ -167,6 +176,9 @@
   --theme-warning-text: #8a4b10;
   --theme-warning-bg: #f6e5cb;
   --theme-warning-border: #e5bf88;
+  --theme-next-text: #9a6b00;
+  --theme-next-bg: #f7ecc9;
+  --theme-next-border: #e3c766;
   --theme-muted-status-text: #69716c;
   --theme-muted-status-bg: #ebeae5;
   --shadow: 0 4px 14px rgba(37, 47, 41, 0.04);
@@ -206,6 +218,9 @@
   --theme-warning-text: #f1c27d;
   --theme-warning-bg: #46331f;
   --theme-warning-border: #725333;
+  --theme-next-text: #e8c25a;
+  --theme-next-bg: #3d3416;
+  --theme-next-border: #7a6422;
   --theme-muted-status-text: #b1bbc8;
   --theme-muted-status-bg: #2b313b;
   --shadow: 0 6px 18px rgba(0, 0, 0, 0.16);
@@ -1562,7 +1577,7 @@ section.developer-details .developer-summary {
 }
 
 .developer-next-action {
-  color: var(--blue);
+  color: var(--ink-soft);
   font-weight: 720;
   font-size: 0.78rem;
 }
@@ -3267,3 +3282,48 @@ footer {
   clip-path: inset(50%);
   white-space: nowrap;
 }
+
+/*
+ * Next marker (Documentation/NextMarkerPlan.md). One semantic colour, `next`,
+ * shared by the card's pin icon, the row's edge and the Next capsule; the
+ * shape carries the meaning where colour alone would not (the gold sits close
+ * to the 優先 amber by the user's decision).
+ */
+.card-pin.is-next { color: var(--color-next-text); }
+.editor-item-row.is-next { box-shadow: inset 3px 0 0 var(--color-next-text); }
+.item-next-capsule {
+  display: inline-flex;
+  align-items: center;
+  margin-right: 6px;
+  padding: 1px 7px;
+  border: 1px solid var(--color-next-border);
+  border-radius: 999px;
+  color: var(--color-next-text);
+  background: var(--color-next-bg);
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  line-height: 1.5;
+  white-space: nowrap;
+}
+.next-step-dock { margin: 0 0 12px; }
+.report-next-step { display: block; color: inherit; text-decoration: none; }
+.report-next-step .next-step-card { border-left: 4px solid var(--color-next-text); }
+.report-next-step.is-derived .next-step-card { border-left-color: var(--color-border); }
+.report-next-step:hover .next-step-title, .report-next-step:focus-visible .next-step-title { text-decoration: underline; }
+
+/* Below every card list: the entries the filters hide, and the one way back. */
+.card-list-hidden { margin: 5px 0 0; text-align: center; }
+.card-list-hidden-link {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--color-secondary-text);
+  font: inherit;
+  font-size: 0.8rem;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+.card-list-hidden-link:hover, .card-list-hidden-link:focus-visible { color: var(--color-accent); }

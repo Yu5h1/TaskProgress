@@ -1,10 +1,10 @@
 <script>
-  // Developer overlay, matching the Viewer's structure: Next Step is visible
-  // directly under the task summary when one is written, and only
-  // approach/direction detail collapses behind the disclosure. An unspecified
-  // Next Step shows nothing rather than a placeholder — silence reads as
-  // "nothing to report" without asking the reader to parse a sentence to
-  // learn that.
+  // Developer overlay, matching the Viewer's structure: the card's own planned
+  // continuation (後續, report.dev.json next_step) is visible directly under the
+  // task summary when one is written, and only approach/direction detail
+  // collapses behind the disclosure. An unspecified continuation shows nothing
+  // rather than a placeholder. "Next" belongs to the scope's one Next marker
+  // (Documentation/NextMarkerPlan.md), never to this prose.
   export let developer = null;
 
   $: legacySteps = developer?.next_steps ?? [];
@@ -24,7 +24,7 @@
   <svelte:element this={hasDiscussion ? "details" : "section"} class="developer-details">
     <svelte:element this={hasDiscussion ? "summary" : "div"} class="developer-summary">
       {#if nextAction}
-        <span class="developer-next-label">Next Step :</span>
+        <span class="developer-next-label">後續：</span>
         <span class="developer-next-action">{nextAction}</span>
       {/if}
       {#if hasDiscussion}
@@ -38,7 +38,7 @@
 
         {#if followupSteps.length}
           <section class="detail-section next-steps">
-            <h4 class="detail-heading">後續動作</h4>
+            <h4 class="detail-heading">後續</h4>
             <ul class="detail-list">
               {#each followupSteps as step}<li>{step}</li>{/each}
             </ul>

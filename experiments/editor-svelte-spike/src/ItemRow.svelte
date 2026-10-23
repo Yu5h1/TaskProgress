@@ -3,6 +3,7 @@
   import ExpandableText from "./ExpandableText.svelte";
   import { copyText, itemReference } from "@editor/item-reference.js";
   import { formatActivity } from "@editor/item-activity.js";
+  import { bindLongPress } from "@editor/long-press.js";
 
   export let taskId;
   export let field;
@@ -29,6 +30,28 @@
   export let scopeId = null;
   // Shared across every card's rows (viewer/assets/item-selection.js); null where rows are not selectable.
   export let selection = null;
+  // The scope's Next marker (Documentation/NextMarkerPlan.md). A long press
+  // (UX Input INPUT-PRESS-HOLD; Shift+Enter on the keyboard) sets this row as
+  // Next; a long press on the Next row clears it.
+  export let isNext = false;
+  export let onSetNext = null;
+
+  function toggleNext() {
+    onSetNext?.({ taskId, itemId: item.id, clear: isNext });
+  }
+  function nextHold(node, enabled) {
+    let binding = null;
+    const bind = (on) => {
+      binding?.dispose();
+      binding = on ? bindLongPress(node, {
+        capture: false,
+        accept: (event) => !event.target.closest("a, button, input, select, textarea, label, [contenteditable]"),
+        onTrigger: toggleNext,
+      }) : null;
+    };
+    bind(enabled);
+    return { update: bind, destroy: () => binding?.dispose() };
+  }
 
   $: reference = editing ? null : itemReference({ scopeId, taskId, item });
   // Relative times go stale while the page stays open, so hovering recomputes them.
@@ -97,6 +120,8 @@
   class:item-row-reorderable={!editing && !!reorder}
   class:item-row-dragging={!!reorder?.dragging}
   class:is-selected={selected}
+  class:is-next={isNext}
+  use:nextHold={Boolean(onSetNext && reference && !editing)}
   data-select-key={selectable ? reference : undefined}
   tabindex={selectable ? 0 : undefined}
   onclick={selectable ? (event) => selection.rowClick(reference, event) : undefined}
@@ -109,6 +134,11 @@
   ondragstart={editing ? undefined : reorder?.start}
   ondragend={editing ? undefined : reorder?.end}
   onkeydown={editing ? undefined : (event) => {
+    if (event.shiftKey && event.key === "Enter" && onSetNext && reference && event.target === event.currentTarget) {
+      event.preventDefault();
+      toggleNext();
+      return;
+    }
     reorder?.keydown?.(event);
     if (!event.defaultPrevented && selectable) selection.rowKeydown(reference, event);
   }}
@@ -185,6 +215,7 @@
       >
     {:else}
       <div class="item-row-text">
+        {#if isNext}<span class="item-next-capsule" title="Next：這個 scope 現在該做的一件事；長按取消">Next</span>{/if}
         {#if selected}<span class="item-row-selected-label">已選取</span>{/if}
         {#if item.sourceRef}
           {#if item.sourceRef.available}

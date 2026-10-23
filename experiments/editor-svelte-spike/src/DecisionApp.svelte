@@ -8,7 +8,8 @@
   import HistoryTools from "./HistoryTools.svelte";
   import CardDisclosure from "./CardDisclosure.svelte";
   import FilterStrip from "./FilterStrip.svelte";
-  import { DEFAULT_CAPSULE_ID, loadFilterSelection, saveFilterSelection, isDefaultLit, toggleTag, toggleDefault } from "../../../viewer/assets/filter-selection.js";
+  import { DEFAULT_CAPSULE_ID, createFilterSelection, loadFilterSelection, saveFilterSelection, isDefaultLit, toggleTag, toggleDefault } from "../../../viewer/assets/filter-selection.js";
+  import { stackDecisions } from "../../../viewer/assets/completed-stacking.js";
   import ThemeControl from "./ThemeControl.svelte";
   import { createThemeControl } from "../../../viewer/assets/theme-control.js";
   import { createDecisionSession, same } from "../../../viewer/assets/decision-session.js";
@@ -45,7 +46,8 @@
     (decisions.some(d => d.answer) || view.dirty);
   const queuedIds = new Set();
   let activeCard = null, heldOrder = null, shell;
-  $: visibleDecisions = decisions.filter(d => heldOrder ? heldOrder.includes(d.id) : selection.selected.has(d.status));
+  // Decided questions stack newest first behind the pending ones (Documentation/CompletedStackingPlan.md).
+  $: visibleDecisions = stackDecisions(decisions.filter(d => heldOrder ? heldOrder.includes(d.id) : selection.selected.has(d.status)));
   function releaseCard() { activeCard = null; heldOrder = null; }
   function trackCard(event) {
     const card = event.target?.closest?.(".arrangeable-card");
@@ -229,6 +231,7 @@
     {#if view.pending && !view.busy}<button onclick={() => send(null, null, true)}>{view.pending.operation === "clear_all" ? "查詢／重送清除操作" : "查詢／重送保存操作"}</button>{/if}
     {#if !visibleDecisions.length}<p>目前沒有符合條件的決策項目。</p>{/if}
     <CardList bind:this={cardList} items={visibleDecisions.map(d => ({...d,title:d.question}))} allIds={decisions.map(d => d.id)} {storageKey} {heldOrder}
+      hiddenCount={decisions.length - visibleDecisions.length} onShowHidden={() => setSelection(createFilterSelection(["pending", "decided"]))}
       {expanded} onToggleAll={all} let:item let:visibilityEnabled let:visible let:onVisibleChange>
       <svelte:fragment slot="filters">
     <FilterStrip categories={[{id:"pending",label:"待決策"},{id:"decided",label:"已決策"}]} order={[DEFAULT_CAPSULE_ID,"pending","decided"]}

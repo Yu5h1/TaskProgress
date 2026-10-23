@@ -10,6 +10,11 @@
   export let pinEnabled = false;
   export let requestedPin = null;
   export let heldOrder = null;
+  // The card holding the scope's Next item: its pin icon takes the next colour.
+  export let nextId = null;
+  // Hidden-by-filter count and the one action that resets every filter tag.
+  export let hiddenCount = 0;
+  export let onShowHidden = null;
   export function orderedIds(nextItems = items) {
     return displayCards(nextItems, order, mode, pinEnabled ? pinnedIds : []).map(item => item.id);
   }
@@ -228,12 +233,12 @@
         clearDrag();
       }}>
       {#if pinEnabled}
-        <button type="button" class="card-pin" class:is-pinned={pinnedIds.includes(item.id)}
+        <button type="button" class="card-pin" class:is-pinned={pinnedIds.includes(item.id)} class:is-next={nextId !== null && item.id === nextId}
           aria-label={pinnedIds.includes(item.id) ? `取消釘選：${item.title}` : `釘選置頂：${item.title}`}
           aria-pressed={pinnedIds.includes(item.id)} title={pinnedIds.includes(item.id) ? "取消釘選" : "釘選置頂"}
           onclick={() => togglePin(item.id)}>
           <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
-            <path d="M8 3h8l-1 7 4 4v2H5v-2l4-4-1-7Zm4 13v6" fill={pinnedIds.includes(item.id) ? "currentColor" : "none"} stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+            <path d="M8 3h8l-1 7 4 4v2H5v-2l4-4-1-7Zm4 13v6" fill={pinnedIds.includes(item.id) || (nextId !== null && item.id === nextId) ? "currentColor" : "none"} stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
           </svg>
         </button>
       {/if}
@@ -241,3 +246,8 @@
     </div>
   {/each}
 </div>
+{#if hiddenCount > 0 && onShowHidden}
+  <p class="card-list-hidden">
+    <button type="button" class="card-list-hidden-link" onclick={onShowHidden}>…顯示隱藏項目({hiddenCount})</button>
+  </p>
+{/if}

@@ -14,7 +14,10 @@
   ],
   "properties": {
     "schema_version": {
-      "enum": ["1.0", "1.1"]
+      "enum": [
+        "1.0",
+        "1.1"
+      ]
     },
     "report_id": {
       "$ref": "#/$defs/id"
@@ -31,6 +34,9 @@
       "type": "string",
       "minLength": 1,
       "maxLength": 1000
+    },
+    "next": {
+      "$ref": "#/$defs/nextMarker"
     },
     "updated_at": {
       "type": "string",
@@ -49,16 +55,39 @@
       "pattern": "^[a-z0-9]+(?:[._-][a-z0-9]+)*$",
       "maxLength": 100
     },
+    "nextMarker": {
+      "$comment": "The one child item this scope should act on now. Written by the Report CLI (next.set/next.clear) or the Viewer; readers treat it as ineffective once the item is done, waiting or awaiting someone, and fall back to the derived next step. Design: Documentation/NextMarkerPlan.md.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "task_id",
+        "item_id"
+      ],
+      "properties": {
+        "task_id": {
+          "$ref": "#/$defs/id"
+        },
+        "item_id": {
+          "$ref": "#/$defs/id"
+        }
+      }
+    },
     "task": {
       "oneOf": [
-        { "$ref": "#/$defs/standardTask" },
-        { "$ref": "#/$defs/reportPointerTask" }
+        {
+          "$ref": "#/$defs/standardTask"
+        },
+        {
+          "$ref": "#/$defs/reportPointerTask"
+        }
       ]
     },
     "reportRef": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["scope_id"],
+      "required": [
+        "scope_id"
+      ],
       "properties": {
         "scope_id": {
           "$ref": "#/$defs/id"
@@ -68,10 +97,16 @@
     "documentRef": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["kind", "scope_id"],
+      "required": [
+        "kind",
+        "scope_id"
+      ],
       "properties": {
         "kind": {
-          "enum": ["checklist", "decision"]
+          "enum": [
+            "checklist",
+            "decision"
+          ]
         },
         "scope_id": {
           "$ref": "#/$defs/id"
@@ -84,14 +119,27 @@
         }
       },
       "anyOf": [
-        { "required": ["task"] },
-        { "required": ["stem"] }
+        {
+          "required": [
+            "task"
+          ]
+        },
+        {
+          "required": [
+            "stem"
+          ]
+        }
       ]
     },
     "reportPointerTask": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["id", "title", "kind", "report_ref"],
+      "required": [
+        "id",
+        "title",
+        "kind",
+        "report_ref"
+      ],
       "properties": {
         "id": {
           "$ref": "#/$defs/id"
@@ -112,7 +160,12 @@
     "standardTask": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["id", "title", "status", "summary"],
+      "required": [
+        "id",
+        "title",
+        "status",
+        "summary"
+      ],
       "properties": {
         "id": {
           "$ref": "#/$defs/id"
@@ -126,7 +179,13 @@
           "maxLength": 160
         },
         "status": {
-          "enum": ["planned", "in_progress", "blocked", "done", "archive"]
+          "enum": [
+            "planned",
+            "in_progress",
+            "blocked",
+            "done",
+            "archive"
+          ]
         },
         "summary": {
           "type": "string",
@@ -147,7 +206,10 @@
         "progress": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["completed", "total"],
+          "required": [
+            "completed",
+            "total"
+          ],
           "properties": {
             "completed": {
               "type": "integer",
@@ -179,7 +241,10 @@
     "item": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["id", "title"],
+      "required": [
+        "id",
+        "title"
+      ],
       "properties": {
         "id": {
           "$ref": "#/$defs/id"
@@ -196,7 +261,13 @@
         },
         "status": {
           "$comment": "Optional. Absent means the array the item sits in decides: completed_items reads as done, pending_items as planned. When present it is authoritative and the arrays are derived from it — done goes to completed_items, every other status to pending_items — so an item can never be in a position its own status contradicts.",
-          "enum": ["planned", "in_progress", "blocked", "done", "archive"]
+          "enum": [
+            "planned",
+            "in_progress",
+            "blocked",
+            "done",
+            "archive"
+          ]
         },
         "document_ref": {
           "$ref": "#/$defs/documentRef"
@@ -209,11 +280,23 @@
           "items": {
             "type": "object",
             "additionalProperties": false,
-            "required": ["scope_id", "task_id", "item_id"],
+            "required": [
+              "scope_id",
+              "task_id",
+              "item_id"
+            ],
             "properties": {
-              "scope_id": { "type": "string", "minLength": 1, "maxLength": 80 },
-              "task_id": { "$ref": "#/$defs/id" },
-              "item_id": { "$ref": "#/$defs/id" }
+              "scope_id": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 80
+              },
+              "task_id": {
+                "$ref": "#/$defs/id"
+              },
+              "item_id": {
+                "$ref": "#/$defs/id"
+              }
             }
           }
         },
@@ -221,19 +304,37 @@
           "$comment": "Written by the Report CLI and the Viewer, never by hand. The created entry and every started and takeover entry are kept forever, so the executors stay known; the latest released and disputed entries are kept; only the most recent 3 other entries are kept.",
           "type": "array",
           "maxItems": 64,
-          "items": { "$ref": "#/$defs/activityEntry" }
+          "items": {
+            "$ref": "#/$defs/activityEntry"
+          }
         }
       }
     },
     "activityEntry": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["event", "actor", "at"],
+      "required": [
+        "event",
+        "actor",
+        "at"
+      ],
       "properties": {
-        "event": { "enum": ["created", "started", "updated", "done", "takeover", "released", "disputed"] },
+        "event": {
+          "enum": [
+            "created",
+            "started",
+            "updated",
+            "done",
+            "takeover",
+            "released",
+            "disputed"
+          ]
+        },
         "note": {
           "$comment": "Why the session disputes a condition; required for disputed.",
-          "type": "string", "minLength": 1, "maxLength": 300
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 300
         },
         "actor": {
           "$comment": "The writing tool, such as claude, codex or antigravity; user for the Viewer.",
@@ -242,13 +343,20 @@
         },
         "session": {
           "$comment": "The writing session's human-readable name, shown in the Viewer.",
-          "type": "string", "minLength": 1, "maxLength": 100
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100
         },
         "session_id": {
           "$comment": "The writing session's ID; claims compare this, never the name.",
-          "type": "string", "minLength": 1, "maxLength": 100
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100
         },
-        "at": { "type": "string", "format": "date-time" }
+        "at": {
+          "type": "string",
+          "format": "date-time"
+        }
       }
     }
   }

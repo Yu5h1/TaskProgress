@@ -533,6 +533,18 @@ export function validateReport(report) {
   if (report.summary !== undefined) {
     requireString(report.summary, "summary", errors);
   }
+  // Shape only: the item it names may since have completed, and the Viewer
+  // derives that instead of refusing the report.
+  if (report.next !== undefined) {
+    if (!isObject(report.next)) {
+      errors.push(issue("invalid_next", "next", "next 必須是物件。"));
+    } else {
+      requireString(report.next.task_id, "next.task_id", errors, { id: true });
+      requireString(report.next.item_id, "next.item_id", errors, { id: true });
+      Object.keys(report.next).filter((key) => !["task_id", "item_id"].includes(key))
+        .forEach((key) => errors.push(issue("unknown_field", `next.${key}`, `next.${key} 不是支援的欄位。`)));
+    }
+  }
   validateTimestamp(report.updated_at, "updated_at", errors);
 
   if (!Array.isArray(report.tasks)) {

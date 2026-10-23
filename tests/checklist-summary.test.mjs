@@ -105,8 +105,9 @@ test("the screen labels the shared summary instead of drawing its own", async ()
   );
   assert.match(app, /import ProgressSummary from "\.\/ProgressSummary\.svelte"/u);
   assert.match(app, /bar=\{\{ form: "segmented", cells: view\.summary\.cells \}\}/u);
-  assert.match(app, /\{#if view\.summary\.nextStep\}/u);
-  assert.match(app, /<a class="checklist-next-step"[\s\S]*href=\{`#check-\$\{view\.summary\.nextStep\.workItemId\}/u);
+  // The screen no longer draws its own next-step line: "Next" belongs to the
+  // Report's scope-wide marker (Documentation/NextMarkerPlan.md).
+  assert.doesNotMatch(app, /checklist-next-step|view\.summary\.nextStep/u);
   // No second count anywhere: the screen reads the derived summary only. It
   // may filter its own capsule list, but never recount the document.
   assert.doesNotMatch(app, /summary\.[a-z]+\.filter\(|\.reduce\(/u, "counting belongs to the session");

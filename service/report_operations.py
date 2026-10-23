@@ -158,6 +158,27 @@ def check_waits(report, task_id, item):
                 stack.append(((wait["scope_id"], wait["task_id"], wait["item_id"]), depth + 1))
 
 
+NEXT_OPERATIONS = {"next.set": {"op", "task_id", "item_id"}, "next.clear": {"op"}}
+
+
+def apply_next(report, operation, name, actor, at):
+    """The scope's one Next marker: set points it at an unfinished object item, clear removes it."""
+    require(set(operation) <= NEXT_OPERATIONS[name], "Unknown operation property")
+    if name == "next.clear":
+        report.pop("next", None)
+        return {"op": name, "task_id": None, "fields": ["next"]}
+    task = find_task(report, operation.get("task_id"))
+    item_id = operation.get("item_id")
+    require(isinstance(item_id, str), "item_id must be a stable ID; string items require migration", "item_id")
+    item = next((i for i in task.get("pending_items", []) if isinstance(i, dict) and i.get("id") == item_id), None)
+    require(item is not None, "Next must point at an unfinished object item of that task", "item_id")
+    marker = {"task_id": task["id"], "item_id": item_id}
+    if report.get("next") != marker:
+        report["next"] = marker
+        append_activity(item, activity_entry("updated", actor, at))
+    return {"op": name, "task_id": task["id"], "item_id": item_id, "fields": ["next"]}
+
+
 def status_event(previous_status, status):
     if status != previous_status and status in ("in_progress", "done"):
         return "started" if status == "in_progress" else "done"
@@ -262,8 +283,12 @@ def apply_operations(report, overlay, operations, actor=None, at=None):
         try:
             require(isinstance(operation, dict), "Operation must be an object")
             name = operation.get("op")
-            require(isinstance(name, str) and name in {*FIELDS, "task.add", "item.add", "item.move", "item.event"},
+            require(isinstance(name, str) and name in {*FIELDS, "task.add", "item.add", "item.move", "item.event", *NEXT_OPERATIONS},
                     "Unknown operation", "op")
+            if name in NEXT_OPERATIONS:
+                summaries.append(apply_next(report, operation, name, actor, at))
+                validate_documents(report, overlay)
+                continue
             keys = {"op", "set", "unset"}
             if name != "report.update":
                 keys.add("task_id")

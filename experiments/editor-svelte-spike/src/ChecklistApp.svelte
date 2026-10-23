@@ -11,10 +11,12 @@
     lockReason,
     orderChecklistItems,
   } from "../../../viewer/assets/checklist-editor.js";
+  import { stackChecklistItems } from "../../../viewer/assets/completed-stacking.js";
   import {
     createFilterSelection,
     loadFilterSelection,
     saveFilterSelection,
+    groupingOrder,
     isDefaultLit,
     toggleDefault,
     toggleTag,
@@ -178,18 +180,11 @@
   function setItemExpanded(id, value) { expandedItems = { ...expandedItems, [id]: value }; saveDisclosure(disclosureKey, defaultExpanded, expandedItems); }
   function setAllExpanded(value) { defaultExpanded = value; expandedItems = {}; saveDisclosure(disclosureKey, defaultExpanded, expandedItems); }
 
-  async function showNextStep(event) {
-    event.preventDefault();
-    const next = view.summary.nextStep;
-    if (!next) return;
-    cardList?.revealCard(next.workItemId);
-    setItemExpanded(next.workItemId, true);
+  // The one action behind 「…顯示隱藏項目」: every filter tag back on.
+  function showHiddenItems() {
     selection = createFilterSelection(FILTER_TAGS);
     saveFilterSelection(filterKey, selection);
-    await tick();
-    const target = document.getElementById(`check-${next.workItemId}-${next.checkIndex}`);
-    target?.focus({ preventScroll: true });
-    target?.scrollIntoView({ block: "start" });
+    operableOnly = false;
   }
 
   const errorStates = new Set(["incomplete", "conflict", "error", "mode_blocked"]);
@@ -242,10 +237,16 @@
   const OWNER_LABELS = { manual: "實機", acceptance: "他驗" };
   const VALIDITY_LABELS = { no_recorder: "需重驗：沒有記錄者", fingerprint: "需重驗：內容已變更", released: "需重驗：之後重新執行過" };
 
+  // Completed work items stack newest first (Documentation/CompletedStackingPlan.md):
+  // behind the unfinished ones in the document's own order, within their own
+  // slots under an explicit capsule grouping.
   function visibleDocument(document) {
     const ordered = orderChecklistItems(document, capsuleOrder);
-    return operableOnly ? filterOperableChecks(ordered) : ordered;
+    const asWritten = groupingOrder(capsuleOrder).filter((id) => FILTER_TAGS.includes(id)).length === 0;
+    const stacked = { ...ordered, items: stackChecklistItems(ordered.items, { asWritten }) };
+    return operableOnly ? filterOperableChecks(stacked) : stacked;
   }
+  $: visibleItems = view ? filterChecklistBySelection(visibleDocument(view.document), selection.selected).items : [];
 
   // One marker per tagged check, cycling [ ] → [x] → [!] → [ ]. An agent's
   // acceptance record is only changed after the user confirms it.
@@ -314,16 +315,6 @@
       note={view.summary.checks.failed > 0 ? `${view.summary.checks.failed} 個失敗` : ""}
     />
 
-    {#if view.summary.nextStep}
-      <a class="checklist-next-step"
-        href={`#check-${view.summary.nextStep.workItemId}-${view.summary.nextStep.checkIndex}`}
-        onclick={showNextStep}
-        title={view.summary.nextStep.title}>
-        <span>{view.summary.nextStep.isManual ? "需實機驗證" : view.summary.nextStep.isAcceptance ? "下一步 · 他驗" : "下一步 · Agent"}：</span>
-        <strong>{view.summary.nextStep.title}</strong>
-      </a>
-    {/if}
-
 
 
     <label class="checklist-operable-toggle">
@@ -332,7 +323,8 @@
     </label>
 
     <section class="checklist-items" aria-label="Implementation checklist items">
-      <CardList bind:this={cardList} expanded={defaultExpanded} onToggleAll={setAllExpanded} items={filterChecklistBySelection(visibleDocument(view.document), selection.selected).items}
+      <CardList bind:this={cardList} expanded={defaultExpanded} onToggleAll={setAllExpanded} items={visibleItems}
+        hiddenCount={view.document.items.length - visibleItems.length} onShowHidden={showHiddenItems}
         allIds={orderChecklistItems(view.document, capsuleOrder).items.map(item => item.id)}
         storageKey={new URLSearchParams(location.search).has("scope")
           ? `taskprogress.cards.checklist.v1:${location.pathname}:${new URLSearchParams(location.search).get("scope")}:${new URLSearchParams(location.search).get("task")}:${view.document.roundIdentity}`

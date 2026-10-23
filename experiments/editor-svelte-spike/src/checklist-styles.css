@@ -274,9 +274,6 @@ body {
 .checklist-round { margin-top: 4px; font-size: 0.8rem; overflow-wrap: anywhere; }
 .checklist-round summary { cursor: pointer; }
 .checklist-round p { margin-block: 4px 0; }
-.checklist-next-step { display: flex; min-width: 0; align-items: baseline; color: var(--color-accent); font-size: 0.85rem; }
-.checklist-next-step span { flex-shrink: 0; }
-.checklist-next-step strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .checklist-toolbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
 .checklist-toolbar .status-filter-strip { margin: 0; }
 .checklist-check { scroll-margin-top: 12px; }

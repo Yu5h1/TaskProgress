@@ -107,6 +107,19 @@ task-progress.exe report apply "C:\Project" --input changes.json
 
 位置操作由專案的 `service/report_operations.py` 提供；CLI `--help` 列出 item.move／position 的版本包含相應說明。部署須配套同版 service 與 schemas；可用 `python service/report_cli.py --help` 確認實際後端入口，並用 dry-run 驗證請求。舊後端不支援時先更新，不以手改 JSON 繞過。
 
+## Next 標記
+
+每個 scope 一個 `next`，指向一個未完成的子項（設計：[NextMarkerPlan](NextMarkerPlan.md)）。設新的就取代舊的；指向不存在、已完成或舊字串子項時拒絕。設定時在該子項記一筆 `updated`。清除不帶 `task_id`。
+
+```json
+[
+  { "op": "next.set", "task_id": "feature-b", "item_id": "implementation" },
+  { "op": "next.clear" }
+]
+```
+
+子項完成、等待中或待使用者後，`next` 仍留在檔案裡；Viewer 與評估把它視為失效並退回推算，下一次 `next.set` 取代它。
+
 ## 身分與認領
 
 每個 apply 請求都要帶 `actor`（寫入的工具，小寫英文，例如 `claude`、`codex`、`antigravity`）；`session`（session 名稱，顯示用）與 `session_id`（session ID，認領比對用）知道就填。CLI 依此在子項的 `activity` 自動記錄建立、開始、修改、完成與接手，不能在新增的值裡自帶 `activity`。

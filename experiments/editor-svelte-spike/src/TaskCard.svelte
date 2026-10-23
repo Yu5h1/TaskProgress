@@ -9,6 +9,7 @@
   import { tick } from "svelte";
   import ItemRow from "./ItemRow.svelte";
   import { stableSortTaskItemsByPriority } from "../../../viewer/assets/report-model.js";
+  import { liftNextItem } from "../../../viewer/assets/next-marker.js";
   import ExpandableText from "./ExpandableText.svelte";
   import { copyText } from "../../../viewer/assets/item-reference.js";
 
@@ -38,6 +39,9 @@
   export let reorderable = false;
   export let onReorder = () => {};
   export let selection = null;
+  // The scope's Next item when it sits on this card; it leads the unfinished rows.
+  export let nextItemId = null;
+  export let onSetNext = null;
   let idCopyState = "";
   let idCopyTimer;
 
@@ -71,7 +75,7 @@
       title: "待處理",
       className: "pending-work",
       field: "pending_items",
-      items: stableSortTaskItemsByPriority(task.pending_items),
+      items: liftNextItem(stableSortTaskItemsByPriority(task.pending_items), nextItemId),
     },
   ];
   $: orderedGroups = [...workGroups].sort((left, right) => {
@@ -315,7 +319,9 @@
                 {onModuleActivate}
                 {moduleOrder}
                 {onModuleReorder}
-                leadItem={lead && group.status === "planned" && index === 0}
+                leadItem={(lead && group.status === "planned" && index === 0) || item.id === nextItemId}
+                isNext={item.id === nextItemId}
+                onSetNext={!editing && group.status === "planned" && item.id && !item.legacy ? onSetNext : null}
                 {scopeId}
                 selection={editing ? null : selection}
                 reorder={(editing || reorderable) && group.status === "planned" && item.id && !item.legacy ? itemReorder(item, group.items, draggingId, dropTarget, armedId) : null}

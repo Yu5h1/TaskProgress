@@ -1,6 +1,7 @@
 import { requestedCardPin } from "./card-order.js";
 import { moveUnfinishedItem } from "./item-reorder.js";
 import { recordUserActivity } from "./item-activity.js";
+import { clearNextMarker, currentNext, liftNextTask, setNextMarker } from "./next-marker.js";
 import { SELECT_KEY_ATTRIBUTE, createItemSelection } from "./item-selection.js";
 import { isSelectionIgnoredTarget } from "./selection-input.js";
 import { parseReference, referenceTask, searchTask, searchTerms } from "./task-search.js";
@@ -150,6 +151,7 @@ const elements = {
   updatedAt: document.querySelector("#updated-at"),
   reportId: document.querySelector("#report-id"),
   projectProgress: document.querySelector("#project-progress"),
+  nextStep: document.querySelector("#next-step"),
   diagnostics: document.querySelector("#diagnostics"),
   content: document.querySelector("#report-content"),
   taskList: document.querySelector("#task-list"),
@@ -1059,16 +1061,63 @@ function taskListProps(tasks) {
 
 const SEARCH_MATCHES_IDS = true;
 
+/*
+ * Entries the status filter or the search keeps off screen: whole cards plus
+ * the items filtered out of the cards that remain. Pointer cards are never
+ * hidden and carry no items of their own.
+ */
+function hiddenEntryCount(allTasks, shownTasks) {
+  const shown = new Map(shownTasks.map((task) => [task.id, task]));
+  return allTasks.reduce((count, task) => {
+    if (taskKind(task) === "report_pointer") return count;
+    const visible = shown.get(task.id);
+    const items = (field) => (task[field] ?? []).length - (visible?.[field] ?? []).length;
+    return count + (visible ? 0 : 1) + items("pending_items") + items("completed_items");
+  }, 0);
+}
+
+function showHiddenEntries() {
+  state.selection = createFilterSelection(state.statusOrder.filter((id) => id !== DEFAULT_CAPSULE_ID));
+  saveFilterSelection(state.filterStorageKey, state.selection);
+  state.searchQuery = "";
+  renderFilters();
+  renderTasks();
+}
+
+function renderNextStep(next) {
+  const props = { next: null };
+  if (next) {
+    const query = new URLSearchParams(location.search);
+    query.set("pin", next.taskId);
+    props.next = {
+      title: next.item.displayTitle ?? next.item.title,
+      cardTitle: next.task.title,
+      derived: next.derived,
+      stateLabel: next.item.derivedStateLabel ?? null,
+      href: `?${query.toString()}`,
+    };
+  }
+  elements.nextStep.hidden = !next;
+  if (state.nextStepView) state.nextStepView.update(props);
+  else state.nextStepView = createUiView("next-step", elements.nextStep, props);
+}
+
 function renderTasks() {
   const requestedPin = requestedCardPin(location.search, state.report.scope_id);
   // Explicit status groups lead; unfinished cards use priority and completed
   // cards retain completion order, including in the default remainder.
-  const orderedTasks = orderByCapsuleBoundary(
+  const rankedTasks = orderByCapsuleBoundary(
     state.tasks,
     groupingOrder(state.statusOrder),
     (task) => task.status,
     stableSortTasksByPriority,
   );
+  // The scope's Next marker leads every card while it is effective; the
+  // derived fallback only fills the card at the top and moves nothing.
+  const next = currentNext(state.report.next, rankedTasks);
+  const marked = next && !next.derived ? next : null;
+  const orderedTasks = liftNextTask(rankedTasks, marked?.taskId ?? null);
+  renderNextStep(next);
   // Filtering only hides, and it applies at both levels: a card survives when
   // it matches or when it still holds a matching item, and it then shows only
   // those items. Ordering above is untouched by any of it. A pointer card
@@ -1098,6 +1147,11 @@ function renderTasks() {
 
   const props = taskListProps(tasks);
   props.requestedPin = requestedPin;
+  props.nextTaskId = marked?.taskId ?? null;
+  props.nextItemId = marked?.itemId ?? null;
+  props.onSetNext = state.editor.available && !state.editor.editing ? setNextInPreview : null;
+  props.hiddenCount = hiddenEntryCount(orderedTasks, tasks);
+  props.onShowHidden = showHiddenEntries;
   props.scopeId = state.report.scope_id;
   props.reorderable = state.editor.available && !state.editor.editing;
   props.onReorder = reorderInPreview;
@@ -1386,6 +1440,47 @@ async function reorderInPreview(command) {
     await refreshDocumentBindings();
   } catch (error) {
     state.diagnostics.push({ level: "error", message: error instanceof Error ? error.message : "換位儲存失敗；原始檔案未變更。" });
+    renderDiagnostics();
+    await refreshForegroundSilently();
+  } finally {
+    await client.close();
+    state.previewReorderBusy = false;
+  }
+}
+
+/*
+ * Preview-mode write of the Next marker, through the same local edit host and
+ * the same stale-report check as a preview reorder. A long press on a row sets
+ * it; a long press on the Next row clears it.
+ */
+async function setNextInPreview({ taskId, itemId, clear }) {
+  if (!state.editor.available || state.editor.editing || state.previewReorderBusy) return;
+  state.previewReorderBusy = true;
+  const client = state.editor.client;
+  try {
+    await client.start();
+    const request = resolveReportRequest(new URLSearchParams(location.search));
+    const current = await fetchJson(request.reportSource, "report.json");
+    if (JSON.stringify(current) !== JSON.stringify(state.persistedReport)) {
+      state.diagnostics.push({ level: "warning", message: "報告已被其他人更新，已重新載入；請再長按一次。" });
+      renderDiagnostics();
+      await refreshForegroundSilently();
+      return;
+    }
+    const edited = clear ? clearNextMarker(state.persistedReport) : setNextMarker(state.persistedReport, { taskId, itemId });
+    const report = recordUserActivity(state.persistedReport, edited);
+    report.updated_at = new Date().toISOString();
+    const errors = validateReport(report);
+    if (errors.length) throw new Error(String(errors[0]?.message ?? errors[0]));
+    const payload = { report, inputs: {}, changes: [] };
+    await client.save(payload);
+    state.report = payload.report;
+    state.persistedReport = structuredClone(payload.report);
+    rebuildMergedTasks();
+    renderReport();
+    await refreshDocumentBindings();
+  } catch (error) {
+    state.diagnostics.push({ level: "error", message: error instanceof Error ? error.message : "Next 儲存失敗；原始檔案未變更。" });
     renderDiagnostics();
     await refreshForegroundSilently();
   } finally {

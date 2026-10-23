@@ -33,6 +33,13 @@
   // message, openHref }. A pointer card never takes `editing`, `onCommand` or
   // any other write-capable prop — it has no edit affordances to receive one.
   export let pointerCards = {};
+  // The scope's effective Next marker (Documentation/NextMarkerPlan.md); null when none applies.
+  export let nextTaskId = null;
+  export let nextItemId = null;
+  export let onSetNext = null;
+  // Entries the filters keep off screen, and the one action that shows them again.
+  export let hiddenCount = 0;
+  export let onShowHidden = null;
   let defaultExpanded = true;
   let expandedCards = {};
   let appliedPin = null;
@@ -54,7 +61,7 @@
   function setAllExpanded(value) { defaultExpanded = value; expandedCards = {}; saveDisclosure(disclosureKey, defaultExpanded, expandedCards); }
 </script>
 
-  <CardList pinEnabled {requestedPin} expanded={defaultExpanded} onToggleAll={setAllExpanded} items={tasks} {allIds} storageKey={cardStorageKey} let:item={task} let:lead let:visibilityEnabled let:visible let:onVisibleChange>
+  <CardList pinEnabled {requestedPin} nextId={nextTaskId} {hiddenCount} {onShowHidden} expanded={defaultExpanded} onToggleAll={setAllExpanded} items={tasks} {allIds} storageKey={cardStorageKey} let:item={task} let:lead let:visibilityEnabled let:visible let:onVisibleChange>
     <svelte:fragment slot="filters">
       {#if filters}<FilterStrip {...filters} />{/if}
     </svelte:fragment>
@@ -99,6 +106,8 @@
         {reorderable}
         {onReorder}
         {selection}
+        {nextItemId}
+        {onSetNext}
       />
     {/if}
   </CardList>

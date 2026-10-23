@@ -75,6 +75,30 @@ class ReportCliTests(unittest.TestCase):
         self.assertEqual([(e["event"], e.get("session_id")) for e in self.item()["activity"]], [("started", "s1"), ("released", "s2")],
                          "a recovery release records no takeover, so the recovering session is not an executor")
 
+    def test_next_marker_points_at_one_unfinished_item(self):
+        execute(self.root, "apply", self.request([{"op": "item.add", "task_id": "one", "value": {"id": "b", "title": "B"}}]))
+        execute(self.root, "apply", self.request([{"op": "next.set", "task_id": "one", "item_id": "item"}], session="s1"))
+        report = execute(self.root, "get")["report"]
+        self.assertEqual(report["next"], {"task_id": "one", "item_id": "item"})
+        self.assertEqual(self.item()["activity"][-1]["event"], "updated", "setting Next is recorded on the item")
+        result = execute(self.root, "apply", self.request([{"op": "next.set", "task_id": "one", "item_id": "item"}]))
+        self.assertFalse(result["changed"], "the same Next twice is a no-op")
+        execute(self.root, "apply", self.request([{"op": "next.set", "task_id": "one", "item_id": "b"}]))
+        self.assertEqual(execute(self.root, "get")["report"]["next"]["item_id"], "b", "a new Next replaces the old one")
+        for operation in ({"op": "next.set", "task_id": "one", "item_id": "missing"},
+                          {"op": "next.set", "task_id": "two", "item_id": "item"},
+                          {"op": "next.set", "task_id": "one", "item_id": "item", "set": {}},
+                          {"op": "next.clear", "task_id": "one"}):
+            with self.assertRaises(ReportError):
+                execute(self.root, "apply", self.request([operation]))
+        execute(self.root, "apply", self.request([{"op": "item.update", "task_id": "one", "item_id": "b", "set": {"status": "done"}}]))
+        self.assertEqual(execute(self.root, "get")["report"]["next"]["item_id"], "b", "completion leaves the marker; readers derive its validity")
+        with self.assertRaises(ReportError):
+            execute(self.root, "apply", self.request([{"op": "next.set", "task_id": "one", "item_id": "b"}]))
+        execute(self.root, "apply", self.request([{"op": "next.clear"}]))
+        self.assertNotIn("next", execute(self.root, "get")["report"])
+        self.assertFalse(execute(self.root, "apply", self.request([{"op": "next.clear"}]))["changed"])
+
     def test_waits_reject_self_unknown_and_loops(self):
         wait = lambda item: [{"scope_id": "sample", "task_id": "one", "item_id": item}]
         execute(self.root, "apply", self.request([{"op": "item.add", "task_id": "one", "value": {"id": "b", "title": "B"}}]))

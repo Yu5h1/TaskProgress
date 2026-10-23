@@ -57,6 +57,13 @@ report names every answer taken this way so the user can overturn it on the deci
 questions wait for the user. Before sorting anything, read the scope's decisions files for answers
 already given whose consequences are not yet in the plan, handoff or items, and act on those first.
 
+Every evaluation ends by settling the scope's Next marker (`report get` → `next`,
+[NextMarkerPlan](../../../Documentation/NextMarkerPlan.md)): when it is absent, or its item is
+done, waiting, awaiting the user or awaiting acceptance, choose the first unfinished item that
+waits on nobody, by priority then card order, write it with `{"op": "next.set", "task_id": …,
+"item_id": …}` and say 「Next 已設為 …」 in the report. A marker the user set and that is still
+effective is never replaced.
+
 A leading `self`, `manual`, `cross` or `cross manual` forces the verification of the items it
 creates; otherwise choose per item by the criteria below and report each choice with its reason.
 

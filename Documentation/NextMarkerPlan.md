@@ -22,13 +22,24 @@ Report 要回答「現在該做哪一件事」。推算的下一步（優先級�
 3. **失效即退回。** Next 子項推算為完成、等待中、待使用者或待他驗時，排序與標記效果消失，畫面退回原排序，頂端的下一步退回推算（依優先級與卡片順序取第一個未完成且不等待的子項），並標示「推算」。指標本身不自動清除，誰在何時改掉它留在活動紀錄。
 4. **覆盤重設。** `/task-progress-items` 評估的第 0 步：`next` 為空或失效時，agent 依同一推算規則選一個寫入，回報「Next 已設為 …」。原第 3 題「下一個模組怎麼點名」併入：點名的決策子項設為 Next 即可。
 5. **寫入路徑。** Report CLI 新增 `next.set`（task_id、item_id）與 `next.clear`，帶 `actor`／`session_id`，記活動；Viewer 在預覽與編輯模式都可設定或取消（預覽模式寫入沿用拖曳換位的先例）。兩邊同一個 revision 檢查；指向不存在的子項時拒絕。
-6. **語意色。** 新增第四個語意色 `next`，與完成、受阻、警告同級：自訂佈景不覆蓋。暗色約 `#d4a62a`，亮色約 `#9a6b00`（實作時以 4.5:1 對比核定）。
+6. **語意色。** 新增第四個語意色 `next`，與完成、受阻、警告同級：自訂佈景不覆蓋。暗色約 `#d4a62a`，亮色約 `#9a6b00`（實作時以 4.5:1 對比核定）。金色與優先（1）的琥珀色相近，使用者 2026-10-23 知悉並決定保留，不另換色；Next 的辨識靠填滿的 pin 圖示與「Next」膠囊的形狀，不只靠顏色。
 7. **外觀。** 卡片的 pin 圖示在 Next 卡上以 `next` 色實心顯示（一般釘選維持現狀）；Next 子項那一行左緣 `next` 色色條，加一個 `next` 色「Next」小膠囊。不用整圈外框、不加底色。
 8. **隔離同名標籤。** 卡片 Developer 區藍色「Next Step :」改名「後續」，與「後續動作」清單併為一區，改用次要文字色；Checklist 畫面的「下一步 · Agent：…」一行刪除。「Next」與金色只屬於本標記。
 
+9. **控制項：長按。** 使用者 2026-10-23 決定：子項列依 UX 操作規範的長按（[Input](../../UX/Documentation/ModuleSpec/Foundation/Input.md) 3.0.1 INPUT-PRESS-HOLD：`holdDuration` 400ms、`dragThreshold` 6px，長按後抑制原生短按）設為 Next，對 Next 子項再長按取消；鍵盤依 INPUT-KEY-COMMAND 以 Shift+Enter 對應 `hold`。實作 `viewer/assets/long-press.js` 自 Web `src/ui/long-press.ts`（規格來源基線）移植。不另加滑過圖示。
+10. **隱藏項目連結。** 三個面板（Report、Checklist、Decision）的卡片清單底部，有被篩選標籤藏起的項目時，間距 5px、置中顯示「…顯示隱藏項目(N)」，只有文字帶底線可按，動作是重設全部篩選標籤（Report 另清空搜尋）。Report 的 N 計整張被藏的卡加上留下的卡裡被藏的子項。共用 `CardList` 實作，三個宿主各自提供數量與重設。
+
 ## 尚未決定
 
-- **設定 Next 的控制項形狀。** 候選：(a) 子項列滑過時出現的圖示，與「複製參照」同位置，點一下設定、再點取消；(b) 以 IconChoice 的 cycle 模式做兩態（無／Next）；(c) 不在列上放按鈕，由頂端下一步卡片或多選狀態下的動作設定。先看現有元件再定；三者都不碰卡片圖釘。
+無。
+
+## 實作紀錄（2026-10-23）
+
+- 資料：`schemas/report.schema.json` 頂層 `next`；Report CLI `next.set`／`next.clear`（`service/report_operations.py`，設定時在子項記 `updated`）；`viewer/assets/report-model.js` 只驗形狀。
+- 推算與排序：`viewer/assets/next-marker.js`（有效性、退回推算、卡與子項提前）；`app.js` 的 `renderTasks` 在狀態分組與優先級排序後提前 Next 卡，釘選由 `CardList` 之後套用所以仍在其上；`TaskCard` 提前 Next 子項並展開它。
+- 畫面：頂端 `next-step` region（`ReportNextStep.svelte` 包共用 `NextStepCard`，整張可點、以 `?pin=` 開卡）；語意色 `--theme-next-*`／`--color-next-*` 四個佈景區塊；`.card-pin.is-next`、`.editor-item-row.is-next` 左緣、`.item-next-capsule`。Developer 區「Next Step :」改「後續：」、清單標題改「後續」、顏色改次要文字色；Checklist 畫面的下一步連結與樣式刪除。
+- 寫入：預覽模式長按或 Shift+Enter 經 `setNextInPreview` 走與拖曳換位相同的本機編輯主機與過期檢查；Viewer 寫入時不在子項記活動（CLI 會記）。**編輯模式尚未支援**：編輯 session 持有草稿，需要 Editor Core 的命令，另排。
+- 驗證：Node 637 項通過（4 項既有的 checklist 格式失敗與本次無關）、Python Report CLI 22 項通過；Browser 實測 Report 頂端 Next 卡、金色 pin、Next 膠囊、Shift+Enter 設定與取消。四個 UI bundle 已重建；`Build/win-x64` 的桌面版 checklist-ui 要等下次 Publish。
 
 ## 驗收
 

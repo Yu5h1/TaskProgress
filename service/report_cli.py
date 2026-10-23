@@ -154,7 +154,8 @@ class JsonParser(argparse.ArgumentParser):
 
 def main(argv=None):
     try:
-        parser = JsonParser(description="Report operations: task.add/update, item.add/update/move, report.update, dev.update. "
+        parser = JsonParser(description="Report operations: task.add/update, item.add/update/move/event, report.update, dev.update, "
+                            "next.set (task_id, item_id of an unfinished item) and next.clear. "
                             "item.add accepts position; item.move requires position with before or after a pending item ID.")
         parser.add_argument("action", choices=("get", "validate", "apply"))
         parser.add_argument("--folder", required=True)
