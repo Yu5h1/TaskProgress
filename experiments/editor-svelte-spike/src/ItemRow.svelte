@@ -4,6 +4,7 @@
   import { copyText, itemReference } from "@editor/item-reference.js";
   import { formatActivity } from "@editor/item-activity.js";
   import { bindLongPress } from "@editor/long-press.js";
+  import { waitLinks } from "@editor/item-state.js";
 
   export let taskId;
   export let field;
@@ -91,6 +92,11 @@
     ? { label: item.derivedStateLabel, tone: item.derivedStateTone }
     : statuses.find((entry) => entry.value === itemStatus) ?? { label: itemStatus, tone: "muted" };
   $: statusLabel = statusEntry.label;
+  // A waiting row's capsule opens what it waits on: one target links straight there, several open a list.
+  $: waitTargets = !editing && item.derivedState === "waiting" ? waitLinks(item.pendingWaits) : [];
+  $: waitLinked = waitTargets.filter((target) => target.href);
+  let waitMenuOpen = false;
+  $: if (!waitLinked.length) waitMenuOpen = false;
 
   // One command: the host relocates the item when the new status requires
   // it, so the row never has to know which array a status belongs in.
@@ -272,6 +278,26 @@
             <option value={status.value}>{status.label}</option>
           {/each}
         </select>
+      {:else if waitTargets.length === 1 && waitLinked.length === 1}
+        <a class={`item-status-capsule status-${statusEntry.tone} is-link`} href={waitLinked[0].href}
+          title={`開啟等待對象：${waitLinked[0].label}`}>{statusLabel}</a>
+      {:else if waitLinked.length}
+        <span class="wait-menu"
+          onfocusout={(event) => { if (!event.currentTarget.contains(event.relatedTarget)) waitMenuOpen = false; }}>
+          <button type="button" class={`item-status-capsule status-${statusEntry.tone} is-link`}
+            title="等待對象" aria-haspopup="true" aria-expanded={waitMenuOpen}
+            onclick={(event) => { event.stopPropagation(); waitMenuOpen = !waitMenuOpen; }}
+            onkeydown={(event) => { if (event.key === "Escape") waitMenuOpen = false; }}>{statusLabel}</button>
+          {#if waitMenuOpen}
+            <ul class="wait-menu-list">
+              {#each waitTargets as target, index (index)}
+                <li>
+                  {#if target.href}<a href={target.href} onclick={(event) => event.stopPropagation()}>{target.label}</a>{:else}<span>{target.label}（無法讀取）</span>{/if}
+                </li>
+              {/each}
+            </ul>
+          {/if}
+        </span>
       {:else}
         <span class={`item-status-capsule status-${statusEntry.tone}`}>{statusLabel}</span>
       {/if}

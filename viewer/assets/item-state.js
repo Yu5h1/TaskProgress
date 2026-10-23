@@ -77,8 +77,12 @@ export function deriveItemState(item, evaluation, pendingWaits = []) {
  * A title as link text: links inside it keep only their text, and brackets become full-width, so
  * the label can never open or close a link of its own.
  */
+function textOf(text) {
+  return parseInlineLinks(text).map((part) => part.text).join("");
+}
+
 function plainLabel(text) {
-  return parseInlineLinks(text).map((part) => part.text).join("").replace(/\[/gu, "［").replace(/\]/gu, "］");
+  return textOf(text).replace(/\[/gu, "［").replace(/\]/gu, "］");
 }
 
 /**
@@ -86,6 +90,21 @@ function plainLabel(text) {
  * because a link opens and pins the card, never a single item, and the card shows which items are
  * still open. A target that cannot be read is named on its own.
  */
+/**
+ * The places a waiting item's capsule opens: one entry per waited card or checklist, in waits_for
+ * order; a target that cannot be read keeps its label and has no href.
+ */
+export function waitLinks(pendingWaits) {
+  const links = new Map();
+  for (const wait of pendingWaits ?? []) {
+    const href = wait.available ? wait.href : null;
+    const key = href ?? `unreadable:${wait.label}`;
+    if (links.has(key)) continue;
+    links.set(key, { href, label: textOf(href ? (wait.card ?? wait.label) : wait.label) });
+  }
+  return [...links.values()];
+}
+
 export function waitsText(pendingWaits) {
   if (!pendingWaits.length) return "";
   const cards = new Map();

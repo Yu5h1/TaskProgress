@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { deriveItemState, waitsText } from "../viewer/assets/item-state.js";
+import { deriveItemState, waitLinks, waitsText } from "../viewer/assets/item-state.js";
 import { checklistWorkItemDone, evaluateChecklistDocument, evaluateWaitTargets, projectTasksWithBindings, waitKey } from "../viewer/assets/document-binding.js";
 
 const check = (overrides) => ({ status: "pending", effectiveStatus: "pending", validity: "valid", ...overrides });
@@ -62,6 +62,22 @@ test("waits show one link per card with its open count, and unreadable targets b
   ];
   assert.equal(waitsText(pending),
     "等待：[Web 驗收](/?scope=web&pin=card)（2 項未完成）、[Unity](/?scope=unity&pin=u)（1 項未完成）、gone › D（無法讀取）");
+});
+
+test("the waiting capsule opens each waited card or checklist once, in order", () => {
+  const web = "/?scope=web&pin=card";
+  const pending = [
+    { done: false, available: true, card: "Web [驗收](/?scope=web&pin=x)", label: "Web › A", href: web },
+    { done: false, available: true, card: "Web [驗收](/?scope=web&pin=x)", label: "Web › B", href: web },
+    { done: false, available: true, card: "ui.checklist", label: "ui.checklist 第 2 項", href: "/checklist/?scope=ux&task=ui" },
+    { done: false, available: false, label: "gone › D", href: "/?scope=gone&pin=d" },
+  ];
+  assert.deepEqual(waitLinks(pending), [
+    { href: web, label: "Web 驗收" },
+    { href: "/checklist/?scope=ux&task=ui", label: "ui.checklist" },
+    { href: null, label: "gone › D" },
+  ]);
+  assert.deepEqual(waitLinks([]), []);
 });
 
 test("waits make an unfinished item waiting and list links for unfinished targets", () => {

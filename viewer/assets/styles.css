@@ -1417,6 +1417,29 @@ h1 {
 .item-status-capsule.status-danger { color: var(--red); background: var(--red-soft); }
 .item-status-capsule.status-warning { color: var(--amber); background: var(--amber-soft); }
 
+/* 等待中 opens what the item waits on: a link for one target, a short list for several. */
+.item-status-capsule.is-link { cursor: pointer; text-decoration: none; }
+button.item-status-capsule.is-link { border: 0; font-family: inherit; }
+.item-status-capsule.is-link:hover, .item-status-capsule.is-link:focus-visible { text-decoration: underline; }
+.wait-menu { position: relative; display: inline-flex; }
+.wait-menu-list {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 4px);
+  right: 0;
+  min-width: 180px;
+  max-width: min(320px, calc(100vw - 32px));
+  margin: 0;
+  padding: 6px 0;
+  list-style: none;
+  background: var(--color-panel-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow);
+}
+.wait-menu-list a, .wait-menu-list span { display: block; padding: 4px 10px; font-size: 0.75rem; line-height: 1.4; }
+.wait-menu-list span { color: var(--muted); }
+
 .inline-add-shell {
   display: flex;
   justify-content: center;

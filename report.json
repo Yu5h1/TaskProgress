@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-10-23T14:52:02.030224+00:00",
+  "updated_at": "2026-10-23T14:59:10.576178+00:00",
   "tasks": [
     {
       "id": "next-marker",
@@ -1728,6 +1728,35 @@
       "summary": "僅子項目綁定 Checklist／Decision；任務卡文件徽章與待決策入口已移除。來源重開與未綁定卡片保護已驗證，42 項定向測試通過；實作完成，待瀏覽器人工驗收。",
       "completed_items": [
         {
+          "id": "waiting-capsule-link",
+          "title": "「等待中」膠囊可按下，連到等待對象：等子項時開那張卡片，等 checklist 工作項目時開那份 checklist；等多個對象時列出全部",
+          "status": "done",
+          "priority": 1,
+          "activity": [
+            {
+              "event": "created",
+              "actor": "claude",
+              "at": "2026-10-23T14:48:31.505789+00:00",
+              "session": "Report 讀取 worktree 計畫",
+              "session_id": "8db3d9df-8d4e-461e-96c2-37ca30b33c56"
+            },
+            {
+              "event": "started",
+              "actor": "claude",
+              "at": "2026-10-23T14:55:37.300698+00:00",
+              "session": "等待中膠囊連結",
+              "session_id": "8db3d9df-8d4e-461e-96c2-37ca30b33c56"
+            },
+            {
+              "event": "done",
+              "actor": "claude",
+              "at": "2026-10-23T14:59:10.576178+00:00",
+              "session": "等待中膠囊連結",
+              "session_id": "8db3d9df-8d4e-461e-96c2-37ca30b33c56"
+            }
+          ]
+        },
+        {
           "id": "item-binding-item-only-review",
           "title": "子項目綁定與任務卡入口移除：程式及回歸驗收通過",
           "status": "done",
@@ -1793,21 +1822,6 @@
               "at": "2026-10-23T12:46:51.106933+00:00",
               "session": "UX foundation 評估",
               "session_id": "f62c91dd-fddb-4a19-8799-5bb541945dfc"
-            }
-          ]
-        },
-        {
-          "id": "waiting-capsule-link",
-          "title": "「等待中」膠囊可按下，連到等待對象：等子項時開那張卡片，等 checklist 工作項目時開那份 checklist；等多個對象時列出全部",
-          "status": "planned",
-          "priority": 1,
-          "activity": [
-            {
-              "event": "created",
-              "actor": "claude",
-              "at": "2026-10-23T14:48:31.505789+00:00",
-              "session": "Report 讀取 worktree 計畫",
-              "session_id": "8db3d9df-8d4e-461e-96c2-37ca30b33c56"
             }
           ]
         }
@@ -2775,5 +2789,9 @@
         }
       ]
     }
-  ]
+  ],
+  "next": {
+    "task_id": "worktree-report",
+    "item_id": "worktree-report-decisions"
+  }
 }
