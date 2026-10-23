@@ -3446,11 +3446,9 @@ function _o(e, t, n) {
 function vo(e, t) {
 	return [t, ...e.filter((e) => e !== t)];
 }
-function yo(e, t, n, r = []) {
-	let i = n === "free" ? bo(e, t) : n === "reverse" ? [...e].reverse() : e;
-	if (!r.length) return i;
-	let a = new Map(e.map((e) => [e.id, e])), o = new Set(r);
-	return [...o].filter((e) => a.has(e)).map((e) => a.get(e)).concat(i.filter((e) => !o.has(e.id)));
+function yo(e, t, n, r = [], i = null) {
+	let a = n === "free" ? bo(e, t) : n === "reverse" ? [...e].reverse() : e, o = new Map(e.map((e) => [e.id, e])), s = new Set(r), c = r.length ? [...s].filter((e) => o.has(e)).map((e) => o.get(e)).concat(a.filter((e) => !s.has(e.id))) : a;
+	return i === null || !o.has(i) ? c : [o.get(i), ...c.filter((e) => e.id !== i)];
 }
 function bo(e, t) {
 	if (!t) return e;
@@ -3468,7 +3466,7 @@ function ko(e, t) {
 	He(t, !1);
 	let n = /* @__PURE__ */ I(), r = /* @__PURE__ */ I(), i = /* @__PURE__ */ I(), a = /* @__PURE__ */ I(), o = $(t, "items", 24, () => []), s = $(t, "allIds", 24, () => []), c = $(t, "storageKey", 8), l = $(t, "pinEnabled", 8, !1), u = $(t, "requestedPin", 8, null), d = $(t, "heldOrder", 8, null), f = $(t, "nextId", 8, null), p = $(t, "hiddenCount", 8, 0), m = $(t, "onShowHidden", 8, null);
 	function h(e = o()) {
-		return yo(e, W(E), W(b), l() ? W(g) : []).map((e) => e.id);
+		return yo(e, W(E), W(b), l() ? W(g) : [], f()).map((e) => e.id);
 	}
 	let g = /* @__PURE__ */ I([]), _ = null, v = $(t, "expanded", 8, !0), y = $(t, "onToggleAll", 8, () => {}), b = /* @__PURE__ */ I("forward"), x = [
 		"forward",
@@ -3590,8 +3588,8 @@ function ko(e, t) {
 	}
 	B(() => W(C), () => {
 		L(n, W(C) === "enabled");
-	}), B(() => (K(o()), W(E), W(b), K(l()), W(g), K(d())), () => {
-		L(i, bo(yo(o(), W(E), W(b), l() ? W(g) : []), d()));
+	}), B(() => (K(o()), W(E), W(b), K(l()), W(g), K(f()), K(d())), () => {
+		L(i, bo(yo(o(), W(E), W(b), l() ? W(g) : [], f()), d()));
 	}), B(() => (W(i), W(C), W(w), K(l()), W(g)), () => {
 		L(r, W(i).filter((e) => go(e.id, W(C), W(w)) && !(l() && W(g).includes(e.id))));
 	}), B(() => K(c()), () => {

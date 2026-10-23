@@ -29,6 +29,17 @@ test("pins override every sort mode and unpin restores the underlying order", ()
   assert.deepEqual(pins, ["b", "c", "b", "gone"]);
 });
 
+test("the Next card leads every pin in every sort mode", () => {
+  const items = ["a", "b", "c", "d"].map(id => ({ id }));
+  for (const mode of ["forward", "reverse", "free"]) {
+    const ids = displayCards(items, ["d", "c", "b", "a"], mode, ["b", "c"], "d").map(item => item.id);
+    assert.deepEqual(ids.slice(0, 3), ["d", "b", "c"]);
+    assert.equal(new Set(ids).size, 4);
+  }
+  assert.deepEqual(displayCards(items, null, "forward", ["d"], "d").map(item => item.id), ["d", "a", "b", "c"]);
+  assert.deepEqual(displayCards(items, null, "forward", ["b"], "gone").map(item => item.id), ["b", "a", "c", "d"]);
+});
+
 test("pins do not resurrect filtered cards or disturb hidden/free-order slots", () => {
   const items = [{ id: "a" }, { id: "c" }];
   assert.deepEqual(displayCards(items, null, "forward", ["b", "c"]).map(item => item.id), ["c", "a"]);

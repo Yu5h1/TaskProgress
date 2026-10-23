@@ -4997,11 +4997,9 @@ function Js(e, t, n, r = !1) {
 function Ys(e, t) {
 	return [t, ...e.filter((e) => e !== t)];
 }
-function Xs(e, t, n, r = []) {
-	let i = n === "free" ? Zs(e, t) : n === "reverse" ? [...e].reverse() : e;
-	if (!r.length) return i;
-	let a = new Map(e.map((e) => [e.id, e])), o = new Set(r);
-	return [...o].filter((e) => a.has(e)).map((e) => a.get(e)).concat(i.filter((e) => !o.has(e.id)));
+function Xs(e, t, n, r = [], i = null) {
+	let a = n === "free" ? Zs(e, t) : n === "reverse" ? [...e].reverse() : e, o = new Map(e.map((e) => [e.id, e])), s = new Set(r), c = r.length ? [...s].filter((e) => o.has(e)).map((e) => o.get(e)).concat(a.filter((e) => !s.has(e.id))) : a;
+	return i === null || !o.has(i) ? c : [o.get(i), ...c.filter((e) => e.id !== i)];
 }
 function Zs(e, t) {
 	if (!t) return e;
@@ -5019,7 +5017,7 @@ function oc(e, t) {
 	qe(t, !1);
 	let n = /* @__PURE__ */ P(), r = /* @__PURE__ */ P(), i = /* @__PURE__ */ P(), a = /* @__PURE__ */ P(), o = $(t, "items", 24, () => []), s = $(t, "allIds", 24, () => []), c = $(t, "storageKey", 8), l = $(t, "pinEnabled", 8, !1), u = $(t, "requestedPin", 8, null), d = $(t, "heldOrder", 8, null), f = $(t, "nextId", 8, null), p = $(t, "hiddenCount", 8, 0), m = $(t, "onShowHidden", 8, null);
 	function h(e = o()) {
-		return Xs(e, U(re), U(b), l() ? U(g) : []).map((e) => e.id);
+		return Xs(e, U(re), U(b), l() ? U(g) : [], f()).map((e) => e.id);
 	}
 	let g = /* @__PURE__ */ P([]), _ = null, v = $(t, "expanded", 8, !0), y = $(t, "onToggleAll", 8, () => {}), b = /* @__PURE__ */ P("forward"), x = [
 		"forward",
@@ -5141,8 +5139,8 @@ function oc(e, t) {
 	}
 	z(() => U(C), () => {
 		F(n, U(C) === "enabled");
-	}), z(() => (G(o()), U(re), U(b), G(l()), U(g), G(d())), () => {
-		F(i, Zs(Xs(o(), U(re), U(b), l() ? U(g) : []), d()));
+	}), z(() => (G(o()), U(re), U(b), G(l()), U(g), G(f()), G(d())), () => {
+		F(i, Zs(Xs(o(), U(re), U(b), l() ? U(g) : [], f()), d()));
 	}), z(() => (U(i), U(C), U(w), G(l()), U(g)), () => {
 		F(r, U(i).filter((e) => Gs(e.id, U(C), U(w)) && !(l() && U(g).includes(e.id))));
 	}), z(() => G(c()), () => {

@@ -10,13 +10,13 @@
   export let pinEnabled = false;
   export let requestedPin = null;
   export let heldOrder = null;
-  // The card holding the scope's Next item: its pin icon takes the next colour.
+  // The card holding the scope's Next item: it leads every pin and its pin icon takes the next colour.
   export let nextId = null;
   // Hidden-by-filter count and the one action that resets every filter tag.
   export let hiddenCount = 0;
   export let onShowHidden = null;
   export function orderedIds(nextItems = items) {
-    return displayCards(nextItems, order, mode, pinEnabled ? pinnedIds : []).map(item => item.id);
+    return displayCards(nextItems, order, mode, pinEnabled ? pinnedIds : [], nextId).map(item => item.id);
   }
   let pinnedIds = [];
   let appliedPin = null;
@@ -55,7 +55,7 @@
   let root;
   let notice = "";
   $: load(storageKey);
-  $: ordered = orderCards(displayCards(items, order, mode, pinEnabled ? pinnedIds : []), heldOrder);
+  $: ordered = orderCards(displayCards(items, order, mode, pinEnabled ? pinnedIds : [], nextId), heldOrder);
   $: leadId = ordered.find(item => isCardVisible(item.id, visibilityMode, hiddenIds))?.id ?? null;
   $: applyRequestedPin(requestedPin, storageKey, allIds, pinEnabled);
 
