@@ -69,11 +69,15 @@ to set, clear or keep the marker, do exactly that.
 
 When nothing in the range can proceed, the evaluation still moves its first item by priority, by
 what holds it: a choice the user has not made becomes a decision question bound to that item
-(answered on the spot when low-risk, as above); a direction too unclear for a decision question —
-a preference, a goal the item does not state — is settled with the user in the conversation, with
-the situation, the options and a recommendation, and the answer goes into the item; an item
-awaiting the user names the checklist they tick; an item waiting on another scope names the
-invocation that starts that work there. It never takes work from outside the range.
+(answered on the spot when low-risk, as above); an item awaiting the user names the checklist they
+tick; an item waiting on another scope names the invocation that starts that work there. It never
+takes work from outside the range.
+
+A direction too unclear for a decision question — a preference, a goal the item does not state — is
+settled with the user in the conversation, one question at a time, each with your recommended
+answer, waiting for the reply before the next. Walk the decisions in dependency order; look up what
+the repository, report or tools can tell you instead of asking it. Act only after the user confirms
+the goal is shared, and write it into the item.
 
 A leading `self`, `manual`, `cross` or `cross manual` forces the verification of the items it
 creates; otherwise choose per item by the criteria below and report each choice with its reason.
