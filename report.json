@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-10-23T10:30:38.811291+00:00",
+  "updated_at": "2026-10-23T12:46:51.106933+00:00",
   "tasks": [
     {
       "id": "completed-stacking",
@@ -1593,6 +1593,21 @@
             "scope_id": "task-progress",
             "task": "document-binding"
           }
+        },
+        {
+          "status": "planned",
+          "id": "problem-cli-completed-state-projection",
+          "priority": 2,
+          "title": "問題：report get --scope ux 將 ux-foundation 的 completed_items 中 19 個無 status 舊項目推導為 not_started；async-operation-decisions 的 8 題全 decided 也推導 not_started。應依完成陣列與決策結果回傳 done，避免執行佇列重跑歷史工作或錯設 Next。證據：[UX](/?scope=ux&pin=ux-foundation)、[決策](/decisions/?scope=ux&task=async-operation)。",
+          "activity": [
+            {
+              "event": "created",
+              "actor": "codex",
+              "at": "2026-10-23T12:46:51.106933+00:00",
+              "session": "UX foundation 評估",
+              "session_id": "f62c91dd-fddb-4a19-8799-5bb541945dfc"
+            }
+          ]
         }
       ]
     },
