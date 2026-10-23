@@ -6,6 +6,7 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
 
 ## Current state (2026-09-29)
 
+- **Next 標記與完成堆疊設計已定（2026-10-23）。** 第 3 題以「其他」定案，設計寫在 [NextMarkerPlan](Documentation/NextMarkerPlan.md)（Task ID `next-marker`）：scope 唯一的 Next 子項、排序最高、金色語意色、失效退回推算、覆盤重設、卡片「Next Step」改名「後續」、Checklist 的下一步一行刪除；控制項形狀待決。[CompletedStackingPlan](Documentation/CompletedStackingPlan.md)（`completed-stacking`）：Checklist／Decision 頁已完成集合由新到舊堆疊，只改顯示。兩張卡已加到 Report，均未實作。agent-workflow 卡四題全部定案。
 - **下一步流程的三個決定已落實（2026-10-23，[agent-workflow.decisions](decisions/agent-workflow.decisions) 第 1、2、4 題；AcceptanceChainPlan 已決定第 27～29 點）。** 不帶參數的 `/task-progress-items` 等同 `auto`，只評估改為 `plan`；評估先讀已答未落實的決策，低風險題採建議作答（reason「採建議，未經使用者確認」）並在回報列出；執行中發現的範圍外問題記為擁有卡上「問題：」前綴子項（AgentsRule 核心契約新增一條，AgentArtifactGuide〈Single ownership〉定形狀，`.agents` known-issues 卡解除封存）。task-progress-items〈Commands〉、〈Direct work〉、收尾回報與 agent-executable-items〈Evaluate a scope〉同步。
   - 第 3 題（下一個模組怎麼點名）使用者改問「report 層的下一步指示是否消失」。查明：共用 NextStepCard（plan〈進度摘要與下一步卡片的共用〉，dd03994）只曾接到 Checklist 畫面，a1e5ca3（2026-09-10）改成一行「下一步 · Agent：…」連結仍在；Report 畫面從未接上，只有 report.dev.json 每張卡的 `next_step`（Developer 區「Next Step :」，未指定時隱藏），而 UX、Web 沒有 report.dev.json。題目已以 `revise` 重寫，待使用者回答。
   - 未發布：skill 與規則是文字改動，不需重新 Publish。未驗證：新預設在真實 `/task-progress-items` 呼叫上還沒跑過。
@@ -547,7 +548,7 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
 
 ## Open decisions
 
-- [AcceptanceChainPlan／未決事項](Documentation/AcceptanceChainPlan.md#未決事項)：2026-10-23 流程檢視新增的四題（預設動詞、採建議執行、模組點名、問題記錄），答案在 `decisions/agent-workflow.decisions`，綁在 agent-workflow 卡的子項 `decide-next-step-flow`。答完後要改 task-progress-items、agent-executable-items 與 AgentsRule。
+- [NextMarkerPlan／尚未決定](Documentation/NextMarkerPlan.md#尚未決定)：設定 Next 的控制項形狀（三個候選），實作前要定。
 
 - [Web UI 替換計畫／尚未決定](Documentation/WebUiReplacementPlan.md#尚未決定)：WUI-01 目標環境與資料量、WUI-02 成本預算、WUI-03 依賴交付。
 

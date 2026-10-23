@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-10-23T03:15:06.070478+00:00",
+  "updated_at": "2026-10-23T04:54:07.379432+00:00",
   "tasks": [
     {
       "title": "共用任務 skill 與 Codex 驗證試跑",
@@ -2448,6 +2448,129 @@
               "at": "2026-10-22T16:19:28.893202+00:00",
               "session": "Gemini 驗證流程試跑",
               "session_id": "7392a1e9-7abc-4e1a-9c7a-d4dc573fffa8"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "next-marker",
+      "title": "Next 標記：scope 唯一的下一步",
+      "status": "planned",
+      "priority": 1,
+      "summary": "每個 scope 一個 Next 子項：排在所有卡與子項之前、金色語意色、失效退回推算、覆盤時 agent 重設；卡片「Next Step」改名「後續」，Checklist 的下一步一行刪除。設計 [Documentation/NextMarkerPlan.md](Documentation/NextMarkerPlan.md)。",
+      "pending_items": [
+        {
+          "id": "next-data-cli",
+          "title": "report.json 頂層 next 欄位、schema 與 Report CLI next.set／next.clear（含活動紀錄與不存在子項的拒絕）",
+          "status": "planned",
+          "priority": 1,
+          "activity": [
+            {
+              "event": "created",
+              "actor": "claude",
+              "at": "2026-10-23T04:54:07.379432+00:00",
+              "session": "Agent workflow 流程檢視",
+              "session_id": "990bddf5-22fd-4ca7-a93a-669fa2af3f7d"
+            }
+          ]
+        },
+        {
+          "id": "next-ordering-fallback",
+          "title": "Viewer 排序與失效退回：Next 卡與子項排最前（釘選卡仍在上）、失效時退回推算並標「推算」、頂端下一步卡片",
+          "status": "planned",
+          "priority": 1,
+          "activity": [
+            {
+              "event": "created",
+              "actor": "claude",
+              "at": "2026-10-23T04:54:07.379432+00:00",
+              "session": "Agent workflow 流程檢視",
+              "session_id": "990bddf5-22fd-4ca7-a93a-669fa2af3f7d"
+            }
+          ]
+        },
+        {
+          "id": "next-appearance",
+          "title": "語意色 next（金色）、Next 卡的 pin 圖示與子項「Next」膠囊；卡片「Next Step」改名「後續」併入後續動作；刪除 Checklist 畫面「下一步 · Agent」",
+          "status": "planned",
+          "priority": 1,
+          "activity": [
+            {
+              "event": "created",
+              "actor": "claude",
+              "at": "2026-10-23T04:54:07.379432+00:00",
+              "session": "Agent workflow 流程檢視",
+              "session_id": "990bddf5-22fd-4ca7-a93a-669fa2af3f7d"
+            }
+          ]
+        },
+        {
+          "id": "next-control",
+          "title": "決策：設定 Next 的控制項形狀（NextMarkerPlan〈尚未決定〉）",
+          "status": "planned",
+          "priority": 2,
+          "activity": [
+            {
+              "event": "created",
+              "actor": "claude",
+              "at": "2026-10-23T04:54:07.379432+00:00",
+              "session": "Agent workflow 流程檢視",
+              "session_id": "990bddf5-22fd-4ca7-a93a-669fa2af3f7d"
+            }
+          ]
+        },
+        {
+          "id": "next-evaluation-step",
+          "title": "task-progress-items 評估第 0 步：next 為空或失效時依推算寫入並回報",
+          "status": "planned",
+          "priority": 2,
+          "activity": [
+            {
+              "event": "created",
+              "actor": "claude",
+              "at": "2026-10-23T04:54:07.379432+00:00",
+              "session": "Agent workflow 流程檢視",
+              "session_id": "990bddf5-22fd-4ca7-a93a-669fa2af3f7d"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "completed-stacking",
+      "title": "Checklist／Decision 頁已完成集合由新到舊堆疊",
+      "status": "planned",
+      "priority": 2,
+      "summary": "兩個頁面的已完成工作項目與已答題目堆疊在未完成之後、最晚完成的在上面，只改顯示不改檔案。設計 [Documentation/CompletedStackingPlan.md](Documentation/CompletedStackingPlan.md)。",
+      "pending_items": [
+        {
+          "id": "stack-decisions",
+          "title": "Decision 頁：已答題目依 confirmed_at 由新到舊堆疊在未答之後",
+          "status": "planned",
+          "priority": 2,
+          "activity": [
+            {
+              "event": "created",
+              "actor": "claude",
+              "at": "2026-10-23T04:54:07.379432+00:00",
+              "session": "Agent workflow 流程檢視",
+              "session_id": "990bddf5-22fd-4ca7-a93a-669fa2af3f7d"
+            }
+          ]
+        },
+        {
+          "id": "stack-checklist",
+          "title": "Checklist 頁：已完成工作項目依最新有效 Recorded 由新到舊堆疊，無 Recorded 的排其後維持檔案順序",
+          "status": "planned",
+          "priority": 2,
+          "activity": [
+            {
+              "event": "created",
+              "actor": "claude",
+              "at": "2026-10-23T04:54:07.379432+00:00",
+              "session": "Agent workflow 流程檢視",
+              "session_id": "990bddf5-22fd-4ca7-a93a-669fa2af3f7d"
             }
           ]
         }
