@@ -836,6 +836,34 @@ h1 {
   border-color: var(--color-border);
 }
 
+.notice-toast:not([hidden]) {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.notice-toast-icon-slot {
+  display: inline-flex;
+  flex: none;
+}
+
+.notice-toast-icon {
+  width: 18px;
+  height: 18px;
+}
+
+.notice-toast-icon-shape {
+  fill: currentColor;
+}
+
+.notice-toast-icon-glyph {
+  fill: none;
+  stroke: var(--color-panel-bg);
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
 .notice-toast p {
   margin: 0;
   font-size: 0.83rem;

@@ -41,8 +41,8 @@ Report 要回答「現在該做哪一件事」。推算的下一步（優先級�
 - 畫面：語意色 `--theme-next-*`／`--color-next-*` 四個佈景區塊；`.card-pin.is-next`、`.editor-item-row.is-next` 左緣、`.item-next-capsule`。Developer 區「Next Step :」改「後續：」、清單標題改「後續」、顏色改次要文字色；Checklist 畫面的下一步連結與樣式刪除。
 - 寫入：預覽模式長按或 Shift+Enter 經 `setNextInPreview` 走與拖曳換位相同的本機編輯主機與過期檢查；Viewer 寫入時不在子項記活動（CLI 會記）。**編輯模式尚未支援**：編輯 session 持有草稿，需要 Editor Core 的命令，另排。
 - 驗證：Node 637 項通過（4 項既有的 checklist 格式失敗與本次無關）、Python Report CLI 22 項通過；Browser 實測 Report 頂端 Next 卡、金色 pin、Next 膠囊、Shift+Enter 設定與取消。四個 UI bundle 已重建；`Build/win-x64` 的桌面版 checklist-ui 要等下次 Publish。
-- 預覽模式復原（2026-10-23，使用者決定）：預覽模式的 Next 設定／取消與子項換位可用 Ctrl+Z 復原、Ctrl+Y／Ctrl+Shift+Z 重做，沒有畫面按鈕、沒有謹慎模式。`viewer/assets/preview-history.js` 每步記「寫入後」與「被取代」兩份報告；只有已寫入的報告仍與該步「寫入後」完全相同時才執行，之後有編輯模式或外部修改就清空歷史、不覆寫。失效 Next 的自動推進不算使用者的一步。焦點在輸入框時不攔截。三種寫入共用 `app.js` 的 `writeInPreview`。已封存或已完成的子項長按／Shift+Enter 時，`setNextInPreview` 先以 `next-marker.js` 的 `nextRefusal` 判斷，不開寫入 session，改跳警告 popup（「已封存的子項目不能設為 Next。」／「已完成的…」），使用者 2026-10-23 要求按了要有回應。
-- 動作錯誤改用 popup（2026-10-23，使用者決定）：預覽寫入、復原／重做與進入編輯模式的錯誤與警告改由 `viewer/assets/notice-toast.js` 顯示在畫面底部中央，新訊息取代舊訊息（不疊加），約 4 秒後淡出，滑鼠停留時暫停、點一下關閉；每則都同時寫到 console（`[viewer]` 前綴）。載入時的診斷仍留在橫幅區。
+- 預覽模式復原（2026-10-23，使用者決定）：預覽模式的 Next 設定／取消與子項換位可用 Ctrl+Z 復原、Ctrl+Y／Ctrl+Shift+Z 重做，沒有畫面按鈕、沒有謹慎模式。`viewer/assets/preview-history.js` 每步記「寫入後」與「被取代」兩份報告；只有已寫入的報告仍與該步「寫入後」完全相同時才執行，之後有編輯模式或外部修改就清空歷史、不覆寫。失效 Next 的自動推進不算使用者的一步。焦點在輸入框時不攔截。三種寫入共用 `app.js` 的 `writeInPreview`。已封存或已完成的子項長按／Shift+Enter 時，`setNextInPreview` 先以 `next-marker.js` 的 `nextRefusal` 判斷，不開寫入 session，改跳紅色錯誤 popup（「已封存的子項目不能設為 Next。」／「已完成的…」），使用者 2026-10-23 要求按了要有回應。
+- 動作錯誤改用 popup（2026-10-23，使用者決定）：預覽寫入、復原／重做與進入編輯模式的錯誤與警告改由 `viewer/assets/notice-toast.js` 顯示在畫面底部中央，新訊息取代舊訊息（不疊加），約 4 秒後淡出，滑鼠停留時暫停、點一下關閉；訊息前有等級圖示（使用者 2026-10-23）：資訊為白色圓形「?」、警告為黃色三角形「!」、錯誤為紅色圓形「×」，圖形填等級色、符號挖空成面板底色；每則都同時寫到 console（`[viewer]` 前綴）。載入時的診斷仍留在橫幅區。
 - 頂端面板移除（2026-10-23，使用者決定）：`ReportNextStep.svelte`、只剩它在用的 `NextStepCard.svelte`、`next-step` region、`#next-step` 掛載點與兩組樣式一併刪除；排序、金色 pin、左緣色條與「Next」膠囊不變。
 
 ## 驗收

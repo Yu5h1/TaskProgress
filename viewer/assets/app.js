@@ -1481,7 +1481,7 @@ async function reorderInPreview(command) {
 async function setNextInPreview({ taskId, itemId, clear, automatic = false }) {
   const refusal = clear ? null : nextRefusal(state.persistedReport, { taskId, itemId });
   if (refusal) {
-    actionNotice.show({ level: "warning", message: refusal });
+    actionNotice.show({ level: "error", message: refusal });
     return;
   }
   await writeInPreview({
