@@ -5,14 +5,14 @@ description: Shared procedure for TaskProgress executable items — evaluate a p
 
 # task-progress-items
 
-The one shared procedure behind every agent's `task-progress-items` entry. Design and the reasons
-behind every rule: [AcceptanceChainPlan](../../../Documentation/AcceptanceChainPlan.md) (Task ID
-`checklist-acceptance-chain`). The checklist format belongs to
+The one shared procedure behind every agent's `task-progress-items` entry. The checklist format belongs to
 [checklist-round](../checklist-round/SKILL.md), report writes to
 [task-progress-report](../task-progress-report/SKILL.md), and where an item lives, what to evaluate,
 what qualifies and how an item's checklist is shaped to
 [agent-executable-items](../../../../.agents/skills/agent-executable-items/SKILL.md).
-This file only sequences them.
+This file only sequences them. Running it reads these skills and the scope, never a TaskProgress
+plan document; the reasons behind the rules (Task ID `checklist-acceptance-chain`) are read only to
+change a rule.
 
 ## Scope
 
@@ -58,7 +58,7 @@ questions wait for the user. Before sorting anything, read the scope's decisions
 already given whose consequences are not yet in the plan, handoff or items, and act on those first.
 
 Every evaluation, a card-narrowed one included, ends by settling the scope's Next marker
-(`report get` → `next`, [NextMarkerPlan](../../../Documentation/NextMarkerPlan.md) 3–4): when it
+(`report get` → `next`): when it
 is absent or its item's `derived_state` is `done` or `waiting`, choose the first unfinished item in
 the scope that waits on nobody, by priority then card order, write it with
 `{"op": "next.set", "task_id": …, "item_id": …}` and say 「Next 已設為 …」 in the report. An item

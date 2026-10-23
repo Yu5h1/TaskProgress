@@ -11,6 +11,7 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
   - 已驗證：Checklist 346 checks、Python 86、Node 638（4 項既有 `active-checklist-format` 失敗）。
   - **待 Publish**：`Build/win-x64/task-progress.exe` 仍是舊版，舊 `report get` 把 checklist 等待視為未完成，該 UX 子項會顯示 `waiting`，`run` 會跳過它，直到使用者重新 Publish。
 
+- **items 技能只讀技能（2026-10-23，使用者要求）。** task-progress-items 與 task-progress-report 不再連到 AcceptanceChainPlan、NextMarkerPlan、DocumentBindingPlan、TrayWorkerPlan；規則理由只在修改規則時讀（task-progress-items 開頭寫明 Task ID）。共用索引的 agent-work-route、taskprogress-capabilities 兩列不再於 items 執行時觸發（`.agents` handoff 同步）。用法文件（ReportCliUsage、ItemReference、ItemActivityLog、CardPin、InlineReportLinks）保留為按需連結。未在實際執行上驗證。
 - **Next 標記、完成堆疊與隱藏項目連結已實作（2026-10-23）。** 依 [NextMarkerPlan](Documentation/NextMarkerPlan.md)〈實作紀錄〉與 [CompletedStackingPlan](Documentation/CompletedStackingPlan.md)：report.json 頂層 `next`、CLI `next.set`／`next.clear`；Viewer 提前 Next 卡與子項（釘選仍在上）、金色語意色 `next`、子項列長按（`viewer/assets/long-press.js`，UX Input 3.0.1）或 Shift+Enter 設定／取消；卡片 Developer 區「Next Step :」改「後續：」；Checklist 畫面的下一步連結刪除；Checklist／Decision 頁已完成集合由新到舊堆疊；三個面板清單底部「…顯示隱藏項目(N)」重設篩選。
   - 已驗證：Node 637 通過（4 項 `active-checklist-format` 既有失敗，HEAD 同樣失敗）、Python Report CLI 22 通過；Browser 實測 Report 的 Next 卡、金色 pin、Next 膠囊、Shift+Enter 設定與取消、Checklist 堆疊、Decision 頁隱藏連結。四個 UI bundle 已重建。
   - 未做：編輯模式的 Next 寫入（`next-marker › next-edit-mode`）；長按的手感與顏色由使用者實機確認（`next-manual-check`）；`Build/win-x64` 未重新 Publish，桌面版 checklist-ui 仍是舊的。
