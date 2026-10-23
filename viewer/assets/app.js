@@ -151,7 +151,6 @@ const elements = {
   updatedAt: document.querySelector("#updated-at"),
   reportId: document.querySelector("#report-id"),
   projectProgress: document.querySelector("#project-progress"),
-  nextStep: document.querySelector("#next-step"),
   diagnostics: document.querySelector("#diagnostics"),
   content: document.querySelector("#report-content"),
   taskList: document.querySelector("#task-list"),
@@ -1102,23 +1101,6 @@ function advanceStaleNext(rankedTasks) {
   setNextInPreview({ taskId: fallback.taskId, itemId: fallback.itemId, clear: false });
 }
 
-function renderNextStep(next) {
-  const props = { next: null };
-  if (next) {
-    const query = new URLSearchParams(location.search);
-    query.set("pin", next.taskId);
-    props.next = {
-      title: next.item.displayTitle ?? next.item.title,
-      cardTitle: next.task.title,
-      stateLabel: next.item.derivedStateLabel ?? null,
-      href: `?${query.toString()}`,
-    };
-  }
-  elements.nextStep.hidden = !next;
-  if (state.nextStepView) state.nextStepView.update(props);
-  else state.nextStepView = createUiView("next-step", elements.nextStep, props);
-}
-
 function renderTasks() {
   const requestedPin = requestedCardPin(location.search, state.report.scope_id);
   // Explicit status groups lead; unfinished cards use priority and completed
@@ -1135,7 +1117,6 @@ function renderTasks() {
   const marked = resolveNext(state.report.next, rankedTasks);
   if (!marked) advanceStaleNext(rankedTasks);
   const orderedTasks = liftNextTask(rankedTasks, marked?.taskId ?? null);
-  renderNextStep(marked);
   // Filtering only hides, and it applies at both levels: a card survives when
   // it matches or when it still holds a matching item, and it then shows only
   // those items. Ordering above is untouched by any of it. A pointer card

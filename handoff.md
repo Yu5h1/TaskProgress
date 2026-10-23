@@ -11,7 +11,7 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
   - 已驗證：Checklist 346 checks、Python 86、Node 638（4 項既有 `active-checklist-format` 失敗）。
   - **待 Publish**：`Build/win-x64/task-progress.exe` 仍是舊版，舊 `report get` 把 checklist 等待視為未完成，該 UX 子項會顯示 `waiting`，`run` 會跳過它，直到使用者重新 Publish。
 
-- **Next 標記、完成堆疊與隱藏項目連結已實作（2026-10-23）。** 依 [NextMarkerPlan](Documentation/NextMarkerPlan.md)〈實作紀錄〉與 [CompletedStackingPlan](Documentation/CompletedStackingPlan.md)：report.json 頂層 `next`、CLI `next.set`／`next.clear`；Viewer 提前 Next 卡與子項（釘選仍在上）、頂端 Next 卡、金色語意色 `next`、子項列長按（`viewer/assets/long-press.js`，UX Input 3.0.1）或 Shift+Enter 設定／取消；卡片 Developer 區「Next Step :」改「後續：」；Checklist 畫面的下一步連結刪除；Checklist／Decision 頁已完成集合由新到舊堆疊；三個面板清單底部「…顯示隱藏項目(N)」重設篩選。
+- **Next 標記、完成堆疊與隱藏項目連結已實作（2026-10-23）。** 依 [NextMarkerPlan](Documentation/NextMarkerPlan.md)〈實作紀錄〉與 [CompletedStackingPlan](Documentation/CompletedStackingPlan.md)：report.json 頂層 `next`、CLI `next.set`／`next.clear`；Viewer 提前 Next 卡與子項（釘選仍在上）、金色語意色 `next`、子項列長按（`viewer/assets/long-press.js`，UX Input 3.0.1）或 Shift+Enter 設定／取消；卡片 Developer 區「Next Step :」改「後續：」；Checklist 畫面的下一步連結刪除；Checklist／Decision 頁已完成集合由新到舊堆疊；三個面板清單底部「…顯示隱藏項目(N)」重設篩選。
   - 已驗證：Node 637 通過（4 項 `active-checklist-format` 既有失敗，HEAD 同樣失敗）、Python Report CLI 22 通過；Browser 實測 Report 的 Next 卡、金色 pin、Next 膠囊、Shift+Enter 設定與取消、Checklist 堆疊、Decision 頁隱藏連結。四個 UI bundle 已重建。
   - 未做：編輯模式的 Next 寫入（`next-marker › next-edit-mode`）；長按的手感與顏色由使用者實機確認（`next-manual-check`）；`Build/win-x64` 未重新 Publish，桌面版 checklist-ui 仍是舊的。
   - 事故：本 session 為了比對 HEAD 基準，在暫存 worktree 以 junction 連到 `node_modules`，`git worktree remove --force` 把真正的 `node_modules` 內容一併刪除；已以 `npm ci --ignore-scripts` 依 lockfile 還原（46 套件），測試重跑通過。教訓：不要在 worktree 裡放指向共用資料夾的 junction。
@@ -587,6 +587,7 @@ Each needs the user's answer before the work it blocks can be specced. Nothing h
 - The time-reference Demo (`experiments/time-reference/demo/`) is **retired, not frozen** (2026-08-05 user decision). It throws on load because `createModeController`/`createSaveBar`/`createAddControl` no longer exist in `editor-surface-runtime.js`. Do not repair it by restoring those functions — keeping a parallel vanilla implementation alive just to keep the Demo running is exactly what the one-UI-source rule forbids. If a `file://` demo is ever needed again, rebuild it on the shared components (it can no longer be opened without a build). Source and tests are kept for reference only.
 - Local capacity/delivery editor form: no separate open/close toggle exists or should be added — its visibility is deliberately tied to the same global `setEditing()` call the whole-report edit session already makes.
 - 他驗用兩份 checklist（執行 checklist 最後一項 `[acceptance]` 以 `Accepted by` 綁定另一份驗收 checklist、讀取時推導、驗收 checklist 另掛一個子項），2026-10-22 寫進 `AcceptanceChainPlan.md` 後同日由使用者改掉。理由：`[manual]` 本身就是同一份文件裡的二次驗收，`[acceptance]` 放在同一份文件即可；分成兩份要額外付出推導、快取依賴、第二個子項與跨檔對應的成本，且讓使用者看不出兩份文件的對應關係。不要再用跨檔綁定來表達驗收。
+- Report 頂端的 Next 面板（`ReportNextStep` 包共用 `NextStepCard`），2026-10-23 隨 Next 標記上線後同日由使用者刪除。Next 卡已排在最前，金色 pin 與子項「Next」膠囊已經標出同一件事，頂端再放一張大卡是重複的標示。不要再為 Next 加獨立面板或摘要卡（[NextMarkerPlan](Documentation/NextMarkerPlan.md) 已決定第 7 點）。
 
 ## Blockers / open items
 

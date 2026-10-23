@@ -143,7 +143,6 @@ test("switching scopes updates top-left #report-title textContent and title attr
       "save-bar",
       "diagnostics",
       "project-progress",
-      "next-step",
       "task-list",
       "add-control",
       "scope-directory",

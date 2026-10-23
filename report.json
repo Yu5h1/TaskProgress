@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-10-23T06:46:28.490Z",
+  "updated_at": "2026-10-23T10:30:38.811291+00:00",
   "tasks": [
     {
       "id": "completed-stacking",
@@ -2539,7 +2539,7 @@
       "title": "Next 標記：scope 唯一的下一步",
       "status": "in_progress",
       "priority": 1,
-      "summary": "已實作（2026-10-23）：report.json 頂層 next、CLI next.set／next.clear、Viewer 提前 Next 卡與子項、頂端 Next 卡、金色語意色、長按設定／取消、卡片「後續」改名、Checklist 下一步連結刪除。待使用者實機確認；編輯模式的寫入另排。設計 [Documentation/NextMarkerPlan.md](Documentation/NextMarkerPlan.md)。",
+      "summary": "已實作（2026-10-23）：report.json 頂層 next、CLI next.set／next.clear、Viewer 提前 Next 卡與子項、金色語意色、長按設定／取消、卡片「後續」改名、Checklist 下一步連結刪除。頂端 Next 面板同日由使用者決定刪除，只留金色 pin 與子項「Next」膠囊。待使用者實機確認；編輯模式的寫入另排。設計 [Documentation/NextMarkerPlan.md](Documentation/NextMarkerPlan.md)。",
       "pending_items": [
         {
           "id": "next-edit-mode",
@@ -2558,7 +2558,7 @@
         },
         {
           "id": "next-manual-check",
-          "title": "使用者實機確認：長按子項設為 Next 的手感、金色與優先琥珀的區別、頂端 Next 卡點開卡片",
+          "title": "使用者實機確認：長按子項設為 Next 的手感、金色與優先琥珀的區別",
           "status": "planned",
           "priority": 1,
           "activity": [
@@ -2568,6 +2568,13 @@
               "at": "2026-10-23T05:24:59.641397+00:00",
               "session": "Agent workflow 流程檢視",
               "session_id": "990bddf5-22fd-4ca7-a93a-669fa2af3f7d"
+            },
+            {
+              "event": "updated",
+              "actor": "claude",
+              "at": "2026-10-23T10:30:38.811291+00:00",
+              "session": "Remove the big Next panel from TaskProgress Viewer",
+              "session_id": "8db3d9df-8d4e-461e-96c2-37ca30b33c56"
             }
           ]
         }

@@ -7,7 +7,6 @@ import Diagnostics from "./Diagnostics.svelte";
 import ModeToggle from "./ModeToggle.svelte";
 import ModuleCapsuleStrip from "./ModuleCapsuleStrip.svelte";
 import ProjectProgress from "./ProjectProgress.svelte";
-import ReportNextStep from "./ReportNextStep.svelte";
 import ReportSummary from "./ReportSummary.svelte";
 import ScopeDirectory from "./ScopeDirectory.svelte";
 import SaveBar from "./SaveBar.svelte";
@@ -35,7 +34,6 @@ const components = {
   "status-filters": FilterStrip,
   "project-progress": ProjectProgress,
   "report-summary": ReportSummary,
-  "next-step": ReportNextStep,
   "mode-toggle": ModeToggle,
   "save-bar": SaveBar,
   "add-control": AddControl,
