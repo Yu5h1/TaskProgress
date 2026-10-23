@@ -102,6 +102,9 @@ missing. Each is cheap; none is sufficient alone.
 | Put clickable links inside Report descriptions | `[label](URL)` in the existing string; see [Inline links](../task-progress-report/SKILL.md#inline-links-in-report-descriptions). |
 | Let a Checklist or Decision drive a Report item's completion | `document_ref` on the object item; see [Bind Checklist and Decision documents](../task-progress-report/SKILL.md#bind-checklist-and-decision-documents-document_ref). |
 | Update report tasks and items | `task-progress report get|validate|apply`; see [the Report skill](../task-progress-report/SKILL.md#update-existing-report-through-cli). |
+| Mark the one item a scope acts on now | The report's `next`: `report apply` `next.set`／`next.clear` ([CLI usage](../../../Documentation/ReportCliUsage.md#next-標記)); the user long-presses a row or presses Shift+Enter in the Viewer. Design: [NextMarkerPlan](../../../Documentation/NextMarkerPlan.md). |
+| Give the user a stable reference to a card, item, decision or checklist work item | The Viewer's hover copy icons: an item copies `<scope-id> › <task-id> › <item-id>` (several selected items, one per line), a Report, Decision or Checklist card copies its ID; a pasted reference in the Report search box narrows to that item. [ItemReference](../../../Documentation/ItemReference.md). |
+| List the registered scopes in a browser | The service root `http://127.0.0.1:8001/`; each Report links back to it with 「← Scopes 入口」. Console: `task-progress scope list`. |
 | Report generation, time, cost, deadline risk | `.agents/skills/task-progress-report/SKILL.md`. |
 | Ports, mounts, and routing for the local service | `LocalWebService`'s `skills/local-web-service/SKILL.md`. |
 

@@ -28,6 +28,7 @@ Report 要回答「現在該做哪一件事」。推算的下一步（優先級�
 
 9. **控制項：長按。** 使用者 2026-10-23 決定：子項列依 UX 操作規範的長按（[Input](../../UX/Documentation/ModuleSpec/Foundation/Input.md) 3.0.1 INPUT-PRESS-HOLD：`holdDuration` 400ms、`dragThreshold` 6px，長按後抑制原生短按）設為 Next，對 Next 子項再長按取消；鍵盤依 INPUT-KEY-COMMAND 以 Shift+Enter 對應 `hold`。實作 `viewer/assets/long-press.js` 自 Web `src/ui/long-press.ts`（規格來源基線）移植。不另加滑過圖示。
 10. **隱藏項目連結。** 三個面板（Report、Checklist、Decision）的卡片清單底部，有被篩選標籤藏起的項目時，間距 5px、置中顯示「…顯示隱藏項目(N)」，只有文字帶底線可按，動作是重設全部篩選標籤（Report 另清空搜尋）。Report 的 N 計整張被藏的卡加上留下的卡裡被藏的子項。共用 `CardList` 實作，三個宿主各自提供數量與重設。
+11. **執行後由 agent 提出。** `/task-progress-items` 的命令（`run`、`accept`、`auto`）讓 Next 子項變成完成或等待中時，agent 評估下一件該做的事（推算順序只是預設），以 `next.set` 寫入並在回報說明理由；使用者以長按改掉。Viewer 的自動推進仍保留，處理沒有 agent 經手時的失效（使用者 2026-10-23）。
 
 ## 尚未決定
 

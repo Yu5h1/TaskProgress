@@ -193,7 +193,10 @@ Read `report get` and act on `derived_state`, for bound and unbound items alike 
 `conditions_to_revise` (not those whose condition you raised);
 `accept` takes `awaiting_acceptance`. Skip `waiting`, `awaiting_user` and `awaiting_user_dispute`
 (the user's) and `done`. Order: the scope's Next item first when the queue takes its state, then
-priority, then card order — the order the Report shows. A target narrows the queue; an item
+priority, then card order — the order the Report shows. When a command leaves the scope's Next
+item `done` or `waiting`, evaluate which item should come next — the derived order is only the
+default — set it with `next.set` and give the reason in the report; the user overrides it with a
+long press. A target narrows the queue; an item
 target in a state the queue does not take is reported with its `derived_state`, never forced.
 
 Several items: when this agent can start sessions (§ Agent specifics), start one per item, one at a
