@@ -229,11 +229,14 @@
       oninput={() => { selected = item.id; }}
       onpointerup={() => { armed = null; }}
       onkeydown={event => {
+        if (event.key === "Escape") {
+          selected = null;
+          clearDrag();
+          return;
+        }
         if (event.target !== event.currentTarget) return;
         if (event.key === "Enter" || event.key === " ") {
           event.preventDefault(); selected = item.id;
-        } else if (event.key === "Escape") {
-          selected = null;
         }
         if (mode === "free" && event.target === event.currentTarget && event.altKey && ["ArrowUp", "ArrowDown"].includes(event.key)) {
           event.preventDefault(); moveBy(item.id, event.key === "ArrowUp" ? -1 : 1);

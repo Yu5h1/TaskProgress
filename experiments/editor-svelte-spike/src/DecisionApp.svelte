@@ -232,6 +232,7 @@
     {#if view.pending && !view.busy}<button onclick={() => send(null, null, true)}>{view.pending.operation === "clear_all" ? "查詢／重送清除操作" : "查詢／重送保存操作"}</button>{/if}
     {#if !visibleDecisions.length}<p>目前沒有符合條件的決策項目。</p>{/if}
     <CardList bind:this={cardList} items={visibleDecisions.map(d => ({...d,title:d.question}))} allIds={decisions.map(d => d.id)} {storageKey} {heldOrder}
+      onSelectionChange={id => { if (id === null) releaseCard(); }}
       hiddenCount={decisions.length - visibleDecisions.length} onShowHidden={() => setSelection(createFilterSelection(["pending", "decided"]))}
       {expanded} onToggleAll={all} let:item let:visibilityEnabled let:visible let:onVisibleChange>
       <svelte:fragment slot="filters">

@@ -6,6 +6,8 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
 
 ## Current state (2026-09-29)
 
+- **Checklist／Decision 的 Esc 取消選取（2026-10-24）。** `CardList.svelte` 在子控制項的鍵盤事件也處理 Escape，清除選取與拖曳狀態；Decision 的 `onSelectionChange` 同步釋放保留的排序。此輪三個 UI build 與 45 項相關 Node 測試通過；未做瀏覽器實際鍵盤操作驗證。
+
 - **Checklist 延後排序（2026-10-24，使用者要求）。** `ChecklistApp.svelte` 透過 `CardList.svelte` 的 `onSelectionChange` 在選取期間保留卡片與檢查項目的顯示位置，結果與進度仍即時更新；取消選取（點外部、焦點移出、Escape 或視窗失焦）才重套排序與篩選。桌面與瀏覽器 bundle 均已重建，`Publish.cmd --nopause --restart` 成功。此輪 34 項相關 Node 測試通過；尚未實際操作瀏覽器確認連續勾選手感。
 
 - **Next 改為讀取時推算（2026-10-24，使用者決定）。** Viewer 不再寫入推算的 Next（刪除 `advanceStaleNext`）；完成、等待中、執行中都算失效，Viewer 與 `report get` 的 `next_effective`（C# `NextMarker`，與 `next-marker.js` 同一規則：卡依優先級、卡內最高子項優先級、原順序）顯示推算的下一項，存著的 `next` 不動，釋放後自動恢復。`next.set`（CLI 預先檢查）與長按都拒絕已完成、封存、等待中、執行中的子項。技能：Settle Next 讀 `next_effective`，執行中的 Next 不改寫。設計：[NextMarkerPlan](Documentation/NextMarkerPlan.md) 第 3、4、11 點。
