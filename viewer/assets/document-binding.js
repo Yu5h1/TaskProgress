@@ -134,10 +134,11 @@ export async function evaluateWaitTargets(tasks, options = {}) {
     const task = (reports.get(wait.scope_id)?.tasks ?? []).find((candidate) => candidate?.id === wait.task_id);
     const item = ["pending_items", "completed_items"].flatMap((field) => task?.[field] ?? [])
       .find((candidate) => candidate && typeof candidate === "object" && candidate.id === wait.item_id);
-    const label = `${task?.title ?? wait.task_id} › ${item?.title ?? wait.item_id}`;
+    const card = task?.title ?? wait.task_id;
+    const label = `${card} › ${item?.title ?? wait.item_id}`;
     const href = `/?scope=${encodeURIComponent(wait.scope_id)}&pin=${encodeURIComponent(wait.task_id)}`;
     if (!item) {
-      results.set(key, { done: false, available: false, label, href });
+      results.set(key, { done: false, available: false, card, label, href });
       return;
     }
     let done = (item.status ?? "planned") === "done";
@@ -145,7 +146,7 @@ export async function evaluateWaitTargets(tasks, options = {}) {
       const evaluation = await fetchDocumentBinding(item.document_ref, { fetchImpl, ...bindingOptions });
       done = Boolean(evaluation.ok && evaluation.completed);
     }
-    results.set(key, { done, available: true, label, href });
+    results.set(key, { done, available: true, card, label, href });
   });
   return results;
 }

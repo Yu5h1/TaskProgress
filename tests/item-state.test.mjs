@@ -52,21 +52,28 @@ test("passes voided by a later release reopen acceptance before the user is aske
   assert.equal(deriveItemState(started, evaluation([untagged, reaccepted, manual])), "awaiting_user");
 });
 
-test("a waited item's title keeps only link text, so its own links never break the wait link", () => {
-  const pending = [{ done: false, available: true, label: "卡片 › NF02 驗收；完成後供 [UX 開工](/?scope=ux&pin=f) 核對 [manual]", href: "/?scope=web&pin=card" }];
-  assert.equal(waitsText(pending), "等待：[卡片 › NF02 驗收；完成後供 UX 開工 核對 ［manual］](/?scope=web&pin=card)");
+test("waits show one link per card with its open count, and unreadable targets by name", () => {
+  const web = "/?scope=web&pin=card";
+  const pending = [
+    { done: false, available: true, card: "Web [驗收](/?scope=web&pin=x)", label: "Web › A", href: web },
+    { done: false, available: true, card: "Web [驗收](/?scope=web&pin=x)", label: "Web › B", href: web },
+    { done: false, available: true, card: "Unity", label: "Unity › C", href: "/?scope=unity&pin=u" },
+    { done: false, available: false, label: "gone › D", href: null },
+  ];
+  assert.equal(waitsText(pending),
+    "等待：[Web 驗收](/?scope=web&pin=card)（2 項未完成）、[Unity](/?scope=unity&pin=u)（1 項未完成）、gone › D（無法讀取）");
 });
 
 test("waits make an unfinished item waiting and list links for unfinished targets", () => {
   const wait = { scope_id: "web", task_id: "card", item_id: "w1" };
   const item = { id: "u", title: "收尾", waits_for: [wait] };
-  const pending = [{ done: false, available: true, label: "卡片 › W1", href: "/?scope=web&pin=card" }];
+  const pending = [{ done: false, available: true, card: "卡片", label: "卡片 › W1", href: "/?scope=web&pin=card" }];
   assert.equal(deriveItemState(item, null, pending), "waiting");
-  assert.equal(waitsText(pending), "等待：[卡片 › W1](/?scope=web&pin=card)");
+  assert.equal(waitsText(pending), "等待：[卡片](/?scope=web&pin=card)（1 項未完成）");
   const evaluations = new Map([[waitKey(wait), pending[0]]]);
   const [task] = projectTasksWithBindings([{ id: "t", status: "planned", pending_items: [item] }], evaluations);
   assert.equal(task.pending_items[0].derivedState, "waiting");
-  assert.equal(task.pending_items[0].displayTitle, "收尾　等待：[卡片 › W1](/?scope=web&pin=card)");
+  assert.equal(task.pending_items[0].displayTitle, "收尾　等待：[卡片](/?scope=web&pin=card)（1 項未完成）");
   evaluations.set(waitKey(wait), { ...pending[0], done: true });
   const [cleared] = projectTasksWithBindings([{ id: "t", status: "planned", pending_items: [item] }], evaluations);
   assert.equal(cleared.pending_items[0].derivedState, undefined);

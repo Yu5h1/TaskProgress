@@ -74,19 +74,31 @@ export function deriveItemState(item, evaluation, pendingWaits = []) {
 }
 
 /**
- * A waited item's title as link text: links inside the title keep only their text, and brackets
- * become full-width, so the label can never open or close a link of its own.
+ * A title as link text: links inside it keep only their text, and brackets become full-width, so
+ * the label can never open or close a link of its own.
  */
 function plainLabel(text) {
   return parseInlineLinks(text).map((part) => part.text).join("").replace(/\[/gu, "［").replace(/\]/gu, "］");
 }
 
-/** Inline-link text listing unfinished waited items, appended to the expanded row. */
+/**
+ * Inline-link text for unfinished waited items, appended to the expanded row: one link per card,
+ * because a link opens and pins the card, never a single item, and the card shows which items are
+ * still open. A target that cannot be read is named on its own.
+ */
 export function waitsText(pendingWaits) {
   if (!pendingWaits.length) return "";
-  const links = pendingWaits.map((wait) => {
-    const label = plainLabel(wait.label);
-    return wait.available ? `[${label}](${wait.href})` : `${label}（無法讀取）`;
-  });
-  return `等待：${links.join("、")}`;
+  const cards = new Map();
+  const unreadable = [];
+  for (const wait of pendingWaits) {
+    if (!wait.available) {
+      unreadable.push(`${plainLabel(wait.label)}（無法讀取）`);
+      continue;
+    }
+    const card = cards.get(wait.href) ?? { label: plainLabel(wait.card ?? wait.label), count: 0 };
+    card.count += 1;
+    cards.set(wait.href, card);
+  }
+  const links = [...cards].map(([href, card]) => `[${card.label}](${href})（${card.count} 項未完成）`);
+  return `等待：${[...links, ...unreadable].join("、")}`;
 }
