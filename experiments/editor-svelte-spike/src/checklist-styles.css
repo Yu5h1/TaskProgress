@@ -39,7 +39,8 @@ body {
 }
 
 .document-owner { margin: 4px 0 0; font-size: .85rem; color: var(--color-secondary-text); }
-.document-owner a { color: var(--color-accent); text-decoration: underline; overflow-wrap: anywhere; }
+.document-owner a { display: inline-flex; gap: 6px; color: var(--color-accent); text-decoration: none; overflow-wrap: anywhere; }
+.document-owner .owner-name { text-decoration: underline; }
 
 .checklist-round,
 .checklist-notice {

@@ -4,7 +4,7 @@
 
 ## 行為
 
-Checklist 與 Decision 網頁標題下方顯示「擁有者：報告名稱」，點擊回到同一 scope 的 Report。Decision 的 scope 總覽也適用。不以文件 stem 推測 Report 任務卡。
+Checklist 與 Decision 網頁標題下方顯示「← 報告名稱」（箭頭為方向符號，名稱加底線），點擊回到同一 scope 的 Report；不再寫「擁有者」字樣。Report 頁標題下方在有 scope 目錄時顯示「← TaskProgress Scopes」，回到服務根目錄（`./`）；沒有 `task-progress-scopes.json` 的公開網站不顯示。Decision 的 scope 總覽也適用。不以文件 stem 推測 Report 任務卡。
 
 文件成功載入後，透過既有 scope Report 路由獨立查詢名稱，確認 scope 相符及基本報告結構才顯示連結。Report 不存在、回應無效、查詢失敗或逾時時不顯示連結，文件載入、編輯與保存仍正常。原生連結保留另開分頁操作，Decision 沿用既有未保存離頁提醒；Checklist 原本沒有此提醒，本次不新增。
 

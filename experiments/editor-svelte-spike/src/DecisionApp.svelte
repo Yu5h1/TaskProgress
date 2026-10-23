@@ -203,7 +203,7 @@
 <FocusShield />
 <main class="checklist-shell decisions-shell" bind:this={shell}>
   <header class="checklist-header"><div><h1>決策項目</h1>
-    {#if ownerReport}<p class="document-owner">擁有者：<a href={ownerReport.href}>{ownerReport.title}</a></p>{/if}
+    {#if ownerReport}<p class="document-owner"><a href={ownerReport.href} aria-label={`返回 ${ownerReport.title}`}><span class="owner-arrow" aria-hidden="true">←</span><span class="owner-name">{ownerReport.title}</span></a></p>{/if}
     </div>
     {#if themeState}<ThemeControl mode={themeState.mode} custom={themeState.custom} systemScheme={themeState.systemScheme}
       onModeChange={mode => { theme.setMode(mode); readTheme(); }}

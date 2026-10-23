@@ -162,6 +162,7 @@ const elements = {
   startDescription: document.querySelector("#start-description"),
   exampleLink: document.querySelector("#example-link"),
   scopeDirectory: document.querySelector("#scope-directory"),
+  scopeDirectoryLink: document.querySelector("#scope-directory-link"),
   modeBadge: document.querySelector("#mode-badge"),
   themeControl: document.querySelector("#theme-control"),
   viewModeToggle: document.querySelector("#view-mode-toggle"),
@@ -1187,10 +1188,22 @@ function renderTasks() {
   renderTaskAdder();
 }
 
+let scopeDirectoryAvailable;
+
+async function showScopeDirectoryLink() {
+  try {
+    scopeDirectoryAvailable ??= Boolean(await loadScopeCatalog());
+  } catch {
+    scopeDirectoryAvailable = false;
+  }
+  elements.scopeDirectoryLink.hidden = !scopeDirectoryAvailable;
+}
+
 function renderReport() {
   const { report } = state;
   document.title = `${report.title} — TaskProgress`;
   setReportTitle(report.title);
+  showScopeDirectoryLink();
   renderReportSummary({
     text: reportSummaryText(report),
     editable: state.editor.editing && Boolean(state.editor.session),
@@ -1546,6 +1559,7 @@ async function showStart() {
   elements.exampleLink.hidden = false;
   elements.scopeDirectory.hidden = true;
   elements.start.hidden = false;
+  elements.scopeDirectoryLink.hidden = true;
   elements.content.hidden = true;
   elements.meta.hidden = true;
   elements.projectProgress.hidden = true;

@@ -592,6 +592,19 @@ code {
   background: var(--blue-soft);
 }
 
+.scope-directory-link {
+  margin: 14px 0 0;
+  font-size: 0.85rem;
+  color: var(--color-secondary-text);
+}
+.scope-directory-link a {
+  display: inline-flex;
+  gap: 6px;
+  color: var(--color-accent);
+  text-decoration: none;
+}
+.scope-directory-link .owner-name { text-decoration: underline; }
+
 .hero {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
@@ -3187,7 +3200,7 @@ footer {
 .item-row-copy {
   position: absolute;
   z-index: 1;
-  transform: translateX(-28px);
+  transform: translateX(-27px);
   width: 18px;
   height: 18px;
   padding: 0;
