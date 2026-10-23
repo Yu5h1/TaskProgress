@@ -546,6 +546,7 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
 
 ## Open decisions
 
+- [AcceptanceChainPlan／未決事項](Documentation/AcceptanceChainPlan.md#未決事項)：2026-10-23 流程檢視新增的四題（預設動詞、採建議執行、模組點名、問題記錄），答案在 `decisions/agent-workflow.decisions`，綁在 agent-workflow 卡的子項 `decide-next-step-flow`。答完後要改 task-progress-items、agent-executable-items 與 AgentsRule。
 
 - [Web UI 替換計畫／尚未決定](Documentation/WebUiReplacementPlan.md#尚未決定)：WUI-01 目標環境與資料量、WUI-02 成本預算、WUI-03 依賴交付。> Where each kind of statement lives: `plan.md` holds the design — what to build, why, and how it is accepted — and changes only when a design is added, revised or removed. Everything time-bound lives here: what is built, what is approved but unbuilt, what is deferred, and what is still undecided. A decision sits in this section until it is taken, then moves into `plan.md` as design and leaves this list. Writing progress into `plan.md` is what produced the drift found on 2026-08-19, where one section still claimed the shared progress summary and next-step card were unbuilt weeks after they shipped.
 

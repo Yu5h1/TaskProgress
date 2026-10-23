@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-10-22T17:42:17.485247+00:00",
+  "updated_at": "2026-10-23T03:15:06.070478+00:00",
   "tasks": [
     {
       "title": "共用任務 skill 與 Codex 驗證試跑",
@@ -1717,6 +1717,26 @@
       "status": "planned",
       "summary": "可執行項目的驗證方式變成選項：一份 checklist 用權限標籤區分執行者（不標）、他驗（[acceptance]，執行者以外的 agent）與人工（[manual]），Report 分得出待他驗、待人工、需處理與完成。計畫 Documentation/AcceptanceChainPlan.md。",
       "pending_items": [
+        {
+          "id": "decide-next-step-flow",
+          "title": "決策：下一步流程的四個選擇（預設動詞、採建議執行、模組點名、問題記錄）— 答完後改 task-progress-items、agent-executable-items 與 AgentsRule",
+          "status": "planned",
+          "priority": 0,
+          "document_ref": {
+            "kind": "decision",
+            "scope_id": "task-progress",
+            "task": "agent-workflow"
+          },
+          "activity": [
+            {
+              "event": "created",
+              "actor": "claude",
+              "at": "2026-10-23T03:15:06.070478+00:00",
+              "session": "Agent workflow 流程檢視",
+              "session_id": "990bddf5-22fd-4ca7-a93a-669fa2af3f7d"
+            }
+          ]
+        },
         {
           "id": "acceptance-flow-trial",
           "title": "端到端試跑：在 [驗證流程試跑](/?scope=task-progress&pin=acceptance-trial) 卡片用 /task-progress-items 走過自驗、人工、他驗、他驗＋人工、條件不符與等待六種情況，每一步 Report 顯示的狀態都和計畫〈流程紀錄〉一致",

@@ -1,0 +1,131 @@
+{
+  "schema_version": "1.1",
+  "task_id": "agent-workflow",
+  "updated_at": "2026-10-23T03:14:18.662041+00:00",
+  "decisions": [
+    {
+      "id": "default-verb",
+      "version": 1,
+      "question": "1. 不帶參數的 /task-progress-items 預設做什麼？",
+      "context": "現況（2026-10-23）：\n- 不帶動詞只評估：建立項目、列出直接做的工作，不執行（使用者 2026-10-21 決定；AcceptanceChainPlan〈命令〉、〈入口邊界〉）。\n- `auto` 已經做到「評估、做掉直接做的工作、執行、驗收」，與使用者 2026-10-23 描述的工作方式「有下一步可執行就執行，需要決策就決策」相同。\n- 症狀：使用者在評估回報裡找下一步，agent 評估後停在「沒有可執行、沒有決策」或「等待其他任務」。\n- 本題只改預設動詞與入口文字（task-progress-items〈Commands〉、AcceptanceChainPlan〈命令〉與已決定第 26 點），不改評估的四堆分類。",
+      "source_ref": "../Documentation/AcceptanceChainPlan.md#未決事項",
+      "options": [
+        {
+          "id": "auto-default",
+          "label": "預設改為 auto，新增 plan 動詞保留只評估",
+          "description": "不帶參數 = 評估、直接做、執行、驗收；`/task-progress-items plan` 只評估不執行。卡片與項目目標的語意不變。"
+        },
+        {
+          "id": "keep-evaluate",
+          "label": "維持只評估，執行要明說 auto 或 run",
+          "description": "現狀。每次評估後由使用者再下一次命令。"
+        },
+        {
+          "id": "auto-with-confirm",
+          "label": "預設 auto，但執行前先列清單等一次確認",
+          "description": "評估完列出將執行的項目與直接做的工作，使用者回「繼續」才執行。"
+        }
+      ],
+      "recommendation": {
+        "option_id": "auto-default",
+        "reason": "使用者描述的工作方式就是 auto；只評估的能力以 plan 保留，不失去功能。多一次確認會把「下一步」再變回「問使用者」，正是這次要解決的症狀。"
+      },
+      "allow_other": true,
+      "status": "pending",
+      "answer": null
+    },
+    {
+      "id": "recommendation-default",
+      "version": 1,
+      "question": "2. 評估產生的決策題，agent 是否預設採建議執行？",
+      "context": "現況（2026-10-23）：\n- 評估把使用者未做的選擇寫成決策題後停下，agent 不自行啟動任何項目或決策（agent-executable-items〈Evaluate a scope〉，使用者 2026-10-21）。\n- UX ux-foundation 98 題統計：66 題以選項作答，其中 63 題選建議、3 題選其他選項；32 題自由文字（多為同意加補充）。\n- 第 98 題 2026-10-21 已答「第一輪之後」，UX plan〈尚未決定〉與 handoff Open decisions 至今仍寫待決：答完沒有人接著落實。\n- 決策檔已有 recommendation 與 answer.reason 欄位，可記「採建議，未經使用者確認」，使用者在決策頁隨時可改答案。\n- 本題影響 agent-executable-items〈Evaluate a scope〉與 task-progress-items 的評估回報；「低風險」的四個條件寫進 skill 時定稿。",
+      "source_ref": "../Documentation/AcceptanceChainPlan.md#未決事項",
+      "options": [
+        {
+          "id": "adopt-low-stakes",
+          "label": "低風險題採建議執行並標記未確認，其餘等使用者",
+          "description": "低風險＝可逆、不改已發布規格或設計資料、不跨 scope、不屬產品偏好。答案記為「採建議，未經使用者確認」並寫在評估回報；改規格、產品偏好、實作互相衝突的題仍等使用者。"
+        },
+        {
+          "id": "always-wait",
+          "label": "全部等使用者回答",
+          "description": "現狀。每題都停下。"
+        },
+        {
+          "id": "adopt-all",
+          "label": "全部採建議執行，使用者事後否決",
+          "description": "所有題都先照建議做，答案標記未確認。"
+        }
+      ],
+      "recommendation": {
+        "option_id": "adopt-low-stakes",
+        "reason": "95% 選建議表示大多數題停下來等是浪費；但 3 題不選建議的都涉及命名與規格，改錯的代價高，保留人工。評估同時要先讀「已答但未落實」的決策，第 98 題是現成的例子。"
+      },
+      "allow_other": true,
+      "status": "pending",
+      "answer": null
+    },
+    {
+      "id": "next-module-nomination",
+      "version": 1,
+      "question": "3. 模組目標達成後，下一個模組怎麼點名？",
+      "context": "現況（2026-10-23）：\n- 一次一個模組、下一個由使用者點名（UX 第 74 題；標準作業）。\n- 等點名的下游項目目前顯示 blocked：UX `chat-prerequisites` 等 TextField、ScrollView；`appsmenu-verified` 等 Unity 恢復。評估到此停止，Report 上沒有任何地方寫「下一步是使用者點名」。\n- UX handoff Next steps 已列候選順序：TextField、ScrollView，再 ChatPanel、AppsMenu；第 96 題「下一個控件點名哪一個」就是這種題的既有例子，使用者選了建議。\n- 本題影響 agent-executable-items〈Evaluate a scope〉的「等人」處理與 cross-platform-module-spec 的收尾步驤。",
+      "source_ref": "../Documentation/AcceptanceChainPlan.md#未決事項",
+      "options": [
+        {
+          "id": "auto-question",
+          "label": "目標達成時 agent 立刻出題「下一個點名哪個」附建議",
+          "description": "收尾時出一題決策（現況、候選、建議），等點名的下游項目改用 waits_for 指向該決策所綁的子項，不再用 blocked。配合第 2 題時可直接採建議開工。"
+        },
+        {
+          "id": "keep-blocked",
+          "label": "維持現狀，使用者自己點名",
+          "description": "下游項目保持 blocked，使用者在對話中點名。"
+        },
+        {
+          "id": "agent-picks",
+          "label": "取消點名規則，agent 依層序直接開下一個",
+          "description": "依基礎→控件→集合→模組的順序自動開工。"
+        }
+      ],
+      "recommendation": {
+        "option_id": "auto-question",
+        "reason": "保留使用者對模組順序的控制，但把隱形的「等點名」變成 Report 上可見、可答的題；agent-picks 違反一次一模組的理由（使用者要掌握範圖與節奏）。"
+      },
+      "allow_other": true,
+      "status": "pending",
+      "answer": null
+    },
+    {
+      "id": "issue-item-shape",
+      "version": 1,
+      "question": "4. agent 執行、分析、評估中發現的問題（錯誤、缺口、設計不良）怎麼記錄？",
+      "context": "現況（2026-10-23）：\n- AgentArtifactGuide〈Single ownership〉已規定：沒有計畫排程的已知問題，是擁有該問題 scope 的 report 卡片上的一個子項，不另設 issue 清單。但這條只在「建立或更新協調文件前」被路由讀到；AgentsRule 核心契約與 task-progress-items 收尾回報都沒有「發現問題就記」的觸發，agent 實際不做。\n- `.agents` 的 known-issues 卡已封存；摩擦紀錄只有 .agents handoff〈Module-workflow review〉一處，只為模組流程設。\n- 使用者 2026-10-23 提議「依任務添加 Issue 任務卡，agent 發現自提交」。\n- 2026-10-21 使用者因「依執行者分卡讓模組的工作離開使用者看的那張卡」退掉了「Agent 可執行項目」卡。\n- Report CLI 的 item.add 已記 actor 與 session，Viewer 搜尋可比對標題。",
+      "source_ref": "../Documentation/AcceptanceChainPlan.md#未決事項",
+      "options": [
+        {
+          "id": "owning-card-prefix",
+          "label": "記在擁有卡上，標題前綴「問題：」",
+          "description": "優先級 2、不綁 checklist，agent 經 report CLI 自行新增並在收尾回報列出；找不到擁有卡的跨 scope 問題進 .agents known-issues 卡（解除封存）。覆盤＝對該卡 /task-progress-items 評估，把「問題：」項目分到修正項目、決策題或 ruled out。AgentsRule 核心契約加一句觸發。"
+        },
+        {
+          "id": "issue-card-per-scope",
+          "label": "每個 scope 一張 Issue 卡集中放",
+          "description": "使用者提議的形狀：問題集中在一張卡，容易總覽；但離開擁有模組的卡。"
+        },
+        {
+          "id": "issue-kind-field",
+          "label": "report schema 新增子項 kind: issue，Viewer 可篩選",
+          "description": "記在擁有卡上，以欄位而非前綴標示；需改 schema、CLI 與 Viewer。"
+        }
+      ],
+      "recommendation": {
+        "option_id": "owning-card-prefix",
+        "reason": "與既有的單一擁有者規則一致，不改 schema 與 Viewer，搜尋「問題：」即可總覽；Issue 卡會重演 10-21 退卡的問題；kind 欄位等前綴用法穩定後再評估。"
+      },
+      "allow_other": true,
+      "status": "pending",
+      "answer": null
+    }
+  ]
+}

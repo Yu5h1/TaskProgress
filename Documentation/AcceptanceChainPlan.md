@@ -454,4 +454,11 @@ A、B、C 代表不同的 session；「推算」指〈子項狀態（推算）�
 
 ## 未決事項
 
-無。AC-07～AC-09 已決定，見已決定第 4、20～22 點。
+AC-07～AC-09 已決定，見已決定第 4、20～22 點。2026-10-23 流程檢視（評估停在「沒有可執行、沒有決策」，答完的決策沒有落實，執行中發現的問題沒有記錄管道）新增四題，答案唯一來源是 [agent-workflow.decisions](../decisions/agent-workflow.decisions)（Report agent-workflow 卡的子項 `decide-next-step-flow`）：
+
+1. 不帶參數的 `/task-progress-items` 預設做什麼（只評估，或等同 `auto`）。影響〈命令〉與已決定第 26 點。
+2. 評估產生的決策題是否預設採建議執行並標記未確認。影響 agent-executable-items〈Evaluate a scope〉。
+3. 模組目標達成後下一個模組怎麼點名（出題附建議，或維持使用者點名）。影響「等人」項目用 `waits_for` 還是 blocked。
+4. agent 執行中發現的問題記在哪裡（擁有卡前綴「問題：」、Issue 卡或 schema 欄位）。影響 AgentsRule 核心契約與本 skill 的收尾回報。
+
+答完後把答案寫進對應 skill 與本計畫的〈命令〉、〈入口邊界〉，這一節回到「無」。
