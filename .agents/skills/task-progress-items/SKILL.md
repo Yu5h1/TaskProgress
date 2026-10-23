@@ -57,13 +57,23 @@ report names every answer taken this way so the user can overturn it on the deci
 questions wait for the user. Before sorting anything, read the scope's decisions files for answers
 already given whose consequences are not yet in the plan, handoff or items, and act on those first.
 
-Every evaluation, a card-narrowed one included, ends by settling the scope's Next marker
-(`report get` → `next`): when it
-is absent or its item's `derived_state` is `done` or `waiting`, choose the first unfinished item in
-the scope that waits on nobody, by priority then card order, write it with
-`{"op": "next.set", "task_id": …, "item_id": …}` and say 「Next 已設為 …」 in the report. An item
-awaiting the user or acceptance is still an effective Next. An effective marker is never replaced,
-whoever set it; when the user names the item to do next, set that one.
+Every evaluation ends by settling the scope's Next marker (`report get` → `next`). An effective
+marker is never replaced, whoever set it; an item awaiting the user or acceptance is still
+effective. When the marker is absent or its item is `done` or `waiting` (a waiting item's progress
+depends on what it waits on, so it cannot be pushed from here), choose within the command's range —
+the target card when one is named, otherwise the scope — the first unfinished item that waits on
+nobody, by priority then card order; write it with
+`{"op": "next.set", "task_id": …, "item_id": …}` and say 「Next 已設為 …」 in the report. Never
+look outside the range for a Next. Executing an item does not make it the Next; when the user says
+to set, clear or keep the marker, do exactly that.
+
+When nothing in the range can proceed, the evaluation still moves its first item by priority, by
+what holds it: a choice the user has not made becomes a decision question bound to that item
+(answered on the spot when low-risk, as above); a direction too unclear for a decision question —
+a preference, a goal the item does not state — is settled with the user in the conversation, with
+the situation, the options and a recommendation, and the answer goes into the item; an item
+awaiting the user names the checklist they tick; an item waiting on another scope names the
+invocation that starts that work there. It never takes work from outside the range.
 
 A leading `self`, `manual`, `cross` or `cross manual` forces the verification of the items it
 creates; otherwise choose per item by the criteria below and report each choice with its reason.
@@ -192,11 +202,12 @@ Read `report get` and act on `derived_state`, for bound and unbound items alike 
 `run` takes `not_started`, `in_progress` not claimed by another session, `needs_fix` and
 `conditions_to_revise` (not those whose condition you raised);
 `accept` takes `awaiting_acceptance`. Skip `waiting`, `awaiting_user` and `awaiting_user_dispute`
-(the user's) and `done`. Order: the scope's Next item first when the queue takes its state, then
-priority, then card order — the order the Report shows. When a command leaves the scope's Next
-item `done` or `waiting`, evaluate which item should come next — the derived order is only the
-default — set it with `next.set` and give the reason in the report; the user overrides it with a
-long press. A target narrows the queue; an item
+(the user's) and `done`. Order: the scope's Next item first when it is inside the range and the
+queue takes its state, then priority, then card order — the order the Report shows. When a command
+leaves the scope's Next item `done` or `waiting`, evaluate which item in the command's range should
+come next (§ Resolve the target) — the derived order is only the default — set it with `next.set`
+and give the reason in the report; the user overrides it with a long press. A target narrows the
+queue; an item
 target in a state the queue does not take is reported with its `derived_state`, never forced.
 
 Several items: when this agent can start sessions (§ Agent specifics), start one per item, one at a
