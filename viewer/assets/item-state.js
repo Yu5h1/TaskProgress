@@ -7,7 +7,7 @@ import { parseInlineLinks } from "./inline-links.js";
 
 export const ITEM_STATE_META = Object.freeze({
   done: { label: "完成", tone: "success" },
-  waiting: { label: "等待中", tone: "waiting" },
+  waiting: { label: "等待中", tone: "warning" },
   awaiting_user_dispute: { label: "待使用者（爭議）", tone: "warning" },
   conditions_to_revise: { label: "條件待修", tone: "warning" },
   needs_fix: { label: "需修正", tone: "danger" },

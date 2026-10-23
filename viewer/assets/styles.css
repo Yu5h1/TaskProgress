@@ -36,8 +36,6 @@
   --theme-next-text: #9a6b00;
   --theme-next-bg: #f7ecc9;
   --theme-next-border: #e3c766;
-  --theme-waiting-text: #6a4bc4;
-  --theme-waiting-bg: #ede7fb;
   --theme-muted-status-text: #69716c;
   --theme-muted-status-bg: #ebeae5;
 
@@ -77,8 +75,6 @@
   --color-next-text: var(--theme-next-text);
   --color-next-bg: var(--theme-next-bg);
   --color-next-border: var(--theme-next-border);
-  --color-waiting-text: var(--theme-waiting-text);
-  --color-waiting-bg: var(--theme-waiting-bg);
   --color-muted-status-text: var(--theme-muted-status-text);
   --color-muted-status-bg: var(--theme-muted-status-bg);
 
@@ -140,8 +136,6 @@
     --theme-next-text: #e8c25a;
     --theme-next-bg: #3d3416;
     --theme-next-border: #7a6422;
-    --theme-waiting-text: #c3b0f5;
-    --theme-waiting-bg: #2f2647;
     --theme-muted-status-text: #b1bbc8;
     --theme-muted-status-bg: #2b313b;
     --shadow: 0 6px 18px rgba(0, 0, 0, 0.16);
@@ -185,8 +179,6 @@
   --theme-next-text: #9a6b00;
   --theme-next-bg: #f7ecc9;
   --theme-next-border: #e3c766;
-  --theme-waiting-text: #6a4bc4;
-  --theme-waiting-bg: #ede7fb;
   --theme-muted-status-text: #69716c;
   --theme-muted-status-bg: #ebeae5;
   --shadow: 0 4px 14px rgba(37, 47, 41, 0.04);
@@ -229,8 +221,6 @@
   --theme-next-text: #e8c25a;
   --theme-next-bg: #3d3416;
   --theme-next-border: #7a6422;
-  --theme-waiting-text: #c3b0f5;
-  --theme-waiting-bg: #2f2647;
   --theme-muted-status-text: #b1bbc8;
   --theme-muted-status-bg: #2b313b;
   --shadow: 0 6px 18px rgba(0, 0, 0, 0.16);
@@ -1426,8 +1416,6 @@ h1 {
 .item-status-capsule.status-success { color: var(--moss); background: var(--moss-soft); }
 .item-status-capsule.status-danger { color: var(--red); background: var(--red-soft); }
 .item-status-capsule.status-warning { color: var(--amber); background: var(--amber-soft); }
-/* 等待中: the item waits on other work, so it must not read as 待處理. */
-.item-status-capsule.status-waiting { color: var(--color-waiting-text); background: var(--color-waiting-bg); }
 
 .inline-add-shell {
   display: flex;
