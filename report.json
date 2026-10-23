@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-10-23T05:40:44.440Z",
+  "updated_at": "2026-10-23T06:46:28.490Z",
   "tasks": [
     {
       "id": "completed-stacking",
@@ -2685,9 +2685,5 @@
         }
       ]
     }
-  ],
-  "next": {
-    "task_id": "third-party-checklist-write",
-    "item_id": "item-third-party-checklist-write-auth"
-  }
+  ]
 }
