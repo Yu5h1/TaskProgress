@@ -44,7 +44,7 @@ Report 要回答「現在該做哪一件事」。推算的下一步（優先級�
 ## 驗收
 
 - 排序：含立即（0）卡時 Next 卡仍在最前；釘選卡在 Next 卡之上；Next 子項在卡內最前；Next 子項完成後兩者回到原位。
-- 失效：Next 子項分別為完成、等待中、待使用者時，頂端顯示推算的下一步並標「推算」；`next` 欄位未被改動。
+- 失效：Next 子項完成或等待中時，Viewer 把推算出的下一個子項寫成新的 `next`，畫面不標「推算」；待使用者、待他驗時仍是有效的 Next，`next` 不變。
 - 寫入：`next.set` 指向不存在的子項被拒；Viewer 設定後 report.json 多出 `next`，活動紀錄有記錄者；重設時舊 Next 消失。
 - 外觀：兩種佈景與自訂佈景下 pin 圖示與「Next」膠囊都是 `next` 色且對比達 4.5:1；卡片 Developer 區顯示「後續」，不再出現「Next Step」；Checklist 畫面沒有「下一步 · Agent」一行。
 - 覆盤：`next` 為空時執行 `/task-progress-items plan`，agent 寫入 Next 並在回報列出。

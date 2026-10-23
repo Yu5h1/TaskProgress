@@ -29,7 +29,7 @@ card or child item of the scope, resolved as § Resolve the target says.
 | Form | Does |
 |---|---|
 | (none) | Same as `auto`: evaluate, do the direct work, execute and accept (user, 2026-10-23) |
-| `plan [target]` | Evaluate the scope, create items and list direct work; run nothing. A card narrows it to that card. An item: report its `derived_state` and the command that acts on it; change nothing |
+| `plan [target]` | Evaluate the scope, create items, list direct work and settle Next; run nothing. A card narrows it to that card. An item: report its `derived_state` and the command that acts on it; change nothing |
 | `<target>` | Same as `auto <target>`: a card narrows all of it to that card, an item skips evaluation and executes then accepts that item |
 | `<instruction>` | Write that one instruction as an item, then execute it in this session |
 | `run [target]` | Execution queue; a card narrows it to that card's items, an item to that item |
@@ -57,12 +57,13 @@ report names every answer taken this way so the user can overturn it on the deci
 questions wait for the user. Before sorting anything, read the scope's decisions files for answers
 already given whose consequences are not yet in the plan, handoff or items, and act on those first.
 
-Every evaluation ends by settling the scope's Next marker (`report get` → `next`,
-[NextMarkerPlan](../../../Documentation/NextMarkerPlan.md)): when it is absent, or its item is
-done, waiting, awaiting the user or awaiting acceptance, choose the first unfinished item that
-waits on nobody, by priority then card order, write it with `{"op": "next.set", "task_id": …,
-"item_id": …}` and say 「Next 已設為 …」 in the report. A marker the user set and that is still
-effective is never replaced.
+Every evaluation, a card-narrowed one included, ends by settling the scope's Next marker
+(`report get` → `next`, [NextMarkerPlan](../../../Documentation/NextMarkerPlan.md) 3–4): when it
+is absent or its item's `derived_state` is `done` or `waiting`, choose the first unfinished item in
+the scope that waits on nobody, by priority then card order, write it with
+`{"op": "next.set", "task_id": …, "item_id": …}` and say 「Next 已設為 …」 in the report. An item
+awaiting the user or acceptance is still an effective Next. An effective marker is never replaced,
+whoever set it; when the user names the item to do next, set that one.
 
 A leading `self`, `manual`, `cross` or `cross manual` forces the verification of the items it
 creates; otherwise choose per item by the criteria below and report each choice with its reason.
@@ -191,7 +192,8 @@ Read `report get` and act on `derived_state`, for bound and unbound items alike 
 `run` takes `not_started`, `in_progress` not claimed by another session, `needs_fix` and
 `conditions_to_revise` (not those whose condition you raised);
 `accept` takes `awaiting_acceptance`. Skip `waiting`, `awaiting_user` and `awaiting_user_dispute`
-(the user's) and `done`. Order: priority, then card order. A target narrows the queue; an item
+(the user's) and `done`. Order: the scope's Next item first when the queue takes its state, then
+priority, then card order — the order the Report shows. A target narrows the queue; an item
 target in a state the queue does not take is reported with its `derived_state`, never forced.
 
 Several items: when this agent can start sessions (§ Agent specifics), start one per item, one at a
@@ -202,7 +204,7 @@ the next candidate; `auto` executes everything itself and hands the items with `
 independent acceptance context: a sub-agent started without this context when the tool has one,
 otherwise listed for the user to accept from a new chat.
 
-End every command with a short report: items created (verification and reason), decisions answered
+End every command with a short report: the scope's Next (set or kept), items created (verification and reason), decisions answered
 by recommendation, direct work listed or done, items executed, accepted or rejected, problems
 recorded as 「問題：」 items (AgentsRule § Core contract), and what waits on the user.
 
