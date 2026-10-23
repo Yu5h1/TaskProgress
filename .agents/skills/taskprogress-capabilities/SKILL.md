@@ -14,8 +14,8 @@ capability is absent after reading only part of the source.
 
 TaskProgress keeps no agent-specific skill folder. Every agent reaches each shared procedure below
 through one small entry in its own user-level skills directory, so the entries work from any
-project. Check them whenever you are routed here; the user authorized creating these entries for the
-acting agent (2026-10-22), so no further question is needed for that case.
+project. Check them whenever you are routed here; creating the acting agent's own entry needs no
+further question.
 
 | `<NAME>` | Shared source (in this repository) | `<DESCRIPTION>` |
 |---|---|---|
@@ -87,7 +87,7 @@ missing. Each is cheap; none is sufficient alone.
 4. The Artifact list (`action: "list"` on the Artifact tool). A prototype from an earlier session
    is still something the user remembers.
 
-## The entrances (verified against source 2026-10-16)
+## The entrances
 
 | Want | Entrance |
 |---|---|
@@ -155,20 +155,17 @@ route synchronization is in
    project's working directory; use its absolute path.
 2. Run `task-progress.exe open --scope <scope-id> --no-browser` (add `--pin <card-id>` when a card
    is the target; a report folder may replace `--scope`; `open` rejects `--port`) once, every
-   time, with no HTTP check first. `open` hands the request to the tray worker through TrayHost,
-   starting the tray and its service first when they are not running, and registers the scope's
-   routes; a port that answers says nothing about the scope (2026-10-22: 8001 answered while
-   `?scope=task-progress` returned the report with HTTP 404 until `open` ran). Contract:
-   [TrayWorkerPlan](../../../Documentation/TrayWorkerPlan.md#開啟入口open資料夾參數與-protocol). Run it as a plain direct command, outside the sandbox, as the
-   current ordinary Windows user, using the agent tool's approval mechanism (in Codex,
-   `sandbox_permissions: "require_escalated"` — unsandboxed, not administrator); startup writes
-   scope/catalog state outside the workspace, so never launch the resident TrayHost/worker inside
-   the sandbox. The EXE is a WinExe: it prints nothing and returns at once, so do not wait for
-   output and do not wrap it in `Start-Process` with redirected streams. Do not run `start`, start
-   the service through another launcher or wrapper, use `RunAs`, change ACLs, or weaken pipe
-   security. If unsandboxed execution is unavailable or denied, give the user the absolute EXE
-   command to run in a normal terminal; do not route around the denial. An old resident worker
-   from an earlier build must be exited by the user; do not terminate it automatically.
+   time, with no HTTP check first: `open` goes through TrayHost, starting the tray and its service
+   when they are not running, and registers the scope's routes; a port that answers says nothing
+   about the scope. Contract:
+   [TrayWorkerPlan](../../../Documentation/TrayWorkerPlan.md#開啟入口open資料夾參數與-protocol).
+   Run it as a plain direct command, outside the sandbox, as the current ordinary Windows user
+   (in Codex, `sandbox_permissions: "require_escalated"`), because startup writes scope/catalog
+   state outside the workspace. The EXE is a WinExe that prints nothing and returns at once: do not
+   wait for output or wrap it in `Start-Process` with redirected streams. Do not run `start`, use
+   another launcher, `RunAs`, ACL changes or weakened pipe security; if unsandboxed execution is
+   denied, give the user the absolute EXE command to run in a normal terminal. An old resident
+   worker from an earlier build is exited by the user, never terminated automatically.
 3. Navigate the Browser pane straight to the target URL, reusing the relevant tab and URL-encoding
    scope and task values: Report `http://127.0.0.1:8001/?scope=<scope-id>` (`&pin=<card-id>` for a
    card), Checklist `/checklist/?scope=<scope-id>&task=<stem>`, Decision `/decisions/…`. Do not

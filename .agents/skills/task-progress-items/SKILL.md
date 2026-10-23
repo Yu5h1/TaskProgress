@@ -78,16 +78,11 @@ Choose: user-only judgment (appearance, feel, the user's device) → add `manual
 to misread (deriving implementation from a spec, changing a published spec, design data, cases or
 code) → add `cross`; otherwise `self`.
 
-Write one checklist per item, bound with `document_ref`, by checklist-round:
-
-- Untagged work items first: the executor's own checks.
-- `cross`: a final acceptance work item whose first check is 「驗收條件未被改動」 and whose other
-  checks each cite the spec section they compare against in `Action`, written from the original
-  requirement, not from your steps.
-- `manual`: a `[manual]` work item drafted now (what the user must accept); the executor adds links
-  and details after execution.
-- No `Depends on` for tagged work items; the program orders them.
-- Commit the checklist and the binding before anyone executes, even this session.
+Write one checklist per item, bound with `document_ref`, shaped as
+[checklist-round § Tagged checks](../checklist-round/SKILL.md#tagged-checks) prescribes (untagged
+work items first, `[acceptance]` conditions from the original requirement with their spec citations,
+`[manual]` drafts, no `Depends on` on tagged work items). Commit the checklist and the binding before
+anyone executes, even this session.
 
 ## Execute (`run`, and the instruction form)
 
@@ -149,24 +144,19 @@ will follow — moving or renaming files, fixing links — is direct work: no it
 
 ## Independent acceptance
 
-`[acceptance]` is recorded by an independent acceptance context that took no part in creating,
-implementing or fixing the item, so the executor never grades its own assumptions or lowers the bar to pass. The
-acceptor:
+`[acceptance]` is recorded by an independent acceptance context: one that took no part in creating,
+implementing or fixing the item and inherits none of the executor's conversation, reasoning or
+expected conclusion. It judges from the original requirement, the committed conditions, the
+artifacts and the change history; it may obtain execution facts, test evidence and operating steps;
+it ignores any hint that it should pass and never lowers the bar to fit the implementation; it may
+fail the work as 實作不符 or 條件不符, recording the grounds.
 
-- judges from the original requirement, the committed conditions, the artifacts and the change history;
-- inherits none of the executor's conversation, reasoning or expected conclusion;
-- may obtain the execution facts, test evidence and operating steps it needs;
-- ignores any hint that it should pass, and never lowers the bar to fit the implementation;
-- may fail the work as 實作不符 or 條件不符, recording the grounds.
-
-A new chat, a separate session, or a sub-agent started without the parent's context qualifies (see
-§ Agent specifics for each tool). When the executor starts that sub-agent, the prompt names only the
-item and the `accept` command: no summary of the work, no expected result. Staying in the executor's
-context and switching roles, or only changing the session ID, does not qualify. The acceptor may keep
-its own acceptance history and re-verify the same item's fixes without a fresh context each time.
-
-The session ID is identity, not independence: it records who wrote a result and lets the CLI refuse
-the executor's. A sub-agent uses its own stable ID and never borrows or changes to the executor's.
+A new chat, a separate session, or a sub-agent started without the parent's context qualifies (per
+tool: § Agent specifics). When the executor starts that sub-agent, the prompt names only the item
+and the `accept` command. Staying in the executor's context and switching roles, or only changing
+the session ID, does not qualify: the session ID records who wrote a result and lets the CLI refuse
+the executor's; it is not independence. The acceptor may keep its own acceptance history and
+re-verify the same item's fixes without a fresh context each time.
 
 ## Accept (`accept`)
 

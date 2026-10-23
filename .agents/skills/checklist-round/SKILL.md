@@ -22,10 +22,8 @@ or assignment, and do not create an index merely to find the file. Without that
 directory, skip all of this. One checklist per item holds the executor's checks
 and, when the item needs them, `[acceptance]` checks for an independent acceptance
 context (task-progress-items § Independent acceptance) and
-`[manual]` checks for the user (§ Tagged checks). The user checks a screen in seconds where the agent spends a round
-of tool calls that then sit in context for the rest of the session, so do not
-drive a page to judge what the user can see. A standing instruction to run
-everything makes the agent the executor for that scope.
+`[manual]` checks for the user (§ Tagged checks). When to hand verification over rather than run
+it alone is [agent-work-route § Hand verification over](../../../../.agents/skills/agent-work-route/SKILL.md#hand-verification-over-when-the-project-opts-in).
 
 Only project development work belongs in the checklist: product behavior, code,
 configuration, schemas, migrations, and the verification needed to prove those
@@ -223,8 +221,7 @@ Never type a tagged marker or a `Recorded` line by hand.
   meet the condition) or `condition` (the condition contradicts the spec). A
   re-verification that passes keeps `Observed` and adds `Resolved`.
 - An agent may only mark `[manual]` `[!]`, with `Observed` saying what changed;
-  only the user marks `[manual]` `[x]`. This replaces the earlier rule that the
-  operating tool could record a manual result it witnessed.
+  only the user marks `[manual]` `[x]`.
 - The user may also change an `[acceptance]` result in the panel after
   confirming 「確認修改 agent 紀錄嗎？」.
 - A tagged result without `Recorded` fails `checklist validate` and reads as
@@ -239,33 +236,19 @@ records their results after execution under the untagged-check rules above.
 
 ### Migrate existing checklists
 
-When `checklist validate` reports a tagged result without a recorder in a
-project's checklists recorded before these rules, migrate that project's files:
-
-1. Check the project's repository for uncommitted changes and its current branch.
-   Leave files someone else changed alone, and do not commit onto a feature
-   branch that holds other work; ask the user instead.
-2. Preview: `task-progress.exe checklist migrate <every checklists/*.checklist> --dry-run`
-   names how many results each file would get.
-3. Migrate the same files without `--dry-run`. A file that already fails to
-   parse is reported and skipped; it is a separate fix, never part of the
-   migration.
-4. Run `checklist validate` on every file; all of them must pass.
-5. Check the diff: the only added lines are `      - Recorded: legacy; …`,
-   nothing removed or changed.
-6. Stage only those checklist files and commit them on their own, saying the
-   results predate the recorder rule.
-
-Migrate only results you believe were recorded before the rules. A result that
-an agent may have typed by hand is re-verified by its owner instead.
+When `checklist validate` reports a tagged result without a recorder in checklists recorded before
+these rules: check the repository for uncommitted changes and its branch (leave others' files alone),
+preview with `task-progress.exe checklist migrate <every checklists/*.checklist> --dry-run`, migrate
+the same files, validate every file, confirm the diff adds only `      - Recorded: legacy; …` lines,
+and commit those checklist files on their own. A file that fails to parse is a separate fix. Migrate
+only results you believe predate the rules; a result an agent may have typed by hand is re-verified
+by its owner instead.
 
 ### Verify the document
 
 This section applies when the agent writes or changes a round, or when the user explicitly requests
-validation. A request only to open or show an existing `.checklist` is navigation owned by
-`taskprogress-capabilities`: do not inspect the document for errors or run validation. If the opener
-surfaces an error, wait until the user explicitly asks before inspecting, validating, or
-troubleshooting it.
+validation; a request only to open or show a `.checklist` is navigation
+([taskprogress-capabilities § Open-only requests](../taskprogress-capabilities/SKILL.md#open-only-requests)).
 
 Check the file against the parser rather than by eye:
 
@@ -323,17 +306,11 @@ wherever it is read.
 
 ### Report binding
 
-Bind every round to a Report child item when the round is written; an unbound
-round is invisible on the task card and gets skipped. Bind it with `document_ref`
-(`kind: "checklist"`, the owning `scope_id`, `task: "<stem>"`) to the child item
-that is finished exactly when this round is; when no such item exists, add one
-(for example 「驗收 <name>」) under the task the round verifies. Other related
-checklists are linked from the item's description, not bound. Binding runs one way only: a child item binds
-one checklist or decision document; a task card binds nothing and aggregates
-completion from its items; a checklist never binds back to a card or item.
-The bound item's state is derived from the checklist everywhere (Viewer,
-`report get`'s `derived_state`, time analysis): done once every check is `[x]`
-with valid records, and back to unfinished whenever a check reopens, whatever
-status is stored. Document bindings are allowed
-only on child items; tasks aggregate completion from their items. Field rules,
-how to write the binding, and the projection contract belong to [the Report skill](../task-progress-report/SKILL.md#bind-checklist-and-decision-documents-document_ref).
+Bind every round to a Report child item when the round is written, with `document_ref` on the item
+that is finished exactly when this round is (add one under the task the round verifies when none
+exists); an unbound round is invisible on the task card and gets skipped. Other related checklists
+are linked from the item's description, not bound. A child item binds one document, a card binds
+nothing and aggregates its items, a checklist never binds back. The bound item's state is derived
+from the checklist everywhere. Field rules, how to write the binding, and the projection contract:
+[the Report skill](../task-progress-report/SKILL.md#bind-checklist-and-decision-documents-document_ref).
+

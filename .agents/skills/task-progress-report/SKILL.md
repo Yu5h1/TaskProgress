@@ -30,20 +30,16 @@ description: Generate, update, validate, roll up, register, and locally deploy T
 
 ## Resolve scope level and roll-up coverage
 
-- Treat every report directory as an independent scope. The same schema may describe a multi-project workspace, a project, or a narrower component; the Viewer and Launcher render one selected scope and do not infer hierarchy.
-- Resolve the requested target first. Its existing `report.json` cards, including `report_pointer` cards for child scopes, are the explicit inclusion boundary; add a card only for a task the user names or whose declaration is in scope. Never recursively scan directories to discover report members.
-- A workspace with a root report may validly have no root handoff. Follow each canonical route to the relevant child plan, handoff, report, and repository facts.
-- Classify each workspace card as one of: a direct workspace task, a whole child-scope roll-up, or a selected child deliverable. Preserve mixed portfolios when that is the established report intent.
-- Require the canonical route or routing note to make the card's coverage unambiguous. For a selected deliverable, record the covered child task IDs or a clear named boundary. Do not treat a deliverable marked `done` as proof that its whole child project is complete.
-- For a whole child scope, summarize its current outcome and project-level milestones. For a selected deliverable, read only the covered child work. If coverage remains ambiguous, report the ambiguity and do not silently switch between whole-scope and deliverable semantics.
-- Keep workspace `completed_items` and `pending_items` at workspace milestone granularity. Do not copy every descendant item or compute portfolio progress by summing unrelated descendant counts.
-- Derive `blocked` only when no meaningful work inside the covered scope can proceed. Derive `done` only when that card's explicit coverage is complete. Never infer `archive`; it requires an explicit scope decision.
-- Choose a workspace `next_step` for portfolio relevance: first a scope-stopping blocker, then an explicit child primary next step, then the next covered milestone. Do not copy an entire child backlog or select an arbitrary first pending item.
-- Treat cross-scope synthesis as an Agent workflow. Deterministic aggregation, drill-down, or stale-roll-up detection requires explicit machine-readable parent/child coverage and is outside the current Viewer, Launcher, and schema behavior.
+- Every report directory is an independent scope; the same schema describes a workspace, a project, or a component, and the Viewer renders one scope without inferring hierarchy.
+- The target's existing cards, `report_pointer` cards included, are the inclusion boundary: add a card only for a task the user names or whose declaration is in scope; never scan directories to discover members. A workspace with a root report may validly have no root handoff.
+- Classify each workspace card as a direct task, a whole child-scope roll-up, or a selected child deliverable, and make its coverage unambiguous (covered child task IDs or a named boundary). A deliverable marked `done` does not prove its child project complete; when coverage is ambiguous, report that instead of switching semantics.
+- Keep workspace `completed_items`／`pending_items` at milestone granularity; do not copy descendant items or sum unrelated counts. Derive `blocked` only when nothing in the covered scope can proceed, `done` only when the card's coverage is complete, and never infer `archive`.
+- A workspace `next_step` is the first of: a scope-stopping blocker, an explicit child primary next step, the next covered milestone.
+- Cross-scope synthesis is agent work; deterministic aggregation and stale-roll-up detection are outside the current Viewer, Launcher and schema.
 
 ## Update existing Report through CLI
 
-To open the task being worked on, run `open --scope <scope-id> --pin <task-id> --no-browser` (or a report folder instead of `--scope`) exactly as [the shared service-readiness procedure](../taskprogress-capabilities/SKILL.md#ensure-the-checklist-service) prescribes: once, as a plain direct command, outside the sandbox; it goes through the tray, starting the tray and its service when they are not running, and prints nothing when run directly. Take the card ID from current task context or `report get`; no session mapping is needed. `--no-browser` keeps the system browser closed but still registers routes and refreshes analysis as a normal `open` does; then open `http://127.0.0.1:8001/?scope=<scope-id>&pin=<task-id>` in the Browser pane, which applies the pin. Pin promotes the card to the front, never toggles it off, and is browser-local view state, not report data. `open` rejects `--port`. Navigate without waiting or checking the page, as that procedure says. Contract: [card pin](../../../Documentation/CardPin.md#cli-開啟並釘選).
+To open the card being worked on, follow [the shared service-readiness procedure](../taskprogress-capabilities/SKILL.md#ensure-the-checklist-service) with `--pin <task-id>` (the card ID from task context or `report get`), then navigate the pane to `http://127.0.0.1:8001/?scope=<scope-id>&pin=<task-id>`. Pin promotes the card to the front and is browser-local view state, not report data ([card pin](../../../Documentation/CardPin.md#cli-開啟並釘選)).
 
 For task, item, and developer-field updates, use the `report` command instead of hand-editing JSON; [Report CLI usage](../../../Documentation/ReportCliUsage.md) owns request shapes and runtime requirements. Run `report get` (optionally `--task`) for the current revision, then `report apply --input <file> --dry-run` with ID-addressed operations, then the same without `--dry-run`. Never invent a revision or overwrite a conflict without rereading. Check both the JSON `ok` value and the exit code. Every request names its `actor` (the writing tool, such as `claude` or `codex`); the CLI refuses a request without it, and the value feeds the child-item activity log. Concurrency is the CLI's own job (its process lock and revision check); the agent's part is `actor` plus `expected_revision`, and rereading on a conflict. The command does not cover legacy string items, pointer mutations, deletions, cross-card moves, new report creation, or changing `document_ref` on an existing entry (see [binding](#bind-checklist-and-decision-documents-document_ref)). Hand-edit `report.json` only for one of those operations the CLI lacks; then append to each changed item's `activity` the entry the CLI would have written (`event` per [ItemActivityLog](../../../Documentation/ItemActivityLog.md): `updated` for a content change, `done` when it completes; your `actor`, your `session` ID when you know it, ISO `at`), run `report validate` on the folder, and say in the commit message what was hand-edited and why. A hand-edit without the activity entry leaves the item with no record of who changed it, which the log exists to prevent. Any change the CLI can make goes through `report apply`. It needs no running server.
 
@@ -51,7 +47,7 @@ For task, item, and developer-field updates, use the `report` command instead of
 
 - Tasks and child items have independent optional integer priority: `0` 立即, `1` 優先, `2` 一般, `3` 次要, `4` 未指定. Missing values also mean `4`; Preview hides the unspecified label. Choose priority from actual work importance, not to force an item into a particular position. Never use values outside 0–4.
 - Viewer sorts unfinished children by priority, preserving source-array order within each level. When all are unspecified, array order is the display order. Use CLI position operations to insert or move an item relative to a same-level stable ID when order matters without a priority change; see [positions and status](../../../Documentation/ReportCliUsage.md#子項目位置與狀態) for syntax and version requirements. Completed children retain completion order, newest first.
-- An item binds one checklist; its `[acceptance]` and `[manual]` checks live in that checklist ([checklist-round § Tagged checks](../checklist-round/SKILL.md#tagged-checks)). Where a workflow keeps one manual file per page, that file gets its own child item under the requirement's existing task card, never a new card. Title it so a reader sees what the user verifies for that task, aligned with the card's wording; steps, expectations and links stay in the bound checklist, not in the title. Set `priority` (0 highest) so these items sort where the user looks first. One item per manual checklist; bind it with `document_ref` on `item.add`.
+- An item binds one checklist ([checklist-round § Tagged checks](../checklist-round/SKILL.md#tagged-checks)). A workflow that keeps one manual file per page gives each file its own child item under the requirement's existing card, never a new card, titled for what the user verifies; steps, expectations and links stay in the checklist.
 - An item bound to a checklist derives its state from it (`report get` adds `derived_state`: `not_started`, `in_progress`, `waiting`, `awaiting_acceptance`, `awaiting_user`, `awaiting_user_dispute`, `conditions_to_revise`, `needs_fix`, `done`); its stored status only records the claim. Claim with `status: in_progress`, release with `{"op": "item.event", "event": "released"}` when your part is done, and never set `done` by hand on it. `waits_for` lists items (any registered scope) it waits on; the CLI rejects unknown targets and loops. Procedure: [task-progress-items](../task-progress-items/SKILL.md), reached through each agent's user-level entry; design: [AcceptanceChainPlan](../../../Documentation/AcceptanceChainPlan.md).
 - Maintain an unbound object item's status as work happens: `planned` before work begins, `in_progress` when implementation or validation starts, `blocked` when progress is blocked, and `done` only when the outcome is complete and adequately verified. Resume with the actual current status; use `archive` only for an explicit retirement decision. Use `item.update` rather than waiting until completion to manually move arrays. The CLI relocates done to completed_items and other statuses to pending_items while preserving the stable ID.
 - The user may paste an item reference copied from the Viewer: `<scope-id> › <task-id> › <item-id>`. Resolve it by IDs with `report get --scope <scope-id> --task <task-id>` and address the item by `<item-id>`. Older pastes may end with a 「title head」; ignore it beyond a sanity check. When the IDs do not resolve, say so instead of guessing ([format](../../../Documentation/ItemReference.md)).
@@ -98,69 +94,35 @@ Minimal shape:
 
 ## Inline links in report descriptions
 
-When a task summary or completed/pending item description benefits from navigation, write `[label](URL)` in its existing string field (an object item's `title`, or a legacy string item). Labels are free text: `下載`, `影片`, `教學`, and `前往` are examples, not fixed controls. Links can appear anywhere in a sentence; keep the surrounding text meaningful. Do not put link syntax into IDs or assume other report fields render it.
+Write `[label](URL)` inside an existing string field (an object item's `title`, a legacy string item, a summary) wherever navigation helps; labels are free text, links may sit anywhere in a sentence, and no other field renders them. This is inline-link support, not Markdown: bare URLs, images and HTML do not render, relative URLs resolve against the Viewer page, and the stored syntax counts toward field length limits.
 
-When a summary or item description you author or update mentions a specific Checklist, Decision or report card, make the mention an inline link to its page rather than a bare name, ID or path, so the reader goes there in one click. A document that decides the entry's completion is bound with [`document_ref`](#bind-checklist-and-decision-documents-document_ref) instead, and the Viewer renders its link itself. Resolve the existing file and its owning registered scope first; use the file's stem as `task`, which need not match the Report task ID. For a card, read the target report's `scope_id` and the card's `id` — this report or another scope's. Compose a root-relative URL and URL-encode each query value:
+When a description you author or update mentions a specific Checklist, Decision or card, link its page rather than naming it (a document that decides the entry's completion is bound with [`document_ref`](#bind-checklist-and-decision-documents-document_ref) instead, and the Viewer renders that link itself). Resolve the file and its registered owning scope first and URL-encode each query value:
 
-- `[驗收清單](/checklist/?scope=<scope-id>&task=<stem>)` → `checklists/<stem>.checklist`.
-- `[決策細節](/decisions/?scope=<scope-id>&task=<stem>)` → `decisions/<stem>.decisions`.
-- `[卡片名稱](/?scope=<scope-id>&pin=<card-id>)` → that card, pinned to the top and expanded ([card pin](../../../Documentation/CardPin.md)). Pin targets cards only: when the mention is a child item, link its card and name the item in plain words beside the link.
+- `[驗收清單](/checklist/?scope=<scope-id>&task=<stem>)` → `checklists/<stem>.checklist`
+- `[決策細節](/decisions/?scope=<scope-id>&task=<stem>)` → `decisions/<stem>.decisions`
+- `[卡片名稱](/?scope=<scope-id>&pin=<card-id>)` → that card, pinned and expanded ([card pin](../../../Documentation/CardPin.md)); pin targets cards only, so for a child item link its card and name the item in words.
 
-Use a meaningful label such as the checklist name, decision topic or card title.
-
-An item that must wait for other items, in this scope or another, declares them in `waits_for` (§ Maintain child items) instead of describing the order in its title: no 「X 完成後」 or 「先於本項」 prose and no links to the waited cards there. The Viewer shows the waited cards as links with their open counts and lifts the wait by itself. The other direction has no generated link, so an item that exists because an item in another scope waits on it — platform acceptance of a specification, work a Requirements entry asked for — links back to the waiting item's card and names that item in words, for example `……手動驗收；完成後供 [Yu5h1Lib.UX 開工（基礎規範）](/?scope=ux&pin=ux-foundation) 的「NumericField 目標 1 收尾」核對`. Write the back link when the item is created, taking the waiting item from the round's source; an agent that creates the item in another scope's report writes the back link there in the same change. When the waiting item moves to another card or is removed, update the back links that point to it. Route through these pages, not a Windows filesystem path or `file://` URL. If the mention is generic or the target cannot be verified, retain plain text and report an unresolved specific target; do not invent a link or create a file just to supply one. Apply this rule to the descriptions being authored or updated, without rewriting unrelated Report entries.
-
-Use an actual HTTP(S) URL for downloads, videos, or external documentation. Supported URL forms also include page-relative paths and `#fragment`; encode spaces. Relative URLs resolve against the Viewer page, not the report file's folder. This is inline-link support, not full Markdown: bare URLs, images, and HTML are not rendered as links. The label `下載` does not force a download. Existing field length limits include the stored syntax.
-
-Before adding a link, verify its target from available evidence; the Viewer does not validate these destinations or show the decision `source_ref` warnings. Keep local-only Checklist/Decision links out of a public report unless that deployment actually provides those routes; do not substitute a localhost URL as a public destination. For supported rendering and disclosure behavior, read [Inline report links](../../../Documentation/InlineReportLinks.md).
+An item that waits for other items declares them in `waits_for` (§ Maintain child items), with no ordering prose or waited-card links in its title; the Viewer shows the waited cards and lifts the wait. The reverse direction has no generated link, so an item that exists because another scope's item waits on it links back to that item's card and names the item in words, written when the item is created and updated when the waiting item moves. Route through these pages, never a filesystem path or `file://` URL; when the target cannot be verified, keep plain text and report it rather than inventing a link. Use real HTTP(S) URLs for downloads and external documentation, keep local-only Checklist/Decision links out of a public report unless that deployment serves those routes, and change only the descriptions being authored. Rendering and disclosure behavior: [Inline report links](../../../Documentation/InlineReportLinks.md).
 
 ## Bind Checklist and Decision documents (document_ref)
 
-Bind a `.checklist` or `.decisions` file when finishing that document is what finishes an object item. In a scope with a `report.json`, bind every new checklist round and every decisions file that has pending decisions when it is written, before asking the user to act on it: an unbound document does not appear on any task card and gets overlooked. When no child item matches, add one (for example 「驗收 <name>」 or 「決策 <topic>」) under the task the document serves. Document bindings are allowed only on child items; tasks aggregate status from their items. To merely mention a document, use an [inline link](#inline-links-in-report-descriptions); general hyperlinks in task summaries and items are preserved and do not participate in status derivation.
+Bind a `.checklist` or `.decisions` file when finishing that document is what finishes an object item: every new checklist round and every decisions file with pending decisions, when it is written and before the user is asked to act on it, because an unbound document appears on no card. Add a child item (「驗收 <name>」, 「決策 <topic>」) under the task the document serves when none matches. To merely mention a document, use an [inline link](#inline-links-in-report-descriptions).
 
 ```json
 "document_ref": { "kind": "checklist", "scope_id": "<scope-id>", "task": "<stem>" }
 ```
 
-- `kind` is `checklist` (→ `<scope-root>/checklists/<stem>.checklist`) or `decision`, singular (→ `<scope-root>/decisions/<stem>.decisions`).
-- `scope_id` is the registered scope that owns the file. It may differ from the report's own scope when both are served by the same local service.
-- `task` names the file stem, matching the page's `?task=` query; `stem` is an accepted alias. Write `task`. The stem need not equal the Report task ID.
-- Allowed only on object items (`{ "id", "title" }`). Tasks must not carry `document_ref`. A legacy string item must first become an object item with a stable ID.
-- Writing it: `item.add` accepts `document_ref` inside `value`; `task.add` does not accept `document_ref`. The `report` command cannot add, change, or remove it on an existing entry; edit `report.json` directly, then run `report validate` (see [Validate](#validate-before-reporting-completion)).
-
-How the Viewer projects it (`viewer/assets/document-binding.js`):
-
-- It reads each bound document on load and on foreground return, through the service's Checklist and Decision routes.
-- **Checklist complete**: at least one check, and every nested check `[x]`, `[manual]` checks included.
-- **Decision complete**: at least one decision, and every decision answered. Unanswered, or 「其他」 with an empty reason, is pending.
-- A complete document shows the bound child item as `done`: it moves to the completed list and counts toward progress. When the document is incomplete, reopened, unchecked, empty, or fails to read, the item reflects an unfinished state (reverting to its stored `planned`/`in_progress`/`blocked` status, or `in_progress` if stored as `done`). Stored `archive` retains archive semantics. Missing or unreadable files mark the item's source unavailable.
-- For task cards containing bound child items, card status and progress aggregate all its child items: all items done derives the card to `done`; incomplete items revert a done card to `in_progress` or retain the card's unfinished status. Task cards without any bound items keep their stored status and existing behavior unchanged.
-- The projection is display-only. Saving from the Viewer never writes it back to `report.json`, and a refresh is skipped while the editor holds unsaved changes.
-- A missing file, unknown scope, or transport failure marks that entry's source unavailable; the rest of the report renders normally.
-- The bound child item shows a `Checklist` or `Decision` source link beside its text, opening the document page. Task card headers and summaries do not show document badges or decision links.
-
-Separate, unbound behavior: document pages link back to their scope's Report by scope alone (no `document_ref` needed; see [DocumentOwnerReport](../../../Documentation/DocumentOwnerReport.md)). Task cards do not show task-level pending decision counts or decision links.
-
-The bound routes exist only on the local service. Keep `document_ref` out of a report published elsewhere unless that deployment serves `/checklist/` and `/decisions/`; otherwise every bound entry shows an unavailable source.
+- `kind` is `checklist` (→ `<scope-root>/checklists/<stem>.checklist`) or `decision`, singular (→ `<scope-root>/decisions/<stem>.decisions`); `scope_id` is the registered scope that owns the file; `task` is the file stem (`stem` is an accepted alias), which need not equal the Report task ID.
+- Only object items carry it; tasks aggregate from their items; a legacy string item first becomes an object item.
+- `item.add` accepts it inside `value`; the `report` command cannot add, change or remove it on an existing entry, so hand-edit `report.json` for that and run `report validate`.
+- Projection (display-only, never written back): a checklist is complete when every check is `[x]`, a decisions file when every decision is answered; a complete document shows the item done, an incomplete or unreadable one shows its stored unfinished state, and a card with bound items aggregates them. Contract: [DocumentBindingPlan](../../../Documentation/DocumentBindingPlan.md#子項目綁定契約). The bound routes exist only on the local service, so keep `document_ref` out of a report published elsewhere.
 
 ## Generate optional `time.analysis.json`
 
-- Do not create time data merely because the Viewer supports it. Create or refresh it when the user requests time estimates or deadline risk, or when the target already maintains the sidecar.
-- Prefer the published deterministic analyzer after the Agent or human has prepared any required engineering judgment:
-
-```powershell
-& "<task-progress-exe>" analyze "<project-root>"
-```
-
-  `analyze --scope <scope-id>` uses the shared registry. `--as-of <ISO timestamp>` fixes the clock for reproducible validation. `open` refreshes only its target automatically when `time.config.json`, `time.estimates.json`, or `time.events.json` exists; projects without any time input remain unchanged. `start` synchronizes routes without regenerating any scope; `scope add` only registers its target.
-- The analyzer can produce an estimate-only snapshot without a deadline. When invoked with only `report.json`, stable items missing active estimates retain unset identities without invented durations and are excluded from totals. Do not treat this deterministic fallback as AI analysis.
-- Treat `time.analysis.json` as a public, derived snapshot. Keep private work patterns, raw sessions, private leave reasons, prompts, and hidden reasoning in local inputs rather than this projection.
-- Match `scope_id` to `report.json`. Match every `task_id` and `item_id` to stable IDs in the base report; do not guess correspondence from display text.
-- Store durations as integer minutes. Display hours are derived presentation values, not the arithmetic source of truth.
-- Preserve existing `analysis_id`, stable work IDs, algorithm IDs, and estimate lineage unless their identities genuinely change.
-- Recompute deterministic values after changing progress, capacity, deadline, parameters, or estimates. Do not ask AI to redo arithmetic already covered by a registered formula.
-- For `deterministic-capacity-feasibility` v0.3, sum calibrated estimates for unfinished items, compare that demand with remaining scheduled capacity first, and then use progress pressure as a secondary trend signal. A capacity shortfall is critical; capacity utilization above 80% is at least at risk. Preserve legacy v0.2 pressure-only snapshots when reading old sidecars.
-- If required evidence is missing, leave the estimate unset; report coverage and unestimated item counts, never fallback minutes.
+- Create or refresh it only when the user requests time estimates or deadline risk, or the target already maintains the sidecar; never because the Viewer supports it.
+- Run the published deterministic analyzer after any engineering judgment is prepared: `& "<task-progress-exe>" analyze "<project-root>"` (`--scope <scope-id>` uses the registry; `--as-of <ISO timestamp>` fixes the clock). `open` refreshes only its target and only when a time input exists; `start` and `scope add` regenerate nothing.
+- With only `report.json`, items without active estimates stay unset and excluded from totals; that fallback is not AI analysis, and missing evidence leaves an estimate unset with coverage reported, never fallback minutes.
+- The sidecar is a public derived snapshot: keep private work patterns and reasoning in local inputs. Match `scope_id`, `task_id` and `item_id` to the base report's stable IDs; store integer minutes; preserve `analysis_id`, work IDs, algorithm IDs and estimate lineage; recompute after any input change instead of asking AI to redo registered arithmetic. Estimate modes, capacity, calibration and the v0.3 risk method: [references/time-estimation.md](references/time-estimation.md).
 
 ## Generate optional `report.dev.json`
 
@@ -175,12 +137,7 @@ The bound routes exist only on the local service. Keep `document_ref` out of a r
 
 1. Run `& "<task-progress-exe>" report validate "<project-root>"` (or `--scope <scope-id>`) and require `ok: true` with exit code 0. It checks `report.json` against its schema and, when present, `report.dev.json` against its schema plus matching `schema_version`/`report_id` and known, unduplicated overlay task IDs. When the EXE is unavailable, perform those checks by hand: parse both files and validate allowed values, ID patterns, required fields, lengths, and `additionalProperties: false`.
 2. Confirm task IDs are unique.
-3. If `time.analysis.json` exists, confirm:
-   - it satisfies Draft 0.2 and has the same `scope_id` as `report.json`;
-   - every analyzed task/item resolves to a stable base-report ID;
-   - item totals, task totals, project total, estimate composition, capacity profile, and capacity timeline are arithmetically consistent;
-   - direct unfinished estimate totals, remaining capacity, capacity balance, feasibility ratio, `evaluated_at`, work progress, time progress, pressure, risk basis, boundary state, and urgency reproduce for the same clock value;
-   - only `public_label` is projected for capacity exceptions.
+3. If `time.analysis.json` exists, confirm it satisfies Draft 0.2 with the same `scope_id`, every analyzed task/item resolves to a stable base-report ID, totals and derived risk values reproduce for the same clock per [references/time-estimation.md](references/time-estimation.md), and only `public_label` is projected for capacity exceptions.
 4. For every `document_ref`, confirm `scope_id` is a registered scope (`scope list`) and its `checklists/<stem>.checklist` or `decisions/<stem>.decisions` exists. Schema validation checks neither.
 5. Confirm factual consistency with the source task documents and current repository/test state.
 6. When `<task-progress-exe>` exists, follow [the shared service-readiness procedure](../taskprogress-capabilities/SKILL.md#ensure-the-checklist-service), whose `open` call for this report is:
@@ -209,23 +166,13 @@ Only register when the user requests it because this changes the user's local Ta
 
 ## Start or synchronize the shared Viewer
 
-For opening an existing Report, follow [the shared service-readiness procedure](../taskprogress-capabilities/SKILL.md#ensure-the-checklist-service). It owns the direct ordinary-user unsandboxed `open` that goes through the tray (starting it when needed) and registers the scope, the pane navigation that follows without waiting or checking, and diagnosis when the user reports a failed load; an agent does not bring the service up any other way.
-
-When registration or route changes require synchronization of all registered scopes, check status first, then run this command once in the same ordinary-user unsandboxed context used by that procedure:
+Opening an existing Report follows [the shared service-readiness procedure](../taskprogress-capabilities/SKILL.md#ensure-the-checklist-service); an agent brings the service up no other way. When registration or route changes require synchronizing all registered scopes, check status, then run once in that same ordinary-user unsandboxed context:
 
 ```powershell
 & "<task-progress-exe>" start --no-browser
 ```
 
-`start` invokes TrayHost and its resident worker, ensures the service, validates registered reports, synchronizes exact report routes and the sanitized scope catalog, and removes stale routes. It does not regenerate analysis snapshots. It defaults to no browser; `--browser` explicitly opens the system browser. It does not create an independent service Console. `--console` is a log observer, not a different service host. The startup contract is owned by [TrayWorkerPlan](../../../Documentation/TrayWorkerPlan.md#啟動入口start).
-
-Confirm service status after synchronization before opening a URL. `open` already synchronizes the routes of its own scope, so `start --no-browser` is for all registered scopes only; do not run it a second time for the same unchanged registry. On an error or foreign service, report the failure and stop; do not stop/restart the service or loop startup to make navigation work. If synchronization alone was requested, no Browser navigation is needed. Otherwise navigate the pane to the Report URL (`http://127.0.0.1:8001/?scope=<scope-id>`).
-
-The Chrome bookmark form is:
-
-```text
-task-progress://open?scope=<scope-id>
-```
+`start` invokes TrayHost and its worker, ensures the service, validates registered reports, synchronizes exact routes and the sanitized catalog, and removes stale routes; it regenerates no analysis, opens no browser (`--browser` does), and `--console` is only a log observer (contract: [TrayWorkerPlan](../../../Documentation/TrayWorkerPlan.md#啟動入口start)). `open` already synchronizes its own scope, so do not run `start` for an unchanged registry. On an error or a foreign service, report and stop; never restart or loop. The Chrome bookmark form is `task-progress://open?scope=<scope-id>`.
 
 ## Publishing boundary
 
