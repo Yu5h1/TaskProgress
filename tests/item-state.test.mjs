@@ -1,12 +1,38 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { deriveItemState, waitLinks, waitsText } from "../viewer/assets/item-state.js";
+import { deriveItemState, statusLinks, waitLinks, waitsText } from "../viewer/assets/item-state.js";
 import { checklistWorkItemDone, evaluateChecklistDocument, evaluateWaitTargets, projectTasksWithBindings, waitKey } from "../viewer/assets/document-binding.js";
 
 const check = (overrides) => ({ status: "pending", effectiveStatus: "pending", validity: "valid", ...overrides });
 const evaluation = (checks) => evaluateChecklistDocument({ items: [{ checks }] });
 const at = (minutes) => new Date(Date.UTC(2026, 9, 22, 10, minutes)).toISOString();
 const started = { activity: [{ event: "started", actor: "claude", session_id: "e", at: at(0) }] };
+
+test("a redo keeps its triggering target link after the dependency no longer blocks work", () => {
+  const wait = { scope_id: "web", task_id: "card", item_id: "fixed" };
+  const strictWait = { ...wait, item_id: "strict", strict: true };
+  const unaffected = { ...wait, task_id: "other", item_id: "untouched" };
+  const target = { done: false, onlyManual: true, userFailedAt: Date.parse(at(30)), available: true,
+    card: "Web", label: "Web › Fixed", href: "/?scope=web&pin=card" };
+  const evaluations = new Map([
+    [waitKey(wait), target],
+    [waitKey(strictWait), target],
+    [waitKey(unaffected), { ...target, userFailedAt: null, card: "Other", href: "/?scope=web&pin=other" }],
+  ]);
+  const item = { ...started, id: "redo", title: "Redo", waits_for: [wait, strictWait, unaffected] };
+  const project = (value) => projectTasksWithBindings([{ id: "t", pending_items: [value] }], evaluations)[0].pending_items[0];
+  const projected = project(item);
+  assert.equal(projected.derivedState, "needs_fix");
+  assert.deepEqual(projected.redoTargets, [target], "only the non-strict rejected target triggers redo");
+  assert.deepEqual(statusLinks(projected), [{ href: target.href, label: "Web" }], "pending and redo targets deduplicate");
+  const lifted = project({ ...item, waits_for: [wait, unaffected] });
+  assert.deepEqual(lifted.pendingWaits, []);
+  assert.equal(lifted.derivedState, "needs_fix");
+  assert.deepEqual(statusLinks(lifted), [{ href: target.href, label: "Web" }]);
+  const released = project({ ...item, waits_for: [wait], activity: [...started.activity, { event: "released", at: at(40) }] });
+  assert.equal(released.derivedState, undefined, "a later release clears the redo and its link");
+  assert.deepEqual(statusLinks(released), []);
+});
 
 test("executor done, acceptance pending is awaiting acceptance; passed everywhere is done", () => {
   const untagged = check({ status: "passed", effectiveStatus: "passed" });

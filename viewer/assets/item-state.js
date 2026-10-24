@@ -141,6 +141,21 @@ export function waitLinks(pendingWaits) {
   return [...links.values()];
 }
 
+/** Status capsules open their related documents and dependencies, using the same target menu. */
+export function statusLinks(item) {
+  const links = waitLinks([...(item?.pendingWaits ?? []), ...(item?.redoTargets ?? [])]);
+  // Waiting is specifically about dependencies; its own checklist is not the wait target.
+  if (item?.derivedState === "waiting") return links;
+  const source = item?.sourceRef;
+  if (source) {
+    const href = source.available ? source.href : null;
+    if (!href || !links.some((link) => link.href === href)) {
+      links.push({ href, label: `${source.label}: ${source.task}` });
+    }
+  }
+  return links;
+}
+
 export function waitsText(pendingWaits) {
   if (!pendingWaits.length) return "";
   const cards = new Map();
