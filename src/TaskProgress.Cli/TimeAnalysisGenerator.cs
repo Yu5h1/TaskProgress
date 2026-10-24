@@ -99,6 +99,7 @@ internal static class TimeAnalysisGenerator
             var taskLevel = activeEstimates.GetValueOrDefault(TargetKey(task.Id, null));
             if (taskLevel is not null && ResolveMode(taskLevel) == "default") taskLevel = null;
             var itemLevel = task.Items
+                .Where(item => !item.Retired)
                 .Select(item => activeEstimates.GetValueOrDefault(TargetKey(task.Id, item.Id)))
                 .Where(estimate => estimate is not null && ResolveMode(estimate) != "default")
                 .Cast<JsonObject>()
@@ -131,6 +132,14 @@ internal static class TimeAnalysisGenerator
             {
                 foreach (var item in task.Items)
                 {
+                    if (item.Retired)
+                    {
+                        diagnostics.Add(new Diagnostic(
+                            "info",
+                            "retired-item-excluded",
+                            $"{item.Id} 已退場（obsolete／discontinued），不計入任何總和。"));
+                        continue;
+                    }
                     var source = activeEstimates.GetValueOrDefault(TargetKey(task.Id, item.Id));
                     var mode = source is null ? "default" : ResolveMode(source);
                     var itemAnalysis = mode == "default"
@@ -173,7 +182,7 @@ internal static class TimeAnalysisGenerator
             // A task whose leaves are all unset is still emitted. Dropping it
             // would drop its item entries too, and the unset marker is an entry
             // point — one whose subject cannot be looked up leads nowhere.
-            var taskLeafCount = taskLevel is not null ? 1 : task.Items.Count;
+            var taskLeafCount = taskLevel is not null ? 1 : task.Items.Count(item => !item.Retired);
             var taskEstimatedLeafCount = taskLevel is not null
                 ? 1
                 : items.Count(node => node?["mode"]?.GetValue<string>() != "default");
@@ -542,9 +551,9 @@ internal static class TimeAnalysisGenerator
         }
         foreach (var node in array)
         {
-            listCount++;
             if (node is JsonValue)
             {
+                listCount++;
                 legacyCount++;
                 continue;
             }
@@ -553,7 +562,9 @@ internal static class TimeAnalysisGenerator
             var id = RequiredString(item, "id", "report item");
             ScopeId.Validate(id);
             if (!ids.Add(id)) throw new CliException($"{taskId} 的 item id 重複：{id}");
-            items.Add(new ReportItem(id, derivedDone(item) ?? completed));
+            var retired = ItemStates.IsRetired(item["status"]?.GetValue<string>());
+            if (!retired) listCount++;
+            items.Add(new ReportItem(id, derivedDone(item) ?? completed, retired));
         }
     }
 
@@ -1238,7 +1249,11 @@ internal static class TimeAnalysisGenerator
         return date.DayOfWeek == DayOfWeek.Sunday ? 7 : (int)date.DayOfWeek;
     }
 
-    private sealed record ReportItem(string Id, bool Completed);
+    /// <summary>
+    ///   A Report child item as time analysis sees it. A retired item stays listed so estimates that
+    ///   name it still resolve, but it counts toward no total, leaf or progress figure.
+    /// </summary>
+    private sealed record ReportItem(string Id, bool Completed, bool Retired = false);
 
     private sealed record ReportTask(
         string Id,

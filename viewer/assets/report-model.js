@@ -421,8 +421,9 @@ function validateRetirement(item, itemPath, errors) {
   }
   if (item.status === "obsolete") {
     const target = retirement.replaced_by;
-    if (!isObject(target) || ["scope_id", "task_id", "item_id"].some((key) => typeof target[key] !== "string" || !target[key])) {
-      errors.push(issue("missing_replacement", `${path}.replaced_by`, `${path}.replaced_by 必須包含 scope_id、task_id 與 item_id。`));
+    const names = (keys) => isObject(target) && keys.every((key) => typeof target[key] === "string" && target[key]);
+    if (!names(["scope_id", "task_id", "item_id"]) && !names(["document"])) {
+      errors.push(issue("missing_replacement", `${path}.replaced_by`, `${path}.replaced_by 必須指向取代的子項（scope_id、task_id、item_id）或設計文件（document）。`));
     }
   } else if (typeof retirement.reason !== "string" || !retirement.reason.trim()) {
     errors.push(issue("missing_retirement_reason", `${path}.reason`, `${path}.reason 必須寫明棄案理由。`));

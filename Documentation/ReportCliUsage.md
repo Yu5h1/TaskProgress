@@ -57,7 +57,7 @@ task-progress.exe report apply "C:\Project" --input changes.json
   "set": { "document_ref": { "kind": "experience", "scope_id": "<scope>", "task": "feature-a" } } }
 ```
 
-使用者確認退場的子項，以 `obsolete`（附取代者）或 `discontinued`（附理由）寫入；規則見 [Report 技能〈Maintain child items〉](../.agents/skills/task-progress-report/SKILL.md#maintain-child-items)：
+使用者確認退場的子項，以 `obsolete`（附取代者：子項，或 scope 內的設計文件 `{"document": "路徑#段落"}`）或 `discontinued`（附理由）寫入；規則見 [Report 技能〈Maintain child items〉](../.agents/skills/task-progress-report/SKILL.md#maintain-child-items)：
 
 ```json
 { "op": "item.update", "task_id": "feature-a", "item_id": "old-step",

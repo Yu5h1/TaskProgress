@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-10-24T19:05:31.209707+00:00",
+  "updated_at": "2026-10-24T19:12:21.294Z",
   "tasks": [
     {
       "id": "agent-workflow",
@@ -3244,7 +3244,7 @@
             "scope_id": "task-progress",
             "task": "retirement-states"
           },
-          "status": "planned",
+          "status": "in_progress",
           "activity": [
             {
               "event": "created",
@@ -3266,14 +3266,17 @@
               "at": "2026-10-24T19:05:31.209707+00:00",
               "session": "Taskprogess",
               "session_id": "016492fa-7464-498b-9444-0e6296cd1267"
+            },
+            {
+              "event": "started",
+              "actor": "claude",
+              "at": "2026-10-24T19:11:50.264429+00:00",
+              "session": "Taskprogess",
+              "session_id": "016492fa-7464-498b-9444-0e6296cd1267"
             }
           ]
         }
       ]
     }
-  ],
-  "next": {
-    "task_id": "agent-workflow",
-    "item_id": "agent-workflow-closure"
-  }
+  ]
 }

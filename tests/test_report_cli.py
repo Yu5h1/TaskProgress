@@ -148,6 +148,12 @@ class ReportCliTests(unittest.TestCase):
         execute(self.root, "apply", self.request([{"op": "item.update", "task_id": "one", "item_id": "item",
                                                    "set": {"status": "planned"}, "unset": ["retirement"]}]))
         self.assertNotIn("retirement", self.item())
+        (self.root / "design.md").write_text("# 設計\n", encoding="utf-8")
+        for document in ("missing.md", "../design.md", "/design.md"):
+            with self.assertRaises(ReportError):
+                execute(self.root, "apply", self.request([op("item", status="obsolete", retirement={"replaced_by": {"document": document}})]))
+        execute(self.root, "apply", self.request([op("item", status="obsolete", retirement={"replaced_by": {"document": "design.md#設計"}})]))
+        self.assertEqual(self.item()["retirement"], {"replaced_by": {"document": "design.md#設計"}})
 
     def test_a_card_binds_only_its_own_existing_experience_record(self):
         ref = lambda **kw: {"kind": "experience", "scope_id": "sample", "task": "one", **kw}

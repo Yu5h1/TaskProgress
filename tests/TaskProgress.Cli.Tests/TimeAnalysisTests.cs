@@ -33,6 +33,7 @@ internal static class TimeAnalysisTests
             UnsetItemsHaveNoInventedMinutes(root);
             LoadingScopesDoesNotRewriteSnapshots(root);
             ContentRevisionIgnoresEvaluationClock(root);
+            RetiredItemsLeaveEveryTotal(root);
         }
         finally
         {
@@ -208,6 +209,39 @@ internal static class TimeAnalysisTests
             }
             """);
         return folder;
+    }
+
+    /// <summary>
+    ///   A retired item (obsolete or discontinued) is no longer work: its estimate, leaf and
+    ///   pending count leave every figure, while its entry still resolves for estimates naming it.
+    /// </summary>
+    private static void RetiredItemsLeaveEveryTotal(string root)
+    {
+        var folder = Path.Combine(root, "retired");
+        Directory.CreateDirectory(folder);
+        File.WriteAllText(Path.Combine(folder, "report.json"), """
+            {
+              "schema_version": "1.1", "report_id": "time-fixture", "scope_id": "time-fixture", "title": "Time fixture",
+              "updated_at": "2026-08-28T12:00:00+08:00",
+              "tasks": [
+                { "id": "t1", "title": "t1", "status": "in_progress",
+                  "pending_items": [
+                    { "id": "live", "title": "live" },
+                    { "id": "gone", "title": "gone", "status": "obsolete", "retirement": { "replaced_by": { "scope_id": "time-fixture", "task_id": "t1", "item_id": "live" } } },
+                    { "id": "dropped", "title": "dropped", "status": "discontinued", "retirement": { "reason": "premise failed" } }
+                  ] }
+              ]
+            }
+            """);
+        WriteConfig(folder);
+        WriteEstimates(folder, ("live", 120), ("gone", 300), ("dropped", 60));
+
+        var result = TimeAnalysisGenerator.Generate(folder, When);
+        var analysis = ReadAnalysis(folder);
+
+        Equal(120L, Long(analysis, "summary", "total_estimated_minutes"), "A retired item's estimate reached the total");
+        Equal(1, result.LeafCount, "A retired item counted as a leaf");
+        Equal("complete", result.EstimateCoverage, "Retired items lowered the coverage");
     }
 
     private static void WriteConfig(string folder, string? delivery = null)

@@ -67,7 +67,7 @@ For task, item, and developer-field updates, use the `report` command instead of
   - `done`: requested outcome is implemented and adequately verified.
   - `archive`: historical work retained for context but no longer active.
 - A child item the user confirmed is no longer needed retires through `item.update` with one of two statuses, which the Report shows as 已取代／已棄案 and every queue, Next, progress count and time analysis skips:
-  - `obsolete`: another item or design already meets its goal; `"retirement": {"replaced_by": {"scope_id", "task_id", "item_id"}}` names that existing, unretired item.
+  - `obsolete`: another item or design already meets its goal; `"retirement": {"replaced_by": …}` names it — an existing, unretired item as `{"scope_id", "task_id", "item_id"}`, or a design document in this scope as `{"document": "<path>#<section>"}`, which must exist.
   - `discontinued`: its premise failed, its design was overturned, or the work is dropped; `"retirement": {"reason": "<why>"}`.
   The CLI refuses either while an unfinished item still waits on it (repoint or remove that wait first), refuses a new wait on a retired item, and refuses `retirement` on any other status. Cards do not retire this way.
 - Write `summary` as the current outcome or state, not a work diary. When the card has a plan document, link its 〈問題與目標〉 section from the summary: that section is the card's goal.

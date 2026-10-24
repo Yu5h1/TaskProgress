@@ -439,6 +439,7 @@ test("a retired item names its replacement or reason, and only retired items car
   const codes = (item) => validateReport(report(item)).map((error) => error.code);
   assert.deepEqual(codes({ status: "obsolete", retirement: { replaced_by: { scope_id: "main", task_id: "c", item_id: "j" } } }), []);
   assert.deepEqual(codes({ status: "discontinued", retirement: { reason: "前提不成立" } }), []);
+  assert.deepEqual(codes({ status: "obsolete", retirement: { replaced_by: { document: "Documentation/Plan.md#目標" } } }), []);
   assert.ok(codes({ status: "obsolete" }).includes("missing_retirement"));
   assert.ok(codes({ status: "obsolete", retirement: { reason: "x" } }).includes("missing_replacement"));
   assert.ok(codes({ status: "discontinued", retirement: { reason: " " } }).includes("missing_retirement_reason"));

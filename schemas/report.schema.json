@@ -302,26 +302,45 @@
           "minProperties": 1,
           "properties": {
             "replaced_by": {
-              "type": "object",
-              "additionalProperties": false,
-              "required": [
-                "scope_id",
-                "task_id",
-                "item_id"
-              ],
-              "properties": {
-                "scope_id": {
-                  "type": "string",
-                  "minLength": 1,
-                  "maxLength": 80
+              "$comment": "The item, or the design document in this scope (path with an optional #section), that already meets the retired item's goal.",
+              "oneOf": [
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "scope_id",
+                    "task_id",
+                    "item_id"
+                  ],
+                  "properties": {
+                    "scope_id": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 80
+                    },
+                    "task_id": {
+                      "$ref": "#/$defs/id"
+                    },
+                    "item_id": {
+                      "$ref": "#/$defs/id"
+                    }
+                  }
                 },
-                "task_id": {
-                  "$ref": "#/$defs/id"
-                },
-                "item_id": {
-                  "$ref": "#/$defs/id"
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "document"
+                  ],
+                  "properties": {
+                    "document": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 300
+                    }
+                  }
                 }
-              }
+              ]
             },
             "reason": {
               "type": "string",

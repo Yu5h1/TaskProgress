@@ -118,14 +118,14 @@ RETIRED_STATUSES = {"obsolete", "discontinued"}
 
 
 def check_retirement(report, task_id, item, folder=None):
-    """obsolete names an existing replacement, discontinued names a reason; nothing unfinished may wait on a retired item."""
+    """obsolete names what replaced it (an existing item, or a design document in this scope), discontinued names a reason; nothing unfinished may wait on a retired item."""
     status, retirement = item.get("status"), item.get("retirement")
     if status not in RETIRED_STATUSES:
         require(retirement is None, "retirement belongs only to an obsolete or discontinued item", "retirement")
         return
     require(isinstance(retirement, dict) and set(retirement) <= {"replaced_by", "reason"},
             "A retired item needs a retirement object with replaced_by or reason", "retirement")
-    reason = retirement.get("reason")
+    reason, target = retirement.get("reason"), None
     require(reason is None or (isinstance(reason, str) and 0 < len(reason.strip()) <= 300),
             "retirement.reason must be a non-empty string of at most 300 characters", "retirement.reason")
     if status == "discontinued":
@@ -133,9 +133,21 @@ def check_retirement(report, task_id, item, folder=None):
         require("replaced_by" not in retirement, "A discontinued item has no replacement; use obsolete", "retirement.replaced_by")
     else:
         target = retirement.get("replaced_by")
-        require(isinstance(target, dict) and set(target) == {"scope_id", "task_id", "item_id"}
-                and all(isinstance(target[k], str) and target[k] for k in target),
-                "An obsolete item needs retirement.replaced_by with scope_id, task_id and item_id", "retirement.replaced_by")
+        if isinstance(target, dict) and set(target) == {"document"}:
+            document = target["document"]
+            require(isinstance(document, str) and 0 < len(document) <= 300 and not document.startswith(("/", "\\"))
+                    and ".." not in Path(document.split("#", 1)[0]).parts,
+                    "retirement.replaced_by.document must be a path inside this scope, optionally with #section", "retirement.replaced_by")
+            if folder is not None:
+                require((Path(folder) / document.split("#", 1)[0]).is_file(),
+                        "Replacement document was not found: " + document, "retirement.replaced_by")
+            target = None
+        else:
+            require(isinstance(target, dict) and set(target) == {"scope_id", "task_id", "item_id"}
+                    and all(isinstance(target[k], str) and target[k] for k in target),
+                    "An obsolete item needs retirement.replaced_by: an item (scope_id, task_id, item_id) or a design document",
+                    "retirement.replaced_by")
+    if status == "obsolete" and target is not None:
         key = (target["scope_id"], target["task_id"], target["item_id"])
         require(key != (report["scope_id"], task_id, item["id"]), "An item cannot replace itself", "retirement.replaced_by")
         replacement = find_in_scope(report, key, folder)
