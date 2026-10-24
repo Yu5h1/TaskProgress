@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-10-24T18:37:13.744056+00:00",
+  "updated_at": "2026-10-24T18:37:26.529905+00:00",
   "tasks": [
     {
       "id": "next-marker",
@@ -2865,6 +2865,20 @@
               "event": "done",
               "actor": "claude",
               "at": "2026-10-24T18:03:21.878948+00:00",
+              "session": "Taskprogess",
+              "session_id": "016492fa-7464-498b-9444-0e6296cd1267"
+            },
+            {
+              "event": "started",
+              "actor": "claude",
+              "at": "2026-10-24T18:37:25.185786+00:00",
+              "session": "Taskprogess",
+              "session_id": "016492fa-7464-498b-9444-0e6296cd1267"
+            },
+            {
+              "event": "done",
+              "actor": "claude",
+              "at": "2026-10-24T18:37:26.529905+00:00",
               "session": "Taskprogess",
               "session_id": "016492fa-7464-498b-9444-0e6296cd1267"
             }
