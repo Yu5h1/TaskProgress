@@ -2,9 +2,9 @@
 
 > Task ID: gap-scan
 >
-> 狀態：大部分已決定，未實作。問題由使用者提出（2026-10-24）；同日 [AcceptanceChainPlan〈目標與流程〉](AcceptanceChainPlan.md#目標與流程)定案後，盤點併入每一層的 plan，第 1、2、4、5、6 題依該節作答；第 3、7 題待答，在 [gap-scan.decisions](../decisions/gap-scan.decisions)。
+> 狀態：大部分已決定，未實作。問題由使用者提出（2026-10-24）；同日 [AcceptanceChainPlan〈目標與流程〉](AcceptanceChainPlan.md#目標與流程)定案後，盤點併入每一層的 plan，第 1～6 題依該節作答；第 7 題待答，在 [gap-scan.decisions](../decisions/gap-scan.decisions)。
 >
-> 與其他文件的關係：流程與分工由〈目標與流程〉擁有，本計畫只負責盤點的來源、證據與退場；評估的現行規則在 [agent-executable-items〈Evaluate a scope〉](../../.agents/skills/agent-executable-items/SKILL.md#evaluate-a-scope)；跨平台模組的候選盤點在 [cross-platform-module-spec〈Select scope〉](../../.agents/skills/cross-platform-module-spec/SKILL.md#select-scope)（去留待第 3 題）。
+> 與其他文件的關係：流程與分工由〈目標與流程〉擁有，本計畫只負責盤點的來源、證據與退場；評估的現行規則在 [agent-executable-items〈Evaluate a scope〉](../../.agents/skills/agent-executable-items/SKILL.md#evaluate-a-scope)；跨平台模組的候選盤點在 [cross-platform-module-spec〈Select scope〉](../../.agents/skills/cross-platform-module-spec/SKILL.md#select-scope)（候選盤點移到 plan，見第 3 題）。
 
 ## 系統階層與關係
 
@@ -45,10 +45,11 @@ plan（每一層做同一件事：對照這一層的目標）
 
 ## 已決定
 
-2026-10-24 依〈目標與流程〉作答（[gap-scan.decisions](../decisions/gap-scan.decisions)）：
+2026-10-24 依〈目標與流程〉作答，第 3 題由使用者採用建議（[gap-scan.decisions](../decisions/gap-scan.decisions)）：
 
 - **第 1 題：範圍。** 完成專案目標需要的任何工作都在範圍內：模組、規格、平台實作、計畫目標、文件、驗證，不限程式開發；程式品質類（測試缺口、TODO、過時文件）只在目標需要時列入。
 - **第 2 題：跨 scope。** `plan all` 跨所有 scope，每個 scope 只做淺層盤點（缺口、退場候選、Next），往下拆只對指定的範圍。
+- **第 3 題：規格技能的分工。** cross-platform-module-spec 只保留「怎麼把一個模組寫對」的方法（分類與命名、模組目標欄位與消費端證據、適配表、規格格式）；流程部分（整個庫的候選盤點、等使用者選、通用的確認目標）移到 task-progress-items，規格技能改為引用。
 - **第 4 題：產出。** 目標推得出的缺口直接建成卡片或子項，寫明服務目標的哪一句；會擴充或改變目標的寫成決策題。
 - **第 5 題：落點。** 缺口在 scope 層成為卡片（目標引用專案目標的那一句），在卡片層成為子項；卡片在下一次 plan 到它、或本次範圍包含它時拆成子項。
 - **第 6 題：入口。** 不新增動詞；盤點是每一層 plan 的一部分。
@@ -65,5 +66,4 @@ plan（每一層做同一件事：對照這一層的目標）
 
 [gap-scan.decisions](../decisions/gap-scan.decisions)：
 
-- 第 3 題：「整個庫的候選盤點」要不要從跨平台模組規格技能移到 plan。
 - 第 7 題：退場的子項用什麼狀態表示。

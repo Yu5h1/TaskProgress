@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-10-24T14:29:49.912660+00:00",
+  "updated_at": "2026-10-24T15:35:09.614959+00:00",
   "tasks": [
     {
       "id": "next-marker",
@@ -2897,7 +2897,7 @@
           "id": "gap-scan-decisions",
           "status": "planned",
           "priority": 1,
-          "title": "決定 [缺口與退場盤點計畫](https://github.com/Yu5h1/TaskProgress/blob/main/Documentation/GapScanPlan.md) 剩下的 2 題：跨平台模組規格技能的候選盤點要不要移到 plan、退場子項的狀態",
+          "title": "決定 [缺口與退場盤點計畫](https://github.com/Yu5h1/TaskProgress/blob/main/Documentation/GapScanPlan.md) 剩下的 1 題：退場子項用什麼狀態表示",
           "document_ref": {
             "kind": "decision",
             "scope_id": "task-progress",
@@ -2922,6 +2922,12 @@
               "event": "updated",
               "actor": "claude",
               "at": "2026-10-24T14:29:49.912660+00:00",
+              "session": "Taskprogess"
+            },
+            {
+              "event": "updated",
+              "actor": "claude",
+              "at": "2026-10-24T15:35:09.614959+00:00",
               "session": "Taskprogess"
             }
           ]

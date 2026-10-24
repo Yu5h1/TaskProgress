@@ -73,6 +73,8 @@ plan 在每一層做同一件事：對照這一層的目標，看下一層已有
 - **專案分析。** scope 層的分析在專案目標改變時做一次，結果存成卡片；不要每次 plan 都重做。資源、技術能力等估計，只在會改變使用者的決定時才做。
 - **平行。** 多個模組、多張卡可以同時推進；兩項工作能不能同時做，依它們會改到的檔案與共用資源判斷（[WorktreeReportPlan](WorktreeReportPlan.md)）。原本「一次只進行一個模組、下一個由使用者點名」的規則已取消（使用者 2026-10-24：那是 2026-10-14 的試跑被擴大成長期規則）。
 
+**流程與方法分開。** 流程規則（找缺口、確認目標、驗收先後、等使用者選）歸 task-progress-items；某一類工作怎樣才算做對（例如跨平台模組規格的寫法）歸各專業技能，plan 拆出的子項執行時照該技能做。專業技能對不對，使用者無法從規格本身判斷，只能從結果驗收；agent 以驗收的回饋評估技能：翻案、重修、調整越少，技能越對，收尾檢討把驗收不通過的原因回寫到對應的技能（使用者 2026-10-24）。
+
 ### 子項類型
 
 | 類型 | 綁定文件 | 誰驗收 |
@@ -147,8 +149,9 @@ plan 在每一層做同一件事：對照這一層的目標，看下一層已有
 - **task-progress-items：** 每一層 plan 的產出、子項類型（含卡片結案驗收）、直接建立與決策題的分界、量與分批、經驗紀錄的寫入、收尾檢討。
 - **agent-executable-items〈Evaluate a scope〉：** 從目標推得出的工作直接建立；評估改讀卡片的經驗紀錄，不再讀 friction log。
 - **task-progress-report：** 卡片綁定文件、摘要連結目標。
+- **cross-platform-module-spec：** 〈Select scope〉的整個庫候選盤點與「等使用者選」移到 plan；〈Define the goal before the specification〉的通用確認步驟改為引用〈釐清目標〉，只留模組目標欄位、消費端證據與適配表（GapScanPlan 第 3 題）。
 - **程式（CLI、Viewer、schema）：** 卡片的 `document_ref`；被等的子項只差使用者驗收時解除等待，以及「要等使用者驗收」的標記；只有 `[manual]` 的 checklist 能通過檢查與先後規則（現有規則要求不標的檢查先完成，需確認）。
-- **重疊：** `.agents` module-workflow-review 卡的 `light-lane` 提案與 friction log，改為引用這裡；GapScanPlan 已依本節作答第 1、2、4～6 題，盤點併入每一層的 plan；第 3 題（跨平台模組規格技能的候選盤點去留）與第 7 題待答。
+- **重疊：** `.agents` module-workflow-review 卡的 `light-lane` 提案與 friction log，改為引用這裡；GapScanPlan 已依本節作答第 1～6 題，盤點併入每一層的 plan；cross-platform-module-spec 的流程部分（候選盤點、等使用者選、通用的確認目標）移到 task-progress-items，只留方法；第 7 題待答。
 
 ## 已決定
 
