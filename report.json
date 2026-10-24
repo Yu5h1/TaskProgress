@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-10-24T17:42:40.920107+00:00",
+  "updated_at": "2026-10-24T18:02:38.789232+00:00",
   "tasks": [
     {
       "id": "next-marker",
@@ -2070,7 +2070,7 @@
         {
           "id": "acceptance-flow-trial",
           "title": "端到端試跑：在 [驗證流程試跑](/?scope=task-progress&pin=acceptance-trial) 卡片用 /task-progress-items 走過自驗、人工、他驗、他驗＋人工、條件不符與等待六種情況，每一步 Report 顯示的狀態都和計畫〈流程紀錄〉一致",
-          "status": "planned",
+          "status": "in_progress",
           "activity": [
             {
               "event": "created",
@@ -2096,6 +2096,13 @@
               "event": "updated",
               "actor": "claude",
               "at": "2026-10-24T17:42:40.920107+00:00",
+              "session_id": "016492fa-7464-498b-9444-0e6296cd1267"
+            },
+            {
+              "event": "started",
+              "actor": "claude",
+              "at": "2026-10-24T17:59:37.779041+00:00",
+              "session": "Taskprogess",
               "session_id": "016492fa-7464-498b-9444-0e6296cd1267"
             }
           ],
@@ -2761,6 +2768,68 @@
               "actor": "claude",
               "at": "2026-10-23T05:35:50.773509+00:00",
               "session_id": "990bddf5-22fd-4ca7-a93a-669fa2af3f7d"
+            }
+          ]
+        },
+        {
+          "id": "trial-manual-wait",
+          "title": "人工等待試跑（W）：建立 manual-wait.txt，使用者先判不通過再判通過",
+          "document_ref": {
+            "kind": "checklist",
+            "scope_id": "task-progress",
+            "task": "trial-manual-wait"
+          },
+          "status": "planned",
+          "activity": [
+            {
+              "event": "created",
+              "actor": "claude",
+              "at": "2026-10-24T18:02:38.789232+00:00",
+              "session": "Taskprogess",
+              "session_id": "016492fa-7464-498b-9444-0e6296cd1267"
+            }
+          ]
+        },
+        {
+          "id": "trial-wait-lifted",
+          "title": "人工等待試跑（L）：W 只差使用者驗收時就建立 wait-lifted.txt",
+          "waits_for": [
+            {
+              "scope_id": "task-progress",
+              "task_id": "acceptance-trial",
+              "item_id": "trial-manual-wait"
+            }
+          ],
+          "status": "planned",
+          "activity": [
+            {
+              "event": "created",
+              "actor": "claude",
+              "at": "2026-10-24T18:02:38.789232+00:00",
+              "session": "Taskprogess",
+              "session_id": "016492fa-7464-498b-9444-0e6296cd1267"
+            }
+          ]
+        },
+        {
+          "id": "trial-wait-strict",
+          "title": "人工等待試跑（S）：W 完成後才建立 wait-strict.txt",
+          "waits_for": [
+            {
+              "scope_id": "task-progress",
+              "task_id": "acceptance-trial",
+              "item_id": "trial-manual-wait",
+              "strict": true
+            }
+          ],
+          "status": "planned",
+          "activity": [
+            {
+              "event": "created",
+              "actor": "claude",
+              "at": "2026-10-24T18:02:38.789232+00:00",
+              "session": "Taskprogess",
+              "session_id": "016492fa-7464-498b-9444-0e6296cd1267"
             }
           ]
         }
