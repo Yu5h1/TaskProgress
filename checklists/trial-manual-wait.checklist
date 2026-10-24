@@ -4,10 +4,10 @@ Current round: `experiments/acceptance-trial/spec.md#人工等待試跑`.
 
 驗證方式：人工。本檔只有一輪；使用者的人工驗收要先判不通過一次，再判通過，用來檢查等待者的連鎖反應。
 
-- [ ] **1. 建立 manual-wait.txt**
+- [x] **1. 建立 manual-wait.txt**
   Outcome: experiments/acceptance-trial/manual-wait.txt 符合規格。
   Checks:
-    - [ ] **內容正確**
+    - [x] **內容正確**
       - Action: 讀取 experiments/acceptance-trial/manual-wait.txt。
       - Expect: 只有一行 manual wait ok。
 
