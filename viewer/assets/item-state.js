@@ -64,7 +64,8 @@ export function stateFromChecklist(item, evaluation) {
 /**
  * What a waiter needs from a checklist-bound waited item beyond completion, read from its checklist
  * alone: whether only the user's [manual] acceptance is left (every other check passed and the user
- * failed none), and when the user last failed a [manual] check that still stands.
+ * failed none), and when the user last failed a [manual] check still marked failed in the file, even
+ * after the waited item's fix is released.
  */
 export function waitedChecklistFacts(item, evaluation) {
   if (!evaluation?.ok || !Array.isArray(evaluation.checks)) return { onlyManual: false, userFailedAt: null };
@@ -72,7 +73,7 @@ export function waitedChecklistFacts(item, evaluation) {
   const onlyManual = stateFromChecklist(item, evaluation) === "awaiting_user"
     && checks.every((check) => check.tag === "manual" || effective(check) === "passed");
   const failures = checks
-    .filter((check) => check.tag === "manual" && check.recorder === "user" && effective(check) === "failed")
+    .filter((check) => check.tag === "manual" && check.recorder === "user" && check.status === "failed")
     .map(recordedAt)
     .filter((at) => at !== null);
   return { onlyManual, userFailedAt: failures.length ? Math.max(...failures) : null };

@@ -75,7 +75,8 @@ internal sealed class ItemStateResolver
     /// <summary>
     ///   A waited item: done, lacking only the user's <c>[manual]</c> acceptance (read from its
     ///   checklist alone: every other check passed and the user failed none), and when the user last
-    ///   failed a <c>[manual]</c> check that still stands.
+    ///   failed a <c>[manual]</c> check still marked failed in the file. The mark counts even after the
+    ///   waited item's fix is released, so a waiter cannot skip its redo before the user passes again.
     /// </summary>
     private (bool Done, bool OnlyManual, DateTimeOffset? UserFailedAt) Target(string scope, string taskId, string itemId, int depth)
     {
@@ -89,8 +90,7 @@ internal sealed class ItemStateResolver
         var onlyManual = FromChecklist(checklist, found) == ItemStates.AwaitingUser
             && checks.All(check => check.IsManual || ChecklistDocument.EffectiveStatus(check, released) == ChecklistStatus.Passed);
         var userFailedAt = checks
-            .Where(check => check.IsManual && check.Record?.Recorder == "user"
-                && ChecklistDocument.EffectiveStatus(check, released) == ChecklistStatus.Failed)
+            .Where(check => check.IsManual && check.Record?.Recorder == "user" && check.Status == ChecklistStatus.Failed)
             .Select(check => (DateTimeOffset?)check.Record!.At)
             .DefaultIfEmpty(null)
             .Max();

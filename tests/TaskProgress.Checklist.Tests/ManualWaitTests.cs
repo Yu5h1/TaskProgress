@@ -41,7 +41,12 @@ internal static partial class Program
                     { "id": "redone", "waits_for": [ { "scope_id": "mw", "task_id": "card", "item_id": "user-failed" } ]{{redone}} },
                     { "id": "never-started", "waits_for": [ { "scope_id": "mw", "task_id": "card", "item_id": "user-failed" } ] },
                     { "id": "strict-failed", "waits_for": [ { "scope_id": "mw", "task_id": "card", "item_id": "user-failed", "strict": true } ]{{started}} },
-                    { "id": "chain", "waits_for": [ { "scope_id": "mw-other", "task_id": "card", "item_id": "remote" } ] }
+                    { "id": "chain", "waits_for": [ { "scope_id": "mw-other", "task_id": "card", "item_id": "remote" } ] },
+                    { "id": "fixed", "document_ref": { "kind": "checklist", "scope_id": "mw", "task": "user-failed" },
+                      "activity": [ { "event": "started", "actor": "claude", "at": "2026-10-25T10:20:00Z" }, { "event": "released", "actor": "claude", "at": "2026-10-25T10:30:00Z" } ] },
+                    { "id": "redo-after-fix", "waits_for": [ { "scope_id": "mw", "task_id": "card", "item_id": "fixed" } ]{{started}} },
+                    { "id": "redone-after-fix", "status": "done", "waits_for": [ { "scope_id": "mw", "task_id": "card", "item_id": "fixed" } ],
+                      "activity": [ { "event": "started", "actor": "claude", "at": "2026-10-25T09:00:00Z" }, { "event": "done", "actor": "claude", "at": "2026-10-25T10:45:00Z" } ] }
                   ],
                   "completed_items": [
                     { "id": "done-then-failed", "status": "done", "waits_for": [ { "scope_id": "mw", "task_id": "card", "item_id": "user-failed" } ],
@@ -81,6 +86,9 @@ internal static partial class Program
         Equal(ItemStates.Waiting, State("strict-failed"), "a strict waiter never proceeded, so it only waits");
         Equal(ItemStates.NeedsFix, State("done-then-failed"), "a waiter done before the failure cannot stay done");
         Equal(ItemStates.NotStarted, State("chain"), "a wait across scopes is met by a remote manual-only remainder");
+        Equal(ItemStates.AwaitingUser, State("fixed"), "a released fix voids the failure and awaits the user again");
+        Equal(ItemStates.NeedsFix, State("redo-after-fix"), "the failure still on file keeps a started waiter's redo after the fix is released");
+        Equal(ItemStates.Done, State("redone-after-fix"), "a waiter done after the failure needs no further redo");
 
         var manualOnly = ChecklistDocument.Parse(ManualOnlyFixture());
         True(manualOnly.UntaggedComplete && manualOnly.IsAcceptanceComplete(null), "a manual-only checklist has no executor or acceptance work");
