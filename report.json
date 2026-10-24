@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-10-24T16:07:07.226070+00:00",
+  "updated_at": "2026-10-24T16:49:46.992561+00:00",
   "tasks": [
     {
       "id": "next-marker",
@@ -2068,60 +2068,6 @@
       "summary": "以 [目標與流程](https://github.com/Yu5h1/TaskProgress/blob/main/Documentation/AcceptanceChainPlan.md#目標與流程) 為準：使用者確認目標與驗收，agent 完成規劃、執行、自驗與他驗。子項追蹤 TaskProgress 技能與程式的落實、既有端到端試跑及卡片結案；共用規則的交付依 Requirements.agents.md 串接。",
       "pending_items": [
         {
-          "id": "decide-goal-flow",
-          "status": "planned",
-          "priority": 1,
-          "title": "確認目標與流程的七個決策：目標位置、直接拆解、經驗、人工等待、輕量流程、收尾與指標",
-          "document_ref": {
-            "kind": "decision",
-            "scope_id": "task-progress",
-            "task": "goal-flow"
-          },
-          "activity": [
-            {
-              "event": "created",
-              "actor": "claude",
-              "at": "2026-10-24T04:53:37.005188+00:00",
-              "session": "Taskprogess",
-              "session_id": "cfb6305b-c950-4f60-b572-e82f12b683c5"
-            },
-            {
-              "event": "updated",
-              "actor": "codex",
-              "at": "2026-10-24T16:07:07.226070+00:00",
-              "session": "agent-workflow 規劃",
-              "session_id": "6f08010b-90db-4e2a-be27-c72a9b0e66d9"
-            }
-          ]
-        },
-        {
-          "id": "decide-next-step-flow",
-          "title": "確認下一步流程的四個決策：預設動詞、採建議執行、模組點名與問題記錄",
-          "status": "planned",
-          "priority": 0,
-          "document_ref": {
-            "kind": "decision",
-            "scope_id": "task-progress",
-            "task": "agent-workflow"
-          },
-          "activity": [
-            {
-              "event": "created",
-              "actor": "claude",
-              "at": "2026-10-23T03:15:06.070478+00:00",
-              "session": "Agent workflow 流程檢視",
-              "session_id": "990bddf5-22fd-4ca7-a93a-669fa2af3f7d"
-            },
-            {
-              "event": "updated",
-              "actor": "codex",
-              "at": "2026-10-24T16:07:07.226070+00:00",
-              "session": "agent-workflow 規劃",
-              "session_id": "6f08010b-90db-4e2a-be27-c72a9b0e66d9"
-            }
-          ]
-        },
-        {
           "id": "acceptance-flow-trial",
           "title": "端到端試跑：在 [驗證流程試跑](/?scope=task-progress&pin=acceptance-trial) 卡片用 /task-progress-items 走過自驗、人工、他驗、他驗＋人工、條件不符與等待六種情況，每一步 Report 顯示的狀態都和計畫〈流程紀錄〉一致",
           "status": "planned",
@@ -2215,6 +2161,88 @@
         }
       ],
       "completed_items": [
+        {
+          "id": "decide-goal-flow",
+          "status": "done",
+          "priority": 1,
+          "title": "確認目標與流程的七個決策：目標位置、直接拆解、經驗、人工等待、輕量流程、收尾與指標",
+          "document_ref": {
+            "kind": "decision",
+            "scope_id": "task-progress",
+            "task": "goal-flow"
+          },
+          "activity": [
+            {
+              "event": "created",
+              "actor": "claude",
+              "at": "2026-10-24T04:53:37.005188+00:00",
+              "session": "Taskprogess",
+              "session_id": "cfb6305b-c950-4f60-b572-e82f12b683c5"
+            },
+            {
+              "event": "updated",
+              "actor": "codex",
+              "at": "2026-10-24T16:07:07.226070+00:00",
+              "session": "agent-workflow 規劃",
+              "session_id": "6f08010b-90db-4e2a-be27-c72a9b0e66d9"
+            },
+            {
+              "event": "started",
+              "actor": "claude",
+              "at": "2026-10-24T16:49:45.491710+00:00",
+              "session": "Taskprogess",
+              "session_id": "016492fa-7464-498b-9444-0e6296cd1267"
+            },
+            {
+              "event": "done",
+              "actor": "claude",
+              "at": "2026-10-24T16:49:46.992561+00:00",
+              "session": "Taskprogess",
+              "session_id": "016492fa-7464-498b-9444-0e6296cd1267"
+            }
+          ]
+        },
+        {
+          "id": "decide-next-step-flow",
+          "title": "確認下一步流程的四個決策：預設動詞、採建議執行、模組點名與問題記錄",
+          "status": "done",
+          "priority": 0,
+          "document_ref": {
+            "kind": "decision",
+            "scope_id": "task-progress",
+            "task": "agent-workflow"
+          },
+          "activity": [
+            {
+              "event": "created",
+              "actor": "claude",
+              "at": "2026-10-23T03:15:06.070478+00:00",
+              "session": "Agent workflow 流程檢視",
+              "session_id": "990bddf5-22fd-4ca7-a93a-669fa2af3f7d"
+            },
+            {
+              "event": "updated",
+              "actor": "codex",
+              "at": "2026-10-24T16:07:07.226070+00:00",
+              "session": "agent-workflow 規劃",
+              "session_id": "6f08010b-90db-4e2a-be27-c72a9b0e66d9"
+            },
+            {
+              "event": "started",
+              "actor": "claude",
+              "at": "2026-10-24T16:49:45.491710+00:00",
+              "session": "Taskprogess",
+              "session_id": "016492fa-7464-498b-9444-0e6296cd1267"
+            },
+            {
+              "event": "done",
+              "actor": "claude",
+              "at": "2026-10-24T16:49:46.992561+00:00",
+              "session": "Taskprogess",
+              "session_id": "016492fa-7464-498b-9444-0e6296cd1267"
+            }
+          ]
+        },
         {
           "id": "checklist-legacy-migrate",
           "title": "遷移：遷移命令替沒有記錄者的標籤結果補上記錄者 legacy 與指紋；新規則上線時對所有已登記 scope 執行一次，執行前確認各 repo 沒有他人未提交的工作，只提交遷移改到的檔案",
