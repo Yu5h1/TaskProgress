@@ -11,12 +11,11 @@ Current round: `experiments/acceptance-trial/spec.md#人工等待試跑`.
       - Action: 讀取 experiments/acceptance-trial/manual-wait.txt。
       - Expect: 只有一行 manual wait ok。
 
-- [!] **2. 人工驗收**
+- [x] **2. 人工驗收**
   Outcome: 使用者確認 Report 上三個子項的狀態依〈流程紀錄〉情境 7 第 4 步變化。
   Checks:
-    - [!] **等待解除、嚴格等待與重做** `[manual]`
+    - [x] **等待解除、嚴格等待與重做** `[manual]`
       - Action: 開啟 [驗證流程試跑卡片](http://127.0.0.1:8001/?scope=task-progress&pin=acceptance-trial)，看「人工等待」三項。第一步先在這裡把本格標成 [!]，Observed 寫「試跑：故意不通過」，重新整理卡片並告訴 agent；agent 修正 W、重做 L 後，第二步把本格改成 [x]，重新整理卡片。
       - Expect: 開始前 W 顯示待使用者、L 已完成（沒有等你）、S 顯示等待中；第一步之後 W 與 L 都顯示需修正、S 仍等待中；第二步之後 W 完成、L 完成、S 不再等待。
       - Reason: Report 畫面上的狀態由使用者判。
-      - Observed: 試跑：故意不通過
-      - Recorded: user; at=2026-10-24T18:35:56Z; fp=84caabf49335
+      - Recorded: user; at=2026-10-24T18:39:15Z; fp=84caabf49335
