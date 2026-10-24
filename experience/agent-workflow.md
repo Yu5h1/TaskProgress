@@ -6,5 +6,6 @@
 - [dismissed：只和本 session 用 Bash heredoc 產生 Python 字串的寫法有關，不影響流程] 2026-10-25 claude › goal-flow-implementation › environment：heredoc 裡的 `\\n` 被寫成真正的換行
 - [promoted → ItemState.cs 與 item-state.js 的不通過時間改看檔案標記] 2026-10-25 claude › acceptance-flow-trial › judgment：被等子項修正後一釋放，使用者的不通過就失效，已開始的等待者因此不必重做；設計試跑步驟時發現
 - [promoted → task-progress-items〈Queues and sessions〉] 2026-10-25 claude › acceptance-flow-trial › judgment：使用者判被等項不通過時，等待者同時顯示「需修正」，run 可能在被等項修正前就先重做等待者；試跑中先修 W 再重做 L，但規則沒要求這個順序 → task-progress-items〈Execute〉或狀態推算（被等項未修好前顯示等待中）
+- [promoted → task-progress-report〈Bind Checklist and Decision documents〉] 2026-10-25 claude › decide-goal-flow › misled：技能寫決策檔名「不必等於 Report 任務 ID」，服務卻只讀以卡片代號命名的決策檔；另開的 goal-flow.decisions 在 Viewer 顯示「來源不可用」，已併入 agent-workflow.decisions（使用者發現）
 
 指標：驗收不通過 0／3、重做 0、重講目標 4、週期 4 天

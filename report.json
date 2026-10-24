@@ -172,11 +172,11 @@
           "id": "decide-goal-flow",
           "status": "done",
           "priority": 1,
-          "title": "確認目標與流程的七個決策：目標位置、直接拆解、經驗、人工等待、輕量流程、收尾與指標",
+          "title": "確認目標與流程的七個決策（決策檔 agent-workflow 的「目標與流程」1～7 題）：目標位置、直接拆解、經驗、人工等待、輕量流程、收尾與指標",
           "document_ref": {
             "kind": "decision",
             "scope_id": "task-progress",
-            "task": "goal-flow"
+            "task": "agent-workflow"
           },
           "activity": [
             {
@@ -206,6 +206,13 @@
               "at": "2026-10-24T16:49:46.992561+00:00",
               "session": "Taskprogess",
               "session_id": "016492fa-7464-498b-9444-0e6296cd1267"
+            },
+            {
+              "event": "updated",
+              "actor": "claude",
+              "session": "Taskprogess",
+              "session_id": "016492fa-7464-498b-9444-0e6296cd1267",
+              "at": "2026-10-24T18:49:30.212998+00:00"
             }
           ]
         },

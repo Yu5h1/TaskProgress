@@ -26,7 +26,7 @@ Agent 自己寫步驟、自己執行時，交給更高階的模型驗收後，�
 
 ## 目標與流程
 
-使用者於 2026-10-24 決定這一節的內容；判斷依據是〈為什麼〉的有效與高效。細節題目在 [goal-flow.decisions](../decisions/goal-flow.decisions)，七題都已答。
+使用者於 2026-10-24 決定這一節的內容；判斷依據是〈為什麼〉的有效與高效。細節題目在 [agent-workflow.decisions](../decisions/agent-workflow.decisions)「目標與流程」1～7 題，七題都已答。
 
 **原則。** 這套流程讓 agent 盡可能理解目標、跑完任務，交出使用者想要的結果。使用者只在開頭確認目標、最後驗收；中途修改與討論是使用者的選擇，不算 agent 的錯。重做是正常的完成方式：很多事沒有經驗，無法一次到位。
 
@@ -593,4 +593,4 @@ A、B、C 代表不同的 session；「推算」指〈子項狀態（推算）�
 
 ## 未決事項
 
-無。〈目標與流程〉的七題 2026-10-24 已答，見 [goal-flow.decisions](../decisions/goal-flow.decisions)，內容已寫進該節。更早的題目也都已決定：AC-07～AC-09 見已決定第 4、20～22 點；2026-10-23 的四題見第 27～29 點與 [NextMarkerPlan](NextMarkerPlan.md)。
+無。〈目標與流程〉的七題 2026-10-24 已答，見 [agent-workflow.decisions](../decisions/agent-workflow.decisions)「目標與流程」1～7 題，內容已寫進該節。更早的題目也都已決定：AC-07～AC-09 見已決定第 4、20～22 點；2026-10-23 的四題見第 27～29 點與 [NextMarkerPlan](NextMarkerPlan.md)。
