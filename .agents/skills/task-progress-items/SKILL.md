@@ -255,7 +255,9 @@ will follow — moving or renaming files, fixing links — is direct work: no it
 ## Close-out review
 
 After a card's last work item is done and before its close-out item reaches the user, the session
-that finished that work item reviews the card once. The review is a step of the flow, never an item:
+whose write finished that work item reviews the card once: its executor, or for an item with
+`[acceptance]` the acceptor whose pass completed it. The review is a step of the flow, never an item;
+any item it adds joins the close-out item's `waits_for`:
 
 1. Settle every `open` line of the card's experience record: promote it (change the rule or skill,
    or record a 「問題：」 item) or dismiss it with the reason.
@@ -303,7 +305,9 @@ pending until recorded again.
  "payload":{"workItemId":2,"checkIndex":1,"status":"failed","observed":"Spec 3.2 rounds half up; code truncates.","reason":"implementation"}}
 ```
 
-`workItemId` counts from 1; `checkIndex` counts from 0 within that work item. Use
+`workItemId` counts from 1; `checkIndex` counts from 0 within that work item. A pass carries no
+`observed`; give its grounds in your report. When your pass completes the card's last work item, run
+§ Close-out review next. Use
 `"reason":"condition"` when the condition itself contradicts the spec. Passing a check that
 failed before needs `"resolved"`. The CLI refuses the creator's or an executor's session, results before the
 executor's checks pass, `[manual]` before every `[acceptance]` passes, and `[manual]` `[x]` from an

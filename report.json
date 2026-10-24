@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-10-24T17:33:13.413696+00:00",
+  "updated_at": "2026-10-24T17:42:40.920107+00:00",
   "tasks": [
     {
       "id": "next-marker",
@@ -2081,12 +2081,6 @@
             {
               "event": "updated",
               "actor": "claude",
-              "at": "2026-10-22T10:59:15.727732+00:00",
-              "session": "TaskProgress 維護開發"
-            },
-            {
-              "event": "updated",
-              "actor": "claude",
               "at": "2026-10-22T11:49:09.671297+00:00",
               "session": "TaskProgress 維護開發",
               "session_id": "583fa969-9dcf-4def-98dd-196efef59cea"
@@ -2097,6 +2091,12 @@
               "at": "2026-10-24T16:07:07.226070+00:00",
               "session": "agent-workflow 規劃",
               "session_id": "6f08010b-90db-4e2a-be27-c72a9b0e66d9"
+            },
+            {
+              "event": "updated",
+              "actor": "claude",
+              "at": "2026-10-24T17:42:40.920107+00:00",
+              "session_id": "016492fa-7464-498b-9444-0e6296cd1267"
             }
           ],
           "waits_for": [
@@ -2533,7 +2533,12 @@
             }
           ]
         }
-      ]
+      ],
+      "document_ref": {
+        "kind": "experience",
+        "scope_id": "task-progress",
+        "task": "agent-workflow"
+      }
     },
     {
       "id": "acceptance-trial",
@@ -3087,7 +3092,7 @@
     }
   ],
   "next": {
-    "task_id": "gap-scan",
-    "item_id": "gap-scan-decisions"
+    "task_id": "agent-workflow",
+    "item_id": "acceptance-flow-trial"
   }
 }
