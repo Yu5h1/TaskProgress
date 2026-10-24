@@ -43,15 +43,18 @@ Current round: `Documentation/AcceptanceChainPlan.md#目標與流程`.
       - Action: 讀取 Documentation/Requirements.agents.md，由提出方依其驗收確認共用規則的交付；對照 AcceptanceChainPlan〈流程紀錄〉逐項演練新規則的影響，跑改動對應的聚焦檢查，必要時重建與發布受影響的 UI／CLI。
       - Expect: 共用規則與 TaskProgress 技能沒有互相衝突的目標確認、盤點、經驗與結案規則；新增流程不破壞原有自驗、他驗、人工、條件修訂與等待；不擴成未授權的全套驗證。共用需求未交付時本檢查保留未完成，回報外部工作入口。
 
-- [ ] **5. 獨立驗收目標與流程**
+- [x] **5. 獨立驗收目標與流程**
   Outcome: 獨立上下文確認交付達成原始目標，且未把實作結果當成驗收標準。
   Checks:
-    - [ ] **驗收條件未被改動** `[acceptance]`
+    - [x] **驗收條件未被改動** `[acceptance]`
       - Action: 讀 Documentation/AcceptanceChainPlan.md〈已決定〉第 4、5 點，檢查 git log --grep goal-flow-implementation 與本清單的 git diff，對照最初提交條件或最近標為「條件修訂」的提交。
       - Expect: 本工作項目的 acceptance 標題、Action 與 Expect 自基準後未被改動，或有符合條件修訂流程的明確基準；驗收上下文未參與建立、實作或修正。
-    - [ ] **流程對齊目標** `[acceptance]`
+      - Recorded: claude:93dbe096-ac6d-44c5-b2ef-bf6bdf37ac29; at=2026-10-24T17:40:17Z; fp=1385efebcad7
+    - [x] **流程對齊目標** `[acceptance]`
       - Action: 對照 Documentation/AcceptanceChainPlan.md〈目標與流程〉、〈釐清目標〉、〈每一層的 plan〉、〈量與分批〉與〈輕量流程〉，從新上下文演練已確認目標、未確認目標、目標內缺口、改變目標、plan all 與量超出單次 session 的情境。
       - Expect: 使用者不必重複確認已定目標；三層產出、決策邊界與分批符合原始設計；plan 不啟動實作，不以縮減目標或降低條件收尾；領域方法仍由領域技能擁有。
-    - [ ] **資料、等待與結案符合決策** `[acceptance]`
+      - Recorded: claude:93dbe096-ac6d-44c5-b2ef-bf6bdf37ac29; at=2026-10-24T17:40:17Z; fp=6cd59ea7372a
+    - [x] **資料、等待與結案符合決策** `[acceptance]`
       - Action: 對照 Documentation/AcceptanceChainPlan.md〈經驗紀錄〉、〈執行與驗收〉、〈子項類型〉、〈收尾檢討〉與〈成效指標〉，檢查實際資料、聚焦案例及跨 scope 交付證據；涵蓋前項待人工、嚴格等待、前項人工失敗與 manual-only 結案。
       - Expect: 卡片可綁定 Markdown 經驗且沒有額外經驗 UI；一般等待與嚴格等待有正確差異；失敗使相依工作重做；收尾處理經驗與缺口後才交使用者；manual-only 可操作，指標不被擴建成新功能。
+      - Recorded: claude:93dbe096-ac6d-44c5-b2ef-bf6bdf37ac29; at=2026-10-24T17:40:17Z; fp=dfa457d50cb5
