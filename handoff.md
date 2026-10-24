@@ -6,6 +6,8 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
 
 ## Current state (2026-09-29)
 
+- **Agent workflow 的目標與流程已定案，尚未落實（2026-10-24，使用者決定）。** [AcceptanceChainPlan〈目標與流程〉](Documentation/AcceptanceChainPlan.md#目標與流程)：使用者確認目標與驗收，agent 跑完中間；plan 在 scope、卡片、子項三層對照目標，目標推得出的工作直接建立，會改變目標的才出決策題；子項類型新增卡片結案驗收；經驗記在卡片綁定的 `experience/<卡片ID>.md`；收尾檢討在結案驗收之前；不為做完而縮減，分批推進。「一次只進行一個模組」已取消（UX `7845db5`、.agents `050b6d3`）。[goal-flow.decisions](decisions/goal-flow.decisions) 七題已答；skill 與程式依該節〈落實時要改的地方〉修改，還沒開始。
+
 - **Checklist／Decision 的 Esc 取消選取（2026-10-24）。** `CardList.svelte` 捕捉頁面 Escape，清除選取、拖曳狀態及卡片內的 DOM 焦點，避免 `:focus-visible` 留下藍框；組字中的 Escape 保留給輸入法。Decision 的 `onSelectionChange` 同步釋放保留的排序。三個 UI build 通過；瀏覽器已實測兩個面板選取卡片後按 Esc，確認 `.card-selected` 為零、焦點離開卡片且 outline 為 none。前一版只清 selected、未解除焦點，不能據此判定藍框消失。
 
 - **Checklist 延後排序（2026-10-24，使用者要求）。** `ChecklistApp.svelte` 透過 `CardList.svelte` 的 `onSelectionChange` 在選取期間保留卡片與檢查項目的顯示位置，結果與進度仍即時更新；取消選取（點外部、焦點移出、Escape 或視窗失焦）才重套排序與篩選。桌面與瀏覽器 bundle 均已重建，`Publish.cmd --nopause --restart` 成功。此輪 34 項相關 Node 測試通過；尚未實際操作瀏覽器確認連續勾選手感。
@@ -574,8 +576,6 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
   - `open <folder>` 是**加上去**，`start` 會**清掉未登記 scope 的路由**。`reports/example` 與 `reports/rooftop` 都刻意不登記，所以每次 `start` 後要用 `open` 掛回來。
 
 ## Open decisions
-
-- [AcceptanceChainPlan／目標與流程](Documentation/AcceptanceChainPlan.md#目標與流程)：整條流程 2026-10-24 由使用者決定（建立任務前先和使用者釐清目標 → 拆解 → 執行並記錄 → 對照目標驗收 → 收尾檢討），〈現況對照〉列出各 skill 的缺口；同日補上分工（使用者確認目標與驗收，agent 跑完中間）、每一層的 plan、子項類型、量與分批，並取消「一次只進行一個模組」。決策檔 [goal-flow.decisions](decisions/goal-flow.decisions) 第 1～6 題已答，第 7 題（成效指標呈現）待答。答完前不改 skill。
 
 - [專案缺口與退場盤點／尚未決定](Documentation/GapScanPlan.md#尚未決定)：缺口盤點找還沒人排定的工作，退場盤點找不該再做的子項；決策檔 [gap-scan.decisions](decisions/gap-scan.decisions) 7 題待答（範圍、盤點全部、和「整合進 UX」的分工、結果形式、選定後落點、動詞名稱、退場狀態）。決定前不實作。
 
