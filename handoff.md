@@ -10,7 +10,7 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
 
 - **缺口與退場盤點已定案，尚未落實（2026-10-24）。** [GapScanPlan](Documentation/GapScanPlan.md)：盤點併入每一層的 plan，不新增動詞；UX 的盤點方法留在 cross-platform-module-spec，plan 照它做；退場新增 `obsolete`（被取代，指向取代者）與 `discontinued`（棄案，附理由）兩種狀態。[gap-scan.decisions](decisions/gap-scan.decisions) 七題已答。
 
-- **Agent workflow 的目標與流程。** 原始目標與七題決策由 [AcceptanceChainPlan〈目標與流程〉](Documentation/AcceptanceChainPlan.md#目標與流程) 擁有；執行入口與相依關係見 Report `agent-workflow` 卡的 `goal-flow-implementation`、`acceptance-flow-trial` 與 `agent-workflow-closure`。跨 scope 的共用規則交付由 [Requirements.agents](Documentation/Requirements.agents.md) 指路；先完成共用交付的串接確認，再交整張卡結案驗收。「一次只進行一個模組」已取消（UX `7845db5`、.agents `050b6d3`）。
+- **Agent workflow 已結案（2026-10-25）。** 目標與規則由 [AcceptanceChainPlan〈目標與流程〉](Documentation/AcceptanceChainPlan.md#目標與流程) 擁有，執行規則在 task-progress-items、task-progress-report；Report `agent-workflow` 卡已完成，經驗與指標在 [experience/agent-workflow.md](experience/agent-workflow.md)。「一次只進行一個模組」已取消（UX `7845db5`、.agents `050b6d3`）。
 
 - **Checklist／Decision 的 Esc 取消選取（2026-10-24）。** `CardList.svelte` 捕捉頁面 Escape，清除選取、拖曳狀態及卡片內的 DOM 焦點，避免 `:focus-visible` 留下藍框；組字中的 Escape 保留給輸入法。Decision 的 `onSelectionChange` 同步釋放保留的排序。三個 UI build 通過；瀏覽器已實測兩個面板選取卡片後按 Esc，確認 `.card-selected` 為零、焦點離開卡片且 outline 為 none。前一版只清 selected、未解除焦點，不能據此判定藍框消失。
 

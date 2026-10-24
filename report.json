@@ -3,8 +3,500 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-10-24T18:41:10.780876+00:00",
+  "updated_at": "2026-10-24T18:43:11.872464+00:00",
   "tasks": [
+    {
+      "id": "agent-workflow",
+      "title": "優化 agent workflow",
+      "status": "done",
+      "summary": "已結案（2026-10-25，使用者結案驗收通過）：使用者確認目標與驗收、agent 跑完中間的流程已落實在 task-progress-items、task-progress-report、Report CLI 與 Viewer，並以九項端到端試跑驗證；卡片目標見 [目標與流程](https://github.com/Yu5h1/TaskProgress/blob/main/Documentation/AcceptanceChainPlan.md#目標與流程)，經驗與指標在 experience/agent-workflow.md。",
+      "pending_items": [
+        {
+          "document_ref": {
+            "scope_id": "task-progress",
+            "task": "goal-flow-implementation",
+            "kind": "checklist"
+          },
+          "title": "落實目標導向的 agent workflow：分層規劃、卡片經驗、人工等待與結案流程",
+          "priority": 1,
+          "status": "planned",
+          "id": "goal-flow-implementation",
+          "activity": [
+            {
+              "event": "created",
+              "actor": "codex",
+              "at": "2026-10-24T16:07:07.226070+00:00",
+              "session": "agent-workflow 規劃",
+              "session_id": "6f08010b-90db-4e2a-be27-c72a9b0e66d9"
+            },
+            {
+              "event": "started",
+              "actor": "claude",
+              "at": "2026-10-24T16:50:24.077644+00:00",
+              "session": "Taskprogess",
+              "session_id": "016492fa-7464-498b-9444-0e6296cd1267"
+            },
+            {
+              "event": "started",
+              "actor": "claude",
+              "at": "2026-10-24T17:33:12.031938+00:00",
+              "session": "Taskprogess",
+              "session_id": "016492fa-7464-498b-9444-0e6296cd1267"
+            },
+            {
+              "event": "released",
+              "actor": "claude",
+              "at": "2026-10-24T17:33:13.413696+00:00",
+              "session": "Taskprogess",
+              "session_id": "016492fa-7464-498b-9444-0e6296cd1267"
+            }
+          ]
+        },
+        {
+          "document_ref": {
+            "scope_id": "task-progress",
+            "task": "agent-workflow-closure",
+            "kind": "checklist"
+          },
+          "id": "agent-workflow-closure",
+          "waits_for": [
+            {
+              "task_id": "agent-workflow",
+              "scope_id": "task-progress",
+              "item_id": "goal-flow-implementation"
+            },
+            {
+              "task_id": "agent-workflow",
+              "scope_id": "task-progress",
+              "item_id": "acceptance-flow-trial"
+            }
+          ],
+          "priority": 1,
+          "title": "對照卡片目標，確認 agent workflow 的完整交付與驗收流程",
+          "status": "planned",
+          "activity": [
+            {
+              "event": "created",
+              "actor": "codex",
+              "at": "2026-10-24T16:07:07.226070+00:00",
+              "session": "agent-workflow 規劃",
+              "session_id": "6f08010b-90db-4e2a-be27-c72a9b0e66d9"
+            },
+            {
+              "event": "updated",
+              "actor": "claude",
+              "at": "2026-10-24T18:41:10.780876+00:00",
+              "session_id": "016492fa-7464-498b-9444-0e6296cd1267"
+            }
+          ]
+        }
+      ],
+      "completed_items": [
+        {
+          "id": "acceptance-flow-trial",
+          "title": "端到端試跑：在 [驗證流程試跑](/?scope=task-progress&pin=acceptance-trial) 卡片用 /task-progress-items 走過自驗、人工、他驗、他驗＋人工、條件不符與等待六種情況，每一步 Report 顯示的狀態都和計畫〈流程紀錄〉一致",
+          "status": "done",
+          "activity": [
+            {
+              "event": "created",
+              "actor": "claude",
+              "at": "2026-10-22T05:19:56.005448+00:00",
+              "session": "TaskProgress 維護開發"
+            },
+            {
+              "event": "updated",
+              "actor": "codex",
+              "at": "2026-10-24T16:07:07.226070+00:00",
+              "session": "agent-workflow 規劃",
+              "session_id": "6f08010b-90db-4e2a-be27-c72a9b0e66d9"
+            },
+            {
+              "event": "updated",
+              "actor": "claude",
+              "at": "2026-10-24T17:42:40.920107+00:00",
+              "session_id": "016492fa-7464-498b-9444-0e6296cd1267"
+            },
+            {
+              "event": "started",
+              "actor": "claude",
+              "at": "2026-10-24T17:59:37.779041+00:00",
+              "session": "Taskprogess",
+              "session_id": "016492fa-7464-498b-9444-0e6296cd1267"
+            },
+            {
+              "event": "done",
+              "actor": "claude",
+              "at": "2026-10-24T18:41:09.607027+00:00",
+              "session": "Taskprogess",
+              "session_id": "016492fa-7464-498b-9444-0e6296cd1267"
+            }
+          ],
+          "waits_for": [
+            {
+              "task_id": "agent-workflow",
+              "scope_id": "task-progress",
+              "item_id": "goal-flow-implementation"
+            }
+          ]
+        },
+        {
+          "id": "problem-decision-item-state",
+          "priority": 2,
+          "title": "問題：綁定決策檔的子項在 CLI 推算時只看存值（ItemState 只讀 checklist），全部作答後 report get 仍是 not_started、run 會挑它；Viewer 卻依決策檔顯示完成，兩邊不一致",
+          "status": "done",
+          "activity": [
+            {
+              "event": "created",
+              "actor": "claude",
+              "at": "2026-10-24T17:03:57.509438+00:00",
+              "session": "Taskprogess",
+              "session_id": "016492fa-7464-498b-9444-0e6296cd1267"
+            },
+            {
+              "event": "started",
+              "actor": "claude",
+              "at": "2026-10-24T17:04:42.063432+00:00",
+              "session": "Taskprogess",
+              "session_id": "016492fa-7464-498b-9444-0e6296cd1267"
+            },
+            {
+              "event": "done",
+              "actor": "claude",
+              "at": "2026-10-24T17:05:06.438606+00:00",
+              "session": "Taskprogess",
+              "session_id": "016492fa-7464-498b-9444-0e6296cd1267"
+            }
+          ]
+        },
+        {
+          "id": "decide-goal-flow",
+          "status": "done",
+          "priority": 1,
+          "title": "確認目標與流程的七個決策：目標位置、直接拆解、經驗、人工等待、輕量流程、收尾與指標",
+          "document_ref": {
+            "kind": "decision",
+            "scope_id": "task-progress",
+            "task": "goal-flow"
+          },
+          "activity": [
+            {
+              "event": "created",
+              "actor": "claude",
+              "at": "2026-10-24T04:53:37.005188+00:00",
+              "session": "Taskprogess",
+              "session_id": "cfb6305b-c950-4f60-b572-e82f12b683c5"
+            },
+            {
+              "event": "updated",
+              "actor": "codex",
+              "at": "2026-10-24T16:07:07.226070+00:00",
+              "session": "agent-workflow 規劃",
+              "session_id": "6f08010b-90db-4e2a-be27-c72a9b0e66d9"
+            },
+            {
+              "event": "started",
+              "actor": "claude",
+              "at": "2026-10-24T16:49:45.491710+00:00",
+              "session": "Taskprogess",
+              "session_id": "016492fa-7464-498b-9444-0e6296cd1267"
+            },
+            {
+              "event": "done",
+              "actor": "claude",
+              "at": "2026-10-24T16:49:46.992561+00:00",
+              "session": "Taskprogess",
+              "session_id": "016492fa-7464-498b-9444-0e6296cd1267"
+            }
+          ]
+        },
+        {
+          "id": "decide-next-step-flow",
+          "title": "確認下一步流程的四個決策：預設動詞、採建議執行、模組點名與問題記錄",
+          "status": "done",
+          "priority": 0,
+          "document_ref": {
+            "kind": "decision",
+            "scope_id": "task-progress",
+            "task": "agent-workflow"
+          },
+          "activity": [
+            {
+              "event": "created",
+              "actor": "claude",
+              "at": "2026-10-23T03:15:06.070478+00:00",
+              "session": "Agent workflow 流程檢視",
+              "session_id": "990bddf5-22fd-4ca7-a93a-669fa2af3f7d"
+            },
+            {
+              "event": "updated",
+              "actor": "codex",
+              "at": "2026-10-24T16:07:07.226070+00:00",
+              "session": "agent-workflow 規劃",
+              "session_id": "6f08010b-90db-4e2a-be27-c72a9b0e66d9"
+            },
+            {
+              "event": "started",
+              "actor": "claude",
+              "at": "2026-10-24T16:49:45.491710+00:00",
+              "session": "Taskprogess",
+              "session_id": "016492fa-7464-498b-9444-0e6296cd1267"
+            },
+            {
+              "event": "done",
+              "actor": "claude",
+              "at": "2026-10-24T16:49:46.992561+00:00",
+              "session": "Taskprogess",
+              "session_id": "016492fa-7464-498b-9444-0e6296cd1267"
+            }
+          ]
+        },
+        {
+          "id": "checklist-legacy-migrate",
+          "title": "遷移：遷移命令替沒有記錄者的標籤結果補上記錄者 legacy 與指紋；新規則上線時對所有已登記 scope 執行一次，執行前確認各 repo 沒有他人未提交的工作，只提交遷移改到的檔案",
+          "status": "done",
+          "activity": [
+            {
+              "event": "created",
+              "actor": "claude",
+              "at": "2026-10-22T10:36:11.832346+00:00",
+              "session": "TaskProgress 維護開發"
+            },
+            {
+              "event": "done",
+              "actor": "claude",
+              "at": "2026-10-22T11:49:09.671297+00:00",
+              "session": "TaskProgress 維護開發",
+              "session_id": "583fa969-9dcf-4def-98dd-196efef59cea"
+            }
+          ]
+        },
+        {
+          "id": "item-waits",
+          "title": "等待：子項可宣告在等哪些子項（可跨 scope，schema 新增欄位、Report CLI 寫入、拒絕互相等待的環）；被等的未完成時推算為等待中、run 不挑；收合時只多「等待中」標籤，展開後列出被等子項的連結",
+          "status": "done",
+          "activity": [
+            {
+              "event": "created",
+              "actor": "claude",
+              "at": "2026-10-22T10:25:18.430872+00:00",
+              "session": "TaskProgress 維護開發"
+            },
+            {
+              "event": "done",
+              "actor": "claude",
+              "at": "2026-10-22T11:49:09.671297+00:00",
+              "session": "TaskProgress 維護開發",
+              "session_id": "583fa969-9dcf-4def-98dd-196efef59cea"
+            }
+          ]
+        },
+        {
+          "id": "acceptance-skills",
+          "title": "Skill：改寫 checklist-round、agent-executable-items 與 ItemActivityLog；新增 Claude skill /task-progress-items（評估、指示、run、accept、auto，驗證方式判斷依據，子 session 一次一個）；共用索引的可執行項目那一列分開寫 Claude 與其他 agent，Claude 遇到舊短語只回對應命令",
+          "status": "done",
+          "activity": [
+            {
+              "event": "created",
+              "actor": "claude",
+              "at": "2026-10-22T08:03:52.926818+00:00",
+              "session": "TaskProgress 維護開發"
+            },
+            {
+              "event": "updated",
+              "actor": "claude",
+              "at": "2026-10-22T09:00:59.553414+00:00",
+              "session": "TaskProgress 維護開發"
+            },
+            {
+              "event": "updated",
+              "actor": "claude",
+              "at": "2026-10-22T11:12:48.943140+00:00",
+              "session": "TaskProgress 維護開發"
+            },
+            {
+              "event": "done",
+              "actor": "claude",
+              "at": "2026-10-22T11:49:09.671297+00:00",
+              "session": "TaskProgress 維護開發",
+              "session_id": "583fa969-9dcf-4def-98dd-196efef59cea"
+            }
+          ]
+        },
+        {
+          "id": "acceptance-viewer-states",
+          "title": "Report 子項顯示八種推算狀態：未開始、執行中、等待中、待他驗、待使用者（含爭議）、條件待修、需修正、完成",
+          "status": "done",
+          "activity": [
+            {
+              "event": "created",
+              "actor": "claude",
+              "at": "2026-10-22T08:03:52.926818+00:00",
+              "session": "TaskProgress 維護開發"
+            },
+            {
+              "event": "updated",
+              "actor": "claude",
+              "at": "2026-10-22T10:25:18.430872+00:00",
+              "session": "TaskProgress 維護開發"
+            },
+            {
+              "event": "updated",
+              "actor": "claude",
+              "at": "2026-10-22T10:59:15.727732+00:00",
+              "session": "TaskProgress 維護開發"
+            },
+            {
+              "event": "done",
+              "actor": "claude",
+              "at": "2026-10-22T11:49:09.671297+00:00",
+              "session": "TaskProgress 維護開發",
+              "session_id": "583fa969-9dcf-4def-98dd-196efef59cea"
+            }
+          ]
+        },
+        {
+          "id": "acceptance-checklist-panel",
+          "title": "Checklist 面板：顯示標籤與記錄者；依賴未完成時鎖住；使用者改 [acceptance] 前跳出「確認修改 agent 紀錄嗎？」；提供只顯示我能操作的檢查",
+          "status": "done",
+          "activity": [
+            {
+              "event": "created",
+              "actor": "claude",
+              "at": "2026-10-22T08:03:52.926818+00:00",
+              "session": "TaskProgress 維護開發"
+            },
+            {
+              "event": "done",
+              "actor": "claude",
+              "at": "2026-10-22T11:49:09.671297+00:00",
+              "session": "TaskProgress 維護開發",
+              "session_id": "583fa969-9dcf-4def-98dd-196efef59cea"
+            }
+          ]
+        },
+        {
+          "id": "acceptance-report-cli",
+          "title": "Report CLI 與活動紀錄：新增 released、rejected、disputed 事件與保留規則；他驗流程缺 session_id 拒絕；綁定 checklist 的子項狀態改為推算（含條件待修與爭議），C#、Python、JS 三處一致，report get 與時間分析改用推算狀態",
+          "status": "done",
+          "activity": [
+            {
+              "event": "created",
+              "actor": "claude",
+              "at": "2026-10-22T08:03:52.926818+00:00",
+              "session": "TaskProgress 維護開發"
+            },
+            {
+              "event": "updated",
+              "actor": "claude",
+              "at": "2026-10-22T10:05:41.564245+00:00",
+              "session": "TaskProgress 維護開發"
+            },
+            {
+              "event": "updated",
+              "actor": "claude",
+              "at": "2026-10-22T10:59:15.727732+00:00",
+              "session": "TaskProgress 維護開發"
+            },
+            {
+              "event": "done",
+              "actor": "claude",
+              "at": "2026-10-22T11:49:09.671297+00:00",
+              "session": "TaskProgress 維護開發",
+              "session_id": "583fa969-9dcf-4def-98dd-196efef59cea"
+            }
+          ]
+        },
+        {
+          "id": "acceptance-checklist-write",
+          "title": "標籤寫入：checklist request 帶 actor 與 session_id；[acceptance] 拒絕執行者的 session、等自驗完成才能寫、[!] 須選原因（實作不符／條件不符）；[manual] 等他驗通過才能寫、agent 只准寫 [!]（附 Observed）；未綁定子項時拒絕；實作不符記 rejected",
+          "status": "done",
+          "activity": [
+            {
+              "event": "created",
+              "actor": "claude",
+              "at": "2026-10-22T08:03:52.926818+00:00",
+              "session": "TaskProgress 維護開發"
+            },
+            {
+              "event": "updated",
+              "actor": "claude",
+              "at": "2026-10-22T10:05:41.564245+00:00",
+              "session": "TaskProgress 維護開發"
+            },
+            {
+              "event": "updated",
+              "actor": "claude",
+              "at": "2026-10-22T10:59:15.727732+00:00",
+              "session": "TaskProgress 維護開發"
+            },
+            {
+              "event": "done",
+              "actor": "claude",
+              "at": "2026-10-22T11:49:09.671297+00:00",
+              "session": "TaskProgress 維護開發",
+              "session_id": "583fa969-9dcf-4def-98dd-196efef59cea"
+            }
+          ]
+        },
+        {
+          "id": "checklist-acceptance-chain",
+          "title": "checklist 格式：登記 [acceptance] 標籤並拒絕未登記的標籤；標籤檢查記錄記錄者與內容指紋，讀取時指紋對不上就顯示需重驗；標籤檢查自動等待所有不標的工作項目；checklist validate 指出對應錯誤",
+          "status": "done",
+          "activity": [
+            {
+              "event": "created",
+              "actor": "claude",
+              "at": "2026-10-21T18:50:15.732539+00:00",
+              "session": "Yu5h1Lib.UX 流程審查",
+              "session_id": "12d6407d-b4d7-444b-be2e-d9b16a7f3b37"
+            },
+            {
+              "event": "updated",
+              "actor": "claude",
+              "at": "2026-10-22T09:20:16.000625+00:00",
+              "session": "TaskProgress 維護開發"
+            },
+            {
+              "event": "updated",
+              "actor": "claude",
+              "at": "2026-10-22T09:56:54.247286+00:00",
+              "session": "TaskProgress 維護開發"
+            },
+            {
+              "event": "done",
+              "actor": "claude",
+              "at": "2026-10-22T11:49:09.671297+00:00",
+              "session": "TaskProgress 維護開發",
+              "session_id": "583fa969-9dcf-4def-98dd-196efef59cea"
+            }
+          ]
+        },
+        {
+          "id": "item-card-reference-links",
+          "title": "Report 項目提到另一張卡片（同 scope 或跨 scope）時，以指向該卡片的行內連結（/?scope=…&pin=<卡片 ID>）標註，不只寫名稱或 ID，讓使用者直接點過去；規則寫進 task-progress-report skill 的行內連結段，並修正 UX numericfield-goal-1-web 對 Web 卡片 ux-numericfield 的引用",
+          "status": "done",
+          "activity": [
+            {
+              "event": "created",
+              "actor": "claude",
+              "at": "2026-10-22T04:31:29.794341+00:00",
+              "session": "TaskProgress 維護開發"
+            },
+            {
+              "event": "done",
+              "actor": "claude",
+              "at": "2026-10-22T04:33:22.589304+00:00",
+              "session": "TaskProgress 維護開發"
+            }
+          ]
+        }
+      ],
+      "document_ref": {
+        "kind": "experience",
+        "scope_id": "task-progress",
+        "task": "agent-workflow"
+      }
+    },
     {
       "id": "next-marker",
       "title": "Next 標記：scope 唯一的下一步",
@@ -2060,498 +2552,6 @@
           }
         }
       ]
-    },
-    {
-      "id": "agent-workflow",
-      "title": "優化 agent workflow",
-      "status": "planned",
-      "summary": "以 [目標與流程](https://github.com/Yu5h1/TaskProgress/blob/main/Documentation/AcceptanceChainPlan.md#目標與流程) 為準：使用者確認目標與驗收，agent 完成規劃、執行、自驗與他驗。子項追蹤 TaskProgress 技能與程式的落實、既有端到端試跑及卡片結案；共用規則的交付依 Requirements.agents.md 串接。",
-      "pending_items": [
-        {
-          "document_ref": {
-            "scope_id": "task-progress",
-            "task": "goal-flow-implementation",
-            "kind": "checklist"
-          },
-          "title": "落實目標導向的 agent workflow：分層規劃、卡片經驗、人工等待與結案流程",
-          "priority": 1,
-          "status": "planned",
-          "id": "goal-flow-implementation",
-          "activity": [
-            {
-              "event": "created",
-              "actor": "codex",
-              "at": "2026-10-24T16:07:07.226070+00:00",
-              "session": "agent-workflow 規劃",
-              "session_id": "6f08010b-90db-4e2a-be27-c72a9b0e66d9"
-            },
-            {
-              "event": "started",
-              "actor": "claude",
-              "at": "2026-10-24T16:50:24.077644+00:00",
-              "session": "Taskprogess",
-              "session_id": "016492fa-7464-498b-9444-0e6296cd1267"
-            },
-            {
-              "event": "started",
-              "actor": "claude",
-              "at": "2026-10-24T17:33:12.031938+00:00",
-              "session": "Taskprogess",
-              "session_id": "016492fa-7464-498b-9444-0e6296cd1267"
-            },
-            {
-              "event": "released",
-              "actor": "claude",
-              "at": "2026-10-24T17:33:13.413696+00:00",
-              "session": "Taskprogess",
-              "session_id": "016492fa-7464-498b-9444-0e6296cd1267"
-            }
-          ]
-        },
-        {
-          "document_ref": {
-            "scope_id": "task-progress",
-            "task": "agent-workflow-closure",
-            "kind": "checklist"
-          },
-          "id": "agent-workflow-closure",
-          "waits_for": [
-            {
-              "task_id": "agent-workflow",
-              "scope_id": "task-progress",
-              "item_id": "goal-flow-implementation"
-            },
-            {
-              "task_id": "agent-workflow",
-              "scope_id": "task-progress",
-              "item_id": "acceptance-flow-trial"
-            }
-          ],
-          "priority": 1,
-          "title": "對照卡片目標，確認 agent workflow 的完整交付與驗收流程",
-          "status": "planned",
-          "activity": [
-            {
-              "event": "created",
-              "actor": "codex",
-              "at": "2026-10-24T16:07:07.226070+00:00",
-              "session": "agent-workflow 規劃",
-              "session_id": "6f08010b-90db-4e2a-be27-c72a9b0e66d9"
-            },
-            {
-              "event": "updated",
-              "actor": "claude",
-              "at": "2026-10-24T18:41:10.780876+00:00",
-              "session_id": "016492fa-7464-498b-9444-0e6296cd1267"
-            }
-          ]
-        }
-      ],
-      "completed_items": [
-        {
-          "id": "acceptance-flow-trial",
-          "title": "端到端試跑：在 [驗證流程試跑](/?scope=task-progress&pin=acceptance-trial) 卡片用 /task-progress-items 走過自驗、人工、他驗、他驗＋人工、條件不符與等待六種情況，每一步 Report 顯示的狀態都和計畫〈流程紀錄〉一致",
-          "status": "done",
-          "activity": [
-            {
-              "event": "created",
-              "actor": "claude",
-              "at": "2026-10-22T05:19:56.005448+00:00",
-              "session": "TaskProgress 維護開發"
-            },
-            {
-              "event": "updated",
-              "actor": "codex",
-              "at": "2026-10-24T16:07:07.226070+00:00",
-              "session": "agent-workflow 規劃",
-              "session_id": "6f08010b-90db-4e2a-be27-c72a9b0e66d9"
-            },
-            {
-              "event": "updated",
-              "actor": "claude",
-              "at": "2026-10-24T17:42:40.920107+00:00",
-              "session_id": "016492fa-7464-498b-9444-0e6296cd1267"
-            },
-            {
-              "event": "started",
-              "actor": "claude",
-              "at": "2026-10-24T17:59:37.779041+00:00",
-              "session": "Taskprogess",
-              "session_id": "016492fa-7464-498b-9444-0e6296cd1267"
-            },
-            {
-              "event": "done",
-              "actor": "claude",
-              "at": "2026-10-24T18:41:09.607027+00:00",
-              "session": "Taskprogess",
-              "session_id": "016492fa-7464-498b-9444-0e6296cd1267"
-            }
-          ],
-          "waits_for": [
-            {
-              "task_id": "agent-workflow",
-              "scope_id": "task-progress",
-              "item_id": "goal-flow-implementation"
-            }
-          ]
-        },
-        {
-          "id": "problem-decision-item-state",
-          "priority": 2,
-          "title": "問題：綁定決策檔的子項在 CLI 推算時只看存值（ItemState 只讀 checklist），全部作答後 report get 仍是 not_started、run 會挑它；Viewer 卻依決策檔顯示完成，兩邊不一致",
-          "status": "done",
-          "activity": [
-            {
-              "event": "created",
-              "actor": "claude",
-              "at": "2026-10-24T17:03:57.509438+00:00",
-              "session": "Taskprogess",
-              "session_id": "016492fa-7464-498b-9444-0e6296cd1267"
-            },
-            {
-              "event": "started",
-              "actor": "claude",
-              "at": "2026-10-24T17:04:42.063432+00:00",
-              "session": "Taskprogess",
-              "session_id": "016492fa-7464-498b-9444-0e6296cd1267"
-            },
-            {
-              "event": "done",
-              "actor": "claude",
-              "at": "2026-10-24T17:05:06.438606+00:00",
-              "session": "Taskprogess",
-              "session_id": "016492fa-7464-498b-9444-0e6296cd1267"
-            }
-          ]
-        },
-        {
-          "id": "decide-goal-flow",
-          "status": "done",
-          "priority": 1,
-          "title": "確認目標與流程的七個決策：目標位置、直接拆解、經驗、人工等待、輕量流程、收尾與指標",
-          "document_ref": {
-            "kind": "decision",
-            "scope_id": "task-progress",
-            "task": "goal-flow"
-          },
-          "activity": [
-            {
-              "event": "created",
-              "actor": "claude",
-              "at": "2026-10-24T04:53:37.005188+00:00",
-              "session": "Taskprogess",
-              "session_id": "cfb6305b-c950-4f60-b572-e82f12b683c5"
-            },
-            {
-              "event": "updated",
-              "actor": "codex",
-              "at": "2026-10-24T16:07:07.226070+00:00",
-              "session": "agent-workflow 規劃",
-              "session_id": "6f08010b-90db-4e2a-be27-c72a9b0e66d9"
-            },
-            {
-              "event": "started",
-              "actor": "claude",
-              "at": "2026-10-24T16:49:45.491710+00:00",
-              "session": "Taskprogess",
-              "session_id": "016492fa-7464-498b-9444-0e6296cd1267"
-            },
-            {
-              "event": "done",
-              "actor": "claude",
-              "at": "2026-10-24T16:49:46.992561+00:00",
-              "session": "Taskprogess",
-              "session_id": "016492fa-7464-498b-9444-0e6296cd1267"
-            }
-          ]
-        },
-        {
-          "id": "decide-next-step-flow",
-          "title": "確認下一步流程的四個決策：預設動詞、採建議執行、模組點名與問題記錄",
-          "status": "done",
-          "priority": 0,
-          "document_ref": {
-            "kind": "decision",
-            "scope_id": "task-progress",
-            "task": "agent-workflow"
-          },
-          "activity": [
-            {
-              "event": "created",
-              "actor": "claude",
-              "at": "2026-10-23T03:15:06.070478+00:00",
-              "session": "Agent workflow 流程檢視",
-              "session_id": "990bddf5-22fd-4ca7-a93a-669fa2af3f7d"
-            },
-            {
-              "event": "updated",
-              "actor": "codex",
-              "at": "2026-10-24T16:07:07.226070+00:00",
-              "session": "agent-workflow 規劃",
-              "session_id": "6f08010b-90db-4e2a-be27-c72a9b0e66d9"
-            },
-            {
-              "event": "started",
-              "actor": "claude",
-              "at": "2026-10-24T16:49:45.491710+00:00",
-              "session": "Taskprogess",
-              "session_id": "016492fa-7464-498b-9444-0e6296cd1267"
-            },
-            {
-              "event": "done",
-              "actor": "claude",
-              "at": "2026-10-24T16:49:46.992561+00:00",
-              "session": "Taskprogess",
-              "session_id": "016492fa-7464-498b-9444-0e6296cd1267"
-            }
-          ]
-        },
-        {
-          "id": "checklist-legacy-migrate",
-          "title": "遷移：遷移命令替沒有記錄者的標籤結果補上記錄者 legacy 與指紋；新規則上線時對所有已登記 scope 執行一次，執行前確認各 repo 沒有他人未提交的工作，只提交遷移改到的檔案",
-          "status": "done",
-          "activity": [
-            {
-              "event": "created",
-              "actor": "claude",
-              "at": "2026-10-22T10:36:11.832346+00:00",
-              "session": "TaskProgress 維護開發"
-            },
-            {
-              "event": "done",
-              "actor": "claude",
-              "at": "2026-10-22T11:49:09.671297+00:00",
-              "session": "TaskProgress 維護開發",
-              "session_id": "583fa969-9dcf-4def-98dd-196efef59cea"
-            }
-          ]
-        },
-        {
-          "id": "item-waits",
-          "title": "等待：子項可宣告在等哪些子項（可跨 scope，schema 新增欄位、Report CLI 寫入、拒絕互相等待的環）；被等的未完成時推算為等待中、run 不挑；收合時只多「等待中」標籤，展開後列出被等子項的連結",
-          "status": "done",
-          "activity": [
-            {
-              "event": "created",
-              "actor": "claude",
-              "at": "2026-10-22T10:25:18.430872+00:00",
-              "session": "TaskProgress 維護開發"
-            },
-            {
-              "event": "done",
-              "actor": "claude",
-              "at": "2026-10-22T11:49:09.671297+00:00",
-              "session": "TaskProgress 維護開發",
-              "session_id": "583fa969-9dcf-4def-98dd-196efef59cea"
-            }
-          ]
-        },
-        {
-          "id": "acceptance-skills",
-          "title": "Skill：改寫 checklist-round、agent-executable-items 與 ItemActivityLog；新增 Claude skill /task-progress-items（評估、指示、run、accept、auto，驗證方式判斷依據，子 session 一次一個）；共用索引的可執行項目那一列分開寫 Claude 與其他 agent，Claude 遇到舊短語只回對應命令",
-          "status": "done",
-          "activity": [
-            {
-              "event": "created",
-              "actor": "claude",
-              "at": "2026-10-22T08:03:52.926818+00:00",
-              "session": "TaskProgress 維護開發"
-            },
-            {
-              "event": "updated",
-              "actor": "claude",
-              "at": "2026-10-22T09:00:59.553414+00:00",
-              "session": "TaskProgress 維護開發"
-            },
-            {
-              "event": "updated",
-              "actor": "claude",
-              "at": "2026-10-22T11:12:48.943140+00:00",
-              "session": "TaskProgress 維護開發"
-            },
-            {
-              "event": "done",
-              "actor": "claude",
-              "at": "2026-10-22T11:49:09.671297+00:00",
-              "session": "TaskProgress 維護開發",
-              "session_id": "583fa969-9dcf-4def-98dd-196efef59cea"
-            }
-          ]
-        },
-        {
-          "id": "acceptance-viewer-states",
-          "title": "Report 子項顯示八種推算狀態：未開始、執行中、等待中、待他驗、待使用者（含爭議）、條件待修、需修正、完成",
-          "status": "done",
-          "activity": [
-            {
-              "event": "created",
-              "actor": "claude",
-              "at": "2026-10-22T08:03:52.926818+00:00",
-              "session": "TaskProgress 維護開發"
-            },
-            {
-              "event": "updated",
-              "actor": "claude",
-              "at": "2026-10-22T10:25:18.430872+00:00",
-              "session": "TaskProgress 維護開發"
-            },
-            {
-              "event": "updated",
-              "actor": "claude",
-              "at": "2026-10-22T10:59:15.727732+00:00",
-              "session": "TaskProgress 維護開發"
-            },
-            {
-              "event": "done",
-              "actor": "claude",
-              "at": "2026-10-22T11:49:09.671297+00:00",
-              "session": "TaskProgress 維護開發",
-              "session_id": "583fa969-9dcf-4def-98dd-196efef59cea"
-            }
-          ]
-        },
-        {
-          "id": "acceptance-checklist-panel",
-          "title": "Checklist 面板：顯示標籤與記錄者；依賴未完成時鎖住；使用者改 [acceptance] 前跳出「確認修改 agent 紀錄嗎？」；提供只顯示我能操作的檢查",
-          "status": "done",
-          "activity": [
-            {
-              "event": "created",
-              "actor": "claude",
-              "at": "2026-10-22T08:03:52.926818+00:00",
-              "session": "TaskProgress 維護開發"
-            },
-            {
-              "event": "done",
-              "actor": "claude",
-              "at": "2026-10-22T11:49:09.671297+00:00",
-              "session": "TaskProgress 維護開發",
-              "session_id": "583fa969-9dcf-4def-98dd-196efef59cea"
-            }
-          ]
-        },
-        {
-          "id": "acceptance-report-cli",
-          "title": "Report CLI 與活動紀錄：新增 released、rejected、disputed 事件與保留規則；他驗流程缺 session_id 拒絕；綁定 checklist 的子項狀態改為推算（含條件待修與爭議），C#、Python、JS 三處一致，report get 與時間分析改用推算狀態",
-          "status": "done",
-          "activity": [
-            {
-              "event": "created",
-              "actor": "claude",
-              "at": "2026-10-22T08:03:52.926818+00:00",
-              "session": "TaskProgress 維護開發"
-            },
-            {
-              "event": "updated",
-              "actor": "claude",
-              "at": "2026-10-22T10:05:41.564245+00:00",
-              "session": "TaskProgress 維護開發"
-            },
-            {
-              "event": "updated",
-              "actor": "claude",
-              "at": "2026-10-22T10:59:15.727732+00:00",
-              "session": "TaskProgress 維護開發"
-            },
-            {
-              "event": "done",
-              "actor": "claude",
-              "at": "2026-10-22T11:49:09.671297+00:00",
-              "session": "TaskProgress 維護開發",
-              "session_id": "583fa969-9dcf-4def-98dd-196efef59cea"
-            }
-          ]
-        },
-        {
-          "id": "acceptance-checklist-write",
-          "title": "標籤寫入：checklist request 帶 actor 與 session_id；[acceptance] 拒絕執行者的 session、等自驗完成才能寫、[!] 須選原因（實作不符／條件不符）；[manual] 等他驗通過才能寫、agent 只准寫 [!]（附 Observed）；未綁定子項時拒絕；實作不符記 rejected",
-          "status": "done",
-          "activity": [
-            {
-              "event": "created",
-              "actor": "claude",
-              "at": "2026-10-22T08:03:52.926818+00:00",
-              "session": "TaskProgress 維護開發"
-            },
-            {
-              "event": "updated",
-              "actor": "claude",
-              "at": "2026-10-22T10:05:41.564245+00:00",
-              "session": "TaskProgress 維護開發"
-            },
-            {
-              "event": "updated",
-              "actor": "claude",
-              "at": "2026-10-22T10:59:15.727732+00:00",
-              "session": "TaskProgress 維護開發"
-            },
-            {
-              "event": "done",
-              "actor": "claude",
-              "at": "2026-10-22T11:49:09.671297+00:00",
-              "session": "TaskProgress 維護開發",
-              "session_id": "583fa969-9dcf-4def-98dd-196efef59cea"
-            }
-          ]
-        },
-        {
-          "id": "checklist-acceptance-chain",
-          "title": "checklist 格式：登記 [acceptance] 標籤並拒絕未登記的標籤；標籤檢查記錄記錄者與內容指紋，讀取時指紋對不上就顯示需重驗；標籤檢查自動等待所有不標的工作項目；checklist validate 指出對應錯誤",
-          "status": "done",
-          "activity": [
-            {
-              "event": "created",
-              "actor": "claude",
-              "at": "2026-10-21T18:50:15.732539+00:00",
-              "session": "Yu5h1Lib.UX 流程審查",
-              "session_id": "12d6407d-b4d7-444b-be2e-d9b16a7f3b37"
-            },
-            {
-              "event": "updated",
-              "actor": "claude",
-              "at": "2026-10-22T09:20:16.000625+00:00",
-              "session": "TaskProgress 維護開發"
-            },
-            {
-              "event": "updated",
-              "actor": "claude",
-              "at": "2026-10-22T09:56:54.247286+00:00",
-              "session": "TaskProgress 維護開發"
-            },
-            {
-              "event": "done",
-              "actor": "claude",
-              "at": "2026-10-22T11:49:09.671297+00:00",
-              "session": "TaskProgress 維護開發",
-              "session_id": "583fa969-9dcf-4def-98dd-196efef59cea"
-            }
-          ]
-        },
-        {
-          "id": "item-card-reference-links",
-          "title": "Report 項目提到另一張卡片（同 scope 或跨 scope）時，以指向該卡片的行內連結（/?scope=…&pin=<卡片 ID>）標註，不只寫名稱或 ID，讓使用者直接點過去；規則寫進 task-progress-report skill 的行內連結段，並修正 UX numericfield-goal-1-web 對 Web 卡片 ux-numericfield 的引用",
-          "status": "done",
-          "activity": [
-            {
-              "event": "created",
-              "actor": "claude",
-              "at": "2026-10-22T04:31:29.794341+00:00",
-              "session": "TaskProgress 維護開發"
-            },
-            {
-              "event": "done",
-              "actor": "claude",
-              "at": "2026-10-22T04:33:22.589304+00:00",
-              "session": "TaskProgress 維護開發"
-            }
-          ]
-        }
-      ],
-      "document_ref": {
-        "kind": "experience",
-        "scope_id": "task-progress",
-        "task": "agent-workflow"
-      }
     },
     {
       "id": "acceptance-trial",

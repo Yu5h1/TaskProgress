@@ -4,14 +4,16 @@ Current round: `Documentation/AcceptanceChainPlan.md#收尾檢討`.
 
 本輪由使用者對照卡片目標確認交付是否有用：使用者確認目標與驗收，agent 完成中間的規劃、執行與驗證。實作與端到端試跑完成、經驗及缺口檢討處理後才交付本輪；Report 子項的 waits_for 管理先後。執行者交付時補上實際操作紀錄與卡片經驗文件的入口，確認頁面可開啟。本清單只包含使用者對結果的判斷，全部通過即結束本輪。
 
-- [ ] **1. 確認流程達成卡片目標**
+- [x] **1. 確認流程達成卡片目標**
   Outcome: 使用者接受 agent workflow 的完整交付，而不是只接受個別程式檢查。
   Checks:
-    - [ ] **目標到結果的完整交付** `[manual]`
+    - [x] **目標到結果的完整交付** `[manual]`
       - Action: 開啟 [優化 agent workflow 卡片](http://127.0.0.1:8001/?scope=task-progress&pin=agent-workflow)，閱讀交付紀錄，對照 [目標與流程](https://github.com/Yu5h1/TaskProgress/blob/main/Documentation/AcceptanceChainPlan.md#目標與流程)；確認一次任務的目標確認、規劃、執行、他驗與最終交付符合你的使用方式。
       - Expect: 已確認的目標能一路追到結果；中間必要工作由 agent 推進，不必由你反覆提醒下一步；結果未對齊時能分辨重做或修改目標。
       - Reason: 任務是否符合使用者原始意圖與實際工作方式，由使用者判斷。
-    - [ ] **驗收與收尾的使用感受** `[manual]`
+      - Recorded: user; at=2026-10-24T18:42:25Z; fp=ca52354770f8
+    - [x] **驗收與收尾的使用感受** `[manual]`
       - Action: 閱讀 [驗證流程試跑](http://127.0.0.1:8001/?scope=task-progress&pin=acceptance-trial) 的九個試跑項目，以及本卡的經驗紀錄 `TaskProgress/experience/agent-workflow.md`（用文字編輯器開啟，結尾是收尾檢討記下的指標），確認待你處理的入口、人工驗收前後的等待變化及最後結案時機。
       - Expect: 可以清楚知道什麼需要你確認；一般工作不因單純待人工而停住，必須先確認的工作仍等待；最後驗收看到的是 agent 已檢討與補齊的成果。
       - Reason: 驗收入口與整體流程是否清楚、順手，由使用者判斷。
+      - Recorded: user; at=2026-10-24T18:42:35Z; fp=0c7ca087b4d1
