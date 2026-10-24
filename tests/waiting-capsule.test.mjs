@@ -1,4 +1,4 @@
-// The 等待中 capsule opens what the item waits on: one target as a link, several through a menu
+// Status capsules open related sources/dependencies: one target as a link, several through a menu
 // button, an unreadable target never as a link, and nothing clickable while editing.
 import assert from "node:assert/strict";
 import test, { before, after } from "node:test";
@@ -29,12 +29,17 @@ function waitingItem(pendingWaits) {
   return { id: "w", title: "Waiting", derivedState: "waiting", derivedStateLabel: "等待中", derivedStateTone: "warning", pendingWaits };
 }
 
-function capsuleHtml(pendingWaits, editing = false) {
+function itemHtml(item, editing = false) {
   const html = render(TaskCard, { props: {
-    task: { id: "t", title: "T", summary: "S", status: "in_progress", pending_items: [waitingItem(pendingWaits)] },
+    task: { id: "t", title: "T", summary: "S", status: "in_progress", pending_items: [item] },
     editing, progress: { completed: 0, total: 1 },
     policy: globalThis.TaskProgressPriorityPolicy, onCommand() {}, onAddItem() {},
   } }).body;
+  return html;
+}
+
+function capsuleHtml(pendingWaits, editing = false) {
+  const html = itemHtml(waitingItem(pendingWaits), editing);
   const start = html.indexOf("等待中");
   return html.slice(Math.max(0, start - 400), start + 20);
 }
@@ -53,4 +58,32 @@ test("several waited targets open a menu instead of guessing one", () => {
 test("an unreadable target alone and an edited row stay plain capsules", () => {
   assert.doesNotMatch(capsuleHtml([gone]), /is-link/u);
   assert.doesNotMatch(capsuleHtml([web], true), /is-link/u);
+});
+
+const sourceRef = { available: true, kind: "checklist", label: "Checklist", task: "review", href: "/checklist/?scope=ux&task=review" };
+
+test("blocked and checklist-derived statuses link to their bound source", () => {
+  for (const derivedState of [null, "needs_fix", "conditions_to_revise", "awaiting_user_dispute", "awaiting_user", "awaiting_acceptance", "in_progress", "not_started", "done"]) {
+    const html = itemHtml({ id: "s", title: "Source", status: "blocked", sourceRef,
+      derivedState, derivedStateLabel: derivedState, derivedStateTone: "warning" });
+    assert.match(html, /<a class="item-status-capsule [^"]*is-link" href="\/checklist\/\?scope=ux&amp;task=review"/u, derivedState ?? "blocked");
+  }
+  const decision = itemHtml({ id: "d", title: "Decision", status: "blocked",
+    sourceRef: { ...sourceRef, kind: "decision", label: "Decision", href: "/decisions/?scope=ux&task=review" } });
+  assert.match(decision, /<a class="item-status-capsule [^"]*is-link" href="\/decisions\/\?scope=ux&amp;task=review"/u);
+});
+
+test("needs-fix keeps dependency links and offers all targets when it also has a source", () => {
+  const item = { ...waitingItem([web]), derivedState: "needs_fix", derivedStateLabel: "需修正" };
+  assert.match(itemHtml(item), /<a class="item-status-capsule [^"]*is-link" href="\/\?scope=web&amp;pin=card"/u);
+  assert.match(itemHtml({ ...item, sourceRef }), /<button type="button" class="item-status-capsule [^"]*is-link"/u);
+  // A waiting item points at its dependency even when it has its own checklist.
+  assert.match(itemHtml({ ...waitingItem([web]), sourceRef }), /<a class="item-status-capsule [^"]*is-link" href="\/\?scope=web&amp;pin=card"/u);
+});
+
+test("a missing source, unavailable source or edit mode does not invent a status link", () => {
+  const item = { id: "b", title: "Blocked", status: "blocked" };
+  for (const html of [itemHtml(item), itemHtml({ ...item, sourceRef: { ...sourceRef, available: false } }), itemHtml({ ...item, sourceRef }, true)]) {
+    assert.doesNotMatch(html, /class="item-status-capsule [^"]*is-link"/u);
+  }
 });

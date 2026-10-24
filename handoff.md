@@ -6,6 +6,8 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
 
 ## Current state (2026-09-29)
 
+- **狀態對象超連結（worktree `status-target-links`，2026-10-25）。** `viewer/assets/item-state.js` 的 `statusLinks` 統一狀態對象：等待狀態指向相依對象，其他狀態保留未完成相依對象並提供綁定 Checklist／Decision 來源；`ItemRow.svelte` 沿用單一連結／多對象選單。此輪 36 項 item-state、document-binding、waiting-capsule 測試通過，Viewer bundle 已重建。未在瀏覽器操作驗證；使用者要求等通知才合併，worktree 不啟服務。下一步由使用者通知合併後，再於主線頁面確認連結與選單。
+
 - **第三方 checklist 寫入的主要用途已釐清，計畫已更新、未實作（2026-10-25，使用者）。** [ThirdPartyChecklistWritePlan〈主要用途〉](Documentation/ThirdPartyChecklistWritePlan.md#主要用途ux-demo-的動作觸發標記)：UX demo 在使用者操作驗收對象時，由事件以 `set` 記錄 `[manual]` 那一格；只記 demo 能完整見證的格子，外觀與手感仍由使用者勾。「TaskProgress 主動讀檔案狀態」與「為外部交付寫編輯器 hook」都暫不做；等外部交付的子項改由 agent 在 plan／run 時確認（AcceptanceChainPlan〈執行與驗收〉）。第 2、3 階段的驗收與第 4 階段的入口表仍在 third-party-checklist-write 卡上。
 
 - **缺口與退場盤點已定案，尚未落實（2026-10-24）。** [GapScanPlan](Documentation/GapScanPlan.md)：盤點併入每一層的 plan，不新增動詞；UX 的盤點方法留在 cross-platform-module-spec，plan 照它做；退場新增 `obsolete`（被取代，指向取代者）與 `discontinued`（棄案，附理由）兩種狀態。[gap-scan.decisions](decisions/gap-scan.decisions) 七題已答。
