@@ -97,13 +97,13 @@ plan 在每一層做同一件事：對照這一層的目標，看下一層已有
 - **方向錯就停。** 實作偏離規格，就地修正；規格或目標本身錯了，停下，不硬改到通過（[agent-work-route〈Separate a wrong implementation from a wrong spec〉](../../.agents/skills/agent-work-route/SKILL.md#separate-a-wrong-implementation-from-a-wrong-spec)）。目標錯回到〈釐清目標〉，規格錯重寫規格後繼續。
 - **對照目標驗收。** 每一層驗收都判斷結果是否達成目標寫的意圖，不只對照步驟；條件本身不服務目標時，標「條件不符」。條件在執行前寫好並提交（〈已決定〉第 4 點）。
 - **等外部交付。** 子項在等專案外的人交付（例如 VCP 的貼圖要等美術交付 `Cat.tif`）時，子項寫明等的是哪個交付、交到哪裡；agent 在 plan 或 run 考慮這個子項時自己確認交付是否已到，到了就接著做並自驗，沒到就留在等待。不靠編輯器 hook，TaskProgress 也不主動讀檔案；代價是 Report 要等 agent 下一次執行才更新（使用者 2026-10-25，[ThirdPartyChecklistWritePlan〈決策理由與替代方案〉](ThirdPartyChecklistWritePlan.md#決策理由與替代方案)）。
-- **人工驗收不擋流程（第 4 題）。** 被等的子項只差使用者驗收時，等它的子項就解除等待；必須等使用者驗收的，宣告等待時標明「要等使用者驗收」。使用者之後驗收不通過，相依的子項跟著重做。
+- **人工驗收不擋流程（第 4 題）。** 被等的子項只差使用者驗收時，等它的子項就解除等待；必須等使用者驗收的，宣告等待時標明「要等使用者驗收」（`"strict": true`）。使用者之後驗收不通過，相依的子項跟著重做：已開始的等待者推算為「需修正」，直到它在那次不通過之後再釋放或完成；嚴格等待的子項從未提前開始，只會繼續等待。等待 checklist 工作項目的宣告一律等全部檢查通過。
 
 ### 經驗紀錄
 
 第 3 題。任務卡綁定一份 `experience/<卡片ID>.md`，和 checklist、決策檔並列，只裝執行中學到、之後可能改變做法的經驗。
 
-- **綁定。** 卡片新增綁定文件的能力。不做 UI；這是給 agent 讀的文件，使用者要看就用文字編輯器。
+- **綁定。** 卡片以 `document_ref`（`kind: "experience"`）綁定自己的經驗紀錄，欄位與 CLI 規則見 [task-progress-report〈Bind a card's experience record〉](../.agents/skills/task-progress-report/SKILL.md#bind-a-cards-experience-record)。不做 UI；這是給 agent 讀的文件，使用者要看就用文字編輯器。
 - **格式。** 每筆一行：狀態、日期、寫入者、子項、類別、內容、影響的規則。
 
   ```markdown

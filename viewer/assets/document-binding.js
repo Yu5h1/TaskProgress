@@ -1,6 +1,6 @@
 import { createChecklistHttpTransport } from "./checklist-http-transport.js";
 import { createDecisionHttpTransport } from "./decision-transport.js";
-import { deriveItemState, ITEM_STATE_META, waitsText } from "./item-state.js";
+import { deriveItemState, ITEM_STATE_META, mustRedo, waitedChecklistFacts, waitMet, waitsText } from "./item-state.js";
 import { mergeReports, reportPathForScope } from "./report-model.js";
 
 /**
@@ -188,11 +188,13 @@ export async function evaluateWaitTargets(tasks, options = {}) {
     }
     const inCompleted = (task?.completed_items ?? []).includes(item);
     let done = (item.status ?? (inCompleted ? "done" : "planned")) === "done";
+    let facts = { onlyManual: false, userFailedAt: null };
     if (normalizeDocumentRef(item.document_ref)?.kind === "checklist") {
       const evaluation = await fetchDocumentBinding(item.document_ref, { fetchImpl, ...bindingOptions });
       done = Boolean(evaluation.ok && evaluation.completed);
+      if (!done) facts = waitedChecklistFacts(item, evaluation);
     }
-    results.set(key, { done, available: true, card, label, href });
+    results.set(key, { done, ...facts, available: true, card, label, href });
   });
   return results;
 }
@@ -340,20 +342,32 @@ export async function evaluateAllDocumentBindings(tasks, options = {}) {
   return evaluations;
 }
 
-function pendingWaitsOf(item, evaluations) {
+function waitResultsOf(item, evaluations) {
   return (Array.isArray(item?.waits_for) ? item.waits_for : [])
-    .map((wait) => evaluations.get(waitKey(wait)) ?? {
-      done: false,
-      available: false,
-      label: isChecklistWait(wait) ? `${wait.checklist}.checklist 第 ${wait.work_item} 項` : `${wait?.task_id} › ${wait?.item_id}`,
-      href: null,
-    })
-    .filter((result) => !result.done);
+    .map((wait) => ({
+      wait,
+      result: evaluations.get(waitKey(wait)) ?? {
+        done: false,
+        available: false,
+        label: isChecklistWait(wait) ? `${wait.checklist}.checklist 第 ${wait.work_item} 項` : `${wait?.task_id} › ${wait?.item_id}`,
+        href: null,
+      },
+    }));
+}
+
+function pendingWaitsOf(item, evaluations) {
+  return waitResultsOf(item, evaluations)
+    .filter(({ wait, result }) => (isChecklistWait(wait) ? !result.done : !waitMet(wait, result)))
+    .map(({ result }) => result);
+}
+
+function redoOf(item, evaluations) {
+  return mustRedo(item, waitResultsOf(item, evaluations).filter(({ wait }) => !isChecklistWait(wait)));
 }
 
 function withDerivedState(item, evaluation, evaluations) {
   const pendingWaits = pendingWaitsOf(item, evaluations);
-  const derivedState = deriveItemState(item, evaluation, pendingWaits);
+  const derivedState = deriveItemState(item, evaluation, pendingWaits, redoOf(item, evaluations));
   if (!derivedState) return item;
   const meta = ITEM_STATE_META[derivedState];
   const suffix = waitsText(pendingWaits);
@@ -387,9 +401,10 @@ export function projectTasksWithBindings(tasks, evaluations = new Map()) {
       }
 
       const itemKey = documentBindingKey(item.document_ref);
+      const redo = redoOf(item, evaluations);
       if (!itemKey) {
-        const projected = withDerivedState(item, null, evaluations);
-        if (defaultOriginField === "completed_items") completedItems.push(projected);
+        const projected = withDerivedState(redo ? { ...item, status: "in_progress" } : item, null, evaluations);
+        if (defaultOriginField === "completed_items" && !redo) completedItems.push(projected);
         else pendingItems.push(projected);
         return;
       }
@@ -397,7 +412,7 @@ export function projectTasksWithBindings(tasks, evaluations = new Map()) {
       const norm = normalizeDocumentRef(item.document_ref);
       const evalResult = evaluations.get(itemKey) ?? { ok: false, completed: false, error: "未評估" };
       const rawStatus = item.status ?? (defaultOriginField === "completed_items" ? "done" : "planned");
-      const derivedStatus = deriveBoundItemStatus(rawStatus, evalResult);
+      const derivedStatus = redo && rawStatus !== "archive" ? "in_progress" : deriveBoundItemStatus(rawStatus, evalResult);
 
       const itemSourceRef = {
         href: documentBindingHref(item.document_ref),

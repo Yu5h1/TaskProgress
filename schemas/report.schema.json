@@ -131,6 +131,27 @@
         }
       ]
     },
+    "cardDocumentRef": {
+      "$comment": "A card binds only its own experience record, experience/<task>.md in the card's scope: one line per lesson learned while doing the card's work, read by the close-out review. Items bind checklists and decisions through documentRef instead.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "scope_id",
+        "task"
+      ],
+      "properties": {
+        "kind": {
+          "const": "experience"
+        },
+        "scope_id": {
+          "$ref": "#/$defs/id"
+        },
+        "task": {
+          "$ref": "#/$defs/id"
+        }
+      }
+    },
     "reportPointerTask": {
       "type": "object",
       "additionalProperties": false,
@@ -203,6 +224,9 @@
         "pending_items": {
           "$ref": "#/$defs/itemList"
         },
+        "document_ref": {
+          "$ref": "#/$defs/cardDocumentRef"
+        },
         "progress": {
           "type": "object",
           "additionalProperties": false,
@@ -273,7 +297,7 @@
           "$ref": "#/$defs/documentRef"
         },
         "waits_for": {
-          "$comment": "Items or checklist work items this item waits for, possibly in other registered scopes. While any is unfinished the item shows as waiting and run skips it; a checklist work item is finished when every check in it passes. Written by the Report CLI, which rejects loops and targets it cannot find.",
+          "$comment": "Items or checklist work items this item waits for, possibly in other registered scopes. While any is unfinished the item shows as waiting and run skips it; a checklist work item is finished when every check in it passes. An item wait is also met when the waited item lacks only the user's [manual] acceptance, unless strict is true; if the user then fails that acceptance, a waiter that had started reads as needs_fix until it is released or done again. Written by the Report CLI, which rejects loops and targets it cannot find.",
           "type": "array",
           "minItems": 1,
           "maxItems": 20,
@@ -298,6 +322,10 @@
                   },
                   "item_id": {
                     "$ref": "#/$defs/id"
+                  },
+                  "strict": {
+                    "$comment": "Wait until the waited item is done, including the user's [manual] acceptance.",
+                    "const": true
                   }
                 }
               },

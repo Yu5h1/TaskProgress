@@ -19,7 +19,7 @@ class ReportError(ValueError):
 
 FIELDS = {
     "report.update": ({"title", "summary"}, {"summary"}),
-    "task.update": ({"title", "summary", "status", "priority", "progress"}, {"priority", "progress"}),
+    "task.update": ({"title", "summary", "status", "priority", "progress", "document_ref"}, {"priority", "progress", "document_ref"}),
     "item.update": ({"title", "status", "priority", "waits_for"}, {"priority", "waits_for"}),
     "dev.update": ({"next_step", "blockers", "decisions", "routes"}, {"next_step", "blockers", "decisions", "routes"}),
 }
@@ -113,6 +113,23 @@ def find_item(report, task_id, item_id):
 
 
 CHECKLIST_WORK_ITEM = re.compile(r"^- \[[ x!]\] \*\*(\d+)\.", re.MULTILINE)
+DOCUMENT_STEM = re.compile(r"^[A-Za-z0-9._-]+$")
+
+
+def check_card_document(report, task, folder=None):
+    """A card binds only its own experience record: experience/<task>.md in the card's own scope, which must exist."""
+    reference = task.get("document_ref")
+    if reference is None:
+        return
+    require(isinstance(reference, dict) and set(reference) == {"kind", "scope_id", "task"},
+            "A card document_ref needs kind, scope_id and task", "document_ref")
+    require(reference["kind"] == "experience", "A card binds only an experience document", "document_ref.kind")
+    require(reference["scope_id"] == report["scope_id"], "A card's experience document lives in its own scope", "document_ref.scope_id")
+    require(isinstance(reference["task"], str) and bool(DOCUMENT_STEM.match(reference["task"])),
+            "document_ref.task must be a file stem", "document_ref.task")
+    if folder is not None:
+        path = Path(folder) / "experience" / (reference["task"] + ".md")
+        require(path.is_file(), "Experience document was not found: experience/" + reference["task"] + ".md", "document_ref.task")
 
 
 def check_waits(report, task_id, item, folder=None):
@@ -160,9 +177,10 @@ def check_waits(report, task_id, item, folder=None):
             require(numbers is not None, "waits_for checklist was not found: " + check[0] + "/" + check[1], "waits_for")
             require(check[2] in numbers, "waits_for work item was not found: " + "/".join(map(str, check)), "waits_for")
             continue
-        require(isinstance(wait, dict) and set(wait) == {"scope_id", "task_id", "item_id"}
-                and all(isinstance(wait[k], str) and wait[k] for k in wait),
-                "Each waits_for entry needs scope_id, task_id and item_id", "waits_for")
+        require(isinstance(wait, dict) and {"scope_id", "task_id", "item_id"} <= set(wait) <= {"scope_id", "task_id", "item_id", "strict"}
+                and all(isinstance(wait[k], str) and wait[k] for k in ("scope_id", "task_id", "item_id"))
+                and wait.get("strict", True) is True,
+                "Each waits_for entry needs scope_id, task_id and item_id, and strict may only be true", "waits_for")
         key = (wait["scope_id"], wait["task_id"], wait["item_id"])
         require(key != start, "An item cannot wait for itself", "waits_for")
         require(key not in seen, "Duplicate waits_for entry", "waits_for")
@@ -340,6 +358,7 @@ def apply_operations(report, overlay, operations, actor=None, at=None, folder=No
                         if isinstance(item, dict):
                             require("activity" not in item, "activity is written by the CLI, not supplied", "value." + key)
                             stamp_new_item(item, actor, at)
+                check_card_document(report, value, folder)
                 report["tasks"].insert(0 if value.get("status") == "done" else len(report["tasks"]), value)
                 task_id = value.get("id")
             else:
@@ -347,6 +366,7 @@ def apply_operations(report, overlay, operations, actor=None, at=None, folder=No
                 if name == "task.update":
                     previous_status = task.get("status")
                     update(task, operation, name)
+                    check_card_document(report, task, folder)
                     if previous_status != "done" and task.get("status") == "done":
                         report["tasks"].remove(task)
                         report["tasks"].insert(0, task)

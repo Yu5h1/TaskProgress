@@ -423,6 +423,27 @@ export function validateDocumentRef(value, path, errors) {
   }
 }
 
+/**
+ * A card binds only its own experience record (experience/<task>.md); Checklist and Decision
+ * bindings stay on items, so any other kind on a card is the deprecated form.
+ */
+export function validateCardDocumentRef(value, path, errors) {
+  if (!isObject(value) || value.kind !== "experience") {
+    errors.push(issue(
+      "deprecated_task_document_ref",
+      path,
+      `${path} 是任務卡，只能綁定經驗紀錄（kind: "experience"）；Checklist／Decision 文件綁定只出現在子項目（item.document_ref）。`,
+    ));
+    return;
+  }
+  const extra = Object.keys(value).filter((key) => !["kind", "scope_id", "task"].includes(key));
+  if (extra.length) {
+    errors.push(issue("invalid_document_ref", path, `${path} 只能包含 kind、scope_id 與 task。`));
+  }
+  requireString(value.scope_id, `${path}.scope_id`, errors, { id: true });
+  requireString(value.task, `${path}.task`, errors, { id: true });
+}
+
 function validateTimestamp(value, path, errors) {
   requireString(value, path, errors);
   if (typeof value === "string" && Number.isNaN(Date.parse(value))) {
@@ -453,11 +474,7 @@ function validateStandardTask(task, path, errors) {
   }
   validatePriority(task.priority, `${path}.priority`, errors);
   if (task.document_ref !== undefined) {
-    errors.push(issue(
-      "deprecated_task_document_ref",
-      `${path}.document_ref`,
-      `${path} 是任務卡，不支援保存 document_ref；Checklist／Decision 文件綁定只出現在子項目（item.document_ref）。`,
-    ));
+    validateCardDocumentRef(task.document_ref, `${path}.document_ref`, errors);
   }
   if (task.report_ref !== undefined) {
     errors.push(issue(

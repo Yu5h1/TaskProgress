@@ -112,6 +112,30 @@ class ReportCliTests(unittest.TestCase):
         execute(self.root, "apply", self.request([{"op": "item.update", "task_id": "one", "item_id": "item", "unset": ["waits_for"]}]))
         self.assertNotIn("waits_for", self.item())
 
+    def test_a_wait_may_be_strict_and_nothing_else(self):
+        wait = lambda **kw: [{"scope_id": "sample", "task_id": "one", "item_id": "b", **kw}]
+        execute(self.root, "apply", self.request([{"op": "item.add", "task_id": "one", "value": {"id": "b", "title": "B"}}]))
+        for waits in (wait(strict=False), wait(strict="yes"), wait(until="user")):
+            with self.assertRaises(ReportError):
+                execute(self.root, "apply", self.request([{"op": "item.update", "task_id": "one", "item_id": "item", "set": {"waits_for": waits}}]))
+        execute(self.root, "apply", self.request([{"op": "item.update", "task_id": "one", "item_id": "item", "set": {"waits_for": wait(strict=True)}}]))
+        self.assertEqual(self.item()["waits_for"], wait(strict=True))
+
+    def test_a_card_binds_only_its_own_existing_experience_record(self):
+        ref = lambda **kw: {"kind": "experience", "scope_id": "sample", "task": "one", **kw}
+        update = lambda value: self.request([{"op": "task.update", "task_id": "one", "set": {"document_ref": value}}])
+        with self.assertRaises(ReportError):
+            execute(self.root, "apply", update(ref()))
+        (self.root / "experience").mkdir()
+        (self.root / "experience" / "one.md").write_text("- [open] 2026-10-25 codex › item › missing：例\n", encoding="utf-8")
+        for value in (ref(kind="checklist"), ref(scope_id="other"), ref(task="../one"), ref(stem="one")):
+            with self.assertRaises(ReportError):
+                execute(self.root, "apply", update(value))
+        execute(self.root, "apply", update(ref()))
+        self.assertEqual(execute(self.root, "get", task="one")["task"]["document_ref"], ref())
+        execute(self.root, "apply", self.request([{"op": "task.update", "task_id": "one", "unset": ["document_ref"]}]))
+        self.assertNotIn("document_ref", execute(self.root, "get", task="one")["task"])
+
     def test_waits_on_a_checklist_work_item_need_the_file_and_the_work_item(self):
         (self.root / "checklists").mkdir()
         (self.root / "checklists" / "manual.checklist").write_text(

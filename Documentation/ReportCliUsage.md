@@ -50,6 +50,15 @@ task-progress.exe report apply "C:\Project" --input changes.json --dry-run
 task-progress.exe report apply "C:\Project" --input changes.json
 ```
 
+卡片可用 `task.update` 綁定或解除自己的經驗紀錄（檔案須已存在於 `experience/<stem>.md`，scope 須為卡片所在的 scope；欄位見 [Report 技能〈Bind a card's experience record〉](../.agents/skills/task-progress-report/SKILL.md#bind-a-cards-experience-record)）：
+
+```json
+{ "op": "task.update", "task_id": "feature-a",
+  "set": { "document_ref": { "kind": "experience", "scope_id": "<scope>", "task": "feature-a" } } }
+```
+
+子項的 `waits_for` 可在等待子項的項目加 `"strict": true`，表示要等到使用者人工驗收也完成；其他值一律拒絕。等待規則見 [Report 技能〈Maintain child items〉](../.agents/skills/task-progress-report/SKILL.md#maintain-child-items)。
+
 確認：`ok` 為 true；`changed` 表示是否實際修改。重複設定相同內容為 no-op。來源已改變時會回 revision_conflict，重新讀取並核對後再產生請求。
 
 ## 新增卡片或子項

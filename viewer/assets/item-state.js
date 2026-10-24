@@ -62,10 +62,45 @@ export function stateFromChecklist(item, evaluation) {
 }
 
 /**
+ * What a waiter needs from a checklist-bound waited item beyond completion, read from its checklist
+ * alone: whether only the user's [manual] acceptance is left (every other check passed and the user
+ * failed none), and when the user last failed a [manual] check that still stands.
+ */
+export function waitedChecklistFacts(item, evaluation) {
+  if (!evaluation?.ok || !Array.isArray(evaluation.checks)) return { onlyManual: false, userFailedAt: null };
+  const checks = evaluation.checks;
+  const onlyManual = stateFromChecklist(item, evaluation) === "awaiting_user"
+    && checks.every((check) => check.tag === "manual" || effective(check) === "passed");
+  const failures = checks
+    .filter((check) => check.tag === "manual" && check.recorder === "user" && effective(check) === "failed")
+    .map(recordedAt)
+    .filter((at) => at !== null);
+  return { onlyManual, userFailedAt: failures.length ? Math.max(...failures) : null };
+}
+
+/** An item wait is met by a done item, or by one lacking only the user's acceptance unless strict. */
+export function waitMet(wait, result) {
+  return Boolean(result?.done || (wait?.strict !== true && result?.onlyManual));
+}
+
+/**
+ * Whether an item that started must be redone: a non-strict wait's item was failed by the user
+ * after this item's latest release or completion.
+ */
+export function mustRedo(item, waitResults) {
+  if (latestAt(item, "started") === null && latestAt(item, "takeover") === null) return false;
+  const redone = [latestAt(item, "released"), latestAt(item, "done")].filter((at) => at !== null);
+  const since = redone.length ? Math.max(...redone) : null;
+  return (waitResults ?? []).some(({ wait, result }) => wait?.strict !== true
+    && Number.isFinite(result?.userFailedAt) && (since === null || since < result.userFailedAt));
+}
+
+/**
  * The item's derived state, or null when nothing beyond its stored status applies
  * (no readable bound checklist and nothing it waits for is unfinished).
  */
-export function deriveItemState(item, evaluation, pendingWaits = []) {
+export function deriveItemState(item, evaluation, pendingWaits = [], redo = false) {
+  if (redo) return "needs_fix";
   const fromChecklist = stateFromChecklist(item, evaluation);
   if (fromChecklist === "done") return "done";
   if (!fromChecklist && (item?.status ?? "planned") === "done") return null;

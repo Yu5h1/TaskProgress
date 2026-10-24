@@ -129,3 +129,44 @@ test("a waited item with no status counts as done when it sits in completed_item
   assert.equal(results.get(waitKey(waits[0])).done, true, "completed_items without status is done");
   assert.equal(results.get(waitKey(waits[1])).done, false, "pending_items without status is not");
 });
+
+test("a wait is met while the waited item lacks only the user's acceptance, and a user failure sends started waiters back", async () => {
+  const bound = (id) => ({ id, title: id, document_ref: { kind: "checklist", scope_id: "web", task: id } });
+  const other = { tasks: [{ id: "card", title: "卡片", pending_items: [bound("only-manual"), bound("user-failed"), bound("work-open")] }] };
+  const documents = {
+    "only-manual": [{ status: "passed" }, { tag: "manual", status: "pending" }],
+    "user-failed": [{ status: "passed" }, { tag: "manual", status: "failed", effectiveStatus: "failed", recorder: "user", recordedAt: at(30) }],
+    "work-open": [{ status: "pending" }, { tag: "manual", status: "pending" }],
+  };
+  const on = (item_id, extra = {}) => ({ scope_id: "web", task_id: "card", item_id, ...extra });
+  const event = (name, minutes) => ({ event: name, actor: "claude", at: at(minutes) });
+  const waiters = [
+    { id: "lifted", title: "l", waits_for: [on("only-manual")] },
+    { id: "strict", title: "s", waits_for: [on("only-manual", { strict: true })] },
+    { id: "work-pending", title: "w", waits_for: [on("work-open")] },
+    { id: "redo", title: "r", waits_for: [on("user-failed")], activity: [event("started", 0)] },
+    { id: "redone", title: "rd", waits_for: [on("user-failed")], activity: [event("started", 0), event("released", 40)] },
+    { id: "never-started", title: "n", waits_for: [on("user-failed")] },
+    { id: "strict-failed", title: "sf", waits_for: [on("user-failed", { strict: true })], activity: [event("started", 0)] },
+  ];
+  const doneThenFailed = { id: "done-then-failed", title: "d", status: "done", waits_for: [on("user-failed")],
+    activity: [event("started", 0), event("done", 10)] };
+  const tasks = [{ id: "t", status: "in_progress", pending_items: waiters, completed_items: [doneThenFailed] }];
+  const evaluations = await evaluateWaitTargets(tasks, {
+    fetchImpl: async () => ({ ok: true, json: async () => other }),
+    createChecklistTransport: ({ task }) => ({ load: async () => ({ document: { items: [{ checks: documents[task] }] } }) }),
+  });
+  assert.equal(evaluations.get(waitKey(on("only-manual"))).onlyManual, true);
+  assert.equal(evaluations.get(waitKey(on("work-open"))).onlyManual, false);
+  const [task] = projectTasksWithBindings(tasks, evaluations);
+  const state = (id) => [...task.pending_items, ...task.completed_items].find((item) => item.id === id)?.derivedState;
+  assert.equal(state("lifted"), undefined, "met: only the user's acceptance is left");
+  assert.equal(state("strict"), "waiting", "a strict wait holds");
+  assert.equal(state("work-pending"), "waiting", "open work keeps the wait");
+  assert.equal(state("redo"), "needs_fix", "a started waiter is redone after the user's failure");
+  assert.equal(state("redone"), "waiting", "released after the failure: it waits for the fix");
+  assert.equal(state("never-started"), "waiting");
+  assert.equal(state("strict-failed"), "waiting");
+  assert.equal(state("done-then-failed"), "needs_fix", "a waiter done before the failure cannot stay done");
+  assert.ok(task.pending_items.some((item) => item.id === "done-then-failed"), "the redone item moves back to pending");
+});

@@ -42,10 +42,13 @@ internal sealed class ItemStateResolver
     /// <summary>
     ///   The item's derived state. An unbound item with no stored status takes it from its array:
     ///   <c>completed_items</c> means done. <paramref name="completed"/> names that array when the
-    ///   caller knows it; otherwise it is looked up in the scope's report.
+    ///   caller knows it; otherwise it is looked up in the scope's report. An item that started on
+    ///   a waited item lacking only the user's acceptance needs fixing once the user fails that
+    ///   acceptance, until it is released or done again.
     /// </summary>
     public string StateOf(string scope, JsonObject item, int depth = 0, bool? completed = null)
     {
+        if (MustRedo(item, depth)) return ItemStates.NeedsFix;
         var checklist = BoundChecklist(scope, item, out var bound);
         var stored = item["status"]?.GetValue<string>();
         if (bound && checklist is not null && IsDone(checklist, LatestAt(item, "released"))) return ItemStates.Done;
@@ -65,11 +68,50 @@ internal sealed class ItemStateResolver
         return FromChecklist(checklist, item);
     }
 
-    public bool IsDone(string scope, string taskId, string itemId, int depth)
+    public bool IsDone(string scope, string taskId, string itemId, int depth) =>
+        Target(scope, taskId, itemId, depth).Done;
+
+    /// <summary>
+    ///   A waited item: done, lacking only the user's <c>[manual]</c> acceptance (read from its
+    ///   checklist alone: every other check passed and the user failed none), and when the user last
+    ///   failed a <c>[manual]</c> check that still stands.
+    /// </summary>
+    private (bool Done, bool OnlyManual, DateTimeOffset? UserFailedAt) Target(string scope, string taskId, string itemId, int depth)
     {
-        if (depth > DepthLimit) return false;
+        if (depth > DepthLimit) return (false, false, null);
         var (found, completed) = FindItem(scope, taskId, itemId);
-        return found is not null && StateOf(scope, found, depth + 1, completed) == ItemStates.Done;
+        if (found is null) return (false, false, null);
+        if (StateOf(scope, found, depth + 1, completed) == ItemStates.Done) return (true, false, null);
+        if (BoundChecklist(scope, found, out _) is not { } checklist) return (false, false, null);
+        var released = LatestAt(found, "released");
+        var checks = checklist.Items.SelectMany(work => work.Checks).ToArray();
+        var onlyManual = FromChecklist(checklist, found) == ItemStates.AwaitingUser
+            && checks.All(check => check.IsManual || ChecklistDocument.EffectiveStatus(check, released) == ChecklistStatus.Passed);
+        var userFailedAt = checks
+            .Where(check => check.IsManual && check.Record?.Recorder == "user"
+                && ChecklistDocument.EffectiveStatus(check, released) == ChecklistStatus.Failed)
+            .Select(check => (DateTimeOffset?)check.Record!.At)
+            .DefaultIfEmpty(null)
+            .Max();
+        return (false, onlyManual, userFailedAt);
+    }
+
+    private static IEnumerable<(string Scope, string Task, string Item, bool Strict)> ItemWaits(JsonObject item) =>
+        (item["waits_for"] as JsonArray)?.OfType<JsonObject>()
+            .Where(wait => wait["checklist"] is null)
+            .Select(wait => (wait["scope_id"]?.GetValue<string>(), wait["task_id"]?.GetValue<string>(),
+                wait["item_id"]?.GetValue<string>(), wait["strict"]?.GetValue<bool>() == true))
+            .Where(wait => wait.Item1 is not null && wait.Item2 is not null && wait.Item3 is not null)
+            .Select(wait => (wait.Item1!, wait.Item2!, wait.Item3!, wait.Item4))
+        ?? [];
+
+    private bool MustRedo(JsonObject item, int depth)
+    {
+        if (LatestAt(item, "started") is null && LatestAt(item, "takeover") is null) return false;
+        var redone = new[] { LatestAt(item, "released"), LatestAt(item, "done") }.Max();
+        return ItemWaits(item).Any(wait => !wait.Strict
+            && Target(wait.Scope, wait.Task, wait.Item, depth).UserFailedAt is { } failed
+            && (redone is null || redone < failed));
     }
 
     private bool Waits(JsonObject item, int depth)
@@ -83,10 +125,13 @@ internal sealed class ItemStateResolver
                     || !IsWorkItemDone(wait["scope_id"]?.GetValue<string>(), stem, wait["work_item"])) return true;
                 continue;
             }
-            var scope = wait["scope_id"]?.GetValue<string>();
-            var task = wait["task_id"]?.GetValue<string>();
-            var target = wait["item_id"]?.GetValue<string>();
-            if (scope is null || task is null || target is null || !IsDone(scope, task, target, depth)) return true;
+            if (wait["scope_id"]?.GetValue<string>() is null || wait["task_id"]?.GetValue<string>() is null
+                || wait["item_id"]?.GetValue<string>() is null) return true;
+        }
+        foreach (var (scope, task, target, strict) in ItemWaits(item))
+        {
+            var waited = Target(scope, task, target, depth);
+            if (!waited.Done && (strict || !waited.OnlyManual)) return true;
         }
         return false;
     }

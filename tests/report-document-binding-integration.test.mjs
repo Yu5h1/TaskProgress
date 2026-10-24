@@ -224,7 +224,7 @@ test("validateReport rejects legacy task-level document_ref with clear diagnosti
   const errors = validateReport(legacyReport);
   assert.equal(errors.length, 1);
   assert.equal(errors[0].code, "deprecated_task_document_ref");
-  assert.match(errors[0].message, /任務卡，不支援保存 document_ref/);
+  assert.match(errors[0].message, /任務卡，只能綁定經驗紀錄/);
 });
 
 test("evaluateAllDocumentBindings queries documents and distinguishes identical stem under different scopes", async () => {
@@ -418,4 +418,15 @@ test("when a completed checklist is unchecked or reverted, projected status reve
   assert.equal(projected2[0].status, "planned");
   assert.equal(projected2[0].completed_items.length, 0);
   assert.equal(projected2[0].pending_items.length, 1);
+});
+
+test("a card may bind its experience record and nothing else", () => {
+  const card = (document_ref) => ({
+    schema_version: "1.1", report_id: "main", scope_id: "main", title: "R", updated_at: "2026-10-25T00:00:00Z",
+    tasks: [{ id: "c", title: "C", status: "planned", summary: "S", document_ref, pending_items: [], completed_items: [] }],
+  });
+  const codes = (report) => validateReport(report).map((error) => error.code);
+  assert.ok(!codes(card({ kind: "experience", scope_id: "main", task: "c" })).some((code) => code.includes("document_ref")));
+  assert.ok(codes(card({ kind: "checklist", scope_id: "main", task: "c" })).includes("deprecated_task_document_ref"));
+  assert.ok(codes(card({ kind: "experience", scope_id: "main", task: "c", stem: "x" })).includes("invalid_document_ref"));
 });
