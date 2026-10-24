@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-10-24T10:31:53.699807+00:00",
+  "updated_at": "2026-10-24T14:29:49.912660+00:00",
   "tasks": [
     {
       "id": "next-marker",
@@ -2897,7 +2897,7 @@
           "id": "gap-scan-decisions",
           "status": "planned",
           "priority": 1,
-          "title": "決定 [缺口與退場盤點計畫](https://github.com/Yu5h1/TaskProgress/blob/main/Documentation/GapScanPlan.md) 的 7 題：盤點範圍、是否盤點全部、和「整合進 UX」的分工、結果形式、選定後落點、動詞名稱、退場子項的狀態",
+          "title": "決定 [缺口與退場盤點計畫](https://github.com/Yu5h1/TaskProgress/blob/main/Documentation/GapScanPlan.md) 剩下的 2 題：跨平台模組規格技能的候選盤點要不要移到 plan、退場子項的狀態",
           "document_ref": {
             "kind": "decision",
             "scope_id": "task-progress",
@@ -2917,6 +2917,12 @@
               "at": "2026-10-24T04:28:20.048959+00:00",
               "session": "退場盤點",
               "session_id": "8db3d9df-8d4e-461e-96c2-37ca30b33c56"
+            },
+            {
+              "event": "updated",
+              "actor": "claude",
+              "at": "2026-10-24T14:29:49.912660+00:00",
+              "session": "Taskprogess"
             }
           ]
         }

@@ -1,200 +1,244 @@
 {
   "schema_version": "1.1",
   "task_id": "gap-scan",
-  "updated_at": "2026-10-24T04:28:01.588539+00:00",
+  "updated_at": "2026-10-24T14:28:33.0373204\u002B00:00",
   "decisions": [
     {
       "id": "scan-range",
       "version": 1,
-      "question": "1. 盤點要找哪些缺口？",
-      "context": "例子：Web 的設定面板已經有「匯入／匯出設定」，UX 的 Configuration 規格沒有這項；UX 的 Toggle 規格有目標，Unity 還沒實作。今天評估 UX 或 Unity，都不會提出這兩件事。\n範圍越大，候選越多、越吵；越小，越容易漏。",
-      "source_ref": "../Documentation/GapScanPlan.md#尚未決定",
+      "question": "1. \u76E4\u9EDE\u8981\u627E\u54EA\u4E9B\u7F3A\u53E3\uFF1F",
+      "context": "\u4F8B\u5B50\uFF1AWeb \u7684\u8A2D\u5B9A\u9762\u677F\u5DF2\u7D93\u6709\u300C\u532F\u5165\uFF0F\u532F\u51FA\u8A2D\u5B9A\u300D\uFF0CUX \u7684 Configuration \u898F\u683C\u6C92\u6709\u9019\u9805\uFF1BUX \u7684 Toggle \u898F\u683C\u6709\u76EE\u6A19\uFF0CUnity \u9084\u6C92\u5BE6\u4F5C\u3002\u4ECA\u5929\u8A55\u4F30 UX \u6216 Unity\uFF0C\u90FD\u4E0D\u6703\u63D0\u51FA\u9019\u5169\u4EF6\u4E8B\u3002\n\u7BC4\u570D\u8D8A\u5927\uFF0C\u5019\u9078\u8D8A\u591A\u3001\u8D8A\u5435\uFF1B\u8D8A\u5C0F\uFF0C\u8D8A\u5BB9\u6613\u6F0F\u3002",
+      "source_ref": "../Documentation/GapScanPlan.md#\u5C1A\u672A\u6C7A\u5B9A",
       "options": [
         {
           "id": "modules-specs",
-          "label": "只找模組與規格的缺口",
-          "description": "某平台已有、規格還沒有的能力；規格目標還沒被某平台實作。例子中的兩件都會被找到。"
+          "label": "\u53EA\u627E\u6A21\u7D44\u8207\u898F\u683C\u7684\u7F3A\u53E3",
+          "description": "\u67D0\u5E73\u53F0\u5DF2\u6709\u3001\u898F\u683C\u9084\u6C92\u6709\u7684\u80FD\u529B\uFF1B\u898F\u683C\u76EE\u6A19\u9084\u6C92\u88AB\u67D0\u5E73\u53F0\u5BE6\u4F5C\u3002\u4F8B\u5B50\u4E2D\u7684\u5169\u4EF6\u90FD\u6703\u88AB\u627E\u5230\u3002"
         },
         {
           "id": "plus-plan-goals",
-          "label": "模組與規格，加上計畫目標沒人負責的部分",
-          "description": "另外比對各專案 plan.md 的目標，找出沒有卡片、沒有規格在推進的目標。"
+          "label": "\u6A21\u7D44\u8207\u898F\u683C\uFF0C\u52A0\u4E0A\u8A08\u756B\u76EE\u6A19\u6C92\u4EBA\u8CA0\u8CAC\u7684\u90E8\u5206",
+          "description": "\u53E6\u5916\u6BD4\u5C0D\u5404\u5C08\u6848 plan.md \u7684\u76EE\u6A19\uFF0C\u627E\u51FA\u6C92\u6709\u5361\u7247\u3001\u6C92\u6709\u898F\u683C\u5728\u63A8\u9032\u7684\u76EE\u6A19\u3002"
         },
         {
           "id": "everything",
-          "label": "再加程式品質（測試缺口、TODO、過時文件）",
-          "description": "最全面，但候選會很多，多數不是你想決定的方向。"
+          "label": "\u518D\u52A0\u7A0B\u5F0F\u54C1\u8CEA\uFF08\u6E2C\u8A66\u7F3A\u53E3\u3001TODO\u3001\u904E\u6642\u6587\u4EF6\uFF09",
+          "description": "\u6700\u5168\u9762\uFF0C\u4F46\u5019\u9078\u6703\u5F88\u591A\uFF0C\u591A\u6578\u4E0D\u662F\u4F60\u60F3\u6C7A\u5B9A\u7684\u65B9\u5411\u3002"
         }
       ],
       "recommendation": {
         "option_id": "plus-plan-goals",
-        "reason": "你說的「專案缺口」包含模組和計畫目標；程式品質類的缺口數量多、價值不一，適合在評估或收斂時處理，不必每次拿來讓你選。"
+        "reason": "\u4F60\u8AAA\u7684\u300C\u5C08\u6848\u7F3A\u53E3\u300D\u5305\u542B\u6A21\u7D44\u548C\u8A08\u756B\u76EE\u6A19\uFF1B\u7A0B\u5F0F\u54C1\u8CEA\u985E\u7684\u7F3A\u53E3\u6578\u91CF\u591A\u3001\u50F9\u503C\u4E0D\u4E00\uFF0C\u9069\u5408\u5728\u8A55\u4F30\u6216\u6536\u6582\u6642\u8655\u7406\uFF0C\u4E0D\u5FC5\u6BCF\u6B21\u62FF\u4F86\u8B93\u4F60\u9078\u3002"
       },
       "allow_other": true,
-      "status": "pending",
-      "answer": null
+      "status": "decided",
+      "answer": {
+        "kind": "other",
+        "text": "\u4F9D\u5C08\u6848\u76EE\u6A19\u5224\u65B7\uFF1A\u5B8C\u6210\u5C08\u6848\u76EE\u6A19\u9700\u8981\u7684\u4EFB\u4F55\u5DE5\u4F5C\u90FD\u5728\u7BC4\u570D\u5167\uFF08\u6A21\u7D44\u3001\u898F\u683C\u3001\u5E73\u53F0\u5BE6\u4F5C\u3001\u8A08\u756B\u76EE\u6A19\u3001\u6587\u4EF6\u3001\u9A57\u8B49\uFF0C\u4E0D\u9650\u7A0B\u5F0F\u958B\u767C\uFF09\uFF1B\u7A0B\u5F0F\u54C1\u8CEA\u985E\u53EA\u5728\u76EE\u6A19\u9700\u8981\u6642\u5217\u5165\u3002\u4F9D\u64DA\uFF1A\u4F7F\u7528\u8005 2026-10-24 \u5728 AcceptanceChainPlan\u3008\u76EE\u6A19\u8207\u6D41\u7A0B\u3009\u7684\u6C7A\u5B9A\uFF0C\u672C\u984C\u4E0D\u518D\u53E6\u554F\u3002",
+        "confirmed_at": "2026-10-24T14:28:25.6747513\u002B00:00"
+      },
+      "last_request": {
+        "request_id": "9452e8fc-531b-4007-866f-b65e7e85cc51",
+        "fingerprint": "da42221970854f52c90cc8eb3b2967b5b4ed7cc34cf1c65da90840153208c181"
+      }
     },
     {
       "id": "scan-all",
       "version": 1,
-      "question": "2. 要不要允許一次盤點所有專案？",
-      "context": "例子：Web 的設定面板已經有「匯入／匯出設定」，UX 的 Configuration 規格沒有這項；UX 的 Toggle 規格有目標，Unity 還沒實作。今天評估 UX 或 Unity，都不會提出這兩件事。\n跨平台的缺口本來就橫跨兩個專案（Web 有、UX 沒有），只看單一專案會漏掉一半。",
-      "source_ref": "../Documentation/GapScanPlan.md#尚未決定",
+      "question": "2. \u8981\u4E0D\u8981\u5141\u8A31\u4E00\u6B21\u76E4\u9EDE\u6240\u6709\u5C08\u6848\uFF1F",
+      "context": "\u4F8B\u5B50\uFF1AWeb \u7684\u8A2D\u5B9A\u9762\u677F\u5DF2\u7D93\u6709\u300C\u532F\u5165\uFF0F\u532F\u51FA\u8A2D\u5B9A\u300D\uFF0CUX \u7684 Configuration \u898F\u683C\u6C92\u6709\u9019\u9805\uFF1BUX \u7684 Toggle \u898F\u683C\u6709\u76EE\u6A19\uFF0CUnity \u9084\u6C92\u5BE6\u4F5C\u3002\u4ECA\u5929\u8A55\u4F30 UX \u6216 Unity\uFF0C\u90FD\u4E0D\u6703\u63D0\u51FA\u9019\u5169\u4EF6\u4E8B\u3002\n\u8DE8\u5E73\u53F0\u7684\u7F3A\u53E3\u672C\u4F86\u5C31\u6A6B\u8DE8\u5169\u500B\u5C08\u6848\uFF08Web \u6709\u3001UX \u6C92\u6709\uFF09\uFF0C\u53EA\u770B\u55AE\u4E00\u5C08\u6848\u6703\u6F0F\u6389\u4E00\u534A\u3002",
+      "source_ref": "../Documentation/GapScanPlan.md#\u5C1A\u672A\u6C7A\u5B9A",
       "options": [
         {
           "id": "allow-all",
-          "label": "允許「盤點全部」，逐一盤點後彙整成一份候選",
-          "description": "最能找到跨專案的缺口；一次讀的東西多、時間長。"
+          "label": "\u5141\u8A31\u300C\u76E4\u9EDE\u5168\u90E8\u300D\uFF0C\u9010\u4E00\u76E4\u9EDE\u5F8C\u5F59\u6574\u6210\u4E00\u4EFD\u5019\u9078",
+          "description": "\u6700\u80FD\u627E\u5230\u8DE8\u5C08\u6848\u7684\u7F3A\u53E3\uFF1B\u4E00\u6B21\u8B80\u7684\u6771\u897F\u591A\u3001\u6642\u9593\u9577\u3002"
         },
         {
           "id": "single-only",
-          "label": "一次只盤點一個專案",
-          "description": "成本低；跨專案的缺口要靠你分別盤點兩邊才看得出來。"
+          "label": "\u4E00\u6B21\u53EA\u76E4\u9EDE\u4E00\u500B\u5C08\u6848",
+          "description": "\u6210\u672C\u4F4E\uFF1B\u8DE8\u5C08\u6848\u7684\u7F3A\u53E3\u8981\u9760\u4F60\u5206\u5225\u76E4\u9EDE\u5169\u908A\u624D\u770B\u5F97\u51FA\u4F86\u3002"
         }
       ],
       "recommendation": {
         "option_id": "allow-all",
-        "reason": "跨平台缺口是這次問題的主要例子；成本高的時候你可以改用單一專案。"
+        "reason": "\u8DE8\u5E73\u53F0\u7F3A\u53E3\u662F\u9019\u6B21\u554F\u984C\u7684\u4E3B\u8981\u4F8B\u5B50\uFF1B\u6210\u672C\u9AD8\u7684\u6642\u5019\u4F60\u53EF\u4EE5\u6539\u7528\u55AE\u4E00\u5C08\u6848\u3002"
       },
       "allow_other": true,
-      "status": "pending",
-      "answer": null
+      "status": "decided",
+      "answer": {
+        "kind": "other",
+        "text": "\u5141\u8A31\uFF1Aplan all \u8DE8\u6240\u6709 scope\uFF0C\u6BCF\u500B scope \u53EA\u505A\u6DFA\u5C64\u76E4\u9EDE\uFF08\u7F3A\u53E3\u3001\u9000\u5834\u5019\u9078\u3001Next\uFF09\uFF0C\u5F80\u4E0B\u62C6\u53EA\u5C0D\u6307\u5B9A\u7684\u7BC4\u570D\u3002\u4F9D\u64DA\uFF1A\u4F7F\u7528\u8005 2026-10-24 \u5728 AcceptanceChainPlan\u3008\u76EE\u6A19\u8207\u6D41\u7A0B\u3009\u7684\u6C7A\u5B9A\uFF0C\u672C\u984C\u4E0D\u518D\u53E6\u554F\u3002",
+        "confirmed_at": "2026-10-24T14:28:25.9796812\u002B00:00"
+      },
+      "last_request": {
+        "request_id": "905fa865-2d7f-4162-8975-97d3d89a7378",
+        "fingerprint": "8dbfc8dc5c85fd421a46db4af514c1fe19f36a9ca141f0a4497ac9ee99174a19"
+      }
     },
     {
       "id": "integrate-relation",
-      "version": 1,
-      "question": "3. 和現在的「把 ## 整合進 UX」要怎麼分工？",
-      "context": "現況：「整合進 UX」由跨平台模組規格的技能負責，它會列一張候選表等你選，選定後寫規格，但不會產生卡片或子項。",
-      "source_ref": "../Documentation/GapScanPlan.md#尚未決定",
+      "version": 2,
+      "status": "pending",
+      "answer": null,
+      "question": "3. \u300C\u6574\u500B\u5EAB\u7684\u5019\u9078\u76E4\u9EDE\u300D\u8981\u4E0D\u8981\u5F9E\u8DE8\u5E73\u53F0\u6A21\u7D44\u898F\u683C\u6280\u80FD\u79FB\u5230 plan\uFF1F",
+      "context": "\u73FE\u6CC1\uFF1Across-platform-module-spec\u3008Select scope\u3009\u5728\u6574\u500B\u5EAB\u7684\u76E4\u9EDE\u6642\u5217\u4E00\u5F35\u5019\u9078\u8868\uFF08\u80FD\u529B\u3001\u4F7F\u7528\u60C5\u5883\u3001\u5BE6\u4F5C\u8B49\u64DA\u3001\u73FE\u6709\u6DB5\u84CB\u3001\u76F8\u4F9D\u3001\u5EFA\u8B70\u7BC4\u570D\uFF09\uFF0C\u7B49\u4F60\u9078\uFF1B\u9078\u5B9A\u5F8C\u5BEB\u898F\u683C\uFF0C\u4E0D\u7522\u751F\u5361\u7247\u6216\u5B50\u9805\u3002\n2026-10-24 \u6C7A\u5B9A plan \u5728 scope \u5C64\u5C0D\u7167\u5C08\u6848\u76EE\u6A19\u627E\u7F3A\u53E3\uFF0C\u76EE\u6A19\u63A8\u5F97\u51FA\u7684\u76F4\u63A5\u5EFA\u5361\uFF0C\u6703\u6539\u8B8A\u76EE\u6A19\u7684\u624D\u51FA\u6C7A\u7B56\u984C\u3002\u5169\u908A\u90FD\u5728\u627E\u300CUX \u9084\u7F3A\u54EA\u4E9B\u6A21\u7D44\u300D\uFF0C\u898F\u5247\u9084\u4E0D\u4E00\u6A23\uFF08\u4E00\u500B\u7B49\u4F60\u9078\uFF0C\u4E00\u500B\u76F4\u63A5\u5EFA\uFF09\u3002",
+      "source_ref": "../Documentation/GapScanPlan.md#\u5C1A\u672A\u6C7A\u5B9A",
       "options": [
         {
-          "id": "scan-owns-discovery",
-          "label": "盤點負責找候選；「整合進 UX」只負責選定之後寫規格",
-          "description": "找缺口集中在一個入口，規格技能專心寫規格。你仍然可以直接說「把某功能整合進 UX」跳過盤點。"
+          "id": "plan-owns-discovery",
+          "label": "\u79FB\u5230 plan\uFF1A\u627E\u7F3A\u53E3\u53EA\u5728 plan\uFF1B\u898F\u683C\u6280\u80FD\u5F9E\u300C\u5DF2\u78BA\u5B9A\u8981\u505A\u7684\u6A21\u7D44\u300D\u958B\u59CB\uFF08\u5206\u985E\u3001\u547D\u540D\u3001\u5B9A\u76EE\u6A19\u3001\u5BEB\u898F\u683C\uFF09",
+          "description": "\u4E00\u500B\u5165\u53E3\u3001\u4E00\u5957\u898F\u5247\uFF1B\u4F60\u76F4\u63A5\u8AAA\u300C\u628A\u67D0\u529F\u80FD\u6574\u5408\u9032 UX\u300D\u6642\uFF0C\u4ECD\u5F9E\u898F\u683C\u6280\u80FD\u7684\u5B9A\u76EE\u6A19\u958B\u59CB\u3002\u898F\u683C\u6280\u80FD\u8981\u522A\u6389\u5019\u9078\u8868\u90A3\u6BB5\u3002"
         },
         {
           "id": "both-discover",
-          "label": "兩邊都保留找候選的能力",
-          "description": "不用改規格技能；但同一類缺口會有兩個入口，結果可能不一致。"
+          "label": "\u5169\u908A\u90FD\u4FDD\u7559",
+          "description": "\u4E0D\u7528\u6539\u898F\u683C\u6280\u80FD\uFF1B\u540C\u4E00\u985E\u7F3A\u53E3\u6709\u5169\u500B\u5165\u53E3\u3001\u5169\u5957\u898F\u5247\uFF0C\u7D50\u679C\u53EF\u80FD\u4E0D\u4E00\u81F4\u3002"
         }
       ],
       "recommendation": {
-        "option_id": "scan-owns-discovery",
-        "reason": "一個入口負責找缺口，結果才會一致；直接點名的捷徑仍保留。"
+        "option_id": "plan-owns-discovery",
+        "reason": "\u540C\u4E00\u4EF6\u4E8B\u53EA\u6709\u4E00\u500B\u64C1\u6709\u8005\uFF1B\u5019\u9078\u8868\u7684\u6B04\u4F4D\u53EF\u4EE5\u642C\u9032 plan \u7684\u76E4\u9EDE\uFF0C\u4E0D\u6703\u5931\u53BB\u8CC7\u8A0A\u3002"
       },
       "allow_other": true,
-      "status": "pending",
-      "answer": null
+      "last_request": {
+        "request_id": "89cc15db-f86b-479e-8073-379db2f509de",
+        "fingerprint": "67eeeb96e050fc1d08c0c540f675d278ee3b797013aa2f5f5f456a6cab586239"
+      }
     },
     {
       "id": "scan-output",
       "version": 1,
-      "question": "4. 盤點的結果用什麼形式交給你？",
-      "context": "例子：Web 的設定面板已經有「匯入／匯出設定」，UX 的 Configuration 規格沒有這項；UX 的 Toggle 規格有目標，Unity 還沒實作。今天評估 UX 或 Unity，都不會提出這兩件事。",
-      "source_ref": "../Documentation/GapScanPlan.md#尚未決定",
+      "question": "4. \u76E4\u9EDE\u7684\u7D50\u679C\u7528\u4EC0\u9EBC\u5F62\u5F0F\u4EA4\u7D66\u4F60\uFF1F",
+      "context": "\u4F8B\u5B50\uFF1AWeb \u7684\u8A2D\u5B9A\u9762\u677F\u5DF2\u7D93\u6709\u300C\u532F\u5165\uFF0F\u532F\u51FA\u8A2D\u5B9A\u300D\uFF0CUX \u7684 Configuration \u898F\u683C\u6C92\u6709\u9019\u9805\uFF1BUX \u7684 Toggle \u898F\u683C\u6709\u76EE\u6A19\uFF0CUnity \u9084\u6C92\u5BE6\u4F5C\u3002\u4ECA\u5929\u8A55\u4F30 UX \u6216 Unity\uFF0C\u90FD\u4E0D\u6703\u63D0\u51FA\u9019\u5169\u4EF6\u4E8B\u3002",
+      "source_ref": "../Documentation/GapScanPlan.md#\u5C1A\u672A\u6C7A\u5B9A",
       "options": [
         {
           "id": "decision-file",
-          "label": "一份決策題，綁在專案的卡片上",
-          "description": "每個候選附證據和建議；你在決策頁選，選擇會被記錄，下一個 agent 讀得到。"
+          "label": "\u4E00\u4EFD\u6C7A\u7B56\u984C\uFF0C\u7D81\u5728\u5C08\u6848\u7684\u5361\u7247\u4E0A",
+          "description": "\u6BCF\u500B\u5019\u9078\u9644\u8B49\u64DA\u548C\u5EFA\u8B70\uFF1B\u4F60\u5728\u6C7A\u7B56\u9801\u9078\uFF0C\u9078\u64C7\u6703\u88AB\u8A18\u9304\uFF0C\u4E0B\u4E00\u500B agent \u8B80\u5F97\u5230\u3002"
         },
         {
           "id": "chat-table",
-          "label": "對話裡的一張表",
-          "description": "最輕；但選擇只留在對話裡，換 session 就要重講。"
+          "label": "\u5C0D\u8A71\u88E1\u7684\u4E00\u5F35\u8868",
+          "description": "\u6700\u8F15\uFF1B\u4F46\u9078\u64C7\u53EA\u7559\u5728\u5C0D\u8A71\u88E1\uFF0C\u63DB session \u5C31\u8981\u91CD\u8B1B\u3002"
         },
         {
           "id": "cards-directly",
-          "label": "直接建卡片",
-          "description": "最快進入流程；但等於由 agent 決定下一步要做什麼，違反「下一個由你點名」。"
+          "label": "\u76F4\u63A5\u5EFA\u5361\u7247",
+          "description": "\u6700\u5FEB\u9032\u5165\u6D41\u7A0B\uFF1B\u4F46\u7B49\u65BC\u7531 agent \u6C7A\u5B9A\u4E0B\u4E00\u6B65\u8981\u505A\u4EC0\u9EBC\uFF0C\u9055\u53CD\u300C\u4E0B\u4E00\u500B\u7531\u4F60\u9EDE\u540D\u300D\u3002"
         }
       ],
       "recommendation": {
         "option_id": "decision-file",
-        "reason": "選擇要留下紀錄、讓後續的評估接得上；也保留「下一步由你決定」。"
+        "reason": "\u9078\u64C7\u8981\u7559\u4E0B\u7D00\u9304\u3001\u8B93\u5F8C\u7E8C\u7684\u8A55\u4F30\u63A5\u5F97\u4E0A\uFF1B\u4E5F\u4FDD\u7559\u300C\u4E0B\u4E00\u6B65\u7531\u4F60\u6C7A\u5B9A\u300D\u3002"
       },
       "allow_other": true,
-      "status": "pending",
-      "answer": null
+      "status": "decided",
+      "answer": {
+        "kind": "other",
+        "text": "\u4F9D\u3008\u76EE\u6A19\u8207\u6D41\u7A0B\u3009\u7684\u5206\u754C\uFF1A\u5F9E\u5DF2\u78BA\u8A8D\u76EE\u6A19\u63A8\u5F97\u51FA\u7684\u7F3A\u53E3\u76F4\u63A5\u5EFA\u6210\u5361\u7247\u6216\u5B50\u9805\uFF0C\u5BEB\u660E\u670D\u52D9\u76EE\u6A19\u7684\u54EA\u4E00\u53E5\uFF1B\u6703\u64F4\u5145\u6216\u6539\u8B8A\u76EE\u6A19\u7684\u5BEB\u6210\u6C7A\u7B56\u984C\u3002\u4F9D\u64DA\uFF1A\u4F7F\u7528\u8005 2026-10-24 \u5728 AcceptanceChainPlan\u3008\u76EE\u6A19\u8207\u6D41\u7A0B\u3009\u7684\u6C7A\u5B9A\uFF0C\u672C\u984C\u4E0D\u518D\u53E6\u554F\u3002",
+        "confirmed_at": "2026-10-24T14:28:26.2717631\u002B00:00"
+      },
+      "last_request": {
+        "request_id": "0e35cfe6-09ac-4e1d-bde3-7f5f68f6c01a",
+        "fingerprint": "eae707d9d580b59f0fcb4e0b73757530d167ccf57dd76fec751c766aa6f8c3b2"
+      }
     },
     {
       "id": "after-selection",
       "version": 1,
-      "question": "5. 你選定一個缺口之後，它先變成什麼？",
-      "context": "例子：Web 的設定面板已經有「匯入／匯出設定」，UX 的 Configuration 規格沒有這項；UX 的 Toggle 規格有目標，Unity 還沒實作。今天評估 UX 或 Unity，都不會提出這兩件事。\n例如你選了「Unity 實作 Toggle」。",
-      "source_ref": "../Documentation/GapScanPlan.md#尚未決定",
+      "question": "5. \u4F60\u9078\u5B9A\u4E00\u500B\u7F3A\u53E3\u4E4B\u5F8C\uFF0C\u5B83\u5148\u8B8A\u6210\u4EC0\u9EBC\uFF1F",
+      "context": "\u4F8B\u5B50\uFF1AWeb \u7684\u8A2D\u5B9A\u9762\u677F\u5DF2\u7D93\u6709\u300C\u532F\u5165\uFF0F\u532F\u51FA\u8A2D\u5B9A\u300D\uFF0CUX \u7684 Configuration \u898F\u683C\u6C92\u6709\u9019\u9805\uFF1BUX \u7684 Toggle \u898F\u683C\u6709\u76EE\u6A19\uFF0CUnity \u9084\u6C92\u5BE6\u4F5C\u3002\u4ECA\u5929\u8A55\u4F30 UX \u6216 Unity\uFF0C\u90FD\u4E0D\u6703\u63D0\u51FA\u9019\u5169\u4EF6\u4E8B\u3002\n\u4F8B\u5982\u4F60\u9078\u4E86\u300CUnity \u5BE6\u4F5C Toggle\u300D\u3002",
+      "source_ref": "../Documentation/GapScanPlan.md#\u5C1A\u672A\u6C7A\u5B9A",
       "options": [
         {
           "id": "goal-then-plan",
-          "label": "先寫成規格目標、計畫段落或卡片，下一次評估再拆成子項",
-          "description": "沿用現有流程：評估本來就會讀規格目標並建子項。"
+          "label": "\u5148\u5BEB\u6210\u898F\u683C\u76EE\u6A19\u3001\u8A08\u756B\u6BB5\u843D\u6216\u5361\u7247\uFF0C\u4E0B\u4E00\u6B21\u8A55\u4F30\u518D\u62C6\u6210\u5B50\u9805",
+          "description": "\u6CBF\u7528\u73FE\u6709\u6D41\u7A0B\uFF1A\u8A55\u4F30\u672C\u4F86\u5C31\u6703\u8B80\u898F\u683C\u76EE\u6A19\u4E26\u5EFA\u5B50\u9805\u3002"
         },
         {
           "id": "items-directly",
-          "label": "盤點直接建好子項",
-          "description": "少一步；但子項要先有規格和驗收條件，跳過評估容易建出條件不清的子項。"
+          "label": "\u76E4\u9EDE\u76F4\u63A5\u5EFA\u597D\u5B50\u9805",
+          "description": "\u5C11\u4E00\u6B65\uFF1B\u4F46\u5B50\u9805\u8981\u5148\u6709\u898F\u683C\u548C\u9A57\u6536\u689D\u4EF6\uFF0C\u8DF3\u904E\u8A55\u4F30\u5BB9\u6613\u5EFA\u51FA\u689D\u4EF6\u4E0D\u6E05\u7684\u5B50\u9805\u3002"
         }
       ],
       "recommendation": {
         "option_id": "goal-then-plan",
-        "reason": "規格目標或卡片是子項的依據；讓評估照既有規則拆，條件才會完整。"
+        "reason": "\u898F\u683C\u76EE\u6A19\u6216\u5361\u7247\u662F\u5B50\u9805\u7684\u4F9D\u64DA\uFF1B\u8B93\u8A55\u4F30\u7167\u65E2\u6709\u898F\u5247\u62C6\uFF0C\u689D\u4EF6\u624D\u6703\u5B8C\u6574\u3002"
       },
       "allow_other": true,
-      "status": "pending",
-      "answer": null
+      "status": "decided",
+      "answer": {
+        "kind": "other",
+        "text": "\u7F3A\u53E3\u5728 scope \u5C64\u6210\u70BA\u5361\u7247\uFF08\u76EE\u6A19\u5F15\u7528\u5C08\u6848\u76EE\u6A19\u7684\u90A3\u4E00\u53E5\uFF09\uFF0C\u5728\u5361\u7247\u5C64\u6210\u70BA\u5B50\u9805\uFF1B\u5361\u7247\u5728\u4E0B\u4E00\u6B21 plan \u5230\u5B83\uFF08\u6216\u672C\u6B21\u7BC4\u570D\u5305\u542B\u5B83\uFF09\u6642\u62C6\u6210\u5B50\u9805\u3002\u4F9D\u64DA\uFF1A\u4F7F\u7528\u8005 2026-10-24 \u5728 AcceptanceChainPlan\u3008\u76EE\u6A19\u8207\u6D41\u7A0B\u3009\u7684\u6C7A\u5B9A\uFF0C\u672C\u984C\u4E0D\u518D\u53E6\u554F\u3002",
+        "confirmed_at": "2026-10-24T14:28:26.5626573\u002B00:00"
+      },
+      "last_request": {
+        "request_id": "8c56f865-5f87-40c2-be93-9a7b018bf8fb",
+        "fingerprint": "b7ce054511eca14e95677f130406f04a19f3002da9be03bfc4da62fb7e90334b"
+      }
     },
     {
       "id": "verb-name",
       "version": 1,
-      "question": "6. 新動詞叫什麼？",
-      "context": "會加在現有的 plan、run、accept、auto 旁邊。",
-      "source_ref": "../Documentation/GapScanPlan.md#尚未決定",
+      "question": "6. \u65B0\u52D5\u8A5E\u53EB\u4EC0\u9EBC\uFF1F",
+      "context": "\u6703\u52A0\u5728\u73FE\u6709\u7684 plan\u3001run\u3001accept\u3001auto \u65C1\u908A\u3002",
+      "source_ref": "../Documentation/GapScanPlan.md#\u5C1A\u672A\u6C7A\u5B9A",
       "options": [
         {
           "id": "scan",
           "label": "scan",
-          "description": "例如 /task-progress-items scan ux、scan all。"
+          "description": "\u4F8B\u5982 /task-progress-items scan ux\u3001scan all\u3002"
         },
         {
           "id": "gaps",
           "label": "gaps",
-          "description": "例如 /task-progress-items gaps ux。"
+          "description": "\u4F8B\u5982 /task-progress-items gaps ux\u3002"
         },
         {
           "id": "plan-discover",
-          "label": "plan 的選項（plan --discover）",
-          "description": "不新增動詞，掛在評估底下；但評估和盤點的規則不同，放在一起容易混淆。"
+          "label": "plan \u7684\u9078\u9805\uFF08plan --discover\uFF09",
+          "description": "\u4E0D\u65B0\u589E\u52D5\u8A5E\uFF0C\u639B\u5728\u8A55\u4F30\u5E95\u4E0B\uFF1B\u4F46\u8A55\u4F30\u548C\u76E4\u9EDE\u7684\u898F\u5247\u4E0D\u540C\uFF0C\u653E\u5728\u4E00\u8D77\u5BB9\u6613\u6DF7\u6DC6\u3002"
         }
       ],
       "recommendation": {
         "option_id": "scan",
-        "reason": "和 plan、run 一樣是一個簡短的動作詞；與評估分開，不會混淆。"
+        "reason": "\u548C plan\u3001run \u4E00\u6A23\u662F\u4E00\u500B\u7C21\u77ED\u7684\u52D5\u4F5C\u8A5E\uFF1B\u8207\u8A55\u4F30\u5206\u958B\uFF0C\u4E0D\u6703\u6DF7\u6DC6\u3002"
       },
       "allow_other": true,
-      "status": "pending",
-      "answer": null
+      "status": "decided",
+      "answer": {
+        "kind": "other",
+        "text": "\u4E0D\u65B0\u589E\u52D5\u8A5E\uFF1A\u7F3A\u53E3\u8207\u9000\u5834\u76E4\u9EDE\u662F\u6BCF\u4E00\u5C64 plan \u7684\u4E00\u90E8\u5206\u3002\u4F9D\u64DA\uFF1A\u4F7F\u7528\u8005 2026-10-24 \u5728 AcceptanceChainPlan\u3008\u76EE\u6A19\u8207\u6D41\u7A0B\u3009\u7684\u6C7A\u5B9A\uFF0C\u672C\u984C\u4E0D\u518D\u53E6\u554F\u3002",
+        "confirmed_at": "2026-10-24T14:28:26.8609286\u002B00:00"
+      },
+      "last_request": {
+        "request_id": "281586c1-80b6-470d-9b4f-2aa49398cf30",
+        "fingerprint": "3b7585451b8eb74d5a9bc41e2b2c16574f54606b558f0d000084801ffd8bf329"
+      }
     },
     {
       "id": "retired-state",
       "version": 1,
-      "question": "7. 退場的子項用什麼狀態表示？",
-      "context": "例子：next-marker 卡的「編輯模式也能設定 Next」，你決定不需要後被封存；它在 Report 上和「做完後封存留作歷史」的子項看起來一樣。\n退場盤點確認後，子項要離開待處理；本題決定 Report 上怎麼分得出「被推翻／沒必要」。",
-      "source_ref": "../Documentation/GapScanPlan.md#尚未決定",
+      "question": "7. \u9000\u5834\u7684\u5B50\u9805\u7528\u4EC0\u9EBC\u72C0\u614B\u8868\u793A\uFF1F",
+      "context": "\u4F8B\u5B50\uFF1Anext-marker \u5361\u7684\u300C\u7DE8\u8F2F\u6A21\u5F0F\u4E5F\u80FD\u8A2D\u5B9A Next\u300D\uFF0C\u4F60\u6C7A\u5B9A\u4E0D\u9700\u8981\u5F8C\u88AB\u5C01\u5B58\uFF1B\u5B83\u5728 Report \u4E0A\u548C\u300C\u505A\u5B8C\u5F8C\u5C01\u5B58\u7559\u4F5C\u6B77\u53F2\u300D\u7684\u5B50\u9805\u770B\u8D77\u4F86\u4E00\u6A23\u3002\n\u9000\u5834\u76E4\u9EDE\u78BA\u8A8D\u5F8C\uFF0C\u5B50\u9805\u8981\u96E2\u958B\u5F85\u8655\u7406\uFF1B\u672C\u984C\u6C7A\u5B9A Report \u4E0A\u600E\u9EBC\u5206\u5F97\u51FA\u300C\u88AB\u63A8\u7FFB\uFF0F\u6C92\u5FC5\u8981\u300D\u3002",
+      "source_ref": "../Documentation/GapScanPlan.md#\u5C1A\u672A\u6C7A\u5B9A",
       "options": [
         {
           "id": "archive-with-reason",
-          "label": "沿用「已封存」，理由寫在活動紀錄",
-          "description": "不用改資料格式和畫面；Viewer 可以把理由顯示在提示文字裡。從列表一眼看不出是被推翻的。"
+          "label": "\u6CBF\u7528\u300C\u5DF2\u5C01\u5B58\u300D\uFF0C\u7406\u7531\u5BEB\u5728\u6D3B\u52D5\u7D00\u9304",
+          "description": "\u4E0D\u7528\u6539\u8CC7\u6599\u683C\u5F0F\u548C\u756B\u9762\uFF1BViewer \u53EF\u4EE5\u628A\u7406\u7531\u986F\u793A\u5728\u63D0\u793A\u6587\u5B57\u88E1\u3002\u5F9E\u5217\u8868\u4E00\u773C\u770B\u4E0D\u51FA\u662F\u88AB\u63A8\u7FFB\u7684\u3002"
         },
         {
           "id": "new-rejected-state",
-          "label": "新增「已推翻」狀態",
-          "description": "Report 上一眼分得出；資料格式、CLI、Viewer、狀態推算與篩選都要跟著改。"
+          "label": "\u65B0\u589E\u300C\u5DF2\u63A8\u7FFB\u300D\u72C0\u614B",
+          "description": "Report \u4E0A\u4E00\u773C\u5206\u5F97\u51FA\uFF1B\u8CC7\u6599\u683C\u5F0F\u3001CLI\u3001Viewer\u3001\u72C0\u614B\u63A8\u7B97\u8207\u7BE9\u9078\u90FD\u8981\u8DDF\u8457\u6539\u3002"
         }
       ],
       "recommendation": {
         "option_id": "archive-with-reason",
-        "reason": "退場的子項之後很少再看；理由能查得到就夠，不值得為它改動資料格式和所有讀取端。"
+        "reason": "\u9000\u5834\u7684\u5B50\u9805\u4E4B\u5F8C\u5F88\u5C11\u518D\u770B\uFF1B\u7406\u7531\u80FD\u67E5\u5F97\u5230\u5C31\u5920\uFF0C\u4E0D\u503C\u5F97\u70BA\u5B83\u6539\u52D5\u8CC7\u6599\u683C\u5F0F\u548C\u6240\u6709\u8B80\u53D6\u7AEF\u3002"
       },
       "allow_other": true,
       "status": "pending",

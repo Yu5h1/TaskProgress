@@ -148,7 +148,7 @@ plan 在每一層做同一件事：對照這一層的目標，看下一層已有
 - **agent-executable-items〈Evaluate a scope〉：** 從目標推得出的工作直接建立；評估改讀卡片的經驗紀錄，不再讀 friction log。
 - **task-progress-report：** 卡片綁定文件、摘要連結目標。
 - **程式（CLI、Viewer、schema）：** 卡片的 `document_ref`；被等的子項只差使用者驗收時解除等待，以及「要等使用者驗收」的標記；只有 `[manual]` 的 checklist 能通過檢查與先後規則（現有規則要求不標的檢查先完成，需確認）。
-- **重疊：** `.agents` module-workflow-review 卡的 `light-lane` 提案與 friction log，改為引用這裡；GapScanPlan 第 3～6 題的前提已改，作答前先修訂。
+- **重疊：** `.agents` module-workflow-review 卡的 `light-lane` 提案與 friction log，改為引用這裡；GapScanPlan 已依本節作答第 1、2、4～6 題，盤點併入每一層的 plan；第 3 題（跨平台模組規格技能的候選盤點去留）與第 7 題待答。
 
 ## 已決定
 
