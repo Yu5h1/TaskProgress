@@ -1,0 +1,36 @@
+# 子項退場狀態 obsolete／discontinued Checklist
+
+Current round: `Documentation/GapScanPlan.md#已決定`.
+
+指示（使用者 2026-10-24，GapScanPlan 第 7 題）。現況：子項只有 `archive` 可以離開待處理，它同時代表「完成後留作歷史」與「不做了」，Report 上分不出被取代和棄案；退場盤點確認後也沒有狀態可用。要達成：子項新增兩種退場狀態——`obsolete`（被取代：目標已由別的子項或設計達成，必須指向取代它的子項）與 `discontinued`（棄案：前提不成立、設計被推翻、不再發展，必須寫理由）；`archive` 回到只代表完成後留作歷史。退場的子項和封存一樣不計入進度、不排入佇列、不能設為 Next、不計入時間分析。不在本輪：卡片的退場狀態、Viewer 編輯模式的退場操作（退場一律在使用者確認退場候選後由 CLI 寫入）、把既有 archive 子項改分類。一個檔案只放一輪。
+
+- [ ] **1. 資料契約與 CLI**
+  Outcome: 退場狀態與取代者、理由能經 Report CLI 寫入並通過 schema。
+  Checks:
+    - [ ] **寫入規則**
+      - Action: 擴充 schema、`service/report_operations.py`：子項 `status` 接受 `obsolete`、`discontinued`，搭配 `retirement` 欄位；以聚焦測試涵蓋合法與不合法的寫入。
+      - Expect: `obsolete` 必須有指向存在子項的 `retirement.replaced_by`，`discontinued` 必須有非空的 `retirement.reason`；其他狀態不能帶 `retirement`；指向已退場子項的新等待被拒，有人等待中的子項不能退場；既有報告仍通過驗證。
+
+- [ ] **2. 狀態推導與讀取端**
+  Outcome: CLI 與 Viewer 都把退場子項當成不再進行的工作，並分得出兩種退場。
+  Checks:
+    - [ ] **CLI 與 Viewer 一致**
+      - Action: 更新 C# 狀態推導、Next 與時間分析，以及 Viewer 的報告驗證、進度、優先級、Next、綁定投影與子項狀態標籤；以聚焦測試涵蓋兩端。
+      - Expect: `report get` 的 `derived_state` 為 `obsolete`／`discontinued`，綁定 checklist 的子項退場後不再依 checklist 推算；佇列、Next 與進度都略過它們；Viewer 顯示「已取代」「已棄案」，與「已封存」可區分；Viewer bundle 依原始碼重建。
+
+- [ ] **3. 流程與文件**
+  Outcome: agent 知道使用者確認退場候選後該寫什麼，計畫記錄已落實。
+  Checks:
+    - [ ] **技能與計畫**
+      - Action: 更新 task-progress-report（狀態對照與退場寫法）、task-progress-items（退場候選確認之後）與 GapScanPlan、Report CLI 用法。
+      - Expect: `archive` 只代表完成後留作歷史；確認退場後依證據寫 `obsolete` 加取代者或 `discontinued` 加理由，並在 handoff 已排除方向記一條；文件沒有互相矛盾的退場說法。
+
+- [ ] **4. 獨立驗收**
+  Outcome: 未參與本輪的驗收者依原始決定確認交付。
+  Checks:
+    - [ ] **驗收條件未被改動** `[acceptance]`
+      - Action: 比對本檔建立提交或最新標有「條件修訂」的提交與目前版本。
+      - Expect: acceptance 條件沒有被執行者修改以配合交付結果。
+    - [ ] **依原始決定核對交付** `[acceptance]`
+      - Action: 依 Documentation/GapScanPlan.md#已決定 第 7 題與 decisions/gap-scan.decisions 的 retired-state 答案，核對 schema、CLI、狀態推導、Viewer 與技能的交付及聚焦測試。
+      - Expect: 兩種退場狀態各自帶取代者或理由且能區分；`archive` 只代表留作歷史；退場子項不計入進度、佇列、Next 與時間分析；CLI 與 Viewer 推算一致；不包含卡片退場或編輯模式退場操作。

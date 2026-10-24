@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-10-24T18:43:11.872464+00:00",
+  "updated_at": "2026-10-24T19:01:09.637904+00:00",
   "tasks": [
     {
       "id": "agent-workflow",
@@ -3232,6 +3232,26 @@
               "actor": "claude",
               "at": "2026-10-24T15:55:38.950956+00:00",
               "session": "Taskprogess"
+            }
+          ]
+        },
+        {
+          "id": "retirement-states",
+          "priority": 1,
+          "title": "子項退場狀態：新增 obsolete（被取代，指向取代者）與 discontinued（棄案，附理由），archive 只留作歷史（GapScanPlan 第 7 題）",
+          "document_ref": {
+            "kind": "checklist",
+            "scope_id": "task-progress",
+            "task": "retirement-states"
+          },
+          "status": "planned",
+          "activity": [
+            {
+              "event": "created",
+              "actor": "claude",
+              "at": "2026-10-24T19:01:09.637904+00:00",
+              "session": "Taskprogess",
+              "session_id": "016492fa-7464-498b-9444-0e6296cd1267"
             }
           ]
         }
