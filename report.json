@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-10-24T17:04:42.063432+00:00",
+  "updated_at": "2026-10-24T17:05:06.438606+00:00",
   "tasks": [
     {
       "id": "next-marker",
@@ -2172,12 +2172,14 @@
               "session_id": "6f08010b-90db-4e2a-be27-c72a9b0e66d9"
             }
           ]
-        },
+        }
+      ],
+      "completed_items": [
         {
           "id": "problem-decision-item-state",
           "priority": 2,
           "title": "問題：綁定決策檔的子項在 CLI 推算時只看存值（ItemState 只讀 checklist），全部作答後 report get 仍是 not_started、run 會挑它；Viewer 卻依決策檔顯示完成，兩邊不一致",
-          "status": "in_progress",
+          "status": "done",
           "activity": [
             {
               "event": "created",
@@ -2192,11 +2194,16 @@
               "at": "2026-10-24T17:04:42.063432+00:00",
               "session": "Taskprogess",
               "session_id": "016492fa-7464-498b-9444-0e6296cd1267"
+            },
+            {
+              "event": "done",
+              "actor": "claude",
+              "at": "2026-10-24T17:05:06.438606+00:00",
+              "session": "Taskprogess",
+              "session_id": "016492fa-7464-498b-9444-0e6296cd1267"
             }
           ]
-        }
-      ],
-      "completed_items": [
+        },
         {
           "id": "decide-goal-flow",
           "status": "done",
