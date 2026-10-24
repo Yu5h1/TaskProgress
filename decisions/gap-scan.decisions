@@ -1,7 +1,7 @@
 {
   "schema_version": "1.1",
   "task_id": "gap-scan",
-  "updated_at": "2026-10-24T15:43:27.0754180\u002B00:00",
+  "updated_at": "2026-10-24T15:55:08.4203212\u002B00:00",
   "decisions": [
     {
       "id": "scan-range",
@@ -245,8 +245,16 @@
         "reason": "\u9000\u5834\u7684\u5B50\u9805\u4E4B\u5F8C\u5F88\u5C11\u518D\u770B\uFF1B\u7406\u7531\u80FD\u67E5\u5F97\u5230\u5C31\u5920\uFF0C\u4E0D\u503C\u5F97\u70BA\u5B83\u6539\u52D5\u8CC7\u6599\u683C\u5F0F\u548C\u6240\u6709\u8B80\u53D6\u7AEF\u3002"
       },
       "allow_other": true,
-      "status": "pending",
-      "answer": null
+      "status": "decided",
+      "answer": {
+        "kind": "other",
+        "text": "\u65B0\u589E\u5169\u7A2E\u9000\u5834\u72C0\u614B\uFF1Aobsolete\uFF08\u88AB\u53D6\u4EE3\uFF1A\u76EE\u6A19\u5DF2\u7531\u5225\u7684\u5B50\u9805\u6216\u8A2D\u8A08\u9054\u6210\uFF0C\u5FC5\u9808\u6307\u5411\u53D6\u4EE3\u5B83\u7684\u90A3\u4E00\u500B\uFF0C\u610F\u601D\u540C C# \u7684 [Obsolete]\uFF09\uFF1Bdiscontinued\uFF08\u68C4\u6848\uFF1A\u524D\u63D0\u4E0D\u6210\u7ACB\u3001\u8A2D\u8A08\u88AB\u63A8\u7FFB\u3001\u4E0D\u518D\u767C\u5C55\uFF0C\u5FC5\u9808\u5BEB\u7406\u7531\uFF09\u3002\u4E0D\u6CBF\u7528 archive\uFF1B\u8CC7\u6599\u683C\u5F0F\u3001CLI\u3001Viewer\u3001\u72C0\u614B\u63A8\u7B97\u8207\u7BE9\u9078\u8DDF\u8457\u6539\u3002",
+        "confirmed_at": "2026-10-24T15:55:08.4203212\u002B00:00"
+      },
+      "last_request": {
+        "request_id": "d2b66316-6d30-4644-917d-c8fb80aa471c",
+        "fingerprint": "5ec7d37ff4ce6f54cb636972f39a7359a3f8aecec444d626c442a52fbe494a49"
+      }
     }
   ]
 }

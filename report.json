@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-10-24T15:35:09.614959+00:00",
+  "updated_at": "2026-10-24T15:55:38.950956+00:00",
   "tasks": [
     {
       "id": "next-marker",
@@ -2897,7 +2897,7 @@
           "id": "gap-scan-decisions",
           "status": "planned",
           "priority": 1,
-          "title": "決定 [缺口與退場盤點計畫](https://github.com/Yu5h1/TaskProgress/blob/main/Documentation/GapScanPlan.md) 剩下的 1 題：退場子項用什麼狀態表示",
+          "title": "[缺口與退場盤點計畫](https://github.com/Yu5h1/TaskProgress/blob/main/Documentation/GapScanPlan.md) 七題已答：盤點併入每一層 plan、UX 盤點方法留在 UX 技能、退場新增 obsolete 與 discontinued — 待落實到 skill 與程式",
           "document_ref": {
             "kind": "decision",
             "scope_id": "task-progress",
@@ -2914,13 +2914,6 @@
             {
               "event": "updated",
               "actor": "claude",
-              "at": "2026-10-24T04:28:20.048959+00:00",
-              "session": "退場盤點",
-              "session_id": "8db3d9df-8d4e-461e-96c2-37ca30b33c56"
-            },
-            {
-              "event": "updated",
-              "actor": "claude",
               "at": "2026-10-24T14:29:49.912660+00:00",
               "session": "Taskprogess"
             },
@@ -2928,6 +2921,12 @@
               "event": "updated",
               "actor": "claude",
               "at": "2026-10-24T15:35:09.614959+00:00",
+              "session": "Taskprogess"
+            },
+            {
+              "event": "updated",
+              "actor": "claude",
+              "at": "2026-10-24T15:55:38.950956+00:00",
               "session": "Taskprogess"
             }
           ]

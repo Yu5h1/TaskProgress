@@ -2,7 +2,7 @@
 
 > Task ID: gap-scan
 >
-> 狀態：大部分已決定，未實作。問題由使用者提出（2026-10-24）；同日 [AcceptanceChainPlan〈目標與流程〉](AcceptanceChainPlan.md#目標與流程)定案後，盤點併入每一層的 plan，第 1～6 題依該節作答；第 7 題待答，在 [gap-scan.decisions](../decisions/gap-scan.decisions)。
+> 狀態：已決定，未實作。問題由使用者提出（2026-10-24）；同日 [AcceptanceChainPlan〈目標與流程〉](AcceptanceChainPlan.md#目標與流程)定案後，盤點併入每一層的 plan，第 1、2、4～6 題依該節作答，第 3、7 題由使用者決定，全部記在 [gap-scan.decisions](../decisions/gap-scan.decisions)。
 >
 > 與其他文件的關係：流程與分工由〈目標與流程〉擁有，本計畫只負責盤點的來源、證據與退場；評估的現行規則在 [agent-executable-items〈Evaluate a scope〉](../../.agents/skills/agent-executable-items/SKILL.md#evaluate-a-scope)；跨平台模組的候選盤點在 [cross-platform-module-spec〈Select scope〉](../../.agents/skills/cross-platform-module-spec/SKILL.md#select-scope)（UX 的盤點方法，plan 在 UX scope 照它做，見第 3 題）。
 
@@ -45,7 +45,7 @@ plan（每一層做同一件事：對照這一層的目標）
 
 ## 已決定
 
-2026-10-24 依〈目標與流程〉作答，第 3 題由使用者決定（[gap-scan.decisions](../decisions/gap-scan.decisions)）：
+2026-10-24 依〈目標與流程〉作答，第 3、7 題由使用者決定（[gap-scan.decisions](../decisions/gap-scan.decisions)）：
 
 - **第 1 題：範圍。** 完成專案目標需要的任何工作都在範圍內：模組、規格、平台實作、計畫目標、文件、驗證，不限程式開發；程式品質類（測試缺口、TODO、過時文件）只在目標需要時列入。
 - **第 2 題：跨 scope。** `plan all` 跨所有 scope，每個 scope 只做淺層盤點（缺口、退場候選、Next），往下拆只對指定的範圍。
@@ -53,17 +53,20 @@ plan（每一層做同一件事：對照這一層的目標）
 - **第 4 題：產出。** 目標推得出的缺口直接建成卡片或子項，寫明服務目標的哪一句；會擴充或改變目標的寫成決策題。
 - **第 5 題：落點。** 缺口在 scope 層成為卡片（目標引用專案目標的那一句），在卡片層成為子項；卡片在下一次 plan 到它、或本次範圍包含它時拆成子項。
 - **第 6 題：入口。** 不新增動詞；盤點是每一層 plan 的一部分。
+- **第 7 題：退場狀態。** 新增兩種狀態，不沿用 `archive`：
+  - `obsolete`（被取代）：目標已由別的子項或設計達成；必須指向取代它的那一個，意思同 C# 的 `[Obsolete]`。
+  - `discontinued`（棄案）：前提不成立、設計被推翻、不再發展；必須寫理由。
+
+  `archive` 回到只代表「完成後留作歷史」。
 
 ## 設計
 
 - **來源。** 計畫目標與實際實作的落差；規格的目標與各平台實作的落差（哪個平台還沒做、做到哪一版）；其他專案對本專案提出、仍未處理的 Requirements；某平台已有、規格擁有者還沒有的能力。
 - **證據。** 每個缺口附上證據（檔案、呼叫點、現有涵蓋）。缺口只從目標寫明的服務對象取證，不從其他模組的相似介面推論。
 - **退場盤點。** plan 檢查範圍內每個待處理子項，有下列證據時列為退場候選：目標已由別的項目或設計達成；規格或計畫改了，前提不成立；handoff 的已排除方向已涵蓋它；它依賴的設計被推翻；目標改了之後對不上新目標。候選寫成決策題，因為退場改變要做什麼。
-- **確認之後。** 子項退場（狀態形式待第 7 題），活動紀錄寫明類別與理由（例如「被推翻：設計錯誤」「沒必要：目標已由某項達成」）；依 [AgentArtifactGuide〈Retiring a design〉](../../.agents/AgentArtifactGuide.md#retiring-a-design) 在 handoff 的已排除方向記一條。
+- **確認之後。** 依證據把子項改成 `obsolete`（指向取代者）或 `discontinued`（附理由）：「目標已由別的項目或設計達成」屬於前者，「前提不成立」「設計被推翻」「已排除方向涵蓋」屬於後者；依 [AgentArtifactGuide〈Retiring a design〉](../../.agents/AgentArtifactGuide.md#retiring-a-design) 在 handoff 的已排除方向記一條。
 - **收尾檢討。** 卡片的收尾檢討（〈目標與流程〉）也做一次缺口與退場盤點，對照整張卡的目標。
 
 ## 尚未決定
 
-[gap-scan.decisions](../decisions/gap-scan.decisions)：
-
-- 第 7 題：退場的子項用什麼狀態表示。
+無。

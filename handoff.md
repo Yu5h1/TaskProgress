@@ -6,6 +6,8 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
 
 ## Current state (2026-09-29)
 
+- **缺口與退場盤點已定案，尚未落實（2026-10-24）。** [GapScanPlan](Documentation/GapScanPlan.md)：盤點併入每一層的 plan，不新增動詞；UX 的盤點方法留在 cross-platform-module-spec，plan 照它做；退場新增 `obsolete`（被取代，指向取代者）與 `discontinued`（棄案，附理由）兩種狀態。[gap-scan.decisions](decisions/gap-scan.decisions) 七題已答。
+
 - **Agent workflow 的目標與流程已定案，尚未落實（2026-10-24，使用者決定）。** [AcceptanceChainPlan〈目標與流程〉](Documentation/AcceptanceChainPlan.md#目標與流程)：使用者確認目標與驗收，agent 跑完中間；plan 在 scope、卡片、子項三層對照目標，目標推得出的工作直接建立，會改變目標的才出決策題；子項類型新增卡片結案驗收；經驗記在卡片綁定的 `experience/<卡片ID>.md`；收尾檢討在結案驗收之前；不為做完而縮減，分批推進。「一次只進行一個模組」已取消（UX `7845db5`、.agents `050b6d3`）。[goal-flow.decisions](decisions/goal-flow.decisions) 七題已答；skill 與程式依該節〈落實時要改的地方〉修改，還沒開始。
 
 - **Checklist／Decision 的 Esc 取消選取（2026-10-24）。** `CardList.svelte` 捕捉頁面 Escape，清除選取、拖曳狀態及卡片內的 DOM 焦點，避免 `:focus-visible` 留下藍框；組字中的 Escape 保留給輸入法。Decision 的 `onSelectionChange` 同步釋放保留的排序。三個 UI build 通過；瀏覽器已實測兩個面板選取卡片後按 Esc，確認 `.card-selected` 為零、焦點離開卡片且 outline 為 none。前一版只清 selected、未解除焦點，不能據此判定藍框消失。
@@ -576,8 +578,6 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
   - `open <folder>` 是**加上去**，`start` 會**清掉未登記 scope 的路由**。`reports/example` 與 `reports/rooftop` 都刻意不登記，所以每次 `start` 後要用 `open` 掛回來。
 
 ## Open decisions
-
-- [專案缺口與退場盤點／尚未決定](Documentation/GapScanPlan.md#尚未決定)：缺口盤點找還沒人排定的工作，退場盤點找不該再做的子項；盤點併入每一層的 plan（2026-10-24 依 AcceptanceChainPlan〈目標與流程〉作答第 1、2、4～6 題）；第 3 題定為 UX 的盤點方法留在 cross-platform-module-spec、plan 照它做，該技能只拿掉流程規則（等使用者選、通用確認目標）；決策檔 [gap-scan.decisions](decisions/gap-scan.decisions) 只剩第 7 題（退場子項的狀態）待答。決定前不實作。
 
 - [同一 repo 的多 agent 平行執行／尚未決定](Documentation/WorktreeReportPlan.md#尚未決定)：目標 2026-10-24 對齊為平行執行；決策檔 [worktree-report.decisions](decisions/worktree-report.decisions) 第 1～10 題已答並寫入計畫〈已決定〉；第 11 題（Unity Editor、MCP、固定 port 這類共用資源怎麼排）待答。
 

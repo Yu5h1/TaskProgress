@@ -150,8 +150,8 @@ plan 在每一層做同一件事：對照這一層的目標，看下一層已有
 - **agent-executable-items〈Evaluate a scope〉：** 從目標推得出的工作直接建立；評估改讀卡片的經驗紀錄，不再讀 friction log。
 - **task-progress-report：** 卡片綁定文件、摘要連結目標。
 - **cross-platform-module-spec（UX 的技能）：** 〈Select scope〉的候選盤點方法保留，供 plan 在 UX scope 找缺口時使用；拿掉「等使用者選」，改照本節的分界；〈Define the goal before the specification〉的通用確認步驟改為引用〈釐清目標〉，只留模組目標欄位、消費端證據與適配表（GapScanPlan 第 3 題）。
-- **程式（CLI、Viewer、schema）：** 卡片的 `document_ref`；被等的子項只差使用者驗收時解除等待，以及「要等使用者驗收」的標記；只有 `[manual]` 的 checklist 能通過檢查與先後規則（現有規則要求不標的檢查先完成，需確認）。
-- **重疊：** `.agents` module-workflow-review 卡的 `light-lane` 提案與 friction log，改為引用這裡；GapScanPlan 已依本節作答第 1～6 題，盤點併入每一層的 plan；cross-platform-module-spec 保留 UX 的盤點方法，只拿掉流程規則（等使用者選、通用的確認目標）；第 7 題待答。
+- **程式（CLI、Viewer、schema）：** 卡片的 `document_ref`；被等的子項只差使用者驗收時解除等待，以及「要等使用者驗收」的標記；只有 `[manual]` 的 checklist 能通過檢查與先後規則（現有規則要求不標的檢查先完成，需確認）；退場的兩種新狀態 `obsolete`（指向取代者）與 `discontinued`（附理由），資料格式、CLI、Viewer、狀態推算與篩選都要支援（GapScanPlan 第 7 題）。
+- **重疊：** `.agents` module-workflow-review 卡的 `light-lane` 提案與 friction log，改為引用這裡；GapScanPlan 已依本節作答第 1～6 題，盤點併入每一層的 plan；cross-platform-module-spec 保留 UX 的盤點方法，只拿掉流程規則（等使用者選、通用的確認目標）；第 7 題定為新增 `obsolete`、`discontinued` 兩種退場狀態。
 
 ## 已決定
 
