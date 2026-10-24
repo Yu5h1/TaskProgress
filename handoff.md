@@ -575,7 +575,7 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
 
 ## Open decisions
 
-- [專案缺口盤點／尚未決定](Documentation/GapScanPlan.md#尚未決定)：新增盤點步驟找出還沒人排定的缺口；決策檔 [gap-scan.decisions](decisions/gap-scan.decisions) 6 題待答（範圍、盤點全部、和「整合進 UX」的分工、結果形式、選定後落點、動詞名稱）。決定前不實作。
+- [專案缺口與退場盤點／尚未決定](Documentation/GapScanPlan.md#尚未決定)：缺口盤點找還沒人排定的工作，退場盤點找不該再做的子項；決策檔 [gap-scan.decisions](decisions/gap-scan.decisions) 7 題待答（範圍、盤點全部、和「整合進 UX」的分工、結果形式、選定後落點、動詞名稱、退場狀態）。決定前不實作。
 
 - [同一 repo 的多 agent 平行執行／尚未決定](Documentation/WorktreeReportPlan.md#尚未決定)：目標 2026-10-24 對齊為平行執行；決策檔 [worktree-report.decisions](decisions/worktree-report.decisions) 第 1～10 題已答並寫入計畫〈已決定〉；第 11 題（Unity Editor、MCP、固定 port 這類共用資源怎麼排）待答。
 

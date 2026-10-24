@@ -1,7 +1,7 @@
 {
   "schema_version": "1.1",
   "task_id": "gap-scan",
-  "updated_at": "2026-10-23T19:36:32.721277+00:00",
+  "updated_at": "2026-10-24T04:28:01.588539+00:00",
   "decisions": [
     {
       "id": "scan-range",
@@ -169,6 +169,32 @@
       "recommendation": {
         "option_id": "scan",
         "reason": "和 plan、run 一樣是一個簡短的動作詞；與評估分開，不會混淆。"
+      },
+      "allow_other": true,
+      "status": "pending",
+      "answer": null
+    },
+    {
+      "id": "retired-state",
+      "version": 1,
+      "question": "7. 退場的子項用什麼狀態表示？",
+      "context": "例子：next-marker 卡的「編輯模式也能設定 Next」，你決定不需要後被封存；它在 Report 上和「做完後封存留作歷史」的子項看起來一樣。\n退場盤點確認後，子項要離開待處理；本題決定 Report 上怎麼分得出「被推翻／沒必要」。",
+      "source_ref": "../Documentation/GapScanPlan.md#尚未決定",
+      "options": [
+        {
+          "id": "archive-with-reason",
+          "label": "沿用「已封存」，理由寫在活動紀錄",
+          "description": "不用改資料格式和畫面；Viewer 可以把理由顯示在提示文字裡。從列表一眼看不出是被推翻的。"
+        },
+        {
+          "id": "new-rejected-state",
+          "label": "新增「已推翻」狀態",
+          "description": "Report 上一眼分得出；資料格式、CLI、Viewer、狀態推算與篩選都要跟著改。"
+        }
+      ],
+      "recommendation": {
+        "option_id": "archive-with-reason",
+        "reason": "退場的子項之後很少再看；理由能查得到就夠，不值得為它改動資料格式和所有讀取端。"
       },
       "allow_other": true,
       "status": "pending",

@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-10-23T19:38:24.178Z",
+  "updated_at": "2026-10-24T04:28:20.048959+00:00",
   "tasks": [
     {
       "id": "next-marker",
@@ -2868,16 +2868,16 @@
     },
     {
       "id": "gap-scan",
-      "title": "專案缺口盤點",
+      "title": "專案缺口與退場盤點",
       "status": "planned",
       "priority": 1,
-      "summary": "討論中：評估只找已排定的工作，沒有步驟負責找出專案還缺什麼。新增盤點步驟，從計畫目標、規格與各平台實作、其他專案的需求找出候選，交給使用者選，再接上評估。見 [計畫](https://github.com/Yu5h1/TaskProgress/blob/main/Documentation/GapScanPlan.md)；決定前不實作。",
+      "summary": "討論中：評估只找已排定的工作，既不會發現專案還缺什麼，也不會發現既有子項已經不該做。新增缺口盤點與退場盤點，候選都交給使用者決定，再接上評估。見 [計畫](https://github.com/Yu5h1/TaskProgress/blob/main/Documentation/GapScanPlan.md)；決定前不實作。",
       "pending_items": [
         {
           "id": "gap-scan-decisions",
           "status": "planned",
           "priority": 1,
-          "title": "決定 [專案缺口盤點計畫](https://github.com/Yu5h1/TaskProgress/blob/main/Documentation/GapScanPlan.md) 的 6 題：盤點範圍、是否盤點全部、和「整合進 UX」的分工、結果形式、選定後落點、動詞名稱",
+          "title": "決定 [缺口與退場盤點計畫](https://github.com/Yu5h1/TaskProgress/blob/main/Documentation/GapScanPlan.md) 的 7 題：盤點範圍、是否盤點全部、和「整合進 UX」的分工、結果形式、選定後落點、動詞名稱、退場子項的狀態",
           "document_ref": {
             "kind": "decision",
             "scope_id": "task-progress",
@@ -2889,6 +2889,13 @@
               "actor": "claude",
               "at": "2026-10-23T19:36:46.617978+00:00",
               "session": "專案缺口盤點計畫",
+              "session_id": "8db3d9df-8d4e-461e-96c2-37ca30b33c56"
+            },
+            {
+              "event": "updated",
+              "actor": "claude",
+              "at": "2026-10-24T04:28:20.048959+00:00",
+              "session": "退場盤點",
               "session_id": "8db3d9df-8d4e-461e-96c2-37ca30b33c56"
             }
           ]
