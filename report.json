@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-10-24T15:55:38.950956+00:00",
+  "updated_at": "2026-10-24T16:07:07.226070+00:00",
   "tasks": [
     {
       "id": "next-marker",
@@ -2065,13 +2065,13 @@
       "id": "agent-workflow",
       "title": "優化 agent workflow",
       "status": "planned",
-      "summary": "可執行項目的驗證方式變成選項：一份 checklist 用權限標籤區分執行者（不標）、他驗（[acceptance]）與人工（[manual]），Report 分得出待他驗、待人工、需處理與完成。2026-10-24 定案整條流程：使用者確認目標與驗收，agent 跑完中間；plan 分三層對照目標建立工作，經驗記在卡片的經驗紀錄，收尾檢討在結案驗收之前。skill 與程式尚未落實。計畫 Documentation/AcceptanceChainPlan.md。",
+      "summary": "以 [目標與流程](https://github.com/Yu5h1/TaskProgress/blob/main/Documentation/AcceptanceChainPlan.md#目標與流程) 為準：使用者確認目標與驗收，agent 完成規劃、執行、自驗與他驗。子項追蹤 TaskProgress 技能與程式的落實、既有端到端試跑及卡片結案；共用規則的交付依 Requirements.agents.md 串接。",
       "pending_items": [
         {
           "id": "decide-goal-flow",
           "status": "planned",
           "priority": 1,
-          "title": "決定 [目標與流程](https://github.com/Yu5h1/TaskProgress/blob/main/Documentation/AcceptanceChainPlan.md#目標與流程) 的 7 題：目標寫在哪、拆解是否直接建子項、經驗記在哪、人工驗收時等待何時解除、輕量流程誰判斷、收尾檢討時機、成效指標呈現 — 答完後改 task-progress-items、agent-executable-items 與 AgentsRule",
+          "title": "確認目標與流程的七個決策：目標位置、直接拆解、經驗、人工等待、輕量流程、收尾與指標",
           "document_ref": {
             "kind": "decision",
             "scope_id": "task-progress",
@@ -2084,12 +2084,19 @@
               "at": "2026-10-24T04:53:37.005188+00:00",
               "session": "Taskprogess",
               "session_id": "cfb6305b-c950-4f60-b572-e82f12b683c5"
+            },
+            {
+              "event": "updated",
+              "actor": "codex",
+              "at": "2026-10-24T16:07:07.226070+00:00",
+              "session": "agent-workflow 規劃",
+              "session_id": "6f08010b-90db-4e2a-be27-c72a9b0e66d9"
             }
           ]
         },
         {
           "id": "decide-next-step-flow",
-          "title": "決策：下一步流程的四個選擇（預設動詞、採建議執行、模組點名、問題記錄）— 答完後改 task-progress-items、agent-executable-items 與 AgentsRule",
+          "title": "確認下一步流程的四個決策：預設動詞、採建議執行、模組點名與問題記錄",
           "status": "planned",
           "priority": 0,
           "document_ref": {
@@ -2104,6 +2111,13 @@
               "at": "2026-10-23T03:15:06.070478+00:00",
               "session": "Agent workflow 流程檢視",
               "session_id": "990bddf5-22fd-4ca7-a93a-669fa2af3f7d"
+            },
+            {
+              "event": "updated",
+              "actor": "codex",
+              "at": "2026-10-24T16:07:07.226070+00:00",
+              "session": "agent-workflow 規劃",
+              "session_id": "6f08010b-90db-4e2a-be27-c72a9b0e66d9"
             }
           ]
         },
@@ -2121,12 +2135,6 @@
             {
               "event": "updated",
               "actor": "claude",
-              "at": "2026-10-22T10:36:11.832346+00:00",
-              "session": "TaskProgress 維護開發"
-            },
-            {
-              "event": "updated",
-              "actor": "claude",
               "at": "2026-10-22T10:59:15.727732+00:00",
               "session": "TaskProgress 維護開發"
             },
@@ -2136,6 +2144,72 @@
               "at": "2026-10-22T11:49:09.671297+00:00",
               "session": "TaskProgress 維護開發",
               "session_id": "583fa969-9dcf-4def-98dd-196efef59cea"
+            },
+            {
+              "event": "updated",
+              "actor": "codex",
+              "at": "2026-10-24T16:07:07.226070+00:00",
+              "session": "agent-workflow 規劃",
+              "session_id": "6f08010b-90db-4e2a-be27-c72a9b0e66d9"
+            }
+          ],
+          "waits_for": [
+            {
+              "task_id": "agent-workflow",
+              "scope_id": "task-progress",
+              "item_id": "goal-flow-implementation"
+            }
+          ]
+        },
+        {
+          "document_ref": {
+            "scope_id": "task-progress",
+            "task": "goal-flow-implementation",
+            "kind": "checklist"
+          },
+          "title": "落實目標導向的 agent workflow：分層規劃、卡片經驗、人工等待與結案流程",
+          "priority": 1,
+          "status": "planned",
+          "id": "goal-flow-implementation",
+          "activity": [
+            {
+              "event": "created",
+              "actor": "codex",
+              "at": "2026-10-24T16:07:07.226070+00:00",
+              "session": "agent-workflow 規劃",
+              "session_id": "6f08010b-90db-4e2a-be27-c72a9b0e66d9"
+            }
+          ]
+        },
+        {
+          "document_ref": {
+            "scope_id": "task-progress",
+            "task": "agent-workflow-closure",
+            "kind": "checklist"
+          },
+          "id": "agent-workflow-closure",
+          "waits_for": [
+            {
+              "task_id": "agent-workflow",
+              "scope_id": "task-progress",
+              "item_id": "goal-flow-implementation"
+            },
+            {
+              "task_id": "agent-workflow",
+              "scope_id": "task-progress",
+              "item_id": "acceptance-flow-trial"
+            }
+          ],
+          "priority": 1,
+          "title": "對照卡片目標，確認 agent workflow 的完整交付與驗收流程",
+          "status": "planned",
+          "activity": [
+            {
+              "event": "created",
+              "actor": "codex",
+              "at": "2026-10-24T16:07:07.226070+00:00",
+              "session": "agent-workflow 規劃",
+              "session_id": "6f08010b-90db-4e2a-be27-c72a9b0e66d9"
             }
           ]
         }

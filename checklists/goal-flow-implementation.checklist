@@ -1,0 +1,54 @@
+# 落實目標導向的 agent workflow Checklist
+
+Current round: `Documentation/AcceptanceChainPlan.md#目標與流程`.
+
+使用者已確認「使用者只在開頭確認目標、最後驗收；agent 跑完中間」的目標與七題決策。現有技能尚未涵蓋三層 plan、卡片經驗與結案驗收；程式尚未支援卡片經驗文件綁定及人工驗收的等待例外。本輪完成 TaskProgress 擁有的技能、資料契約與執行行為，交獨立上下文對照原始目標驗收。
+
+共用 `.agents` 的變更由 `Documentation/Requirements.agents.md` 提出；本項不修改該 scope。串接檢查須在提出方確認該需求實作後完成。`obsolete`／`discontinued` 的程式實作由 gap-scan 卡擁有，本輪只保留流程路由，不重建該工作。既有六種情況的端到端試跑保留在 acceptance-flow-trial 子項，不重複建立。所有檢查完成即結束本輪。
+
+- [ ] **1. 將已確認的目標接進 TaskProgress 技能**
+  Outcome: plan、auto、run 與 accept 使用同一套以目標為起點的流程。
+  Checks:
+    - [ ] **三層 plan 與工作類型**
+      - Action: 依原始規格〈釐清目標〉、〈每一層的 plan〉、〈子項類型〉更新 .agents/skills/task-progress-items/SKILL.md；既有已確認目標直接引用，scope 產卡、卡片產子項、子項回報狀態；plan all 淺層盤點；目標推得出的直接建立，改變目標的才出題。
+      - Expect: 不新增盤點動詞；每個新工作能指出服務哪一句目標；直接工作、未綁定子項、四種驗證與卡片結案驗收均有可操作的分界，plan 不執行實作。
+    - [ ] **經驗、分批與收尾**
+      - Action: 依原始規格〈經驗紀錄〉、〈量與分批〉、〈收尾檢討〉、〈輕量流程〉與〈成效指標〉更新 TaskProgress 技能；將卡片經驗文件與目標連結的寫入規則放在 task-progress-report，checklist 格式規則留在 checklist-round。
+      - Expect: 經驗逐筆保留來源與狀態；最後工作完成後先處理 open 經驗、缺口與退場候選再交結案驗收；不為完成而降標準；小任務省略的步驟與理由可回報；指標留在 Markdown，不新增指標程式或 UI。
+
+- [ ] **2. 支援卡片綁定經驗文件**
+  Outcome: agent 能從 Report 卡片找到該卡的 experience/<卡片ID>.md。
+  Checks:
+    - [ ] **資料契約與 CLI**
+      - Action: 依〈經驗紀錄〉、〈落實時要改的地方〉擴充 schema、Report CLI 的卡片寫入與讀取，支援經驗文件綁定；同步擁有契約的用法文件及 DocumentBindingPlan 舊的「卡片不綁文件」限制，保留既有子項 Checklist／Decision 綁定行為。
+      - Expect: 綁定能經 CLI 寫入、讀回並通過 schema；舊報告維持相容；經驗為可直接編輯的 Markdown，不另做經驗 JSON、專用 CLI 或 UI；不把經驗內容誤算成完成進度。
+
+- [ ] **3. 讓人工驗收依規格解除等待並保留嚴格等待**
+  Outcome: 一般相依工作可在前項只差人工驗收時繼續，使用者驗收失敗會使相依工作需要重做。
+  Checks:
+    - [ ] **等待與失敗傳遞**
+      - Action: 依〈執行與驗收〉新增「要等使用者驗收」的等待標記，更新 schema、CLI 寫入、C# 狀態推算與 Viewer 共用投影；以聚焦案例涵蓋預設等待、嚴格等待、使用者失敗與跨 scope 的相依鏈。
+      - Expect: 前項只差人工驗收時預設解除等待，嚴格等待仍阻擋；前項尚待自驗或他驗時不提前放行；人工驗收失敗後，已繼續的相依子項不能沿用舊通過結果冒充完成，需依規格重做；CLI 與 Viewer 狀態及佇列取項一致。
+
+- [ ] **4. 支援卡片結案驗收並串接完整流程**
+  Outcome: 只含人工檢查的結案清單可正常使用，更新後的流程與共用規則可以一起執行。
+  Checks:
+    - [ ] **只有人工檢查的清單**
+      - Action: 依〈子項類型〉確認 manual-only checklist 的解析、權限、先後規則、Report 狀態與使用者寫入；先用聚焦案例證明現有行為，僅修改不符合規格的部分。
+      - Expect: 不用虛構執行者檢查也能驗收；使用者未確認前為待使用者，確認後完成；agent 仍不能代勾人工通過；原有他驗與人工順序不退化。
+    - [ ] **跨 scope 串接與定向驗證**
+      - Action: 讀取 Documentation/Requirements.agents.md，由提出方依其驗收確認共用規則的交付；對照 AcceptanceChainPlan〈流程紀錄〉逐項演練新規則的影響，跑改動對應的聚焦檢查，必要時重建與發布受影響的 UI／CLI。
+      - Expect: 共用規則與 TaskProgress 技能沒有互相衝突的目標確認、盤點、經驗與結案規則；新增流程不破壞原有自驗、他驗、人工、條件修訂與等待；不擴成未授權的全套驗證。共用需求未交付時本檢查保留未完成，回報外部工作入口。
+
+- [ ] **5. 獨立驗收目標與流程**
+  Outcome: 獨立上下文確認交付達成原始目標，且未把實作結果當成驗收標準。
+  Checks:
+    - [ ] **驗收條件未被改動** `[acceptance]`
+      - Action: 讀 Documentation/AcceptanceChainPlan.md〈已決定〉第 4、5 點，檢查 git log --grep goal-flow-implementation 與本清單的 git diff，對照最初提交條件或最近標為「條件修訂」的提交。
+      - Expect: 本工作項目的 acceptance 標題、Action 與 Expect 自基準後未被改動，或有符合條件修訂流程的明確基準；驗收上下文未參與建立、實作或修正。
+    - [ ] **流程對齊目標** `[acceptance]`
+      - Action: 對照 Documentation/AcceptanceChainPlan.md〈目標與流程〉、〈釐清目標〉、〈每一層的 plan〉、〈量與分批〉與〈輕量流程〉，從新上下文演練已確認目標、未確認目標、目標內缺口、改變目標、plan all 與量超出單次 session 的情境。
+      - Expect: 使用者不必重複確認已定目標；三層產出、決策邊界與分批符合原始設計；plan 不啟動實作，不以縮減目標或降低條件收尾；領域方法仍由領域技能擁有。
+    - [ ] **資料、等待與結案符合決策** `[acceptance]`
+      - Action: 對照 Documentation/AcceptanceChainPlan.md〈經驗紀錄〉、〈執行與驗收〉、〈子項類型〉、〈收尾檢討〉與〈成效指標〉，檢查實際資料、聚焦案例及跨 scope 交付證據；涵蓋前項待人工、嚴格等待、前項人工失敗與 manual-only 結案。
+      - Expect: 卡片可綁定 Markdown 經驗且沒有額外經驗 UI；一般等待與嚴格等待有正確差異；失敗使相依工作重做；收尾處理經驗與缺口後才交使用者；manual-only 可操作，指標不被擴建成新功能。
