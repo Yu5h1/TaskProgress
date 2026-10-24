@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-10-24T18:39:58.129973+00:00",
+  "updated_at": "2026-10-24T18:41:10.780876+00:00",
   "tasks": [
     {
       "id": "next-marker",
@@ -2068,53 +2068,6 @@
       "summary": "以 [目標與流程](https://github.com/Yu5h1/TaskProgress/blob/main/Documentation/AcceptanceChainPlan.md#目標與流程) 為準：使用者確認目標與驗收，agent 完成規劃、執行、自驗與他驗。子項追蹤 TaskProgress 技能與程式的落實、既有端到端試跑及卡片結案；共用規則的交付依 Requirements.agents.md 串接。",
       "pending_items": [
         {
-          "id": "acceptance-flow-trial",
-          "title": "端到端試跑：在 [驗證流程試跑](/?scope=task-progress&pin=acceptance-trial) 卡片用 /task-progress-items 走過自驗、人工、他驗、他驗＋人工、條件不符與等待六種情況，每一步 Report 顯示的狀態都和計畫〈流程紀錄〉一致",
-          "status": "in_progress",
-          "activity": [
-            {
-              "event": "created",
-              "actor": "claude",
-              "at": "2026-10-22T05:19:56.005448+00:00",
-              "session": "TaskProgress 維護開發"
-            },
-            {
-              "event": "updated",
-              "actor": "claude",
-              "at": "2026-10-22T11:49:09.671297+00:00",
-              "session": "TaskProgress 維護開發",
-              "session_id": "583fa969-9dcf-4def-98dd-196efef59cea"
-            },
-            {
-              "event": "updated",
-              "actor": "codex",
-              "at": "2026-10-24T16:07:07.226070+00:00",
-              "session": "agent-workflow 規劃",
-              "session_id": "6f08010b-90db-4e2a-be27-c72a9b0e66d9"
-            },
-            {
-              "event": "updated",
-              "actor": "claude",
-              "at": "2026-10-24T17:42:40.920107+00:00",
-              "session_id": "016492fa-7464-498b-9444-0e6296cd1267"
-            },
-            {
-              "event": "started",
-              "actor": "claude",
-              "at": "2026-10-24T17:59:37.779041+00:00",
-              "session": "Taskprogess",
-              "session_id": "016492fa-7464-498b-9444-0e6296cd1267"
-            }
-          ],
-          "waits_for": [
-            {
-              "task_id": "agent-workflow",
-              "scope_id": "task-progress",
-              "item_id": "goal-flow-implementation"
-            }
-          ]
-        },
-        {
           "document_ref": {
             "scope_id": "task-progress",
             "task": "goal-flow-implementation",
@@ -2184,11 +2137,64 @@
               "at": "2026-10-24T16:07:07.226070+00:00",
               "session": "agent-workflow 規劃",
               "session_id": "6f08010b-90db-4e2a-be27-c72a9b0e66d9"
+            },
+            {
+              "event": "updated",
+              "actor": "claude",
+              "at": "2026-10-24T18:41:10.780876+00:00",
+              "session_id": "016492fa-7464-498b-9444-0e6296cd1267"
             }
           ]
         }
       ],
       "completed_items": [
+        {
+          "id": "acceptance-flow-trial",
+          "title": "端到端試跑：在 [驗證流程試跑](/?scope=task-progress&pin=acceptance-trial) 卡片用 /task-progress-items 走過自驗、人工、他驗、他驗＋人工、條件不符與等待六種情況，每一步 Report 顯示的狀態都和計畫〈流程紀錄〉一致",
+          "status": "done",
+          "activity": [
+            {
+              "event": "created",
+              "actor": "claude",
+              "at": "2026-10-22T05:19:56.005448+00:00",
+              "session": "TaskProgress 維護開發"
+            },
+            {
+              "event": "updated",
+              "actor": "codex",
+              "at": "2026-10-24T16:07:07.226070+00:00",
+              "session": "agent-workflow 規劃",
+              "session_id": "6f08010b-90db-4e2a-be27-c72a9b0e66d9"
+            },
+            {
+              "event": "updated",
+              "actor": "claude",
+              "at": "2026-10-24T17:42:40.920107+00:00",
+              "session_id": "016492fa-7464-498b-9444-0e6296cd1267"
+            },
+            {
+              "event": "started",
+              "actor": "claude",
+              "at": "2026-10-24T17:59:37.779041+00:00",
+              "session": "Taskprogess",
+              "session_id": "016492fa-7464-498b-9444-0e6296cd1267"
+            },
+            {
+              "event": "done",
+              "actor": "claude",
+              "at": "2026-10-24T18:41:09.607027+00:00",
+              "session": "Taskprogess",
+              "session_id": "016492fa-7464-498b-9444-0e6296cd1267"
+            }
+          ],
+          "waits_for": [
+            {
+              "task_id": "agent-workflow",
+              "scope_id": "task-progress",
+              "item_id": "goal-flow-implementation"
+            }
+          ]
+        },
         {
           "id": "problem-decision-item-state",
           "priority": 2,
@@ -3227,6 +3233,6 @@
   ],
   "next": {
     "task_id": "agent-workflow",
-    "item_id": "acceptance-flow-trial"
+    "item_id": "agent-workflow-closure"
   }
 }

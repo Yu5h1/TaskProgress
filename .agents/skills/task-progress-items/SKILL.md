@@ -96,7 +96,9 @@ Plan each level the same way — compare the level's goal with what already exis
   belongs to that domain's skill; follow it and sort its findings here.
 - A retirement candidate is a decision question: the user confirms before an item leaves the queue.
 - When the user changes a card's goal, plan that card again: items the new goal does not need become
-  retirement candidates, and missing steps become items.
+  retirement candidates, and missing steps become items. Do the same when the card's plan gains or
+  changes a rule after its items exist: an item not yet executed gets the checks the change implies,
+  and work already done that the change affects becomes a new item.
 - Redo the scope-level analysis only when the project goal changes; its result lives on as cards.
   Estimate resources or skills only when the estimate would change a decision the user makes.
 
@@ -318,7 +320,9 @@ agent; a refusal is a reply with `"type":"error"` while the exit code stays 0, s
 Read `report get` and act on `derived_state`, for bound and unbound items alike (§ Unbound items):
 `run` takes `not_started`, `in_progress` not claimed by another session, `needs_fix` and
 `conditions_to_revise` (not those whose condition you raised);
-`accept` takes `awaiting_acceptance`. Skip `waiting`, `awaiting_user` and `awaiting_user_dispute`
+`accept` takes `awaiting_acceptance`. When a waited item and an item waiting on it both need fixing
+(the user failed the waited item's acceptance), fix the waited item first and redo the waiter against
+the fixed result. Skip `waiting`, `awaiting_user` and `awaiting_user_dispute`
 (the user's) and `done`. Order: the scope's Next item first when it is inside the range and the
 queue takes its state, then priority, then card order — the order the Report shows. When a command
 leaves the scope's Next item `done` or `waiting`, evaluate which item in the command's range should
