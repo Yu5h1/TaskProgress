@@ -11,7 +11,7 @@ Report
 
 ## 子項目綁定契約
 
-只有物件型子項目可綁定 Checklist／Decision；欄位與來源完成條件由 [Report 技能](../.agents/skills/task-progress-report/SKILL.md#bind-checklist-and-decision-documents-document_ref) 維護。任務卡摘要保留一般超連結，不顯示專用文件徽章或待決策計數。任務卡只能綁定自己的經驗紀錄（2026-10-24 使用者決定，[AcceptanceChainPlan〈經驗紀錄〉](AcceptanceChainPlan.md#經驗紀錄)；欄位見 [Report 技能](../.agents/skills/task-progress-report/SKILL.md#bind-a-cards-experience-record)），Viewer 不顯示它，也不計入卡片進度。
+只有物件型子項目可綁定 Checklist／Decision；欄位與來源完成條件由 [Report 技能](../.agents/skills/task-progress-report/SKILL.md#bind-checklist-and-decision-documents-document_ref) 維護。任務卡摘要保留一般超連結，不顯示專用文件徽章或待決策計數。任務卡只能綁定自己的經驗紀錄（2026-10-24 使用者決定，[AcceptanceChainPlan〈經驗紀錄〉](AcceptanceChainPlan.md#經驗紀錄)；欄位見 [Report 技能](../.agents/skills/task-progress-report/SKILL.md#keep-a-cards-experience-record)），Viewer 不顯示它，也不計入卡片進度。
 
 來源完成時，非封存子項目顯示完成；原本在待處理的子項目因此顯示完成時，排在完成區最上方（與新完成項目置頂的完成堆疊一致），多項時維持原陣列順序；來源重新開啟、空白或讀取失敗時，恢復原本未完成狀態，原始為完成者改顯示進行中。封存狀態保留。讀取失敗另顯示來源不可用。
 

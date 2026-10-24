@@ -14,6 +14,11 @@ This file only sequences them. Running it reads these skills and the scope, neve
 plan document; the reasons behind the rules (Task ID `checklist-acceptance-chain`) are read only to
 change a rule.
 
+The user decides two things: the goal at the start and the result at the end, including whether a
+result that misses the goal was done wrong (fail it, redo) or aimed wrong (change the goal). The
+agent carries everything between — evaluating approaches, planning, executing, verifying — without
+asking the user to check in between. Redoing work is a normal way to finish, not a failure.
+
 ## Scope
 
 The scope is the project the user names, or else the project the session works in: its
@@ -29,8 +34,8 @@ card or child item of the scope, resolved as § Resolve the target says.
 | Form | Does |
 |---|---|
 | (none) | Same as `auto`: evaluate, do the direct work, execute and accept (user, 2026-10-23) |
-| `plan [target]` | Evaluate the scope, create items, list direct work and settle Next; run nothing. A card narrows it to that card. An item: report its `derived_state` and the command that acts on it; change nothing |
-| `plan all` | `plan` for every registered scope in turn (§ Plan all scopes); the only form that crosses scopes |
+| `plan [target]` | Plan the range against its goal (§ Plan against the goal): the scope yields cards, a card yields items; list direct work and settle Next; run nothing. An item: report its `derived_state` and the command that acts on it, or settle an unclear item with a decision question or in the conversation; change nothing else |
+| `plan all` | A shallow pass over every registered scope (§ Plan all scopes); the only form that crosses scopes |
 | `<target>` | Same as `auto <target>`: a card narrows all of it to that card, an item skips evaluation and executes then accepts that item |
 | `<instruction>` | Write that one instruction as an item, then execute it in this session |
 | `run [target]` | Execution queue; a card narrows it to that card's items, an item to that item |
@@ -40,12 +45,60 @@ card or child item of the scope, resolved as § Resolve the target says.
 ### Plan all scopes
 
 `all` after `plan` names every scope in `task-progress.exe scope list`, never a card; no other verb
-takes it. Plan each scope exactly as `plan` does, one scope at a time, each with its own Next. A
+takes it. Take the scopes one at a time and keep each pass shallow: compare the scope's goal with its
+cards, record the gaps and retirement candidates as § Plan against the goal says, and settle that
+scope's Next; break cards into items only in a range the user names. A
 scope whose folder or report cannot be read, or whose repository has another session's uncommitted
 changes in its `report.json`, `decisions/` or `checklists/`, is skipped and named with the reason.
 Commit each scope's writes in its own repository, by path. End with one report: a section per
 scope in the § Queues and sessions report shape, then the scopes with nothing to do and the skipped
 ones.
+
+### Settle the goal first
+
+Before creating any card or item, the range needs a goal the user confirmed: the project goal
+(`plan.md`) for a scope; for a card, the 〈問題與目標〉 section of its plan document, linked from the
+card summary, or the opening prose of the item's checklist when the card has no plan document. When
+it exists, cite it and do not ask again.
+
+When it is missing or unconfirmed, settle it with the user before creating work. A wrong goal wastes
+every step after it, so clarify:
+
+- the real intent: the problem to solve and why now; when the instruction names a method, ask what
+  it should achieve;
+- what done looks like, observable, which becomes the acceptance conditions;
+- what is out of scope;
+- whether the goal itself is right: an existing mechanism already does it, a smaller change reaches
+  the same intent, or it treats a symptom. Say so in your first reply, with the evidence and the
+  alternative.
+
+Look up what the repository, report or tools can tell you instead of asking it. Ask one question at
+a time with your recommended answer and wait for the reply; walk the questions in dependency order.
+Write the confirmed goal to its place, then create the work.
+
+Light path: when the instruction already states an observable result in one step, skip the goal
+questions and the breakdown, and say in the report which steps you skipped and why; the user may ask
+for the full flow.
+
+### Plan against the goal
+
+Plan each level the same way — compare the level's goal with what already exists below it:
+
+| Level | Goal | Yields |
+|---|---|---|
+| Scope | The project goal | Cards, grouped by size and kind; any work the project needs, not only code |
+| Card | The card goal | Items: a missing step becomes an item, a pending item that serves no step becomes a retirement candidate |
+| Item | The item's outcome | Execution and acceptance only |
+
+- Work the confirmed goal requires is created directly, and its card or item names the goal sentence
+  it serves. Work you cannot tie to a goal sentence would extend or change the goal: make it a
+  decision question for the user. How to find gaps in a domain (for example, candidate UX modules)
+  belongs to that domain's skill; follow it and sort its findings here.
+- A retirement candidate is a decision question: the user confirms before an item leaves the queue.
+- When the user changes a card's goal, plan that card again: items the new goal does not need become
+  retirement candidates, and missing steps become items.
+- Redo the scope-level analysis only when the project goal changes; its result lives on as cards.
+  Estimate resources or skills only when the estimate would change a decision the user makes.
 
 ### Resolve the target
 
@@ -58,7 +111,7 @@ creating nothing, so a misspelled card name never becomes a new item.
 
 Evaluating a card reads the same sources as evaluating the scope, but creates only items whose work
 belongs to that card; findings for other cards are named in the report with the command that starts
-them, not created.
+them, not created. Pick each new item's verification by § Verification and its checklist.
 
 Evaluation never ends at a stop. A decision question it raises is answered on the spot when
 [agent-executable-items § Evaluate a scope](../../../../.agents/skills/agent-executable-items/SKILL.md#evaluate-a-scope)
@@ -90,10 +143,7 @@ tick; an item waiting on another scope names the invocation that starts that wor
 takes work from outside the range.
 
 A direction too unclear for a decision question — a preference, a goal the item does not state — is
-settled with the user in the conversation, one question at a time, each with your recommended
-answer, waiting for the reply before the next. Walk the decisions in dependency order; look up what
-the repository, report or tools can tell you instead of asking it. Act only after the user confirms
-the goal is shared, and write it into the item.
+settled with the user in the conversation as § Settle the goal first says, and written into the item.
 
 A leading `self`, `manual`, `cross` or `cross manual` forces the verification of the items it
 creates; otherwise choose per item by the criteria below and report each choice with its reason.
@@ -114,7 +164,16 @@ follows those documents' own rules and starts no flow.
 
 Choose: user-only judgment (appearance, feel, the user's device) → add `manual`; a requirement easy
 to misread (deriving implementation from a spec, changing a published spec, design data, cases or
-code) → add `cross`; otherwise `self`.
+code) → add `cross`; otherwise `self`. Work nobody reads back is direct work (§ Direct work); work
+the user wants to follow without verification stages is an unbound item (§ Unbound items).
+
+A card whose goal the user judges ends with a close-out item: a checklist of `[manual]` checks only,
+comparing the card's whole result with its goal, bound to an item that waits on the card's work
+items. It becomes the user's turn after § Close-out review.
+
+To have the user confirm something midway, check what kind it is: a result ("is this colour right
+before I apply it to ten pages?") is a `[manual]` check on that intermediate item, and items waiting
+on it proceed unless their wait is strict; a choice ("A or B?") is a decision question.
 
 Write one checklist per item, bound with `document_ref`, shaped as
 [checklist-round § Tagged checks](../checklist-round/SKILL.md#tagged-checks) prescribes (untagged
@@ -126,7 +185,12 @@ anyone executes, even this session.
 
 1. Claim: `item.update` `status: in_progress` with your session identity.
 2. Do the work. Tick untagged checks in the file by checklist-round's marker rules. For an item with
-   `[acceptance]`, every commit message carries the item ID.
+   `[acceptance]`, every commit message carries the item ID. Log what you learn in the card's
+   experience record as you go ([task-progress-report § Keep a card's experience record](../task-progress-report/SKILL.md#keep-a-cards-experience-record)).
+   When the work drifts from the spec, fix it in place; when the spec or the goal itself is wrong,
+   stop instead of patching until it passes
+   ([agent-work-route](../../../../.agents/skills/agent-work-route/SKILL.md#separate-a-wrong-implementation-from-a-wrong-spec)):
+   a wrong goal goes back to § Settle the goal first, a wrong spec is rewritten before you resume.
 3. For `manual`, complete the `[manual]` drafts (links that answer, steps).
 4. `task-progress.exe checklist validate <file>`, release
    (`{"op": "item.event", "task_id": "<card>", "item_id": "<item>", "event": "released"}`), then
@@ -156,6 +220,14 @@ revise the `[acceptance]` text and commit with the item ID and 「條件修訂�
 `{"op": "item.event", …, "event": "disputed", "note": "<why>"}`. The acceptor who raised it never
 revises it.
 
+### Outside deliveries
+
+An item that waits for something only someone outside the project can deliver (an artist's texture,
+a vendor's file) says in its title or checklist which delivery and where it lands; it has no
+`waits_for`, because no Report item tracks the delivery. When `run` or `auto` reaches it, check
+whether the delivery is there: if it is, do the work and verify it; if not, leave the item untouched
+and name it in the report as waiting for that delivery.
+
 ### Unbound items
 
 An item with no bound checklist (one the user tracks by hand) is executable too, with no
@@ -179,6 +251,27 @@ will follow — moving or renaming files, fixing links — is direct work: no it
 - `plan` lists it in the report, each with one sentence the user can hand to an agent.
 - `auto` (and the bare form) does it in the evaluating session before executing items, commits each
   piece, and lists what it did in the report; it writes nothing to the Report.
+
+## Close-out review
+
+After a card's last work item is done and before its close-out item reaches the user, the session
+that finished that work item reviews the card once. The review is a step of the flow, never an item:
+
+1. Settle every `open` line of the card's experience record: promote it (change the rule or skill,
+   or record a 「問題：」 item) or dismiss it with the reason.
+2. Compare the result with the card goal: missing work becomes items (or decision questions when it
+   would change the goal); work no longer needed becomes retirement candidates.
+3. Append the card's metrics line to the experience record.
+
+Skip the review when the card has no experience record and nothing is missing.
+
+## Batches and limits
+
+A session holds only so much. Never shrink the work to finish it: no lowered conditions, skipped
+checks or completion reported for unfinished work. When the range is more than one session can
+carry, take it in priority batches — the Report is the queue — and stop at a complete state: items
+created, questions raised, experience logged, claims released. Report what is done and what remains;
+the next session resumes from the Report, not from this conversation.
 
 ## Independent acceptance
 

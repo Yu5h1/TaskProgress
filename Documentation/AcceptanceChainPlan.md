@@ -103,7 +103,7 @@ plan 在每一層做同一件事：對照這一層的目標，看下一層已有
 
 第 3 題。任務卡綁定一份 `experience/<卡片ID>.md`，和 checklist、決策檔並列，只裝執行中學到、之後可能改變做法的經驗。
 
-- **綁定。** 卡片以 `document_ref`（`kind: "experience"`）綁定自己的經驗紀錄，欄位與 CLI 規則見 [task-progress-report〈Bind a card's experience record〉](../.agents/skills/task-progress-report/SKILL.md#bind-a-cards-experience-record)。不做 UI；這是給 agent 讀的文件，使用者要看就用文字編輯器。
+- **綁定。** 卡片以 `document_ref`（`kind: "experience"`）綁定自己的經驗紀錄，欄位與 CLI 規則見 [task-progress-report〈Keep a card's experience record〉](../.agents/skills/task-progress-report/SKILL.md#keep-a-cards-experience-record)。不做 UI；這是給 agent 讀的文件，使用者要看就用文字編輯器。
 - **格式。** 每筆一行：狀態、日期、寫入者、子項、類別、內容、影響的規則。
 
   ```markdown

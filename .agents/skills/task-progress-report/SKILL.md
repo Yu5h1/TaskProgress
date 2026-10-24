@@ -66,7 +66,7 @@ For task, item, and developer-field updates, use the `report` command instead of
   - `blocked`: progress requires unavailable input, authority, dependency, or external state.
   - `done`: requested outcome is implemented and adequately verified.
   - `archive`: historical work retained for context but no longer active.
-- Write `summary` as the current outcome or state, not a work diary.
+- Write `summary` as the current outcome or state, not a work diary. When the card has a plan document, link its 〈問題與目標〉 section from the summary: that section is the card's goal.
 - Add `completed_items` and `pending_items` only for concrete, useful facts.
 - Preserve legacy string items when no stable identity is needed. When time analysis must align an item, use `{ "id": "<stable-id>", "title": "<display text>" }`; keep the ID stable when wording or estimates change.
 - Add `progress` only when both numbers are factual. Never estimate a percentage or denominator.
@@ -115,11 +115,11 @@ Bind a `.checklist` or `.decisions` file when finishing that document is what fi
 ```
 
 - `kind` is `checklist` (→ `<scope-root>/checklists/<stem>.checklist`) or `decision`, singular (→ `<scope-root>/decisions/<stem>.decisions`); `scope_id` is the registered scope that owns the file; `task` is the file stem (`stem` is an accepted alias), which need not equal the Report task ID.
-- Only object items carry a checklist or decision binding; tasks aggregate from their items; a legacy string item first becomes an object item. A card carries only its experience record (§ Bind a card's experience record).
+- Only object items carry a checklist or decision binding; tasks aggregate from their items; a legacy string item first becomes an object item. A card carries only its experience record (§ Keep a card's experience record).
 - `item.add` accepts it inside `value`; the `report` command cannot add, change or remove it on an existing entry, so hand-edit `report.json` for that and run `report validate`.
 - Projection (display-only, never written back): a checklist is complete when every check is `[x]`, a decisions file when every decision is answered; a complete document shows the item done, an incomplete or unreadable one shows its stored unfinished state, and a card with bound items aggregates them. The bound routes exist only on the local service, so keep `document_ref` out of a report published elsewhere.
 
-## Bind a card's experience record
+## Keep a card's experience record
 
 A card binds its own experience record, the Markdown file where work on the card logs what it learned:
 
@@ -130,6 +130,25 @@ A card binds its own experience record, the Markdown file where work on the card
 - The file is `<scope-root>/experience/<stem>.md`; use the card ID as the stem. Create the file first: `task.add` and `task.update` (`set` or `unset` `document_ref`) refuse another kind, another scope, extra fields or a missing file.
 - It is for agents: no Viewer UI shows it, and it never counts toward the card's progress. The user opens it in a text editor.
 - The handoff routes to the card; the record itself stays with the card.
+
+Log a line while you work, whenever something could change how the next session works. One lesson
+per line:
+
+```markdown
+- [open] 2026-10-24 claude › <item-id> › environment：Python 測試要加 PYTHONPATH=. 才跑得起來 → README〈測試〉
+- [promoted → <where it was written>] …
+- [dismissed：<reason>] …
+```
+
+- Kinds: `misled` (a step or rule sent you wrong), `missing` (a rule or explanation was absent),
+  `environment` (a tool or environment trap), `judgment` (a call made with no rule to follow).
+- Not here: progress, next steps or current state (Report and checklist), a choice for the user
+  (decisions file), a fix someone must make (「問題：」 item).
+- The close-out review turns each `open` line into `promoted` or `dismissed` and keeps it; a card is
+  done with no `open` line left. It then appends one metrics line, for example
+  `指標：驗收不通過 1／5、重做 0、重講目標 1、週期 3 天` — acceptance failures over tagged checks,
+  redo count (`needs_fix` episodes), times the user restated the goal, days from first item created
+  to last done.
 
 ## Generate optional `time.analysis.json`
 

@@ -50,7 +50,7 @@ task-progress.exe report apply "C:\Project" --input changes.json --dry-run
 task-progress.exe report apply "C:\Project" --input changes.json
 ```
 
-卡片可用 `task.update` 綁定或解除自己的經驗紀錄（檔案須已存在於 `experience/<stem>.md`，scope 須為卡片所在的 scope；欄位見 [Report 技能〈Bind a card's experience record〉](../.agents/skills/task-progress-report/SKILL.md#bind-a-cards-experience-record)）：
+卡片可用 `task.update` 綁定或解除自己的經驗紀錄（檔案須已存在於 `experience/<stem>.md`，scope 須為卡片所在的 scope；欄位見 [Report 技能〈Keep a card's experience record〉](../.agents/skills/task-progress-report/SKILL.md#keep-a-cards-experience-record)）：
 
 ```json
 { "op": "task.update", "task_id": "feature-a",
