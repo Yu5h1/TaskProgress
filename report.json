@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-10-23T19:36:46.617978+00:00",
+  "updated_at": "2026-10-23T19:38:24.178Z",
   "tasks": [
     {
       "id": "next-marker",
@@ -2897,7 +2897,7 @@
     }
   ],
   "next": {
-    "task_id": "worktree-report",
-    "item_id": "worktree-report-decisions"
+    "task_id": "gap-scan",
+    "item_id": "gap-scan-decisions"
   }
 }
