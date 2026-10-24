@@ -1,143 +1,175 @@
 {
   "schema_version": "1.1",
   "task_id": "goal-flow",
-  "updated_at": "2026-10-24T04:52:44.478155+00:00",
+  "updated_at": "2026-10-24T09:40:06.7188790\u002B00:00",
   "decisions": [
     {
       "id": "goal-location",
       "version": 1,
-      "question": "1. 卡片的目標寫在哪裡？",
-      "context": "現況：卡片只有標題和摘要；摘要規定寫目前的結果或狀態，不是目標。多數卡片有計畫文件，例如本卡的 AcceptanceChainPlan 有〈為什麼〉、gap-scan 卡的 GapScanPlan 有〈問題與目標〉；「修正某個連結」這類小卡沒有計畫文件。\n第 0 步釐清的目標（真正的意圖、完成的樣子、非目標）要有固定的位置，驗收者和之後的 agent 才讀得到。",
-      "source_ref": "../Documentation/AcceptanceChainPlan.md#目標與流程",
+      "question": "1. \u5361\u7247\u7684\u76EE\u6A19\u5BEB\u5728\u54EA\u88E1\uFF1F",
+      "context": "\u73FE\u6CC1\uFF1A\u5361\u7247\u53EA\u6709\u6A19\u984C\u548C\u6458\u8981\uFF1B\u6458\u8981\u898F\u5B9A\u5BEB\u76EE\u524D\u7684\u7D50\u679C\u6216\u72C0\u614B\uFF0C\u4E0D\u662F\u76EE\u6A19\u3002\u591A\u6578\u5361\u7247\u6709\u8A08\u756B\u6587\u4EF6\uFF0C\u4F8B\u5982\u672C\u5361\u7684 AcceptanceChainPlan \u6709\u3008\u70BA\u4EC0\u9EBC\u3009\u3001gap-scan \u5361\u7684 GapScanPlan \u6709\u3008\u554F\u984C\u8207\u76EE\u6A19\u3009\uFF1B\u300C\u4FEE\u6B63\u67D0\u500B\u9023\u7D50\u300D\u9019\u985E\u5C0F\u5361\u6C92\u6709\u8A08\u756B\u6587\u4EF6\u3002\n\u7B2C 0 \u6B65\u91D0\u6E05\u7684\u76EE\u6A19\uFF08\u771F\u6B63\u7684\u610F\u5716\u3001\u5B8C\u6210\u7684\u6A23\u5B50\u3001\u975E\u76EE\u6A19\uFF09\u8981\u6709\u56FA\u5B9A\u7684\u4F4D\u7F6E\uFF0C\u9A57\u6536\u8005\u548C\u4E4B\u5F8C\u7684 agent \u624D\u8B80\u5F97\u5230\u3002",
+      "source_ref": "../Documentation/AcceptanceChainPlan.md#\u76EE\u6A19\u8207\u6D41\u7A0B",
       "options": [
         {
           "id": "plan-section",
-          "label": "寫在卡片計畫文件的〈問題與目標〉，摘要連結它；沒有計畫的卡片寫進子項 checklist 的開頭說明",
-          "description": "不改資料格式，目標和設計理由放在一起；在 Report 上要點連結才看得到目標。"
+          "label": "\u5BEB\u5728\u5361\u7247\u8A08\u756B\u6587\u4EF6\u7684\u3008\u554F\u984C\u8207\u76EE\u6A19\u3009\uFF0C\u6458\u8981\u9023\u7D50\u5B83\uFF1B\u6C92\u6709\u8A08\u756B\u7684\u5361\u7247\u5BEB\u9032\u5B50\u9805 checklist \u7684\u958B\u982D\u8AAA\u660E",
+          "description": "\u4E0D\u6539\u8CC7\u6599\u683C\u5F0F\uFF0C\u76EE\u6A19\u548C\u8A2D\u8A08\u7406\u7531\u653E\u5728\u4E00\u8D77\uFF1B\u5728 Report \u4E0A\u8981\u9EDE\u9023\u7D50\u624D\u770B\u5F97\u5230\u76EE\u6A19\u3002"
         },
         {
           "id": "report-field",
-          "label": "Report 卡片新增「目標」欄位，Viewer 顯示在卡片上",
-          "description": "一眼看得到；資料格式、CLI、Viewer 都要改，長的說明仍放在計畫文件。"
+          "label": "Report \u5361\u7247\u65B0\u589E\u300C\u76EE\u6A19\u300D\u6B04\u4F4D\uFF0CViewer \u986F\u793A\u5728\u5361\u7247\u4E0A",
+          "description": "\u4E00\u773C\u770B\u5F97\u5230\uFF1B\u8CC7\u6599\u683C\u5F0F\u3001CLI\u3001Viewer \u90FD\u8981\u6539\uFF0C\u9577\u7684\u8AAA\u660E\u4ECD\u653E\u5728\u8A08\u756B\u6587\u4EF6\u3002"
         },
         {
           "id": "summary-as-goal",
-          "label": "摘要改寫目標",
-          "description": "不改格式；但摘要不再顯示目前狀態。"
+          "label": "\u6458\u8981\u6539\u5BEB\u76EE\u6A19",
+          "description": "\u4E0D\u6539\u683C\u5F0F\uFF1B\u4F46\u6458\u8981\u4E0D\u518D\u986F\u793A\u76EE\u524D\u72C0\u614B\u3002"
         }
       ],
       "recommendation": {
         "option_id": "plan-section",
-        "reason": "計畫文件已經在寫問題與目標，放在那裡只有一個擁有者；不用為了顯示而改資料格式。"
+        "reason": "\u8A08\u756B\u6587\u4EF6\u5DF2\u7D93\u5728\u5BEB\u554F\u984C\u8207\u76EE\u6A19\uFF0C\u653E\u5728\u90A3\u88E1\u53EA\u6709\u4E00\u500B\u64C1\u6709\u8005\uFF1B\u4E0D\u7528\u70BA\u4E86\u986F\u793A\u800C\u6539\u8CC7\u6599\u683C\u5F0F\u3002"
       },
       "allow_other": true,
-      "status": "pending",
-      "answer": null
+      "status": "decided",
+      "answer": {
+        "kind": "option",
+        "option_id": "plan-section",
+        "confirmed_at": "2026-10-24T06:40:26.2355941\u002B00:00"
+      },
+      "last_request": {
+        "request_id": "804203a8-ef4b-410c-8322-0a7cbc4eb23b",
+        "fingerprint": "14adb412ddee6f6c92542e97c620bc08e412b36e2ec3dc50d9c576c26dd93241"
+      }
     },
     {
       "id": "decompose-create",
       "version": 1,
-      "question": "2. 評估從目標拆出的子項，直接建立還是先列給你確認？",
-      "context": "現況：評估找到已定案的工作就直接建子項，並在報告列出每個子項與驗證方式的理由。\n例子：目標「Report 分得出被推翻的子項」拆成「改狀態推算」「改 Viewer 顯示」「改 CLI」三步。",
-      "source_ref": "../Documentation/AcceptanceChainPlan.md#目標與流程",
+      "question": "2. \u8A55\u4F30\u5F9E\u76EE\u6A19\u62C6\u51FA\u7684\u5B50\u9805\uFF0C\u76F4\u63A5\u5EFA\u7ACB\u9084\u662F\u5148\u5217\u7D66\u4F60\u78BA\u8A8D\uFF1F",
+      "context": "\u73FE\u6CC1\uFF1A\u8A55\u4F30\u627E\u5230\u5DF2\u5B9A\u6848\u7684\u5DE5\u4F5C\u5C31\u76F4\u63A5\u5EFA\u5B50\u9805\uFF0C\u4E26\u5728\u5831\u544A\u5217\u51FA\u6BCF\u500B\u5B50\u9805\u8207\u9A57\u8B49\u65B9\u5F0F\u7684\u7406\u7531\u3002\n\u4F8B\u5B50\uFF1A\u76EE\u6A19\u300CReport \u5206\u5F97\u51FA\u88AB\u63A8\u7FFB\u7684\u5B50\u9805\u300D\u62C6\u6210\u300C\u6539\u72C0\u614B\u63A8\u7B97\u300D\u300C\u6539 Viewer \u986F\u793A\u300D\u300C\u6539 CLI\u300D\u4E09\u6B65\u3002",
+      "source_ref": "../Documentation/AcceptanceChainPlan.md#\u76EE\u6A19\u8207\u6D41\u7A0B",
       "options": [
         {
           "id": "create-directly",
-          "label": "目標確認後直接建立，報告列出目標、步驟、子項的對照",
-          "description": "和現行評估一致；拆錯的子項之後要走退場。"
+          "label": "\u76EE\u6A19\u78BA\u8A8D\u5F8C\u76F4\u63A5\u5EFA\u7ACB\uFF0C\u5831\u544A\u5217\u51FA\u76EE\u6A19\u3001\u6B65\u9A5F\u3001\u5B50\u9805\u7684\u5C0D\u7167",
+          "description": "\u548C\u73FE\u884C\u8A55\u4F30\u4E00\u81F4\uFF1B\u62C6\u932F\u7684\u5B50\u9805\u4E4B\u5F8C\u8981\u8D70\u9000\u5834\u3002"
         },
         {
           "id": "list-first",
-          "label": "先列出拆解，你確認後才建立",
-          "description": "拆錯能在建立前發現；每個目標多一次往返。"
+          "label": "\u5148\u5217\u51FA\u62C6\u89E3\uFF0C\u4F60\u78BA\u8A8D\u5F8C\u624D\u5EFA\u7ACB",
+          "description": "\u62C6\u932F\u80FD\u5728\u5EFA\u7ACB\u524D\u767C\u73FE\uFF1B\u6BCF\u500B\u76EE\u6A19\u591A\u4E00\u6B21\u5F80\u8FD4\u3002"
         }
       ],
       "recommendation": {
         "option_id": "create-directly",
-        "reason": "對齊的關卡是第 0 步的目標確認；拆解照目標走，報告的對照表讓你隨時看得出拆錯的地方。"
+        "reason": "\u5C0D\u9F4A\u7684\u95DC\u5361\u662F\u7B2C 0 \u6B65\u7684\u76EE\u6A19\u78BA\u8A8D\uFF1B\u62C6\u89E3\u7167\u76EE\u6A19\u8D70\uFF0C\u5831\u544A\u7684\u5C0D\u7167\u8868\u8B93\u4F60\u96A8\u6642\u770B\u5F97\u51FA\u62C6\u932F\u7684\u5730\u65B9\u3002"
       },
       "allow_other": true,
-      "status": "pending",
-      "answer": null
+      "status": "decided",
+      "answer": {
+        "kind": "option",
+        "option_id": "create-directly",
+        "confirmed_at": "2026-10-24T07:20:31.3816609\u002B00:00"
+      },
+      "last_request": {
+        "request_id": "8709162e-369a-45ea-8579-2619c973a19b",
+        "fingerprint": "1e7e44721259790694a13a4689bed31e29740d20db1584ae91e1118f0b1ae4d8"
+      }
     },
     {
       "id": "experience-location",
       "version": 1,
-      "question": "3. 執行時的經驗記在哪裡？",
-      "context": "現況：checklist 的 Observed 只記失敗的檢查；.agents 的 handoff〈Module-workflow review〉有一份摩擦紀錄，每輪一行並註明影響哪個提案，由 validation-rounds 子項讀取；評估規則本來就會讀摩擦紀錄。一般任務沒有地方記。\n例子：這幾天的執行中發現 Python 測試要加 PYTHONPATH=. 才跑得起來、瀏覽器探測的 fetch 包裝忽略 URL 物件而誤寫了 report.json，兩件都只留在對話裡。",
-      "source_ref": "../Documentation/AcceptanceChainPlan.md#目標與流程",
+      "question": "3. \u57F7\u884C\u6642\u7684\u7D93\u9A57\u8A18\u5728\u54EA\u88E1\uFF1F",
+      "context": "\u73FE\u6CC1\uFF1Achecklist \u7684 Observed \u53EA\u8A18\u5931\u6557\u7684\u6AA2\u67E5\uFF1B.agents \u7684 handoff\u3008Module-workflow review\u3009\u6709\u4E00\u4EFD\u6469\u64E6\u7D00\u9304\uFF0C\u6BCF\u8F2A\u4E00\u884C\u4E26\u8A3B\u660E\u5F71\u97FF\u54EA\u500B\u63D0\u6848\uFF0C\u7531 validation-rounds \u5B50\u9805\u8B80\u53D6\uFF1B\u8A55\u4F30\u898F\u5247\u672C\u4F86\u5C31\u6703\u8B80\u6469\u64E6\u7D00\u9304\u3002\u4E00\u822C\u4EFB\u52D9\u6C92\u6709\u5730\u65B9\u8A18\u3002\n\u4F8B\u5B50\uFF1A\u9019\u5E7E\u5929\u7684\u57F7\u884C\u4E2D\u767C\u73FE Python \u6E2C\u8A66\u8981\u52A0 PYTHONPATH=. \u624D\u8DD1\u5F97\u8D77\u4F86\u3001\u700F\u89BD\u5668\u63A2\u6E2C\u7684 fetch \u5305\u88DD\u5FFD\u7565 URL \u7269\u4EF6\u800C\u8AA4\u5BEB\u4E86 report.json\uFF0C\u5169\u4EF6\u90FD\u53EA\u7559\u5728\u5C0D\u8A71\u88E1\u3002",
+      "source_ref": "../Documentation/AcceptanceChainPlan.md#\u76EE\u6A19\u8207\u6D41\u7A0B",
       "options": [
         {
           "id": "friction-log",
-          "label": "各專案 handoff 加一段摩擦紀錄，每件一行（日期、子項、發生什麼、影響哪條規則）；收尾檢討讀完後升級或刪除",
-          "description": "沿用模組流程已經在用的做法；讀完就刪，handoff 不會一直變長。"
+          "label": "\u5404\u5C08\u6848 handoff \u52A0\u4E00\u6BB5\u6469\u64E6\u7D00\u9304\uFF0C\u6BCF\u4EF6\u4E00\u884C\uFF08\u65E5\u671F\u3001\u5B50\u9805\u3001\u767C\u751F\u4EC0\u9EBC\u3001\u5F71\u97FF\u54EA\u689D\u898F\u5247\uFF09\uFF1B\u6536\u5C3E\u6AA2\u8A0E\u8B80\u5B8C\u5F8C\u5347\u7D1A\u6216\u522A\u9664",
+          "description": "\u6CBF\u7528\u6A21\u7D44\u6D41\u7A0B\u5DF2\u7D93\u5728\u7528\u7684\u505A\u6CD5\uFF1B\u8B80\u5B8C\u5C31\u522A\uFF0Chandoff \u4E0D\u6703\u4E00\u76F4\u8B8A\u9577\u3002"
         },
         {
           "id": "checklist-notes",
-          "label": "寫在子項 checklist 裡的「經驗」段落",
-          "description": "和子項放在一起；下一輪覆寫 checklist 時就看不到（Git 歷史還在），跨子項難彙整。"
+          "label": "\u5BEB\u5728\u5B50\u9805 checklist \u88E1\u7684\u300C\u7D93\u9A57\u300D\u6BB5\u843D",
+          "description": "\u548C\u5B50\u9805\u653E\u5728\u4E00\u8D77\uFF1B\u4E0B\u4E00\u8F2A\u8986\u5BEB checklist \u6642\u5C31\u770B\u4E0D\u5230\uFF08Git \u6B77\u53F2\u9084\u5728\uFF09\uFF0C\u8DE8\u5B50\u9805\u96E3\u5F59\u6574\u3002"
         },
         {
           "id": "item-note-event",
-          "label": "寫成子項活動紀錄的備註事件",
-          "description": "Report 上看得到；CLI 要新增備註事件，長的內容不適合放在事件裡。"
+          "label": "\u5BEB\u6210\u5B50\u9805\u6D3B\u52D5\u7D00\u9304\u7684\u5099\u8A3B\u4E8B\u4EF6",
+          "description": "Report \u4E0A\u770B\u5F97\u5230\uFF1BCLI \u8981\u65B0\u589E\u5099\u8A3B\u4E8B\u4EF6\uFF0C\u9577\u7684\u5167\u5BB9\u4E0D\u9069\u5408\u653E\u5728\u4E8B\u4EF6\u88E1\u3002"
         }
       ],
       "recommendation": {
         "option_id": "friction-log",
-        "reason": "已有讀者（評估與收尾檢討）和讀完即刪的規則，是唯一驗證過的做法。"
+        "reason": "\u5DF2\u6709\u8B80\u8005\uFF08\u8A55\u4F30\u8207\u6536\u5C3E\u6AA2\u8A0E\uFF09\u548C\u8B80\u5B8C\u5373\u522A\u7684\u898F\u5247\uFF0C\u662F\u552F\u4E00\u9A57\u8B49\u904E\u7684\u505A\u6CD5\u3002"
       },
       "allow_other": true,
-      "status": "pending",
-      "answer": null
+      "status": "decided",
+      "answer": {
+        "kind": "other",
+        "text": "\u7D93\u9A57\u8A18\u5728\u4EFB\u52D9\u5361\u7D81\u5B9A\u7684\u7D93\u9A57\u6A94 experience/\u003C\u5361\u7247ID\u003E.md\uFF1A\u5361\u7247\u65B0\u589E\u7D81\u5B9A\u6587\u4EF6\u7684\u80FD\u529B\uFF0C\u4E0D\u505A UI\uFF08\u4F7F\u7528\u8005\u8981\u770B\u5C31\u7528\u6587\u5B57\u7DE8\u8F2F\u5668\uFF09\uFF1B\u6BCF\u7B46\u4E00\u884C\uFF0C\u8A18\u65E5\u671F\u3001\u5BEB\u5165\u8005\u3001\u5B50\u9805\u3001\u985E\u5225\u3001\u5167\u5BB9\u3001\u5F71\u97FF\u7684\u898F\u5247\u8207\u72C0\u614B\uFF1B\u6536\u5C3E\u6AA2\u8A0E\u628A open \u6539\u6210 promoted \u6216 dismissed\uFF0C\u5DF2\u8655\u7406\u7684\u4FDD\u7559\uFF1B\u7528 Markdown \u76F4\u63A5\u7DE8\u8F2F\uFF0C\u4E0D\u505A JSON \u8207 CLI\u3002handoff \u53EA\u6307\u8DEF\u5230\u5361\u7247\u3002",
+        "confirmed_at": "2026-10-24T09:07:34.5646199\u002B00:00"
+      },
+      "last_request": {
+        "request_id": "cbbd859a-c142-4518-8799-7d49d0011832",
+        "fingerprint": "42ad4a8038c48d4eee401d99efb7f9f02f707fe0095fdcb25373d520e7d1cf1f"
+      }
     },
     {
       "id": "manual-wait",
       "version": 1,
-      "question": "4. 人工驗收不擋流程時，等待它的子項什麼時候解除？",
-      "context": "你提出：人工驗收不擋流程，除非你要求等待。\n現況：子項 B 宣告等待子項 A；A 的自驗、他驗都通過、只差你的 [manual] 時，B 仍顯示等待中，run 不會挑它。agent 已經會去做其他不相依的子項。",
-      "source_ref": "../Documentation/AcceptanceChainPlan.md#目標與流程",
+      "question": "4. \u4EBA\u5DE5\u9A57\u6536\u4E0D\u64CB\u6D41\u7A0B\u6642\uFF0C\u7B49\u5F85\u5B83\u7684\u5B50\u9805\u4EC0\u9EBC\u6642\u5019\u89E3\u9664\uFF1F",
+      "context": "\u4F60\u63D0\u51FA\uFF1A\u4EBA\u5DE5\u9A57\u6536\u4E0D\u64CB\u6D41\u7A0B\uFF0C\u9664\u975E\u4F60\u8981\u6C42\u7B49\u5F85\u3002\n\u73FE\u6CC1\uFF1A\u5B50\u9805 B \u5BA3\u544A\u7B49\u5F85\u5B50\u9805 A\uFF1BA \u7684\u81EA\u9A57\u3001\u4ED6\u9A57\u90FD\u901A\u904E\u3001\u53EA\u5DEE\u4F60\u7684 [manual] \u6642\uFF0CB \u4ECD\u986F\u793A\u7B49\u5F85\u4E2D\uFF0Crun \u4E0D\u6703\u6311\u5B83\u3002agent \u5DF2\u7D93\u6703\u53BB\u505A\u5176\u4ED6\u4E0D\u76F8\u4F9D\u7684\u5B50\u9805\u3002",
+      "source_ref": "../Documentation/AcceptanceChainPlan.md#\u76EE\u6A19\u8207\u6D41\u7A0B",
       "options": [
         {
           "id": "lift-before-manual",
-          "label": "A 只差人工驗收時就解除 B 的等待；宣告等待時可以標「要等使用者驗收」保留現在的行為",
-          "description": "符合「不擋流程」；狀態推算（CLI 與 Viewer）和等待的格式都要改。你之後驗收不通過時，B 可能要跟著重做。"
+          "label": "A \u53EA\u5DEE\u4EBA\u5DE5\u9A57\u6536\u6642\u5C31\u89E3\u9664 B \u7684\u7B49\u5F85\uFF1B\u5BA3\u544A\u7B49\u5F85\u6642\u53EF\u4EE5\u6A19\u300C\u8981\u7B49\u4F7F\u7528\u8005\u9A57\u6536\u300D\u4FDD\u7559\u73FE\u5728\u7684\u884C\u70BA",
+          "description": "\u7B26\u5408\u300C\u4E0D\u64CB\u6D41\u7A0B\u300D\uFF1B\u72C0\u614B\u63A8\u7B97\uFF08CLI \u8207 Viewer\uFF09\u548C\u7B49\u5F85\u7684\u683C\u5F0F\u90FD\u8981\u6539\u3002\u4F60\u4E4B\u5F8C\u9A57\u6536\u4E0D\u901A\u904E\u6642\uFF0CB \u53EF\u80FD\u8981\u8DDF\u8457\u91CD\u505A\u3002"
         },
         {
           "id": "keep-until-done",
-          "label": "維持現狀：A 完成才解除，「不擋」只表示 agent 先做其他不相依的工作",
-          "description": "不用改程式；相依在 A 上的工作仍要等你驗收。"
+          "label": "\u7DAD\u6301\u73FE\u72C0\uFF1AA \u5B8C\u6210\u624D\u89E3\u9664\uFF0C\u300C\u4E0D\u64CB\u300D\u53EA\u8868\u793A agent \u5148\u505A\u5176\u4ED6\u4E0D\u76F8\u4F9D\u7684\u5DE5\u4F5C",
+          "description": "\u4E0D\u7528\u6539\u7A0B\u5F0F\uFF1B\u76F8\u4F9D\u5728 A \u4E0A\u7684\u5DE5\u4F5C\u4ECD\u8981\u7B49\u4F60\u9A57\u6536\u3002"
         }
       ],
       "recommendation": {
         "option_id": "lift-before-manual",
-        "reason": "符合你提出的原則；真的要等你的子項可以明確標出來。"
+        "reason": "\u7B26\u5408\u4F60\u63D0\u51FA\u7684\u539F\u5247\uFF1B\u771F\u7684\u8981\u7B49\u4F60\u7684\u5B50\u9805\u53EF\u4EE5\u660E\u78BA\u6A19\u51FA\u4F86\u3002"
       },
       "allow_other": true,
-      "status": "pending",
-      "answer": null
+      "status": "decided",
+      "answer": {
+        "kind": "option",
+        "option_id": "lift-before-manual",
+        "confirmed_at": "2026-10-24T09:40:06.7188790\u002B00:00"
+      },
+      "last_request": {
+        "request_id": "f6cdc135-7265-4b71-9c7d-f8a78d9286d6",
+        "fingerprint": "842f68aaeeed49b274d51553e63cae08107483a0e9800a554e7cb354b3b1c66c"
+      }
     },
     {
       "id": "light-lane-judge",
       "version": 1,
-      "question": "5. 輕量流程（省略釐清目標、拆解、收尾檢討）由誰判斷？",
-      "context": "現況：驗證方式（自驗、人工、他驗）由 agent 依準則選，回報每個選擇與理由。.agents 的 module-workflow-review 卡另有 light-lane 提案，只談模組輪次。\n例子：「修正某個連結」不需要釐清目標與拆解；「Report 新增一種狀態」需要。",
-      "source_ref": "../Documentation/AcceptanceChainPlan.md#目標與流程",
+      "question": "5. \u8F15\u91CF\u6D41\u7A0B\uFF08\u7701\u7565\u91D0\u6E05\u76EE\u6A19\u3001\u62C6\u89E3\u3001\u6536\u5C3E\u6AA2\u8A0E\uFF09\u7531\u8AB0\u5224\u65B7\uFF1F",
+      "context": "\u73FE\u6CC1\uFF1A\u9A57\u8B49\u65B9\u5F0F\uFF08\u81EA\u9A57\u3001\u4EBA\u5DE5\u3001\u4ED6\u9A57\uFF09\u7531 agent \u4F9D\u6E96\u5247\u9078\uFF0C\u56DE\u5831\u6BCF\u500B\u9078\u64C7\u8207\u7406\u7531\u3002.agents \u7684 module-workflow-review \u5361\u53E6\u6709 light-lane \u63D0\u6848\uFF0C\u53EA\u8AC7\u6A21\u7D44\u8F2A\u6B21\u3002\n\u4F8B\u5B50\uFF1A\u300C\u4FEE\u6B63\u67D0\u500B\u9023\u7D50\u300D\u4E0D\u9700\u8981\u91D0\u6E05\u76EE\u6A19\u8207\u62C6\u89E3\uFF1B\u300CReport \u65B0\u589E\u4E00\u7A2E\u72C0\u614B\u300D\u9700\u8981\u3002",
+      "source_ref": "../Documentation/AcceptanceChainPlan.md#\u76EE\u6A19\u8207\u6D41\u7A0B",
       "options": [
         {
           "id": "agent-criteria",
-          "label": "agent 依準則判斷（指令已寫明可觀察的結果、只有一個步驟），回報省略了哪些步驟與理由；你可以要求走完整流程",
-          "description": "和驗證方式的選法一致；判斷錯時要靠你在回報裡發現。"
+          "label": "agent \u4F9D\u6E96\u5247\u5224\u65B7\uFF08\u6307\u4EE4\u5DF2\u5BEB\u660E\u53EF\u89C0\u5BDF\u7684\u7D50\u679C\u3001\u53EA\u6709\u4E00\u500B\u6B65\u9A5F\uFF09\uFF0C\u56DE\u5831\u7701\u7565\u4E86\u54EA\u4E9B\u6B65\u9A5F\u8207\u7406\u7531\uFF1B\u4F60\u53EF\u4EE5\u8981\u6C42\u8D70\u5B8C\u6574\u6D41\u7A0B",
+          "description": "\u548C\u9A57\u8B49\u65B9\u5F0F\u7684\u9078\u6CD5\u4E00\u81F4\uFF1B\u5224\u65B7\u932F\u6642\u8981\u9760\u4F60\u5728\u56DE\u5831\u88E1\u767C\u73FE\u3002"
         },
         {
           "id": "user-marks",
-          "label": "由你在指令前標明，沒標就走完整流程",
-          "description": "最不會漏掉第 0 步；每次都要多打一個字，小任務也要走完整流程。"
+          "label": "\u7531\u4F60\u5728\u6307\u4EE4\u524D\u6A19\u660E\uFF0C\u6C92\u6A19\u5C31\u8D70\u5B8C\u6574\u6D41\u7A0B",
+          "description": "\u6700\u4E0D\u6703\u6F0F\u6389\u7B2C 0 \u6B65\uFF1B\u6BCF\u6B21\u90FD\u8981\u591A\u6253\u4E00\u500B\u5B57\uFF0C\u5C0F\u4EFB\u52D9\u4E5F\u8981\u8D70\u5B8C\u6574\u6D41\u7A0B\u3002"
         }
       ],
       "recommendation": {
         "option_id": "agent-criteria",
-        "reason": "和驗證方式的選法一致，你只需要在回報裡否決，不用每次標明。"
+        "reason": "\u548C\u9A57\u8B49\u65B9\u5F0F\u7684\u9078\u6CD5\u4E00\u81F4\uFF0C\u4F60\u53EA\u9700\u8981\u5728\u56DE\u5831\u88E1\u5426\u6C7A\uFF0C\u4E0D\u7528\u6BCF\u6B21\u6A19\u660E\u3002"
       },
       "allow_other": true,
       "status": "pending",
@@ -146,29 +178,29 @@
     {
       "id": "review-timing",
       "version": 1,
-      "question": "6. 收尾檢討什麼時候做？",
-      "context": "現況：AgentsRule 要求每次任務後在對話裡回報缺點與建議，沒有紀錄；評估開始時會讀摩擦紀錄。\n收尾檢討要對照目標找缺口與退場候選，並把經驗升級成規則。",
-      "source_ref": "../Documentation/AcceptanceChainPlan.md#目標與流程",
+      "question": "6. \u6536\u5C3E\u6AA2\u8A0E\u4EC0\u9EBC\u6642\u5019\u505A\uFF1F",
+      "context": "\u73FE\u6CC1\uFF1AAgentsRule \u8981\u6C42\u6BCF\u6B21\u4EFB\u52D9\u5F8C\u5728\u5C0D\u8A71\u88E1\u56DE\u5831\u7F3A\u9EDE\u8207\u5EFA\u8B70\uFF0C\u6C92\u6709\u7D00\u9304\uFF1B\u8A55\u4F30\u958B\u59CB\u6642\u6703\u8B80\u6469\u64E6\u7D00\u9304\u3002\n\u6536\u5C3E\u6AA2\u8A0E\u8981\u5C0D\u7167\u76EE\u6A19\u627E\u7F3A\u53E3\u8207\u9000\u5834\u5019\u9078\uFF0C\u4E26\u628A\u7D93\u9A57\u5347\u7D1A\u6210\u898F\u5247\u3002",
+      "source_ref": "../Documentation/AcceptanceChainPlan.md#\u76EE\u6A19\u8207\u6D41\u7A0B",
       "options": [
         {
           "id": "goal-done",
-          "label": "卡片目標的最後一個子項完成時，由完成它的 session 做",
-          "description": "缺口與退場要對照整個目標才看得出來；長的卡片要很久才檢討一次。"
+          "label": "\u5361\u7247\u76EE\u6A19\u7684\u6700\u5F8C\u4E00\u500B\u5B50\u9805\u5B8C\u6210\u6642\uFF0C\u7531\u5B8C\u6210\u5B83\u7684 session \u505A",
+          "description": "\u7F3A\u53E3\u8207\u9000\u5834\u8981\u5C0D\u7167\u6574\u500B\u76EE\u6A19\u624D\u770B\u5F97\u51FA\u4F86\uFF1B\u9577\u7684\u5361\u7247\u8981\u5F88\u4E45\u624D\u6AA2\u8A0E\u4E00\u6B21\u3002"
         },
         {
           "id": "each-item",
-          "label": "每個子項完成時做一次",
-          "description": "回饋最快；多數子項沒有可升級的經驗，成本高。"
+          "label": "\u6BCF\u500B\u5B50\u9805\u5B8C\u6210\u6642\u505A\u4E00\u6B21",
+          "description": "\u56DE\u994B\u6700\u5FEB\uFF1B\u591A\u6578\u5B50\u9805\u6C92\u6709\u53EF\u5347\u7D1A\u7684\u7D93\u9A57\uFF0C\u6210\u672C\u9AD8\u3002"
         },
         {
           "id": "at-evaluation",
-          "label": "每次評估開始時，讀還沒檢討過的紀錄",
-          "description": "不用另外觸發；但要等到下一次評估才會發生。"
+          "label": "\u6BCF\u6B21\u8A55\u4F30\u958B\u59CB\u6642\uFF0C\u8B80\u9084\u6C92\u6AA2\u8A0E\u904E\u7684\u7D00\u9304",
+          "description": "\u4E0D\u7528\u53E6\u5916\u89F8\u767C\uFF1B\u4F46\u8981\u7B49\u5230\u4E0B\u4E00\u6B21\u8A55\u4F30\u624D\u6703\u767C\u751F\u3002"
         }
       ],
       "recommendation": {
         "option_id": "goal-done",
-        "reason": "單一子項的檢討 AgentsRule 已經在對話裡做；缺口與退場只有對照整個目標才判斷得出。"
+        "reason": "\u55AE\u4E00\u5B50\u9805\u7684\u6AA2\u8A0E AgentsRule \u5DF2\u7D93\u5728\u5C0D\u8A71\u88E1\u505A\uFF1B\u7F3A\u53E3\u8207\u9000\u5834\u53EA\u6709\u5C0D\u7167\u6574\u500B\u76EE\u6A19\u624D\u5224\u65B7\u5F97\u51FA\u3002"
       },
       "allow_other": true,
       "status": "pending",
@@ -177,29 +209,29 @@
     {
       "id": "metrics-location",
       "version": 1,
-      "question": "7. 成效指標在哪裡呈現？",
-      "context": "三個指標：驗收不通過率、重做與重複說明次數、週期時間。\n現況：Viewer 有依事件計算的時間分析；驗收結果記在 checklist；子項重開有事件；你重講目標沒有任何紀錄。",
-      "source_ref": "../Documentation/AcceptanceChainPlan.md#目標與流程",
+      "question": "7. \u6210\u6548\u6307\u6A19\u5728\u54EA\u88E1\u5448\u73FE\uFF1F",
+      "context": "\u4E09\u500B\u6307\u6A19\uFF1A\u9A57\u6536\u4E0D\u901A\u904E\u7387\u3001\u91CD\u505A\u8207\u91CD\u8907\u8AAA\u660E\u6B21\u6578\u3001\u9031\u671F\u6642\u9593\u3002\n\u73FE\u6CC1\uFF1AViewer \u6709\u4F9D\u4E8B\u4EF6\u8A08\u7B97\u7684\u6642\u9593\u5206\u6790\uFF1B\u9A57\u6536\u7D50\u679C\u8A18\u5728 checklist\uFF1B\u5B50\u9805\u91CD\u958B\u6709\u4E8B\u4EF6\uFF1B\u4F60\u91CD\u8B1B\u76EE\u6A19\u6C92\u6709\u4EFB\u4F55\u7D00\u9304\u3002",
+      "source_ref": "../Documentation/AcceptanceChainPlan.md#\u76EE\u6A19\u8207\u6D41\u7A0B",
       "options": [
         {
           "id": "time-analysis",
-          "label": "加進 Viewer 現有的時間分析，重講目標新增一種事件",
-          "description": "長期累積、一處查看；要實作。"
+          "label": "\u52A0\u9032 Viewer \u73FE\u6709\u7684\u6642\u9593\u5206\u6790\uFF0C\u91CD\u8B1B\u76EE\u6A19\u65B0\u589E\u4E00\u7A2E\u4E8B\u4EF6",
+          "description": "\u9577\u671F\u7D2F\u7A4D\u3001\u4E00\u8655\u67E5\u770B\uFF1B\u8981\u5BE6\u4F5C\u3002"
         },
         {
           "id": "review-report",
-          "label": "收尾檢討時算出來寫進回報",
-          "description": "不改程式；只在檢討當下看得到，不累積趨勢。"
+          "label": "\u6536\u5C3E\u6AA2\u8A0E\u6642\u7B97\u51FA\u4F86\u5BEB\u9032\u56DE\u5831",
+          "description": "\u4E0D\u6539\u7A0B\u5F0F\uFF1B\u53EA\u5728\u6AA2\u8A0E\u7576\u4E0B\u770B\u5F97\u5230\uFF0C\u4E0D\u7D2F\u7A4D\u8DA8\u52E2\u3002"
         },
         {
           "id": "later",
-          "label": "先不做，流程用一段時間後再決定",
-          "description": "沒有成本；這段時間無法比較流程改了之後有沒有變好。"
+          "label": "\u5148\u4E0D\u505A\uFF0C\u6D41\u7A0B\u7528\u4E00\u6BB5\u6642\u9593\u5F8C\u518D\u6C7A\u5B9A",
+          "description": "\u6C92\u6709\u6210\u672C\uFF1B\u9019\u6BB5\u6642\u9593\u7121\u6CD5\u6BD4\u8F03\u6D41\u7A0B\u6539\u4E86\u4E4B\u5F8C\u6709\u6C92\u6709\u8B8A\u597D\u3002"
         }
       ],
       "recommendation": {
         "option_id": "time-analysis",
-        "reason": "大部分資料已經記錄，放進現有的時間分析才能看出趨勢。"
+        "reason": "\u5927\u90E8\u5206\u8CC7\u6599\u5DF2\u7D93\u8A18\u9304\uFF0C\u653E\u9032\u73FE\u6709\u7684\u6642\u9593\u5206\u6790\u624D\u80FD\u770B\u51FA\u8DA8\u52E2\u3002"
       },
       "allow_other": true,
       "status": "pending",
