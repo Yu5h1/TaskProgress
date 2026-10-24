@@ -12,6 +12,9 @@ Current round: `Documentation/AcceptanceChainPlan.md#目標與流程`.
     - [ ] **三層 plan 與工作類型**
       - Action: 依原始規格〈釐清目標〉、〈每一層的 plan〉、〈子項類型〉更新 .agents/skills/task-progress-items/SKILL.md；既有已確認目標直接引用，scope 產卡、卡片產子項、子項回報狀態；plan all 淺層盤點；目標推得出的直接建立，改變目標的才出題。
       - Expect: 不新增盤點動詞；每個新工作能指出服務哪一句目標；直接工作、未綁定子項、四種驗證與卡片結案驗收均有可操作的分界，plan 不執行實作。
+    - [ ] **等外部交付**
+      - Action: 依原始規格〈執行與驗收〉的「等外部交付」更新 .agents/skills/task-progress-items/SKILL.md：子項寫明等的是哪個交付、交到哪裡，plan 與 run 考慮該子項時由 agent 確認交付是否已到。
+      - Expect: 交付已到時接著執行並自驗，未到時留在等待；不要求編輯器 hook，TaskProgress 不主動讀專案檔案；與 waits_for 的子項等待不混淆。
     - [ ] **經驗、分批與收尾**
       - Action: 依原始規格〈經驗紀錄〉、〈量與分批〉、〈收尾檢討〉、〈輕量流程〉與〈成效指標〉更新 TaskProgress 技能；將卡片經驗文件與目標連結的寫入規則放在 task-progress-report，checklist 格式規則留在 checklist-round。
       - Expect: 經驗逐筆保留來源與狀態；最後工作完成後先處理 open 經驗、缺口與退場候選再交結案驗收；不為完成而降標準；小任務省略的步驟與理由可回報；指標留在 Markdown，不新增指標程式或 UI。
