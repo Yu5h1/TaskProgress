@@ -575,7 +575,7 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
 
 ## Open decisions
 
-- [AcceptanceChainPlan／目標與流程](Documentation/AcceptanceChainPlan.md#目標與流程)：整條流程 2026-10-24 由使用者決定（建立任務前先和使用者釐清目標 → 拆解 → 執行並記錄 → 對照目標驗收 → 收尾檢討），〈現況對照〉列出各 skill 的缺口；同日補上分工（使用者確認目標與驗收，agent 跑完中間）、每一層的 plan、子項類型、量與分批，並取消「一次只進行一個模組」。決策檔 [goal-flow.decisions](decisions/goal-flow.decisions) 第 1～4 題已答，第 5～7 題待答（輕量流程誰判斷、收尾檢討時機、成效指標呈現）。答完前不改 skill。
+- [AcceptanceChainPlan／目標與流程](Documentation/AcceptanceChainPlan.md#目標與流程)：整條流程 2026-10-24 由使用者決定（建立任務前先和使用者釐清目標 → 拆解 → 執行並記錄 → 對照目標驗收 → 收尾檢討），〈現況對照〉列出各 skill 的缺口；同日補上分工（使用者確認目標與驗收，agent 跑完中間）、每一層的 plan、子項類型、量與分批，並取消「一次只進行一個模組」。決策檔 [goal-flow.decisions](decisions/goal-flow.decisions) 第 1～6 題已答，第 7 題（成效指標呈現）待答。答完前不改 skill。
 
 - [專案缺口與退場盤點／尚未決定](Documentation/GapScanPlan.md#尚未決定)：缺口盤點找還沒人排定的工作，退場盤點找不該再做的子項；決策檔 [gap-scan.decisions](decisions/gap-scan.decisions) 7 題待答（範圍、盤點全部、和「整合進 UX」的分工、結果形式、選定後落點、動詞名稱、退場狀態）。決定前不實作。
 
