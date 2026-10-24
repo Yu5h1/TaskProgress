@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-10-24T04:28:20.048959+00:00",
+  "updated_at": "2026-10-24T04:53:37.005188+00:00",
   "tasks": [
     {
       "id": "next-marker",
@@ -2065,8 +2065,28 @@
       "id": "agent-workflow",
       "title": "優化 agent workflow",
       "status": "planned",
-      "summary": "可執行項目的驗證方式變成選項：一份 checklist 用權限標籤區分執行者（不標）、他驗（[acceptance]，執行者以外的 agent）與人工（[manual]），Report 分得出待他驗、待人工、需處理與完成。計畫 Documentation/AcceptanceChainPlan.md。",
+      "summary": "可執行項目的驗證方式變成選項：一份 checklist 用權限標籤區分執行者（不標）、他驗（[acceptance]，執行者以外的 agent）與人工（[manual]），Report 分得出待他驗、待人工、需處理與完成。2026-10-24 加入整條流程：建立任務前先和使用者釐清目標，再拆解、執行並記錄、對照目標驗收、收尾檢討；七題待決。計畫 Documentation/AcceptanceChainPlan.md。",
       "pending_items": [
+        {
+          "id": "decide-goal-flow",
+          "status": "planned",
+          "priority": 1,
+          "title": "決定 [目標與流程](https://github.com/Yu5h1/TaskProgress/blob/main/Documentation/AcceptanceChainPlan.md#目標與流程) 的 7 題：目標寫在哪、拆解是否直接建子項、經驗記在哪、人工驗收時等待何時解除、輕量流程誰判斷、收尾檢討時機、成效指標呈現 — 答完後改 task-progress-items、agent-executable-items 與 AgentsRule",
+          "document_ref": {
+            "kind": "decision",
+            "scope_id": "task-progress",
+            "task": "goal-flow"
+          },
+          "activity": [
+            {
+              "event": "created",
+              "actor": "claude",
+              "at": "2026-10-24T04:53:37.005188+00:00",
+              "session": "Taskprogess",
+              "session_id": "cfb6305b-c950-4f60-b572-e82f12b683c5"
+            }
+          ]
+        },
         {
           "id": "decide-next-step-flow",
           "title": "決策：下一步流程的四個選擇（預設動詞、採建議執行、模組點名、問題記錄）— 答完後改 task-progress-items、agent-executable-items 與 AgentsRule",

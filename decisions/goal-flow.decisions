@@ -1,0 +1,209 @@
+{
+  "schema_version": "1.1",
+  "task_id": "goal-flow",
+  "updated_at": "2026-10-24T04:52:44.478155+00:00",
+  "decisions": [
+    {
+      "id": "goal-location",
+      "version": 1,
+      "question": "1. 卡片的目標寫在哪裡？",
+      "context": "現況：卡片只有標題和摘要；摘要規定寫目前的結果或狀態，不是目標。多數卡片有計畫文件，例如本卡的 AcceptanceChainPlan 有〈為什麼〉、gap-scan 卡的 GapScanPlan 有〈問題與目標〉；「修正某個連結」這類小卡沒有計畫文件。\n第 0 步釐清的目標（真正的意圖、完成的樣子、非目標）要有固定的位置，驗收者和之後的 agent 才讀得到。",
+      "source_ref": "../Documentation/AcceptanceChainPlan.md#目標與流程",
+      "options": [
+        {
+          "id": "plan-section",
+          "label": "寫在卡片計畫文件的〈問題與目標〉，摘要連結它；沒有計畫的卡片寫進子項 checklist 的開頭說明",
+          "description": "不改資料格式，目標和設計理由放在一起；在 Report 上要點連結才看得到目標。"
+        },
+        {
+          "id": "report-field",
+          "label": "Report 卡片新增「目標」欄位，Viewer 顯示在卡片上",
+          "description": "一眼看得到；資料格式、CLI、Viewer 都要改，長的說明仍放在計畫文件。"
+        },
+        {
+          "id": "summary-as-goal",
+          "label": "摘要改寫目標",
+          "description": "不改格式；但摘要不再顯示目前狀態。"
+        }
+      ],
+      "recommendation": {
+        "option_id": "plan-section",
+        "reason": "計畫文件已經在寫問題與目標，放在那裡只有一個擁有者；不用為了顯示而改資料格式。"
+      },
+      "allow_other": true,
+      "status": "pending",
+      "answer": null
+    },
+    {
+      "id": "decompose-create",
+      "version": 1,
+      "question": "2. 評估從目標拆出的子項，直接建立還是先列給你確認？",
+      "context": "現況：評估找到已定案的工作就直接建子項，並在報告列出每個子項與驗證方式的理由。\n例子：目標「Report 分得出被推翻的子項」拆成「改狀態推算」「改 Viewer 顯示」「改 CLI」三步。",
+      "source_ref": "../Documentation/AcceptanceChainPlan.md#目標與流程",
+      "options": [
+        {
+          "id": "create-directly",
+          "label": "目標確認後直接建立，報告列出目標、步驟、子項的對照",
+          "description": "和現行評估一致；拆錯的子項之後要走退場。"
+        },
+        {
+          "id": "list-first",
+          "label": "先列出拆解，你確認後才建立",
+          "description": "拆錯能在建立前發現；每個目標多一次往返。"
+        }
+      ],
+      "recommendation": {
+        "option_id": "create-directly",
+        "reason": "對齊的關卡是第 0 步的目標確認；拆解照目標走，報告的對照表讓你隨時看得出拆錯的地方。"
+      },
+      "allow_other": true,
+      "status": "pending",
+      "answer": null
+    },
+    {
+      "id": "experience-location",
+      "version": 1,
+      "question": "3. 執行時的經驗記在哪裡？",
+      "context": "現況：checklist 的 Observed 只記失敗的檢查；.agents 的 handoff〈Module-workflow review〉有一份摩擦紀錄，每輪一行並註明影響哪個提案，由 validation-rounds 子項讀取；評估規則本來就會讀摩擦紀錄。一般任務沒有地方記。\n例子：這幾天的執行中發現 Python 測試要加 PYTHONPATH=. 才跑得起來、瀏覽器探測的 fetch 包裝忽略 URL 物件而誤寫了 report.json，兩件都只留在對話裡。",
+      "source_ref": "../Documentation/AcceptanceChainPlan.md#目標與流程",
+      "options": [
+        {
+          "id": "friction-log",
+          "label": "各專案 handoff 加一段摩擦紀錄，每件一行（日期、子項、發生什麼、影響哪條規則）；收尾檢討讀完後升級或刪除",
+          "description": "沿用模組流程已經在用的做法；讀完就刪，handoff 不會一直變長。"
+        },
+        {
+          "id": "checklist-notes",
+          "label": "寫在子項 checklist 裡的「經驗」段落",
+          "description": "和子項放在一起；下一輪覆寫 checklist 時就看不到（Git 歷史還在），跨子項難彙整。"
+        },
+        {
+          "id": "item-note-event",
+          "label": "寫成子項活動紀錄的備註事件",
+          "description": "Report 上看得到；CLI 要新增備註事件，長的內容不適合放在事件裡。"
+        }
+      ],
+      "recommendation": {
+        "option_id": "friction-log",
+        "reason": "已有讀者（評估與收尾檢討）和讀完即刪的規則，是唯一驗證過的做法。"
+      },
+      "allow_other": true,
+      "status": "pending",
+      "answer": null
+    },
+    {
+      "id": "manual-wait",
+      "version": 1,
+      "question": "4. 人工驗收不擋流程時，等待它的子項什麼時候解除？",
+      "context": "你提出：人工驗收不擋流程，除非你要求等待。\n現況：子項 B 宣告等待子項 A；A 的自驗、他驗都通過、只差你的 [manual] 時，B 仍顯示等待中，run 不會挑它。agent 已經會去做其他不相依的子項。",
+      "source_ref": "../Documentation/AcceptanceChainPlan.md#目標與流程",
+      "options": [
+        {
+          "id": "lift-before-manual",
+          "label": "A 只差人工驗收時就解除 B 的等待；宣告等待時可以標「要等使用者驗收」保留現在的行為",
+          "description": "符合「不擋流程」；狀態推算（CLI 與 Viewer）和等待的格式都要改。你之後驗收不通過時，B 可能要跟著重做。"
+        },
+        {
+          "id": "keep-until-done",
+          "label": "維持現狀：A 完成才解除，「不擋」只表示 agent 先做其他不相依的工作",
+          "description": "不用改程式；相依在 A 上的工作仍要等你驗收。"
+        }
+      ],
+      "recommendation": {
+        "option_id": "lift-before-manual",
+        "reason": "符合你提出的原則；真的要等你的子項可以明確標出來。"
+      },
+      "allow_other": true,
+      "status": "pending",
+      "answer": null
+    },
+    {
+      "id": "light-lane-judge",
+      "version": 1,
+      "question": "5. 輕量流程（省略釐清目標、拆解、收尾檢討）由誰判斷？",
+      "context": "現況：驗證方式（自驗、人工、他驗）由 agent 依準則選，回報每個選擇與理由。.agents 的 module-workflow-review 卡另有 light-lane 提案，只談模組輪次。\n例子：「修正某個連結」不需要釐清目標與拆解；「Report 新增一種狀態」需要。",
+      "source_ref": "../Documentation/AcceptanceChainPlan.md#目標與流程",
+      "options": [
+        {
+          "id": "agent-criteria",
+          "label": "agent 依準則判斷（指令已寫明可觀察的結果、只有一個步驟），回報省略了哪些步驟與理由；你可以要求走完整流程",
+          "description": "和驗證方式的選法一致；判斷錯時要靠你在回報裡發現。"
+        },
+        {
+          "id": "user-marks",
+          "label": "由你在指令前標明，沒標就走完整流程",
+          "description": "最不會漏掉第 0 步；每次都要多打一個字，小任務也要走完整流程。"
+        }
+      ],
+      "recommendation": {
+        "option_id": "agent-criteria",
+        "reason": "和驗證方式的選法一致，你只需要在回報裡否決，不用每次標明。"
+      },
+      "allow_other": true,
+      "status": "pending",
+      "answer": null
+    },
+    {
+      "id": "review-timing",
+      "version": 1,
+      "question": "6. 收尾檢討什麼時候做？",
+      "context": "現況：AgentsRule 要求每次任務後在對話裡回報缺點與建議，沒有紀錄；評估開始時會讀摩擦紀錄。\n收尾檢討要對照目標找缺口與退場候選，並把經驗升級成規則。",
+      "source_ref": "../Documentation/AcceptanceChainPlan.md#目標與流程",
+      "options": [
+        {
+          "id": "goal-done",
+          "label": "卡片目標的最後一個子項完成時，由完成它的 session 做",
+          "description": "缺口與退場要對照整個目標才看得出來；長的卡片要很久才檢討一次。"
+        },
+        {
+          "id": "each-item",
+          "label": "每個子項完成時做一次",
+          "description": "回饋最快；多數子項沒有可升級的經驗，成本高。"
+        },
+        {
+          "id": "at-evaluation",
+          "label": "每次評估開始時，讀還沒檢討過的紀錄",
+          "description": "不用另外觸發；但要等到下一次評估才會發生。"
+        }
+      ],
+      "recommendation": {
+        "option_id": "goal-done",
+        "reason": "單一子項的檢討 AgentsRule 已經在對話裡做；缺口與退場只有對照整個目標才判斷得出。"
+      },
+      "allow_other": true,
+      "status": "pending",
+      "answer": null
+    },
+    {
+      "id": "metrics-location",
+      "version": 1,
+      "question": "7. 成效指標在哪裡呈現？",
+      "context": "三個指標：驗收不通過率、重做與重複說明次數、週期時間。\n現況：Viewer 有依事件計算的時間分析；驗收結果記在 checklist；子項重開有事件；你重講目標沒有任何紀錄。",
+      "source_ref": "../Documentation/AcceptanceChainPlan.md#目標與流程",
+      "options": [
+        {
+          "id": "time-analysis",
+          "label": "加進 Viewer 現有的時間分析，重講目標新增一種事件",
+          "description": "長期累積、一處查看；要實作。"
+        },
+        {
+          "id": "review-report",
+          "label": "收尾檢討時算出來寫進回報",
+          "description": "不改程式；只在檢討當下看得到，不累積趨勢。"
+        },
+        {
+          "id": "later",
+          "label": "先不做，流程用一段時間後再決定",
+          "description": "沒有成本；這段時間無法比較流程改了之後有沒有變好。"
+        }
+      ],
+      "recommendation": {
+        "option_id": "time-analysis",
+        "reason": "大部分資料已經記錄，放進現有的時間分析才能看出趨勢。"
+      },
+      "allow_other": true,
+      "status": "pending",
+      "answer": null
+    }
+  ]
+}
