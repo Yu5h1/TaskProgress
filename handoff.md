@@ -6,9 +6,7 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
 
 ## Current state (2026-09-29)
 
-- **狀態連結的新版相容性補正（2026-10-25，仍在 `status-target-links`）。** 新版主線保留被等待項目的使用者失敗時間；該項修正後只剩人工驗收，等待可解除，但等待者仍須重做。`pendingWaits` 此時為空，故 `document-binding.js` 另以既有 `mustRedo` 篩選 `redoTargets`，供狀態連結呈現原因對象；不改變等待或重做判定。此輪 37 項相關測試、Viewer build 及獨立審查通過；以主線狀態推導與 worktree 修法組合的記憶體驗證亦通過。未合入主線、未將主線合入分支、未操作瀏覽器。原責任 session 可從此 worktree 審查修法與提交說明後決定後續；合併仍待使用者通知。
-
-- **狀態對象超連結（worktree `status-target-links`，2026-10-25）。** `viewer/assets/item-state.js` 的 `statusLinks` 統一狀態對象：等待狀態指向相依對象，其他狀態保留未完成相依對象並提供綁定 Checklist／Decision 來源；`ItemRow.svelte` 沿用單一連結／多對象選單。此輪 36 項 item-state、document-binding、waiting-capsule 測試通過，Viewer bundle 已重建。未在瀏覽器操作驗證；使用者要求等通知才合併，worktree 不啟服務。下一步由使用者通知合併後，再於主線頁面確認連結與選單。
+- **子項狀態膠囊可連到相關對象（2026-10-25，`status-target-links` 已合入主線）。** `viewer/assets/item-state.js` 的 `statusLinks`：等待中連到被等的卡片或 checklist；其他狀態連到綁定的 Checklist／Decision，並保留未完成的相依對象；等待已解除但仍需重做時，以 `document-binding.js` 的 `redoTargets`（沿用 `mustRedo`）連到觸發重做的對象。單一對象直接連結，多個對象展開選單（`ItemRow.svelte`）。狀態推導規則不變；合併後在主線重建 Viewer bundle，item-state、document-binding、waiting-capsule 等 49 項測試通過。
 
 - **第三方 checklist 寫入的主要用途已釐清，計畫已更新、未實作（2026-10-25，使用者）。** [ThirdPartyChecklistWritePlan〈主要用途〉](Documentation/ThirdPartyChecklistWritePlan.md#主要用途ux-demo-的動作觸發標記)：UX demo 在使用者操作驗收對象時，由事件以 `set` 記錄 `[manual]` 那一格；只記 demo 能完整見證的格子，外觀與手感仍由使用者勾。「TaskProgress 主動讀檔案狀態」與「為外部交付寫編輯器 hook」都暫不做；等外部交付的子項改由 agent 在 plan／run 時確認（AcceptanceChainPlan〈執行與驗收〉）。第 2、3 階段的驗收與第 4 階段的入口表仍在 third-party-checklist-write 卡上。
 
