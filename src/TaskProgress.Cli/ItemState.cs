@@ -52,6 +52,7 @@ internal sealed class ItemStateResolver
         var checklist = BoundChecklist(scope, item, out var bound);
         var stored = item["status"]?.GetValue<string>();
         if (bound && checklist is not null && IsDone(checklist, LatestAt(item, "released"))) return ItemStates.Done;
+        if (DecisionsAnswered(item)) return ItemStates.Done;
         if (!bound && stored == "done") return ItemStates.Done;
         if (!bound && stored is null && (completed ?? InCompleted(scope, item))) return ItemStates.Done;
         if (Waits(item, depth)) return ItemStates.Waiting;
@@ -210,6 +211,31 @@ internal sealed class ItemStateResolver
         if (refScope is null || task is null || Report(refScope) is not { } owner) return null;
         bound = true;
         return LoadChecklist(Path.Combine(owner.Folder, "checklists", task + ".checklist"));
+    }
+
+    /// <summary>
+    ///   A decisions-bound item is done once its decisions file has at least one decision and every
+    ///   one is decided with an answer, matching the Viewer's binding projection.
+    /// </summary>
+    private bool DecisionsAnswered(JsonObject item)
+    {
+        if (item["document_ref"] is not JsonObject reference || reference["kind"]?.GetValue<string>() != "decision"
+            || reference["scope_id"]?.GetValue<string>() is not { } scope
+            || (reference["task"] ?? reference["stem"])?.GetValue<string>() is not { } stem
+            || Report(scope) is not { } owner) return false;
+        try
+        {
+            var path = Path.Combine(owner.Folder, "decisions", stem + ".decisions");
+            return File.Exists(path)
+                && JsonNode.Parse(File.ReadAllBytes(path))?["decisions"] is JsonArray decisions
+                && decisions.Count > 0
+                && decisions.All(decision => decision?["status"]?.GetValue<string>() == "decided" && decision["answer"] is JsonObject);
+        }
+        catch (Exception error) when (error is IOException or UnauthorizedAccessException or System.Text.Json.JsonException
+            or InvalidOperationException)
+        {
+            return false;
+        }
     }
 
     private ChecklistDocument? LoadChecklist(string path)

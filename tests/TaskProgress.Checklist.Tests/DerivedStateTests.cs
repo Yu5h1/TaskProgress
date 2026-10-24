@@ -53,5 +53,15 @@ internal static partial class Program
         var finished = report["tasks"]![0]!["completed_items"]![0]!.AsObject();
         Equal(ItemStates.Done, resolver.StateOf("af", finished), "the resolver finds the array itself when the caller does not say");
         True(resolver.IsDone("af", "card", "finished", 0), "the dependency path reads the array");
+
+        Directory.CreateDirectory(Path.Combine(scopeRoot, "decisions"));
+        static string Decisions(string second) =>
+            $$"""{ "decisions": [ { "id": "a", "status": "decided", "answer": { "kind": "option", "option_id": "x" } }, { "id": "b", "status": "{{second}}", "answer": {{(second == "decided" ? "{ \"kind\": \"option\", \"option_id\": \"y\" }" : "null")}} } ] }""";
+        File.WriteAllText(Path.Combine(scopeRoot, "decisions", "answered.decisions"), Decisions("decided"));
+        File.WriteAllText(Path.Combine(scopeRoot, "decisions", "open.decisions"), Decisions("pending"));
+        JsonObject DecisionItem(string stem) => JsonNode.Parse(
+            $$"""{ "id": "{{stem}}", "status": "planned", "document_ref": { "kind": "decision", "scope_id": "af", "task": "{{stem}}" } }""")!.AsObject();
+        Equal(ItemStates.Done, resolver.StateOf("af", DecisionItem("answered")), "a fully answered decisions file completes its item");
+        Equal(ItemStates.NotStarted, resolver.StateOf("af", DecisionItem("open")), "an open decision keeps its item unfinished");
     }
 }
