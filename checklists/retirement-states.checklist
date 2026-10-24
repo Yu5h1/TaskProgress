@@ -25,12 +25,15 @@ Current round: `Documentation/GapScanPlan.md#已決定`.
       - Action: 更新 task-progress-report（狀態對照與退場寫法）、task-progress-items（退場候選確認之後）與 GapScanPlan、Report CLI 用法。
       - Expect: `archive` 只代表完成後留作歷史；確認退場後依證據寫 `obsolete` 加取代者或 `discontinued` 加理由，並在 handoff 已排除方向記一條；文件沒有互相矛盾的退場說法。
 
-- [ ] **4. 獨立驗收**
+- [!] **4. 獨立驗收**
   Outcome: 未參與本輪的驗收者依原始決定確認交付。
   Checks:
-    - [ ] **驗收條件未被改動** `[acceptance]`
+    - [x] **驗收條件未被改動** `[acceptance]`
       - Action: 比對本檔建立提交或最新標有「條件修訂」的提交與目前版本。
       - Expect: acceptance 條件沒有被執行者修改以配合交付結果。
-    - [ ] **依原始決定核對交付** `[acceptance]`
+      - Recorded: claude:0c8c3d0c-0739-4aee-b691-1fc97dae0cf2; at=2026-10-24T19:11:00Z; fp=ac0284700610
+    - [!] **依原始決定核對交付** `[acceptance]`
       - Action: 依 Documentation/GapScanPlan.md#已決定 第 7 題與 decisions/gap-scan.decisions 的 retired-state 答案，核對 schema、CLI、狀態推導、Viewer 與技能的交付及聚焦測試。
       - Expect: 兩種退場狀態各自帶取代者或理由且能區分；`archive` 只代表留作歷史；退場子項不計入進度、佇列、Next 與時間分析；CLI 與 Viewer 推算一致；不包含卡片退場或編輯模式退場操作。
+      - Observed: 時間分析仍把退場子項當成未完成：卡片層估計 600 分鐘、一個 done 子項加一個 obsolete（或 discontinued）子項時，analyze 的 remaining_estimated_minutes 為 300，與 planned 子項相同（沒有該子項時為 0）；TimeAnalysisGenerator.ReadItems 把 pending_items 每一項都計入 PendingCount，CalculateTaskRemainingRatio 與 CalculateProjectProgress 沿用它。另外 obsolete 的 replaced_by 只能指向子項，但決定寫「目標已由別的子項或設計達成，必須指向取代它的那一個」，被設計取代的子項無法寫成 obsolete；task-progress-report 同一條寫 another item or design，欄位卻只收子項。
+      - Recorded: claude:0c8c3d0c-0739-4aee-b691-1fc97dae0cf2; at=2026-10-24T19:11:00Z; fp=9e177a878e48; reason=implementation
