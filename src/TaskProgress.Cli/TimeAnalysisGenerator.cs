@@ -73,8 +73,9 @@ internal static class TimeAnalysisGenerator
         var diagnostics = new List<Diagnostic>();
         var config = ReadConfig(configSource, report, asOf, diagnostics);
         var states = new ItemStateResolver(reportFolder.DirectoryPath, report);
-        var reportTasks = ReadReportTasks(report, item => item["document_ref"] is JsonObject reference
-            && reference["kind"]?.GetValue<string>() == "checklist"
+        var reportTasks = ReadReportTasks(report, item => ItemStates.IsRetired(item["status"]?.GetValue<string>())
+            ? true
+            : item["document_ref"] is JsonObject reference && reference["kind"]?.GetValue<string>() == "checklist"
                 ? states.StateOf(scopeId, item) == ItemStates.Done
                 : null);
         var activeEstimates = ReadActiveEstimates(estimatesSource, reportTasks);

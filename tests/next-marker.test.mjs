@@ -61,9 +61,10 @@ test("setting and clearing the marker edits a copy and validates the target", ()
 });
 
 test("a refused Next says why, for the warning popup", () => {
-  const report = { tasks: [{ id: "card", pending_items: [{ id: "open" }, { id: "shelved", status: "archive" }], completed_items: [{ id: "finished", status: "done" }] }] };
+  const report = { tasks: [{ id: "card", pending_items: [{ id: "open" }, { id: "shelved", status: "archive" }, { id: "dropped", status: "discontinued", retirement: { reason: "x" } }], completed_items: [{ id: "finished", status: "done" }] }] };
   assert.equal(nextRefusal(report, { taskId: "card", itemId: "open" }), null);
   assert.equal(nextRefusal(report, { taskId: "card", itemId: "shelved" }), "已封存的子項目不能設為 Next。");
+  assert.equal(nextRefusal(report, { taskId: "card", itemId: "dropped" }), "已退場的子項目不能設為 Next。");
   assert.equal(nextRefusal(report, { taskId: "card", itemId: "finished" }), "已完成的子項目不能設為 Next。");
   assert.match(nextRefusal(report, { taskId: "card", itemId: "gone" }), /找不到子項目/u);
   assert.match(nextRefusal(report, { taskId: "none", itemId: "open" }), /找不到任務/u);

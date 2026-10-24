@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { deriveItemState, statusLinks, waitLinks, waitsText } from "../viewer/assets/item-state.js";
-import { checklistWorkItemDone, evaluateChecklistDocument, evaluateWaitTargets, projectTasksWithBindings, waitKey } from "../viewer/assets/document-binding.js";
+import { checklistWorkItemDone, documentBindingKey, evaluateChecklistDocument, evaluateWaitTargets, projectTasksWithBindings, waitKey } from "../viewer/assets/document-binding.js";
 
 const check = (overrides) => ({ status: "pending", effectiveStatus: "pending", validity: "valid", ...overrides });
 const evaluation = (checks) => evaluateChecklistDocument({ items: [{ checks }] });
@@ -201,4 +201,21 @@ test("a wait is met while the waited item lacks only the user's acceptance, and 
   assert.equal(state("redo-after-fix"), "needs_fix", "the failure on file keeps the redo after the waited fix is released");
   assert.equal(state("redone-after-fix"), undefined, "a waiter released after the failure is not sent back again");
   assert.ok(task.pending_items.some((item) => item.id === "done-then-failed"), "the redone item moves back to pending");
+});
+
+test("a retired item keeps its retirement over its checklist, waits and redo, and leaves the card's progress", () => {
+  const ref = { kind: "checklist", scope_id: "web", task: "gone" };
+  const evaluations = new Map([[documentBindingKey(ref), evaluation([check({ status: "pending" })])]]);
+  const items = [
+    { id: "obs", title: "o", status: "obsolete", retirement: { replaced_by: { scope_id: "web", task_id: "t", item_id: "live" } }, document_ref: ref },
+    { id: "dis", title: "d", status: "discontinued", retirement: { reason: "前提不成立" }, waits_for: [{ scope_id: "web", task_id: "t", item_id: "x" }] },
+    { id: "live", title: "l", status: "done" },
+  ];
+  assert.equal(deriveItemState(items[1], null, [{ done: false }], true), "discontinued");
+  const [task] = projectTasksWithBindings([{ id: "t", status: "in_progress", pending_items: items.slice(0, 2), completed_items: [items[2]] }], evaluations);
+  const byId = Object.fromEntries([...task.pending_items, ...task.completed_items].map((item) => [item.id, item]));
+  assert.equal(byId.obs.derivedState, "obsolete");
+  assert.equal(byId.obs.derivedStateLabel, "已取代");
+  assert.equal(byId.dis.derivedStateLabel, "已棄案");
+  assert.equal(task.status, "done", "retired items leave the card's count like archived ones");
 });

@@ -57,6 +57,13 @@ task-progress.exe report apply "C:\Project" --input changes.json
   "set": { "document_ref": { "kind": "experience", "scope_id": "<scope>", "task": "feature-a" } } }
 ```
 
+使用者確認退場的子項，以 `obsolete`（附取代者）或 `discontinued`（附理由）寫入；規則見 [Report 技能〈Maintain child items〉](../.agents/skills/task-progress-report/SKILL.md#maintain-child-items)：
+
+```json
+{ "op": "item.update", "task_id": "feature-a", "item_id": "old-step",
+  "set": { "status": "obsolete", "retirement": { "replaced_by": { "scope_id": "<scope>", "task_id": "feature-a", "item_id": "new-step" } } } }
+```
+
 子項的 `waits_for` 可在等待子項的項目加 `"strict": true`，表示要等到使用者人工驗收也完成；其他值一律拒絕。等待規則見 [Report 技能〈Maintain child items〉](../.agents/skills/task-progress-report/SKILL.md#maintain-child-items)。
 
 確認：`ok` 為 true；`changed` 表示是否實際修改。重複設定相同內容為 no-op。來源已改變時會回 revision_conflict，重新讀取並核對後再產生請求。

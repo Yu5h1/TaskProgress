@@ -18,7 +18,7 @@ const ITEM_FIELDS = Object.freeze(["completed_items", "pending_items"]);
 const REPORT_FIELDS = new Set(["summary"]);
 const TASK_FIELDS = new Set(["title", "summary", "status", "priority"]);
 const ITEM_PROPERTIES = new Set(["title", "priority", "status"]);
-const ITEM_STATUSES = new Set(["planned", "in_progress", "blocked", "done", "archive"]);
+const ITEM_STATUSES = new Set(["planned", "in_progress", "blocked", "done", "archive", "obsolete", "discontinued"]);
 
 /*
  * The array an item belongs in is a projection of its status, not a second

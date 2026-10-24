@@ -15,7 +15,16 @@ export const ITEM_STATE_META = Object.freeze({
   awaiting_acceptance: { label: "待他驗", tone: "active" },
   in_progress: { label: "執行中", tone: "active" },
   not_started: { label: "未開始", tone: "muted" },
+  obsolete: { label: "已取代", tone: "muted" },
+  discontinued: { label: "已棄案", tone: "muted" },
 });
+
+/** Stored item statuses that retire an item for good: replaced by another item, or dropped. */
+export const RETIRED_ITEM_STATUSES = Object.freeze(["obsolete", "discontinued"]);
+
+export function isRetiredStatus(status) {
+  return RETIRED_ITEM_STATUSES.includes(status);
+}
 
 function effective(check) {
   return check?.effectiveStatus ?? check?.status;
@@ -101,6 +110,7 @@ export function mustRedo(item, waitResults) {
  * (no readable bound checklist and nothing it waits for is unfinished).
  */
 export function deriveItemState(item, evaluation, pendingWaits = [], redo = false) {
+  if (isRetiredStatus(item?.status)) return item.status;
   if (redo) return "needs_fix";
   const fromChecklist = stateFromChecklist(item, evaluation);
   if (fromChecklist === "done") return "done";

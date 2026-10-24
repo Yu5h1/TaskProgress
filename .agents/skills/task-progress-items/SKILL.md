@@ -94,7 +94,7 @@ Plan each level the same way — compare the level's goal with what already exis
   it serves. Work you cannot tie to a goal sentence would extend or change the goal: make it a
   decision question for the user. How to find gaps in a domain (for example, candidate UX modules)
   belongs to that domain's skill; follow it and sort its findings here.
-- A retirement candidate is a decision question: the user confirms before an item leaves the queue.
+- A retirement candidate is a decision question: the user confirms before an item leaves the queue. On confirmation, retire it as `obsolete` with its replacement or `discontinued` with the reason ([task-progress-report § Maintain child items](../task-progress-report/SKILL.md#maintain-child-items)), and record a ruled-out entry in the handoff.
 - When the user changes a card's goal, plan that card again: items the new goal does not need become
   retirement candidates, and missing steps become items. Do the same when the card's plan gains or
   changes a rule after its items exist: an item not yet executed gets the checks the change implies,

@@ -20,6 +20,13 @@ internal static class ItemStates
     public const string NotStarted = "not_started";
     public const string Blocked = "blocked";
     public const string Archived = "archive";
+    public const string Obsolete = "obsolete";
+    public const string Discontinued = "discontinued";
+
+    /// <summary>
+    ///   Stored statuses that take an item out of the work for good: replaced by another item, or dropped.
+    /// </summary>
+    public static bool IsRetired(string? status) => status is Obsolete or Discontinued;
 }
 
 /// <summary>
@@ -48,6 +55,7 @@ internal sealed class ItemStateResolver
     /// </summary>
     public string StateOf(string scope, JsonObject item, int depth = 0, bool? completed = null)
     {
+        if (item["status"]?.GetValue<string>() is { } retired && ItemStates.IsRetired(retired)) return retired;
         if (MustRedo(item, depth)) return ItemStates.NeedsFix;
         var checklist = BoundChecklist(scope, item, out var bound);
         var stored = item["status"]?.GetValue<string>();

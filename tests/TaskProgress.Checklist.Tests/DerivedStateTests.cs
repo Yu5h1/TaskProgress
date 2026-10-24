@@ -63,5 +63,16 @@ internal static partial class Program
             $$"""{ "id": "{{stem}}", "status": "planned", "document_ref": { "kind": "decision", "scope_id": "af", "task": "{{stem}}" } }""")!.AsObject();
         Equal(ItemStates.Done, resolver.StateOf("af", DecisionItem("answered")), "a fully answered decisions file completes its item");
         Equal(ItemStates.NotStarted, resolver.StateOf("af", DecisionItem("open")), "an open decision keeps its item unfinished");
+
+        JsonObject Retired(string status, bool bound) => JsonNode.Parse(
+            $$"""{ "id": "r", "status": "{{status}}", "retirement": { "reason": "x" }{{(bound ? ", \"document_ref\": { \"kind\": \"checklist\", \"scope_id\": \"af\", \"task\": \"bound\" }" : "")}} }""")!.AsObject();
+        Equal(ItemStates.Obsolete, resolver.StateOf("af", Retired("obsolete", bound: false)), "an obsolete item reads obsolete");
+        Equal(ItemStates.Discontinued, resolver.StateOf("af", Retired("discontinued", bound: true)), "a retired bound item ignores its checklist");
+        var retiredReport = JsonNode.Parse("""
+            { "scope_id": "af", "tasks": [ { "id": "card", "title": "C", "status": "in_progress",
+              "pending_items": [ { "id": "gone", "status": "obsolete", "retirement": { "replaced_by": { "scope_id": "af", "task_id": "card", "item_id": "live" } } }, { "id": "live" } ] } ] }
+            """)!.AsObject();
+        var next = NextMarker.Derive(retiredReport, "af", new ItemStateResolver(scopeRoot, retiredReport), null);
+        Equal("live", next?["item_id"]?.GetValue<string>(), "Next skips a retired item");
     }
 }

@@ -1,5 +1,6 @@
 import "./priority-policy.js";
 import { validateActivity } from "./item-activity.js";
+import { isRetiredStatus } from "./item-state.js";
 
 /*
  * Every reader in the project accepts the same set of report versions, and
@@ -161,7 +162,7 @@ export function calculateTaskProgress(task) {
   const counted = [
     ...(task.completed_items ?? []).map((item) => taskItemStatus(item, "completed_items")),
     ...(task.pending_items ?? []).map((item) => taskItemStatus(item, "pending_items")),
-  ].filter((status) => status !== "archive");
+  ].filter((status) => status !== "archive" && !isRetiredStatus(status));
 
   if (counted.length > 0) {
     return {
@@ -283,7 +284,7 @@ export function taskItemPriority(item) {
  */
 export function taskLeadItemPriority(task) {
   return (task?.pending_items ?? [])
-    .filter(item => item === null || typeof item !== "object" || (item.status !== "archive" && item.status !== "done"))
+    .filter(item => item === null || typeof item !== "object" || (item.status !== "archive" && item.status !== "done" && !isRetiredStatus(item.status)))
     .reduce((lead, item) => Math.min(lead, taskItemPriority(item)), DEFAULT_PRIORITY);
 }
 
@@ -371,7 +372,7 @@ function validateTaskItemList(value, path, errors, ids) {
         `${itemPath}.priority 必須是 0、1、2、3 或 4。`,
       ));
     }
-    if (item.status !== undefined && !Object.hasOwn(STATUS_META, item.status)) {
+    if (item.status !== undefined && !Object.hasOwn(STATUS_META, item.status) && !isRetiredStatus(item.status)) {
       errors.push(issue(
         "invalid_status",
         `${itemPath}.status`,
@@ -382,7 +383,7 @@ function validateTaskItemList(value, path, errors, ids) {
     // reverse — describes two different things at once, and every reader
     // would have to pick one. Rejecting it keeps the array a faithful
     // projection of the status rather than a second, competing source.
-    if (item.status !== undefined && Object.hasOwn(STATUS_META, item.status)) {
+    if (item.status !== undefined && (Object.hasOwn(STATUS_META, item.status) || isRetiredStatus(item.status))) {
       const expectedField = item.status === "done" ? "completed_items" : "pending_items";
       if (!path.endsWith(expectedField)) {
         errors.push(issue(
@@ -395,6 +396,7 @@ function validateTaskItemList(value, path, errors, ids) {
     if (item.document_ref !== undefined) {
       validateDocumentRef(item.document_ref, `${itemPath}.document_ref`, errors);
     }
+    validateRetirement(item, itemPath, errors);
     validateActivity(item.activity, `${itemPath}.activity`, errors, issue);
     if (typeof item.id === "string") {
       if (ids.has(item.id)) {
@@ -403,6 +405,28 @@ function validateTaskItemList(value, path, errors, ids) {
       ids.add(item.id);
     }
   });
+}
+
+/** obsolete names its replacement, discontinued names a reason, and no other status carries retirement. */
+function validateRetirement(item, itemPath, errors) {
+  const retirement = item.retirement;
+  const path = `${itemPath}.retirement`;
+  if (!isRetiredStatus(item.status)) {
+    if (retirement !== undefined) errors.push(issue("unexpected_retirement", path, `${path} 只能出現在已取代或已棄案的子項目。`));
+    return;
+  }
+  if (!isObject(retirement)) {
+    errors.push(issue("missing_retirement", path, `${path} 必須寫明取代者（obsolete）或理由（discontinued）。`));
+    return;
+  }
+  if (item.status === "obsolete") {
+    const target = retirement.replaced_by;
+    if (!isObject(target) || ["scope_id", "task_id", "item_id"].some((key) => typeof target[key] !== "string" || !target[key])) {
+      errors.push(issue("missing_replacement", `${path}.replaced_by`, `${path}.replaced_by 必須包含 scope_id、task_id 與 item_id。`));
+    }
+  } else if (typeof retirement.reason !== "string" || !retirement.reason.trim()) {
+    errors.push(issue("missing_retirement_reason", `${path}.reason`, `${path}.reason 必須寫明棄案理由。`));
+  }
 }
 
 export function validateDocumentRef(value, path, errors) {

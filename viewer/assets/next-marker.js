@@ -1,3 +1,4 @@
+import { isRetiredStatus } from "./item-state.js";
 import { taskKind } from "./report-model.js";
 
 /*
@@ -24,7 +25,7 @@ function isObject(value) {
 
 function unfinished(item) {
   return isObject(item) && typeof item.id === "string" && !item.legacy
-    && item.status !== "done" && item.status !== "archive"
+    && item.status !== "done" && item.status !== "archive" && !isRetiredStatus(item.status)
     && !INEFFECTIVE_STATES.includes(currentState(item));
 }
 
@@ -65,6 +66,7 @@ export function nextRefusal(report, { taskId, itemId, derivedState = null }) {
     .find((entry) => isObject(entry) && entry.id === itemId);
   if (!item) return `找不到子項目「${itemId}」。`;
   if (item.status === "archive") return "已封存的子項目不能設為 Next。";
+  if (isRetiredStatus(item.status)) return "已退場的子項目不能設為 Next。";
   if (item.status === "done" || !(task.pending_items ?? []).includes(item)) return "已完成的子項目不能設為 Next。";
   const state = derivedState ?? item.status;
   if (state === "done") return "已完成的子項目不能設為 Next。";

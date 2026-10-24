@@ -2,7 +2,7 @@
 
 > Task ID: gap-scan
 >
-> 狀態：已決定，未實作。問題由使用者提出（2026-10-24）；同日 [AcceptanceChainPlan〈目標與流程〉](AcceptanceChainPlan.md#目標與流程)定案後，盤點併入每一層的 plan，第 1、2、4～6 題依該節作答，第 3、7 題由使用者決定，全部記在 [gap-scan.decisions](../decisions/gap-scan.decisions)。
+> 狀態：已決定；第 7 題的退場狀態已實作（gap-scan 卡 `retirement-states`），盤點規則已寫進 task-progress-items。問題由使用者提出（2026-10-24）；同日 [AcceptanceChainPlan〈目標與流程〉](AcceptanceChainPlan.md#目標與流程)定案後，盤點併入每一層的 plan，第 1、2、4～6 題依該節作答，第 3、7 題由使用者決定，全部記在 [gap-scan.decisions](../decisions/gap-scan.decisions)。
 >
 > 與其他文件的關係：流程與分工由〈目標與流程〉擁有，本計畫只負責盤點的來源、證據與退場；評估的現行規則在 [agent-executable-items〈Evaluate a scope〉](../../.agents/skills/agent-executable-items/SKILL.md#evaluate-a-scope)；跨平台模組的候選盤點在 [cross-platform-module-spec〈Select scope〉](../../.agents/skills/cross-platform-module-spec/SKILL.md#select-scope)（UX 的盤點方法，plan 在 UX scope 照它做，見第 3 題）。
 

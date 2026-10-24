@@ -121,6 +121,34 @@ class ReportCliTests(unittest.TestCase):
         execute(self.root, "apply", self.request([{"op": "item.update", "task_id": "one", "item_id": "item", "set": {"waits_for": wait(strict=True)}}]))
         self.assertEqual(self.item()["waits_for"], wait(strict=True))
 
+    def test_retirement_names_a_replacement_or_a_reason(self):
+        op = lambda item, **values: {"op": "item.update", "task_id": "one", "item_id": item, "set": values}
+        replaced_by = {"scope_id": "sample", "task_id": "one", "item_id": "b"}
+        execute(self.root, "apply", self.request([{"op": "item.add", "task_id": "one", "value": {"id": "b", "title": "B"}},
+                                                  {"op": "item.add", "task_id": "one", "value": {"id": "c", "title": "C"}}]))
+        for operation in (op("item", status="obsolete"),
+                          op("item", status="obsolete", retirement={"reason": "已由 B 達成"}),
+                          op("item", status="obsolete", retirement={"replaced_by": {**replaced_by, "item_id": "missing"}}),
+                          op("item", status="obsolete", retirement={"replaced_by": {**replaced_by, "item_id": "item"}}),
+                          op("item", status="discontinued"),
+                          op("item", status="discontinued", retirement={"reason": "  "}),
+                          op("item", status="discontinued", retirement={"reason": "前提不成立", "replaced_by": replaced_by}),
+                          op("item", retirement={"reason": "未退場"})):
+            with self.assertRaises(ReportError):
+                execute(self.root, "apply", self.request([operation]))
+        execute(self.root, "apply", self.request([op("item", status="obsolete", retirement={"replaced_by": replaced_by})]))
+        self.assertEqual((self.item()["status"], self.item()["retirement"]), ("obsolete", {"replaced_by": replaced_by}))
+        with self.assertRaises(ReportError):
+            execute(self.root, "apply", self.request([op("c", waits_for=[{"scope_id": "sample", "task_id": "one", "item_id": "item"}])]))
+        execute(self.root, "apply", self.request([op("b", waits_for=[{"scope_id": "sample", "task_id": "one", "item_id": "c"}])]))
+        with self.assertRaises(ReportError):
+            execute(self.root, "apply", self.request([op("c", status="discontinued", retirement={"reason": "前提不成立"})]))
+        execute(self.root, "apply", self.request([{"op": "item.update", "task_id": "one", "item_id": "b", "unset": ["waits_for"]}]))
+        execute(self.root, "apply", self.request([op("c", status="discontinued", retirement={"reason": "前提不成立"})]))
+        execute(self.root, "apply", self.request([{"op": "item.update", "task_id": "one", "item_id": "item",
+                                                   "set": {"status": "planned"}, "unset": ["retirement"]}]))
+        self.assertNotIn("retirement", self.item())
+
     def test_a_card_binds_only_its_own_existing_experience_record(self):
         ref = lambda **kw: {"kind": "experience", "scope_id": "sample", "task": "one", **kw}
         update = lambda value: self.request([{"op": "task.update", "task_id": "one", "set": {"document_ref": value}}])

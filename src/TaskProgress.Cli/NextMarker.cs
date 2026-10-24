@@ -15,6 +15,7 @@ internal static class NextMarker
     private static readonly HashSet<string> NotTakeUp = new(StringComparer.Ordinal)
     {
         ItemStates.Done, ItemStates.Waiting, ItemStates.InProgress, ItemStates.Archived,
+        ItemStates.Obsolete, ItemStates.Discontinued,
     };
 
     /// <summary>
@@ -96,6 +97,7 @@ internal static class NextMarker
     private static bool TakesUp(string scope, JsonObject item, ItemStateResolver resolver) =>
         Text(item["id"]) is { Length: > 0 }
         && Text(item["status"]) is not ("done" or "archive")
+        && !ItemStates.IsRetired(Text(item["status"]))
         && !NotTakeUp.Contains(resolver.StateOf(scope, item));
 
     private static bool Actionable(JsonObject task) =>
@@ -120,7 +122,7 @@ internal static class NextMarker
 
     private static int LeadItemPriority(JsonObject task) =>
         (task["pending_items"] as JsonArray ?? [])
-            .Where(item => item is not JsonObject entry || Text(entry["status"]) is not ("archive" or "done"))
+            .Where(item => item is not JsonObject entry || (Text(entry["status"]) is not ("archive" or "done") && !ItemStates.IsRetired(Text(entry["status"]))))
             .Select(item => item is JsonObject entry ? Priority(entry["priority"]) : DefaultPriority)
             .DefaultIfEmpty(DefaultPriority)
             .Min();

@@ -1,6 +1,6 @@
 import { createChecklistHttpTransport } from "./checklist-http-transport.js";
 import { createDecisionHttpTransport } from "./decision-transport.js";
-import { deriveItemState, ITEM_STATE_META, mustRedo, waitedChecklistFacts, waitMet, waitsText } from "./item-state.js";
+import { deriveItemState, isRetiredStatus, ITEM_STATE_META, mustRedo, waitedChecklistFacts, waitMet, waitsText } from "./item-state.js";
 import { mergeReports, reportPathForScope } from "./report-model.js";
 
 /**
@@ -290,7 +290,7 @@ export function deriveCardStatusFromItems(originalStatus, completedCount, totalC
 }
 
 export function deriveBoundItemStatus(originalStatus, evaluation) {
-  if (originalStatus === "archive") return "archive";
+  if (originalStatus === "archive" || isRetiredStatus(originalStatus)) return originalStatus;
   if (evaluation?.ok && evaluation?.completed) return "done";
   if (originalStatus === "done") return "in_progress";
   return originalStatus ?? "planned";
@@ -421,7 +421,7 @@ export function projectTasksWithBindings(tasks, evaluations = new Map()) {
       const norm = normalizeDocumentRef(item.document_ref);
       const evalResult = evaluations.get(itemKey) ?? { ok: false, completed: false, error: "未評估" };
       const rawStatus = item.status ?? (defaultOriginField === "completed_items" ? "done" : "planned");
-      const derivedStatus = redo && rawStatus !== "archive" ? "in_progress" : deriveBoundItemStatus(rawStatus, evalResult);
+      const derivedStatus = redo && rawStatus !== "archive" && !isRetiredStatus(rawStatus) ? "in_progress" : deriveBoundItemStatus(rawStatus, evalResult);
 
       const itemSourceRef = {
         href: documentBindingHref(item.document_ref),
@@ -469,7 +469,7 @@ export function projectTasksWithBindings(tasks, evaluations = new Map()) {
       const nonArchivedStatuses = [
         ...[...promotedItems, ...completedItems].map((item) => (item && typeof item === "object") ? (item.status ?? "done") : "done"),
         ...pendingItems.map((item) => (item && typeof item === "object") ? (item.status ?? "planned") : "planned"),
-      ].filter((status) => status !== "archive");
+      ].filter((status) => status !== "archive" && !isRetiredStatus(status));
       const hasItems = nonArchivedStatuses.length > 0;
       const completedCount = nonArchivedStatuses.filter((status) => status === "done").length;
       const totalCount = nonArchivedStatuses.length;

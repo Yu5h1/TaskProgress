@@ -3923,8 +3923,16 @@ Object.freeze({
 	not_started: {
 		label: "未開始",
 		tone: "muted"
+	},
+	obsolete: {
+		label: "已取代",
+		tone: "muted"
+	},
+	discontinued: {
+		label: "已棄案",
+		tone: "muted"
 	}
-});
+}), Object.freeze(["obsolete", "discontinued"]);
 function Jo(e) {
 	return Fo(e).map((e) => e.text).join("");
 }

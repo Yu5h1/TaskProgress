@@ -20,7 +20,7 @@ class ReportError(ValueError):
 FIELDS = {
     "report.update": ({"title", "summary"}, {"summary"}),
     "task.update": ({"title", "summary", "status", "priority", "progress", "document_ref"}, {"priority", "progress", "document_ref"}),
-    "item.update": ({"title", "status", "priority", "waits_for"}, {"priority", "waits_for"}),
+    "item.update": ({"title", "status", "priority", "waits_for", "retirement"}, {"priority", "waits_for", "retirement"}),
     "dev.update": ({"next_step", "blockers", "decisions", "routes"}, {"next_step", "blockers", "decisions", "routes"}),
 }
 
@@ -114,6 +114,68 @@ def find_item(report, task_id, item_id):
 
 CHECKLIST_WORK_ITEM = re.compile(r"^- \[[ x!]\] \*\*(\d+)\.", re.MULTILINE)
 DOCUMENT_STEM = re.compile(r"^[A-Za-z0-9._-]+$")
+RETIRED_STATUSES = {"obsolete", "discontinued"}
+
+
+def check_retirement(report, task_id, item, folder=None):
+    """obsolete names an existing replacement, discontinued names a reason; nothing unfinished may wait on a retired item."""
+    status, retirement = item.get("status"), item.get("retirement")
+    if status not in RETIRED_STATUSES:
+        require(retirement is None, "retirement belongs only to an obsolete or discontinued item", "retirement")
+        return
+    require(isinstance(retirement, dict) and set(retirement) <= {"replaced_by", "reason"},
+            "A retired item needs a retirement object with replaced_by or reason", "retirement")
+    reason = retirement.get("reason")
+    require(reason is None or (isinstance(reason, str) and 0 < len(reason.strip()) <= 300),
+            "retirement.reason must be a non-empty string of at most 300 characters", "retirement.reason")
+    if status == "discontinued":
+        require(reason is not None, "A discontinued item needs retirement.reason", "retirement.reason")
+        require("replaced_by" not in retirement, "A discontinued item has no replacement; use obsolete", "retirement.replaced_by")
+    else:
+        target = retirement.get("replaced_by")
+        require(isinstance(target, dict) and set(target) == {"scope_id", "task_id", "item_id"}
+                and all(isinstance(target[k], str) and target[k] for k in target),
+                "An obsolete item needs retirement.replaced_by with scope_id, task_id and item_id", "retirement.replaced_by")
+        key = (target["scope_id"], target["task_id"], target["item_id"])
+        require(key != (report["scope_id"], task_id, item["id"]), "An item cannot replace itself", "retirement.replaced_by")
+        replacement = find_in_scope(report, key, folder)
+        require(replacement is not None, "Replacement item was not found: " + "/".join(key), "retirement.replaced_by")
+        require(replacement.get("status") not in RETIRED_STATUSES, "The replacement is itself retired", "retirement.replaced_by")
+    own = (report["scope_id"], task_id, item["id"])
+    for scope, waiter in waiting_items(report, folder):
+        if any(isinstance(w, dict) and (w.get("scope_id"), w.get("task_id"), w.get("item_id")) == own
+               for w in waiter.get("waits_for", [])):
+            raise ReportError("invalid_operation", "Items still wait on this one; repoint or remove their waits_for first: "
+                              + scope + "/" + waiter.get("id", "?"), field="status")
+
+
+def find_in_scope(report, key, folder=None):
+    if key[0] == report["scope_id"]:
+        return find_item(report, key[1], key[2])
+    found = scope_registry().get(key[0])
+    if found is None:
+        return None
+    try:
+        return find_item(json.loads((Path(found) / "report.json").read_text(encoding="utf-8")), key[1], key[2])
+    except (OSError, ValueError):
+        return None
+
+
+def waiting_items(report, folder=None):
+    """Unfinished items with a waits_for, in this report and every other registered scope."""
+    reports = [(report["scope_id"], report)]
+    for scope, location in scope_registry().items():
+        if scope == report["scope_id"]:
+            continue
+        try:
+            reports.append((scope, json.loads((Path(location) / "report.json").read_text(encoding="utf-8"))))
+        except (OSError, ValueError):
+            continue
+    for scope, document in reports:
+        for task in document.get("tasks", []):
+            for item in task.get("pending_items", []) if isinstance(task, dict) else []:
+                if isinstance(item, dict) and item.get("waits_for") and item.get("status") not in {"done", "archive", *RETIRED_STATUSES}:
+                    yield scope, item
 
 
 def check_card_document(report, task, folder=None):
@@ -185,8 +247,10 @@ def check_waits(report, task_id, item, folder=None):
         require(key != start, "An item cannot wait for itself", "waits_for")
         require(key not in seen, "Duplicate waits_for entry", "waits_for")
         seen.add(key)
-        require(find_item(load(key[0]), key[1], key[2]) is not None,
-                "waits_for item was not found: " + "/".join(key), "waits_for")
+        target = find_item(load(key[0]), key[1], key[2])
+        require(target is not None, "waits_for item was not found: " + "/".join(key), "waits_for")
+        require(not isinstance(target, dict) or target.get("status") not in RETIRED_STATUSES,
+                "waits_for item is retired: " + "/".join(key), "waits_for")
 
     stack, visited = [(key, 1) for key in seen], set()
     while stack:
@@ -388,6 +452,7 @@ def apply_operations(report, overlay, operations, actor=None, at=None, folder=No
                     value = deepcopy(value)
                     value.setdefault("status", "planned")
                     check_waits(report, task_id, value, folder)
+                    check_retirement(report, task_id, value, folder)
                     stamp_new_item(value, actor, at)
                     key = "completed_items" if value["status"] == "done" else "pending_items"
                     if "position" in operation:
@@ -429,6 +494,8 @@ def apply_operations(report, overlay, operations, actor=None, at=None, folder=No
                         update(item, operation, name)
                         if "waits_for" in operation.get("set", {}):
                             check_waits(report, task_id, item, folder)
+                        if {"status", "retirement"} & (set(operation.get("set", {})) | set(operation.get("unset", []))):
+                            check_retirement(report, task_id, item, folder)
                         if without_activity(item) != before_item:
                             event = status_event(before_item.get("status"), item.get("status")) or "updated"
                             append_activity(item, activity_entry(event, actor, at))

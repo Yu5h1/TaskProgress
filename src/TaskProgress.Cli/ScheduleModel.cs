@@ -48,7 +48,7 @@ internal static class ScheduleModel
             var subject = (JsonObject)work["subject"]!;
             var key = Text(subject, "task_id") + (Text(subject, "kind") == "item" ? "/" + Text(subject, "item_id") : "");
             if (!subjects.TryGetValue(key, out var status)) Add("orphan_subject", id);
-            if (status == "archive") continue;
+            if (status == "archive" || ItemStates.IsRetired(status)) continue;
             if (!owners.Add(key)) Add("duplicate_subject", id);
             if (status == "done") continue;
             if (work["duration_source"] is null) Add("missing_duration", id);
