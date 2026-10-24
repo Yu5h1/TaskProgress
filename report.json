@@ -3,8 +3,96 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-10-24T19:15:07.066669+00:00",
+  "updated_at": "2026-10-24T19:18:50.167837+00:00",
   "tasks": [
+    {
+      "id": "gap-scan",
+      "title": "專案缺口與退場盤點",
+      "status": "done",
+      "priority": 1,
+      "summary": "已完成（2026-10-25）：缺口與退場盤點併入每一層的 plan（task-progress-items），UX 的盤點方法留在 cross-platform-module-spec；子項新增退場狀態 obsolete（指向取代的子項或設計文件）與 discontinued（附理由），經獨立驗收通過。卡片目標見 [問題與目標](https://github.com/Yu5h1/TaskProgress/blob/main/Documentation/GapScanPlan.md#問題與目標)。",
+      "pending_items": [
+        {
+          "id": "gap-scan-decisions",
+          "status": "planned",
+          "priority": 1,
+          "title": "[缺口與退場盤點計畫](https://github.com/Yu5h1/TaskProgress/blob/main/Documentation/GapScanPlan.md) 七題已答：盤點併入每一層 plan、UX 盤點方法留在 UX 技能、退場新增 obsolete 與 discontinued — 待落實到 skill 與程式",
+          "document_ref": {
+            "kind": "decision",
+            "scope_id": "task-progress",
+            "task": "gap-scan"
+          },
+          "activity": [
+            {
+              "event": "created",
+              "actor": "claude",
+              "at": "2026-10-23T19:36:46.617978+00:00",
+              "session": "專案缺口盤點計畫",
+              "session_id": "8db3d9df-8d4e-461e-96c2-37ca30b33c56"
+            },
+            {
+              "event": "updated",
+              "actor": "claude",
+              "at": "2026-10-24T14:29:49.912660+00:00",
+              "session": "Taskprogess"
+            },
+            {
+              "event": "updated",
+              "actor": "claude",
+              "at": "2026-10-24T15:35:09.614959+00:00",
+              "session": "Taskprogess"
+            },
+            {
+              "event": "updated",
+              "actor": "claude",
+              "at": "2026-10-24T15:55:38.950956+00:00",
+              "session": "Taskprogess"
+            }
+          ]
+        },
+        {
+          "id": "retirement-states",
+          "priority": 1,
+          "title": "子項退場狀態：新增 obsolete（被取代，指向取代者）與 discontinued（棄案，附理由），archive 只留作歷史（GapScanPlan 第 7 題）",
+          "document_ref": {
+            "kind": "checklist",
+            "scope_id": "task-progress",
+            "task": "retirement-states"
+          },
+          "status": "planned",
+          "activity": [
+            {
+              "event": "created",
+              "actor": "claude",
+              "at": "2026-10-24T19:01:09.637904+00:00",
+              "session": "Taskprogess",
+              "session_id": "016492fa-7464-498b-9444-0e6296cd1267"
+            },
+            {
+              "event": "started",
+              "actor": "claude",
+              "at": "2026-10-24T19:01:32.883104+00:00",
+              "session": "Taskprogess",
+              "session_id": "016492fa-7464-498b-9444-0e6296cd1267"
+            },
+            {
+              "event": "started",
+              "actor": "claude",
+              "at": "2026-10-24T19:11:50.264429+00:00",
+              "session": "Taskprogess",
+              "session_id": "016492fa-7464-498b-9444-0e6296cd1267"
+            },
+            {
+              "event": "released",
+              "actor": "claude",
+              "at": "2026-10-24T19:15:07.066669+00:00",
+              "session": "Taskprogess",
+              "session_id": "016492fa-7464-498b-9444-0e6296cd1267"
+            }
+          ]
+        }
+      ]
+    },
     {
       "id": "agent-workflow",
       "title": "優化 agent workflow",
@@ -3185,94 +3273,6 @@
               "at": "2026-10-23T17:33:39.723110+00:00",
               "session": "worktree-report 共用資源",
               "session_id": "8db3d9df-8d4e-461e-96c2-37ca30b33c56"
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "id": "gap-scan",
-      "title": "專案缺口與退場盤點",
-      "status": "planned",
-      "priority": 1,
-      "summary": "討論中：評估只找已排定的工作，既不會發現專案還缺什麼，也不會發現既有子項已經不該做。新增缺口盤點與退場盤點，候選都交給使用者決定，再接上評估。見 [計畫](https://github.com/Yu5h1/TaskProgress/blob/main/Documentation/GapScanPlan.md)；決定前不實作。",
-      "pending_items": [
-        {
-          "id": "gap-scan-decisions",
-          "status": "planned",
-          "priority": 1,
-          "title": "[缺口與退場盤點計畫](https://github.com/Yu5h1/TaskProgress/blob/main/Documentation/GapScanPlan.md) 七題已答：盤點併入每一層 plan、UX 盤點方法留在 UX 技能、退場新增 obsolete 與 discontinued — 待落實到 skill 與程式",
-          "document_ref": {
-            "kind": "decision",
-            "scope_id": "task-progress",
-            "task": "gap-scan"
-          },
-          "activity": [
-            {
-              "event": "created",
-              "actor": "claude",
-              "at": "2026-10-23T19:36:46.617978+00:00",
-              "session": "專案缺口盤點計畫",
-              "session_id": "8db3d9df-8d4e-461e-96c2-37ca30b33c56"
-            },
-            {
-              "event": "updated",
-              "actor": "claude",
-              "at": "2026-10-24T14:29:49.912660+00:00",
-              "session": "Taskprogess"
-            },
-            {
-              "event": "updated",
-              "actor": "claude",
-              "at": "2026-10-24T15:35:09.614959+00:00",
-              "session": "Taskprogess"
-            },
-            {
-              "event": "updated",
-              "actor": "claude",
-              "at": "2026-10-24T15:55:38.950956+00:00",
-              "session": "Taskprogess"
-            }
-          ]
-        },
-        {
-          "id": "retirement-states",
-          "priority": 1,
-          "title": "子項退場狀態：新增 obsolete（被取代，指向取代者）與 discontinued（棄案，附理由），archive 只留作歷史（GapScanPlan 第 7 題）",
-          "document_ref": {
-            "kind": "checklist",
-            "scope_id": "task-progress",
-            "task": "retirement-states"
-          },
-          "status": "planned",
-          "activity": [
-            {
-              "event": "created",
-              "actor": "claude",
-              "at": "2026-10-24T19:01:09.637904+00:00",
-              "session": "Taskprogess",
-              "session_id": "016492fa-7464-498b-9444-0e6296cd1267"
-            },
-            {
-              "event": "started",
-              "actor": "claude",
-              "at": "2026-10-24T19:01:32.883104+00:00",
-              "session": "Taskprogess",
-              "session_id": "016492fa-7464-498b-9444-0e6296cd1267"
-            },
-            {
-              "event": "started",
-              "actor": "claude",
-              "at": "2026-10-24T19:11:50.264429+00:00",
-              "session": "Taskprogess",
-              "session_id": "016492fa-7464-498b-9444-0e6296cd1267"
-            },
-            {
-              "event": "released",
-              "actor": "claude",
-              "at": "2026-10-24T19:15:07.066669+00:00",
-              "session": "Taskprogess",
-              "session_id": "016492fa-7464-498b-9444-0e6296cd1267"
             }
           ]
         }

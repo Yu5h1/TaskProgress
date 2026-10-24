@@ -10,7 +10,7 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
 
 - **第三方 checklist 寫入的主要用途已釐清，計畫已更新、未實作（2026-10-25，使用者）。** [ThirdPartyChecklistWritePlan〈主要用途〉](Documentation/ThirdPartyChecklistWritePlan.md#主要用途ux-demo-的動作觸發標記)：UX demo 在使用者操作驗收對象時，由事件以 `set` 記錄 `[manual]` 那一格；只記 demo 能完整見證的格子，外觀與手感仍由使用者勾。「TaskProgress 主動讀檔案狀態」與「為外部交付寫編輯器 hook」都暫不做；等外部交付的子項改由 agent 在 plan／run 時確認（AcceptanceChainPlan〈執行與驗收〉）。第 2、3 階段的驗收與第 4 階段的入口表仍在 third-party-checklist-write 卡上。
 
-- **缺口與退場盤點已定案，尚未落實（2026-10-24）。** [GapScanPlan](Documentation/GapScanPlan.md)：盤點併入每一層的 plan，不新增動詞；UX 的盤點方法留在 cross-platform-module-spec，plan 照它做；退場新增 `obsolete`（被取代，指向取代者）與 `discontinued`（棄案，附理由）兩種狀態。[gap-scan.decisions](decisions/gap-scan.decisions) 七題已答。
+- **缺口與退場盤點已落實（2026-10-25）。** [GapScanPlan](Documentation/GapScanPlan.md)：盤點併入每一層的 plan，不新增動詞，UX 的盤點方法留在 cross-platform-module-spec；子項退場用 `obsolete`（`retirement.replaced_by` 指向取代的子項或設計文件）與 `discontinued`（`retirement.reason`），寫法見 task-progress-report〈Maintain child items〉。gap-scan 卡已完成。子項層級的 `archive` 仍會被時間分析計入剩餘工作，這是原本就有的行為，這次沒有改。
 
 - **Agent workflow 已結案（2026-10-25）。** 目標與規則由 [AcceptanceChainPlan〈目標與流程〉](Documentation/AcceptanceChainPlan.md#目標與流程) 擁有，執行規則在 task-progress-items、task-progress-report；Report `agent-workflow` 卡已完成，經驗與指標在 [experience/agent-workflow.md](experience/agent-workflow.md)。「一次只進行一個模組」已取消（UX `7845db5`、.agents `050b6d3`）。
 
