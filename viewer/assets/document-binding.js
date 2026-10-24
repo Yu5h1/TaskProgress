@@ -361,13 +361,21 @@ function pendingWaitsOf(item, evaluations) {
     .map(({ result }) => result);
 }
 
+function redoTargetsOf(item, evaluations) {
+  return waitResultsOf(item, evaluations)
+    .filter((entry) => !isChecklistWait(entry.wait) && mustRedo(item, [entry]))
+    .map(({ result }) => result);
+}
+
 function redoOf(item, evaluations) {
-  return mustRedo(item, waitResultsOf(item, evaluations).filter(({ wait }) => !isChecklistWait(wait)));
+  return redoTargetsOf(item, evaluations).length > 0;
 }
 
 function withDerivedState(item, evaluation, evaluations) {
   const pendingWaits = pendingWaitsOf(item, evaluations);
-  const derivedState = deriveItemState(item, evaluation, pendingWaits, redoOf(item, evaluations));
+  // A dependency may now allow work while its earlier rejection still requires this item to redo.
+  const redoTargets = redoTargetsOf(item, evaluations);
+  const derivedState = deriveItemState(item, evaluation, pendingWaits, redoTargets.length > 0);
   if (!derivedState) return item;
   const meta = ITEM_STATE_META[derivedState];
   const suffix = waitsText(pendingWaits);
@@ -377,6 +385,7 @@ function withDerivedState(item, evaluation, evaluations) {
     derivedStateLabel: meta.label,
     derivedStateTone: meta.tone,
     pendingWaits,
+    redoTargets,
     displayTitle: suffix ? `${item.title}　${suffix}` : item.title,
   };
 }

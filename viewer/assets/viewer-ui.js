@@ -3940,7 +3940,7 @@ function Yo(e) {
 	return [...t.values()];
 }
 function Xo(e) {
-	let t = Yo(e?.pendingWaits);
+	let t = Yo([...e?.pendingWaits ?? [], ...e?.redoTargets ?? []]);
 	if (e?.derivedState === "waiting") return t;
 	let n = e?.sourceRef;
 	if (n) {

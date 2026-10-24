@@ -142,7 +142,7 @@ export function waitLinks(pendingWaits) {
 
 /** Status capsules open their related documents and dependencies, using the same target menu. */
 export function statusLinks(item) {
-  const links = waitLinks(item?.pendingWaits);
+  const links = waitLinks([...(item?.pendingWaits ?? []), ...(item?.redoTargets ?? [])]);
   // Waiting is specifically about dependencies; its own checklist is not the wait target.
   if (item?.derivedState === "waiting") return links;
   const source = item?.sourceRef;
