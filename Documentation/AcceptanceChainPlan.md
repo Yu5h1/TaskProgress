@@ -96,6 +96,7 @@ plan 在每一層做同一件事：對照這一層的目標，看下一層已有
 
 - **方向錯就停。** 實作偏離規格，就地修正；規格或目標本身錯了，停下，不硬改到通過（[agent-work-route〈Separate a wrong implementation from a wrong spec〉](../../.agents/skills/agent-work-route/SKILL.md#separate-a-wrong-implementation-from-a-wrong-spec)）。目標錯回到〈釐清目標〉，規格錯重寫規格後繼續。
 - **對照目標驗收。** 每一層驗收都判斷結果是否達成目標寫的意圖，不只對照步驟；條件本身不服務目標時，標「條件不符」。條件在執行前寫好並提交（〈已決定〉第 4 點）。
+- **等外部交付。** 子項在等專案外的人交付（例如 VCP 的貼圖要等美術交付 `Cat.tif`）時，子項寫明等的是哪個交付、交到哪裡；agent 在 plan 或 run 考慮這個子項時自己確認交付是否已到，到了就接著做並自驗，沒到就留在等待。不靠編輯器 hook，TaskProgress 也不主動讀檔案；代價是 Report 要等 agent 下一次執行才更新（使用者 2026-10-25，[ThirdPartyChecklistWritePlan〈決策理由與替代方案〉](ThirdPartyChecklistWritePlan.md#決策理由與替代方案)）。
 - **人工驗收不擋流程（第 4 題）。** 被等的子項只差使用者驗收時，等它的子項就解除等待；必須等使用者驗收的，宣告等待時標明「要等使用者驗收」。使用者之後驗收不通過，相依的子項跟著重做。
 
 ### 經驗紀錄
@@ -146,7 +147,7 @@ plan 在每一層做同一件事：對照這一層的目標，看下一層已有
 
 題目已全部答完，依下列順序落實；本節保留情境與理由，規則由各 skill 擁有。
 
-- **task-progress-items：** 每一層 plan 的產出、子項類型（含卡片結案驗收）、直接建立與決策題的分界、量與分批、經驗紀錄的寫入、收尾檢討。
+- **task-progress-items：** 每一層 plan 的產出、等外部交付的子項怎麼寫與檢查、子項類型（含卡片結案驗收）、直接建立與決策題的分界、量與分批、經驗紀錄的寫入、收尾檢討。
 - **agent-executable-items〈Evaluate a scope〉：** 從目標推得出的工作直接建立；評估改讀卡片的經驗紀錄，不再讀 friction log。
 - **task-progress-report：** 卡片綁定文件、摘要連結目標。
 - **cross-platform-module-spec（UX 的技能）：** 〈Select scope〉的候選盤點方法保留，供 plan 在 UX scope 找缺口時使用；拿掉「等使用者選」，改照本節的分界；〈Define the goal before the specification〉的通用確認步驟改為引用〈釐清目標〉，只留模組目標欄位、消費端證據與適配表（GapScanPlan 第 3 題）。
