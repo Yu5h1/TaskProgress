@@ -1,0 +1,24 @@
+# 第三方寫入試驗用 Checklist
+
+Current round: `Documentation/ThirdPartyChecklistWritePlan.md#驗證`.
+
+這份清單只給第三方寫入的人工驗收操作用（外部寫入往返、清空確認框），不綁定任何子項，內容與結果都可以隨時被試驗改寫或清空。第 1 項是 agent 證據，用來確認清空不會動到它；第 2 項是人工項目。
+
+- [x] **1. Agent 證據**
+  Outcome: 清空時必須保留的 agent 結果。
+  Checks:
+    - [x] **不可被清空的 agent 檢查**
+      - Action: 讀取本檔第 1 項。
+      - Expect: 清空人工結果後，這一格仍是 [x]。
+
+- [ ] **2. 人工項目**
+  Outcome: 外部工具與使用者都可以記錄的人工結果。
+  Checks:
+    - [ ] **外部寫入目標** `[manual]`
+      - Action: 由外部工具以 `set` 標成通過，或在本頁手動切換。
+      - Expect: 寫入後顯示通過；使用者可以手動改回。
+      - Reason: 試驗用，由使用者或外部工具記錄。
+    - [ ] **清空對象** `[manual]`
+      - Action: 在本頁手動標成通過，再用清空按鈕重設。
+      - Expect: 清空後回到未勾選。
+      - Reason: 試驗用，由使用者記錄。

@@ -1,0 +1,22 @@
+# 第三方寫入：Checklist 路由的 bearer token 授權 Checklist
+
+Current round: `Documentation/ThirdPartyChecklistWritePlan.md#4-http-授權路徑`.
+
+計畫第 2 階段（使用者 2026-09-05 定案）。現況：host 已實作 `_local_client_allowed` 與 token 產生，完整驗收依使用者 2026-09-08 指示延後；2026-10-25 使用者要交給其他 agent 執行，延後取消。要達成：沒有 `Origin` 的 Checklist 客戶端可用獨立的 bearer token 呼叫既有 bridge，其他編輯路由與 LocalWebService 控制 API 的授權邊界不變。不在本輪：端點探索檔（另一個子項）、外部寫入往返的人工確認。一個檔案只放一輪。
+
+- [ ] **1. 授權矩陣**
+  Outcome: 只有 Checklist 路由接受 bearer token，瀏覽器的同源路徑照舊。
+  Checks:
+    - [ ] **授權矩陣與瀏覽器相容**
+      - Action: 執行 `tests/test_taskprogress_host.py` 中 Python host 的正確／錯誤／缺少 token、含 Origin、重複 Authorization 與既有瀏覽器路徑測試；缺少的情境補上測試。
+      - Expect: 只有核定路徑獲准；token 不能用於 report 編輯或 LocalWebService 控制 API；帶 `Origin` 的 token 請求被拒；既有瀏覽器路徑沒有回歸。
+
+- [ ] **2. 獨立驗收**
+  Outcome: 未參與本輪的驗收者依計畫確認授權邊界。
+  Checks:
+    - [ ] **驗收條件未被改動** `[acceptance]`
+      - Action: 比對本檔建立提交或最新標有「條件修訂」的提交與目前版本。
+      - Expect: acceptance 條件沒有被執行者修改以配合交付結果。
+    - [ ] **授權邊界符合計畫** `[acceptance]`
+      - Action: 依 Documentation/ThirdPartyChecklistWritePlan.md#4-http-授權路徑 與〈驗證〉的 Python 項目，核對 `service/taskprogress_host.py` 的 gate、token 來源與測試結果。
+      - Expect: `_local_client_allowed` 只用於 checklists 路由，其他 6 處 `_browser_write_allowed` 未放寬；token 由 `start` 產生、不是 LocalWebService 的 control token；帶 `Origin` 的請求不走 token 路徑；測試涵蓋正確、錯誤、缺少 token 與含 Origin 的情境且通過。

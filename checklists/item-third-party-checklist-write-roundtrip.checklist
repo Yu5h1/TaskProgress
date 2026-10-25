@@ -1,0 +1,20 @@
+# 第三方寫入：外部寫入與人工覆寫往返 Checklist
+
+Current round: `Documentation/ThirdPartyChecklistWritePlan.md#驗證`.
+
+計畫〈兩條不可動搖的性質〉與〈驗證〉的「人工後路」（使用者 2026-09-05 定案）。現況：授權與端點探索各自驗收中，還沒有人從真實的外部呼叫端走過一次完整往返。要達成：外部工具經端點探索與 bearer token 寫入人工結果後，使用者仍能在瀏覽器改回；服務停止時外部寫入失敗、檔案不變。對象是不綁任何子項的 [試驗用 checklist](http://127.0.0.1:8001/checklist/?scope=task-progress&task=third-party-write-sandbox)。不在本輪：UX demo 接上事件（由各 scope 另建子項）。一個檔案只放一輪。
+
+- [ ] **1. 備妥外部寫入**
+  Outcome: 使用者照著做就能完成往返，不必自己組請求。
+  Checks:
+    - [ ] **外部呼叫可用**
+      - Action: 依計畫〈6. 呼叫端看到的東西〉，從端點檔取得 base_url 與 client_token，以不帶 `Origin` 的 HTTP POST 對試驗用 checklist 的第 2 項第 1 格送一次 `set`（passed），再送一次 `reset`（targets 指定同一格）。
+      - Expect: 兩次回應都是 `type: "result"`；檔案的變化只有該格的標記與 Recorded 行；把可直接執行的兩段 PowerShell 指令（`set` 與停服務後重送）補進第 2 項的 Action。
+
+- [ ] **2. 人工驗收**
+  Outcome: 使用者確認外部寫入與人工後路共用同一份結果。
+  Checks:
+    - [ ] **外部寫入與瀏覽器手動覆寫往返** `[manual]`
+      - Action: 1. 執行第 1 項補上的 `set` 指令；2. 開啟 [試驗用 checklist](http://127.0.0.1:8001/checklist/?scope=task-progress&task=third-party-write-sandbox)，確認「外部寫入目標」顯示通過，再手動點回未勾選；3. 停止本機服務後，再執行一次 `set` 指令。
+      - Expect: 外部寫入後頁面顯示通過；使用者能手動改回；服務停止時指令回報失敗，checklist 檔案沒有被改動或損壞。
+      - Reason: 需要在真實的外部呼叫與瀏覽器頁面上核對人工後路。

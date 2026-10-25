@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-10-24T19:18:50.167837+00:00",
+  "updated_at": "2026-10-25T05:56:25.578565+00:00",
   "tasks": [
     {
       "id": "gap-scan",
@@ -2260,7 +2260,7 @@
       "title": "第三方 Checklist 單項寫入",
       "status": "in_progress",
       "priority": 0,
-      "summary": "階段 0／1 已完成。HTTP 授權、端點探索及 Browser 清空確認 UI 已實作並通過必要建置；完整驗收依使用者安排延後。入口表待補。",
+      "summary": "階段 0／1 已完成；階段 2／3 與瀏覽器清空 UI 已實作，2026-10-25 起取消延後、交給 agent 驗收：授權與端點探索各自他驗，外部寫入往返與清空確認框由使用者人工驗收，入口表等前兩項完成後補上。主要用途是 UX demo 由使用者操作觸發標記 [manual]，見 [計畫〈主要用途〉](https://github.com/Yu5h1/TaskProgress/blob/main/Documentation/ThirdPartyChecklistWritePlan.md#主要用途ux-demo-的動作觸發標記)。",
       "completed_items": [
         {
           "id": "item-third-party-checklist-write-done-1",
@@ -2286,31 +2286,134 @@
       "pending_items": [
         {
           "id": "item-third-party-checklist-write-auth",
-          "title": "階段 2：host 新增 _local_client_allowed bearer token 路徑，只改 checklists 路由",
+          "title": "第 2 階段：Checklist 路由的 bearer token 授權，他驗確認其他編輯路由與 LocalWebService 控制 API 的邊界不變",
           "priority": 0,
-          "status": "in_progress"
-        },
-        {
-          "id": "item-third-party-checklist-write-endpoints",
-          "title": "階段 3：endpoints/<port>.json 端點探索檔，判活須確認回應的 service 欄位",
-          "priority": 0,
-          "status": "in_progress"
-        },
-        {
-          "id": "item-third-party-checklist-write-route",
-          "title": "階段 4：taskprogress-capabilities 入口表補一列（不得在階段 2 完成前加）",
-          "priority": 0
-        },
-        {
-          "id": "item-third-party-checklist-write-reset-ui",
-          "title": "驗收已實作的 Browser 清空按鈕與確認框；Browser／Desktop Checklist bundles 已重建",
-          "priority": 0,
-          "status": "in_progress",
+          "status": "planned",
           "document_ref": {
             "kind": "checklist",
             "scope_id": "task-progress",
-            "task": "third-party-checklist-write"
-          }
+            "task": "item-third-party-checklist-write-auth"
+          },
+          "activity": [
+            {
+              "event": "updated",
+              "actor": "claude",
+              "session": "Taskprogess",
+              "session_id": "016492fa-7464-498b-9444-0e6296cd1267",
+              "at": "2026-10-25T05:56:11.948776+00:00"
+            }
+          ]
+        },
+        {
+          "id": "item-third-party-checklist-write-endpoints",
+          "title": "第 3 階段：端點探索檔與私人端點目錄，他驗確認生命週期、判活與權限",
+          "priority": 0,
+          "status": "planned",
+          "document_ref": {
+            "kind": "checklist",
+            "scope_id": "task-progress",
+            "task": "item-third-party-checklist-write-endpoints"
+          },
+          "activity": [
+            {
+              "event": "updated",
+              "actor": "claude",
+              "session": "Taskprogess",
+              "session_id": "016492fa-7464-498b-9444-0e6296cd1267",
+              "at": "2026-10-25T05:56:11.948776+00:00"
+            }
+          ]
+        },
+        {
+          "id": "item-third-party-checklist-write-roundtrip",
+          "priority": 0,
+          "title": "人工驗收外部寫入往返：外部工具經端點探索與 token 寫入，使用者能在瀏覽器改回，服務停止時寫入失敗且檔案不變",
+          "document_ref": {
+            "kind": "checklist",
+            "scope_id": "task-progress",
+            "task": "item-third-party-checklist-write-roundtrip"
+          },
+          "waits_for": [
+            {
+              "scope_id": "task-progress",
+              "task_id": "third-party-checklist-write",
+              "item_id": "item-third-party-checklist-write-auth"
+            },
+            {
+              "scope_id": "task-progress",
+              "task_id": "third-party-checklist-write",
+              "item_id": "item-third-party-checklist-write-endpoints"
+            }
+          ],
+          "status": "planned",
+          "activity": [
+            {
+              "event": "created",
+              "actor": "claude",
+              "at": "2026-10-25T05:56:25.578565+00:00",
+              "session": "Taskprogess",
+              "session_id": "016492fa-7464-498b-9444-0e6296cd1267"
+            }
+          ]
+        },
+        {
+          "id": "item-third-party-checklist-write-route",
+          "title": "第 4 階段：taskprogress-capabilities 入口表補一列，指向計畫第 6 節",
+          "priority": 0,
+          "document_ref": {
+            "kind": "checklist",
+            "scope_id": "task-progress",
+            "task": "item-third-party-checklist-write-route"
+          },
+          "status": "planned",
+          "activity": [
+            {
+              "event": "updated",
+              "actor": "claude",
+              "session": "Taskprogess",
+              "session_id": "016492fa-7464-498b-9444-0e6296cd1267",
+              "at": "2026-10-25T05:56:11.948776+00:00"
+            },
+            {
+              "event": "updated",
+              "actor": "claude",
+              "at": "2026-10-25T05:56:25.578565+00:00",
+              "session": "Taskprogess",
+              "session_id": "016492fa-7464-498b-9444-0e6296cd1267"
+            }
+          ],
+          "waits_for": [
+            {
+              "scope_id": "task-progress",
+              "task_id": "third-party-checklist-write",
+              "item_id": "item-third-party-checklist-write-auth"
+            },
+            {
+              "scope_id": "task-progress",
+              "task_id": "third-party-checklist-write",
+              "item_id": "item-third-party-checklist-write-endpoints"
+            }
+          ]
+        },
+        {
+          "id": "item-third-party-checklist-write-reset-ui",
+          "title": "人工驗收瀏覽器清空確認框：只重設人工結果、取消不發請求",
+          "priority": 0,
+          "status": "planned",
+          "document_ref": {
+            "kind": "checklist",
+            "scope_id": "task-progress",
+            "task": "item-third-party-checklist-write-reset-ui"
+          },
+          "activity": [
+            {
+              "event": "updated",
+              "actor": "claude",
+              "session": "Taskprogess",
+              "session_id": "016492fa-7464-498b-9444-0e6296cd1267",
+              "at": "2026-10-25T05:56:11.948776+00:00"
+            }
+          ]
         }
       ]
     },
