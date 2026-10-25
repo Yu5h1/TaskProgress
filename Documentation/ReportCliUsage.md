@@ -64,11 +64,11 @@ task-progress.exe report apply "C:\Project" --input changes.json
   "set": { "status": "obsolete", "retirement": { "replaced_by": { "scope_id": "<scope>", "task_id": "feature-a", "item_id": "new-step" } } } }
 ```
 
-受阻的子項以 `blocked_reason` 寫明原因，可用 `[文字](連結)` 指向阻擋它的對象；Report 的狀態膠囊會連過去，沒有連結時以提示顯示原因。子項離開受阻時，CLI 會一併移除這個欄位：
+受阻只用於 Report 追蹤不到、agent 也無法自行檢查的阻礙；等 Report 上的子項時用 `waits_for`（規則見 [Report 技能〈Maintain child items〉](../.agents/skills/task-progress-report/SKILL.md#maintain-child-items)）。受阻的子項以 `blocked_reason` 寫明原因，可用 `[文字](連結)` 指向阻擋它的對象；Report 的狀態膠囊會連過去，沒有連結時以提示顯示原因。子項離開受阻時，CLI 會一併移除這個欄位：
 
 ```json
 { "op": "item.update", "task_id": "feature-a", "item_id": "texture",
-  "set": { "status": "blocked", "blocked_reason": "等美術交付 Cat.tif" } }
+  "set": { "status": "blocked", "blocked_reason": "Unity 授權過期，等使用者更新後才能建置" } }
 ```
 
 子項的 `waits_for` 可在等待子項的項目加 `"strict": true`，表示要等到使用者人工驗收也完成；其他值一律拒絕。等待規則見 [Report 技能〈Maintain child items〉](../.agents/skills/task-progress-report/SKILL.md#maintain-child-items)。

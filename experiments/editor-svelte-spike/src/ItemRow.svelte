@@ -281,12 +281,12 @@
         </select>
       {:else if waitTargets.length === 1 && waitLinked.length === 1}
         <a class={`item-status-capsule status-${statusEntry.tone} is-link`} href={waitLinked[0].href}
-          title={statusHint ? `${statusHint}（開啟：${waitLinked[0].label}）` : `開啟狀態對象：${waitLinked[0].label}`}>{statusLabel}</a>
+          title={[`開啟狀態對象：${waitLinked[0].label}`, statusHint].filter(Boolean).join("\n")}>{statusLabel}</a>
       {:else if waitLinked.length}
         <span class="wait-menu"
           onfocusout={(event) => { if (!event.currentTarget.contains(event.relatedTarget)) waitMenuOpen = false; }}>
           <button type="button" class={`item-status-capsule status-${statusEntry.tone} is-link`}
-            title={statusHint ?? "狀態對象"} aria-haspopup="true" aria-expanded={waitMenuOpen}
+            title={["狀態對象", statusHint].filter(Boolean).join("\n")} aria-haspopup="true" aria-expanded={waitMenuOpen}
             onclick={(event) => { event.stopPropagation(); waitMenuOpen = !waitMenuOpen; }}
             onkeydown={(event) => { if (event.key === "Escape") waitMenuOpen = false; }}>{statusLabel}</button>
           {#if waitMenuOpen}

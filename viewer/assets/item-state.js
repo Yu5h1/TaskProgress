@@ -160,11 +160,44 @@ function blockedText(item) {
   return typeof item?.blocked_reason === "string" && item.blocked_reason.trim() ? item.blocked_reason : null;
 }
 
+const WAIT_REASONS = Object.freeze({
+  not_started: "尚未開始",
+  in_progress: "執行中",
+  awaiting_acceptance: "等他驗完成",
+  awaiting_user: "等使用者驗收",
+  awaiting_user_dispute: "等使用者裁定條件爭議",
+  conditions_to_revise: "驗收條件待修",
+  needs_fix: "需修正",
+  waiting: "本身也在等待其他項目",
+  blocked: "受阻",
+  checklist_open: "還有檢查未通過",
+});
+
+const REASON_NAME_LIMIT = 30;
+
+/**
+ * One line per unfinished waited target: its name without the card (the link line names the card),
+ * shortened, and what it is still waiting on.
+ */
+export function waitReasons(pendingWaits) {
+  return (pendingWaits ?? []).map((wait) => {
+    const full = textOf(wait.label);
+    const prefix = wait.card ? `${textOf(wait.card)} › ` : "";
+    const own = prefix && full.startsWith(prefix) ? full.slice(prefix.length) : full;
+    const name = own.length > REASON_NAME_LIMIT ? `${own.slice(0, REASON_NAME_LIMIT)}…` : own;
+    return `・${name}：${wait.available ? WAIT_REASONS[wait.state] ?? "尚未完成" : "無法讀取"}`;
+  });
+}
+
 /**
  * A blocked item's tooltip says why it is blocked. Without a blocked_reason, a title that links what
  * blocks it already says so; only an item with neither is marked as unexplained.
  */
 export function statusTooltip(item) {
+  if (item?.derivedState === "waiting") {
+    const reasons = waitReasons(item.pendingWaits);
+    return reasons.length ? ["等待原因：", ...reasons].join("\n") : null;
+  }
   if (!isBlocked(item)) return null;
   const reason = blockedText(item);
   if (reason) return `受阻原因：${textOf(reason)}`;

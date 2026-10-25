@@ -1,6 +1,6 @@
 import { createChecklistHttpTransport } from "./checklist-http-transport.js";
 import { createDecisionHttpTransport } from "./decision-transport.js";
-import { deriveItemState, isRetiredStatus, ITEM_STATE_META, mustRedo, waitedChecklistFacts, waitMet, waitsText } from "./item-state.js";
+import { deriveItemState, isRetiredStatus, ITEM_STATE_META, mustRedo, stateFromChecklist, waitedChecklistFacts, waitMet, waitsText } from "./item-state.js";
 import { mergeReports, reportPathForScope } from "./report-model.js";
 
 /**
@@ -150,7 +150,7 @@ async function evaluateChecklistWaits(targets, { fetchImpl, concurrency, createC
     const done = payload ? checklistWorkItemDone(payload, wait.work_item) : null;
     results.set(key, done === null
       ? { done: false, available: false, card, label, href }
-      : { done, available: true, card, label, href });
+      : { done, available: true, card, label, href, state: done ? "done" : "checklist_open" });
   }
 }
 
@@ -187,14 +187,17 @@ export async function evaluateWaitTargets(tasks, options = {}) {
       return;
     }
     const inCompleted = (task?.completed_items ?? []).includes(item);
-    let done = (item.status ?? (inCompleted ? "done" : "planned")) === "done";
+    const stored = item.status ?? (inCompleted ? "done" : "planned");
+    let done = stored === "done";
+    let state = stored === "planned" ? "not_started" : stored;
     let facts = { onlyManual: false, userFailedAt: null };
     if (normalizeDocumentRef(item.document_ref)?.kind === "checklist") {
       const evaluation = await fetchDocumentBinding(item.document_ref, { fetchImpl, ...bindingOptions });
       done = Boolean(evaluation.ok && evaluation.completed);
       if (!done) facts = waitedChecklistFacts(item, evaluation);
+      state = done ? "done" : (stateFromChecklist(item, evaluation) ?? state);
     }
-    results.set(key, { done, ...facts, available: true, card, label, href });
+    results.set(key, { done, ...facts, available: true, card, label, href, state });
   });
   return results;
 }

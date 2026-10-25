@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { deriveItemState, statusLinks, statusTooltip, waitLinks, waitsText } from "../viewer/assets/item-state.js";
+import { deriveItemState, statusLinks, statusTooltip, waitLinks, waitReasons, waitsText } from "../viewer/assets/item-state.js";
 import { checklistWorkItemDone, documentBindingKey, evaluateChecklistDocument, evaluateWaitTargets, projectTasksWithBindings, waitKey } from "../viewer/assets/document-binding.js";
 
 const check = (overrides) => ({ status: "pending", effectiveStatus: "pending", validity: "valid", ...overrides });
@@ -238,4 +238,22 @@ test("a blocked capsule opens what blocks it, or says why it is blocked", () => 
   assert.equal(statusTooltip({ id: "d", title: "x", status: "blocked" }), "受阻，原因未記錄");
   assert.equal(statusTooltip({ id: "e", title: "x", status: "planned" }), null);
   assert.equal(statusTooltip({ ...plain, derivedState: "waiting" }), null, "a derived state outranks the stored blocked");
+});
+
+test("a waiting capsule says what each waited item is still waiting on", async () => {
+  const bound = (id) => ({ id, title: id, document_ref: { kind: "checklist", scope_id: "web", task: id } });
+  const other = { tasks: [{ id: "card", title: "卡片", pending_items: [bound("accepting"), { id: "fresh", title: "新項目" }, { id: "stuck", title: "卡住", status: "blocked" }] }] };
+  const documents = { accepting: [{ status: "passed" }, { tag: "acceptance", status: "pending" }] };
+  const on = (item_id) => ({ scope_id: "web", task_id: "card", item_id });
+  const waiter = { id: "u", title: "等待者", waits_for: [on("accepting"), on("fresh"), on("stuck"), on("gone")] };
+  const evaluations = await evaluateWaitTargets([{ id: "t", pending_items: [waiter] }], {
+    fetchImpl: async () => ({ ok: true, json: async () => other }),
+    createChecklistTransport: ({ task }) => ({ load: async () => ({ document: { items: [{ checks: documents[task] }] } }) }),
+  });
+  const [task] = projectTasksWithBindings([{ id: "t", status: "in_progress", pending_items: [waiter] }], evaluations);
+  const row = task.pending_items[0];
+  assert.equal(row.derivedState, "waiting");
+  assert.deepEqual(waitReasons(row.pendingWaits), ["・accepting：等他驗完成", "・新項目：尚未開始", "・卡住：受阻", "・gone：無法讀取"]);
+  assert.equal(statusTooltip(row), "等待原因：\n・accepting：等他驗完成\n・新項目：尚未開始\n・卡住：受阻\n・gone：無法讀取");
+  assert.deepEqual(waitReasons([{ available: true, state: "in_progress", card: "C", label: `C › ${"長".repeat(40)}` }]), [`・${"長".repeat(30)}…：執行中`]);
 });
