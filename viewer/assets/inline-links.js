@@ -1,3 +1,4 @@
+import { linkSelectionHref } from "./link-selection.js";
 // Parses only inline Markdown links; all other content remains literal text.
 export function safeInlineHref(value) {
   if (!value || /[\u0000-\u0020\u007f\\]/u.test(value)) return null;
@@ -36,10 +37,10 @@ export function parseInlineLinks(value) {
  * Creates the one link element every surface uses for a parsed `[label](URL)` part.
  * `emphasis` marks links inside descriptive text, which render bold.
  */
-export function createInlineLink(doc, part, { emphasis = false } = {}) {
+export function createInlineLink(doc, part, { emphasis = false, linkTone = null } = {}) {
   const link = doc.createElement("a");
   link.className = emphasis ? "inline-link inline-link--emphasis" : "inline-link";
-  link.setAttribute("href", part.href);
+  link.setAttribute("href", linkSelectionHref(part.href, linkTone));
   link.setAttribute("rel", "noopener noreferrer");
   link.textContent = part.text;
   return link;

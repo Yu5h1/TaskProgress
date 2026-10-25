@@ -6,6 +6,8 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
 
 ## Current state (2026-09-29)
 
+- **連結帶入的選取色（2026-10-26）。** 規格與本輪驗證見 [LinkSelection](Documentation/LinkSelection.md)。來源狀態透過 `link-tone` 進入共用 CardList，載入後定位並持續顯示；取消選取後清除，重新選取恢復一般顏色。Checklist 工作項目連結另帶 `work_item`。Browser 與 Desktop bundle 已更新並發布，服務已重啟；Desktop 視窗未實測。
+
 - **子項狀態膠囊可連到相關對象（2026-10-25，`status-target-links` 已合入主線）。** `viewer/assets/item-state.js` 的 `statusLinks`：等待中連到被等的卡片或 checklist；其他狀態連到綁定的 Checklist／Decision，並保留未完成的相依對象；等待已解除但仍需重做時，以 `document-binding.js` 的 `redoTargets`（沿用 `mustRedo`）連到觸發重做的對象。單一對象直接連結，多個對象展開選單（`ItemRow.svelte`）。狀態推導規則不變；合併後在主線重建 Viewer bundle，item-state、document-binding、waiting-capsule 等 49 項測試通過。
 
 - **第三方 checklist 寫入的主要用途已釐清，計畫已更新、未實作（2026-10-25，使用者）。** [ThirdPartyChecklistWritePlan〈主要用途〉](Documentation/ThirdPartyChecklistWritePlan.md#主要用途ux-demo-的動作觸發標記)：UX demo 在使用者操作驗收對象時，由事件以 `set` 記錄 `[manual]` 那一格；只記 demo 能完整見證的格子，外觀與手感仍由使用者勾。「TaskProgress 主動讀檔案狀態」與「為外部交付寫編輯器 hook」都暫不做；等外部交付的子項改由 agent 在 plan／run 時確認（AcceptanceChainPlan〈執行與驗收〉）。第 2、3 階段的驗收與第 4 階段的入口表仍在 third-party-checklist-write 卡上。

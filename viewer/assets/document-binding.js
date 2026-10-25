@@ -145,7 +145,7 @@ async function evaluateChecklistWaits(targets, { fetchImpl, concurrency, createC
   for (const [key, wait] of targets) {
     const card = `${wait.checklist}.checklist`;
     const label = `${card} 第 ${wait.work_item} 項`;
-    const href = `/checklist/?scope=${encodeURIComponent(wait.scope_id)}&task=${encodeURIComponent(wait.checklist)}`;
+    const href = `/checklist/?scope=${encodeURIComponent(wait.scope_id)}&task=${encodeURIComponent(wait.checklist)}&work_item=${wait.work_item}`;
     const payload = loaded.get(`${wait.scope_id}:${wait.checklist}`);
     const done = payload ? checklistWorkItemDone(payload, wait.work_item) : null;
     results.set(key, done === null

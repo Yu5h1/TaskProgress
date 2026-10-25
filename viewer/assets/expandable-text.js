@@ -34,7 +34,7 @@ export function expandableText(host, options = {}) {
   function createNodes(parent) {
     parent.replaceChildren();
     return pieces.map(piece => {
-      const node = piece.href ? createInlineLink(doc, piece, { emphasis: settings.emphasis }) : doc.createElement("span");
+      const node = piece.href ? createInlineLink(doc, piece, { emphasis: settings.emphasis, linkTone: settings.linkTone }) : doc.createElement("span");
       parent.append(node);
       return node;
     });
@@ -99,11 +99,12 @@ export function expandableText(host, options = {}) {
     const text = String(next.text ?? "");
     const lines = Number.isInteger(next.lines) && next.lines > 0 ? next.lines : 2;
     const emphasis = next.emphasis === true;
-    const textChanged = !settings || settings.text !== text || settings.emphasis !== emphasis;
+    const linkTone = next.linkTone ?? null;
+    const textChanged = !settings || settings.text !== text || settings.emphasis !== emphasis || settings.linkTone !== linkTone;
     const open = next.expanded === true;
     if (textChanged || settings.lines !== lines) expanded = open;
     else if (open && !settings.open) expanded = true;
-    settings = { text, lines, open, emphasis, moreLabel: next.moreLabel ?? "…更多", lessLabel: next.lessLabel ?? "收合" };
+    settings = { text, lines, open, emphasis, linkTone, moreLabel: next.moreLabel ?? "…更多", lessLabel: next.lessLabel ?? "收合" };
     if (textChanged) {
       pieces = inlineUnits(text);
       unitCount = pieces.reduce((total, piece) => total + piece.units.length, 0);

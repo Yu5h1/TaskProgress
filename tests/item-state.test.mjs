@@ -139,7 +139,7 @@ test("a wait on a checklist work item clears only when every check in that work 
   const [waiting] = projectTasksWithBindings(tasks, pending);
   assert.equal(waiting.pending_items[0].derivedState, "waiting");
   assert.equal(waiting.pending_items[0].displayTitle,
-    "收尾　等待：[uitk-input.checklist](/checklist/?scope=unity&task=uitk-input)（1 項未完成）");
+    "收尾　等待：[uitk-input.checklist](/checklist/?scope=unity&task=uitk-input&work_item=5)（1 項未完成）");
   const [cleared] = projectTasksWithBindings(tasks, await evaluate(payload("passed")));
   assert.equal(cleared.pending_items[0].derivedState, undefined);
   const missing = await evaluate(null);

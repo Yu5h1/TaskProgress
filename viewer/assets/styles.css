@@ -3168,6 +3168,17 @@ footer {
 .card-pin:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
 .card-pin.is-pinned { color: var(--theme-accent); }
 .card-selected { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+.arrangeable-card[data-link-tone="danger"] { --link-selection-color: var(--color-danger-text); }
+.arrangeable-card[data-link-tone="warning"] { --link-selection-color: var(--color-warning-text); }
+.arrangeable-card[data-link-tone="success"] { --link-selection-color: var(--color-success-text); }
+.arrangeable-card[data-link-tone="active"] { --link-selection-color: var(--color-active-text); }
+.arrangeable-card[data-link-tone="muted"],
+.arrangeable-card[data-link-tone="neutral"] { --link-selection-color: var(--color-muted-text); }
+.arrangeable-card.card-selected[data-link-tone] {
+  outline-color: var(--link-selection-color);
+  background: color-mix(in srgb, var(--link-selection-color) 12%, transparent);
+}
+.arrangeable-card.card-selected[data-link-tone]:focus-visible { outline-color: var(--link-selection-color); }
 .card-drop-before::before, .card-drop-after::after { content: ""; position: absolute; left: 0; right: 0; height: 3px; background: var(--color-accent); pointer-events: none; z-index: 1; }
 .card-drop-before::before { top: -7px; }
 .card-drop-after::after { bottom: -7px; }

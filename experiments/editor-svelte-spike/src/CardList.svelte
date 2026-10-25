@@ -3,6 +3,7 @@
   import VisibilityMenu from "./VisibilityMenu.svelte";
   import { isCardVisible, chooseVisibility } from "../../../viewer/assets/card-visibility.js";
   import { onMount, tick } from "svelte";
+  import { createLinkSelection, readLinkSelection } from "../../../viewer/assets/link-selection.js";
   import { displayCards, orderCards, moveVisibleCard, promotePin } from "../../../viewer/assets/card-order.js";
   export let items = [];
   export let allIds = [];
@@ -50,9 +51,25 @@
   $: movable = ordered.filter(item => isCardVisible(item.id, visibilityMode, hiddenIds) && !(pinEnabled && pinnedIds.includes(item.id)));
   let order = null;
   let selected = null;
+  const linkSelection = createLinkSelection(readLinkSelection(globalThis.location?.search ?? ""));
+  let linkTone = null;
+  $: linkTone = linkSelection.selectionChanged(selected);
+  $: if (root && ordered.length) applyLinkSelection(ordered);
+  async function applyLinkSelection(cards) {
+    const request = linkSelection.claim(cards.map(item => item.id));
+    if (!request) return;
+    revealCard(request.id);
+    selected = request.id;
+    linkTone = request.tone;
+    await tick();
+    // A user cancellation during the render must not be undone by late focus.
+    if (selected !== request.id || !linkSelection.selectionChanged(selected)) return;
+    const card = [...root.querySelectorAll("[data-card-id]")].find(node => node.dataset.cardId === String(request.id));
+    card?.focus({ preventScroll: true });
+    card?.scrollIntoView({ block: "center", behavior: "instant" });
+  }
   $: onSelectionChange?.(selected);
   onMount(() => {
-    if (!onSelectionChange) return;
     const trackSelection = event => {
       const card = event.target?.closest?.(".arrangeable-card");
       if (!card || !root?.contains(card)) selected = null;
@@ -222,6 +239,7 @@
 <div class="arrangeable-cards" bind:this={root}>
   {#each ordered as item (item.id)}
     <div hidden={!isCardVisible(item.id, visibilityMode, hiddenIds)} class:card-selected={selected === item.id}
+      data-link-tone={selected === item.id ? linkTone : null}
       class:card-drop-before={target?.id === item.id && !target.after}
       class:card-drop-after={target?.id === item.id && target.after}
       class="arrangeable-card" role="group" aria-label={`${item.title}${selected === item.id ? "，已選取" : ""}`}

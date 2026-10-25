@@ -1,4 +1,5 @@
 <script>
+  import { documentLinkTarget, readLinkSelection } from "../../../viewer/assets/link-selection.js";
   // Hosts decision content in the same card and dialog components as Checklist.
   import { onMount, tick } from "svelte";
   import CardList from "./CardList.svelte";
@@ -47,8 +48,16 @@
     (decisions.some(d => d.answer) || view.dirty);
   const queuedIds = new Set();
   let activeCard = null, heldOrder = null, shell;
+  const linkRequest = readLinkSelection(globalThis.location?.search ?? "");
+  let linkedCard = linkRequest?.id ?? null;
+  let linkTargetResolved = false;
+  $: if (!linkTargetResolved && decisions.length) {
+    linkedCard = documentLinkTarget(linkRequest, decisions.map(item => item.id));
+    linkTargetResolved = true;
+  }
+  let linkedSelected = false;
   // Decided questions stack newest first behind the pending ones (Documentation/CompletedStackingPlan.md).
-  $: visibleDecisions = stackDecisions(decisions.filter(d => heldOrder ? heldOrder.includes(d.id) : selection.selected.has(d.status)));
+  $: visibleDecisions = stackDecisions(decisions.filter(d => heldOrder ? heldOrder.includes(d.id) : String(d.id) === linkedCard || selection.selected.has(d.status)));
   function releaseCard() { activeCard = null; heldOrder = null; }
   function trackCard(event) {
     const card = event.target?.closest?.(".arrangeable-card");
@@ -232,7 +241,10 @@
     {#if view.pending && !view.busy}<button onclick={() => send(null, null, true)}>{view.pending.operation === "clear_all" ? "查詢／重送清除操作" : "查詢／重送保存操作"}</button>{/if}
     {#if !visibleDecisions.length}<p>目前沒有符合條件的決策項目。</p>{/if}
     <CardList bind:this={cardList} items={visibleDecisions.map(d => ({...d,title:d.question}))} allIds={decisions.map(d => d.id)} {storageKey} {heldOrder}
-      onSelectionChange={id => { if (id === null) releaseCard(); }}
+      onSelectionChange={id => {
+        if (id !== null) linkedSelected = true;
+        if (id === null) { if (linkedSelected) linkedCard = null; releaseCard(); }
+      }}
       hiddenCount={decisions.length - visibleDecisions.length} onShowHidden={() => setSelection(createFilterSelection(["pending", "decided"]))}
       {expanded} onToggleAll={all} let:item let:visibilityEnabled let:visible let:onVisibleChange>
       <svelte:fragment slot="filters">

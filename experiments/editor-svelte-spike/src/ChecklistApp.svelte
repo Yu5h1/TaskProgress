@@ -1,4 +1,5 @@
 <script>
+  import { documentLinkTarget, readLinkSelection } from "../../../viewer/assets/link-selection.js";
   import { loadDisclosure, saveDisclosure } from "../../../viewer/assets/card-disclosure-state.js";
   import { onMount, tick } from "svelte";
 
@@ -169,13 +170,21 @@
 
   let cardList;
   let selectedCard = null;
+  const linkRequest = readLinkSelection(globalThis.location?.search ?? "");
+  let linkedCard = linkRequest?.id ?? null;
+  let linkTargetResolved = false;
+  $: if (!linkTargetResolved && view?.document.items.length) {
+    linkedCard = documentLinkTarget(linkRequest, view.document.items.map(item => item.id));
+    linkTargetResolved = true;
+  }
   let heldItems = null;
   let heldOrder = null;
   function selectCard(id) {
     if (id === selectedCard) return;
+    if (selectedCard !== null) linkedCard = null;
     selectedCard = id;
     if (id === null) { heldItems = null; heldOrder = null; return; }
-    heldItems = filterChecklistBySelection(visibleDocument(view.document), selection.selected).items;
+    heldItems = visibleItems;
     heldOrder = cardList?.orderedIds(heldItems) ?? heldItems.map(item => item.id);
   }
   let defaultExpanded = true;
@@ -267,7 +276,8 @@
         return check ? [check] : [];
       }) }] : [];
     })
-    : filterChecklistBySelection(visibleDocument(view.document), selection.selected).items : [];
+    : visibleDocument(view.document).items.flatMap(item => String(item.id) === linkedCard ? [item]
+      : filterChecklistBySelection({ items: [item] }, selection.selected).items) : [];
 
   // One marker per tagged check, cycling [ ] → [x] → [!] → [ ]. An agent's
   // acceptance record is only changed after the user confirms it.

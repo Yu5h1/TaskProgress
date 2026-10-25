@@ -5,6 +5,7 @@
   import { formatActivity } from "@editor/item-activity.js";
   import { bindLongPress } from "@editor/long-press.js";
   import { statusLinks, statusTooltip } from "@editor/item-state.js";
+  import { linkSelectionHref } from "@editor/link-selection.js";
 
   export let taskId;
   export let field;
@@ -93,7 +94,7 @@
     : statuses.find((entry) => entry.value === itemStatus) ?? { label: itemStatus, tone: "muted" };
   $: statusLabel = statusEntry.label;
   // Every status with a target shares one link/menu interaction.
-  $: waitTargets = editing ? [] : statusLinks(item);
+  $: waitTargets = editing ? [] : statusLinks(item).map(target => ({ ...target, href: linkSelectionHref(target.href, statusEntry.tone) }));
   $: waitLinked = waitTargets.filter((target) => target.href);
   $: statusHint = editing ? null : statusTooltip(item);
   let waitMenuOpen = false;
@@ -226,7 +227,7 @@
         {#if selected}<span class="item-row-selected-label">已選取</span>{/if}
         {#if item.sourceRef}
           {#if item.sourceRef.available}
-            <a class="document-source-link" href={item.sourceRef.href} title={item.sourceRef.title}>
+            <a class="document-source-link" href={linkSelectionHref(item.sourceRef.href, statusEntry.tone)} title={item.sourceRef.title}>
               <span class="source-icon" aria-hidden="true">{item.sourceRef.kind === "decision" ? "⚖" : item.sourceRef.manual ? "📋" : "🤖"}</span>
               <span class="source-label">{item.sourceRef.label}</span>
             </a>
@@ -237,7 +238,7 @@
             </span>
           {/if}
         {/if}
-        <ExpandableText text={item.displayTitle ?? item.title} lines={1} expanded={leadItem} />
+        <ExpandableText text={item.displayTitle ?? item.title} lines={1} expanded={leadItem} linkTone={statusEntry.tone} />
       </div>
 
     {/if}
