@@ -4,7 +4,7 @@
   import { copyText, itemReference } from "@editor/item-reference.js";
   import { formatActivity } from "@editor/item-activity.js";
   import { bindLongPress } from "@editor/long-press.js";
-  import { statusLinks } from "@editor/item-state.js";
+  import { statusLinks, statusTooltip } from "@editor/item-state.js";
 
   export let taskId;
   export let field;
@@ -95,6 +95,7 @@
   // Every status with a target shares one link/menu interaction.
   $: waitTargets = editing ? [] : statusLinks(item);
   $: waitLinked = waitTargets.filter((target) => target.href);
+  $: statusHint = editing ? null : statusTooltip(item);
   let waitMenuOpen = false;
   $: if (!waitLinked.length) waitMenuOpen = false;
 
@@ -280,12 +281,12 @@
         </select>
       {:else if waitTargets.length === 1 && waitLinked.length === 1}
         <a class={`item-status-capsule status-${statusEntry.tone} is-link`} href={waitLinked[0].href}
-          title={`開啟狀態對象：${waitLinked[0].label}`}>{statusLabel}</a>
+          title={statusHint ? `${statusHint}（開啟：${waitLinked[0].label}）` : `開啟狀態對象：${waitLinked[0].label}`}>{statusLabel}</a>
       {:else if waitLinked.length}
         <span class="wait-menu"
           onfocusout={(event) => { if (!event.currentTarget.contains(event.relatedTarget)) waitMenuOpen = false; }}>
           <button type="button" class={`item-status-capsule status-${statusEntry.tone} is-link`}
-            title="狀態對象" aria-haspopup="true" aria-expanded={waitMenuOpen}
+            title={statusHint ?? "狀態對象"} aria-haspopup="true" aria-expanded={waitMenuOpen}
             onclick={(event) => { event.stopPropagation(); waitMenuOpen = !waitMenuOpen; }}
             onkeydown={(event) => { if (event.key === "Escape") waitMenuOpen = false; }}>{statusLabel}</button>
           {#if waitMenuOpen}
@@ -299,7 +300,7 @@
           {/if}
         </span>
       {:else}
-        <span class={`item-status-capsule status-${statusEntry.tone}`}>{statusLabel}</span>
+        <span class={`item-status-capsule status-${statusEntry.tone}`} title={statusHint}>{statusLabel}</span>
       {/if}
     </span>
 

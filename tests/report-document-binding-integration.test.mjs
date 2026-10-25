@@ -445,3 +445,14 @@ test("a retired item names its replacement or reason, and only retired items car
   assert.ok(codes({ status: "discontinued", retirement: { reason: " " } }).includes("missing_retirement_reason"));
   assert.ok(codes({ status: "planned", retirement: { reason: "x" } }).includes("unexpected_retirement"));
 });
+
+test("blocked_reason belongs only to a blocked item", () => {
+  const report = (item) => ({
+    schema_version: "1.1", report_id: "main", scope_id: "main", title: "R", updated_at: "2026-10-25T00:00:00Z",
+    tasks: [{ id: "c", title: "C", status: "in_progress", summary: "S", pending_items: [{ id: "i", title: "I", ...item }], completed_items: [] }],
+  });
+  const codes = (item) => validateReport(report(item)).map((error) => error.code);
+  assert.deepEqual(codes({ status: "blocked", blocked_reason: "等美術交付" }), []);
+  assert.ok(codes({ status: "planned", blocked_reason: "等美術交付" }).includes("unexpected_blocked_reason"));
+  assert.ok(codes({ status: "blocked", blocked_reason: " " }).includes("invalid_blocked_reason"));
+});

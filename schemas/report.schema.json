@@ -295,6 +295,12 @@
             "discontinued"
           ]
         },
+        "blocked_reason": {
+          "$comment": "Only on a blocked item: why it is blocked. Inline [label](URL) links name what blocks it; the Report's status capsule opens them, or shows the reason as its tooltip when there is none.",
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 300
+        },
         "retirement": {
           "$comment": "Only on an obsolete or discontinued item, written by the Report CLI: obsolete names the item that replaced it, discontinued names why it was dropped.",
           "type": "object",

@@ -151,9 +151,37 @@ export function waitLinks(pendingWaits) {
   return [...links.values()];
 }
 
-/** Status capsules open their related documents and dependencies, using the same target menu. */
+function isBlocked(item) {
+  return !item?.derivedState && item?.status === "blocked";
+}
+
+/** Why a blocked item is blocked, when its blocked_reason says so. */
+function blockedText(item) {
+  return typeof item?.blocked_reason === "string" && item.blocked_reason.trim() ? item.blocked_reason : null;
+}
+
+/**
+ * A blocked item's tooltip says why it is blocked. Without a blocked_reason, a title that links what
+ * blocks it already says so; only an item with neither is marked as unexplained.
+ */
+export function statusTooltip(item) {
+  if (!isBlocked(item)) return null;
+  const reason = blockedText(item);
+  if (reason) return `受阻原因：${textOf(reason)}`;
+  return parseInlineLinks(item.title).some((part) => part.href) ? null : "受阻，原因未記錄";
+}
+
+/**
+ * Status capsules open their related documents and dependencies, using the same target menu. A
+ * blocked item opens what blocks it: the links in its blocked_reason, or in its title when no
+ * reason is written.
+ */
 export function statusLinks(item) {
-  const links = waitLinks([...(item?.pendingWaits ?? []), ...(item?.redoTargets ?? [])]);
+  const links = isBlocked(item)
+    ? parseInlineLinks(blockedText(item) ?? item.title)
+      .filter((part) => part.href)
+      .map((part) => ({ href: part.href, label: part.text }))
+    : waitLinks([...(item?.pendingWaits ?? []), ...(item?.redoTargets ?? [])]);
   // Waiting is specifically about dependencies; its own checklist is not the wait target.
   if (item?.derivedState === "waiting") return links;
   const source = item?.sourceRef;

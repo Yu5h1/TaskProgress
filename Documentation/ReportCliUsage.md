@@ -64,6 +64,13 @@ task-progress.exe report apply "C:\Project" --input changes.json
   "set": { "status": "obsolete", "retirement": { "replaced_by": { "scope_id": "<scope>", "task_id": "feature-a", "item_id": "new-step" } } } }
 ```
 
+受阻的子項以 `blocked_reason` 寫明原因，可用 `[文字](連結)` 指向阻擋它的對象；Report 的狀態膠囊會連過去，沒有連結時以提示顯示原因。子項離開受阻時，CLI 會一併移除這個欄位：
+
+```json
+{ "op": "item.update", "task_id": "feature-a", "item_id": "texture",
+  "set": { "status": "blocked", "blocked_reason": "等美術交付 Cat.tif" } }
+```
+
 子項的 `waits_for` 可在等待子項的項目加 `"strict": true`，表示要等到使用者人工驗收也完成；其他值一律拒絕。等待規則見 [Report 技能〈Maintain child items〉](../.agents/skills/task-progress-report/SKILL.md#maintain-child-items)。
 
 確認：`ok` 為 true；`changed` 表示是否實際修改。重複設定相同內容為 no-op。來源已改變時會回 revision_conflict，重新讀取並核對後再產生請求。

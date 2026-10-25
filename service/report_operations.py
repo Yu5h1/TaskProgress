@@ -20,7 +20,8 @@ class ReportError(ValueError):
 FIELDS = {
     "report.update": ({"title", "summary"}, {"summary"}),
     "task.update": ({"title", "summary", "status", "priority", "progress", "document_ref"}, {"priority", "progress", "document_ref"}),
-    "item.update": ({"title", "status", "priority", "waits_for", "retirement"}, {"priority", "waits_for", "retirement"}),
+    "item.update": ({"title", "status", "priority", "waits_for", "retirement", "blocked_reason"},
+                    {"priority", "waits_for", "retirement", "blocked_reason"}),
     "dev.update": ({"next_step", "blockers", "decisions", "routes"}, {"next_step", "blockers", "decisions", "routes"}),
 }
 
@@ -115,6 +116,18 @@ def find_item(report, task_id, item_id):
 CHECKLIST_WORK_ITEM = re.compile(r"^- \[[ x!]\] \*\*(\d+)\.", re.MULTILINE)
 DOCUMENT_STEM = re.compile(r"^[A-Za-z0-9._-]+$")
 RETIRED_STATUSES = {"obsolete", "discontinued"}
+
+
+def check_blocked_reason(item):
+    """blocked_reason belongs only to a blocked item; leaving blocked drops it."""
+    reason = item.get("blocked_reason")
+    if reason is None:
+        return
+    if item.get("status") != "blocked":
+        item.pop("blocked_reason")
+        return
+    require(isinstance(reason, str) and 0 < len(reason.strip()) <= 300,
+            "blocked_reason must be a non-empty string of at most 300 characters", "blocked_reason")
 
 
 def check_retirement(report, task_id, item, folder=None):
@@ -465,6 +478,9 @@ def apply_operations(report, overlay, operations, actor=None, at=None, folder=No
                     value.setdefault("status", "planned")
                     check_waits(report, task_id, value, folder)
                     check_retirement(report, task_id, value, folder)
+                    require(value.get("blocked_reason") is None or value["status"] == "blocked",
+                            "blocked_reason belongs only to a blocked item", "value.blocked_reason")
+                    check_blocked_reason(value)
                     stamp_new_item(value, actor, at)
                     key = "completed_items" if value["status"] == "done" else "pending_items"
                     if "position" in operation:
@@ -508,6 +524,9 @@ def apply_operations(report, overlay, operations, actor=None, at=None, folder=No
                             check_waits(report, task_id, item, folder)
                         if {"status", "retirement"} & (set(operation.get("set", {})) | set(operation.get("unset", []))):
                             check_retirement(report, task_id, item, folder)
+                        require("blocked_reason" not in operation.get("set", {}) or item.get("status") == "blocked",
+                                "blocked_reason belongs only to a blocked item", "blocked_reason")
+                        check_blocked_reason(item)
                         if without_activity(item) != before_item:
                             event = status_event(before_item.get("status"), item.get("status")) or "updated"
                             append_activity(item, activity_entry(event, actor, at))

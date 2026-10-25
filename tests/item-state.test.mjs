@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { deriveItemState, statusLinks, waitLinks, waitsText } from "../viewer/assets/item-state.js";
+import { deriveItemState, statusLinks, statusTooltip, waitLinks, waitsText } from "../viewer/assets/item-state.js";
 import { checklistWorkItemDone, documentBindingKey, evaluateChecklistDocument, evaluateWaitTargets, projectTasksWithBindings, waitKey } from "../viewer/assets/document-binding.js";
 
 const check = (overrides) => ({ status: "pending", effectiveStatus: "pending", validity: "valid", ...overrides });
@@ -218,4 +218,24 @@ test("a retired item keeps its retirement over its checklist, waits and redo, an
   assert.equal(byId.obs.derivedStateLabel, "已取代");
   assert.equal(byId.dis.derivedStateLabel, "已棄案");
   assert.equal(task.status, "done", "retired items leave the card's count like archived ones");
+});
+
+test("a blocked capsule opens what blocks it, or says why it is blocked", () => {
+  const linked = { id: "a", title: "前置條件", status: "blocked", blocked_reason: "等 [TextField](/?scope=ux&pin=controls) 與 [ScrollView](/?scope=ux&pin=collections)" };
+  assert.deepEqual(statusLinks(linked), [
+    { href: "/?scope=ux&pin=controls", label: "TextField" },
+    { href: "/?scope=ux&pin=collections", label: "ScrollView" },
+  ]);
+  assert.equal(statusTooltip(linked), "受阻原因：等 TextField 與 ScrollView");
+  const plain = { id: "b", title: "貼圖", status: "blocked", blocked_reason: "等美術交付 Cat.tif" };
+  assert.deepEqual(statusLinks(plain), []);
+  const bound = { ...plain, sourceRef: { available: true, href: "/checklist/?scope=ux&task=t", label: "Checklist", task: "t" } };
+  assert.deepEqual(statusLinks(bound), [{ href: "/checklist/?scope=ux&task=t", label: "Checklist: t" }], "a blocked bound item still opens its source");
+  assert.equal(statusTooltip(plain), "受阻原因：等美術交付 Cat.tif");
+  const legacy = { id: "c", title: "前置條件：[TextField](/?scope=ux&pin=controls)", status: "blocked" };
+  assert.deepEqual(statusLinks(legacy), [{ href: "/?scope=ux&pin=controls", label: "TextField" }], "an item without a reason links from its title");
+  assert.equal(statusTooltip(legacy), null, "a title that links its blocker needs no unexplained marker");
+  assert.equal(statusTooltip({ id: "d", title: "x", status: "blocked" }), "受阻，原因未記錄");
+  assert.equal(statusTooltip({ id: "e", title: "x", status: "planned" }), null);
+  assert.equal(statusTooltip({ ...plain, derivedState: "waiting" }), null, "a derived state outranks the stored blocked");
 });

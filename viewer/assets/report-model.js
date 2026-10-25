@@ -397,6 +397,13 @@ function validateTaskItemList(value, path, errors, ids) {
       validateDocumentRef(item.document_ref, `${itemPath}.document_ref`, errors);
     }
     validateRetirement(item, itemPath, errors);
+    if (item.blocked_reason !== undefined) {
+      if (item.status !== "blocked") {
+        errors.push(issue("unexpected_blocked_reason", `${itemPath}.blocked_reason`, `${itemPath}.blocked_reason 只能出現在受阻的子項目。`));
+      } else if (typeof item.blocked_reason !== "string" || !item.blocked_reason.trim() || item.blocked_reason.length > 300) {
+        errors.push(issue("invalid_blocked_reason", `${itemPath}.blocked_reason`, `${itemPath}.blocked_reason 必須是 1～300 字的文字。`));
+      }
+    }
     validateActivity(item.activity, `${itemPath}.activity`, errors, issue);
     if (typeof item.id === "string") {
       if (ids.has(item.id)) {

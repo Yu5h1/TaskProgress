@@ -155,6 +155,19 @@ class ReportCliTests(unittest.TestCase):
         execute(self.root, "apply", self.request([op("item", status="obsolete", retirement={"replaced_by": {"document": "design.md#設計"}})]))
         self.assertEqual(self.item()["retirement"], {"replaced_by": {"document": "design.md#設計"}})
 
+    def test_a_blocked_reason_lives_only_while_blocked(self):
+        op = lambda **values: {"op": "item.update", "task_id": "one", "item_id": "item", "set": values}
+        for operation in (op(blocked_reason="等美術交付"), op(status="blocked", blocked_reason="  ")):
+            with self.assertRaises(ReportError):
+                execute(self.root, "apply", self.request([operation]))
+        execute(self.root, "apply", self.request([op(status="blocked", blocked_reason="等 [TextField](/?scope=ux&pin=x) 達成目標")]))
+        self.assertEqual(self.item()["blocked_reason"], "等 [TextField](/?scope=ux&pin=x) 達成目標")
+        execute(self.root, "apply", self.request([op(status="in_progress")]))
+        self.assertNotIn("blocked_reason", self.item(), "leaving blocked drops the reason")
+        with self.assertRaises(ReportError):
+            execute(self.root, "apply", self.request([{"op": "item.add", "task_id": "one",
+                                                       "value": {"id": "x", "title": "X", "blocked_reason": "原因"}}]))
+
     def test_a_card_binds_only_its_own_existing_experience_record(self):
         ref = lambda **kw: {"kind": "experience", "scope_id": "sample", "task": "one", **kw}
         update = lambda value: self.request([{"op": "task.update", "task_id": "one", "set": {"document_ref": value}}])
