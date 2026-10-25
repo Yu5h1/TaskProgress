@@ -12,7 +12,7 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
 
 - **缺口與退場盤點已落實（2026-10-25）。** [GapScanPlan](Documentation/GapScanPlan.md)：盤點併入每一層的 plan，不新增動詞，UX 的盤點方法留在 cross-platform-module-spec；子項退場用 `obsolete`（`retirement.replaced_by` 指向取代的子項或設計文件）與 `discontinued`（`retirement.reason`），寫法見 task-progress-report〈Maintain child items〉。gap-scan 卡已完成。子項層級的 `archive` 仍會被時間分析計入剩餘工作，這是原本就有的行為，這次沒有改。
 
-- **Agent workflow 已結案（2026-10-25）。** 目標與規則由 [AcceptanceChainPlan〈目標與流程〉](Documentation/AcceptanceChainPlan.md#目標與流程) 擁有，執行規則在 task-progress-items、task-progress-report；Report `agent-workflow` 卡已完成，經驗與指標在 [experience/agent-workflow.md](experience/agent-workflow.md)。「一次只進行一個模組」已取消（UX `7845db5`、.agents `050b6d3`）。
+- **Agent workflow 已結案（2026-10-25）。** 目標與規則由 [AcceptanceChainPlan〈目標與流程〉](Documentation/AcceptanceChainPlan.md#目標與流程) 擁有，執行規則在 task-progress、task-progress-report；Report `agent-workflow` 卡已完成，經驗與指標在 [experience/agent-workflow.md](experience/agent-workflow.md)。「一次只進行一個模組」已取消（UX `7845db5`、.agents `050b6d3`）。
 
 - **Checklist／Decision 的 Esc 取消選取（2026-10-24）。** `CardList.svelte` 捕捉頁面 Escape，清除選取、拖曳狀態及卡片內的 DOM 焦點，避免 `:focus-visible` 留下藍框；組字中的 Escape 保留給輸入法。Decision 的 `onSelectionChange` 同步釋放保留的排序。三個 UI build 通過；瀏覽器已實測兩個面板選取卡片後按 Esc，確認 `.card-selected` 為零、焦點離開卡片且 outline 為 none。前一版只清 selected、未解除焦點，不能據此判定藍框消失。
 
@@ -22,7 +22,7 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
   - 順手修正（2026-10-24）：`report apply --input -` 讀 stdin 時去掉 BOM；先前 PowerShell 管線輸入會讓 C# 預先檢查（含「含 [acceptance] 的子項寫入要帶 session_id」）靜默略過。`decisions request` 有同樣問題，記在 `decision-example` 卡的「問題：」子項。
   - 已驗證：Node 651 中 647 通過（4 項既有格式失敗）、Checklist 372 checks、CLI 整合測試、Python report CLI 23 通過；Debug CLI 實測 `report next`：有效 Next 拒絕改寫、缺 `--actor` 拒絕、在 example 複本寫入推算的 `pages-deployment › build-deployment-artifact`。
 
-- **`/task-progress-items plan all`（2026-10-23，使用者要求）。** 對 `scope list` 的每個 scope 依序做 `plan`，各自設定 Next；讀不到或有其他 session 未 commit 的 report／decisions／checklists 時略過並說明；各 repo 依路徑分別 commit；最後彙整成一份報告。只有 `plan` 接受 `all`。寫在 task-progress-items〈Plan all scopes〉與 AcceptanceChainPlan〈命令〉；尚未實際執行過。
+- **`/task-progress plan all`（2026-10-23，使用者要求）。** 對 `scope list` 的每個 scope 依序做 `plan`，各自設定 Next；讀不到或有其他 session 未 commit 的 report／decisions／checklists 時略過並說明；各 repo 依路徑分別 commit；最後彙整成一份報告。只有 `plan` 接受 `all`。寫在 task-progress〈Plan all scopes〉與 AcceptanceChainPlan〈命令〉；尚未實際執行過。
 
 - **Agent 發布流程（2026-10-23，使用者要求）。** `Publish.cmd [--nopause] [--restart]`：先以 Winform TrayHost 新增的 `exit` 命令關閉 TaskProgress tray（與選單 Exit 同路徑），再 publish，`--restart` 成功後 `start --no-browser`。taskprogress-capabilities〈Publish and restart〉：只在 `Build/win-x64` 才生效的改動由 agent 直接發布，先告知「這次要重新建置 task-progress.exe，服務會短暫中斷，請等待重啟。」；關閉失敗請使用者從 tray Exit 一次，不得直接終止程序。README 已補參數。
   - 已驗證：服務執行中跑 `Publish.cmd --nopause --restart`，6 秒內 tray 結束、publish 成功、服務以新 PID 重新上線。EXE 這次內容未變，覆寫鎖定檔案的情況沒有實際發生。
@@ -36,28 +36,28 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
   - 已驗證：Checklist 346 checks、Python 86、Node 638（4 項既有 `active-checklist-format` 失敗）。
   - **待 Publish**：`Build/win-x64/task-progress.exe` 仍是舊版，舊 `report get` 把 checklist 等待視為未完成，該 UX 子項會顯示 `waiting`，`run` 會跳過它，直到使用者重新 Publish。
 
-- **items 技能只讀技能（2026-10-23，使用者要求）。** task-progress-items 與 task-progress-report 不再連到 AcceptanceChainPlan、NextMarkerPlan、DocumentBindingPlan、TrayWorkerPlan；規則理由只在修改規則時讀（task-progress-items 開頭寫明 Task ID）。共用索引的 agent-work-route、taskprogress-capabilities 兩列不再於 items 執行時觸發（`.agents` handoff 同步）。用法文件（ReportCliUsage、ItemReference、ItemActivityLog、CardPin、InlineReportLinks）保留為按需連結。未在實際執行上驗證。
+- **items 技能只讀技能（2026-10-23，使用者要求）。** task-progress 與 task-progress-report 不再連到 AcceptanceChainPlan、NextMarkerPlan、DocumentBindingPlan、TrayWorkerPlan；規則理由只在修改規則時讀（task-progress 開頭寫明 Task ID）。共用索引的 agent-work-route、taskprogress-capabilities 兩列不再於 items 執行時觸發（`.agents` handoff 同步）。用法文件（ReportCliUsage、ItemReference、ItemActivityLog、CardPin、InlineReportLinks）保留為按需連結。未在實際執行上驗證。
 - **Next 標記、完成堆疊與隱藏項目連結已實作（2026-10-23）。** 依 [NextMarkerPlan](Documentation/NextMarkerPlan.md)〈實作紀錄〉與 [CompletedStackingPlan](Documentation/CompletedStackingPlan.md)：report.json 頂層 `next`、CLI `next.set`／`next.clear`；Viewer 提前 Next 卡與子項（Next 卡在所有釘選卡與排序方式之上，使用者同日改定）、金色語意色 `next`、子項列長按（`viewer/assets/long-press.js`，UX Input 3.0.1）或 Shift+Enter 設定／取消；卡片 Developer 區「Next Step :」改「後續：」；Checklist 畫面的下一步連結刪除；Checklist／Decision 頁已完成集合由新到舊堆疊；三個面板清單底部「…顯示隱藏項目(N)」重設篩選。
   - 已驗證：Node 637 通過（4 項 `active-checklist-format` 既有失敗，HEAD 同樣失敗）、Python Report CLI 22 通過；Browser 實測 Report 的 Next 卡、金色 pin、Next 膠囊、Shift+Enter 設定與取消、Checklist 堆疊、Decision 頁隱藏連結。四個 UI bundle 已重建。
   - 卡片 `next-marker` 已完成（2026-10-23）：使用者實機確認通過（`next-manual-check`）；編輯模式的 Next 寫入由使用者決定不需要，子項 `next-edit-mode` 已封存。
   - 事故：本 session 為了比對 HEAD 基準，在暫存 worktree 以 junction 連到 `node_modules`，`git worktree remove --force` 把真正的 `node_modules` 內容一併刪除；已以 `npm ci --ignore-scripts` 依 lockfile 還原（46 套件），測試重跑通過。教訓：不要在 worktree 裡放指向共用資料夾的 junction。
 - **Next 標記與完成堆疊設計已定（2026-10-23）。** 第 3 題以「其他」定案，設計寫在 [NextMarkerPlan](Documentation/NextMarkerPlan.md)（Task ID `next-marker`）：scope 唯一的 Next 子項、排序最高、金色語意色、失效退回推算、覆盤重設、卡片「Next Step」改名「後續」、Checklist 的下一步一行刪除；控制項形狀待決。[CompletedStackingPlan](Documentation/CompletedStackingPlan.md)（`completed-stacking`）：Checklist／Decision 頁已完成集合由新到舊堆疊，只改顯示。兩張卡已加到 Report，均未實作。agent-workflow 卡四題全部定案。
-- **下一步流程的三個決定已落實（2026-10-23，[agent-workflow.decisions](decisions/agent-workflow.decisions) 第 1、2、4 題；AcceptanceChainPlan 已決定第 27～29 點）。** 不帶參數的 `/task-progress-items` 等同 `auto`，只評估改為 `plan`；評估先讀已答未落實的決策，低風險題採建議作答（reason「採建議，未經使用者確認」）並在回報列出；執行中發現的範圍外問題記為擁有卡上「問題：」前綴子項（AgentsRule 核心契約新增一條，AgentArtifactGuide〈Single ownership〉定形狀，`.agents` known-issues 卡解除封存）。task-progress-items〈Commands〉、〈Direct work〉、收尾回報與 agent-executable-items〈Evaluate a scope〉同步。
+- **下一步流程的三個決定已落實（2026-10-23，[agent-workflow.decisions](decisions/agent-workflow.decisions) 第 1、2、4 題；AcceptanceChainPlan 已決定第 27～29 點）。** 不帶參數的 `/task-progress` 等同 `auto`，只評估改為 `plan`；評估先讀已答未落實的決策，低風險題採建議作答（reason「採建議，未經使用者確認」）並在回報列出；執行中發現的範圍外問題記為擁有卡上「問題：」前綴子項（AgentsRule 核心契約新增一條，AgentArtifactGuide〈Single ownership〉定形狀，`.agents` known-issues 卡解除封存）。task-progress〈Commands〉、〈Direct work〉、收尾回報與 agent-executable-items〈Evaluate a scope〉同步。
   - 第 3 題（下一個模組怎麼點名）使用者改問「report 層的下一步指示是否消失」。查明：共用 NextStepCard（plan〈進度摘要與下一步卡片的共用〉，dd03994）只曾接到 Checklist 畫面，a1e5ca3（2026-09-10）改成一行「下一步 · Agent：…」連結仍在；Report 畫面從未接上，只有 report.dev.json 每張卡的 `next_step`（Developer 區「Next Step :」，未指定時隱藏），而 UX、Web 沒有 report.dev.json。題目已以 `revise` 重寫，待使用者回答。
-  - 未發布：skill 與規則是文字改動，不需重新 Publish。未驗證：新預設在真實 `/task-progress-items` 呼叫上還沒跑過。
+  - 未發布：skill 與規則是文字改動，不需重新 Publish。未驗證：新預設在真實 `/task-progress` 呼叫上還沒跑過。
   - 順手發現：`open` 重算分析後在根目錄留下 `time.analysis.json.<guid>.staging.json`，未處理，待記為「問題：」項目。
 
-- **使用者層 skill 目錄更正（2026-10-22，Gemini 反饋）。** 先前文件依 Gemini CLI 文件寫成「Codex 與 Gemini 都讀 `~\.agents\skills`」；Antigravity 實際讀 `~\.gemini\config\skills`（內建 `agy-customizations`）。Codex 讀 `~\.agents\skills`，Codex session 紀錄的 skill 根目錄 r0 為證；`~\.codex` 是它的設定家目錄。taskprogress-capabilities〈Initialize the user-level entry〉不列各工具的目錄（使用者決定：agent 只需知道自己的位置，列表會隨工具增加而膨脹）：用自己工具文件或回報的目錄、無法確認就問、只寫自己的目錄、不搬動或刪除其他位置的入口、建立後在新 session 確認工具列出才算就緒。CodexWorkflowTrial 與 task-progress-items〈Agent specifics〉（改名 Antigravity）同步。
+- **使用者層 skill 目錄更正（2026-10-22，Gemini 反饋）。** 先前文件依 Gemini CLI 文件寫成「Codex 與 Gemini 都讀 `~\.agents\skills`」；Antigravity 實際讀 `~\.gemini\config\skills`（內建 `agy-customizations`）。Codex 讀 `~\.agents\skills`，Codex session 紀錄的 skill 根目錄 r0 為證；`~\.codex` 是它的設定家目錄。taskprogress-capabilities〈Initialize the user-level entry〉不列各工具的目錄（使用者決定：agent 只需知道自己的位置，列表會隨工具增加而膨脹）：用自己工具文件或回報的目錄、無法確認就問、只寫自己的目錄、不搬動或刪除其他位置的入口、建立後在新 session 確認工具列出才算就緒。CodexWorkflowTrial 與 task-progress〈Agent specifics〉（改名 Antigravity）同步。
   - Gemini 修正時把 Codex 的入口從 `~\.agents\skills` 搬到 `~\.gemini\config\skills`（檔案時間 21:21 是 Codex 原建立時間），Codex 的入口因此消失。
-  - 下一步：Codex 在新 session 依 capabilities 重建 `~\.agents\skills\task-progress-items`，並確認技能清單列出它。
-  - 下一步：Antigravity 在新 session 確認斜線選單列出 `task-progress-items`。
+  - 下一步：Codex 在新 session 依 capabilities 重建 `~\.agents\skills\task-progress`，並確認技能清單列出它。
+  - 下一步：Antigravity 在新 session 確認斜線選單列出 `task-progress`。
 
-- **他驗資格改為「獨立驗收上下文」（2026-10-22，Codex 反饋，使用者同意）。** [AcceptanceChainPlan〈獨立驗收上下文〉](Documentation/AcceptanceChainPlan.md#獨立驗收上下文)、task-progress-items § Independent acceptance 與 checklist-round 同步：驗收者不繼承執行者的對話與推理；新的 chat、獨立 session 或不繼承父上下文的子 agent 都可擔任；`session_id` 只是身分，不證明獨立；子 agent 用自己的穩定 ID。〈Agent specifics〉新增各工具的獨立驗收方式（Codex 子 agent 須先確認該版本不繼承父歷史）。上下文獨立列入〈已知限制〉。codex-workflow-trial 的狀態與紀錄未動，由 Codex 收尾。
+- **他驗資格改為「獨立驗收上下文」（2026-10-22，Codex 反饋，使用者同意）。** [AcceptanceChainPlan〈獨立驗收上下文〉](Documentation/AcceptanceChainPlan.md#獨立驗收上下文)、task-progress § Independent acceptance 與 checklist-round 同步：驗收者不繼承執行者的對話與推理；新的 chat、獨立 session 或不繼承父上下文的子 agent 都可擔任；`session_id` 只是身分，不證明獨立；子 agent 用自己的穩定 ID。〈Agent specifics〉新增各工具的獨立驗收方式（Codex 子 agent 須先確認該版本不繼承父歷史）。上下文獨立列入〈已知限制〉。codex-workflow-trial 的狀態與紀錄未動，由 Codex 收尾。
   - 同日使用者決定建立者也不能驗收（「規劃者」就是建立者，不另設角色；代為修改條件的 session 也算建立者）。已決定第 13 點、角色表與 `auto` 流程同步：`auto` 的他驗交給不繼承上下文的子 agent。CLI 的 `ChecklistBinding` 把 `created` 的 session 一併列入不得驗收（`ExcludedAcceptors`）；代為修改條件的 session 沒有活動事件，CLI 擋不到，靠規則約束。Checklist 336 checks 通過。
 
 - **中斷恢復與重做後驗收失效（2026-10-22，回應 Codex 試跑反饋）。** 設計寫入 [AcceptanceChainPlan〈認領〉與〈寫入與記錄者〉](Documentation/AcceptanceChainPlan.md#認領)，流程紀錄八個情境已重走。
-  - 執行步驟改為「validate → 釋放 → 工作與 `report.json` 同一個提交」（task-progress-items § Execute 與 Needs-fix）。
-  - `released` 只能釋放自己的認領（`service/report_operations.py` `check_release`）；認領者已結束、工作已提交只差釋放時，經使用者同意以 `claim: "recover"` 代為釋放，不記 `takeover`（task-progress-items § Recover a stale claim）。
+  - 執行步驟改為「validate → 釋放 → 工作與 `report.json` 同一個提交」（task-progress § Execute 與 Needs-fix）。
+  - `released` 只能釋放自己的認領（`service/report_operations.py` `check_release`）；認領者已結束、工作已提交只差釋放時，經使用者同意以 `claim: "recover"` 代為釋放，不記 `takeover`（task-progress § Recover a stale claim）。
   - 標籤檢查的 `[x]` 記錄時間早於子項最近一次 `released` 時失效，validity 為 `released`（面板「需重驗：之後重新執行過」），`[!]` 不受影響。推算、`checklist request` 快照與先後規則都從綁定子項讀釋放時間。`[manual]` 失效且 `[acceptance]` 也失效時先待他驗（原本會叫使用者來驗卻寫不進去）。
   - 驗證：Checklist 335 checks、Python 84、相關 Node 110 通過，Debug build 0 warning；兩個 checklist 面板 bundle 已重建（順帶補上 67da921 未重建的 `.task-id-copy` 樣式）。發布版 `Build/win-x64` 未更新。
   - 影響：所有已登記 scope 中只有兩個試跑項目從完成變回待他驗：`acceptance-trial › trial-cross-manual`、`codex-workflow-trial › codex-trial-condition`。兩者的「驗收條件未被改動」都在之後一次釋放前通過，之後沒有重驗。
@@ -72,24 +72,24 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
   - 自驗：認領 → 釋放後完成。人工：釋放後待使用者，使用者在面板記 `[x]`（記錄者 `user`）後完成。
   - 他驗：釋放後待他驗，驗收者通過後完成。他驗＋人工：驗收者以「實作不符」退回（第二行時間比建立早 8 秒，是執行者預先取的值）→ 需修正 → 執行者認領修正、釋放 → 待他驗 → 驗收者以 `resolved` 通過 → 待使用者。
   - 條件不符：驗收者以「條件不符」退回 → 條件待修 → 建立者提交「條件修訂」後指紋失效 → 待他驗 → 驗收者接受新條件後完成。等待：前置未完成時為等待中，trial-cross 完成後轉為未開始，執行後完成。
-  - 拒絕行為實測：執行者記 `[acceptance]`、agent 記 `[manual]` `[x]`、他驗未通過前記 `[manual]`，三者都回 `type: error` 且未寫入（exit code 仍為 0，已寫進 task-progress-items）。
+  - 拒絕行為實測：執行者記 `[acceptance]`、agent 記 `[manual]` `[x]`、他驗未通過前記 `[manual]`，三者都回 `type: error` 且未寫入（exit code 仍為 0，已寫進 task-progress）。
   - 使用者隨後在面板驗收 trial-cross-manual 的 `[manual]`，六項全部完成。未試：條件爭議（`disputed`、第二次條件不符）、`run` 以子 session 逐項執行、`auto`、接手。使用者對已 `[x]` 的 trial-manual 再點一次時，只更新了 `Recorded` 的時間。
 
-- **task-progress-items 改為共用來源加使用者層入口（2026-10-22）。** 依使用者確認的流程：唯一來源 `.agents/skills/task-progress-items/SKILL.md`（共用流程，agent 差異集中在〈Agent specifics〉）；原 `.claude/skills/task-progress-items` 已刪除，避免兩份流程並存。`taskprogress-capabilities` 新增〈Initialize the user-level entry〉：依目前 agent 的使用者層 skills 目錄建立只含路由的入口（不存在才建立、相同則略過、不同或來源失效則回報衝突、不用符號連結、只初始化目前 agent、不啟動任務）。共用索引那一列改為先經 capabilities 初始化。這回答了 [CodexWorkflowTrial](Documentation/CodexWorkflowTrial.md)〈尚未決定〉的共用來源與路由位置，但採入口檔而非連結；該文件與 Codex 的 handoff 項目未改動。
+- **task-progress 改為共用來源加使用者層入口（2026-10-22）。** 依使用者確認的流程：唯一來源 `.agents/skills/task-progress/SKILL.md`（共用流程，agent 差異集中在〈Agent specifics〉）；原 `.claude/skills/task-progress` 已刪除，避免兩份流程並存。`taskprogress-capabilities` 新增〈Initialize the user-level entry〉：依目前 agent 的使用者層 skills 目錄建立只含路由的入口（不存在才建立、相同則略過、不同或來源失效則回報衝突、不用符號連結、只初始化目前 agent、不啟動任務）。共用索引那一列改為先經 capabilities 初始化。這回答了 [CodexWorkflowTrial](Documentation/CodexWorkflowTrial.md)〈尚未決定〉的共用來源與路由位置，但採入口檔而非連結；該文件與 Codex 的 handoff 項目未改動。
   - TaskProgress 的 `.claude` 資料夾整個刪除（含只放兩條 allow 規則的 `settings.local.json`），本 repo 不再有 agent 專屬 skill 資料夾。`/checklist` 經使用者決定不保留（共用來源與 Claude 入口都刪除），checklist 頁面由 Report 卡片的綁定項目或手組 URL 開啟。
-  - 同日清理：`.agents` 的 agent-executable-items 縮成只剩判斷準則（項目位置、評估、資格、形狀、單一寫入者），流程全歸 task-progress-items；共用索引只剩一列，所有 agent 都只經明確呼叫 `task-progress-items`，舊短語不啟動（AcceptanceChainPlan 第 26 點與〈入口邊界〉同步）。task-progress-report 的驗證步驟改為開啟後不讀回頁面，只告訴使用者應看到什麼。
+  - 同日清理：`.agents` 的 agent-executable-items 縮成只剩判斷準則（項目位置、評估、資格、形狀、單一寫入者），流程全歸 task-progress；共用索引只剩一列，所有 agent 都只經明確呼叫 `task-progress`，舊短語不啟動（AcceptanceChainPlan 第 26 點與〈入口邊界〉同步）。task-progress-report 的驗證步驟改為開啟後不讀回頁面，只告訴使用者應看到什麼。
   - 下一步：Codex／Antigravity 在自己的 session 依 capabilities 初始化各自的入口（目錄見本節 2026-10-22 使用者層目錄更正）。
 
 - **驗證流程選項已實作並提交（2026-10-22，feb859b）。** 依 `Documentation/AcceptanceChainPlan.md`：
   - C#：`ChecklistDocument` 登記 `[acceptance]`、`Recorded` 行（記錄者、時間、指紋、原因、次數）、寫入權限與先後、`Issues()`（沒有記錄者）、`MigrateLegacyResults`；`ChecklistBridge` 以 `--viewer` 區分面板與 agent（agent 需 `actor`／`sessionId`、需綁定子項、不得是執行者）；`checklist migrate`；`ItemStateResolver`（`report get` 加 `derived_state`、時間分析用推算完成）；`report apply` 對含 `[acceptance]` 的子項要求 `session_id`。
   - Python：`item.event`（`released` 並改回 `planned`、`disputed` 需 `note`）、保留規則、`waits_for` 與環檢查；服務的 checklist 呼叫加 `--viewer`。
   - JS／Svelte：`item-state.js`、`document-binding.js` 推算狀態與等待連結、`ItemRow` 狀態膠囊、Checklist 面板（他驗標籤、記錄者、需重驗、鎖、原因選單、只顯示我能操作的），三個 bundle 已重建。
-  - Skill：新增 task-progress-items（之後移為共用來源，見上一項）；改寫 checklist-round、task-progress-report、ItemActivityLog、`.agents` 的 agent-executable-items 與共用索引那一列、referenced-module-acceptance 連結。
+  - Skill：新增 task-progress（之後移為共用來源，見上一項）；改寫 checklist-round、task-progress-report、ItemActivityLog、`.agents` 的 agent-executable-items 與共用索引那一列、referenced-module-acceptance 連結。
   - 遷移：unity-extension 13、task-progress 35、winform 18、yu5h1lib-web 11 個結果已補 `legacy`（UX 0），各 repo 檔案未提交。HealthAI（W:）未遷移，其中數份 checklist 本來就無法解析。
   - 驗證：Checklist 311 checks、CLI pure 與各定向套件、Node 630、Python 83 全部通過；`report get` 實測輸出 `derived_state`。
   - 使用者已發布 `Build/win-x64` 並經 Tray 啟動；Winform 的遷移隨使用者的合併提交（48911cc）。端到端試跑未開始；HealthAI 未遷移。
 
-- **驗證流程選項計畫（2026-10-22）。** `Documentation/AcceptanceChainPlan.md`（Task ID `checklist-acceptance-chain`）：一個可執行項目一份 checklist，權限標籤只有不標（執行者）、`[manual]`（使用者）、`[acceptance]`（執行者以外的 agent，以 session 判定）；`[acceptance]` 結果記錄者、依賴鎖、agent 對 `[manual]` 只能標 `[!]`、撰寫者不得執行、含標籤檢查的子項由完成寫入設 `done`；Claude skill `/task-progress-items`（不帶參數評估、`<指示>`、`run`、`accept`、`auto`）觸發，未指定驗證方式時由 agent 依判斷依據選擇；只有他驗需要另一個 session；多個項目時每項開子 session，同一 scope 一次一個。2026-10-22 改以流程模擬檢查：綁定 checklist 的子項狀態改由 checklist 推算，只存認領（新增 `released`、`rejected` 事件）；標籤結果記錄記錄者與內容指紋；寫驗收條件的 session 可以執行，只要求驗收者不是執行者（條件先提交、驗收檢查改動與出處）；子項可宣告等待其他子項，推算為等待中、展開顯示連結；既有 checklist 以遷移命令補上記錄者 `legacy`，沒有記錄者的結果只讓 validate 失敗、畫面顯示需重驗；`[manual]` 等 `[acceptance]` 通過才開放；驗收者發現條件本身錯了可標「條件不符」交建立者修改、驗收者確認，談不攏才交使用者；計畫的〈流程紀錄〉有使用者流程與 Agent 流程兩份、各 8 個情境，改規則時都重走；對 Claude，`/task-progress-items` 是唯一入口，舊短語只回對應命令，共用索引那一列分開寫 Claude 與其他 agent，skill 完成時才生效。設計已定，無未決事項。未實作；實作拆成 agent-workflow 卡的 7 個子項。實作完成前，checklist-round 與 agent-executable-items 的現行規則照舊有效。
+- **驗證流程選項計畫（2026-10-22）。** `Documentation/AcceptanceChainPlan.md`（Task ID `checklist-acceptance-chain`）：一個可執行項目一份 checklist，權限標籤只有不標（執行者）、`[manual]`（使用者）、`[acceptance]`（執行者以外的 agent，以 session 判定）；`[acceptance]` 結果記錄者、依賴鎖、agent 對 `[manual]` 只能標 `[!]`、撰寫者不得執行、含標籤檢查的子項由完成寫入設 `done`；Claude skill `/task-progress`（不帶參數評估、`<指示>`、`run`、`accept`、`auto`）觸發，未指定驗證方式時由 agent 依判斷依據選擇；只有他驗需要另一個 session；多個項目時每項開子 session，同一 scope 一次一個。2026-10-22 改以流程模擬檢查：綁定 checklist 的子項狀態改由 checklist 推算，只存認領（新增 `released`、`rejected` 事件）；標籤結果記錄記錄者與內容指紋；寫驗收條件的 session 可以執行，只要求驗收者不是執行者（條件先提交、驗收檢查改動與出處）；子項可宣告等待其他子項，推算為等待中、展開顯示連結；既有 checklist 以遷移命令補上記錄者 `legacy`，沒有記錄者的結果只讓 validate 失敗、畫面顯示需重驗；`[manual]` 等 `[acceptance]` 通過才開放；驗收者發現條件本身錯了可標「條件不符」交建立者修改、驗收者確認，談不攏才交使用者；計畫的〈流程紀錄〉有使用者流程與 Agent 流程兩份、各 8 個情境，改規則時都重走；對 Claude，`/task-progress` 是唯一入口，舊短語只回對應命令，共用索引那一列分開寫 Claude 與其他 agent，skill 完成時才生效。設計已定，無未決事項。未實作；實作拆成 agent-workflow 卡的 7 個子項。實作完成前，checklist-round 與 agent-executable-items 的現行規則照舊有效。
 
 - **開啟入口一律經 Tray（2026-10-22）。** 先前只有無參數／`start` 經 TrayHost；`open`、資料夾參數（Explorer `%V`）與 `task-progress://open` 在 CLI 程序內直接以隱藏方式啟動 LocalWebService，沒有 Tray（當天實況：服務在跑、父程序已結束、無 TrayHost）。現在三者由 `Program.OpenThroughTrayAsync` 交給 TrayHost invoke，worker 用原 `OpenAsync` 執行；資料夾以完整路徑轉送；`open` 拒絕 `--port`。契約 `Documentation/TrayWorkerPlan.md#開啟入口open資料夾參數與-protocol`。未加 `--no-tray`（無使用者）。
   - 已驗證：Debug build 0 warning；`--tray-launcher-only`（新增 open 轉送、完整路徑、輸出、取消）、`--open-pin-only`、`--worker-only`、`--document-open-only` 通過。未啟動真實 Tray／服務。

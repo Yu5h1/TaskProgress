@@ -1,6 +1,6 @@
 ---
 name: taskprogress-capabilities
-description: Find the TaskProgress entrance that already exists — a CLI verb, a page the local service serves, or a documented skill — before building anything against a `.checklist` or `.decisions` file, a report, or a scope, and make sure the acting agent has its user-level TaskProgress entry (task-progress-items). Use when work in any project touches TaskProgress data, before creating a `.decisions` file to ask the user something, or before answering that some TaskProgress capability is missing.
+description: Find the TaskProgress entrance that already exists — a CLI verb, a page the local service serves, or a documented skill — before building anything against a `.checklist` or `.decisions` file, a report, or a scope, and make sure the acting agent has its user-level TaskProgress entry (task-progress). Use when work in any project touches TaskProgress data, before creating a `.decisions` file to ask the user something, or before answering that some TaskProgress capability is missing.
 ---
 
 # TaskProgress capabilities
@@ -19,7 +19,7 @@ further question.
 
 | `<NAME>` | Shared source (in this repository) | `<DESCRIPTION>` |
 |---|---|---|
-| `task-progress-items` | `.agents/skills/task-progress-items/SKILL.md` | TaskProgress executable items — evaluate a project into items, write one instruction as an item and run it, run the execution or acceptance queue, or do all of it. Use only when the user explicitly invokes task-progress-items (in Claude Code, the /task-progress-items command); answer paraphrases with the invocation instead. |
+| `task-progress` | `.agents/skills/task-progress/SKILL.md` | TaskProgress task flow — settle a goal with the user, plan a project into cards and items, write one instruction as an item and run it, run the execution or acceptance queue, or do all of it. Use only when the user explicitly invokes task-progress (in Claude Code, the /task-progress command); answer paraphrases with the invocation instead. |
 
 For each row:
 
@@ -91,7 +91,7 @@ missing. Each is cheap; none is sufficient alone.
 
 | Want | Entrance |
 |---|---|
-| Create, run or accept executable items with verification options | The acting agent's user-level `task-progress-items` entry (§ Initialize the user-level entry), which routes to [task-progress-items](../task-progress-items/SKILL.md). |
+| Create, run or accept executable items with verification options | The acting agent's user-level `task-progress` entry (§ Initialize the user-level entry), which routes to [task-progress](../task-progress/SKILL.md). |
 | Open a task card pinned to the top of its report | `task-progress.exe open --scope <scope-id> --pin <task-id>` (or a report folder). See [Update existing Report through CLI](../task-progress-report/SKILL.md#update-existing-report-through-cli). |
 | View or tick a `.checklist` round in a browser | The service's `/checklist/?scope=<scope-id>&task=<stem>` page in the Browser pane, reached as [Reaching the browser entrance from another project](#reaching-the-browser-entrance-from-another-project) says; the user normally opens it from the bound item on the Report card. Same read/write engine as the desktop host. |
 | Write, mark, or complete a round | `.agents/skills/checklist-round/SKILL.md` — the document contract. |

@@ -48,7 +48,7 @@ TaskProgress
 
 ## 已知問題
 
-1. **現行規則禁止平行。** task-progress-items〈Queues and sessions〉規定每個 scope 一次只開一個 session、做一項；agent-executable-items〈One writer per scope〉規定有 session 在寫一個 scope 時，不得把項目交給別人。不改這兩條，其他做得再多也不能平行。
+1. **現行規則禁止平行。** task-progress〈Queues and sessions〉規定每個 scope 一次只開一個 session、做一項；agent-executable-items〈One writer per scope〉規定有 session 在寫一個 scope 時，不得把項目交給別人。不改這兩條，其他做得再多也不能平行。
 2. **衝突只是延到合併。** 兩組改到同一個原始碼檔案，合併時仍會衝突。要在規劃時依「會改哪些檔案」分組（agent-work-route〈Work alongside another agent〉：依能否合併分工，不依任務分工）。
 3. **單一檔案產物無法合併。** 例如 TaskProgress 的 `viewer/assets/viewer-ui.js` 與兩個 checklist／decision bundle、lockfile：兩個分支各自重建後無法合併。
 4. **誰合併、順序與衝突。** 多組完成後由誰合併、依什麼順序、合併衝突交給誰修。
@@ -80,7 +80,7 @@ TaskProgress
 
 | 部分 | 現況（量測） | 評估 |
 |---|---|---|
-| 放寬平行規則 | 兩條規則各一段文字 | 低。改寫 task-progress-items 與 agent-executable-items |
+| 放寬平行規則 | 兩條規則各一段文字 | 低。改寫 task-progress 與 agent-executable-items |
 | 依檔案分組 | 沒有前例；agent-work-route 已有「依能否合併分工」原則 | 中，有風險：`Paths:` 宣告可能漏寫，漏掉的檔案在合併時才衝突 |
 | 分派到 worktree | Claude 桌面版已能開 worktree session（本專案在用） | Claude 低；其他 agent 要使用者手動開 session |
 | 合併 | referenced-module-acceptance 已有「驗收者合併分支、刪除 worktree」的流程 | 中。沿用該流程，加上依賴順序與產物重建 |

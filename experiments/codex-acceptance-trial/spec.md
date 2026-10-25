@@ -38,7 +38,7 @@ TaskProgress 共用任務 skill
 
 ## 本機入口
 
-確認 C:/Users/Yu5h1/.agents/skills/task-progress-items/SKILL.md 與 capabilities 模板一致、指向存在的共用來源；再次初始化不改檔。從 Web 工作目錄讀入口時，仍解析為指定的 Web scope；只做唯讀檢查，不寫 Web report。獨立 agent 回報是否在啟動技能清單看見此使用者層入口；未驗證的 UI 選單熱載入如實列出。
+確認 C:/Users/Yu5h1/.agents/skills/task-progress/SKILL.md 與 capabilities 模板一致、指向存在的共用來源；再次初始化不改檔。從 Web 工作目錄讀入口時，仍解析為指定的 Web scope；只做唯讀檢查，不寫 Web report。獨立 agent 回報是否在啟動技能清單看見此使用者層入口；未驗證的 UI 選單熱載入如實列出。
 
 ## 限制
 

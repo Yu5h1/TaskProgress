@@ -20,7 +20,7 @@ Report 要回答「現在該做哪一件事」。推算的下一步（優先級�
 1. **唯一。** 每個 scope 一個 Next，掛在子項上，存在 `report.json` 的頂層欄位 `next`（`task_id`、`item_id`）。設新的就取代舊的。跨 scope 的 Next 不做。
 2. **排最高。** Next 所在的卡排在所有卡之前，含優先級 立即（0）；Next 子項排在卡內所有子項之前。Next 是比釘選（pin）優先級更高的釘選：Next 卡在所有釘選卡之上，任何排序方式（順排、逆排、自由排序）都不改變（使用者 2026-10-23 改定）；釘選仍是瀏覽器本機視圖，排在 Next 卡之後。
 3. **失效不補位。** Next 子項推算為完成、等待中（等其他子項）或執行中（已有人在做）時失效；待使用者、待他驗、需修正、條件待修仍有效，因為還要有人接手。失效時 Viewer 不顯示 Next，也不自行推算或寫入；存著的 `next` 不變，所以項目回到未開始時自動恢復。推算只在 agent 選擇使用時發生：`report next` 依同一條規則（未完成且不是指路卡的卡片依優先級、卡內最高子項優先級與原順序，卡內子項依優先級與原順序，取第一個未封存、不在等待、沒人在做的子項；可用 `--task` 限定一張卡）寫成新的 Next。使用者取消後 `next` 為空，直到使用者或 agent 再設定（使用者 2026-10-24 改定：Viewer 自動推進會在各 scope 留下沒有價值的 report.json 改動，改為 agent 選擇性使用的 CLI 入口）。
-4. **覆盤重設。** `/task-progress-items` 評估結尾：`next` 為空或失效時，agent 依同一推算規則選一個寫入，回報「Next 已設為 …」。只在本次範圍內選：指定卡片時只在該卡內，未指定才是整個 scope；有效的 Next 不推翻，Next 子項只是執行中時也不改寫（釋放後它自動恢復）；執行某一項也不等於把它設為 Next（使用者 2026-10-23、2026-10-24）。agent 讀 `report get` 的 `next_effective` 判斷；要依規則補位時用 `report next`（指定卡片時加 `--task`），要依判斷另選時用 `next.set`。原第 3 題「下一個模組怎麼點名」併入：點名的決策子項設為 Next 即可。
+4. **覆盤重設。** `/task-progress` 評估結尾：`next` 為空或失效時，agent 依同一推算規則選一個寫入，回報「Next 已設為 …」。只在本次範圍內選：指定卡片時只在該卡內，未指定才是整個 scope；有效的 Next 不推翻，Next 子項只是執行中時也不改寫（釋放後它自動恢復）；執行某一項也不等於把它設為 Next（使用者 2026-10-23、2026-10-24）。agent 讀 `report get` 的 `next_effective` 判斷；要依規則補位時用 `report next`（指定卡片時加 `--task`），要依判斷另選時用 `next.set`。原第 3 題「下一個模組怎麼點名」併入：點名的決策子項設為 Next 即可。
 5. **寫入路徑。** Report CLI 新增 `next.set`（task_id、item_id）與 `next.clear`，帶 `actor`／`session_id`，記活動；Viewer 在預覽模式設定或取消（寫入沿用拖曳換位的先例）；編輯模式不提供，使用者 2026-10-23 決定不需要。兩邊同一個 revision 檢查；指向不存在的子項時拒絕。
 6. **語意色。** 新增第四個語意色 `next`，與完成、受阻、警告同級：自訂佈景不覆蓋。暗色約 `#d4a62a`，亮色約 `#9a6b00`（實作時以 4.5:1 對比核定）。金色與優先（1）的琥珀色相近，使用者 2026-10-23 知悉並決定保留，不另換色；Next 的辨識靠填滿的 pin 圖示與「Next」膠囊的形狀，不只靠顏色。
 7. **外觀。** 卡片的 pin 圖示在 Next 卡上以 `next` 色實心顯示（一般釘選維持現狀）；Next 子項那一行左緣 `next` 色色條，加一個 `next` 色「Next」小膠囊。不用整圈外框、不加底色。Report 頂端不另放 Next 面板：Next 卡已排在最前，金色 pin 與子項膠囊就是全部的標示（使用者 2026-10-23）。
@@ -28,7 +28,7 @@ Report 要回答「現在該做哪一件事」。推算的下一步（優先級�
 
 9. **控制項：長按。** 使用者 2026-10-23 決定：子項列依 UX 操作規範的長按（[Input](../../UX/Documentation/ModuleSpec/Foundation/Input.md) 3.0.1 INPUT-PRESS-HOLD：`holdDuration` 400ms、`dragThreshold` 6px，長按後抑制原生短按）設為 Next，對 Next 子項再長按取消；鍵盤依 INPUT-KEY-COMMAND 以 Shift+Enter 對應 `hold`。實作 `viewer/assets/long-press.js` 自 Web `src/ui/long-press.ts`（規格來源基線）移植。不另加滑過圖示。
 10. **隱藏項目連結。** 三個面板（Report、Checklist、Decision）的卡片清單底部，有被篩選標籤藏起的項目時，間距 5px、置中顯示「…顯示隱藏項目(N)」，只有文字帶底線可按，動作是重設全部篩選標籤（Report 另清空搜尋）。Report 的 N 計整張被藏的卡加上留下的卡裡被藏的子項。共用 `CardList` 實作，三個宿主各自提供數量與重設。
-11. **執行後由 agent 提出。** `/task-progress-items` 的命令（`run`、`accept`、`auto`）讓 Next 子項變成完成或等待中時，agent 在本次範圍內評估下一件該做的事（推算順序只是預設），以 `next.set` 或 `report next` 寫入並在回報說明理由；使用者以長按改掉。沒有 agent 經手時不補位。
+11. **執行後由 agent 提出。** `/task-progress` 的命令（`run`、`accept`、`auto`）讓 Next 子項變成完成或等待中時，agent 在本次範圍內評估下一件該做的事（推算順序只是預設），以 `next.set` 或 `report next` 寫入並在回報說明理由；使用者以長按改掉。沒有 agent 經手時不補位。
 
 ## 尚未決定
 
@@ -51,4 +51,4 @@ Report 要回答「現在該做哪一件事」。推算的下一步（優先級�
 - 失效：Next 子項完成、等待中或執行中時，Viewer 不顯示 Next，report.json 不被改寫；項目回到未開始時 Next 回到它身上；待使用者、待他驗時仍是有效的 Next。`report next` 對有效或執行中的 Next 拒絕改寫，對失效或清空的 Next 寫入推算出的子項；`--task` 只在該卡內選。
 - 寫入：`next.set` 指向不存在、已完成、已封存、等待中或執行中的子項被拒，Viewer 長按同樣以紅色 popup 拒絕；Viewer 設定後 report.json 多出 `next`，活動紀錄有記錄者；重設時舊 Next 消失。
 - 外觀：兩種佈景與自訂佈景下 pin 圖示與「Next」膠囊都是 `next` 色且對比達 4.5:1；卡片 Developer 區顯示「後續」，不再出現「Next Step」；Checklist 畫面沒有「下一步 · Agent」一行。
-- 覆盤：`next` 為空時執行 `/task-progress-items plan`，agent 寫入 Next 並在回報列出。
+- 覆盤：`next` 為空時執行 `/task-progress plan`，agent 寫入 Next 並在回報列出。

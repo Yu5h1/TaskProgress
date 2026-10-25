@@ -43,7 +43,7 @@ TaskProgress 共用任務 skill
 
 ## 本機入口
 
-確認 C:/Users/Yu5h1/.gemini/config/skills/task-progress-items/SKILL.md 與 capabilities 模板一致、指向存在的共用來源；再次初始化不改檔。
+確認 C:/Users/Yu5h1/.gemini/config/skills/task-progress/SKILL.md 與 capabilities 模板一致、指向存在的共用來源；再次初始化不改檔。
 
 ## 限制
 

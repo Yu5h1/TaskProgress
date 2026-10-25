@@ -1,11 +1,11 @@
 ---
-name: task-progress-items
-description: Shared procedure for TaskProgress executable items — evaluate a project into items, write one instruction as an item and run it, run the execution queue, run the acceptance queue, or do all of it. Each agent reaches it through its own user-level task-progress-items entry (created by taskprogress-capabilities § Initialize the user-level entry); read it when that entry routes here.
+name: task-progress
+description: Shared procedure for the TaskProgress task flow — settle a goal with the user, plan a project into cards and items, write one instruction as an item and run it, run the execution queue, run the acceptance queue, or do all of it. Each agent reaches it through its own user-level task-progress entry (created by taskprogress-capabilities § Initialize the user-level entry); read it when that entry routes here.
 ---
 
-# task-progress-items
+# task-progress
 
-The one shared procedure behind every agent's `task-progress-items` entry. The checklist format belongs to
+The one shared procedure behind every agent's `task-progress` entry. The checklist format belongs to
 [checklist-round](../checklist-round/SKILL.md), report writes to
 [task-progress-report](../task-progress-report/SKILL.md), and where an item lives, what to evaluate,
 what qualifies and how an item's checklist is shaped to
@@ -25,6 +25,9 @@ The scope is the project the user names, or else the project the session works i
 `report.json` `scope_id`, registered in `task-progress.exe scope list`. This skill lives in
 TaskProgress; that never makes TaskProgress the scope. Resolve `task-progress.exe` from the
 TaskProgress repository (`Build/win-x64/task-progress.exe`), not from the scope.
+
+The skill and the CLI share a name, so write each in its own form: the skill as its invocation
+(`/task-progress plan`), the CLI as `task-progress.exe`.
 
 ## Commands
 
@@ -350,9 +353,9 @@ Every report write on an item whose checklist has `[acceptance]` carries `"actor
 
 | Agent | Command syntax | `actor` | Session ID | Starting sessions | Independent acceptance context |
 |---|---|---|---|---|---|
-| Claude Code | `/task-progress-items [verb …]` (user-level skill) | `claude` | The SessionStart hook's `session_id`; if none is shown, generate one UUID and reuse it for the session | The Claude desktop app can start sessions; the plain CLI cannot | A new chat or session; or an Agent-tool sub-agent of a non-fork type, which starts without this conversation |
-| Codex | An explicit `$task-progress-items` skill mention | `codex` | The session ID the tool exposes; otherwise one generated UUID for the session | Treat as unavailable until documented | A new chat; or a sub-agent the tool starts without the parent's history, once confirmed for the version in use |
-| Antigravity | The tool's own explicit invocation of the `task-progress-items` skill | `antigravity` | The session ID the tool exposes; otherwise one generated UUID for the session | Treat as unavailable until documented | A new chat; sub-agents count once documented to start without the parent's history |
+| Claude Code | `/task-progress [verb …]` (user-level skill) | `claude` | The SessionStart hook's `session_id`; if none is shown, generate one UUID and reuse it for the session | The Claude desktop app can start sessions; the plain CLI cannot | A new chat or session; or an Agent-tool sub-agent of a non-fork type, which starts without this conversation |
+| Codex | An explicit `$task-progress` skill mention | `codex` | The session ID the tool exposes; otherwise one generated UUID for the session | Treat as unavailable until documented | A new chat; or a sub-agent the tool starts without the parent's history, once confirmed for the version in use |
+| Antigravity | The tool's own explicit invocation of the `task-progress` skill | `antigravity` | The session ID the tool exposes; otherwise one generated UUID for the session | Treat as unavailable until documented | A new chat; sub-agents count once documented to start without the parent's history |
 
 A sub-agent without a session ID of its own generates one UUID and keeps it for its acceptance
 history. No context changes its session ID to pass as another: a new ID does not make the same

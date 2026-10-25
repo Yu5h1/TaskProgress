@@ -52,7 +52,7 @@ auto：plan → 執行 → 自驗 → 他驗
 
 - **什麼時候做。** 建立卡片或子項之前，目標還沒寫下或沒經使用者確認時。目標已經寫好並確認過（規格的〈目標〉、計畫的〈問題與目標〉），引用它，不再問。
 - **要釐清什麼。** 真正的意圖（要解決什麼問題；指令描述的是做法時，先問它要達成什麼）；完成的樣子（可觀察的結果，之後成為驗收條件）；不做什麼；目標本身對不對（是否已有機制做到、有沒有更小的改動、是不是只處理了表面症狀，有破綻就在第一次回覆指出）。
-- **怎麼問。** 查得到的先查；查不到的一次問一題，附建議答案，依相依順序問（[task-progress-items〈Resolve the target〉](../.agents/skills/task-progress-items/SKILL.md#resolve-the-target)的「方向不清」一段，範圍從「方向不清時」擴大為「建立工作之前」）。跨平台模組已有同樣的步驟：[cross-platform-module-spec〈Define the goal before the specification〉](../../.agents/skills/cross-platform-module-spec/SKILL.md#define-the-goal-before-the-specification)。
+- **怎麼問。** 查得到的先查；查不到的一次問一題，附建議答案，依相依順序問（[task-progress〈Resolve the target〉](../.agents/skills/task-progress/SKILL.md#resolve-the-target)的「方向不清」一段，範圍從「方向不清時」擴大為「建立工作之前」）。跨平台模組已有同樣的步驟：[cross-platform-module-spec〈Define the goal before the specification〉](../../.agents/skills/cross-platform-module-spec/SKILL.md#define-the-goal-before-the-specification)。
 - **寫在哪裡（第 1 題）。** 卡片計畫文件的〈問題與目標〉，卡片摘要連結它；沒有計畫文件的卡片，寫在子項 checklist 的開頭說明。
 
 目標分層：專案目標（plan.md）→ 卡片目標 → 子項結果。下一層的工作都要能指出它服務上一層目標的哪一句。
@@ -73,7 +73,7 @@ plan 在每一層做同一件事：對照這一層的目標，看下一層已有
 - **專案分析。** scope 層的分析在專案目標改變時做一次，結果存成卡片；不要每次 plan 都重做。資源、技術能力等估計，只在會改變使用者的決定時才做。
 - **平行。** 多個模組、多張卡可以同時推進；兩項工作能不能同時做，依它們會改到的檔案與共用資源判斷（[WorktreeReportPlan](WorktreeReportPlan.md)）。原本「一次只進行一個模組、下一個由使用者點名」的規則已取消（使用者 2026-10-24：那是 2026-10-14 的試跑被擴大成長期規則）。
 
-**流程與方法分開。** 任務流程（釐清目標、每一層 plan 對照目標找缺口並決定直接建立或出題、拆解、驗證、驗收）歸 task-progress-items；某個領域怎麼找缺口、怎樣才算做對（例如 UX 的候選模組盤點與規格寫法）歸該領域的技能。plan 在某個 scope 找缺口時照該領域技能的方法做，產出照本節的規則處理；拆出的子項執行時也照該技能做。專業技能對不對，使用者無法從規格本身判斷，只能從結果驗收；agent 以驗收的回饋評估技能：翻案、重修、調整越少，技能越對，收尾檢討把驗收不通過的原因回寫到對應的技能（使用者 2026-10-24）。
+**流程與方法分開。** 任務流程（釐清目標、每一層 plan 對照目標找缺口並決定直接建立或出題、拆解、驗證、驗收）歸 task-progress；某個領域怎麼找缺口、怎樣才算做對（例如 UX 的候選模組盤點與規格寫法）歸該領域的技能。plan 在某個 scope 找缺口時照該領域技能的方法做，產出照本節的規則處理；拆出的子項執行時也照該技能做。專業技能對不對，使用者無法從規格本身判斷，只能從結果驗收；agent 以驗收的回饋評估技能：翻案、重修、調整越少，技能越對，收尾檢討把驗收不通過的原因回寫到對應的技能（使用者 2026-10-24）。
 
 ### 子項類型
 
@@ -147,7 +147,7 @@ plan 在每一層做同一件事：對照這一層的目標，看下一層已有
 
 題目已全部答完，依下列順序落實；本節保留情境與理由，規則由各 skill 擁有。
 
-- **task-progress-items：** 每一層 plan 的產出、等外部交付的子項怎麼寫與檢查、子項類型（含卡片結案驗收）、直接建立與決策題的分界、量與分批、經驗紀錄的寫入、收尾檢討。
+- **task-progress：** 每一層 plan 的產出、等外部交付的子項怎麼寫與檢查、子項類型（含卡片結案驗收）、直接建立與決策題的分界、量與分批、經驗紀錄的寫入、收尾檢討。
 - **agent-executable-items〈Evaluate a scope〉：** 從目標推得出的工作直接建立；評估改讀卡片的經驗紀錄，不再讀 friction log。
 - **task-progress-report：** 卡片綁定文件、摘要連結目標。
 - **cross-platform-module-spec（UX 的技能）：** 〈Select scope〉的候選盤點方法保留，供 plan 在 UX scope 找缺口時使用；拿掉「等使用者選」，改照本節的分界；〈Define the goal before the specification〉的通用確認步驟改為引用〈釐清目標〉，只留模組目標欄位、消費端證據與適配表（GapScanPlan 第 3 題）。
@@ -167,7 +167,7 @@ plan 在每一層做同一件事：對照這一層的目標，看下一層已有
 7. 每個 `[acceptance]` 與 `[manual]` 結果都記下記錄者（agent 的 session，或 `user`）與記錄當下該檢查內容的指紋。沒有記錄者的結果不算數；內容改過、指紋對不上時，結果自動失效，顯示「需重驗」。
 8. `[manual]` 檢查在規劃時就寫好初稿；執行與驗收之後，執行者與驗收者可以補上或調整得更明確。它的目的始終是「使用者能不能接受這件事完成」。
 9. 執行者與驗收者不能把 `[manual]` 標成 `[x]`，只能標 `[!]`，意思是「需要使用者再驗一次」，並在 `Observed` 寫明原因。只有使用者能標 `[x]`。
-10. 入口是一個 Claude skill，斜線命令 `/task-progress-items`（見〈命令〉）。其他工具的對齊由使用者另外處理。
+10. 入口是一個 Claude skill，斜線命令 `/task-progress`（見〈命令〉）。其他工具的對齊由使用者另外處理。
 11. 沒有指定驗證方式時，由 agent 依〈驗證方式的判斷依據〉替每一項選擇，並在回報中寫出每一項的選擇與理由。使用者想強制時，在指示前加 `self`、`manual`、`cross` 或 `cross manual`。
 12. 驗證流程只在觸發時使用，不依項目內容自動套用。現行「改動規格或程式碼時，另一個 agent 審查並寫在 handoff」的規則刪除，需要獨立驗收時改用 `[acceptance]`。
 13. 只有他驗需要獨立驗收上下文，而且只要求驗收者不是建立者或執行者。自驗與人工可以在同一個 session 規劃並執行，與過去相同。
@@ -175,7 +175,7 @@ plan 在每一層做同一件事：對照這一層的目標，看下一層已有
 15. `run`、`accept` 不帶代號時處理全部可處理的項目；帶卡片代號只處理那張卡，帶項目代號只處理那一項。
 16. 綁定 checklist 的子項，狀態一律從 checklist 推算；存起來的只有「誰認領了」。重驗出問題時，子項自動重新顯示為未完成。
 17. 標籤檢查的先後由程式判斷，不在 checklist 裡寫依賴清單：`[acceptance]` 等所有不標的工作項目完成；`[manual]` 再等所有 `[acceptance]` 通過，避免他驗不過、實作改了之後使用者白驗一次。
-18. `/task-progress-items <指示>` 建立項目後直接執行；他驗項目執行完，交給獨立驗收上下文驗收。
+18. `/task-progress <指示>` 建立項目後直接執行；他驗項目執行完，交給獨立驗收上下文驗收。
 19. 計畫保留〈流程紀錄〉，同一組情境寫兩份：〈使用者流程〉給使用者看（命令、Report 上看到什麼、輪到誰），〈Agent 流程〉給 agent 看（依哪條規則、認領與事件）。改規則時兩份都重走。
 20. 子項可以宣告它在等哪些子項（可跨 scope），推算出「等待中」；被等的全部完成後自動解除，不需要手動設受阻（AC-08）。收合時子項仍是一行，只多「等待中」標籤；展開後列出每個被等子項的連結（見〈等待〉）。
 21. 既有 checklist 一次遷移（AC-09）：替所有已登記 scope 中，已有結果卻沒有記錄者的標籤檢查補上記錄者 `legacy` 與內容指紋。遷移工具保留為命令，之後發現漏掉的舊檔也用它轉換。程式不在讀取時自動轉換，因為分不出「新規則前的舊結果」與「新規則後直接改檔案打的勾」。
@@ -183,10 +183,10 @@ plan 在每一層做同一件事：對照這一層的目標，看下一層已有
 23. 驗收者發現條件本身與原始規格對不上時，標 `[!]` 並選原因「條件不符」，交給建立者修改條件；建立者改完，由驗收者對照規格確認。建立者不同意，或驗收者不接受修改，才交給使用者決定（見〈條件不符〉）。
 24. `[acceptance]` 是執行者以外的獨立判斷，不是共識：判斷實作是否符合時，驗收者單獨決定，執行者沒有表決權；只有條件本身被質疑時，才需要建立者與驗收者取得共識，談不攏由使用者裁決。
 25. 一個子項只綁一份 checklist；其他相關的 checklist 以連結寫在子項描述裡，不綁定。
-27. 不帶參數的 `/task-progress-items` 等同 `auto`；只評估不執行改為 `plan` 動詞；帶卡片或項目代號也等同 `auto <代號>`，`plan <代號>` 只評估那張卡或回報那一項的狀態（使用者 2026-10-23，[agent-workflow.decisions](../decisions/agent-workflow.decisions) 第 1 題）。
+27. 不帶參數的 `/task-progress` 等同 `auto`；只評估不執行改為 `plan` 動詞；帶卡片或項目代號也等同 `auto <代號>`，`plan <代號>` 只評估那張卡或回報那一項的狀態（使用者 2026-10-23，[agent-workflow.decisions](../decisions/agent-workflow.decisions) 第 1 題）。
 28. 評估產生的決策題，屬低風險（可逆、不改已發布規格或設計資料、不跨 scope、不屬產品偏好）時由 agent 直接採建議作答並執行，答案的 reason 記「採建議，未經使用者確認」，回報列出；其餘等使用者。評估先讀已答但未落實的決策（第 2 題）。
 29. agent 執行、分析、評估中發現且不在本項目範圍內的問題，記為擁有卡上標題前綴「問題：」的子項（優先級 2、不綁 checklist、經 report CLI 新增）；找不到擁有 scope 的進 `.agents` 的 known-issues 卡。覆盤就是對那張卡執行評估，把「問題：」項目分到修正項目、決策題或 ruled out（第 4 題）。
-26. 對每個 agent，明確呼叫 `task-progress-items`（Claude 為 `/task-progress-items`）是啟動可執行項目流程的唯一入口（見〈入口邊界〉；2026-10-22 起其他 agent 也對齊，經各自的使用者層入口）。一般開發要求、「請繼續發展任務」等舊短語、單獨提供項目 ID，以及專案有 `checklists/`，都不構成啟動條件；讀取 checklist 或 Report 的格式與權限規則，也不等於啟動流程。
+26. 對每個 agent，明確呼叫 `task-progress`（Claude 為 `/task-progress`）是啟動可執行項目流程的唯一入口（見〈入口邊界〉；2026-10-22 起其他 agent 也對齊，經各自的使用者層入口）。一般開發要求、「請繼續發展任務」等舊短語、單獨提供項目 ID，以及專案有 `checklists/`，都不構成啟動條件；讀取 checklist 或 Report 的格式與權限規則，也不等於啟動流程。
 
 ## 一份 checklist 的樣子
 
@@ -224,14 +224,14 @@ plan 在每一層做同一件事：對照這一層的目標，看下一層已有
 scope 預設是目前所在的專案，只有需要時才另外指定。
 
 ```text
-/task-progress-items                  等同 auto：評估、做掉直接做的工作、執行、驗收
-/task-progress-items plan [卡片或項目]   只評估：建立項目並列出直接做的工作，不執行；卡片只評估這張卡；項目回報它的狀態與下一步命令
-/task-progress-items plan all            對每個已註冊 scope 依序做 plan，各自設定 Next，最後彙整成一份報告；只有 plan 能用 all（使用者 2026-10-23）
-/task-progress-items <卡片或項目>       等同 auto <卡片或項目>
-/task-progress-items <指示>            把使用者說的一件事寫成項目，接著直接執行
-/task-progress-items run [卡片或項目]    執行
-/task-progress-items accept [卡片或項目] 驗收
-/task-progress-items auto [卡片或項目]   評估、做掉直接做的工作、執行、驗收；卡片只做這張卡，項目略過評估
+/task-progress                  等同 auto：評估、做掉直接做的工作、執行、驗收
+/task-progress plan [卡片或項目]   只評估：建立項目並列出直接做的工作，不執行；卡片只評估這張卡；項目回報它的狀態與下一步命令
+/task-progress plan all            對每個已註冊 scope 依序做 plan，各自設定 Next，最後彙整成一份報告；只有 plan 能用 all（使用者 2026-10-23）
+/task-progress <卡片或項目>       等同 auto <卡片或項目>
+/task-progress <指示>            把使用者說的一件事寫成項目，接著直接執行
+/task-progress run [卡片或項目]    執行
+/task-progress accept [卡片或項目] 驗收
+/task-progress auto [卡片或項目]   評估、做掉直接做的工作、執行、驗收；卡片只做這張卡，項目略過評估
 ```
 
 - **直接做的工作**：評估發現的工作，只有之後有人或流程要讀回紀錄時才建成項目，例如需要他驗或人工驗收、有項目要等它、要交給另一個 session，或使用者要在 Report 上追蹤。機械性、看提交就能確認、沒人要追蹤的工作（搬移或改名檔案、修正連結）不建項目也不寫 checklist；一般評估只列出，每項附一句可以直接交代給 agent 的話；`auto` 由評估的 session 先做掉、逐項提交，在回報中列出，不寫進 Report（2026-10-22）。
@@ -240,16 +240,16 @@ scope 預設是目前所在的專案，只有需要時才另外指定。
 - 「卡片或項目」可以是代號、從 Viewer 複製的項目參照，或完全相同的卡名／項目名（不分大小寫）。只部分符合某個名稱，或同名不只一個時，列出候選與代號後停下，不建立任何項目，避免打錯的卡名變成新項目（2026-10-22）。
 
 - 「指示」是一句描述具體工作的話，例如「修正 NumericField 越界時沒有提示」。agent 判斷它屬於哪張卡，新增項目、寫好 checklist 並提交，然後在同一個 session 執行。驗證方式含他驗時，執行完交給獨立驗收上下文：能開不繼承上下文的子 agent 就由它執行 `accept <項目代號>`，否則告訴使用者在新的 chat 執行。
-- 在指示前加 `self`、`manual`、`cross` 或 `cross manual` 可以強制驗證方式，例如 `/task-progress-items cross 修正 X`。平常不加。
+- 在指示前加 `self`、`manual`、`cross` 或 `cross manual` 可以強制驗證方式，例如 `/task-progress cross 修正 X`。平常不加。
 - 評估的回報要列出每一項選了哪種驗證方式與理由。
 
 ### 入口邊界
 
-- 對每個 agent，只有明確呼叫 `task-progress-items` 會建立項目、認領、執行或啟動驗收。
-- 使用者用了舊短語（「請繼續發展任務」「請評估 <scope> 並建立可執行項目」「請執行 <scope> report 的可執行項目」等）時，agent 不啟動流程，回一句對應的命令，例如「要評估並建立項目，請用 `/task-progress-items`」，讓使用者知道沒有被忽略。
+- 對每個 agent，只有明確呼叫 `task-progress` 會建立項目、認領、執行或啟動驗收。
+- 使用者用了舊短語（「請繼續發展任務」「請評估 <scope> 並建立可執行項目」「請執行 <scope> report 的可執行項目」等）時，agent 不啟動流程，回一句對應的命令，例如「要評估並建立項目，請用 `/task-progress`」，讓使用者知道沒有被忽略。
 - 一般開發要求照一般方式處理，不因專案有 `checklists/` 就建立 checklist 或項目。
 - 直接操作既有 checklist 或 Report（例如調整某份 checklist 的步驟）時，照該文件的格式、寫入權限與驗證規則處理；載入這些規則不授權建立項目、執行工作或啟動驗收。
-- 共用索引 `.agents/AgentsKnowledgeIndex.md` 只有一列路由可執行項目：所有 agent 先經 taskprogress-capabilities 確認使用者層入口，再由入口讀共用的 task-progress-items；舊短語不啟動任何 agent 的流程。`agent-executable-items` 只留項目的判斷準則（位置、評估、資格、形狀），不再是流程入口（2026-10-22）。
+- 共用索引 `.agents/AgentsKnowledgeIndex.md` 只有一列路由可執行項目：所有 agent 先經 taskprogress-capabilities 確認使用者層入口，再由入口讀共用的 task-progress；舊短語不啟動任何 agent 的流程。`agent-executable-items` 只留項目的判斷準則（位置、評估、資格、形狀），不再是流程入口（2026-10-22）。
 - 生效時機：skill 完成（實作項目第 6 項）時才一起改索引與舊 skill；在那之前現有入口照常可用，避免中間有一段時間叫不動任何流程。
 
 ### 驗證方式
@@ -399,7 +399,7 @@ scope 預設是目前所在的專案，只有需要時才另外指定。
 
 ## 流程紀錄
 
-同一組情境寫兩份，編號互相對應：〈使用者流程〉給使用者看，寫命令、Report 上看到什麼、輪到誰；〈Agent 流程〉給 agent 看，寫每一步依哪條規則、認領與事件怎麼變。改規則時兩份都要重走一遍，確認每一步都有規則可依、沒有兩條規則衝突。`/task-progress-items` skill 實作後，Agent 流程的操作步驟由 skill 擁有，這裡只留情境與對應規則。
+同一組情境寫兩份，編號互相對應：〈使用者流程〉給使用者看，寫命令、Report 上看到什麼、輪到誰；〈Agent 流程〉給 agent 看，寫每一步依哪條規則、認領與事件怎麼變。改規則時兩份都要重走一遍，確認每一步都有規則可依、沒有兩條規則衝突。`/task-progress` skill 實作後，Agent 流程的操作步驟由 skill 擁有，這裡只留情境與對應規則。
 
 ### 使用者流程
 
@@ -407,13 +407,13 @@ scope 預設是目前所在的專案，只有需要時才另外指定。
 
 #### 1. 自驗
 
-1. 你：`/task-progress-items 修正 X`。
+1. 你：`/task-progress 修正 X`。
 2. Agent 分析任務，在對應的卡片建立子項，綁定一份 checklist（只有自驗檢查），接著執行並自驗。
 3. Report：子項顯示「執行中」，自驗全部通過後顯示「完成」。
 
 #### 2. 人工
 
-1. 你：`/task-progress-items 修正 X`，agent 評估需要人工驗收（或你加了 `manual`）。
+1. 你：`/task-progress 修正 X`，agent 評估需要人工驗收（或你加了 `manual`）。
 2. Agent 建立子項，checklist 含自驗檢查與 `[manual]` 初稿；執行、自驗，並補上 `[manual]` 的連結。
 3. Report：子項顯示「待使用者」。
 4. 你：開啟子項的 checklist，照連結逐項驗收。
@@ -422,10 +422,10 @@ scope 預設是目前所在的專案，只有需要時才另外指定。
 
 #### 3. 他驗
 
-1. 你：`/task-progress-items 修正 X`，agent 評估需要他驗（或你加了 `cross`）。
+1. 你：`/task-progress 修正 X`，agent 評估需要他驗（或你加了 `cross`）。
 2. Agent A 建立子項，checklist 含自驗檢查與寫明規格出處的 `[acceptance]` 條件，先提交，再執行、自驗。
 3. Report：子項顯示「待他驗」。A 能開不繼承上下文的子 agent 時交給它驗收；不能時提示你開新的 chat 驗收。
-4. 你（需要時）：在新的 chat 執行 `/task-progress-items accept`。
+4. 你（需要時）：在新的 chat 執行 `/task-progress accept`。
 5. Agent B 對照規格驗收：
    - 通過 → Report 顯示「完成」。
    - 實作不符 → 顯示「需修正」；`run` 修正後回到「待他驗」，B 重驗，包括先前通過的項目。
@@ -448,10 +448,10 @@ scope 預設是目前所在的專案，只有需要時才另外指定。
 
 #### 6. 評估整個專案
 
-1. 你：`/task-progress-items plan`。Agent 評估，建立多個子項，回報每一項選了哪種驗證方式與理由；不執行。低風險的決策題 agent 已採建議作答並在回報列出，你不同意就在決策頁改答案。
-2. 你：`/task-progress-items run`。能開子 session 時，每項一個子 session，依序執行；不能開時做完一項就停，列出下一個候補。
+1. 你：`/task-progress plan`。Agent 評估，建立多個子項，回報每一項選了哪種驗證方式與理由；不執行。低風險的決策題 agent 已採建議作答並在回報列出，你不同意就在決策頁改答案。
+2. 你：`/task-progress run`。能開子 session 時，每項一個子 session，依序執行；不能開時做完一項就停，列出下一個候補。
 3. 有他驗的項目：Report 顯示「待他驗」，由獨立驗收上下文執行 `accept`；agent 不能開不繼承上下文的子 agent 時，你在新的 chat 執行。
-4. `/task-progress-items auto`（不帶參數時的預設）等於第 1、2 步連續做完；原本的 session 建立了這些項目，所以不自己驗收，他驗交給不繼承上下文的子 agent，不能開時留給你在新的 chat 執行。
+4. `/task-progress auto`（不帶參數時的預設）等於第 1、2 步連續做完；原本的 session 建立了這些項目，所以不自己驗收，他驗交給不繼承上下文的子 agent，不能開時留給你在新的 chat 執行。
 
 #### 7. 等待
 
@@ -545,8 +545,8 @@ A、B、C 代表不同的 session；「推算」指〈子項狀態（推算）�
 | `[manual]` 檢查必須另開檔案，每個頁面一份，各綁一個子項；agent 那一輪完成後才建立，檔案存在就代表可以開始人工驗收 | checklist-round 的 Manual checklists；agent-executable-items 的 Run an item 第 5 步 | `[manual]` 在規劃時寫進同一份 checklist，執行後再調整 |
 | 使用者正在操作的工具，能看到整個 `Expect` 時可以代記人工結果 | checklist-round 的 Recording manual results | agent 一律只能記 `[!]` |
 | 改動規格或程式碼的項目由另一個 agent 審查 diff，結果寫在 handoff | agent-executable-items 的 Run an item 第 4 步 | 刪除；需要時選他驗 |
-| 觸發表按意思比對短語 | agent-executable-items 的 Trigger phrases | Claude 以 `/task-progress-items` 與參數觸發；其他 agent 沿用短語（〈入口邊界〉） |
-| 「請評估…」「請繼續發展任務」「請執行…」等短語路由到 agent-executable-items，所有 agent 共用 | `.agents/AgentsKnowledgeIndex.md` 的可執行項目那一列 | 分開寫明 Claude 只經 `/task-progress-items`，其他 agent 沿用現有短語 |
+| 觸發表按意思比對短語 | agent-executable-items 的 Trigger phrases | Claude 以 `/task-progress` 與參數觸發；其他 agent 沿用短語（〈入口邊界〉） |
+| 「請評估…」「請繼續發展任務」「請執行…」等短語路由到 agent-executable-items，所有 agent 共用 | `.agents/AgentsKnowledgeIndex.md` 的可執行項目那一列 | 分開寫明 Claude 只經 `/task-progress`，其他 agent 沿用現有短語 |
 | 執行佇列在同一個 session 依序跑完所有 🤖 項目 | agent-executable-items 的 Trigger phrases | 依〈一次處理多個項目〉 |
 | 執行者做完把子項設為 `done` | agent-executable-items 的 Run an item 第 3 步 | 綁定 checklist 的子項狀態由推算決定，執行者只認領與釋放 |
 | 活動紀錄除 `created` 外只留最近 3 筆；事件只有 `created`、`started`、`updated`、`done`、`takeover` | ItemActivityLog | 新增 `released`、`disputed`，保留規則見〈認領〉 |
@@ -572,7 +572,7 @@ A、B、C 代表不同的 session；「推算」指〈子項狀態（推算）�
 3. `acceptance-report-cli`：Report CLI 與活動紀錄。`released`、`disputed` 事件（`item.event`）與保留規則（Python、JS、schema 三處）；他驗流程缺 `session_id` 拒絕；狀態推算在 C#（`report get` 的 `derived_state`、時間分析）與 JS（Viewer）兩處一致。Python 不解析 checklist Markdown，所以不另做一份。
 4. `acceptance-checklist-panel`：Checklist 面板。標籤與記錄者顯示、標籤檢查鎖、`[acceptance]` 覆寫確認、只顯示我能操作的檢查。
 5. `acceptance-viewer-states`：Report 子項顯示八種推算狀態。
-6. `acceptance-skills`：skill。改寫 checklist-round、agent-executable-items 與 ItemActivityLog（依〈取代的現行規則〉）；新增 Claude skill `/task-progress-items`；同時改共用索引的可執行項目那一列，並檢查 Claude 可達的其他路由不會繞過入口（〈入口邊界〉）。
+6. `acceptance-skills`：skill。改寫 checklist-round、agent-executable-items 與 ItemActivityLog（依〈取代的現行規則〉）；新增 Claude skill `/task-progress`；同時改共用索引的可執行項目那一列，並檢查 Claude 可達的其他路由不會繞過入口（〈入口邊界〉）。
 7. `item-waits`：等待。子項的等待欄位（schema、Report CLI 寫入、環的拒絕）、跨 scope 讀取被等子項的狀態、等待中的推算與畫面（收合標籤、展開後的連結）。
 8. `checklist-legacy-migrate`：遷移。遷移命令；新規則上線時，對所有已登記 scope 執行一次（2026-10-22 統計 UX、Web、TaskProgress 有 27 份 checklist、46 個 `[manual]` 結果，其餘 scope 執行前再統計）；執行前檢查各 repo 是否有他人未提交的工作，只提交遷移改到的檔案。
 9. `acceptance-flow-trial`：端到端試跑，照〈流程紀錄〉的情境各走一次。

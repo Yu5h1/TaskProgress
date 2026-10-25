@@ -23,15 +23,15 @@ TaskProgress
 
 ## 共用設計
 
-流程本體由 TaskProgress 維護，唯一來源為 `.agents/skills/task-progress-items/`。各 agent 的命令語法、actor、session 身分取得與子 session 能力分開說明，共用流程不寫死 Claude hook 或命令語法。
+流程本體由 TaskProgress 維護，唯一來源為 `.agents/skills/task-progress/`。各 agent 的命令語法、actor、session 身分取得與子 session 能力分開說明，共用流程不寫死 Claude hook 或命令語法。
 
 本機路由採使用者層入口文件，不使用符號連結：
 
 | 入口 | 目的地或用途 |
 |---|---|
-| `C:\Users\Yu5h1\.agents\skills\task-progress-items` | 入口文件指向本專案共用 skill，供 Codex 發現 |
-| `C:\Users\Yu5h1\.claude\skills\task-progress-items` | 入口文件指向同一份 skill，保留 Claude 的命令入口 |
-| `C:\Users\Yu5h1\.gemini\config\skills\task-progress-items` | 入口文件指向同一份 skill，供 Antigravity 發現 |
+| `C:\Users\Yu5h1\.agents\skills\task-progress` | 入口文件指向本專案共用 skill，供 Codex 發現 |
+| `C:\Users\Yu5h1\.claude\skills\task-progress` | 入口文件指向同一份 skill，保留 Claude 的命令入口 |
+| `C:\Users\Yu5h1\.gemini\config\skills\task-progress` | 入口文件指向同一份 skill，供 Antigravity 發現 |
 
 Codex 官方文件列出使用者層 `.agents/skills`，Codex 的 session 紀錄也列它為 skill 根目錄 r0，因此不需要 `.codex/skills` 副本（那裡只有 Codex 內建的 `.system`）。Antigravity 不讀 `.agents/skills`，它的使用者層目錄是 `.gemini/config/skills`；先前依 Gemini CLI 文件寫成「Gemini 也支援 `.agents/skills`」是錯的，Gemini CLI 與 Antigravity 是不同產品。各 agent 依自己工具的文件決定自己的目錄，見 [taskprogress-capabilities〈Initialize the user-level entry〉](../.agents/skills/taskprogress-capabilities/SKILL.md#initialize-the-user-level-entry)。安裝時須確認現有同名入口與實際工具版本，保留既有內容，不覆蓋其他 agent 的檔案。
 

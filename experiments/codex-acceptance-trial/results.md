@@ -1,6 +1,6 @@
 # Codex 共用任務 skill 試跑結果
 
-本輪由使用者明確呼叫 task-progress-items auto 處理 codex-workflow-trial。條件與綁定先在 5028820 提交，執行者為 codex:365a4d62-02ee-4e28-9da7-63783c089d24；獨立驗收 agent 為 codex:887a8491-503f-416d-862a-6cba624dd45e。同一 scope 逐段交接，沒有同時寫入。
+本輪由使用者明確呼叫 task-progress auto 處理 codex-workflow-trial。條件與綁定先在 5028820 提交，執行者為 codex:365a4d62-02ee-4e28-9da7-63783c089d24；獨立驗收 agent 為 codex:887a8491-503f-416d-862a-6cba624dd45e。同一 scope 逐段交接，沒有同時寫入。
 
 ## 六情境結果
 
@@ -25,13 +25,13 @@
 
 ## 使用者層入口
 
-建立 C:/Users/Yu5h1/.agents/skills/task-progress-items/SKILL.md，內容與 capabilities 模板逐字一致，只有路由；重複檢查保持雜湊不變。獨立 agent 啟動時的技能清單自動出現使用者入口（r0），也出現專案共用來源（r11）；兩個同名項目的來源已明確記錄，未自行移除任何入口。
+建立 C:/Users/Yu5h1/.agents/skills/task-progress/SKILL.md，內容與 capabilities 模板逐字一致，只有路由；重複檢查保持雜湊不變。獨立 agent 啟動時的技能清單自動出現使用者入口（r0），也出現專案共用來源（r11）；兩個同名項目的來源已明確記錄，未自行移除任何入口。
 
 實際以 Web 為工作目錄唯讀執行 report get，scope_id 為 yu5h1lib-web；入口仍解析到 TaskProgress 的共用來源，沒有改寫 Web report。
 
 ## 獨立驗收資格與收尾
 
-依更新後 task-progress-items § Independent acceptance 與 AcceptanceChainPlan〈獨立驗收上下文〉核對：本輪驗收 agent 以 fork_turns="none" 啟動，未繼承父對話歷史，也未參與項目建立、實作或條件修訂；它自行對照原始規格與提交紀錄，並曾以條件不符退回。因此它符合獨立驗收上下文要求，無須另開 Codex chat；UUID 只記錄身分，並不作為獨立性的證明。
+依更新後 task-progress § Independent acceptance 與 AcceptanceChainPlan〈獨立驗收上下文〉核對：本輪驗收 agent 以 fork_turns="none" 啟動，未繼承父對話歷史，也未參與項目建立、實作或條件修訂；它自行對照原始規格與提交紀錄，並曾以條件不符退回。因此它符合獨立驗收上下文要求，無須另開 Codex chat；UUID 只記錄身分，並不作為獨立性的證明。
 
 新增的「釋放使舊通過結果失效」規則讓 codex-trial-condition 的第一筆驗收顯示 validity=released、derived_state=awaiting_acceptance。原獨立驗收者依新規範重新檢查原始規格與提交紀錄，以相同穩定身分透過 CLI 記錄，提交 b75bba0；兩項 acceptance 均為 validity=valid，子項恢復 done。既有 Observed 與 Resolved 保留，沒有修改驗收標準或產物。
 

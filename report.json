@@ -3,14 +3,14 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-10-25T05:56:25.578565+00:00",
+  "updated_at": "2026-10-25T06:51:43.476104+00:00",
   "tasks": [
     {
       "id": "gap-scan",
       "title": "專案缺口與退場盤點",
       "status": "done",
       "priority": 1,
-      "summary": "已完成（2026-10-25）：缺口與退場盤點併入每一層的 plan（task-progress-items），UX 的盤點方法留在 cross-platform-module-spec；子項新增退場狀態 obsolete（指向取代的子項或設計文件）與 discontinued（附理由），經獨立驗收通過。卡片目標見 [問題與目標](https://github.com/Yu5h1/TaskProgress/blob/main/Documentation/GapScanPlan.md#問題與目標)。",
+      "summary": "已完成（2026-10-25）：缺口與退場盤點併入每一層的 plan（task-progress），UX 的盤點方法留在 cross-platform-module-spec；子項新增退場狀態 obsolete（指向取代的子項或設計文件）與 discontinued（附理由），經獨立驗收通過。卡片目標見 [問題與目標](https://github.com/Yu5h1/TaskProgress/blob/main/Documentation/GapScanPlan.md#問題與目標)。",
       "pending_items": [
         {
           "id": "gap-scan-decisions",
@@ -97,7 +97,7 @@
       "id": "agent-workflow",
       "title": "優化 agent workflow",
       "status": "done",
-      "summary": "已結案（2026-10-25，使用者結案驗收通過）：使用者確認目標與驗收、agent 跑完中間的流程已落實在 task-progress-items、task-progress-report、Report CLI 與 Viewer，並以九項端到端試跑驗證；卡片目標見 [目標與流程](https://github.com/Yu5h1/TaskProgress/blob/main/Documentation/AcceptanceChainPlan.md#目標與流程)，經驗與指標在 experience/agent-workflow.md。",
+      "summary": "已結案（2026-10-25，使用者結案驗收通過）：使用者確認目標與驗收、agent 跑完中間的流程已落實在 task-progress、task-progress-report、Report CLI 與 Viewer，並以九項端到端試跑驗證；卡片目標見 [目標與流程](https://github.com/Yu5h1/TaskProgress/blob/main/Documentation/AcceptanceChainPlan.md#目標與流程)，經驗與指標在 experience/agent-workflow.md。",
       "pending_items": [
         {
           "document_ref": {
@@ -2755,7 +2755,7 @@
       "id": "acceptance-trial",
       "title": "驗證流程試跑",
       "status": "in_progress",
-      "summary": "用六個無害的小項目試跑 /task-progress-items：每項產物都寫在 experiments/acceptance-trial/，依 spec.md 驗收，試跑結束後可整張封存並刪除該資料夾。",
+      "summary": "用六個無害的小項目試跑 /task-progress：每項產物都寫在 experiments/acceptance-trial/，依 spec.md 驗收，試跑結束後可整張封存並刪除該資料夾。",
       "pending_items": [
         {
           "id": "trial-self",

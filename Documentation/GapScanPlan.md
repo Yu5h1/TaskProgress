@@ -2,7 +2,7 @@
 
 > Task ID: gap-scan
 >
-> 狀態：已決定；第 7 題的退場狀態已實作（gap-scan 卡 `retirement-states`），盤點規則已寫進 task-progress-items。問題由使用者提出（2026-10-24）；同日 [AcceptanceChainPlan〈目標與流程〉](AcceptanceChainPlan.md#目標與流程)定案後，盤點併入每一層的 plan，第 1、2、4～6 題依該節作答，第 3、7 題由使用者決定，全部記在 [gap-scan.decisions](../decisions/gap-scan.decisions)。
+> 狀態：已決定；第 7 題的退場狀態已實作（gap-scan 卡 `retirement-states`），盤點規則已寫進 task-progress。問題由使用者提出（2026-10-24）；同日 [AcceptanceChainPlan〈目標與流程〉](AcceptanceChainPlan.md#目標與流程)定案後，盤點併入每一層的 plan，第 1、2、4～6 題依該節作答，第 3、7 題由使用者決定，全部記在 [gap-scan.decisions](../decisions/gap-scan.decisions)。
 >
 > 與其他文件的關係：流程與分工由〈目標與流程〉擁有，本計畫只負責盤點的來源、證據與退場；評估的現行規則在 [agent-executable-items〈Evaluate a scope〉](../../.agents/skills/agent-executable-items/SKILL.md#evaluate-a-scope)；跨平台模組的候選盤點在 [cross-platform-module-spec〈Select scope〉](../../.agents/skills/cross-platform-module-spec/SKILL.md#select-scope)（UX 的盤點方法，plan 在 UX scope 照它做，見第 3 題）。
 
@@ -22,7 +22,7 @@ plan（每一層做同一件事：對照這一層的目標）
 
 ## 問題與目標
 
-**問題。** 用 `/task-progress-items` 評估時，agent 只會從已經排定的工作裡找項目，不會發現專案還缺什麼。例如 Web 有某個功能、UX 還沒有對應規格，除非使用者明確說「把 ## 整合進 UX」，否則沒有人會提出；就算寫出規格，也不會自動有任務卡和子項，要再評估一次才會出現。
+**問題。** 用 `/task-progress` 評估時，agent 只會從已經排定的工作裡找項目，不會發現專案還缺什麼。例如 Web 有某個功能、UX 還沒有對應規格，除非使用者明確說「把 ## 整合進 UX」，否則沒有人會提出；就算寫出規格，也不會自動有任務卡和子項，要再評估一次才會出現。
 
 **目標。** plan 從計畫目標、規格與各平台實作、其他專案提出的需求等來源找出缺口，依〈目標與流程〉的分界直接建立或交給使用者，接上現有的「評估 → 執行 → 驗收」流程。
 
@@ -38,7 +38,7 @@ plan（每一層做同一件事：對照這一層的目標）
 - **缺口發現只有一個零散入口。** cross-platform-module-spec〈Select scope〉的「整個庫的候選盤點」：列一張表（能力、使用情境、實作證據、現有涵蓋、相依、建議範圍），等使用者選。限制：
   - 只涵蓋跨平台模組；規格只做到一半、某平台還沒實作、計畫目標沒人負責等缺口不在範圍內。
   - 結果是對話裡的一張表，選定後寫進擁有者的計畫，不產生決策題、卡片或子項。
-  - 不能從 task-progress-items 啟動，要另外下「把 ## 整合進 UX」。
+  - 不能從 task-progress 啟動，要另外下「把 ## 整合進 UX」。
 - **選定後的銜接已經存在。** 規格目標一旦寫好，評估會讀到「規格目前的目標」並建立子項；scope 沒有對應卡片時，評估會為這項工作建一張卡。
 - **一般子項沒有退場路徑。** 評估對既有子項只規定「不重建」；只有「問題：」子項會被評估轉成修正、決策題或已排除方向。task-progress-report 規定 `archive` 只用於明確的退場決定，agent 不能自行封存。
 - **退場理由沒有地方放。** `archive` 同時代表「留作歷史」與「不做了」，Report 上分不出正常收尾和被推翻。實例：`next-marker › next-edit-mode` 由使用者決定不需要後封存；頂端 Next 面板被推翻只記在 handoff 的已排除方向；handoff 裡「先修正既有項目的狀態推算」在項目完成後仍留著。
@@ -49,7 +49,7 @@ plan（每一層做同一件事：對照這一層的目標）
 
 - **第 1 題：範圍。** 完成專案目標需要的任何工作都在範圍內：模組、規格、平台實作、計畫目標、文件、驗證，不限程式開發；程式品質類（測試缺口、TODO、過時文件）只在目標需要時列入。
 - **第 2 題：跨 scope。** `plan all` 跨所有 scope，每個 scope 只做淺層盤點（缺口、退場候選、Next），往下拆只對指定的範圍。
-- **第 3 題：流程與方法的分工。** 候選盤點的方法（怎麼盤點候選模組、什麼算一個模組、要看哪些證據）是 UX 的方法，留在 cross-platform-module-spec；plan 在 UX scope 找缺口時照它做，產出照〈目標與流程〉處理。cross-platform-module-spec 只拿掉流程規則：「等使用者選」改照〈目標與流程〉的分界，通用的確認目標改為引用 task-progress-items。
+- **第 3 題：流程與方法的分工。** 候選盤點的方法（怎麼盤點候選模組、什麼算一個模組、要看哪些證據）是 UX 的方法，留在 cross-platform-module-spec；plan 在 UX scope 找缺口時照它做，產出照〈目標與流程〉處理。cross-platform-module-spec 只拿掉流程規則：「等使用者選」改照〈目標與流程〉的分界，通用的確認目標改為引用 task-progress。
 - **第 4 題：產出。** 目標推得出的缺口直接建成卡片或子項，寫明服務目標的哪一句；會擴充或改變目標的寫成決策題。
 - **第 5 題：落點。** 缺口在 scope 層成為卡片（目標引用專案目標的那一句），在卡片層成為子項；卡片在下一次 plan 到它、或本次範圍包含它時拆成子項。
 - **第 6 題：入口。** 不新增動詞；盤點是每一層 plan 的一部分。

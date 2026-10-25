@@ -21,7 +21,7 @@ independently executable task owns one direct child named
 or assignment, and do not create an index merely to find the file. Without that
 directory, skip all of this. One checklist per item holds the executor's checks
 and, when the item needs them, `[acceptance]` checks for an independent acceptance
-context (task-progress-items § Independent acceptance) and
+context (task-progress § Independent acceptance) and
 `[manual]` checks for the user (§ Tagged checks). When to hand verification over rather than run
 it alone is [agent-work-route § Hand verification over](../../../../.agents/skills/agent-work-route/SKILL.md#hand-verification-over-when-the-project-opts-in).
 
