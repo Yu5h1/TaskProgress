@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "web_revision": "cf958e7491f596108eeaff3ae31fb6162761b41a",
+  "source_delivery": "d3c60c1c64a36179b24c8f0840b142423646e5c3f14a8986c3eab02f14ea0dff",
+  "files": {
+    "NOTICE.txt": "9f3804c72947474f0db762acf6d61b39efad73b6222364a0214b8d5109d12f40",
+    "theme/bootstrap.js": "a4684643e8f95c8f3bf57296587f0c52f294a71342c675850d032faed20d6fbb",
+    "theme/index.js": "da94ba6c1878b2bf0f5ac0c808a98fc5f1ac40bcffc5217d739b0043f0d9fbd5",
+    "theme/theme.css": "0ce79a50a4b02a1762bf8bf0f7bfd7def987bcc9cf73666ce9a3ea62fa249e32",
+    "ui/index.js": "6e1f1773270940e28184c8c9d97fe50eb492d4c58a55564801279c5d4cd78322",
+    "ui/index.js.LEGAL.txt": "58e11ac100ff1393d72b63067b5606af0ecfefdd84f1cc1f2d944776c8db3a00"
+  }
+}

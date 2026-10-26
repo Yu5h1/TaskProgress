@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-10-26T14:12:31.562486+00:00",
+  "updated_at": "2026-10-26T14:32:54.660722+00:00",
   "tasks": [
     {
       "id": "gap-scan",
@@ -3533,6 +3533,20 @@
               "session": "TaskProgress 無 Svelte 副刻",
               "session_id": "6390111e-2331-485b-a016-8e9a724b7730",
               "note": "Bind existing production-build checklist; CLI does not support changing document_ref on existing entries."
+            },
+            {
+              "event": "started",
+              "actor": "codex",
+              "at": "2026-10-26T14:12:53.089519+00:00",
+              "session": "TaskProgress 無 Svelte 副刻",
+              "session_id": "6390111e-2331-485b-a016-8e9a724b7730"
+            },
+            {
+              "event": "released",
+              "actor": "codex",
+              "at": "2026-10-26T14:24:54.124794+00:00",
+              "session": "TaskProgress 無 Svelte 副刻",
+              "session_id": "6390111e-2331-485b-a016-8e9a724b7730"
             }
           ],
           "document_ref": {
@@ -3601,7 +3615,7 @@
           ]
         }
       ],
-      "summary": "集中追蹤試點人工驗收、產品 adapter 正式建置、所有 Browser／Desktop 入口替換，以及發布回歸與 Svelte 移除。依 WebUiReplacementPlan 既有 M1／M2 條件逐段完成；試點通過不等於可移除正式 Svelte。",
+      "summary": "消費端試點人工驗收與獨立審查通過；產品 Viewer／Checklist／Decision 已移回 TaskProgress，從自有來源及固定公開 Web 產物建立 8018 候選，原 Svelte／8001 與已匯入 8017 試點保留。後續按既有 M1／M2 條件進行 Browser／Desktop 全入口接管及發布退役。",
       "id": "svelte-retirement"
     }
   ]

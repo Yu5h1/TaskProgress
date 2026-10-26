@@ -4,29 +4,39 @@ Current round: `Documentation/WebUiReplacementPlan.md#產品原始碼與候選�
 
 本輪只移交產品來源與獨立候選建置；正式入口切換仍受 M1 控制，Svelte 保留。
 
-- [ ] **1. 產品來源與獨立依賴**
+獨立審查後的修正：原產品未保存或無效偏好預設 system；候選最初固定 dark 不相容。首屏 classic 與互動 ESM 已共同引用 theme-options.mjs，沿用原 storage key；新增未保存、損壞 JSON／版本、四模式與八色偏好及 storage 不可用的對照。Node 測試自行建立候選，Python 候選不再讀舊 imported delivery，以免把開發機已準備的產物當成乾淨建置證據。
+
+2026-10-26：npm run web-ui:build 從本庫來源完成候選；Node 定向 3 項核對公開產物漂移拒絕與三頁完整執行期相依圖。Python 候選 5 項沿用原 API／CLI，核對 Report／Checklist／Decision 保存、衝突、重試、Origin、私有路徑及原 Viewer 全部檔案指紋；沒有改寫正式來源。瀏覽器在 8018 獨立 candidate-data 保存並重載：任務名稱 Source-built candidate saved、Fixture result 通過、Decision First。fixture 內 UI 寫出的 Recorded user 只屬測試資料，不是本輪驗收。主畫面單一 Theme、八色面板可取消；無 scope 時保留原入口頁，不塞入測試 scope。第一次 Python 檢查把外部 Theme key 誤當作會內嵌在 renderer，修正為核對宿主 key 接線後同一組通過。
+
+交付保留第三方 LEGAL notices；Web 私有套件目前沒有宣告發布授權，vendor/web-ui/NOTICE.txt 明列此限制，本輪僅為內部來源移交，不宣告可公開發布。
+
+- [x] **1. 產品來源與獨立依賴**
   Outcome: 產品模板由 TaskProgress 維護，建置只讀本庫來源、固定依賴與帶指紋的 Web 公開產物。
   Checks:
-    - [ ] **來源、授權與漂移**
+    - [x] **來源、授權與漂移**
       - Action: 移交既有產品模板及本批 Web 公開 UI／Theme，檢查來源指紋與授權，對固定交付做漂移拒絕測試。
       - Expect: 不從 Web demo 或 sibling 原始碼建置；固定 Lit 版本與 lockfile；公開產物來源、指紋與授權可追蹤，漂移會拒絕。
 
-- [ ] **2. 候選建置與原入口保留**
+- [x] **2. 候選建置與原入口保留**
   Outcome: 三頁能從產品來源重建，產物與正式 Svelte 分離。
   Checks:
-    - [ ] **建置及相依圖**
+    - [x] **建置及相依圖**
       - Action: 使用本庫命令建立 Browser Viewer／Checklist／Decision 候選，解析三入口的相依圖並比對正式資產前後指紋。
       - Expect: 執行期依賴均在候選內，無 Svelte 或 Web sibling，ui-host 為同一單例；正式 Viewer／Desktop 與 8001 不被改寫。
-    - [ ] **三頁產品接線**
+    - [x] **三頁產品接線**
       - Action: 以隔離資料核對候選三頁載入、保存及重載，檢查原 Theme key、八色設定、返回及沒有 scope 的入口。
       - Expect: 原控制器與 API 完成保存，無展示站 fixture 攔截或預設測試 scope；Theme 偏好相容，單一選擇器且有返回入口；既有測試資料不被重設。
 
-- [ ] **3. 獨立驗收**
+- [x] **3. 獨立驗收**
   Outcome: 本批建置接管準備符合原定範圍。
   Checks:
-    - [ ] **驗收條件未被改動** `[acceptance]`
+    - [x] **驗收條件未被改動** `[acceptance]`
       - Action: 比對本輪初始 commit，依 Documentation/WebUiReplacementPlan.md#產品原始碼與候選建置 核對。
       - Expect: 實作方未降低原定條件。
-    - [ ] **產品候選可獨立重建** `[acceptance]`
+      - Recorded: codex:01a1788a-0533-7341-8e38-40a7e6a795ce/root/accept_consumer_pilot; at=2026-10-26T14:27:32Z; fp=67ab064bc6e3
+    - [x] **產品候選可獨立重建** `[acceptance]`
       - Action: 依 Documentation/WebUiReplacementPlan.md#產品原始碼與候選建置 核對原始碼、固定依賴、建置、入口與保存證據。
       - Expect: 三頁從 TaskProgress 自有來源重建且正式版保留；未把 Browser 候選成功當作 Desktop、M1／M2 或正式切換通過。
+      - Observed: Theme 偏好相容未滿足：ui/web-workflow/bootstrap.mjs:24 與 theme-start.js:2 設 defaultMode=dark；原 viewer/assets/theme-model.js:39、78 為 system。定向模型重現 missing、invalid-json、storage unavailable 均由原版 system 變成候選 dark，違反規格保留原 Theme 行為。
+      - Resolved: 明確修正後重驗：首屏與互動 bootstrap 共用 theme-options.mjs 的原 THEME_STORAGE_KEY 與 defaultMode=system，交付首屏由同源編為 IIFE。Node 3 項（含未保存、無效 JSON、版本不支援、四種既存模式及八色、storage 被拒）與 Python 候選 5 項通過；重建產物為 9e391ec67c037ca501cc093f5101bb1a6ee6ba74a412ce775b749adfd8661b54，138 個來源及 167 個資產指紋符合。已驗證實際 8018 首屏資產與 manifest 一致、classic IIFE 讀原 key 並回退 system，既有三頁保存結果保留；原凍結條件及正式 Viewer 不變。
+      - Recorded: codex:01a1788a-0533-7341-8e38-40a7e6a795ce/root/accept_consumer_pilot; at=2026-10-26T14:31:34Z; fp=5f0499162734

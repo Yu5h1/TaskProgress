@@ -1,0 +1,2 @@
+# Preserve the byte fingerprints of the imported public delivery on Windows.
+/vendor/web-ui/** -text

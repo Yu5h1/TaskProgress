@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "origin": "Web/demo/taskprogress/full",
+  "web_revision": "cf958e7491f596108eeaff3ae31fb6162761b41a",
+  "transfer_sha256": {
+    "viewer.mjs": "f7d896ddbf3c899c369eebbe95aaf3e9bf7997e6f032f6b3d697b3de44018dd1",
+    "viewer-entry.mjs": "6c37ab91c7f5e4f69eb883faf5856187fef4f5fcc064d1914ba2ab76d39117ac",
+    "checklist.mjs": "245a6194c1793352f738d76264186af0eac60fbcec6d9868168f78912a2d3dab",
+    "decisions.mjs": "8cfce059a2a707565f5441812a108c6bf40f8539300581187c7b77261f48d15c",
+    "common.mjs": "ae8c9a83f6b1c3e39ab061dc88595cf780078fc06acfe5312483440c384b9eaa",
+    "assessment.mjs": "de7261a71049f3e7cee4efd88a7624a7eced4c97ee2e3aab617bd525b082cd47",
+    "time-settings.mjs": "ccd4214e52d7b5a1148fc3eeb2eeba5ebc338469db878e6e5534e77d7d9c6dc1",
+    "time-settings-offset.mjs": "3f29937049cb73c697413a525e607119a841082f45f5a2699a1a63992fc16237",
+    "demo.css": "fd0b44bcbfe9dd2da38c4d0117504caedf770abd6f9b907af86389b24bccacea"
+  },
+  "owner": "TaskProgress; Web copy is a fixed migration reference"
+}

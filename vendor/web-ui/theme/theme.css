@@ -1,0 +1,38 @@
+/* Yu5h1Lib.Web Theme source SHA-256: 35e76158e21be81c4f9366bae74b1ab55f754b1939842772583b15d59866f710 */
+/* Generated from src/theme/index.ts; no global reset. */
+[data-ui-scheme="light"] {
+  color-scheme: light;
+  --ui-page: #f5f3ec;
+  --ui-surface: #fffdf8;
+  --ui-heading: #17211d;
+  --ui-panel-heading: #17211d;
+  --ui-text: #27342e;
+  --ui-muted: #4f5e57;
+  --ui-border: #dcd9cf;
+  --ui-accent: #1f684f;
+  --ui-hover: #efeee8;
+  --ui-focus: #1f684f;
+  --ui-on-accent: #ffffff;
+  --ui-disabled: #4f5e57;
+  --ui-overlay: #17233266;
+  --ui-danger: #a33c38;
+  --ui-control-border: #808981;
+}
+[data-ui-scheme="dark"] {
+  color-scheme: dark;
+  --ui-page: #171a21;
+  --ui-surface: #202530;
+  --ui-heading: #eef2f7;
+  --ui-panel-heading: #dfe6ef;
+  --ui-text: #cbd4df;
+  --ui-muted: #9da9b8;
+  --ui-border: #343c49;
+  --ui-accent: #7f9fd1;
+  --ui-hover: #2a313c;
+  --ui-focus: #7f9fd1;
+  --ui-on-accent: #000000;
+  --ui-disabled: #9da9b8;
+  --ui-overlay: #00000099;
+  --ui-danger: #f1aaa6;
+  --ui-control-border: #737d8c;
+}

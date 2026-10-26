@@ -146,6 +146,15 @@ TaskProgress 的 `ui/web-workflow/` 擁有產品模板與 bootstrap，沿用現�
 
 通過條件由 [候選建置清單](../checklists/svelte-retirement-build.checklist) 擁有。規模：移交既有產品模板約一千行，新增候選建置及 Theme 接線；既有副刻為先例，證據包含獨立建置、相依圖、三頁載入與保存、舊入口資產保持。
 
+在 TaskProgress 根目錄建置 → 啟動前景候選 → 開啟終端顯示的位址：
+
+```powershell
+npm run web-ui:build
+python scripts/web_ui_pilot.py --serve --candidate --port 8018
+```
+
+也可在建置後開啟 `Start Web UI Candidate.cmd`。候選入口為 [8018 Viewer](http://127.0.0.1:8018/demo/taskprogress/?scope=task-progress)，使用獨立的 `candidate-data`；第一次複製資料後不自動同步。按 Ctrl+C 停止候選；8001 正式版與 8017 已匯入試點各自保留。
+
 ## 驗證與核查
 
 自動檢查涵蓋命令映射、revision、失敗重試、取消／晚到回應、穩定節點身份、單一 DOM owner、多實例卸載、純文字安全、資料保存相容及發布資產解析。既有相關定向測試沿用，不為新模板另造重複業務測試。

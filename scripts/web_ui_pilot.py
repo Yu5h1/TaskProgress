@@ -139,15 +139,29 @@ def data_directories(base):
     return [(name, base / name) for name in ["task-progress", "example", "web-ui-pilot-test"]]
 
 
-def create_app(port=8017, data_root=None):
+def candidate_site():
+    pointer = json.loads((BUILD / 'candidate.json').read_text(encoding='utf-8'))
+    identity = pointer['identity']
+    if len(identity) != 64 or any(c not in '0123456789abcdef' for c in identity):
+        raise ValueError('Invalid candidate identity')
+    delivery = BUILD / 'candidates' / identity
+    manifest = json.loads((delivery / 'manifest.json').read_text(encoding='utf-8'))
+    site = delivery / 'site'
+    actual = {p.relative_to(site).as_posix(): digest(p.read_bytes()) for p in site.rglob('*') if p.is_file()}
+    if manifest.get('identity') != identity or actual != manifest.get('files'):
+        raise ValueError('Candidate asset drift; rebuild with npm run web-ui:build')
+    return site
+
+
+def create_app(port=8017, data_root=None, candidate=False):
     # Runtime only reads this repo's prepared delivery and its own data.
     sys.path.insert(0, str(ROOT))
     from service.taskprogress_host import install_edit_api, _load_module
     from fastapi.responses import RedirectResponse
     from fastapi.routing import APIRoute
-    site = verify_site()
+    site = candidate_site() if candidate else verify_site()
     files = {}
-    for scope, folder in data_directories(data_root or BUILD / "data"):
+    for scope, folder in data_directories(data_root or BUILD / ("candidate-data" if candidate else "data")):
         for name in ["report.json", "report.dev.json", "report.modules.json", "time.analysis.json", "cost.analysis.json"]:
             if (folder / name).is_file():
                 for prefix in ["/reports/", "/demo/reports/", "/demo/taskprogress/reports/", "/demo/taskprogress/reference/reports/"]:
@@ -171,12 +185,14 @@ def main():
     mode.add_argument("--serve", action="store_true")
     parser.add_argument("--web-dist", type=Path, default=ROOT.parent / "Web/dist")
     parser.add_argument("--port", type=int, default=8017)
+    parser.add_argument("--candidate", action="store_true", help="Serve the TaskProgress-owned source build instead of the imported pilot")
     args = parser.parse_args()
     if args.serve:
         import uvicorn
-        app = create_app(args.port)
-        print(f"TaskProgress Web UI PILOT: http://127.0.0.1:{args.port}/demo/taskprogress/?scope=task-progress", flush=True)
-        print(f"Data copies: {BUILD / 'data'}; production 8001 remains unchanged. Ctrl+C stops.", flush=True)
+        app = create_app(args.port, candidate=args.candidate)
+        kind = 'CANDIDATE' if args.candidate else 'PILOT'
+        print(f"TaskProgress Web UI {kind}: http://127.0.0.1:{args.port}/demo/taskprogress/?scope=task-progress", flush=True)
+        print(f"Data copies: {BUILD / ('candidate-data' if args.candidate else 'data')}; production 8001 remains unchanged. Ctrl+C stops.", flush=True)
         uvicorn.run(app, host="127.0.0.1", port=args.port)
     else:
         prepare(args.web_dist, args.import_delivery)
