@@ -6,6 +6,8 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
 
 ## Current state (2026-09-29)
 
+- **Web UI Workflow Browser pilot:** continue via `Documentation/WebUiReplacementPlan.md#先行-browser-並行試點` and `checklists/web-ui-browser-pilot.checklist`; report item `web-ui-replacement/web-ui-browser-pilot` owns the round. `scripts/web_ui_pilot.py` imports pinned built assets, while `Start Web UI Pilot.cmd` serves the consumer-owned delivery on foreground loopback 8017. Prepared assets/data live under ignored `bin/Migration/WebUiWorkflow/`; preserve data edits across starts. Runtime does not read the Web sibling or its dev server. Product adapter is a temporary delivery snapshot pending source handoff into TaskProgress's formal build. Official Svelte/8001, production routes and scope registry remain unchanged; first pilot acceptance does not establish G0/M1/M2 or Desktop adoption.
+
 - **連結帶入的選取色（2026-10-26）。** 規格與本輪驗證見 [LinkSelection](Documentation/LinkSelection.md)。來源狀態透過 `link-tone` 進入共用 CardList，載入後定位並持續顯示；取消選取後清除，重新選取恢復一般顏色。Checklist 工作項目連結另帶 `work_item`。Browser 與 Desktop bundle 已更新並發布，服務已重啟；Desktop 視窗未實測。
 
 - **子項狀態膠囊可連到相關對象（2026-10-25，`status-target-links` 已合入主線）。** `viewer/assets/item-state.js` 的 `statusLinks`：等待中連到被等的卡片或 checklist；其他狀態連到綁定的 Checklist／Decision，並保留未完成的相依對象；等待已解除但仍需重做時，以 `document-binding.js` 的 `redoTargets`（沿用 `mustRedo`）連到觸發重做的對象。單一對象直接連結，多個對象展開選單（`ItemRow.svelte`）。狀態推導規則不變；合併後在主線重建 Viewer bundle，item-state、document-binding、waiting-capsule 等 49 項測試通過。

@@ -4,20 +4,22 @@ Current round: `Documentation/WebUiReplacementPlan.md#先行-browser-並行試�
 
 此輪僅建立獨立啟用的消費端試點；正式 Svelte 及原資料保持可用。測試副本內原有結果不代表本輪驗收通過。
 
-- [ ] **1. 固定交付與獨立啟用**
+2026-10-26 首批：固定 173 個交付檔案，`--prepare` 可重現原指紋；Node 相依圖檢查通過三個入口（61／28／25 個 input），均只解析交付內資產且無 Svelte。`python -m unittest discover -s tests -p test_web_ui_pilot.py -v` 四項通過，使用暫存副本及原 API／CLI，驗證來源 Origin、私有目錄、重啟保留、Report／Checklist 衝突與 Decision 同 request_id 重試。服務以前景 127.0.0.1:8017 啟動，三頁在專用 `web-ui-pilot-test` fixture 由瀏覽器保存：任務名為 `Pilot task saved through browser`、manual fixture 為 passed、Decision choice 為 first；重新載入與讀取資料副本均確認結果。fixture 的 UI 自帶 `Recorded: user` 是測試協定輸出，不是本輪或遷移人工驗收。正式資料與正式 Viewer 資產沒有被這些寫入修改。
+
+- [x] **1. 固定交付與獨立啟用**
   Outcome: 可重現試點產物，保留正式 Svelte 入口。
   Checks:
-    - [ ] **交付與漂移檢查**
+    - [x] **交付與漂移檢查**
       - Action: 固定 Web 與 TaskProgress revision，匯入公開 UI／Theme 與三頁 adapter 產物，核對來源宿主及交付檔案指紋，嘗試載入被修改的產物。
       - Expect: 合法交付可重現，漂移會拒絕；Web 三頁不載入 Svelte，啟動不依賴 Web sibling 或開發伺服器，正式資產不變。
-    - [ ] **隔離資料與啟動**
+    - [x] **隔離資料與啟動**
       - Action: 啟動獨立 loopback 宿主，核對三頁入口、原版比較、首頁返回、資料路徑、來源檢查與重啟。
       - Expect: 使用原 TaskProgress API／CLI；只寫試點副本，拒絕外部 Origin 與私有目錄讀取，重啟保留資料，不更動正式 scope registry 或 8001。
 
-- [ ] **2. 真實服務流程**
+- [x] **2. 真實服務流程**
   Outcome: 三頁可在消費端載入，真實寫入與版本檢查保持原契約。
   Checks:
-    - [ ] **Report／Checklist／Decision 服務與畫面接線**
+    - [x] **Report／Checklist／Decision 服務與畫面接線**
       - Action: 使用隔離測試資料，分別由瀏覽器修改三頁內容，確認重載結果；在原 API 送出舊 revision，並核對正式資料指紋。
       - Expect: 三頁使用 Web UI Workflow，保存由原服務完成；舊 revision 拒絕且不覆寫新內容，正式資料及正式 Svelte 產物未變。
 

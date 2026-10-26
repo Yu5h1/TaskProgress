@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-10-26T04:52:23.215614+00:00",
+  "updated_at": "2026-10-26T12:14:28.641209+00:00",
   "tasks": [
     {
       "id": "gap-scan",
@@ -3384,9 +3384,9 @@
     {
       "id": "web-ui-replacement",
       "title": "TaskProgress UI 改用 Web（取代 Svelte）",
-      "status": "planned",
+      "status": "in_progress",
       "priority": 2,
-      "summary": "先確認 Web 庫是否已達開始替換的條件，再依 [替換計畫](https://github.com/Yu5h1/TaskProgress/blob/main/Documentation/WebUiReplacementPlan.md) 分段接上；開始條件由 Web 的 TaskProgress 遷移 checklist 擁有。",
+      "summary": "依使用者授權先建立 Browser 並行試點：固定 Web UI Workflow 交付、獨立啟用與隔離資料，正式 Svelte 及 8001 保留。G0、M1、M2 仍按原條件驗收；消費端實作與證據由本卡追蹤。",
       "pending_items": [
         {
           "id": "web-migration-readiness",
@@ -3405,6 +3405,40 @@
               "at": "2026-10-26T04:52:23.215614+00:00",
               "session": "Taskprogess",
               "session_id": "016492fa-7464-498b-9444-0e6296cd1267"
+            }
+          ]
+        },
+        {
+          "status": "planned",
+          "priority": 1,
+          "document_ref": {
+            "task": "web-ui-browser-pilot",
+            "scope_id": "task-progress",
+            "kind": "checklist"
+          },
+          "id": "web-ui-browser-pilot",
+          "title": "Browser 並行試點：固定交付、獨立啟用與真實保存",
+          "activity": [
+            {
+              "event": "created",
+              "actor": "codex",
+              "at": "2026-10-26T12:08:55.375901+00:00",
+              "session": "TaskProgress 無 Svelte 副刻",
+              "session_id": "6390111e-2331-485b-a016-8e9a724b7730"
+            },
+            {
+              "event": "started",
+              "actor": "codex",
+              "at": "2026-10-26T12:08:55.375901+00:00",
+              "session": "TaskProgress 無 Svelte 副刻",
+              "session_id": "6390111e-2331-485b-a016-8e9a724b7730"
+            },
+            {
+              "event": "released",
+              "actor": "codex",
+              "at": "2026-10-26T12:14:28.641209+00:00",
+              "session": "TaskProgress 無 Svelte 副刻",
+              "session_id": "6390111e-2331-485b-a016-8e9a724b7730"
             }
           ]
         }

@@ -1,0 +1,11 @@
+{
+  "schema_version": "1.0",
+  "scope_id": "web-ui-pilot-test",
+  "report_id": "web-ui-pilot-test",
+  "title": "Web UI Pilot Test",
+  "updated_at": "2026-10-26T00:00:00Z",
+  "tasks": [{
+    "id": "pilot", "title": "Pilot task", "status": "planned", "summary": "Disposable UI workflow fixture",
+    "pending_items": [{"id":"first", "title":"First item"}], "completed_items": []
+  }]
+}

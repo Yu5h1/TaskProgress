@@ -1,0 +1,5 @@
+{
+  "schema_version": "1.1", "task_id": "pilot", "updated_at": "2026-10-26T00:00:00Z",
+  "decisions": [{"id":"choice", "version":1, "question":"Pilot fixture choice", "allow_other":true,
+    "options":[{"id":"first", "label":"First"},{"id":"second", "label":"Second"}], "status":"pending", "answer":null}]
+}

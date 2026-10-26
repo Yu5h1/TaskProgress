@@ -1,0 +1,11 @@
+# Pilot fixture Checklist
+
+Current round: `Documentation/WebUiReplacementPlan.md#先行-browser-並行試點`.
+
+- [ ] **1. Disposable manual result**
+  Outcome: Result is saved only in the pilot copy.
+  Checks:
+    - [ ] **Fixture result** `[manual]`
+      - Action: Set a result in the isolated fixture.
+      - Expect: The source fixture stays unchanged.
+      - Reason: This is a test fixture, not migration acceptance.
