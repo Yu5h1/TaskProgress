@@ -10,6 +10,12 @@ Current round: `Documentation/WebUiReplacementPlan.md#產品原始碼與候選�
 
 交付保留第三方 LEGAL notices；Web 私有套件目前沒有宣告發布授權，vendor/web-ui/NOTICE.txt 明列此限制，本輪僅為內部來源移交，不宣告可公開發布。
 
+2026-10-27 候選來源對照修正（TaskProgress 基底 3687426，採用 Web a938f06）：移入專案目錄的原版結構／宿主標籤、指路卡 ready／loading／error 與無障礙語意、歷史面板 id 接線。候選指紋為 5fad52ec79510918df9c36d525bb94ed5941aad54a80376fcc5767797b20d3d9；Node 建置／Theme／相依圖 3 項、Python 原 API／隔離／正式 Viewer 指紋 5 項通過。tests/serve_web_ui_navigation.py 前景 8019 使用系統暫存資料，瀏覽器 4 項通過，直接載入候選與其原版比較：目錄連結及更新、指路卡殘留投影與唯讀、歷史清除取消／確認／重開；Decision 經原 API 保存後，清除歷史前後的文件及 revision 相同。原 8001、8017 與既有 candidate-data 未被改寫；本批不宣告全入口替換或退役完成。
+
+驗證工具修正：測試 exact routes 必須插在 catch-all static mount 前；指路卡狀態斷言須限定於 .pointer-card，避免把 CardList 的額外宣告區當成指路內容。修正工具後使用全新暫存資料重驗。Python 原 API 測試在一般沙箱啟動 CLI 時無輸出，停止該次執行後以授權的正常前景流程完成；未用隱藏啟動或重試正式寫入。
+
+本批獨立靜態審查未發現移植或隔離阻擋問題；測試已採納「選擇未勾選答案」並顯示全部題目的建議，同一暫存服務首次及重載均為 4 項通過，避免重跑時相同答案沒有新增歷史而誤判失敗。這是本批審查證據，不改寫先前獨立驗收的版本紀錄。
+
 - [x] **1. 產品來源與獨立依賴**
   Outcome: 產品模板由 TaskProgress 維護，建置只讀本庫來源、固定依賴與帶指紋的 Web 公開產物。
   Checks:
