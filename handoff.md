@@ -585,7 +585,7 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
 
 ## Open decisions
 
-- [任務進程的圖形化節點監控／尚未決定](Documentation/NodeProgressViewPlan.md#尚未決定)：目標 2026-10-26 由使用者確認（節點圖看全面進程與阻塞點，Report 卡片看細節）；6 題待答：顯示範圍、節點深度、阻塞點呈現、入口、是否需要關係 sidecar、第二階段是否改成遞迴節點。決定前不實作。
+- [任務進程的圖形化節點監控／尚未決定](Documentation/NodeProgressViewPlan.md#尚未決定)：目標 2026-10-26 由使用者確認（節點圖看全面進程與阻塞點，Report 卡片看細節），參考畫面與可走路線整條高亮已記入計畫；8 題待答：顯示範圍、節點深度、阻塞點呈現、入口、是否需要關係 sidecar、第二階段是否改成遞迴節點、葉節點旁的數字、其餘推算狀態的歸類。決定前不實作。
 
 - [同一 repo 的多 agent 平行執行／尚未決定](Documentation/WorktreeReportPlan.md#尚未決定)：目標 2026-10-24 對齊為平行執行；決策檔 [worktree-report.decisions](decisions/worktree-report.decisions) 第 1～10 題已答並寫入計畫〈已決定〉；第 11 題（Unity Editor、MCP、固定 port 這類共用資源怎麼排）待答。
 
