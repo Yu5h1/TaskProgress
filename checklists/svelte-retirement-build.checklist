@@ -1,0 +1,32 @@
+# Web UI Workflow 產品候選建置 Checklist
+
+Current round: `Documentation/WebUiReplacementPlan.md#產品原始碼與候選建置`.
+
+本輪只移交產品來源與獨立候選建置；正式入口切換仍受 M1 控制，Svelte 保留。
+
+- [ ] **1. 產品來源與獨立依賴**
+  Outcome: 產品模板由 TaskProgress 維護，建置只讀本庫來源、固定依賴與帶指紋的 Web 公開產物。
+  Checks:
+    - [ ] **來源、授權與漂移**
+      - Action: 移交既有產品模板及本批 Web 公開 UI／Theme，檢查來源指紋與授權，對固定交付做漂移拒絕測試。
+      - Expect: 不從 Web demo 或 sibling 原始碼建置；固定 Lit 版本與 lockfile；公開產物來源、指紋與授權可追蹤，漂移會拒絕。
+
+- [ ] **2. 候選建置與原入口保留**
+  Outcome: 三頁能從產品來源重建，產物與正式 Svelte 分離。
+  Checks:
+    - [ ] **建置及相依圖**
+      - Action: 使用本庫命令建立 Browser Viewer／Checklist／Decision 候選，解析三入口的相依圖並比對正式資產前後指紋。
+      - Expect: 執行期依賴均在候選內，無 Svelte 或 Web sibling，ui-host 為同一單例；正式 Viewer／Desktop 與 8001 不被改寫。
+    - [ ] **三頁產品接線**
+      - Action: 以隔離資料核對候選三頁載入、保存及重載，檢查原 Theme key、八色設定、返回及沒有 scope 的入口。
+      - Expect: 原控制器與 API 完成保存，無展示站 fixture 攔截或預設測試 scope；Theme 偏好相容，單一選擇器且有返回入口；既有測試資料不被重設。
+
+- [ ] **3. 獨立驗收**
+  Outcome: 本批建置接管準備符合原定範圍。
+  Checks:
+    - [ ] **驗收條件未被改動** `[acceptance]`
+      - Action: 比對本輪初始 commit，依 Documentation/WebUiReplacementPlan.md#產品原始碼與候選建置 核對。
+      - Expect: 實作方未降低原定條件。
+    - [ ] **產品候選可獨立重建** `[acceptance]`
+      - Action: 依 Documentation/WebUiReplacementPlan.md#產品原始碼與候選建置 核對原始碼、固定依賴、建置、入口與保存證據。
+      - Expect: 三頁從 TaskProgress 自有來源重建且正式版保留；未把 Browser 候選成功當作 Desktop、M1／M2 或正式切換通過。

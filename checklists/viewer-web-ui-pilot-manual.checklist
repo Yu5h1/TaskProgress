@@ -1,0 +1,48 @@
+# Viewer Web UI Workflow 試點人工驗收 Checklist
+
+Current round: `Documentation/WebUiReplacementPlan.md#viewer-試點人工驗收`.
+
+在正式 [驗收清單](http://127.0.0.1:8001/checklist/?scope=task-progress&task=viewer-web-ui-pilot-manual) 記錄本輪結果。8017 只用來操作試點副本；其中原有的通過標記、答案及測試修改不代表本輪通過。失敗時在本清單的 Observed 填寫差異。
+
+8017 未啟動時，在 TaskProgress 資料夾開啟 `Start Web UI Pilot.cmd` → 確認終端顯示服務位址 → 開啟下方連結。正式 Svelte 仍可用於日常工作；同資料外觀對照使用試點的「原版比較」入口。
+
+- [x] **1. Viewer 外觀與操作**
+  Outcome: 試點頁首、主題及卡片操作符合現有 Viewer 的使用方式。
+  Checks:
+    - [x] **頁首、主題與返回** `[manual]`
+      - Action: 開啟 [Viewer 試點](http://127.0.0.1:8017/demo/taskprogress/?scope=task-progress) 與 [同資料原版](http://127.0.0.1:8017/demo/taskprogress/reference/?scope=task-progress) → 比較頁首及卡片外觀 → 切換亮色、暗色與系統 → 開啟自訂八色面板，改一個色碼後取消 → 縮窄視窗 → 按標題左側返回箭頭。
+      - Expect: 主題控件只有一份；自訂面板可關閉且取消不套用草稿；卡片內容與原版相符、窄版可操作；箭頭與標題相鄰，能回上一頁或試點首頁，沒有面板殘留。
+      - Reason: 需要使用者判斷實際外觀、系統主題與視窗操作。
+      - Recorded: user; at=2026-10-26T13:15:13Z; fp=f0484f9e03b6
+    - [x] **搜尋、選取與拖曳選單** `[manual]`
+      - Action: 在 [Viewer 試點](http://127.0.0.1:8017/demo/taskprogress/?scope=task-progress) 搜尋一張卡片 → 清除搜尋 → 切換狀態標籤 → 釘選並收合／展開卡片 → 長按排序或可見性按鈕，移到選項後放開 → 按 Escape 取消選取。
+      - Expect: 搜尋及標籤顯示預期卡片；釘選與收展不丟內容；長按選單位置可操作，放開只執行一次且面板關閉；Escape 清除選取及焦點外框。
+      - Reason: 需要使用者確認長按、拖選、定位與焦點的實際手感。
+      - Recorded: user; at=2026-10-26T13:16:02Z; fp=5b51fc94efa5
+
+- [x] **2. Viewer 編輯與保存**
+  Outcome: 使用者能在試點編輯任務並保存或放棄草稿。
+  Checks:
+    - [x] **任務名稱、儲存與放棄** `[manual]`
+      - Action: 開啟 [Viewer 專用測試資料](http://127.0.0.1:8017/demo/taskprogress/?scope=web-ui-pilot-test) → 進入編輯模式並開啟謹慎模式 → 將任務名稱改為「試點人工驗收」→ 儲存 → 重新整理 → 再進入編輯，將名稱改成另一段文字 → 放棄。
+      - Expect: 重新整理後仍是「試點人工驗收」；放棄後恢復這個已保存名稱；沒有誤寫正式版或丟失其他子項目。
+      - Reason: 需要使用者確認實際編輯、草稿與保存體驗。
+      - Recorded: user; at=2026-10-26T13:16:50Z; fp=58f6f4638663
+
+- [x] **3. Checklist 編輯與保存**
+  Outcome: 結果、Observed 與編輯歷史可在試點正常操作。
+  Checks:
+    - [x] **結果、Observed 與復原／重做** `[manual]`
+      - Action: 開啟 [Checklist 專用測試資料](http://127.0.0.1:8017/demo/taskprogress/checklist/?scope=web-ui-pilot-test&task=pilot) → 開啟謹慎模式 → 點擊 Fixture result 方框直到失敗 → 在 Observed 輸入「測試記錄」→ 儲存 → 復原，再重做 → 儲存 → 重新整理。
+      - Expect: 編輯期間卡片及輸入焦點不突然跳走；復原與重做有對應變化；重整後保留失敗結果與「測試記錄」。此 fixture 的結果不是本清單的驗收結果。
+      - Reason: 需要使用者確認連續勾選、輸入與編輯歷史的實際體驗。
+      - Recorded: user; at=2026-10-26T13:17:41Z; fp=184d53314f03
+
+- [x] **4. Decision 中文輸入與保存**
+  Outcome: 選項及其他方案在實際中文輸入後仍可保存並讀回。
+  Checks:
+    - [x] **其他方案與中文輸入** `[manual]`
+      - Action: 開啟 [Decision 專用測試資料](http://127.0.0.1:8017/demo/taskprogress/decisions/?scope=web-ui-pilot-test&task=pilot) → 點「全部」顯示已作答題目 → 選「其他」→ 用中文輸入法輸入「試點中文輸入」→ 等待已保存 → 重新整理 → 再點「全部」並核對答案。
+      - Expect: 組字、選字及游標不被畫面更新中斷；重整後仍選取其他並顯示完整的「試點中文輸入」；答案不因保存回應倒退成舊文字。
+      - Reason: 中文 IME 與實際輸入體驗須由使用者確認。
+      - Recorded: user; at=2026-10-26T13:20:27Z; fp=8f2cacfa015e

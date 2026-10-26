@@ -96,6 +96,10 @@ TaskProgress Browser 試點／8017
 
 本批證據由 [Browser 試點清單](../checklists/web-ui-browser-pilot.checklist) 擁有。先核對三頁載入、真實保存及 revision 衝突、隔離及產物完整性；Desktop／WebView2、完整工作負載、人工操作與正式產品替換仍是後續範圍。
 
+### Viewer 試點人工驗收
+
+使用者的試點操作驗收登錄在 `svelte-retirement` 任務卡的 `web-ui-pilot-manual` 子項，綁定 [Viewer 試點人工清單](../checklists/viewer-web-ui-pilot-manual.checklist)。核對同資料原版的外觀與操作、單一主題與返回、卡片操作，以及三頁草稿／保存／重載和實際中文輸入。驗收紀錄保存在正式 TaskProgress 清單；8017 的文件和勾選都是測試副本，不能作為驗收紀錄。這份清單收集此批人工結果，既有 Browser 試點的獨立審查及正式替換條件各由原清單繼續擁有。
+
 整體為大型遷移：40 個來源元件、1 個 Viewer adapter、4 個建置入口及相關載入／複製規則。第一批僅基準與隔離試接，預估 6～10 個檔案、約 300～600 行；實際開工按當時來源重新估量。既有 Web probe 為先例；證明需要真實產品保存及 Browser／WebView2，不只編譯。
 
 | 階段 | 工作 | 完成條件 |
@@ -109,6 +113,38 @@ TaskProgress Browser 試點／8017
 | P6 收斂 | 重建全部交付產物、移除無 caller 的 Svelte source／plugin／依賴與過渡 adapter | M2 通過；乾淨建置無 Svelte runtime 或舊 bundle 載入，回退可用 |
 
 每批失敗只恢復該批接線與對應資產，使用 Git 已記錄版本與可重建產物；不 reset 其他工作、不回退使用者資料。同一正式功能不長期維護兩套 renderer。Web 缺口記在本專案 `Documentation/Requirements.Web.md`，提出可重現案例與驗收後由 Web 實作；本計畫不直接修改 Web repository。
+
+## Svelte 退役與 Web UI Workflow 正式接管
+
+> Task ID: svelte-retirement
+
+本卡擁有 TaskProgress 的正式建置接管、全入口替換、發布驗證與 Svelte 退役；`web-ui-replacement` 保留採用準備與隔離試點，Web 遷移卡彙整其提供能力及消費端證據。同一工作只有一個實作 owner。
+
+```text
+試點人工驗收＋Web 遷移準備及試點證據
+└─ 正式建置接管
+   └─ Browser／Desktop 全入口替換與驗收
+      └─ 正式發布回歸、Svelte 退役與結案
+```
+
+| 子項 | 工作與通過條件 |
+|---|---|
+| web-ui-pilot-manual | 沿用既有試點人工清單，保留全部結果；完成此項只代表該批試點操作通過。 |
+| production-build | 將產品 adapter 原始碼、Lit 與 Web 公開產物接入 TaskProgress 正式建置／複製規則，取代臨時 demo 產物來源；可在獨立啟用方式下重建，正式交付不依賴 Web sibling 或開發服務，Svelte 回退入口保留。開始前核對既有 Web 啟動條件及試點證據。 |
+| all-entry-replacement | 按原 P2～P5 切換 Report Viewer、Checklist Browser／Desktop、Decision Browser／Desktop，逐批取得資料、保存、互動、Theme、焦點及實際宿主證據；全部支援入口有結果，失敗可回退。 |
+| release-validation-and-retirement | 在正式發布候選完成原 M2 的整體回歸、預算量測、乾淨建置與回退核查；確認所有正式載入者均已切換後，才移除 Svelte runtime、編譯依賴、舊來源及專屬設定，保留其他仍使用的工具。無 Svelte 的重建與載入檢查通過後才結案。 |
+
+本卡整理既有 M1／M2 與 P2～P6 的工作，不另立放寬條件。依賴與執行狀態由 Report 擁有；試點清單完成不能直接把退役子項標成完成。
+
+### 產品原始碼與候選建置
+
+建置準備在消費端 Browser 試點的獨立審查與人工操作通過後進行；完整 Web M1 證據仍在全入口正式切換前核對。候選建置只寫 `bin/Migration/WebUiWorkflow/`，不覆寫 `viewer/`、Desktop 交付或 8001，因此準備產物與正式啟用分開。
+
+TaskProgress 的 `ui/web-workflow/` 擁有產品模板與 bootstrap，沿用現有 `viewer/assets/` 控制器。公開 UI／Theme 從試點已固定的 Web 交付收集為本庫 `vendor/web-ui/`，帶逐檔指紋與授權；建置不再讀 Web sibling 或 Web demo。Lit 3.3.3 固定在本庫 lockfile，使用既有 Vite 建置。保留 `ui-host.js` 的執行期單例；產物相依圖拒絕 Svelte、外部路徑與開發機位置。
+
+本批先交付三個 Browser 入口。產品 Theme 保留原 `task-progress.theme.v1` 與八色模型，掛載共用選擇器；不引入展示站儲存鍵、fixture fetch 攔截或預設測試 scope。現有 Svelte 元件內 CSS 暫由候選建置抽取，保留原作用範圍；退役階段才轉移其最終樣式來源。Desktop transport、正式 Content／Pages 複製與入口切換由下一項擁有。
+
+通過條件由 [候選建置清單](../checklists/svelte-retirement-build.checklist) 擁有。規模：移交既有產品模板約一千行，新增候選建置及 Theme 接線；既有副刻為先例，證據包含獨立建置、相依圖、三頁載入與保存、舊入口資產保持。
 
 ## 驗證與核查
 

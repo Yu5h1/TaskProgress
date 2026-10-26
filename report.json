@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-10-26T12:14:28.641209+00:00",
+  "updated_at": "2026-10-26T14:12:31.562486+00:00",
   "tasks": [
     {
       "id": "gap-scan",
@@ -3383,10 +3383,10 @@
     },
     {
       "id": "web-ui-replacement",
-      "title": "TaskProgress UI 改用 Web（取代 Svelte）",
+      "title": "Web UI Workflow 採用準備與試點",
       "status": "in_progress",
       "priority": 2,
-      "summary": "依使用者授權先建立 Browser 並行試點：固定 Web UI Workflow 交付、獨立啟用與隔離資料，正式 Svelte 及 8001 保留。G0、M1、M2 仍按原條件驗收；消費端實作與證據由本卡追蹤。",
+      "summary": "本卡追蹤 Web 開始條件與消費端隔離試點。正式建置、全入口接管及 Svelte 退役由 [退役任務卡](http://127.0.0.1:8001/?scope=task-progress&pin=svelte-retirement) 統一追蹤，保留正式 Svelte／8001 到各階段驗收通過。",
       "pending_items": [
         {
           "id": "web-migration-readiness",
@@ -3450,6 +3450,159 @@
       "status": "planned",
       "priority": 2,
       "summary": "目標：每個任務以圖形化節點表示，從節點圖直接看出阻塞點，Report 卡片保留作細節說明；資料結構先不改，遞迴節點要先估成本、測可行才替換。見 [問題與目標](https://github.com/Yu5h1/TaskProgress/blob/main/Documentation/NodeProgressViewPlan.md#問題與目標)。"
+    },
+    {
+      "priority": 1,
+      "status": "in_progress",
+      "title": "Svelte 退役與 Web UI Workflow 正式接管",
+      "completed_items": [],
+      "pending_items": [
+        {
+          "status": "planned",
+          "title": "人工驗收 Web UI Workflow 試點：Viewer／Checklist／Decision；[Web 遷移驗收](http://127.0.0.1:8001/?scope=yu5h1lib-web&pin=taskprogress-web-ui-migration)",
+          "document_ref": {
+            "scope_id": "task-progress",
+            "kind": "checklist",
+            "task": "viewer-web-ui-pilot-manual"
+          },
+          "id": "web-ui-pilot-manual",
+          "priority": 1,
+          "activity": [
+            {
+              "event": "created",
+              "actor": "codex",
+              "at": "2026-10-26T12:23:38.343492+00:00",
+              "session": "TaskProgress 無 Svelte 副刻",
+              "session_id": "6390111e-2331-485b-a016-8e9a724b7730"
+            },
+            {
+              "event": "updated",
+              "actor": "codex",
+              "at": "2026-10-26T12:53:25.305535+00:00",
+              "session": "TaskProgress 無 Svelte 副刻",
+              "session_id": "6390111e-2331-485b-a016-8e9a724b7730"
+            },
+            {
+              "event": "updated",
+              "actor": "codex",
+              "at": "2026-10-26T12:59:54.225816+00:00",
+              "session": "TaskProgress 無 Svelte 副刻",
+              "session_id": "6390111e-2331-485b-a016-8e9a724b7730",
+              "note": "Moved viewer-core -> svelte-retirement; CLI does not support cross-card moves."
+            }
+          ]
+        },
+        {
+          "title": "將產品 adapter 納入 TaskProgress 正式建置",
+          "status": "planned",
+          "waits_for": [
+            {
+              "scope_id": "task-progress",
+              "task_id": "svelte-retirement",
+              "item_id": "web-ui-pilot-manual",
+              "strict": true
+            },
+            {
+              "scope_id": "task-progress",
+              "task_id": "web-ui-replacement",
+              "item_id": "web-ui-browser-pilot",
+              "strict": true
+            }
+          ],
+          "id": "production-build",
+          "priority": 1,
+          "activity": [
+            {
+              "event": "created",
+              "actor": "codex",
+              "at": "2026-10-26T13:01:16.695127+00:00",
+              "session": "TaskProgress 無 Svelte 副刻",
+              "session_id": "6390111e-2331-485b-a016-8e9a724b7730"
+            },
+            {
+              "event": "updated",
+              "actor": "codex",
+              "at": "2026-10-26T14:12:12.378073+00:00",
+              "session": "TaskProgress 無 Svelte 副刻",
+              "session_id": "6390111e-2331-485b-a016-8e9a724b7730"
+            },
+            {
+              "event": "updated",
+              "actor": "codex",
+              "at": "2026-10-26T14:12:31.562486+00:00",
+              "session": "TaskProgress 無 Svelte 副刻",
+              "session_id": "6390111e-2331-485b-a016-8e9a724b7730",
+              "note": "Bind existing production-build checklist; CLI does not support changing document_ref on existing entries."
+            }
+          ],
+          "document_ref": {
+            "kind": "checklist",
+            "scope_id": "task-progress",
+            "task": "svelte-retirement-build"
+          }
+        },
+        {
+          "title": "替換所有 Browser／Desktop 入口並驗收",
+          "status": "planned",
+          "waits_for": [
+            {
+              "scope_id": "task-progress",
+              "task_id": "svelte-retirement",
+              "item_id": "production-build",
+              "strict": true
+            },
+            {
+              "scope_id": "yu5h1lib-web",
+              "task_id": "taskprogress-web-ui-migration",
+              "item_id": "isolated-pilot",
+              "strict": true
+            }
+          ],
+          "id": "all-entry-replacement",
+          "priority": 1,
+          "activity": [
+            {
+              "event": "created",
+              "actor": "codex",
+              "at": "2026-10-26T13:01:16.695127+00:00",
+              "session": "TaskProgress 無 Svelte 副刻",
+              "session_id": "6390111e-2331-485b-a016-8e9a724b7730"
+            },
+            {
+              "event": "updated",
+              "actor": "codex",
+              "at": "2026-10-26T14:12:12.378073+00:00",
+              "session": "TaskProgress 無 Svelte 副刻",
+              "session_id": "6390111e-2331-485b-a016-8e9a724b7730"
+            }
+          ]
+        },
+        {
+          "title": "完成正式發布回歸、移除 Svelte 並結案",
+          "status": "planned",
+          "waits_for": [
+            {
+              "item_id": "all-entry-replacement",
+              "scope_id": "task-progress",
+              "task_id": "svelte-retirement",
+              "strict": true
+            }
+          ],
+          "id": "release-validation-and-retirement",
+          "priority": 1,
+          "activity": [
+            {
+              "event": "created",
+              "actor": "codex",
+              "at": "2026-10-26T13:01:16.695127+00:00",
+              "session": "TaskProgress 無 Svelte 副刻",
+              "session_id": "6390111e-2331-485b-a016-8e9a724b7730"
+            }
+          ]
+        }
+      ],
+      "summary": "集中追蹤試點人工驗收、產品 adapter 正式建置、所有 Browser／Desktop 入口替換，以及發布回歸與 Svelte 移除。依 WebUiReplacementPlan 既有 M1／M2 條件逐段完成；試點通過不等於可移除正式 Svelte。",
+      "id": "svelte-retirement"
     }
   ]
 }

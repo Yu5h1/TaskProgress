@@ -23,12 +23,14 @@ Current round: `Documentation/WebUiReplacementPlan.md#先行-browser-並行試�
       - Action: 使用隔離測試資料，分別由瀏覽器修改三頁內容，確認重載結果；在原 API 送出舊 revision，並核對正式資料指紋。
       - Expect: 三頁使用 Web UI Workflow，保存由原服務完成；舊 revision 拒絕且不覆寫新內容，正式資料及正式 Svelte 產物未變。
 
-- [ ] **3. 獨立驗收**
+- [x] **3. 獨立驗收**
   Outcome: 本批交付符合先行試點範圍。
   Checks:
-    - [ ] **驗收條件未被改動** `[acceptance]`
+    - [x] **驗收條件未被改動** `[acceptance]`
       - Action: 比對本輪初始 commit 與變更，依 Documentation/WebUiReplacementPlan.md#先行-browser-並行試點 核對。
       - Expect: 實作方未降低原定條件。
-    - [ ] **獨立入口與隔離保存符合要求** `[acceptance]`
+      - Recorded: codex:01a1788a-0533-7341-8e38-40a7e6a795ce/root/accept_consumer_pilot; at=2026-10-26T14:10:12Z; fp=0650db8d7902
+    - [x] **獨立入口與隔離保存符合要求** `[acceptance]`
       - Action: 依 Documentation/WebUiReplacementPlan.md#先行-browser-並行試點 核對產物、宿主、瀏覽器及真實寫入證據。
       - Expect: 未以試點可啟動冒充 G0／M1／M2 通過，正式版保留且可直接使用。
+      - Recorded: codex:01a1788a-0533-7341-8e38-40a7e6a795ce/root/accept_consumer_pilot; at=2026-10-26T14:10:12Z; fp=6585d98d4137
