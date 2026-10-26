@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-10-25T06:51:43.476104+00:00",
+  "updated_at": "2026-10-26T04:52:23.215614+00:00",
   "tasks": [
     {
       "id": "gap-scan",
@@ -3380,6 +3380,42 @@
           ]
         }
       ]
+    },
+    {
+      "id": "web-ui-replacement",
+      "title": "TaskProgress UI 改用 Web（取代 Svelte）",
+      "status": "planned",
+      "priority": 2,
+      "summary": "先確認 Web 庫是否已達開始替換的條件，再依 [替換計畫](https://github.com/Yu5h1/TaskProgress/blob/main/Documentation/WebUiReplacementPlan.md) 分段接上；開始條件由 Web 的 TaskProgress 遷移 checklist 擁有。",
+      "pending_items": [
+        {
+          "id": "web-migration-readiness",
+          "priority": 1,
+          "title": "確認 Web 是否可以開始替換 Svelte：現行功能對照、更新與互動、目標交付、實機及成本等開始遷移條件全部通過（Web 的 checklist）",
+          "document_ref": {
+            "kind": "checklist",
+            "scope_id": "yu5h1lib-web",
+            "task": "taskprogress-web-ui-migration"
+          },
+          "status": "planned",
+          "activity": [
+            {
+              "event": "created",
+              "actor": "claude",
+              "at": "2026-10-26T04:52:23.215614+00:00",
+              "session": "Taskprogess",
+              "session_id": "016492fa-7464-498b-9444-0e6296cd1267"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "node-progress-view",
+      "title": "任務進程的圖形化節點監控",
+      "status": "planned",
+      "priority": 2,
+      "summary": "目標：每個任務以圖形化節點表示，從節點圖直接看出阻塞點，Report 卡片保留作細節說明；資料結構先不改，遞迴節點要先估成本、測可行才替換。見 [問題與目標](https://github.com/Yu5h1/TaskProgress/blob/main/Documentation/NodeProgressViewPlan.md#問題與目標)。"
     }
   ]
 }
