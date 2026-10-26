@@ -76,6 +76,26 @@ Web package 目前 private，不能假設可從公開 npm 安裝。建議消費�
 
 ## 分段替換與完成條件
 
+### 先行 Browser 並行試點
+
+使用者已明確授權先啟動隔離試點。此授權允許在 Web 開始條件尚未全數驗收時建立消費端試點及補證，不代表 G0、M1 或 M2 已通過；正式切換與移除 Svelte 仍依原條件。
+
+第一批使用 TaskProgress 現有宿主、CLI 與版本檢查，搭配 Web 已建置的完整三頁副刻作產品 adapter 移交快照；尚不把副刻模板當成 Web 公開 API。產物固定 Web revision、TaskProgress revision 與逐檔指紋，來源 host assets 漂移時拒絕準備。這是受控短期移交；通過試點後將產品 adapter 原始碼接回本專案的正式建置，Web 只維護通用能力及回歸案例。
+
+```text
+TaskProgress 正式 Svelte／8001（保留）
+TaskProgress Browser 試點／8017
+├─ 固定交付：Web 公開 UI／Theme＋產品 adapter 快照＋現有宿主資產
+├─ 現有 TaskProgress API／CLI → 試點資料副本
+└─ 同一三頁入口／原版比較入口；獨立啟用，可直接停止試點
+```
+
+`scripts/web_ui_pilot.py --import-delivery --web-dist ../Web/dist` 收集第一份已建置產物，記錄於 `experiments/web-ui-workflow/delivery.json`；後續 `--prepare` 必須重現同一指紋，變更須明確重新匯入。產物及資料位於忽略的 `bin/Migration/WebUiWorkflow/`，資料位於靜態站點之外；重開保留修改，不自動覆寫或重設。只掛載指定 report exact-file 路由，不註冊正式 scope、不修改 8001、檔案關聯或正式發布資產。共用安裝環境與現有 LocalWebService Python API 維持原用法。
+
+`Start Web UI Pilot.cmd` 以前景服務啟動 8017 → 開啟 `http://127.0.0.1:8017/demo/taskprogress/?scope=task-progress`。正式版仍由原啟用方式開啟。第一次須先準備交付；之後啟動不讀 Web sibling 或開發服務。Ctrl+C 停止試點，回原入口即回正式 Svelte；不回退任何使用者資料。
+
+本批證據由 [Browser 試點清單](../checklists/web-ui-browser-pilot.checklist) 擁有。先核對三頁載入、真實保存及 revision 衝突、隔離及產物完整性；Desktop／WebView2、完整工作負載、人工操作與正式產品替換仍是後續範圍。
+
 整體為大型遷移：40 個來源元件、1 個 Viewer adapter、4 個建置入口及相關載入／複製規則。第一批僅基準與隔離試接，預估 6～10 個檔案、約 300～600 行；實際開工按當時來源重新估量。既有 Web probe 為先例；證明需要真實產品保存及 Browser／WebView2，不只編譯。
 
 | 階段 | 工作 | 完成條件 |
@@ -104,4 +124,4 @@ Web package 目前 private，不能假設可從公開 npm 安裝。建議消費�
 - **WUI-02 成本預算**：確認上述 1.2 倍初稿或提供更嚴格門檻；實測基準與誤差記錄完成前不宣告效能通過。
 - **WUI-03 依賴交付**：建議採 Web 已建置的版本化產物＋明確來源指紋，由 TaskProgress bundle/copy 腳本收集；若工作區已有統一 private package 配送方式則沿用。實作前固定取得方式與 Lit runtime 打包策略，禁止自行發明 Web 公開 export。
 
-上述事項不阻擋文件分析與只讀盤點；會影響試點／正式採用的驗收。本輪只產生計畫，未授權切換正式 UI 或移除 Svelte。
+上述事項會影響試點／正式採用的驗收；先行 Browser 試點已固定採用帶指紋的 built 產物方式。正式 UI 切換與移除 Svelte 仍未授權，須取得原定驗收證據。

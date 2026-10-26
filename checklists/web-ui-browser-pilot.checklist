@@ -1,0 +1,32 @@
+# Web UI Workflow Browser 並行試點 Checklist
+
+Current round: `Documentation/WebUiReplacementPlan.md#先行-browser-並行試點`.
+
+此輪僅建立獨立啟用的消費端試點；正式 Svelte 及原資料保持可用。測試副本內原有結果不代表本輪驗收通過。
+
+- [ ] **1. 固定交付與獨立啟用**
+  Outcome: 可重現試點產物，保留正式 Svelte 入口。
+  Checks:
+    - [ ] **交付與漂移檢查**
+      - Action: 固定 Web 與 TaskProgress revision，匯入公開 UI／Theme 與三頁 adapter 產物，核對來源宿主及交付檔案指紋，嘗試載入被修改的產物。
+      - Expect: 合法交付可重現，漂移會拒絕；Web 三頁不載入 Svelte，啟動不依賴 Web sibling 或開發伺服器，正式資產不變。
+    - [ ] **隔離資料與啟動**
+      - Action: 啟動獨立 loopback 宿主，核對三頁入口、原版比較、首頁返回、資料路徑、來源檢查與重啟。
+      - Expect: 使用原 TaskProgress API／CLI；只寫試點副本，拒絕外部 Origin 與私有目錄讀取，重啟保留資料，不更動正式 scope registry 或 8001。
+
+- [ ] **2. 真實服務流程**
+  Outcome: 三頁可在消費端載入，真實寫入與版本檢查保持原契約。
+  Checks:
+    - [ ] **Report／Checklist／Decision 服務與畫面接線**
+      - Action: 使用隔離測試資料，分別由瀏覽器修改三頁內容，確認重載結果；在原 API 送出舊 revision，並核對正式資料指紋。
+      - Expect: 三頁使用 Web UI Workflow，保存由原服務完成；舊 revision 拒絕且不覆寫新內容，正式資料及正式 Svelte 產物未變。
+
+- [ ] **3. 獨立驗收**
+  Outcome: 本批交付符合先行試點範圍。
+  Checks:
+    - [ ] **驗收條件未被改動** `[acceptance]`
+      - Action: 比對本輪初始 commit 與變更，依 Documentation/WebUiReplacementPlan.md#先行-browser-並行試點 核對。
+      - Expect: 實作方未降低原定條件。
+    - [ ] **獨立入口與隔離保存符合要求** `[acceptance]`
+      - Action: 依 Documentation/WebUiReplacementPlan.md#先行-browser-並行試點 核對產物、宿主、瀏覽器及真實寫入證據。
+      - Expect: 未以試點可啟動冒充 G0／M1／M2 通過，正式版保留且可直接使用。
