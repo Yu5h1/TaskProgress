@@ -170,7 +170,7 @@ The program orders them, so tagged work items carry no `Depends on`: an
 before these rules keep their structure.
 
 A workflow that decided on one manual file per page (UX decision 89, used by
-referenced-module-acceptance) keeps that form: the file holds the `[manual]`
+spec-adoption) keeps that form: the file holds the `[manual]`
 checks for exactly one page of one piece of work, is named after its own Task ID
 `checklists/<work>-<check>-<page>.checklist` (`toggle-tg02-playback`), is opened
 only after the work's own round has every check `[x]`, and binds its own child

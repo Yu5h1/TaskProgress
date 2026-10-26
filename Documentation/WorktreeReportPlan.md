@@ -83,7 +83,7 @@ TaskProgress
 | 放寬平行規則 | 兩條規則各一段文字 | 低。改寫 task-progress 與 agent-executable-items |
 | 依檔案分組 | 沒有前例；agent-work-route 已有「依能否合併分工」原則 | 中，有風險：`Paths:` 宣告可能漏寫，漏掉的檔案在合併時才衝突 |
 | 分派到 worktree | Claude 桌面版已能開 worktree session（本專案在用） | Claude 低；其他 agent 要使用者手動開 session |
-| 合併 | referenced-module-acceptance 已有「驗收者合併分支、刪除 worktree」的流程 | 中。沿用該流程，加上依賴順序與產物重建 |
+| 合併 | spec-adoption 已有「驗收者合併分支、刪除 worktree」的流程 | 中。沿用該流程，加上依賴順序與產物重建 |
 | 單一檔案產物 | TaskProgress CI 會檢查 bundle 是否過期 | 低到中。分支不提交產物、合併後在主線重建，CI 照常檢查主線 |
 | 他驗 | 已決定 5：合併時寫入 | 低。他驗規則不改 |
 | Report 讀 worktree | checklist／decision 路由只讀主線資料夾（`taskprogress_host.py`）；推算在 `document-binding.js`、`item-state.js` 與 C# `ItemStateResolver` | 中。路由要能指定 worktree；項目來源分主線與 worktree 兩種 |
