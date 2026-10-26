@@ -7,6 +7,7 @@ import re
 import secrets
 import subprocess
 import tempfile
+import time
 from dataclasses import dataclass
 from datetime import datetime, timezone as datetime_timezone
 from pathlib import Path
@@ -15,6 +16,8 @@ from jsonschema import Draft202012Validator, FormatChecker
 
 MAX_REPORT_BYTES = 1024 * 1024
 MAX_TRANSACTION_FILE_BYTES = 4 * 1024 * 1024
+_REPLACE_ATTEMPTS = 8
+_REPLACE_RETRY_SECONDS = 0.025
 TRANSACTION_FILES = frozenset(
     {
         "report.json",
@@ -177,7 +180,18 @@ def _atomic_replace(path: Path, source: bytes) -> None:
             os.chmod(temporary, path.stat().st_mode)
         except OSError:
             pass
-        os.replace(temporary, path)
+        for attempt in range(_REPLACE_ATTEMPTS):
+            try:
+                os.replace(temporary, path)
+                break
+            except OSError as error:
+                # Windows readers can briefly prevent replacement while making
+                # a local snapshot. Reuse the flushed temp file; never overwrite
+                # in place or hide a permanent error from transaction recovery.
+                if (getattr(error, "winerror", None) not in {5, 32, 33}
+                        or attempt == _REPLACE_ATTEMPTS - 1):
+                    raise
+                time.sleep(_REPLACE_RETRY_SECONDS)
     except BaseException:
         try:
             temporary.unlink()
