@@ -52,7 +52,7 @@ auto：plan → 執行 → 自驗 → 他驗
 
 - **什麼時候做。** 建立卡片或子項之前，目標還沒寫下或沒經使用者確認時。目標已經寫好並確認過（規格的〈目標〉、計畫的〈問題與目標〉），引用它，不再問。
 - **要釐清什麼。** 真正的意圖（要解決什麼問題；指令描述的是做法時，先問它要達成什麼）；完成的樣子（可觀察的結果，之後成為驗收條件）；不做什麼；目標本身對不對（是否已有機制做到、有沒有更小的改動、是不是只處理了表面症狀，有破綻就在第一次回覆指出）。
-- **怎麼問。** 查得到的先查；查不到的一次問一題，附建議答案，依相依順序問（[task-progress〈Resolve the target〉](../.agents/skills/task-progress/SKILL.md#resolve-the-target)的「方向不清」一段，範圍從「方向不清時」擴大為「建立工作之前」）。跨平台模組已有同樣的步驟：[cross-platform-module-spec〈Define the goal before the specification〉](../../.agents/skills/cross-platform-module-spec/SKILL.md#define-the-goal-before-the-specification)。
+- **怎麼問。** 查得到的先查；查不到的一次問一題，附建議答案，依相依順序問（[task-progress〈Resolve the target〉](../.agents/skills/task-progress/SKILL.md#resolve-the-target)的「方向不清」一段，範圍從「方向不清時」擴大為「建立工作之前」）。跨平台模組已有同樣的步驟：[spec-author〈Define the goal before the specification〉](../../.agents/skills/spec-author/SKILL.md#define-the-goal-before-the-specification)。
 - **寫在哪裡（第 1 題）。** 卡片計畫文件的〈問題與目標〉，卡片摘要連結它；沒有計畫文件的卡片，寫在子項 checklist 的開頭說明。
 
 目標分層：專案目標（plan.md）→ 卡片目標 → 子項結果。下一層的工作都要能指出它服務上一層目標的哪一句。
@@ -150,9 +150,9 @@ plan 在每一層做同一件事：對照這一層的目標，看下一層已有
 - **task-progress：** 每一層 plan 的產出、等外部交付的子項怎麼寫與檢查、子項類型（含卡片結案驗收）、直接建立與決策題的分界、量與分批、經驗紀錄的寫入、收尾檢討。
 - **agent-executable-items〈Evaluate a scope〉：** 從目標推得出的工作直接建立；評估改讀卡片的經驗紀錄，不再讀 friction log。
 - **task-progress-report：** 卡片綁定文件、摘要連結目標。
-- **cross-platform-module-spec（UX 的技能）：** 〈Select scope〉的候選盤點方法保留，供 plan 在 UX scope 找缺口時使用；拿掉「等使用者選」，改照本節的分界；〈Define the goal before the specification〉的通用確認步驟改為引用〈釐清目標〉，只留模組目標欄位、消費端證據與適配表（GapScanPlan 第 3 題）。
+- **spec-author（UX 的技能）：** 〈Select scope〉的候選盤點方法保留，供 plan 在 UX scope 找缺口時使用；拿掉「等使用者選」，改照本節的分界；〈Define the goal before the specification〉的通用確認步驟改為引用〈釐清目標〉，只留模組目標欄位、消費端證據與適配表（GapScanPlan 第 3 題）。
 - **程式（CLI、Viewer、schema）：** 卡片的 `document_ref`；被等的子項只差使用者驗收時解除等待，以及「要等使用者驗收」的標記；只有 `[manual]` 的 checklist 能通過檢查與先後規則（現有規則要求不標的檢查先完成，需確認）；退場的兩種新狀態 `obsolete`（指向取代者）與 `discontinued`（附理由），資料格式、CLI、Viewer、狀態推算與篩選都要支援（GapScanPlan 第 7 題）。
-- **重疊：** `.agents` module-workflow-review 卡的 `light-lane` 提案與 friction log，改為引用這裡；GapScanPlan 已依本節作答第 1～6 題，盤點併入每一層的 plan；cross-platform-module-spec 保留 UX 的盤點方法，只拿掉流程規則（等使用者選、通用的確認目標）；第 7 題定為新增 `obsolete`、`discontinued` 兩種退場狀態。
+- **重疊：** `.agents` module-workflow-review 卡的 `light-lane` 提案與 friction log，改為引用這裡；GapScanPlan 已依本節作答第 1～6 題，盤點併入每一層的 plan；spec-author 保留 UX 的盤點方法，只拿掉流程規則（等使用者選、通用的確認目標）；第 7 題定為新增 `obsolete`、`discontinued` 兩種退場狀態。
 
 ## 已決定
 

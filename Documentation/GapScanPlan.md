@@ -4,7 +4,7 @@
 >
 > 狀態：已決定；第 7 題的退場狀態已實作（gap-scan 卡 `retirement-states`），盤點規則已寫進 task-progress。問題由使用者提出（2026-10-24）；同日 [AcceptanceChainPlan〈目標與流程〉](AcceptanceChainPlan.md#目標與流程)定案後，盤點併入每一層的 plan，第 1、2、4～6 題依該節作答，第 3、7 題由使用者決定，全部記在 [gap-scan.decisions](../decisions/gap-scan.decisions)。
 >
-> 與其他文件的關係：流程與分工由〈目標與流程〉擁有，本計畫只負責盤點的來源、證據與退場；評估的現行規則在 [agent-executable-items〈Evaluate a scope〉](../../.agents/skills/agent-executable-items/SKILL.md#evaluate-a-scope)；跨平台模組的候選盤點在 [cross-platform-module-spec〈Select scope〉](../../.agents/skills/cross-platform-module-spec/SKILL.md#select-scope)（UX 的盤點方法，plan 在 UX scope 照它做，見第 3 題）。
+> 與其他文件的關係：流程與分工由〈目標與流程〉擁有，本計畫只負責盤點的來源、證據與退場；評估的現行規則在 [agent-executable-items〈Evaluate a scope〉](../../.agents/skills/agent-executable-items/SKILL.md#evaluate-a-scope)；跨平台模組的候選盤點在 [spec-author〈Select scope〉](../../.agents/skills/spec-author/SKILL.md#select-scope)（UX 的盤點方法，plan 在 UX scope 照它做，見第 3 題）。
 
 ## 系統階層與關係
 
@@ -49,7 +49,7 @@ plan（每一層做同一件事：對照這一層的目標）
 
 - **第 1 題：範圍。** 完成專案目標需要的任何工作都在範圍內：模組、規格、平台實作、計畫目標、文件、驗證，不限程式開發；程式品質類（測試缺口、TODO、過時文件）只在目標需要時列入。
 - **第 2 題：跨 scope。** `plan all` 跨所有 scope，每個 scope 只做淺層盤點（缺口、退場候選、Next），往下拆只對指定的範圍。
-- **第 3 題：流程與方法的分工。** 候選盤點的方法（怎麼盤點候選模組、什麼算一個模組、要看哪些證據）是 UX 的方法，留在 cross-platform-module-spec；plan 在 UX scope 找缺口時照它做，產出照〈目標與流程〉處理。cross-platform-module-spec 只拿掉流程規則：「等使用者選」改照〈目標與流程〉的分界，通用的確認目標改為引用 task-progress。
+- **第 3 題：流程與方法的分工。** 候選盤點的方法（怎麼盤點候選模組、什麼算一個模組、要看哪些證據）是 UX 的方法，留在 spec-author；plan 在 UX scope 找缺口時照它做，產出照〈目標與流程〉處理。spec-author 只拿掉流程規則：「等使用者選」改照〈目標與流程〉的分界，通用的確認目標改為引用 task-progress。
 - **第 4 題：產出。** 目標推得出的缺口直接建成卡片或子項，寫明服務目標的哪一句；會擴充或改變目標的寫成決策題。
 - **第 5 題：落點。** 缺口在 scope 層成為卡片（目標引用專案目標的那一句），在卡片層成為子項；卡片在下一次 plan 到它、或本次範圍包含它時拆成子項。
 - **第 6 題：入口。** 不新增動詞；盤點是每一層 plan 的一部分。
