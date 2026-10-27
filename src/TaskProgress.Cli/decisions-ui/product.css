@@ -19,7 +19,7 @@ body { background:var(--ui-page); color:var(--ui-text); }
 .replica-title-row > h1, .replica-title-row > .brand { min-width:0; }
 .site-header:has(.editor-mode-dock:not([hidden])) .replica-title-row #report-title.brand { max-width:100%; }
 .replica-back, .replica-theme { display:flex; flex:none; align-items:center; }
-.demo-back-link { display:grid; place-items:center; flex:none; width:32px; height:32px; border-radius:50%; color:var(--ui-text); text-decoration:none; }
+.demo-back-link { display:grid; place-items:center; flex:none; width:40px; height:40px; border-radius:12px; color:var(--blue); background:var(--blue-soft); text-decoration:none; }
 .demo-back-link:hover { background:var(--ui-hover); }
 .demo-back-link:focus-visible { outline:3px solid var(--ui-focus); outline-offset:2px; }
 @media(max-width:640px) {

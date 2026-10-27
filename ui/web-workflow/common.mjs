@@ -278,8 +278,11 @@ const themePlacement = (node) => {
   return { destroy() { if(owner.parentNode===node)owner.remove(); } };
 };
 export const productTheme = () => html`<span class="replica-theme" ${action(themePlacement, null)}></span>`;
-const backPlacement = node => { const link=createBackLink();node.append(link);return{destroy:()=>link.remove()}; };
-export const productBack = () => globalThis.chrome?.webview ? nothing : html`<span class="replica-back" ${action(backPlacement, null)}></span>`;
+const backPlacement = (node, owner) => {
+  let link=createBackLink(owner); node.append(link);
+  return { update(next) { if (owner.href === next.href && owner.title === next.title) return; owner=next; const replacement=createBackLink(next); link.replaceWith(replacement); link=replacement; }, destroy:()=>link.remove() };
+};
+export const productBack = owner => !owner || globalThis.chrome?.webview ? nothing : html`<span class="replica-back" ${action(backPlacement, owner)}></span>`;
 
 // Reset the host refresh guard even when removal bypasses a normal dialog close.
 const historyLifetime = (_node, initial) => {

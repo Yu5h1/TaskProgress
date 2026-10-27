@@ -38,10 +38,6 @@ body {
   font-size: clamp(1.45rem, 3vw, 2rem);
 }
 
-.document-owner { margin: 4px 0 0; font-size: .85rem; color: var(--color-secondary-text); }
-.document-owner a { display: inline-flex; align-items: center; gap: 6px; color: var(--color-accent); text-decoration: none; overflow-wrap: anywhere; }
-.document-owner .owner-name { text-decoration: underline; }
-.document-owner .owner-arrow { font-size: 2.1em; font-weight: 700; line-height: 0.8; }
 
 .checklist-round,
 .checklist-notice {

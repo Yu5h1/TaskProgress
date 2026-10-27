@@ -111,7 +111,7 @@ class Checklist extends View {
   }
   template() {
     const d = this.data, items = this.visible();
-    return html`<main class="checklist-page"><header class="checklist-header"><div><div class="replica-title-row">${productBack()}<h1>${d?.document.fileName ?? 'TaskProgress Checklist'}</h1></div>${this.owner ? html`<p class="document-owner"><a href=${this.owner.href}><span class="owner-arrow" aria-hidden="true">←</span><span class="owner-name">${this.owner.title}</span></a></p>` : nothing}${d ? html`<details class="checklist-round"><summary>本輪依據</summary><p>${d.document.roundIdentity}</p></details>` : nothing}</div>${productTheme()}</header>
+    return html`<main class="checklist-page"><header class="checklist-header"><div><div class="replica-title-row">${productBack(this.owner)}<h1>${d?.document.fileName ?? 'TaskProgress Checklist'}</h1></div>${d ? html`<details class="checklist-round"><summary>本輪依據</summary><p>${d.document.roundIdentity}</p></details>` : nothing}</div>${productTheme()}</header>
       ${this.loading ? html`<p class="checklist-notice" role="status">${this.message}</p>` : !d ? html`<p class="checklist-notice checklist-error" role="alert">${this.failure}</p>` : html`
       ${progressSummary({ bar: { form: 'segmented', cells: d.summary.cells }, caption: `${d.summary.checks.passed} / ${d.summary.checks.total} checks 通過`, note: d.summary.checks.failed > 0 ? `${d.summary.checks.failed} 個失敗` : '' })}
       <label class="checklist-operable-toggle"><input type="checkbox" .checked=${this.operable} @change=${e => { this.operable = e.currentTarget.checked; this.draw(); }}><span>只顯示我能操作的檢查</span></label>
