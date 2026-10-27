@@ -1,4 +1,4 @@
-import { bindReorder as e, buttonDesign as t, registerUi as n } from "../assets/web/ui/index.js";
+import { bindButton as e, bindReorder as t, registerUi as n } from "../assets/web/ui/index.js";
 import { applyTheme as r, loadThemePreference as i, preferenceWithMode as a, saveThemePreference as o } from "../assets/web/theme/index.js";
 import "../assets/expandable-text.js";
 import { inlineLinks as s } from "../assets/inline-links.js";
@@ -46,10 +46,10 @@ Object.freeze({
 var be = Object.freeze({ defaultMode: "system" });
 //#endregion
 //#region ui/web-workflow/bootstrap.mjs
-function y(e = null) {
-	let t = document.createElement("a");
-	t.className = "demo-back-link", t.href = e?.href ?? "/", t.setAttribute("aria-label", e ? `回到 ${e.title}` : "回到 Scopes 入口"), t.title = e ? `回到 ${e.title}` : "回到 Scopes 入口";
-	let n = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+function y(t = null) {
+	let n = document.createElement("a");
+	n.className = "demo-back-link", n.href = t?.href ?? "/", n.setAttribute("aria-label", t ? `回到 ${t.title}` : "回到 Scopes 入口"), n.title = t ? `回到 ${t.title}` : "回到 Scopes 入口";
+	let r = document.createElementNS("http://www.w3.org/2000/svg", "svg");
 	for (let [e, t] of Object.entries({
 		viewBox: "0 0 24 24",
 		width: "32",
@@ -60,58 +60,64 @@ function y(e = null) {
 		"stroke-linecap": "round",
 		"stroke-linejoin": "round",
 		"aria-hidden": "true"
-	})) n.setAttribute(e, t);
-	let r = document.createElementNS("http://www.w3.org/2000/svg", "path");
-	return r.setAttribute("d", "M19 12H5m6-6-6 6 6 6"), n.append(r), t.append(n), t;
+	})) r.setAttribute(e, t);
+	let i = document.createElementNS("http://www.w3.org/2000/svg", "path");
+	return i.setAttribute("d", "M19 12H5m6-6-6 6 6 6"), r.append(i), n.append(r), e(n, {
+		appearance: "ghost",
+		icon: !0,
+		label: !1,
+		size: 40,
+		iconElement: r
+	}), n.style.setProperty("--button-foreground", "var(--blue)"), n;
 }
 async function xe(e) {
-	n(), document.documentElement.style.setProperty("--taskprogress-icon-hover-scale", String(t.tokens.ghostHoverIconScale.value)), document.documentElement.dataset.taskprogressUi = "web-ui-workflow";
-	let s = be, c = globalThis.taskprogressThemeBoot, l = c?.preference ?? i(() => localStorage, "task-progress.theme.v1", s);
-	c?.controller.dispose(), delete globalThis.taskprogressThemeBoot;
-	let u = document.createElement("ui-theme-control"), d = matchMedia("(prefers-color-scheme: dark)"), f, p = () => {
-		u.preference = l, u.systemScheme = d.matches ? "dark" : "light", document.documentElement.dataset.theme = l.mode, l.mode === "custom" ? document.documentElement.dataset.themeBase = l.custom.base : delete document.documentElement.dataset.themeBase;
-	}, m = () => {
-		f || (l = i(() => localStorage, ye, s), f = r(document.documentElement, l, s), d.addEventListener("change", p), p());
-	}, h = (e) => (l = o(() => localStorage, ye, e, s), f?.update(l), p(), l);
-	if (m(), u.addEventListener("theme-change", (e) => h(e.detail.preference)), globalThis.taskprogressTheme = {
-		control: u,
+	n(), document.documentElement.dataset.taskprogressUi = "web-ui-workflow";
+	let t = be, s = globalThis.taskprogressThemeBoot, c = s?.preference ?? i(() => localStorage, "task-progress.theme.v1", t);
+	s?.controller.dispose(), delete globalThis.taskprogressThemeBoot;
+	let l = document.createElement("ui-theme-control"), u = matchMedia("(prefers-color-scheme: dark)"), d, f = () => {
+		l.preference = c, l.systemScheme = u.matches ? "dark" : "light", document.documentElement.dataset.theme = c.mode, c.mode === "custom" ? document.documentElement.dataset.themeBase = c.custom.base : delete document.documentElement.dataset.themeBase;
+	}, p = () => {
+		d || (c = i(() => localStorage, ye, t), d = r(document.documentElement, c, t), u.addEventListener("change", f), f());
+	}, m = (e) => (c = o(() => localStorage, ye, e, t), d?.update(c), f(), c);
+	if (p(), l.addEventListener("theme-change", (e) => m(e.detail.preference)), globalThis.taskprogressTheme = {
+		control: l,
 		get mode() {
-			return l.mode;
+			return c.mode;
 		},
 		get custom() {
-			return l.custom ?? null;
+			return c.custom ?? null;
 		},
 		get systemScheme() {
-			return d.matches ? "dark" : "light";
+			return u.matches ? "dark" : "light";
 		},
 		setMode(e) {
-			return h(a(l, e, this.systemScheme, s));
+			return m(a(c, e, this.systemScheme, t));
 		},
 		applyCustom(e) {
-			return h({
-				...l,
+			return m({
+				...c,
 				mode: "custom",
 				custom: e
 			});
 		},
 		destroy() {}
 	}, addEventListener("pagehide", () => {
-		f?.dispose(), f = void 0, d.removeEventListener("change", p);
-	}), addEventListener("pageshow", m), e === "viewer") {
+		d?.dispose(), d = void 0, u.removeEventListener("change", f);
+	}), addEventListener("pageshow", p), e === "viewer") {
 		let e = document.querySelector("#report-title");
 		if (e) {
 			let t = document.createElement("div");
 			t.className = "replica-title-row", e.before(t), t.append(y(), e);
 		}
 	}
-	let g = new URLSearchParams(location.search).get("scope"), _ = e !== "viewer" && typeof globalThis.chrome?.webview?.postMessage == "function", ee = _;
-	if (!_ && g) try {
-		let e = await fetch("/__taskprogress/v1/capabilities/" + encodeURIComponent(g));
-		ee = e.ok && (await e.json()).editable;
+	let h = new URLSearchParams(location.search).get("scope"), g = e !== "viewer" && typeof globalThis.chrome?.webview?.postMessage == "function", _ = g;
+	if (!g && h) try {
+		let e = await fetch("/__taskprogress/v1/capabilities/" + encodeURIComponent(h));
+		_ = e.ok && (await e.json()).editable;
 	} catch {}
 	return {
-		editable: ee,
-		desktop: _
+		editable: _,
+		desktop: g
 	};
 }
 //#endregion
@@ -945,24 +951,24 @@ var Nt = jt(), X = W(class extends At {
 	destroy() {
 		this.disposed || (this.disposed = !0, this.abort.abort(), this.cleanups.forEach((e) => typeof e == "function" ? e() : e?.dispose?.()), ut(L, this.target));
 	}
-}, Ht = Mt((t, n) => {
+}, Ht = Mt((e, n) => {
 	let r = n, i = !1, a = new AbortController(), o = /* @__PURE__ */ new Map(), s = () => {
-		let e = r.previewClasses ?? {};
-		for (let n of /* @__PURE__ */ new Set([...o.keys(), ...t.children])) {
+		let t = r.previewClasses ?? {};
+		for (let n of /* @__PURE__ */ new Set([...o.keys(), ...e.children])) {
 			let r = /* @__PURE__ */ new Set();
-			if (n.parentElement === t) {
-				let t = e[n.getAttribute("data-reorder-over")];
-				t && r.add(t), e.dragging && n.hasAttribute("data-reorder-dragging") && r.add(e.dragging);
+			if (n.parentElement === e) {
+				let e = t[n.getAttribute("data-reorder-over")];
+				e && r.add(e), t.dragging && n.hasAttribute("data-reorder-dragging") && r.add(t.dragging);
 			}
 			let i = o.get(n) ?? /* @__PURE__ */ new Set();
 			for (let e of i) r.has(e) || n.classList.remove(e);
 			for (let e of r) n.classList.contains(e) || n.classList.add(e);
 			r.size ? o.set(n, r) : o.delete(n);
 		}
-	}, c = new t.ownerDocument.defaultView.MutationObserver((e) => {
-		e.some((e) => e.type === "childList" ? e.target === t : e.target.parentElement === t) && s();
+	}, c = new e.ownerDocument.defaultView.MutationObserver((t) => {
+		t.some((t) => t.type === "childList" ? t.target === e : t.target.parentElement === e) && s();
 	});
-	n.previewClasses && (s(), c.observe(t, {
+	n.previewClasses && (s(), c.observe(e, {
 		subtree: !0,
 		childList: !0,
 		attributes: !0,
@@ -970,24 +976,24 @@ var Nt = jt(), X = W(class extends At {
 	}));
 	let l, u = () => {
 		l &&= (l.removeAttribute("data-reorder-handle"), l.draggable = !1, null);
-	}, d = (e) => {
+	}, d = (t) => {
 		if (u(), !r.surface) return;
-		let n = [...t.children].find((t) => t.contains(e.target));
+		let n = [...e.children].find((e) => e.contains(t.target));
 		if (!n || n.dataset.reorderSortable === "false") return;
-		let i = e.type === "keydown" && e.target === n && e.altKey && ["ArrowUp", "ArrowDown"].includes(e.key), a = r.surface === "item" ? "a, button, input, select, textarea, label, [contenteditable], span, strong, code, svg" : "button, a, input, textarea, select, label, [contenteditable], [role=\"button\"], [role=\"checkbox\"], h1, h2, h3, p, span, strong, code, dt, dd, li, svg", o = e.type === "pointerdown" && e.button === 0 && e.pointerType === "mouse" && !e.target.closest(a);
+		let i = t.type === "keydown" && t.target === n && t.altKey && ["ArrowUp", "ArrowDown"].includes(t.key), a = r.surface === "item" ? "a, button, input, select, textarea, label, [contenteditable], span, strong, code, svg" : "button, a, input, textarea, select, label, [contenteditable], [role=\"button\"], [role=\"checkbox\"], h1, h2, h3, p, span, strong, code, dt, dd, li, svg", o = t.type === "pointerdown" && t.button === 0 && t.pointerType === "mouse" && !t.target.closest(a);
 		(i || o) && (l = n, n.setAttribute("data-reorder-handle", ""), n.draggable = !0);
 	};
-	t.addEventListener("pointerdown", d, {
+	e.addEventListener("pointerdown", d, {
 		capture: !0,
 		signal: a.signal
-	}), t.addEventListener("keydown", d, {
+	}), e.addEventListener("keydown", d, {
 		capture: !0,
 		signal: a.signal
-	}), t.ownerDocument.addEventListener("pointerup", u, { signal: a.signal }), t.ownerDocument.addEventListener("dragend", u, { signal: a.signal });
-	let f = e(t, (e) => {
-		let n = r.onMove(e);
+	}), e.ownerDocument.addEventListener("pointerup", u, { signal: a.signal }), e.ownerDocument.addEventListener("dragend", u, { signal: a.signal });
+	let f = t(e, (t) => {
+		let n = r.onMove(t);
 		r.focusAfterMove && Promise.resolve(n).then(() => queueMicrotask(() => {
-			i || !t.isConnected || [...t.children].find((t) => t.dataset.reorderId === e.id)?.focus();
+			i || !e.isConnected || [...e.children].find((e) => e.dataset.reorderId === t.id)?.focus();
 		}));
 	}, { axis: n.axis ?? "horizontal" });
 	return {

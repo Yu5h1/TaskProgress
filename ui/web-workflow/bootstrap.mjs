@@ -1,4 +1,4 @@
-import { registerUi, buttonDesign } from '@web/ui';
+import { registerUi, bindButton } from '@web/ui';
 import { applyTheme, loadThemePreference, saveThemePreference, preferenceWithMode } from '@web/theme';
 import { THEME_STORAGE_KEY, THEME_OPTIONS } from './theme-options.mjs';
 
@@ -13,12 +13,13 @@ export function createBackLink(owner = null) {
   const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
   path.setAttribute('d', 'M19 12H5m6-6-6 6 6 6');
   icon.append(path); link.append(icon);
+  bindButton(link, { appearance:'ghost', icon:true, label:false, size:40, iconElement:icon });
+  link.style.setProperty('--button-foreground', 'var(--blue)');
   return link;
 }
 
 export async function bootstrap(page) {
   registerUi();
-  document.documentElement.style.setProperty('--taskprogress-icon-hover-scale', String(buttonDesign.tokens.ghostHoverIconScale.value));
   document.documentElement.dataset.taskprogressUi = 'web-ui-workflow';
   const options = THEME_OPTIONS;
   const boot = globalThis.taskprogressThemeBoot;
