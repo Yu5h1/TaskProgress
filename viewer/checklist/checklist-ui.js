@@ -48,7 +48,7 @@ var be = Object.freeze({ defaultMode: "system" });
 //#region ui/web-workflow/bootstrap.mjs
 function v(e = null) {
 	let t = document.createElement("a");
-	t.className = "demo-back-link", t.href = e?.href ?? "/", t.setAttribute("aria-label", e ? `回到 ${e.title}` : "上一頁"), t.title = e ? `回到 ${e.title}` : "上一頁";
+	t.className = "demo-back-link", t.href = e?.href ?? "/", t.setAttribute("aria-label", e ? `回到 ${e.title}` : "回到 Scopes 入口"), t.title = e ? `回到 ${e.title}` : "回到 Scopes 入口";
 	let n = document.createElementNS("http://www.w3.org/2000/svg", "svg");
 	for (let [e, t] of Object.entries({
 		viewBox: "0 0 24 24",
@@ -62,11 +62,7 @@ function v(e = null) {
 		"aria-hidden": "true"
 	})) n.setAttribute(e, t);
 	let r = document.createElementNS("http://www.w3.org/2000/svg", "path");
-	return r.setAttribute("d", "M19 12H5m6-6-6 6 6 6"), n.append(r), t.append(n), e || t.addEventListener("click", (e) => {
-		if (!(e.button || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey)) try {
-			document.referrer && new URL(document.referrer).origin === location.origin && history.length > 1 && (e.preventDefault(), history.back());
-		} catch {}
-	}), t;
+	return r.setAttribute("d", "M19 12H5m6-6-6 6 6 6"), n.append(r), t.append(n), t;
 }
 async function xe(e) {
 	t(), document.documentElement.dataset.taskprogressUi = "web-ui-workflow";

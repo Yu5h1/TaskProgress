@@ -7,7 +7,7 @@ const source = (await readFile(new URL('../ui/web-workflow/bootstrap.mjs', impor
   .replace(/^import .*;\r?\n/gm, '');
 const { createBackLink } = await import(`data:text/javascript;base64,${Buffer.from(source).toString('base64')}`);
 
-test('document header links use the owner URL even with same-origin history', () => {
+test('headers use fixed owner or Scopes destinations even with same-origin history', () => {
   const previous = Object.fromEntries(['document', 'location', 'history'].map(key => [key, Object.getOwnPropertyDescriptor(globalThis, key)]));
   let backCalls = 0;
   const element = () => ({ attributes: {}, children: [], listeners: {}, setAttribute(key, value) { this.attributes[key] = value; }, append(child) { this.children.push(child); }, addEventListener(key, handler) { this.listeners[key] = handler; } });
@@ -24,8 +24,9 @@ test('document header links use the owner URL even with same-origin history', ()
 
     const report = createBackLink();
     assert.equal(report.href, '/');
-    report.listeners.click({ preventDefault() {} });
-    assert.equal(backCalls, 1, 'Report retains its existing back behavior');
+    assert.equal(report.attributes['aria-label'], '回到 Scopes 入口');
+    assert.equal(report.listeners.click, undefined, 'Report must not return to browser history');
+    assert.equal(backCalls, 0);
     assert.equal(report.children[0].attributes['aria-hidden'], 'true');
   } finally {
     for (const [key, descriptor] of Object.entries(previous)) {
