@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-10-26T14:32:54.660722+00:00",
+  "updated_at": "2026-10-27T06:41:40.208993+00:00",
   "tasks": [
     {
       "id": "gap-scan",
@@ -1675,6 +1675,20 @@
               "at": "2026-10-23T18:22:16.170657+00:00",
               "session": "子項簡易人工驗證",
               "session_id": "8db3d9df-8d4e-461e-96c2-37ca30b33c56"
+            }
+          ]
+        },
+        {
+          "id": "wait-menu-overflow-clipping",
+          "title": "問題：多目標等待選單被既有子項列與 utility panel 的 overflow:hidden 裁切；Svelte／Web 共用 editor-presentation.css，需獨立修正浮出層及窄視窗操作",
+          "status": "planned",
+          "priority": 2,
+          "activity": [
+            {
+              "event": "created",
+              "actor": "codex",
+              "at": "2026-10-27T04:33:21.056371+00:00",
+              "session": "Web UI render cost review"
             }
           ]
         }
@@ -3391,7 +3405,7 @@
         {
           "id": "web-migration-readiness",
           "priority": 1,
-          "title": "確認 Web 是否可以開始替換 Svelte：現行功能對照、更新與互動、目標交付、實機及成本等開始遷移條件全部通過（Web 的 checklist）",
+          "title": "核對 Web 的現行功能、更新互動、交付與必要實機證據；效能預算另案追蹤",
           "document_ref": {
             "kind": "checklist",
             "scope_id": "yu5h1lib-web",
@@ -3405,6 +3419,13 @@
               "at": "2026-10-26T04:52:23.215614+00:00",
               "session": "Taskprogess",
               "session_id": "016492fa-7464-498b-9444-0e6296cd1267"
+            },
+            {
+              "event": "updated",
+              "actor": "codex",
+              "at": "2026-10-27T06:41:40.208993+00:00",
+              "session": "TaskProgress retirement conditions",
+              "session_id": "01a0d3c0-178f-7463-a65b-21c8bbe2676f"
             }
           ]
         },
@@ -3439,6 +3460,21 @@
               "at": "2026-10-26T12:14:28.641209+00:00",
               "session": "TaskProgress 無 Svelte 副刻",
               "session_id": "6390111e-2331-485b-a016-8e9a724b7730"
+            }
+          ]
+        },
+        {
+          "id": "web-report-encoding",
+          "title": "問題：Web 已提交 report.json／handoff.md 編碼損壞，無法安全更新遷移彙整卡；修復需求記於 Documentation/Requirements.Web.md（TASKPROGRESS-WEB-1）",
+          "status": "planned",
+          "priority": 2,
+          "activity": [
+            {
+              "event": "created",
+              "actor": "codex",
+              "at": "2026-10-27T06:41:40.208993+00:00",
+              "session": "TaskProgress retirement conditions",
+              "session_id": "01a0d3c0-178f-7463-a65b-21c8bbe2676f"
             }
           ]
         }
@@ -3556,19 +3592,13 @@
           }
         },
         {
-          "title": "替換所有 Browser／Desktop 入口並驗收",
+          "title": "接管全部 Browser／Desktop 入口並驗收功能、保存與必要環境",
           "status": "planned",
           "waits_for": [
             {
               "scope_id": "task-progress",
               "task_id": "svelte-retirement",
               "item_id": "production-build",
-              "strict": true
-            },
-            {
-              "scope_id": "yu5h1lib-web",
-              "task_id": "taskprogress-web-ui-migration",
-              "item_id": "isolated-pilot",
               "strict": true
             }
           ],
@@ -3588,8 +3618,28 @@
               "at": "2026-10-26T14:12:12.378073+00:00",
               "session": "TaskProgress 無 Svelte 副刻",
               "session_id": "6390111e-2331-485b-a016-8e9a724b7730"
+            },
+            {
+              "event": "updated",
+              "actor": "codex",
+              "at": "2026-10-27T06:41:40.208993+00:00",
+              "session": "TaskProgress retirement conditions",
+              "session_id": "01a0d3c0-178f-7463-a65b-21c8bbe2676f"
+            },
+            {
+              "event": "updated",
+              "actor": "codex",
+              "session": "TaskProgress retirement conditions",
+              "session_id": "01a0d3c0-178f-7463-a65b-21c8bbe2676f",
+              "at": "2026-10-27T06:41:59.362382+00:00",
+              "note": "Bind retirement checklist to existing item; CLI does not support existing document_ref changes."
             }
-          ]
+          ],
+          "document_ref": {
+            "kind": "checklist",
+            "scope_id": "task-progress",
+            "task": "svelte-retirement-entries"
+          }
         },
         {
           "title": "完成正式發布回歸、移除 Svelte 並結案",
@@ -3611,12 +3661,54 @@
               "at": "2026-10-26T13:01:16.695127+00:00",
               "session": "TaskProgress 無 Svelte 副刻",
               "session_id": "6390111e-2331-485b-a016-8e9a724b7730"
+            },
+            {
+              "event": "updated",
+              "actor": "codex",
+              "session": "TaskProgress retirement conditions",
+              "session_id": "01a0d3c0-178f-7463-a65b-21c8bbe2676f",
+              "at": "2026-10-27T06:41:59.362382+00:00",
+              "note": "Bind retirement checklist to existing item; CLI does not support existing document_ref changes."
+            }
+          ],
+          "document_ref": {
+            "kind": "checklist",
+            "scope_id": "task-progress",
+            "task": "svelte-retirement-release"
+          }
+        }
+      ],
+      "summary": "試點及來源候選建置已有證據；剩餘工作是全入口接管、功能／保存與必要環境驗收、正式發布／回退及移除 Svelte。效能最佳化已移至 [獨立任務](http://127.0.0.1:8001/?scope=task-progress&pin=web-ui-performance)，不再阻擋退役；正式 Svelte 尚保留。",
+      "id": "svelte-retirement"
+    },
+    {
+      "id": "web-ui-performance",
+      "title": "TaskProgress UI 效能最佳化",
+      "status": "planned",
+      "priority": 2,
+      "summary": "保留原 50／100／100 工作負載、首顯 100 ms／更新 16 ms／記憶體 1.2 倍目標與量測證據；Decision 更新仍未達標，深入追蹤依使用者指示暫停。獨立改善，不阻擋 [Svelte 退役](http://127.0.0.1:8001/?scope=task-progress&pin=svelte-retirement)。",
+      "pending_items": [
+        {
+          "id": "performance-budget",
+          "title": "定位渲染與排程成本，改善並驗收時間、記憶體及功能回歸",
+          "status": "planned",
+          "priority": 2,
+          "document_ref": {
+            "kind": "checklist",
+            "scope_id": "task-progress",
+            "task": "web-ui-performance"
+          },
+          "activity": [
+            {
+              "event": "created",
+              "actor": "codex",
+              "at": "2026-10-27T06:41:40.208993+00:00",
+              "session": "TaskProgress retirement conditions",
+              "session_id": "01a0d3c0-178f-7463-a65b-21c8bbe2676f"
             }
           ]
         }
-      ],
-      "summary": "消費端試點人工驗收與獨立審查通過；產品 Viewer／Checklist／Decision 已移回 TaskProgress，從自有來源及固定公開 Web 產物建立 8018 候選，原 Svelte／8001 與已匯入 8017 試點保留。後續按既有 M1／M2 條件進行 Browser／Desktop 全入口接管及發布退役。",
-      "id": "svelte-retirement"
+      ]
     }
   ]
 }

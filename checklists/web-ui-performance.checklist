@@ -1,0 +1,30 @@
+# TaskProgress UI 效能最佳化 Checklist
+
+Current round: `Documentation/WebUiReplacementPlan.md#taskprogress-ui-效能最佳化`.
+
+2026-10-27 使用者將本工作獨立，未取消原目標；本清單不作為 Svelte 退役的等待項。歷次版本與完整數據由 [Web 效能紀錄](../../Web/tests/taskprogress-performance/README.md) 擁有。最新量測的 Decision 逆序最大 43.9 ms，未達 16 ms；其他目標環境與記憶體對照未完成。Edge trace 依使用者指示暫停，恢復前不啟動。未將舊版局部通過或診斷探針當成本輪通過。
+
+- [ ] **1. 渲染與更新成本**
+  Outcome: 固定工作負載達到原先選定的時間目標。
+  Checks:
+    - [ ] **定位、改善及原邊界重測**
+      - Action: 在使用者恢復追蹤後，先定位 Decision 逆序的排程／渲染成本；以固定 Svelte 與候選版本、同機 viewport、50 tasks／100 checklist items／100 decisions 及原始停表邊界重測三頁首次顯示、篩選／還原及逆序，各三輪。
+      - Expect: 每頁首次顯示每輪 ≤100 ms，既定批次更新每輪 ≤16 ms；完整原始結果、版本及環境保留，不挑較快輪次或以縮小資料／診斷模式通過。尚無歸因時不宣稱已定位瓶頸。
+
+- [ ] **2. 環境、記憶體與功能回歸**
+  Depends on: 1.
+  Outcome: 最佳化在既定目標環境可用，沒有以功能或資源成本換取數字。
+  Checks:
+    - [ ] **固定條件對照**
+      - Action: 按既定 modern-evergreen Browser／WebView2 環境記錄版本及功能回退；比較同條件 Svelte 的記憶體與反覆掛載回收，記錄 JS／CSS 原始及 gzip 大小與維護差異。核對完整資料、逐卡捲動、離屏搜尋／焦點、鍵盤、選單與拖曳取消／重新投放。
+      - Expect: 記憶體不大於 Svelte 的 1.2 倍，無持續資源洩漏；功能覆蓋完整，未支援視窗化時的完整渲染回退正確。環境缺測保持未完成；資產大小與維護成本保留比較紀錄，不另發明數值門檻。
+
+- [ ] **3. 獨立核對結論**
+  Outcome: 效能達標結論有可重現證據。
+  Checks:
+    - [ ] **驗收條件未被改動** `[acceptance]`
+      - Action: 依 Documentation/WebUiReplacementPlan.md#taskprogress-ui-效能最佳化 核對 git 中本清單自建立或最新「條件修訂」commit 後的 acceptance 條件。
+      - Expect: acceptance 文字未被實作者改動；若需修訂，先提交條件修訂再重新核對，不沿用舊結論。
+    - [ ] **核對量測與回歸** `[acceptance]`
+      - Action: 依 Documentation/WebUiReplacementPlan.md#taskprogress-ui-效能最佳化，由獨立驗收者核對原始樣本、時間起終點、版本、環境、記憶體及功能覆蓋，檢查是否延後工作卻漏算或遺漏離屏操作。
+      - Expect: 所有目標與必要回歸有證據；數據限制如實保留，不以本任務結果改寫 Svelte 退役的功能驗收狀態。

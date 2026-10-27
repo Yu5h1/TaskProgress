@@ -16,7 +16,7 @@ const options = (entries, value, label, onChange, className = '') => html`<selec
 const prioritySelect = (policy, value, label, onChange) => options(policy.levels.map(e => ({ value: e.value, label: policy.format(e.value) })), policy.normalize(value, policy.fallbackValue), label, v => onChange(Number(v)), 'inline-priority-select');
 
 function reorderItems(p, view, task) {
-  return { axis:'vertical', surface:p.editing ? false : 'item', previewClasses:p.editing ? {before:'item-drop-before',after:'item-drop-after',dragging:'item-row-dragging'} : {before:'item-gap-before',after:'item-gap-after',dragging:'item-row-dragging'}, onMove(request) {
+  return { enabled:!!(p.editing || p.reorderable), axis:'vertical', surface:p.editing ? false : 'item', previewClasses:p.editing ? {before:'item-drop-before',after:'item-drop-after',dragging:'item-row-dragging'} : {before:'item-gap-before',after:'item-gap-after',dragging:'item-row-dragging'}, onMove(request) {
     if (!(p.editing || p.reorderable)) return;
     const items=task.pending_items ?? [], item=items.find(i=>i.id===request.id), target=items.find(i=>i.id===request.targetId);
     if (!item || !target || item.legacy || target.legacy || p.policy.normalize(item.priority,p.policy.fallbackValue)!==p.policy.normalize(target.priority,p.policy.fallbackValue)) return;

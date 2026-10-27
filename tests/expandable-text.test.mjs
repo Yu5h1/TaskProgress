@@ -31,7 +31,8 @@ function fixture(text = "a".repeat(60)) {
   }
   const fonts = new EventTarget();
   const host = new Element();
-  host.ownerDocument = {
+  host.ownerDocument = Object.assign(new EventTarget(), {
+    contains: node => node === host,
     fonts,
     createElement: () => new Element(),
     defaultView: {
@@ -44,7 +45,8 @@ function fixture(text = "a".repeat(60)) {
         disconnect() { this.disconnected = true; }
       },
     },
-  };
+  });
+  host.closest = () => host.ownerDocument;
   const control = expandableText(host, { text });
   const [content] = host.children;
   const [textNode, button] = content.children;
@@ -53,7 +55,7 @@ function fixture(text = "a".repeat(60)) {
     frames.clear();
     pending.forEach(callback => callback());
   }
-  return { control, content, textNode, button, observer, fonts, frames, flush, document: host.ownerDocument };
+  return { control, content, textNode, get meterText() { return host.children[1]?.children[0]; }, button, observer, fonts, frames, flush, document: host.ownerDocument };
 }
 
 test("inline truncation reserves control width, expands full text and resets on resize/update", () => {
@@ -205,4 +207,19 @@ test("identical updates do not rewrite disclosure or queue layout; resize and op
   f.content.clientWidth = 1000; f.observer.callback(); f.flush();
   assert.equal(f.button.hidden, true);
   f.control.destroy();
+});
+
+test('skipped content is not measured and re-entry resumes truncation without leaking listeners', () => {
+  const f = fixture();
+  let visible = false, reads = 0;
+  f.content.checkVisibility = () => visible;
+  const read = f.content.getClientRects.bind(f.content);
+  f.content.getClientRects = () => { reads++; return read(); };
+  f.flush(); assert.equal(reads, 0);
+  assert.equal(f.textNode.textContent, 'a'.repeat(60), 'full text remains searchable before measurement');
+  assert.equal(f.meterText, undefined, 'no offscreen measuring subtree');
+  visible = true;
+  const reveal = () => f.document.dispatchEvent(Object.assign(new Event('contentvisibilityautostatechange'), { skipped: false }));
+  reveal(); f.flush(); assert.equal(reads, 1); assert.equal(f.button.hidden, false);
+  f.control.destroy(); reveal(); assert.equal(f.frames.size, 0);
 });

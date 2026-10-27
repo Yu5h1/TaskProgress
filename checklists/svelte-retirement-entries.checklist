@@ -1,0 +1,30 @@
+# Svelte 退役：全入口接管 Checklist
+
+Current round: `Documentation/WebUiReplacementPlan.md#必要退役條件2026-10-27-條件修訂`.
+
+2026-10-27 條件修訂：本輪接續既有試點與候選建置，不重設已保存結果。效能數值另由 web-ui-performance 擁有；本輪只核對功能、相容性與可靠性。現行候選最後一筆 CSS 變更尚缺互動重驗，不能直接沿用上一版九項瀏覽器通過紀錄。
+
+- [ ] **1. 功能與保存接線**
+  Outcome: 同一產品資料與命令可由 Web UI Workflow 完整操作。
+  Checks:
+    - [ ] **三頁功能與真實保存**
+      - Action: 固定候選版本，對照 Report、Checklist、Decision 的來源能力表及既有試點證據；在隔離資料使用原產品 API／Desktop transport，執行編輯、保存、取消、衝突、重試、外部刷新及重載。
+      - Expect: 必要功能與資料格式相容，命令不重複、晚到回應不覆寫新狀態；差異已修正或由使用者明確接受。卸載可回收資源；無當機、資料遺失或無法完成操作的缺陷。數值效能未達標不影響本項。
+
+- [ ] **2. 所有入口與操作相容**
+  Depends on: 1.
+  Outcome: 四個建置入口、五個執行場景都有實際接管與操作證據。
+  Checks:
+    - [ ] **入口與必要環境矩陣**
+      - Action: 核對 Viewer、Checklist Browser／Desktop、Decision Browser／Desktop 的載入／複製規則，在已約定 Browser／WebView2 版本開啟候選；對照既有 Theme、鍵盤／焦點、中文 IME、無障礙與必要實體輸入證據。
+      - Expect: 每個入口載入 Web UI Workflow，CSP／路徑／樣式／偏好正確；只有版本與契約仍適用的結果可沿用。缺少環境或人工結果保持未完成；需要使用者補驗的差異按頁建立清單並綁定本卡，不代勾。最後 CSS 版本的選單、窄版、鍵盤與拖曳互動已重驗。
+
+- [ ] **3. 全入口獨立核查**
+  Outcome: 發布前所需的功能證據完整且可追蹤。
+  Checks:
+    - [ ] **驗收條件未被改動** `[acceptance]`
+      - Action: 依 Documentation/WebUiReplacementPlan.md#必要退役條件2026-10-27-條件修訂 核對 git 中本清單自建立或最新「條件修訂」commit 後的 acceptance 條件。
+      - Expect: acceptance 文字未被實作者改動；若需修訂，先提交條件修訂再重新核對，不沿用舊結論。
+    - [ ] **核對入口與證據** `[acceptance]`
+      - Action: 依 Documentation/WebUiReplacementPlan.md#必要退役條件2026-10-27-條件修訂，由未參與本輪條件建立與實作的獨立驗收者核對版本、入口矩陣、必要 G0／M1 功能證據、保存結果及使用者操作結果。
+      - Expect: 沒有把 demo、合成事件或舊候選結果充當未驗證宿主／版本的證據；未解決的必要功能與可靠性缺陷為零，發布清單可以接續。效能任務完成與否不作為本輪前置條件。

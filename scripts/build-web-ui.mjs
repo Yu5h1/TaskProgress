@@ -93,7 +93,7 @@ export async function buildCandidate() {
           }
           graphs[file] = modules.map(p => relative(root, p).replaceAll('\\', '/'));
         } }],
-      build: { outDir: dirname(resolve(output, file)), emptyOutDir: false, minify: false, target: 'es2022',
+      build: { outDir: dirname(resolve(output, file)), emptyOutDir: false, minify: true, target: 'es2022',
         lib: { entry: resolve(source, entry), name: 'TaskProgressThemeBootstrap', formats: [file === 'theme-start.js' ? 'iife' : 'es'], fileName: () => file.split('/').at(-1) } }
     });
   }

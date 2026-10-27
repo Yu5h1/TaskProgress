@@ -78,7 +78,7 @@ Web package 目前 private，不能假設可從公開 npm 安裝。建議消費�
 
 ### 先行 Browser 並行試點
 
-使用者已明確授權先啟動隔離試點。此授權允許在 Web 開始條件尚未全數驗收時建立消費端試點及補證，不代表 G0、M1 或 M2 已通過；正式切換與移除 Svelte 仍依原條件。
+使用者已明確授權先啟動隔離試點。此授權允許在 Web 開始條件尚未全數驗收時建立消費端試點及補證，不代表 G0、M1 或 M2 已通過；正式切換與移除 Svelte 依本計畫下方修訂後的功能、交付與資料安全條件。
 
 第一批使用 TaskProgress 現有宿主、CLI 與版本檢查，搭配 Web 已建置的完整三頁副刻作產品 adapter 移交快照；尚不把副刻模板當成 Web 公開 API。產物固定 Web revision、TaskProgress revision 與逐檔指紋，來源 host assets 漂移時拒絕準備。這是受控短期移交；通過試點後將產品 adapter 原始碼接回本專案的正式建置，Web 只維護通用能力及回歸案例。
 
@@ -104,7 +104,7 @@ TaskProgress Browser 試點／8017
 
 | 階段 | 工作 | 完成條件 |
 |---|---|---|
-| P0 基準 | 記錄兩庫 revision、來源／入口／資產映射，固定資料量、環境和預算 | 能重現舊畫面與量測；未使用的元件有 caller 證據而非直接刪除 |
+| P0 基準 | 記錄兩庫 revision、來源／入口／資產映射，固定功能對照資料與目標環境 | 能重現舊畫面與操作；未使用的元件有 caller 證據而非直接刪除 |
 | P1 隔離真實流程 | 列表 → Dialog 編輯 → 驗證 → 保存 → 刷新／衝突；使用產品控制器與測試資料副本 | Web G0 證據核對，TaskProgress M1 六項逐項有結果；正式入口仍原版 |
 | P2 葉端 | DialogShell、ExpandableText wrapper；再逐項評估 SaveBar、Theme、選項控件 | 共用 API 可表達原語意；鍵盤、焦點、暫態及銷毀通過 |
 | P3 Viewer | 先簡單 region，再 TaskList／CardList／ItemRow，最後 Time／Cost／交付表單 | 全部 16 regions 接上；排序、pin、編輯、刷新、模組與窄版相容 |
@@ -132,9 +132,21 @@ TaskProgress Browser 試點／8017
 | web-ui-pilot-manual | 沿用既有試點人工清單，保留全部結果；完成此項只代表該批試點操作通過。 |
 | production-build | 將產品 adapter 原始碼、Lit 與 Web 公開產物接入 TaskProgress 正式建置／複製規則，取代臨時 demo 產物來源；可在獨立啟用方式下重建，正式交付不依賴 Web sibling 或開發服務，Svelte 回退入口保留。開始前核對既有 Web 啟動條件及試點證據。 |
 | all-entry-replacement | 按原 P2～P5 切換 Report Viewer、Checklist Browser／Desktop、Decision Browser／Desktop，逐批取得資料、保存、互動、Theme、焦點及實際宿主證據；全部支援入口有結果，失敗可回退。 |
-| release-validation-and-retirement | 在正式發布候選完成原 M2 的整體回歸、預算量測、乾淨建置與回退核查；確認所有正式載入者均已切換後，才移除 Svelte runtime、編譯依賴、舊來源及專屬設定，保留其他仍使用的工具。無 Svelte 的重建與載入檢查通過後才結案。 |
+| release-validation-and-retirement | 在正式發布候選完成原 M2 的功能與保存回歸、乾淨建置與回退核查；確認所有正式載入者均已切換後，才移除 Svelte runtime、編譯依賴、舊來源及專屬設定，保留其他仍使用的工具。無 Svelte 的重建與載入檢查通過後才結案。 |
 
-本卡整理既有 M1／M2 與 P2～P6 的工作，不另立放寬條件。依賴與執行狀態由 Report 擁有；試點清單完成不能直接把退役子項標成完成。
+### 必要退役條件（2026-10-27 條件修訂）
+
+依使用者決定，效能最佳化獨立為 `web-ui-performance`，不再作為 G0、M1、M2 或本卡的前置條件。100 ms／16 ms、記憶體倍率、資產大小與維護成本仍追蹤，但缺少量測或超出數值預算不阻擋退役。造成操作無法完成、當機、資料遺失或資源持續洩漏的問題仍屬功能／可靠性缺陷，必須處理。
+
+真正必要的條件只有以下五類；每類沿用適用的既有證據，變更版本與入口只補差異，不要求使用者重做全部已通過項目：
+
+1. **功能等價**：Report、Checklist、Decision 的顯示、編輯、排序、選取、刷新與既有命令符合基準；差異已修正或經使用者明確接受。
+2. **資料安全**：沿用產品保存器與 transport；保存、取消、衝突、失敗重試、晚到回應及重載不遺失或覆蓋資料，偏好／文件格式相容。
+3. **全部入口接管**：四個建置入口、五個 Browser／Desktop 執行場景及正式複製／載入規則均改用 Web UI Workflow；不能只驗證 Browser demo。
+4. **必要操作與環境相容**：已約定的瀏覽器／WebView2、Theme、鍵盤／焦點、中文 IME、無障礙及必要實體輸入有對應證據；缺少的實測不能用效能拆分來豁免。
+5. **交付與回退完整**：產品 CSS 不再從 `.svelte` 取得；從鎖定依賴乾淨重建，發布候選無 Svelte 編譯／runtime／舊 bundle；原版可由已記錄版本與產物恢復，且不回退使用者資料。
+
+執行順序：已通過的試點與候選建置 → [全入口接管清單](../checklists/svelte-retirement-entries.checklist) → [發布與退役清單](../checklists/svelte-retirement-release.checklist)。Report 的 all-entry-replacement 僅等待消費端 production-build；其清單核對必要 G0／M1 功能證據，不再等待 Web 整張試點彙整或效能卡。release-validation-and-retirement 嚴格等待全入口清單完成。這次修訂不宣告任一缺證項通過，也不執行正式部署或刪除 Svelte。
 
 ### 產品原始碼與候選建置
 
@@ -155,18 +167,39 @@ python scripts/web_ui_pilot.py --serve --candidate --port 8018
 
 也可在建置後開啟 `Start Web UI Candidate.cmd`。候選入口為 [8018 Viewer](http://127.0.0.1:8018/demo/taskprogress/?scope=task-progress)，使用獨立的 `candidate-data`；第一次複製資料後不自動同步。按 Ctrl+C 停止候選；8001 正式版與 8017 已匯入試點各自保留。
 
+## TaskProgress UI 效能最佳化
+
+> Task ID: web-ui-performance
+
+### 問題與目標
+
+大型清單更新仍有排版與排程成本，需獨立定位及改善；本卡擁有 TaskProgress 產品模板與 action 的效能，不把產品業務抽入 Web。沿用既有對照工具及原始證據，完成條件由 [效能清單](../checklists/web-ui-performance.checklist) 擁有。與 `svelte-retirement` 無前置相依，兩者可分開結案；效能追蹤暫停的續作狀態只記 handoff。
+
+```text
+固定資料／候選版本與量測邊界
+└─ 定位與減量 → 原門檻重測 → 跨目標環境／記憶體對照
+   └─ 行為回歸與獨立審查
+Svelte 退役：另走功能、入口、保存、交付與回退清單
+```
+
+### 卡片渲染視窗與排程
+
+三頁保留完整資料與穩定卡片 DOM，使用原生 `content-visibility:auto` 略過視窗外文章的排版／繪製，以記住的高度及初始估計高度維持捲動範圍。釘選、選取框與拖曳標記留在文章外；滑鼠、焦點或拖曳中的卡片解除內容隔離，讓選單能超出卡片。離屏文字不強制讀取幾何，重新可見時恢復截斷量測。文字的量測子樹與 grapheme 切分延後到可見量測；純文字由 Lit 直接呈現，可能含 Markdown 連結才使用 action。單批 NativeAction 更新合併至一個 microtask，保留卸載清理、最新選項及錯誤隔離；停用的長按／子項排序不建立 binding。純排序保留穩定 item 身分並重用未變內文，其他資料、能力、回呼或收展更新仍失效重繪。
+
+本獨立任務的門檻維持首次渲染 100 ms、批次更新 16 ms、記憶體不大於同條件 Svelte 的 1.2 倍，資料量維持 50／100／100。視窗化驗證包含完整資料與 ID、逐卡捲動、搜尋離屏內容、焦點與鍵盤移動、捲動取消拖曳與重新投放、選單及窄視窗。工具保留原時間起終點；診斷探針不作為通過證據。渲染門檻只代表指定操作的完成時間，不涵蓋尚未執行的離屏呈現；回歸另驗證內容進入畫面後的行為。
+
+不支援原生內容視窗化的環境使用完整渲染，功能回退與效能必須分開驗收；不因較新 Chromium 達標而提高或宣稱已覆蓋既定瀏覽器最低版本。記憶體對照、環境結果與時間數據由 [Web 效能紀錄](../../Web/tests/taskprogress-performance/README.md) 擁有；候選回歸由 [建置清單](../checklists/svelte-retirement-build.checklist) 擁有。共用元件抽取仍遵守退役後才開始的約束。
+
 ## 驗證與核查
 
 自動檢查涵蓋命令映射、revision、失敗重試、取消／晚到回應、穩定節點身份、單一 DOM owner、多實例卸載、純文字安全、資料保存相容及發布資產解析。既有相關定向測試沿用，不為新模板另造重複業務測試。
 
 畫面核查包含 hover／選取、行尾更多、窄版、pin／拖曳、鍵盤 Tab／Escape、中文 IME、保存時焦點、WebView2、實體觸控／筆（若列為目標裝置）。集中交付一輪核查，已自動驗證者也列出讓使用者確認；使用者未核查的項目不代勾。
 
-量測比較同一資料、viewport、機器及操作：初次顯示、批次更新、連續掛載回收、原始／gzip JS+CSS、一次代表性表單修改所需檔案與重複程式。建議預算初稿：時間指標不超過基準 1.2 倍、交付 gzip 不超過 1.2 倍；資源回收後無持續增加 listener／observer／DOM。這是待確認預算，不是已量測結果。
+獨立效能任務比較同一資料、viewport、機器及操作：初次顯示、批次更新、連續掛載回收、原始／gzip JS+CSS、一次代表性表單修改所需檔案與重複程式。預算以 [遷移決策](../../Web/decisions/taskprogress-web-ui-migration.decisions) 已選的 standard-workload 為準，不再沿用初稿的時間／gzip 倍數建議。生命週期正確性仍屬退役功能條件：資源回收後無持續增加 listener／observer／DOM。
 
-## 尚未決定
+## 已固定的決策與後續界線
 
-- **WUI-01 目標環境與資料量**：建議先以目前使用的 Windows Browser＋WebView2 為必要目標，記錄確切版本；正常 fixture 與大型 fixture 分別量測。大型 fixture 的 task／item 數量需依實際使用確認；觸控／筆是否為本輪必要範圍一併固定。
-- **WUI-02 成本預算**：確認上述 1.2 倍初稿或提供更嚴格門檻；實測基準與誤差記錄完成前不宣告效能通過。
-- **WUI-03 依賴交付**：建議採 Web 已建置的版本化產物＋明確來源指紋，由 TaskProgress bundle/copy 腳本收集；若工作區已有統一 private package 配送方式則沿用。實作前固定取得方式與 Lit runtime 打包策略，禁止自行發明 Web 公開 export。
+目標環境沿用 Web 遷移決策已選的 modern-evergreen：Chromium／Edge ≥114、Firefox ≥125、Safari ≥17 與 Evergreen WebView2，不因效能任務拆分而縮小支援範圍。資料量及數值預算沿用 standard-workload，改由獨立效能卡驗收。依賴交付已採本庫鎖定 Lit 與帶指紋的 Web built 產物，無須再次決定這三項。
 
-上述事項會影響試點／正式採用的驗收；先行 Browser 試點已固定採用帶指紋的 built 產物方式。正式 UI 切換與移除 Svelte 仍未授權，須取得原定驗收證據。
+實機輸入與尚缺環境證據按既有人工清單及全入口清單補齊；觸控／筆只按原先約定的必要裝置驗收，不新增硬體要求。正式服務切換仍遵循發布流程，不能由本次條件修訂推定已驗收或已部署。

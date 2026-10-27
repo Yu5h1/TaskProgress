@@ -2,6 +2,18 @@
    theme boundary; preserve domain status/priority colours from TaskProgress. */
 :root { --theme-page-bg:var(--ui-page); --theme-panel-bg:var(--ui-surface); --theme-heading:var(--ui-heading); --theme-panel-heading:var(--ui-panel-heading); --theme-item-text:var(--ui-text); --theme-secondary-text:var(--ui-muted); --theme-muted-text:var(--ui-muted); --theme-border:var(--ui-border); --theme-accent:var(--ui-accent); }
 body { background:var(--ui-page); color:var(--ui-text); }
+/* Native rendering windows retain searchable/focusable DOM and remembered
+   heights. Keep pins, selection rings and drop indicators outside containment. */
+.arrangeable-card > .task-card,
+.arrangeable-card > .checklist-item,
+.arrangeable-card > .decision-card {
+  content-visibility:auto;
+  contain-intrinsic-block-size:auto 240px;
+}
+/* Interactive overlays must be able to extend beyond their article. */
+.arrangeable-card:hover > *, .arrangeable-card:focus-within > *,
+.arrangeable-card > .task-card:has(.wait-menu-list),
+.arrangeable-card[data-reorder-dragging] > * { content-visibility:visible; }
 .replica-title-row { display:flex; align-items:center; gap:8px; min-width:0; }
 .site-header > .replica-title-row { flex:1; }
 .replica-title-row > h1, .replica-title-row > .brand { min-width:0; }

@@ -2,6 +2,8 @@
 
 Current round: `Documentation/WebUiReplacementPlan.md#產品原始碼與候選建置`.
 
+2026-10-27 原生視窗化回歸：Node 定向 18 項覆蓋文字、action 佇列、能力啟停與建置；瀏覽器候選 `0bfcb4f0…e71a` 的 9 項通過，包含離屏長文更新、窄寬切換、無 focus／hover 選單、排序保留收展、資料與既有控制項回呼刷新、子項排序能力啟停、純文字／安全連結切換及原保存歷史。另以原生 Tab／Shift+Tab 核對卡片與釘選控制項往返。合成拖曳遵守既有「捲動即取消、重新開始後可投放」契約，不宣稱實體自動捲動。等待選單原有內層裁切另記 `viewer-core/wait-menu-overflow-clipping`；測試暫時解除內層 overflow，只核對文章視窗化沒有新增裁切。最後候選 `efc74af2…a0e` 僅再縮限等待選單 selector，建置 3 項通過；該 CSS 版本的互動重驗留待接續。時間、覆蓋與相容性結論由 [Web 效能紀錄](../../Web/tests/taskprogress-performance/README.md#2026-10-27-原生視窗化與排程減量) 擁有，不是正式切換或退役通過。
+
 本輪只移交產品來源與獨立候選建置；正式入口切換仍受 M1 控制，Svelte 保留。
 
 獨立審查後的修正：原產品未保存或無效偏好預設 system；候選最初固定 dark 不相容。首屏 classic 與互動 ESM 已共同引用 theme-options.mjs，沿用原 storage key；新增未保存、損壞 JSON／版本、四模式與八色偏好及 storage 不可用的對照。Node 測試自行建立候選，Python 候選不再讀舊 imported delivery，以免把開發機已準備的產物當成乾淨建置證據。

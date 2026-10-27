@@ -1,5 +1,5 @@
 /** Framework-independent text disclosure with safe inline links. Owns an empty host's children. */
-import { createInlineLink, inlineUnits } from "./inline-links.js";
+import { createInlineLink, inlineUnits, parseInlineLinks } from "./inline-links.js";
 export function expandableText(host, options = {}) {
   const doc = host.ownerDocument;
   const win = doc.defaultView;
@@ -16,20 +16,24 @@ export function expandableText(host, options = {}) {
   host.classList.add("expandable-text");
   content.append(textNode, button);
   host.append(content);
-  const meter = doc.createElement("div");
-  const meterText = doc.createElement("span");
-  const meterButton = doc.createElement("button");
-  meter.className = "expandable-text__content expandable-text__measure";
-  meter.setAttribute("aria-hidden", "true");
-  meter.inert = true;
-  meterButton.className = "expandable-text__toggle";
-  meter.append(meterText, meterButton);
-  host.append(meter);
+  let meter, meterText, meterButton;
+  function ensureMeter() {
+    if (meter) return;
+    meter = doc.createElement("div");
+    meterText = doc.createElement("span");
+    meterButton = doc.createElement("button");
+    meter.className = "expandable-text__content expandable-text__measure";
+    meter.setAttribute("aria-hidden", "true"); meter.inert = true;
+    meterButton.className = "expandable-text__toggle";
+    meterButton.textContent = String(expanded ? settings.lessLabel : settings.moreLabel);
+    meter.append(meterText, meterButton); host.append(meter);
+  }
   let settings;
   let expanded = false;
   let frame = 0;
   let destroyed = false;
-  let pieces = [], visibleNodes = [], measuringNodes = [], unitCount = 0;
+  let contentSkipped = false;
+  let pieces = [], visibleNodes = [], measuringNodes = [], unitCount = null;
 
   function createNodes(parent) {
     parent.replaceChildren();
@@ -55,12 +59,23 @@ export function expandableText(host, options = {}) {
     prefix.textContent = ellipsis;
     label.textContent = caption.slice(ellipsis.length);
     button.setAttribute("aria-expanded", String(expanded));
-    meterButton.textContent = caption;
+    if (meterButton) meterButton.textContent = caption;
   }
 
   function measure() {
     frame = 0;
+    // Avoid forcing layout inside a skipped native rendering window. The
+    // visibility event below retries when that ancestor becomes relevant.
+    if (contentSkipped || content.checkVisibility?.({ contentVisibilityAuto: true }) === false) return;
     if (!content.getClientRects().length || !content.clientWidth) return;
+    // Full safe text exists even while offscreen. Grapheme segmentation and
+    // measuring-only nodes are needed only once this disclosure is visible.
+    ensureMeter();
+    if (unitCount === null) {
+      pieces = inlineUnits(settings.text);
+      unitCount = pieces.reduce((total, piece) => total + piece.units.length, 0);
+      measuringNodes = createNodes(meterText);
+    }
     const lineHeight = parseFloat(win.getComputedStyle(content).lineHeight);
     const limit = lineHeight * settings.lines + 1;
     // Measure offscreen so resizing cannot detach or temporarily hide a focused link.
@@ -109,11 +124,12 @@ export function expandableText(host, options = {}) {
     else if (open && !settings.open) expanded = true;
     settings = { text, lines, open, emphasis, linkTone, moreLabel, lessLabel };
     if (textChanged) {
-      pieces = inlineUnits(text);
-      unitCount = pieces.reduce((total, piece) => total + piece.units.length, 0);
+      pieces = parseInlineLinks(text);
+      unitCount = null;
       visibleNodes = createNodes(textNode);
-      measuringNodes = createNodes(meterText);
-      showPrefix(visibleNodes, unitCount);
+      pieces.forEach((piece, index) => { if (!piece.href) visibleNodes[index].textContent = piece.text; });
+      measuringNodes = [];
+      meterText?.replaceChildren();
     }
     render();
     schedule();
@@ -129,6 +145,13 @@ export function expandableText(host, options = {}) {
   button.addEventListener("click", toggle);
   const observer = new win.ResizeObserver(schedule);
   observer.observe(content);
+  const visibilityRoot = host.closest?.('[data-render-window]');
+  const visibility = event => {
+    if (!event.target.contains(host)) return;
+    contentSkipped = event.skipped;
+    if (!contentSkipped) schedule();
+  };
+  visibilityRoot?.addEventListener('contentvisibilityautostatechange', visibility, true);
   doc.fonts?.addEventListener("loadingdone", schedule);
   update(options);
   return {
@@ -137,10 +160,11 @@ export function expandableText(host, options = {}) {
       destroyed = true;
       win.cancelAnimationFrame(frame);
       observer.disconnect();
+      visibilityRoot?.removeEventListener('contentvisibilityautostatechange', visibility, true);
       doc.fonts?.removeEventListener("loadingdone", schedule);
       button.removeEventListener("click", toggle);
       content.remove();
-      meter.remove();
+      meter?.remove();
       host.classList.remove("expandable-text");
     },
   };

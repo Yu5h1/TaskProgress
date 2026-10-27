@@ -1,5 +1,6 @@
 import { html, svg, render, nothing } from 'lit';
 import { repeat } from 'lit/directives/repeat.js';
+import { guard } from 'lit/directives/guard.js';
 import { live } from 'lit/directives/live.js';
 import { directive } from 'lit/directive.js';
 import { AsyncDirective } from 'lit/async-directive.js';
@@ -12,10 +13,13 @@ import { createLinkSelection, readLinkSelection } from '@taskprogress/link-selec
 import { copyText } from '@taskprogress/item-reference.js';
 import { bindLongPress, bindChoicePicker, bindReorder, registerUi } from '@web/ui';
 import { createBackLink } from './bootstrap.mjs';
+import { createActionQueue } from './action-queue.mjs';
+import { enabledAction } from './enabled-action.mjs';
 export { html, render, nothing, repeat, live };
 
 // Native actions keep exclusive ownership of an empty host, just as they did in
 // the source components. Lit owns the host, and disposes the action on removal.
+const actionQueue = createActionQueue();
 class NativeAction extends AsyncDirective {
   render() { return nothing; }
   update(part, [factory, value]) {
@@ -26,20 +30,25 @@ class NativeAction extends AsyncDirective {
     return nothing;
   }
   schedule() {
-    const revision = this.revision = (this.revision ?? 0) + 1;
-    queueMicrotask(() => {
-      if (revision !== this.revision || !this.isConnected || !this.node.isConnected) return;
-      if (!this.binding) this.binding = this.factory(this.node, this.value);
-      else this.binding.update?.(this.value);
-    });
+    actionQueue.add(this);
   }
-  clear() { this.revision = (this.revision ?? 0) + 1; this.binding?.destroy?.(); this.binding?.dispose?.(); this.binding = null; }
+  flush() {
+    if (!this.isConnected || !this.node.isConnected) return;
+    if (!this.binding) this.binding = this.factory(this.node, this.value);
+    else this.binding.update?.(this.value);
+  }
+  clear() { actionQueue.delete(this); this.binding?.destroy?.(); this.binding?.dispose?.(); this.binding = null; }
   disconnected() { this.clear(); }
   reconnected() { if (this.factory) this.schedule(); }
 }
 export const action = directive(NativeAction);
 export const text = (value, options = {}) => html`<div ${action(expandableText, { text: value ?? '', ...options })}></div>`;
-export const inline = value => html`<span ${action(inlineLinks, { text: value ?? '' })}></span>`;
+export const inline = value => {
+  const text = String(value ?? '');
+  // Lit safely owns plain text. Only possible Markdown links need an action
+  // and its extra host; prose and option labels need no binding lifecycle.
+  return text.includes('[') ? html`<span ${action(inlineLinks, { text })}></span>` : text;
+};
 export const noop = () => {};
 export const eye = (closed = false, disabled = false) => svg`<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${closed ? svg`<path d="M3 9c4 7 14 7 18 0M5 12l-2 3m6-1-1 3m7-3 1 3m3-5 2 3" />` : svg`<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z" /><circle cx="12" cy="12" r="3" />`}${disabled ? svg`<path d="M3 3l18 18" />` : nothing}</svg>`;
 const orderIcon = id => svg`<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true">${id === 'free' ? svg`<path d="M4 5h15M4 10h8M4 15h17M4 20h11" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" />` : svg`<path d=${id === 'forward' ? 'M5 3v18m-3-3 3 3 3-3' : 'M5 21V3m-3 3 3-3 3 3'} fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /><path d=${id === 'forward' ? 'M11 4h10M11 9h8M11 14h6M11 19h3' : 'M11 4h3M11 9h6M11 14h8M11 19h10'} fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" />`}</svg>`;
@@ -78,13 +87,13 @@ export class View {
     this.cleanups.push(()=>{for(const id of pending)clearTimeout(id);pending.clear();});
   }
   update(props) { Object.assign(this.props, props); this.draw(); return this; }
-  draw() { if (!this.disposed) render(this.renderer(this.props, this), this.target); }
+  draw({ reuseCardContent = false } = {}) { if (!this.disposed) { if (!reuseCardContent) this.contentVersion = (this.contentVersion ?? 0) + 1; render(this.renderer(this.props, this), this.target); } }
   refresh = () => this.draw();
   on(target, name, fn, options = {}) { target.addEventListener(name, fn, { ...options, signal: this.abort.signal }); }
   destroy() { if(this.disposed)return;this.disposed = true; this.abort.abort(); this.cleanups.forEach(fn => typeof fn === 'function' ? fn() : fn?.dispose?.()); render(nothing, this.target); }
 }
 
-export const reorderAction = (node, options) => {
+export const reorderAction = enabledAction((node, options) => {
   let settings = options;
   let disposed = false;
   const abort = new AbortController();
@@ -140,7 +149,7 @@ export const reorderAction = (node, options) => {
     settings = next;
     if (styled.size || ['before', 'after', 'dragging'].some(key => previous[key] !== incoming[key])) syncPreview();
   }, destroy() { disposed=true; clearSurface(); abort.abort(); binding.dispose(); observer.disconnect(); for(const [row,names] of styled)for(const name of names)row.classList.remove(name); styled.clear(); } };
-};
+});
 export function capsuleStrip(items = [], options = {}) {
   return html`<div class="horizontal-capsule-strip ${options.className ?? ''}" role="toolbar" aria-label=${options.ariaLabel ?? '模組'}
     ${action(reorderAction, { axis: 'horizontal', focusAfterMove:true, previewClasses:{before:'capsule-drop-before',after:'capsule-drop-after',dragging:'capsule-dragging'}, onMove: r => options.onReorder?.(r.id, r.targetId, r.placement === 'after') })}>
@@ -200,9 +209,11 @@ export class Cards {
   orderedIds(items = this.props?.items ?? []) { return displayCards(items, this.order, this.mode, this.props?.pinEnabled ? this.pins : [], this.props?.nextId).map(item => item.id); }
   expand(id, value) { this.overrides[id] = value; saveDisclosure(this.disclosureKey, this.expanded, this.overrides); this.view.draw(); }
   all(value) { this.expanded = value; this.overrides = {}; saveDisclosure(this.disclosureKey, this.expanded, this.overrides); this.view.draw(); }
-  persist() {
+  // Only the order-mode control reuses body templates. Every data, selection,
+  // capability or disclosure draw invalidates them through View.contentVersion.
+  persist(reuseCardContent = false) {
     try { if (this.key) { localStorage.setItem(this.key, JSON.stringify(this.order)); localStorage.setItem(`${this.key}:pins`, JSON.stringify(this.pins)); localStorage.setItem(`${this.key}:mode`, this.mode); sessionStorage.setItem(`${this.key}:visibility`, JSON.stringify({ mode:this.visibility, hiddenIds:this.hidden })); } } catch {}
-    this.view.draw();
+    this.view.draw({ reuseCardContent });
   }
   render(p, itemTemplate, filter = nothing, tools = nothing) {
     this.props = p;
@@ -242,14 +253,14 @@ export class Cards {
     const leadId = items.find(visible)?.id;
     return html`<div class="card-list-controls"><div class="card-list-heading"><p class="section-kicker">工作項目</p>${filter}</div><div class="card-list-tools">
       <button type="button" class="card-toolbar-icon" aria-label=${this.expanded ? '全部收合' : '全部展開'} @click=${() => this.all(!this.expanded)}><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d=${this.expanded ? "M5 15l7-7 7 7" : "M5 9l7 7 7-7"} fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" /></svg></button>
-      ${choice(this.view, 'order', ['forward','reverse','free'].map(id => ({ id, label: ({forward:'順排',reverse:'逆排',free:'自由排序（可拖曳）'})[id], icon:orderIcon(id) })), this.mode, '排序', id => { this.mode = id; this.persist(); })}
+      ${choice(this.view, 'order', ['forward','reverse','free'].map(id => ({ id, label: ({forward:'順排',reverse:'逆排',free:'自由排序（可拖曳）'})[id], icon:orderIcon(id) })), this.mode, '排序', id => { this.mode = id; this.persist(true); })}
       ${choice(this.view, 'visibility', [{ id:'enabled',label:'啟用',icon:eye() },{ id:'closed',label:'全體關閉',icon:eye(true) },{ id:'disabled',label:'禁用',icon:eye(false,true) },{ id:'reset',label:'重置',kind:'action',icon:html`<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10a9 9 0 1 1 2 8M3 4v6h6" /></svg>` }], this.visibility, '可見性', id => { if (id === 'reset') { this.hidden = []; this.visibility = 'enabled'; } else this.visibility = id; this.persist(); }, 'picker')}${tools}
     </div></div><div class="arrangeable-cards" ${action(reorderAction, { axis: 'vertical', surface: true, previewClasses:{before:'card-drop-before',after:'card-drop-after'}, onMove: move })}>
-    ${repeat(items, i => i.id, (i, index) => html`<div class="arrangeable-card ${this.selected === i.id ? 'card-selected' : ''}" role="group" tabindex="0" data-card-id=${i.id} data-reorder-id=${i.id} data-reorder-sortable=${String(this.mode === 'free' && !this.pins.includes(i.id))}
+    ${repeat(items, i => i.id, (i, index) => html`<div class="arrangeable-card ${this.selected === i.id ? 'card-selected' : ''}" role="group" tabindex="0" data-render-window data-card-id=${i.id} data-reorder-id=${i.id} data-reorder-sortable=${String(this.mode === 'free' && !this.pins.includes(i.id))}
       aria-label=${`${i.title ?? i.question ?? ''}${this.selected === i.id ? '，已選取' : ''}`} data-link-tone=${this.selected === i.id ? linkTone ?? nothing : nothing} ?hidden=${!visible(i)}
       @pointerdown=${e => { if (e.button === 0) this.select(i.id); }} @focusin=${() => this.select(i.id)} @keydown=${e => { if (e.target === e.currentTarget && ['Enter',' '].includes(e.key)) { e.preventDefault(); this.select(i.id); } }}>
       ${p.pinEnabled ? html`<button type="button" class="card-pin ${this.pins.includes(i.id) ? 'is-pinned' : ''} ${i.id === p.nextId ? 'is-next' : ''}" aria-label="${this.pins.includes(i.id) ? '取消釘選' : '釘選置頂'}：${i.title}" aria-pressed=${this.pins.includes(i.id)} @click=${() => { this.pins = this.pins.includes(i.id) ? this.pins.filter(id => id !== i.id) : promotePin(this.pins, i.id); this.persist(); }}><svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M8 3h8l-1 7 4 4v2H5v-2l4-4-1-7Zm4 13v6" fill=${this.pins.includes(i.id) ? 'currentColor' : 'none'} stroke="currentColor" stroke-width="1.6" /></svg></button>` : nothing}
-      ${itemTemplate(i, { lead: i.id === leadId, expanded: this.isExpanded(i.id), toggle: value => this.expand(i.id, value), visibilityEnabled: this.visibility === 'enabled', visible: !this.hidden.includes(i.id), onVisibleChange: value => { this.hidden = value ? this.hidden.filter(id => id !== i.id) : [...this.hidden, i.id]; this.persist(); } })}
+      ${guard([this.view.contentVersion, i, i.id === leadId, this.isExpanded(i.id), this.visibility, this.hidden.includes(i.id)], () => itemTemplate(i, { lead: i.id === leadId, expanded: this.isExpanded(i.id), toggle: value => this.expand(i.id, value), visibilityEnabled: this.visibility === 'enabled', visible: !this.hidden.includes(i.id), onVisibleChange: value => { this.hidden = value ? this.hidden.filter(id => id !== i.id) : [...this.hidden, i.id]; this.persist(); } }))}
       ${this.mode === 'free' ? html`<button type="button" class="replica-card-grip" data-reorder-handle draggable="true" aria-label="移動 ${i.title ?? i.question}">⠿</button>` : nothing}
     </div>`)}</div>${p.hiddenCount > 0 ? html`<p class="card-list-hidden"><button type="button" class="card-list-hidden-link" @click=${p.onShowHidden}>…顯示隱藏項目(${p.hiddenCount})</button></p>` : nothing}`;
   }
@@ -261,7 +272,7 @@ export function saveBar(p) {
 }
 const dialogAction = (node, settings) => { let p = settings; const close = () => p.onClose?.(); node.addEventListener('ui-close', close); const update = next => { p = next; if (p.open) node.show(undefined, p.initialFocus ? node.querySelector(p.initialFocus) : undefined); else node.close(); }; update(p); return { update, destroy() { node.removeEventListener('ui-close', close); node.close(); } }; };
 export const dialog = (p, body) => { registerUi(); return html`<ui-dialog id=${p.id ?? nothing} class=${p.className ?? ''} .heading=${p.title ?? ''} .kicker=${p.kicker ?? ''} .closeLabel=${p.closeLabel ?? ''} .dismissDisabled=${!!p.busy} .dismissOnBackdrop=${p.dismissOnBackdrop ?? true} ${action(dialogAction, p)}>${p.open ? body : nothing}</ui-dialog>`; };
-export const holdAction = (node, p) => { let settings = p; const b = bindLongPress(node, { capture: false, accept: e => !!settings.enabled && !e.target.closest('a,button,input,textarea,select,label,[contenteditable]'), onTrigger: () => settings.onTrigger?.() }); return { update: next => { settings = next; }, destroy: () => b.dispose() }; };
+export const holdAction = enabledAction((node, p) => { let settings = p; const b = bindLongPress(node, { capture: false, accept: e => !!settings.enabled && !e.target.closest('a,button,input,textarea,select,label,[contenteditable]'), onTrigger: () => settings.onTrigger?.() }); return { update: next => { settings = next; }, destroy: () => b.dispose() }; }, options => !!options.enabled);
 
 const themePlacement = (node) => {
   const owner = globalThis.taskprogressTheme.control;

@@ -1,0 +1,30 @@
+# Svelte 退役：發布與移除 Checklist
+
+Current round: `Documentation/WebUiReplacementPlan.md#必要退役條件2026-10-27-條件修訂`.
+
+接續 svelte-retirement-entries.checklist。試點通過、計畫修訂或效能改善都不等於正式退役；本清單未完成前不宣告 Svelte 已移除。
+
+- [ ] **1. 發布候選與回退**
+  Outcome: 正式交付可獨立建置，切換失敗可恢復原版且保留資料。
+  Checks:
+    - [ ] **交付與回退核對**
+      - Action: 核對全入口清單有效完成；固定原版 revision／可恢復產物，在隔離環境演練新舊版切換及已保存資料重開，確認候選的 Content／Pages／Desktop 資產清單。
+      - Expect: 不依賴 Web sibling、開發服務或 CDN；回退不覆寫使用者資料，版本與操作可重現。正式切換按既有發布流程執行，保留回退證據。
+
+- [ ] **2. 移除 Svelte 並完成正式接管**
+  Depends on: 1.
+  Outcome: 正式來源與交付不再依賴 Svelte。
+  Checks:
+    - [ ] **來源、建置與正式載入**
+      - Action: 將產品 CSS 的最終來源移出 .svelte；移除已無 caller 的 Svelte 元件、wrapper、plugin、依賴與專屬設定。使用鎖定依賴乾淨重建所有入口，按發布流程切換並核對正式載入及保存／重載。
+      - Expect: 建置及正式執行相依圖無 Svelte 編譯／runtime／舊 bundle；所有正式入口用 Web UI Workflow，資料安全與功能回歸通過。保留其他仍使用的工具及可還原的舊版紀錄，不回退資料。
+
+- [ ] **3. 退役結案核查**
+  Outcome: 功能、正式交付與回退證據足以宣告退役。
+  Checks:
+    - [ ] **驗收條件未被改動** `[acceptance]`
+      - Action: 依 Documentation/WebUiReplacementPlan.md#必要退役條件2026-10-27-條件修訂 核對 git 中本清單自建立或最新「條件修訂」commit 後的 acceptance 條件。
+      - Expect: acceptance 文字未被實作者改動；若需修訂，先提交條件修訂再重新核對，不沿用舊結論。
+    - [ ] **核對 M2** `[acceptance]`
+      - Action: 依 Documentation/WebUiReplacementPlan.md#必要退役條件2026-10-27-條件修訂，由獨立驗收者核對五類必要條件、實際發布版本、依賴與入口盤點、保存回歸及回退紀錄；確認兩庫任務卡引用同一消費端結論。
+      - Expect: M2 的必要條件全部通過，沒有仍需 Svelte 的產品路徑或未處理的必要操作缺陷。效能卡即使未完成也可退役；缺少本清單的證據仍不能結案。
