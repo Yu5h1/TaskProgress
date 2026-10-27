@@ -44,13 +44,27 @@ Object.freeze({
 var ne = Object.freeze({ defaultMode: "system" });
 //#endregion
 //#region ui/web-workflow/bootstrap.mjs
-function re() {
-	let e = document.createElement("a");
-	return e.className = "demo-back-link", e.href = "/", e.textContent = "←", e.setAttribute("aria-label", "上一頁"), e.addEventListener("click", (e) => {
+function re(e = null) {
+	let t = document.createElement("a");
+	t.className = "demo-back-link", t.href = e?.href ?? "/", t.setAttribute("aria-label", e ? `回到 ${e.title}` : "上一頁"), t.title = e ? `回到 ${e.title}` : "上一頁";
+	let n = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+	for (let [e, t] of Object.entries({
+		viewBox: "0 0 24 24",
+		width: "24",
+		height: "24",
+		fill: "none",
+		stroke: "currentColor",
+		"stroke-width": "3",
+		"stroke-linecap": "round",
+		"stroke-linejoin": "round",
+		"aria-hidden": "true"
+	})) n.setAttribute(e, t);
+	let r = document.createElementNS("http://www.w3.org/2000/svg", "path");
+	return r.setAttribute("d", "M20 12H4m7-7-7 7 7 7"), n.append(r), t.append(n), e || t.addEventListener("click", (e) => {
 		if (!(e.button || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey)) try {
 			document.referrer && new URL(document.referrer).origin === location.origin && history.length > 1 && (e.preventDefault(), history.back());
 		} catch {}
-	}), e;
+	}), t;
 }
 async function ie(e) {
 	n(), document.documentElement.dataset.taskprogressUi = "web-ui-workflow";
