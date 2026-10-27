@@ -52,17 +52,17 @@ function v(e = null) {
 	let n = document.createElementNS("http://www.w3.org/2000/svg", "svg");
 	for (let [e, t] of Object.entries({
 		viewBox: "0 0 24 24",
-		width: "24",
-		height: "24",
+		width: "32",
+		height: "32",
 		fill: "none",
 		stroke: "currentColor",
-		"stroke-width": "3",
+		"stroke-width": "4",
 		"stroke-linecap": "round",
 		"stroke-linejoin": "round",
 		"aria-hidden": "true"
 	})) n.setAttribute(e, t);
 	let r = document.createElementNS("http://www.w3.org/2000/svg", "path");
-	return r.setAttribute("d", "M20 12H4m7-7-7 7 7 7"), n.append(r), t.append(n), e || t.addEventListener("click", (e) => {
+	return r.setAttribute("d", "M19 12H5m6-6-6 6 6 6"), n.append(r), t.append(n), e || t.addEventListener("click", (e) => {
 		if (!(e.button || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey)) try {
 			document.referrer && new URL(document.referrer).origin === location.origin && history.length > 1 && (e.preventDefault(), history.back());
 		} catch {}
@@ -1443,7 +1443,7 @@ var Q = [
 	}
 	template() {
 		let e = this.data, t = this.visible();
-		return N`<main class="checklist-page"><header class="checklist-header"><div><div class="replica-title-row">${en(this.owner)}<h1>${e?.document.fileName ?? "TaskProgress Checklist"}</h1></div>${this.owner ? N`<p class="document-owner"><a href=${this.owner.href}><span class="owner-name">${this.owner.title}</span></a></p>` : I}${e ? N`<details class="checklist-round"><summary>本輪依據</summary><p>${e.document.roundIdentity}</p></details>` : I}</div>${Qt()}</header>
+		return N`<main class="checklist-page"><header class="checklist-header"><div><div class="replica-title-row">${en(this.owner)}<h1>${e?.document.fileName ?? "TaskProgress Checklist"}</h1></div>${e ? N`<details class="checklist-round"><summary>本輪依據</summary><p>${e.document.roundIdentity}</p></details>` : I}</div>${Qt()}</header>
       ${this.loading ? N`<p class="checklist-notice" role="status">${this.message}</p>` : e ? N`
       ${zt({
 			bar: {

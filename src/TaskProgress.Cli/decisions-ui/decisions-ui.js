@@ -50,17 +50,17 @@ function _(e = null) {
 	let n = document.createElementNS("http://www.w3.org/2000/svg", "svg");
 	for (let [e, t] of Object.entries({
 		viewBox: "0 0 24 24",
-		width: "24",
-		height: "24",
+		width: "32",
+		height: "32",
 		fill: "none",
 		stroke: "currentColor",
-		"stroke-width": "3",
+		"stroke-width": "4",
 		"stroke-linecap": "round",
 		"stroke-linejoin": "round",
 		"aria-hidden": "true"
 	})) n.setAttribute(e, t);
 	let r = document.createElementNS("http://www.w3.org/2000/svg", "path");
-	return r.setAttribute("d", "M20 12H4m7-7-7 7 7 7"), n.append(r), t.append(n), e || t.addEventListener("click", (e) => {
+	return r.setAttribute("d", "M19 12H5m6-6-6 6 6 6"), n.append(r), t.append(n), e || t.addEventListener("click", (e) => {
 		if (!(e.button || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey)) try {
 			document.referrer && new URL(document.referrer).origin === location.origin && history.length > 1 && (e.preventDefault(), history.back());
 		} catch {}
@@ -1442,7 +1442,7 @@ var $ = new class extends Ot {
 	}
 	template() {
 		let e = this.data, t = this.decisions(), n = this.visible();
-		return N`<main class="checklist-shell decisions-shell"><header class="checklist-header"><div><div class="replica-title-row">${Vt(this.owner)}<h1>決策項目</h1></div>${this.owner ? N`<p class="document-owner"><a href=${this.owner.href}><span class="owner-name">${this.owner.title}</span></a></p>` : I}</div>${zt()}</header>
+		return N`<main class="checklist-shell decisions-shell"><header class="checklist-header"><div><div class="replica-title-row">${Vt(this.owner)}<h1>決策項目</h1></div></div>${zt()}</header>
       ${this.message ? N`<p role="status">${this.message}</p>` : I}
       ${this.summary ? N`<p>待決策 ${this.summary.pending}${this.summary.incomplete ? "（統計不完整）" : ""}</p>${this.summary.files.map((e) => N`<article class="checklist-item"><a href="?scope=${this.summary.scope_id}&task=${e.task_id}">${e.task_id}</a><p>${e.error ?? `待決策 ${e.pending}／全部 ${e.total}`}</p></article>`)}${this.summary.files.length ? I : N`<p>尚未建立決策文件。</p>`}` : e ? N`
       <div class="decision-overview"><p>待決策 ${t.filter((e) => e.status === "pending").length}／全部 ${t.length}</p><p>選項可隨時修改；選取「其他」後，文字更動會自動保存，空白則為待決策。未選取時可點擊文字欄編輯本頁草稿。保存失敗會保留修改供重試。</p></div>

@@ -125,7 +125,7 @@ class Decisions extends View {
   }
   template() {
     const d = this.data, decisions = this.decisions(), visible = this.visible();
-    return html`<main class="checklist-shell decisions-shell"><header class="checklist-header"><div><div class="replica-title-row">${productBack(this.owner)}<h1>決策項目</h1></div>${this.owner ? html`<p class="document-owner"><a href=${this.owner.href}><span class="owner-name">${this.owner.title}</span></a></p>` : nothing}</div>${productTheme()}</header>
+    return html`<main class="checklist-shell decisions-shell"><header class="checklist-header"><div><div class="replica-title-row">${productBack(this.owner)}<h1>決策項目</h1></div></div>${productTheme()}</header>
       ${this.message ? html`<p role="status">${this.message}</p>` : nothing}
       ${this.summary ? html`<p>待決策 ${this.summary.pending}${this.summary.incomplete ? '（統計不完整）' : ''}</p>${this.summary.files.map(file => html`<article class="checklist-item"><a href="?scope=${this.summary.scope_id}&task=${file.task_id}">${file.task_id}</a><p>${file.error ?? `待決策 ${file.pending}／全部 ${file.total}`}</p></article>`)}${!this.summary.files.length ? html`<p>尚未建立決策文件。</p>` : nothing}` : d ? html`
       <div class="decision-overview"><p>待決策 ${decisions.filter(i => i.status === 'pending').length}／全部 ${decisions.length}</p><p>選項可隨時修改；選取「其他」後，文字更動會自動保存，空白則為待決策。未選取時可點擊文字欄編輯本頁草稿。保存失敗會保留修改供重試。</p></div>

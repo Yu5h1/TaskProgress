@@ -9,9 +9,9 @@ export function createBackLink(owner = null) {
   link.setAttribute('aria-label', owner ? `回到 ${owner.title}` : '上一頁');
   link.title = owner ? `回到 ${owner.title}` : '上一頁';
   const icon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-  for (const [name, value] of Object.entries({ viewBox: '0 0 24 24', width: '24', height: '24', fill: 'none', stroke: 'currentColor', 'stroke-width': '3', 'stroke-linecap': 'round', 'stroke-linejoin': 'round', 'aria-hidden': 'true' })) icon.setAttribute(name, value);
+  for (const [name, value] of Object.entries({ viewBox: '0 0 24 24', width: '32', height: '32', fill: 'none', stroke: 'currentColor', 'stroke-width': '4', 'stroke-linecap': 'round', 'stroke-linejoin': 'round', 'aria-hidden': 'true' })) icon.setAttribute(name, value);
   const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-  path.setAttribute('d', 'M20 12H4m7-7-7 7 7 7');
+  path.setAttribute('d', 'M19 12H5m6-6-6 6 6 6');
   icon.append(path); link.append(icon);
   if (owner) return link;
   link.addEventListener('click', event => {
