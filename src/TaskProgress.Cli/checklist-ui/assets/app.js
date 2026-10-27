@@ -594,6 +594,7 @@ function syncPersistenceView(next = state.editor.persistence?.snapshot()) {
     cautious: next.cautious,
     dirty: next.dirty,
     saving: next.saving,
+    history: next.history,
     canUndo: Boolean(next.history?.canUndo),
     canRedo: Boolean(next.history?.canRedo),
     message: next.message,
@@ -1486,7 +1487,8 @@ function stepPreviewHistory(direction) {
 }
 
 function isTextEntryFocused() {
-  const active = document.activeElement;
+  let active = document.activeElement;
+  while (active?.shadowRoot?.activeElement) active = active.shadowRoot.activeElement;
   return Boolean(active?.closest?.("input, textarea, select, [contenteditable=\"true\"]"));
 }
 
@@ -1795,7 +1797,8 @@ saveBarView = createUiView("save-bar", elements.editSaveBar, {
   },
 });
 bindHistoryShortcuts(document, {
-  isActive: () => state.editor.editing && !state.editor.persistenceView?.saving,
+  isActive: () => state.editor.editing && !state.editor.persistenceView?.saving
+    && !document.activeElement?.closest?.("ui-search-field"),
   onUndo: () => applyEditorHistory("undo"),
   onRedo: () => applyEditorHistory("redo"),
 });

@@ -261,7 +261,10 @@ export class Cards {
   }
 }
 export function saveBar(p) {
-  return html`<span class="edit-save-status" id="edit-save-status" role="status">${p.message ?? ''}</span><span class="edit-history-actions"><button class="secondary-button edit-history-button" type="button" ?disabled=${!p.canUndo || p.saving} @click=${p.onUndo}>復原</button><button class="secondary-button edit-history-button" type="button" ?disabled=${!p.canRedo || p.saving} @click=${p.onRedo}>重做</button></span>
+  registerUi();
+  const history = { canClear:false, entries:[], undoDepth:0, redoDepth:0, ...p.history, canUndo:!!p.canUndo, canRedo:!!p.canRedo };
+  return html`<span class="edit-save-status" id="edit-save-status" role="status">${p.message ?? ''}</span><ui-edit-history .history=${history} .panelAvailable=${false} .disabled=${!!p.saving}
+    @history-request=${e => { if (!p.saving) { if (e.detail.action === 'undo' && p.canUndo) p.onUndo?.(); else if (e.detail.action === 'redo' && p.canRedo) p.onRedo?.(); } }}></ui-edit-history>
   ${p.onToggleCautious ? html`<button type="button" class="secondary-button edit-mode-button" aria-pressed=${!!p.cautious} ?disabled=${p.saving} @click=${() => p.onToggleCautious(!p.cautious)}>謹慎模式</button>` : nothing}
   ${p.cautious ? html`<button type="button" class="secondary-button edit-discard-button" ?disabled=${p.saving} @click=${p.onDiscard}>放棄</button><button type="button" class="primary-button edit-save-button" ?disabled=${!p.dirty || p.saving} @click=${p.onSave}>${p.saving ? '正在儲存…' : '儲存'}</button>` : nothing}`;
 }
@@ -278,16 +281,20 @@ export const productTheme = () => html`<span class="replica-theme" ${action(them
 const backPlacement = node => { const link=createBackLink();node.append(link);return{destroy:()=>link.remove()}; };
 export const productBack = () => globalThis.chrome?.webview ? nothing : html`<span class="replica-back" ${action(backPlacement, null)}></span>`;
 
-export function historyTools(p, view) {
-  const h = p.history, key = p.id ?? 'history';
-  const setOpen = open => { view.state[key] = open; view.state[key + ':clear'] = false; p.onOpenChange?.(open); view.draw(); };
-  return html`<div class="history-capsule" role="group" aria-label="編輯歷史">
-    <button type="button" aria-label="復原（${h.undoDepth}）" title="復原（${h.undoDepth}）" ?disabled=${p.disabled || !h.canUndo} @click=${p.onUndo}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4 4 9l5 5M4 9h9a7 7 0 0 1 0 14" transform="translate(0 -2)" /></svg></button>
-    <button type="button" aria-label="重做（${h.redoDepth}）" title="重做（${h.redoDepth}）" ?disabled=${p.disabled || !h.canRedo} @click=${p.onRedo}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 4 5 5-5 5m5-5h-9a7 7 0 0 0 0 14" transform="translate(0 -2)" /></svg></button>
-    <button type="button" aria-label="開啟歷史面板" title="歷史面板" aria-haspopup="dialog" aria-expanded=${!!view.state[key]} aria-controls=${key + '-dialog'} ?disabled=${p.disabled} @click=${() => setOpen(true)}><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3" /><path d="M8 3v18m4-12h5m-5 4h5m-5 4h3" /></svg></button>
-  </div>${dialog({ id: key + '-dialog', open: !!view.state[key], title: '編輯歷史', onClose: () => setOpen(false) }, html`<div class="history-panel"><p class="history-note">紀錄只保留在目前頁面，重新整理或離開後會清除。復原與重做仍依編輯器的保存方式處理。</p>
-    <div class="history-actions" role="group" aria-label="逐步操作歷史"><button type="button" ?disabled=${p.disabled || !h.canUndo} @click=${p.onUndo}>復原一步</button><button type="button" ?disabled=${p.disabled || !h.canRedo} @click=${p.onRedo}>重做一步</button></div>
-    <p class="history-position" role="status">目前位置：${h.undoDepth}／${h.entries.length}；可重做 ${h.redoDepth} 步</p>
-    ${h.entries.length ? html`<ol class="history-entries" aria-label="操作紀錄">${h.undoDepth === 0 ? html`<li class="history-cursor" aria-current="step">目前位置：保留紀錄的起點</li>` : nothing}${h.entries.map(entry => html`<li class=${entry.applied ? '' : 'history-redo'}><span>${entry.label}</span><small>${entry.applied ? '已套用' : '可重做'}</small></li>${entry.applied && entry.id === h.entries[h.undoDepth - 1]?.id ? html`<li class="history-cursor" aria-current="step">目前位置</li>` : nothing}`)}</ol>` : html`<p class="history-note">尚無操作紀錄。</p>`}
-    <div class="history-clear">${view.state[key + ':clear'] ? html`<p>清除全部復原與重做紀錄？目前內容與已保存資料會保留，清除後無法復原這些紀錄。</p><div class="history-actions"><button type="button" ?disabled=${p.disabled || !h.canClear} @click=${() => { p.onClear(); view.state[key + ':clear'] = false; view.draw(); }}>確認清除歷史</button><button type="button" @click=${() => { view.state[key + ':clear'] = false; view.draw(); }}>取消</button></div>` : html`<button type="button" ?disabled=${p.disabled || !h.canClear} @click=${() => { view.state[key + ':clear'] = true; view.draw(); }}>清除歷史…</button>`}</div></div>`)}`;
+// Reset the host refresh guard even when removal bypasses a normal dialog close.
+const historyLifetime = (_node, initial) => {
+  let settings = initial;
+  return { update: next => { settings = next; }, destroy: () => settings.onOpenChange?.(false) };
+};
+export function historyTools(p) {
+  registerUi();
+  return html`<ui-edit-history .history=${p.history} .disabled=${!!p.disabled} .targetId=${p.targetId ?? p.id ?? ''}
+    .retentionLabel=${'紀錄只保留在目前頁面，重新整理或離開後會清除。復原與重做仍依編輯器的保存方式處理。'}
+    @history-request=${e => {
+      if (p.disabled) return;
+      if (e.detail.action === 'undo' && p.history.canUndo) p.onUndo?.();
+      else if (e.detail.action === 'redo' && p.history.canRedo) p.onRedo?.();
+      else if (e.detail.action === 'clearHistory' && p.history.canClear) p.onClear?.();
+    }} @history-open-change=${e => p.onOpenChange?.(e.detail.open)}
+    ${action(historyLifetime, p)}></ui-edit-history>`;
 }

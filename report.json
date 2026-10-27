@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-10-27T09:23:04.914057+00:00",
+  "updated_at": "2026-10-27T13:18:12.067899+00:00",
   "tasks": [
     {
       "priority": 1,
@@ -1994,6 +1994,40 @@
               "session": "Web UI render cost review"
             }
           ]
+        },
+        {
+          "priority": 1,
+          "document_ref": {
+            "task": "shared-editor-tools",
+            "kind": "checklist",
+            "scope_id": "task-progress"
+          },
+          "id": "shared-editor-tools",
+          "status": "planned",
+          "title": "採用 Web 共用搜尋框與 Undo／Redo 歷史 UI；對應 [Web 共用元件採用](/?scope=yu5h1lib-web&pin=taskprogress-shared-components) 的 consumer-adoption",
+          "activity": [
+            {
+              "event": "created",
+              "actor": "codex",
+              "at": "2026-10-27T13:18:12.067899+00:00",
+              "session": "TaskProgress 共用搜尋與歷史採用",
+              "session_id": "01a0d3c0-178f-7463-a65b-21c8bbe2676f"
+            },
+            {
+              "event": "started",
+              "actor": "codex",
+              "at": "2026-10-27T13:18:12.067899+00:00",
+              "session": "TaskProgress 共用搜尋與歷史採用",
+              "session_id": "01a0d3c0-178f-7463-a65b-21c8bbe2676f"
+            },
+            {
+              "event": "released",
+              "actor": "codex",
+              "at": "2026-10-27T13:18:12.067899+00:00",
+              "session": "TaskProgress 共用搜尋與歷史採用",
+              "session_id": "01a0d3c0-178f-7463-a65b-21c8bbe2676f"
+            }
+          ]
         }
       ]
     },
@@ -2873,6 +2907,21 @@
               "at": "2026-10-23T12:46:51.106933+00:00",
               "session": "UX foundation 評估",
               "session_id": "f62c91dd-fddb-4a19-8799-5bb541945dfc"
+            }
+          ]
+        },
+        {
+          "priority": 2,
+          "id": "cross-scope-checklist-recorder",
+          "status": "planned",
+          "title": "問題：ChecklistBinding 只搜尋清單所在 repo 的 report.json；跨 scope 的 document_ref 可顯示卻無法由 CLI 寫入 acceptance（shared-editor-tools 案例），目前改由清單擁有端綁定",
+          "activity": [
+            {
+              "event": "created",
+              "actor": "codex",
+              "at": "2026-10-27T13:18:12.067899+00:00",
+              "session": "TaskProgress 共用搜尋與歷史採用",
+              "session_id": "01a0d3c0-178f-7463-a65b-21c8bbe2676f"
             }
           ]
         }

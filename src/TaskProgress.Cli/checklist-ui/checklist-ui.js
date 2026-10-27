@@ -1208,7 +1208,20 @@ var qt = class {
 	}
 };
 function Jt(e) {
-	return M`<span class="edit-save-status" id="edit-save-status" role="status">${e.message ?? ""}</span><span class="edit-history-actions"><button class="secondary-button edit-history-button" type="button" ?disabled=${!e.canUndo || e.saving} @click=${e.onUndo}>復原</button><button class="secondary-button edit-history-button" type="button" ?disabled=${!e.canRedo || e.saving} @click=${e.onRedo}>重做</button></span>
+	t();
+	let n = {
+		canClear: !1,
+		entries: [],
+		undoDepth: 0,
+		redoDepth: 0,
+		...e.history,
+		canUndo: !!e.canUndo,
+		canRedo: !!e.canRedo
+	};
+	return M`<span class="edit-save-status" id="edit-save-status" role="status">${e.message ?? ""}</span><ui-edit-history .history=${n} .panelAvailable=${!1} .disabled=${!!e.saving}
+    @history-request=${(t) => {
+		e.saving || (t.detail.action === "undo" && e.canUndo ? e.onUndo?.() : t.detail.action === "redo" && e.canRedo && e.onRedo?.());
+	}}></ui-edit-history>
   ${e.onToggleCautious ? M`<button type="button" class="secondary-button edit-mode-button" aria-pressed=${!!e.cautious} ?disabled=${e.saving} @click=${() => e.onToggleCautious(!e.cautious)}>謹慎模式</button>` : F}
   ${e.cautious ? M`<button type="button" class="secondary-button edit-discard-button" ?disabled=${e.saving} @click=${e.onDiscard}>放棄</button><button type="button" class="primary-button edit-save-button" ?disabled=${!e.dirty || e.saving} @click=${e.onSave}>${e.saving ? "正在儲存…" : "儲存"}</button>` : F}`;
 }

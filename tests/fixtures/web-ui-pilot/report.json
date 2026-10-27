@@ -6,6 +6,6 @@
   "updated_at": "2026-10-26T00:00:00Z",
   "tasks": [{
     "id": "pilot", "title": "Pilot task", "status": "planned", "summary": "Disposable UI workflow fixture",
-    "pending_items": [{"id":"first", "title":"First item"}], "completed_items": []
+    "pending_items": [{"id":"first", "title":"First item"}, {"id":"second", "title":"Second item"}], "completed_items": []
   }]
 }

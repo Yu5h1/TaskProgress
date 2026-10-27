@@ -2,25 +2,32 @@
 
 Current round: `Documentation/WebUiReplacementPlan.md#搜尋與歷史-ui-共用元件採用`.
 
-- [ ] **1. 共用接線與產品語意**
+本輪執行證據：
+
+- 2026-10-27：隔離候選瀏覽器 14/14 通過，含三頁真實保存、搜尋 IME／清除、深層輸入焦點的原生 Undo／Redo、文件切換與卸載。搜尋／交易／保存相關 Node 33/33、歷史／Decision 補充 Node 36/36 通過（兩組含重疊案例）。候選 SHA-256：7459dc946e13a3226789e1c020f816b842b92dd04b5df5179b013c7fe845d0ea。瀏覽器案例使用每輪新建的隔離資料，避免上一輪保存的排序污染預期。
+- 2026-10-27：建置與正式交付 Node 6/6 通過；Publish.cmd --nopause --restart 成功，Browser 三頁與 Desktop 兩入口已更新。8001 正式 Report 顯示一個 ui-search-field 與一個 ui-edit-history，Checklist 與 Decision 各顯示一個 ui-edit-history；Decision 面板開關正常。正式 SHA-256：34cd86ded779e159144dd17b511293ddc23dd876dea5f620338b10830555f53c。Desktop 本輪核對建置產物，未實測原生視窗操作。
+
+- [x] **1. 共用接線與產品語意**
   Outcome: 三頁使用 Web 公開元件，產品保留搜尋與交易責任。
   Checks:
-    - [ ] **搜尋與歷史接線**
+    - [x] **搜尋與歷史接線**
       - Action: 在隔離候選執行查詢回寫、IME／清除、宿主更新、Undo／Redo、保存鎖定、歷史清除及卸載案例，核對原交易測試。
       - Expect: 查詢不改來源資料；按鈕反映宿主真實狀態；清除歷史不清除內容或保存資料；面板開啟阻止前景刷新，關閉與卸載不留過期狀態。
-    - [ ] **正式交付**
+    - [x] **正式交付**
       - Action: 重建並發布 Browser 三頁與 Desktop 兩個入口，核對公開元件交付及正式頁載入。
       - Expect: 五場景使用相同固定 Web 產物，無產品私有 Web source 引用；保存與回退契約不變。
 
-- [ ] **2. 獨立核查**
+- [x] **2. 獨立核查**
   Outcome: 實作符合採用邊界。
   Checks:
-    - [ ] **驗收條件未被改動** `[acceptance]`
+    - [x] **驗收條件未被改動** `[acceptance]`
       - Action: 依 Documentation/WebUiReplacementPlan.md#搜尋與歷史-ui-共用元件採用，對照本清單建立或最新條件修訂 commit 後的 acceptance 文字。
       - Expect: 條件保持一致，沒有沿用舊輪次的結果。
-    - [ ] **共用採用與生命週期** `[acceptance]`
+      - Recorded: codex:01a17d73-dc8b-71e2-9a9c-56a294509157; at=2026-10-27T13:18:42Z; fp=7270ff8d1989
+    - [x] **共用採用與生命週期** `[acceptance]`
       - Action: 依 Documentation/WebUiReplacementPlan.md#搜尋與歷史-ui-共用元件採用，核對公開元件、宿主回呼、disabled、文件切換與取消，以及隔離驗證證據。
       - Expect: 無重複 UI 實作或第二份歷史核心，沒有未處理的必要功能缺陷。
+      - Recorded: codex:01a17d73-dc8b-71e2-9a9c-56a294509157; at=2026-10-27T13:18:42Z; fp=12b6780cef7a
 
 - [ ] **3. 外觀與實體輸入**
   Outcome: 使用者接受共用搜尋框與復原重做操作。

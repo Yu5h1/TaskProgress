@@ -322,28 +322,3 @@ body {
   button[data-decision-control]{ margin:.4rem .4rem .4rem 0; color:var(--color-item-text); background:var(--color-panel-bg); border:1px solid var(--color-border); border-radius:6px; padding:6px 12px; }
   .decisions-shell .decision-content button{ justify-self:start; margin:0; }
   .decisions-shell{ max-width:1000px; margin:auto; padding:1rem; }
-
-
-/* HistoryTools: product component styles */
-
-  .history-capsule{ display:inline-flex; align-items:center; padding:3px; border:1px solid var(--history-border, var(--color-border, GrayText)); border-radius:999px; background:var(--history-surface, var(--color-panel-bg, Canvas)); }
-  .history-capsule, .history-panel{ color:var(--history-text, var(--color-item-text, CanvasText)); }
-  .history-capsule button, .history-panel button{ font:inherit; color:inherit; background:var(--history-surface, var(--color-panel-bg, Canvas)); border:1px solid var(--history-border, var(--color-border, GrayText)); border-radius:6px; padding:6px 12px; cursor:pointer; }
-  .history-capsule button{ display:grid; place-items:center; width:40px; height:36px; margin:0; padding:8px; border:0; border-radius:999px; background:transparent; }
-  .history-capsule button:disabled, .history-panel button:disabled{ opacity:.4; cursor:default; }
-  .history-capsule button:focus-visible, .history-panel button:focus-visible{ outline:2px solid var(--history-accent, var(--color-accent, Highlight)); outline-offset:2px; }
-  .history-capsule button:hover:not(:disabled){ background:var(--history-hover, var(--color-reference-bg, ButtonFace)); }
-  .history-capsule svg, .history-panel svg{ width:20px; height:20px; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
-  .history-panel{ display:grid; gap:14px; min-width:0; }
-  .history-capsule p, .history-panel p{ margin:0; }
-  .history-note, .history-capsule small, .history-panel small{ color:var(--history-muted, var(--color-secondary-text, GrayText)); }
-  .history-actions{ display:flex; flex-wrap:wrap; gap:8px; }
-  .history-actions button, .history-clear button{ margin:0; }
-  .history-entries{ display:grid; gap:6px; max-height:40vh; overflow:auto; padding:0; margin:0; list-style:none; }
-  .history-entries li{ display:flex; align-items:baseline; gap:12px; padding:8px 10px; border-radius:6px; overflow-wrap:anywhere; }
-  .history-entries span{ flex:1; min-width:0; }
-  .history-capsule small, .history-panel small{ flex-shrink:0; }
-  .history-redo{ opacity:.65; }
-  .history-entries .history-cursor{ color:var(--history-accent, var(--color-accent, Highlight)); border-block:1px solid var(--history-border, var(--color-border, GrayText)); font-size:.85em; }
-  .history-clear{ display:grid; gap:10px; border-top:1px solid var(--history-border, var(--color-border, GrayText)); padding-top:14px; }
-

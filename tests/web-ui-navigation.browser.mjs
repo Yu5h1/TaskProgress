@@ -70,15 +70,25 @@ await check('Decision history binds its panel; clearing history preserves real s
     if(all.getAttribute('aria-pressed')!=='true'){all.click();await tick();}
     const option=d.querySelector('.decision-option input:not(:checked)');assert(option,'new disposable decision choice');option.click();
     await wait(()=>!app.data.busy&&!app.data.pending&&app.data.history.canUndo);
-    const saved=await app.transport.load(),trigger=d.querySelector('[aria-label="開啟歷史面板"]');trigger.click();await tick();
-    const panel=d.getElementById(trigger.getAttribute('aria-controls'));assert(panel?.open,'panel binding');
+    const saved=await app.transport.load(),tools=d.querySelector('ui-edit-history'),root=tools.shadowRoot;
+    root.querySelector('[data-undo]').click();await wait(()=>!app.data.busy&&!app.data.pending&&app.data.history.canRedo);
+    root.querySelector('[data-redo]').click();await wait(()=>!app.data.busy&&!app.data.pending&&app.data.history.canUndo);
+    const afterRedo=await app.transport.load();const answers = result => result.document.decisions.map(({id,status,answer}) => ({id,status,answer:answer && {kind:answer.kind,option_id:answer.option_id,text:answer.text}}));
+    equal(answers(afterRedo),answers(saved),'redo restores saved answers');
+    const trigger=root.querySelector('[data-history]');trigger.click();await tick();
+    const panel=root.querySelector('ui-dialog');assert(panel?.open&&app.historyOpen&&!app.canRefresh(),'panel binding blocks foreground refresh');
     const button=label=>[...panel.querySelectorAll('button')].find(n=>n.textContent===label);
     button('清除歷史…').click();await tick();button('取消').click();await tick();assert(app.data.history.canUndo,'cancel retains history');
+    button('清除歷史…').click();await tick();
+    const documentKey=app.data.snapshot.document_key;app.data.snapshot.document_key=documentKey+':switch';app.draw();await tick();
+    assert(!panel.open&&!tools.awaitingClearConfirmation&&!app.historyOpen,'document switch closes confirmation and releases guard');
+    app.data.snapshot.document_key=documentKey;app.draw();await tick();trigger.click();await tick();
     button('清除歷史…').click();await tick();button('確認清除歷史').click();await tick();
     assert(!app.data.history.canUndo&&!app.data.history.canRedo&&!app.data.history.entries.length,'history cleared');
-    equal(await app.transport.load(),saved,'real API document and revision unchanged');
+    equal(await app.transport.load(),afterRedo,'clear history leaves real API document and revision unchanged');
     panel.close();await tick();assert(!app.historyOpen&&trigger.getAttribute('aria-expanded')==='false','close reaches host');
-    trigger.click();await tick();assert(panel.open&&!panel.querySelector('.history-entries'),'reopen cleared history');
+    trigger.click();await tick();assert(panel.open&&!panel.querySelector('ol'),'reopen cleared history');
+    app.destroy();await tick();assert(!tools.open&&!app.historyOpen,'unmount clears panel and host refresh guard');
   }finally{frame.remove();}
 });
 await check('Inline content switches safely between literal text and Markdown links',async()=>{
@@ -201,6 +211,72 @@ await check('Shared OptionPicker keeps product order, visibility and reset seman
     assert(visibility.value==='enabled'&&[...target.querySelectorAll('[data-card-id]')].every(n=>!n.hidden),'reset product visibility');
     visibility.open();web.destroy(view);assert(!visibility.shadowRoot.querySelector('.panel').matches(':popover-open'),'disposed product panel remained');
   }finally{web.destroy(view);target.remove();}
+});
+await check('Shared search keeps query ownership, IME and clear semantics through real task-list updates',async()=>{
+  const target=document.createElement('div');fixture.append(target);
+  const tasks=[{id:'search-a',title:'Alpha',status:'planned',priority:2,summary:'',completed_items:[],pending_items:[]}],original=JSON.stringify(tasks),queries=[];
+  let view;
+  const props={tasks,allIds:['search-a'],policy:globalThis.TaskProgressPriorityPolicy,progress:{'search-a':{completed:0,total:0}},searchQuery:'',onSearch:query=>{queries.push(query);web.update(view,{searchQuery:query});}};
+  view=web.mount('task-list',target,props);
+  try{
+    await tick();const field=target.querySelector('ui-search-field'),input=field.shadowRoot.querySelector('input');
+    input.value='Al';input.dispatchEvent(new InputEvent('input',{bubbles:true}));await tick();
+    equal(queries,['Al'],'query delivered once');assert(field.query==='Al'&&input===field.shadowRoot.querySelector('input'),'host feedback preserves input');
+    input.dispatchEvent(new CompositionEvent('compositionstart',{bubbles:true}));input.value='中';input.dispatchEvent(new InputEvent('input',{bubbles:true,isComposing:true}));
+    web.update(view,{searchQuery:'Al'});await tick();assert(input.value==='中'&&queries.length===1,'unrelated host render preserves composition');
+    input.dispatchEvent(new CompositionEvent('compositionend',{bubbles:true}));input.dispatchEvent(new InputEvent('input',{bubbles:true}));await tick();equal(queries,['Al','中'],'one final IME notification');
+    input.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true,cancelable:true}));await tick();assert(field.query===''&&field.shadowRoot.activeElement===input,'Escape clears and restores input focus');
+    web.update(view,{searchQuery:'External'});await tick();assert(input.value==='External'&&queries.length===3,'external value does not echo');
+    field.shadowRoot.querySelector('button').click();await tick();equal(queries,['Al','中','',''],'clear routes to host');equal(JSON.stringify(tasks),original,'source untouched');
+  }finally{web.destroy(view);target.remove();}
+});
+await check('Shared save-bar Undo/Redo uses latest host metadata and saving lock',async()=>{
+  const target=document.createElement('div');fixture.append(target);const calls=[];
+  const props={history:{undoDepth:3,redoDepth:2},canUndo:true,canRedo:true,saving:false,onUndo:()=>calls.push('undo'),onRedo:()=>calls.push('redo')};
+  const view=web.mount('save-bar',target,props);
+  try{
+    await tick();const tools=target.querySelector('ui-edit-history'),root=tools.shadowRoot;
+    assert(!root.querySelector('[data-history]'),'save bar has no extra history panel');
+    assert(root.querySelector('[data-undo]').getAttribute('aria-label').includes('3'),'real history count');
+    root.querySelector('[data-undo]').click();root.querySelector('[data-redo]').click();equal(calls,['undo','redo'],'host callbacks only');
+    web.update(view,{saving:true});await tick();root.querySelector('[data-undo]').click();equal(calls,['undo','redo'],'saving blocks input');
+    web.update(view,{saving:false,canUndo:false,onRedo:()=>calls.push('latest')});await tick();root.querySelector('[data-undo]').click();root.querySelector('[data-redo]').click();equal(calls,['undo','redo','latest'],'latest availability and callback');
+  }finally{web.destroy(view);target.remove();}
+});
+await check('Report search focus keeps Ctrl+Z/Y out of product preview history',async()=>{
+  const frame=document.createElement('iframe');frame.src='/demo/taskprogress/?scope=web-ui-pilot-test';fixture.append(frame);
+  try{
+    await wait(()=>frame.contentDocument?.querySelector('ui-search-field')?.shadowRoot?.querySelector('input'));
+    const d=frame.contentDocument,w=frame.contentWindow,field=d.querySelector('ui-search-field'),input=field.shadowRoot.querySelector('input');
+    const before=await(await w.fetch('/reports/web-ui-pilot-test/report.json',{cache:'no-store'})).json();
+    const first=before.tasks[0].pending_items[0].id,expected=before.tasks[0].pending_items[1].id;
+    const row=d.querySelector('[data-item-row="pilot/'+first+'"]');assert(row,'real preview row');
+    row.dispatchEvent(new w.KeyboardEvent('keydown',{key:'ArrowDown',altKey:true,bubbles:true,cancelable:true}));
+    let saved;for(let n=0;n<100;n++){saved=await(await w.fetch('/reports/web-ui-pilot-test/report.json',{cache:'no-store'})).json();if(saved.tasks[0].pending_items[0].id===expected)break;await tick();}
+    assert(saved.tasks[0].pending_items[0].id===expected,'preview operation saved before shortcut probe');
+    input.focus();input.value='Pilot';input.dispatchEvent(new w.InputEvent('input',{bubbles:true}));await tick();
+    assert(d.activeElement===field&&field.shadowRoot.activeElement===input,'search owns nested focus');
+    for(const [key,shiftKey] of [['z',false],['y',false],['z',true]]){
+      const event=new w.KeyboardEvent('keydown',{key,ctrlKey:true,shiftKey,bubbles:true,composed:true,cancelable:true});input.dispatchEvent(event);assert(!event.defaultPrevented,'search native shortcut retained');
+    }
+    await tick();equal(await(await w.fetch('/reports/web-ui-pilot-test/report.json',{cache:'no-store'})).json(),saved,'search shortcuts do not undo saved preview operation');
+  }finally{frame.remove();}
+});
+await check('Checklist shared history traverses saved results through its original persistence controller',async()=>{
+  const frame=document.createElement('iframe');frame.src='/demo/taskprogress/checklist/?scope=web-ui-pilot-test&task=pilot';fixture.append(frame);
+  try{
+    await wait(()=>frame.contentWindow.taskprogressWebUi?.app?.data?.document);
+    const app=frame.contentWindow.taskprogressWebUi.app,d=frame.contentDocument,initial=app.data.document.items[0].checks[0].status;
+    d.querySelector('.checklist-check-heading button').click();
+    await wait(()=>!app.data.saving&&!app.data.pending&&app.data.history.canUndo);
+    const changed=app.data.document.items[0].checks[0].status;assert(changed!==initial,'fixture changed');
+    const tools=d.querySelector('ui-edit-history'),root=tools.shadowRoot;
+    assert(!root.querySelector('[data-history]'),'checklist retains two-button mode');
+    root.querySelector('[data-undo]').click();await wait(()=>!app.data.saving&&!app.data.pending&&app.data.history.canRedo);
+    assert((await app.transport.load()).items[0].checks[0].status===initial,'undo saved through transport');
+    root.querySelector('[data-redo]').click();await wait(()=>!app.data.saving&&!app.data.pending&&app.data.history.canUndo);
+    assert((await app.transport.load()).items[0].checks[0].status===changed,'redo saved through transport');
+  }finally{frame.remove();}
 });
 document.title=fail?`FAIL ${fail} / PASS ${pass}`:`PASS ${pass} candidate navigation`;
 document.body.dataset.result=fail?'fail':'pass';

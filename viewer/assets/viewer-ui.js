@@ -1200,7 +1200,20 @@ var Lt = class {
 	}
 };
 function Rt(e) {
-	return F`<span class="edit-save-status" id="edit-save-status" role="status">${e.message ?? ""}</span><span class="edit-history-actions"><button class="secondary-button edit-history-button" type="button" ?disabled=${!e.canUndo || e.saving} @click=${e.onUndo}>復原</button><button class="secondary-button edit-history-button" type="button" ?disabled=${!e.canRedo || e.saving} @click=${e.onRedo}>重做</button></span>
+	n();
+	let t = {
+		canClear: !1,
+		entries: [],
+		undoDepth: 0,
+		redoDepth: 0,
+		...e.history,
+		canUndo: !!e.canUndo,
+		canRedo: !!e.canRedo
+	};
+	return F`<span class="edit-save-status" id="edit-save-status" role="status">${e.message ?? ""}</span><ui-edit-history .history=${t} .panelAvailable=${!1} .disabled=${!!e.saving}
+    @history-request=${(t) => {
+		e.saving || (t.detail.action === "undo" && e.canUndo ? e.onUndo?.() : t.detail.action === "redo" && e.canRedo && e.onRedo?.());
+	}}></ui-edit-history>
   ${e.onToggleCautious ? F`<button type="button" class="secondary-button edit-mode-button" aria-pressed=${!!e.cautious} ?disabled=${e.saving} @click=${() => e.onToggleCautious(!e.cautious)}>謹慎模式</button>` : R}
   ${e.cautious ? F`<button type="button" class="secondary-button edit-discard-button" ?disabled=${e.saving} @click=${e.onDiscard}>放棄</button><button type="button" class="primary-button edit-save-button" ?disabled=${!e.dirty || e.saving} @click=${e.onSave}>${e.saving ? "正在儲存…" : "儲存"}</button>` : R}`;
 }
@@ -1670,7 +1683,8 @@ var xn = {
 		nextId: e.nextTaskId,
 		hiddenCount: e.hiddenCount,
 		onShowHidden: e.onShowHidden
-	}, (n, r) => n.kind === "report_pointer" ? Sn(e, n, r) : bn(e, t, n, r), e.filters ? Mt(e.filters) : R, e.onSearch ? F`<span class="task-search"><input type="search" aria-label="搜尋任務卡名稱、摘要與子項" placeholder="搜尋名稱、摘要、子項" .value=${q(e.searchQuery ?? "")} @input=${(t) => e.onSearch(t.currentTarget.value)}><svg class="task-search-icon" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><circle cx="7" cy="7" r="4.5" fill="none" stroke="currentColor" stroke-width="1.6" /><path d="M10.4 10.4 14 14" fill="none" stroke="currentColor" stroke-width="1.6" /></svg></span>` : R)}${e.tasks.length ? R : F`<p class="empty-state">${e.emptyLabel}</p>`}`),
+	}, (n, r) => n.kind === "report_pointer" ? Sn(e, n, r) : bn(e, t, n, r), e.filters ? Mt(e.filters) : R, e.onSearch ? F`<ui-search-field class="task-search" label="搜尋任務卡名稱、摘要與子項" placeholder="搜尋名稱、摘要、子項"
+        .query=${e.searchQuery ?? ""} @query-change=${(t) => e.onSearch(t.detail.query)}></ui-search-field>` : R)}${e.tasks.length ? R : F`<p class="empty-state">${e.emptyLabel}</p>`}`),
 	"report-summary": (e) => e.editable ? F`<textarea class="report-summary-input" aria-label=${e.label ?? "報告摘要"} maxlength="1000" rows="2" placeholder=${e.placeholder ?? ""} .value=${q(e.value ?? "")} @input=${(t) => e.onCommit(t.currentTarget.value)}></textarea>` : F`<p class="hero-summary">${e.text}</p>`,
 	"project-progress": (e) => F`<div class="project-progress-label"><strong id="project-progress-value">整體約 ${e.percentage}%</strong></div>${Ot({
 		...e,

@@ -3280,32 +3280,12 @@ footer {
 .task-id-copy:hover { color: var(--color-accent); }
 .task-id-copy.is-copied { color: var(--moss); }
 .task-id-copy:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 1px; }
-.card-list-tools .task-search {
-  position: relative;
-  display: flex;
+.card-list-tools ui-search-field.task-search {
+  display: block;
   flex: 0 1 220px;
   min-width: 96px;
   margin-left: auto;
-}
-.card-list-tools .task-search input {
-  width: 100%;
-  min-width: 0;
-  padding: 4px 26px 4px 8px;
-  border: 1px solid var(--line);
-  border-radius: 6px;
-  background: var(--surface);
-  color: inherit;
-  font: inherit;
   font-size: .75rem;
-}
-.card-list-tools .task-search input:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 1px; }
-.task-search-icon {
-  position: absolute;
-  top: 50%;
-  right: 8px;
-  transform: translateY(-50%);
-  color: var(--muted);
-  pointer-events: none;
 }
 
 .detail-list li.editor-item-row.item-row-reorderable { cursor: grab; transition: padding 150ms ease-out; }
