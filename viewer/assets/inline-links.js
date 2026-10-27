@@ -68,8 +68,8 @@ export function inlineLinks(host, options = {}) {
   return { update, destroy() { host.replaceChildren(); } };
 }
 
+const segmenter = typeof Intl.Segmenter === "function" ? new Intl.Segmenter(undefined, {granularity: "grapheme"}) : null;
 export function inlineUnits(text) {
-  const segmenter = typeof Intl.Segmenter === "function" ? new Intl.Segmenter(undefined, {granularity: "grapheme"}) : null;
   return parseInlineLinks(text).map(part => ({...part, units: part.href ? [part.text] :
     segmenter ? Array.from(segmenter.segment(part.text), entry => entry.segment) : Array.from(part.text)}));
 }

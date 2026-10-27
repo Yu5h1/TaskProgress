@@ -39,6 +39,28 @@ await check('Pointer states discard stale projections and preserve accessible na
     }
   });
 });
+await check('Candidate reorder preview ignores nested content and cleans moved or disposed rows',async()=>{
+  const target=document.createElement('div');fixture.append(target);
+  const task={id:'preview-pointer',title:'Pointer',kind:'report_pointer'};
+  const view=web.mount('task-list',target,{tasks:[task],allIds:[task.id],pointerCards:{[task.id]:{status:'loading'}}});
+  try {
+    await tick();
+    const row=target.querySelector('[data-card-id]');
+    row.setAttribute('data-reorder-over','before');await tick();
+    assert(row.classList.contains('card-drop-before'),'before projection');
+    row.focus();await tick();
+    assert(row.classList.contains('card-drop-before'),'selection redraw preserves preview');
+    const nested=document.createElement('span');row.append(nested);
+    nested.setAttribute('data-reorder-over','after');nested.textContent='nested content';await tick();
+    assert(row.classList.contains('card-drop-before')&&!row.classList.contains('card-drop-after'),'nested mutation preserves preview');
+    row.setAttribute('data-reorder-over','after');await tick();
+    assert(!row.classList.contains('card-drop-before')&&row.classList.contains('card-drop-after'),'transition removes old class');
+    row.remove();await tick();assert(!row.classList.contains('card-drop-after'),'removed row cleanup');
+    const list=target.querySelector('.arrangeable-cards');list.append(row);await tick();
+    assert(row.classList.contains('card-drop-after'),'reinserted row projection');
+    web.destroy(view);assert(!row.classList.contains('card-drop-after'),'dispose cleanup');
+  } finally {web.destroy(view);target.remove();}
+});
 await check('Decision history binds its panel; clearing history preserves real saved answers',async()=>{
   const frame=document.createElement('iframe');frame.src='/demo/taskprogress/decisions/?scope=web-ui-pilot-test&task=pilot';fixture.append(frame);
   try{

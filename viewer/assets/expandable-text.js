@@ -100,11 +100,14 @@ export function expandableText(host, options = {}) {
     const lines = Number.isInteger(next.lines) && next.lines > 0 ? next.lines : 2;
     const emphasis = next.emphasis === true;
     const linkTone = next.linkTone ?? null;
-    const textChanged = !settings || settings.text !== text || settings.emphasis !== emphasis || settings.linkTone !== linkTone;
     const open = next.expanded === true;
+    const moreLabel = next.moreLabel ?? "…更多", lessLabel = next.lessLabel ?? "收合";
+    if (settings && settings.text === text && settings.lines === lines && settings.emphasis === emphasis &&
+        settings.linkTone === linkTone && settings.open === open && settings.moreLabel === moreLabel && settings.lessLabel === lessLabel) return;
+    const textChanged = !settings || settings.text !== text || settings.emphasis !== emphasis || settings.linkTone !== linkTone;
     if (textChanged || settings.lines !== lines) expanded = open;
     else if (open && !settings.open) expanded = true;
-    settings = { text, lines, open, emphasis, linkTone, moreLabel: next.moreLabel ?? "…更多", lessLabel: next.lessLabel ?? "收合" };
+    settings = { text, lines, open, emphasis, linkTone, moreLabel, lessLabel };
     if (textChanged) {
       pieces = inlineUnits(text);
       unitCount = pieces.reduce((total, piece) => total + piece.units.length, 0);

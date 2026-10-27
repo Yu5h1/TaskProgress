@@ -70,6 +70,7 @@ test("inline truncation reserves control width, expands full text and resets on 
   f.control.update({ text });
   assert.equal(f.button.attributes["aria-expanded"], "true");
   f.content.clientWidth = 500;
+  f.observer.callback();
   f.flush();
   assert.equal(f.button.hidden, true);
   assert.equal(f.button.attributes["aria-expanded"], "false");
@@ -178,8 +179,30 @@ test("every surface renders links through one element shape, bold only with emph
   };
   const action = inlineLinks(host, { text: "看 [文件](https://example.com/d) 結尾" });
   assert.deepEqual(children.map(node => node.text ?? node.className), ["看 ", "inline-link", " 結尾"]);
+  const originalLink = children[1];
+  action.update({ text: "看 [文件](https://example.com/d) 結尾" });
+  assert.equal(children[1], originalLink, 'an unchanged update preserves the focused link node');
   action.update({ text: "看 [文件](https://example.com/d) 結尾", emphasis: true });
   assert.equal(children[1].className, "inline-link inline-link--emphasis");
   action.destroy();
   assert.equal(children.length, 0);
+});
+
+test("identical updates do not rewrite disclosure or queue layout; resize and option changes still work", () => {
+  const text = "a".repeat(60);
+  const f = fixture(text);
+  f.flush();
+  f.button.dispatchEvent(new Event("click")); f.flush();
+  const nodes = [...f.textNode.children];
+  f.control.update({ text });
+  assert.equal(f.frames.size, 0);
+  assert.deepEqual(f.textNode.children, nodes);
+  assert.equal(f.button.attributes['aria-expanded'], 'true');
+  f.control.update({ text, lessLabel: 'Close' });
+  assert.equal(f.frames.size, 1);
+  assert.equal(f.button.textContent, 'Close');
+  f.flush();
+  f.content.clientWidth = 1000; f.observer.callback(); f.flush();
+  assert.equal(f.button.hidden, true);
+  f.control.destroy();
 });

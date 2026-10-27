@@ -16,6 +16,8 @@ Current round: `Documentation/WebUiReplacementPlan.md#產品原始碼與候選�
 
 本批獨立靜態審查未發現移植或隔離阻擋問題；測試已採納「選擇未勾選答案」並顯示全部題目的建議，同一暫存服務首次及重載均為 4 項通過，避免重跑時相同答案沒有新增歷史而誤判失敗。這是本批審查證據，不改寫先前獨立驗收的版本紀錄。
 
+2026-10-27 更新成本減量：候選 `28171c32e93684c3e9f88dad92595ba6ec64782236c87c905fcff8f674d42341` 的 inline 模板改用既有 inlineLinks action，保留未變文字節點；ExpandableText 的完整設定相同時不重寫 DOM／排入量測，沿用 resize、字型與 toggle 通知；共用 grapheme Segmenter。拖曳預覽只處理直接列變動，略過巢狀內容異動及無活躍預覽的重複同步；活躍預覽仍按實際 classList 補回 Lit 重寫的樣式。Node 文字／建置 11 項、瀏覽器候選 5 項通過（含選取重繪、巢狀異動、移出／重插／銷毀清理及暫存 Decision 保存歷史），獨立審查指出的 class 覆寫回歸已修正並複核。效能門檻及數據由 [Web 對照紀錄](../../Web/tests/taskprogress-performance/README.md) 擁有；這筆是候選維護證據，不是全入口替換或退役通過。原正式 bundles 與部署未更新。
+
 - [x] **1. 產品來源與獨立依賴**
   Outcome: 產品模板由 TaskProgress 維護，建置只讀本庫來源、固定依賴與帶指紋的 Web 公開產物。
   Checks:

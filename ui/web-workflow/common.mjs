@@ -4,7 +4,7 @@ import { live } from 'lit/directives/live.js';
 import { directive } from 'lit/directive.js';
 import { AsyncDirective } from 'lit/async-directive.js';
 import { expandableText } from '@taskprogress/expandable-text.js';
-import { renderInlineLinks } from '@taskprogress/inline-links.js';
+import { inlineLinks } from '@taskprogress/inline-links.js';
 import { displayCards, promotePin, moveVisibleCard } from '@taskprogress/card-order.js';
 import { loadDisclosure, saveDisclosure } from '@taskprogress/card-disclosure-state.js';
 import { DEFAULT_CAPSULE_ID } from '@taskprogress/filter-selection.js';
@@ -39,8 +39,7 @@ class NativeAction extends AsyncDirective {
 }
 export const action = directive(NativeAction);
 export const text = (value, options = {}) => html`<div ${action(expandableText, { text: value ?? '', ...options })}></div>`;
-const inlineAction = (node, options) => { const update = x => renderInlineLinks(node, x.text, x.options); update(options); return { update, destroy: () => node.replaceChildren() }; };
-export const inline = value => html`<span ${action(inlineAction, { text: value ?? '' })}></span>`;
+export const inline = value => html`<span ${action(inlineLinks, { text: value ?? '' })}></span>`;
 export const noop = () => {};
 export const eye = (closed = false, disabled = false) => svg`<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${closed ? svg`<path d="M3 9c4 7 14 7 18 0M5 12l-2 3m6-1-1 3m7-3 1 3m3-5 2 3" />` : svg`<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z" /><circle cx="12" cy="12" r="3" />`}${disabled ? svg`<path d="M3 3l18 18" />` : nothing}</svg>`;
 const orderIcon = id => svg`<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true">${id === 'free' ? svg`<path d="M4 5h15M4 10h8M4 15h17M4 20h11" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" />` : svg`<path d=${id === 'forward' ? 'M5 3v18m-3-3 3 3 3-3' : 'M5 21V3m-3 3 3-3 3 3'} fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /><path d=${id === 'forward' ? 'M11 4h10M11 9h8M11 14h6M11 19h3' : 'M11 4h3M11 9h6M11 14h8M11 19h10'} fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" />`}</svg>`;
@@ -94,17 +93,26 @@ export const reorderAction = (node, options) => {
   // the layout constants and animation rules remain in the source stylesheet.
   const syncPreview = () => {
     const classes = settings.previewClasses ?? {};
-    for (const [row, owned] of styled) { for (const name of owned) row.classList.remove(name); if (row.parentElement !== node) styled.delete(row); }
-    for (const row of node.children) {
+    for (const row of new Set([...styled.keys(), ...node.children])) {
       const names = new Set();
-      const side = classes[row.getAttribute('data-reorder-over')];
-      if (side) { row.classList.add(side); names.add(side); }
-      if (classes.dragging && row.hasAttribute('data-reorder-dragging')) { row.classList.add(classes.dragging); names.add(classes.dragging); }
-      styled.set(row,names);
+      if (row.parentElement === node) {
+        const side = classes[row.getAttribute('data-reorder-over')];
+        if (side) names.add(side);
+        if (classes.dragging && row.hasAttribute('data-reorder-dragging')) names.add(classes.dragging);
+      }
+      const owned = styled.get(row) ?? new Set();
+      for (const name of owned) if (!names.has(name)) row.classList.remove(name);
+      for (const name of names) if (!row.classList.contains(name)) row.classList.add(name);
+      if (names.size) styled.set(row, names); else styled.delete(row);
     }
   };
-  const observer = new node.ownerDocument.defaultView.MutationObserver(syncPreview);
-  if(options.previewClasses)observer.observe(node,{subtree:true,childList:true,attributes:true,attributeFilter:['data-reorder-over','data-reorder-dragging']});
+  const observer = new node.ownerDocument.defaultView.MutationObserver(records => {
+    if (records.some(record => record.type === 'childList' ? record.target === node : record.target.parentElement === node)) syncPreview();
+  });
+  if(options.previewClasses) {
+    syncPreview();
+    observer.observe(node,{subtree:true,childList:true,attributes:true,attributeFilter:['data-reorder-over','data-reorder-dragging']});
+  }
   let armed;
   const clearSurface = () => { if (armed) { armed.removeAttribute('data-reorder-handle'); armed.draggable = false; armed = null; } };
   // The product permits mouse dragging from card whitespace, while text and
@@ -127,7 +135,11 @@ export const reorderAction = (node, options) => {
     const result=settings.onMove(request);
     if(settings.focusAfterMove)Promise.resolve(result).then(()=>queueMicrotask(()=>{if(disposed||!node.isConnected)return;[...node.children].find(row=>row.dataset.reorderId===request.id)?.focus();}));
   }, { axis: options.axis ?? 'horizontal' });
-  return { update: next => { settings = next; if(settings.previewClasses||styled.size)syncPreview(); }, destroy() { disposed=true; clearSurface(); abort.abort(); binding.dispose(); observer.disconnect(); for(const [row,names] of styled)for(const name of names)row.classList.remove(name); styled.clear(); } };
+  return { update: next => {
+    const previous = settings.previewClasses ?? {}, incoming = next.previewClasses ?? {};
+    settings = next;
+    if (styled.size || ['before', 'after', 'dragging'].some(key => previous[key] !== incoming[key])) syncPreview();
+  }, destroy() { disposed=true; clearSurface(); abort.abort(); binding.dispose(); observer.disconnect(); for(const [row,names] of styled)for(const name of names)row.classList.remove(name); styled.clear(); } };
 };
 export function capsuleStrip(items = [], options = {}) {
   return html`<div class="horizontal-capsule-strip ${options.className ?? ''}" role="toolbar" aria-label=${options.ariaLabel ?? '模組'}
