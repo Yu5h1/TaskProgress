@@ -1,0 +1,20 @@
+# 共用 OptionPicker 採用 Checklist
+
+Current round: `Documentation/WebUiReplacementPlan.md#optionpicker-共用元件採用`.
+
+2026-10-27：元件瀏覽器案例 10/10、產品隔離案例 10/10、建置與交付測試 6/6 通過。正式產物 `91259af43c9290481693fde9c940c1baf7b6562ef30a16e726998ad0aa834816` 已發布；Browser 三頁載入共用元件，五份 UI 交付雜湊一致，舊 icon-choice.js 已移除。Desktop 實體輸入本輪未重測；人工結果留給使用者。
+
+- [x] **1. 產品採用與交付**
+  Outcome: 三頁工具列使用 Web 共用元件，保留產品狀態與動作。
+  Checks:
+    - [x] **隔離探針與正式接線**
+      - Action: 固定 Web 產物，先跑隔離排序／可見性案例，再重建並確認三頁工具列與五場景交付。
+      - Expect: 循環、選取及重置保持產品意義，單一共用面板；取消／卸載沒有殘留，資料保存契約不變。
+
+- [ ] **2. 人工外觀與操作**
+  Outcome: 使用者接受三頁共用工具列。
+  Checks:
+    - [ ] **工具列外觀與實體操作** `[manual]`
+      - Action: 開啟 [Report](http://127.0.0.1:8001/?scope=task-progress)、[Checklist](http://127.0.0.1:8001/checklist/?scope=task-progress&task=shared-option-picker)、[Decision](http://127.0.0.1:8001/decisions/?scope=task-progress&task=gap-scan) → 操作排序與可見性按鈕 → 短按、長按拖至選項並放開 → 再按 Escape 或點外側。
+      - Expect: 圖示、主題與位置合適；狀態變更符合操作，面板正常關閉，不影響原資料。
+      - Reason: 外觀與實體操作手感由使用者確認。

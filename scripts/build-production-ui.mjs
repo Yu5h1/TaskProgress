@@ -20,6 +20,8 @@ for (const kind of ['checklist', 'decisions']) {
 }
 // Exact obsolete generated files only; no repository-wide cleaning or user data.
 for (const name of ['viewer/assets/viewer-ui.css',
+  'viewer/assets/icon-choice.js',
+  'src/TaskProgress.Cli/checklist-ui/assets/icon-choice.js', 'src/TaskProgress.Cli/decisions-ui/assets/icon-choice.js',
   'viewer/checklist/checklist-ui.css', 'viewer/decisions/decisions-ui.css',
   'src/TaskProgress.Cli/checklist-ui/checklist-ui.css', 'src/TaskProgress.Cli/decisions-ui/decisions-ui.css']) {
   const target = resolve(root, name);

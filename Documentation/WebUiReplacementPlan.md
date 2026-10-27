@@ -4,6 +4,16 @@
 >
 > 目標：以 Yu5h1Lib.Web 的 UI Workflow 與 TypeScript＋Lit 呈現取代 Svelte。本文擁有 TaskProgress 的採用範圍、接線、驗收與回退；共用 API 由 Web 擁有。實作進度與待答事項見 [handoff](../handoff.md)。
 
+## OptionPicker 共用元件採用
+
+本片承接 Svelte 退役後的共用元件抽取：來源基準 `888aa56`，caller 是 `ui/web-workflow/common.mjs` 的 `Cards` 排序與可見性工具列，供 Viewer／Checklist／Decision 共用。改用 Web 公開 `ui-option-picker`，產品只傳選項、圖示、目前值與請求回呼；排序模式、隱藏卡片與 reset 意義仍由 `Cards` 維護。
+
+Web 的元件契約與中性案例由 [共用庫計畫](../../Web/Documentation/LibraryIntegrationPlan.md#optionpicker-元件採用) 擁有。採用前以隔離 fixture 檢查兩個工具列模式，包含點擊循環、長按選擇、鍵盤、Escape、失焦、資料刷新及重新掛載。通過後更新 `vendor/web-ui/manifest.json` 的來源與檔案雜湊、重建五個場景，再核對正式公開入口。回退恢復本片之前的 vendor pin 與 common.mjs，重建發布；不更動 report／checklist／decision 資料。已退役的 Svelte 不參與此回退。
+
+本片驗收由 [消費端 checklist](../checklists/shared-option-picker.checklist) 記錄，Web 檢查不代替消費端功能或人工外觀結論。
+
+更新產物使用 `node scripts/import-web-ui.mjs <Web/dist>` 預覽，確認後加 `--apply`。匯入器核對公開 delivery manifest 與檔案雜湊，記錄來源 revision、source_dirty 及來源檔案雜湊；套用前將舊產物備份至 `bin/Migration/OptionPicker/`。執行期只引用本地 vendor。舊 `icon-choice.js` 已無 caller，連同其獨立測試移除；建置與發布會清除各交付目錄的舊副本。
+
 ## 系統階層與關係
 
 ```text

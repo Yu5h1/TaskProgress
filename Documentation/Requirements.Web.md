@@ -2,6 +2,13 @@
 
 Target: Web；Requester: TaskProgress。目前透過固定公開 UI 產物及跨 scope Report／Checklist 引用 Web。Outstanding: 1。Date: 2026-10-27。
 
+## TASKPROGRESS-WEB-2：OptionPicker 共用呈現
+
+- Status: Delivered，2026-10-27；公開元件與產品接線已交付，人工外觀驗收留在消費端 checklist。
+- Requirement: 提供可接受宿主選項與圖示、受控目前值及動作的共用 OptionPicker，不讓 TaskProgress 自行組裝面板或維護取消生命週期。
+- Acceptance: 排序與可見性兩個 caller 使用同一公開元件，保留循環／長按／鍵盤／reset；中性檢視模式也可使用，無產品名稱分支。資料更新、卸載與晚到事件不提交過期選取。
+- Scope: Web 契約與元件；TaskProgress 保留產品狀態、持久化與回呼。驗收及採用由 [本地計畫](WebUiReplacementPlan.md#optionpicker-共用元件採用) 擁有。
+
 ## TASKPROGRESS-WEB-1：遷移追蹤文件可讀性
 
 - Status: Outstanding，2026-10-27 提出。

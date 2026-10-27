@@ -59,6 +59,7 @@
 
   <Target Name="RemoveRetiredSvelteStyles" AfterTargets="Publish">
     <Delete Files="$(PublishDir)checklist-ui/checklist-ui.css;$(PublishDir)decisions-ui/decisions-ui.css" />
+    <Delete Files="$(PublishDir)checklist-ui/assets/icon-choice.js;$(PublishDir)decisions-ui/assets/icon-choice.js" />
   </Target>
 
 </Project>

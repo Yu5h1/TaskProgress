@@ -119,7 +119,7 @@ await check('Pure sorting retains disclosure state; data and callback updates in
     await tick();
     const middle=target.querySelector('[data-card-id="reuse-1"]'),toggle=middle.querySelector('.expandable-text__toggle');
     toggle.click();await tick();assert(toggle.getAttribute('aria-expanded')==='true','reader opens disclosure');
-    target.querySelector('.icon-choice[aria-label="排序"] button').click();await tick();
+    target.querySelector('ui-option-picker[aria-label="排序"] ').shadowRoot.querySelector('button').click();await tick();
     equal([...target.querySelectorAll('[data-card-id]')].map(n=>n.dataset.cardId),['reuse-2','reuse-1','reuse-0'],'sort moves exact identities');
     assert(middle.querySelector('.expandable-text__toggle')===toggle&&toggle.getAttribute('aria-expanded')==='true','sort retains reader state');
     web.update(view,{tasks:tasks.map(t=>t.id==='reuse-1'?{...t,summary:'Fresh content'}:t)});await tick();
@@ -184,6 +184,23 @@ await check('Rendering windows restore long text, unfocused overlays, keyboard m
     assert(target.querySelectorAll('[data-card-id]')[1]===first,'drop after reveal preserves moved card');
     equal([...target.querySelectorAll('[data-card-id]')].map(n=>n.dataset.cardId).sort(),tasks.map(t=>t.id).sort(),'all card identities retained');
   }finally{if(!new URLSearchParams(location.search).has('interactive')){web.destroy(view);target.remove();tail.remove();}localStorage.removeItem(key);localStorage.removeItem(key+':mode');localStorage.removeItem(key+':pins');sessionStorage.removeItem(key+':visibility');scrollTo(0,0);}
+});
+await check('Shared OptionPicker keeps product order, visibility and reset semantics',async()=>{
+  const target=document.createElement('div');fixture.append(target);
+  const tasks=['a','b','c'].map(id=>({id,title:id,status:'planned',priority:2,summary:'',completed_items:[],pending_items:[]}));
+  const view=web.mount('task-list',target,{tasks,allIds:tasks.map(t=>t.id),policy:globalThis.TaskProgressPriorityPolicy,progress:Object.fromEntries(tasks.map(t=>[t.id,{completed:0,total:0}]))});
+  try {
+    await tick();const order=target.querySelector('ui-option-picker[aria-label="排序"]');
+    const visibility=target.querySelector('ui-option-picker[aria-label="可見性"]');
+    assert(order&&visibility,'shared components not adopted');
+    order.shadowRoot.querySelector('.trigger').click();await tick();
+    equal([...target.querySelectorAll('[data-card-id]')].map(n=>n.dataset.cardId),['c','b','a'],'reverse product order');
+    visibility.open();visibility.shadowRoot.querySelector('[data-choice-id="closed"]').click();await tick();
+    assert([...target.querySelectorAll('[data-card-id]')].every(n=>n.hidden),'all closed');
+    visibility.open();visibility.shadowRoot.querySelector('[data-choice-id="reset"]').click();await tick();
+    assert(visibility.value==='enabled'&&[...target.querySelectorAll('[data-card-id]')].every(n=>!n.hidden),'reset product visibility');
+    visibility.open();web.destroy(view);assert(!visibility.shadowRoot.querySelector('.panel').matches(':popover-open'),'disposed product panel remained');
+  }finally{web.destroy(view);target.remove();}
 });
 document.title=fail?`FAIL ${fail} / PASS ${pass}`:`PASS ${pass} candidate navigation`;
 document.body.dataset.result=fail?'fail':'pass';

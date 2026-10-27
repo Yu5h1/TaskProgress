@@ -11,7 +11,7 @@ import { loadDisclosure, saveDisclosure } from '@taskprogress/card-disclosure-st
 import { DEFAULT_CAPSULE_ID } from '@taskprogress/filter-selection.js';
 import { createLinkSelection, readLinkSelection } from '@taskprogress/link-selection.js';
 import { copyText } from '@taskprogress/item-reference.js';
-import { bindLongPress, bindChoicePicker, bindReorder, registerUi } from '@web/ui';
+import { bindLongPress, bindReorder, registerUi } from '@web/ui';
 import { createBackLink } from './bootstrap.mjs';
 import { createActionQueue } from './action-queue.mjs';
 import { enabledAction } from './enabled-action.mjs';
@@ -177,18 +177,13 @@ export const moduleStrip = (p = {}) => {
   return items.length ? capsuleStrip(items, { ...p, ariaLabel:p.ariaLabel??'子項目模組', className: p.className ?? 'item-module-strip', onActivate: p.onActivate }) : nothing;
 };
 
-const pickerAction = (node, p) => {
-  let settings = p;
-  const binding = bindChoicePicker(node.querySelector('button'), node.querySelector('[popover]'), { interaction: p.interaction, delay: 300, orientation: 'vertical', onChoose: id => settings.choose(id) });
-  return { update: value => { settings = value; }, destroy: () => binding.dispose() };
-};
-let pickerSequence = 0;
+const pickerDisplay = Object.freeze({ icon:true, label:false, appearance:'ghost' });
 export function choice(view, key, items, value, label, choose, interaction = 'both') {
-  const id = view.state[`picker:${key}`] ??= `replica-choice-${++pickerSequence}`;
-  const current = items.find(i => i.id === value);
-  return html`<span class="icon-choice" role="group" aria-label=${label} ${action(pickerAction, { choose, interaction })}><button type="button" class="card-toolbar-icon" aria-label="${label}：${current?.label ?? ''}" title="${label}：${current?.label ?? ''}；${interaction === 'both' ? '點擊切換，長按選擇' : '點擊或長按選擇'}">${current?.icon ?? current?.label ?? label}</button><span id=${id} popover="manual" class="icon-choice-options vertical replica-choice-panel">${items.map(i => html`<button type="button" class="card-toolbar-icon" data-choice-id=${i.id} aria-label=${i.label} title=${i.label} aria-pressed=${i.kind === 'action' ? nothing : i.id === value}>${i.icon ?? i.label}</button>`)}</span></span>`;
+  return html`<ui-option-picker class="icon-choice" aria-label=${label} .label=${label} .options=${items}
+    .value=${value} .interaction=${interaction} .delay=${300} orientation="vertical"
+    .triggerDisplay=${pickerDisplay} .optionDisplay=${pickerDisplay}
+    @choice-request=${event => choose(event.detail.id)}></ui-option-picker>`;
 }
-
 export function disclosure({ id, label, expanded = true, toggle, visibilityEnabled = false, visible = true, onVisibleChange }, header, body) {
   return html`<div class="card-disclosure-heading ${expanded ? '' : 'card-disclosure-collapsed'}"><button type="button" class="card-disclosure-toggle" aria-expanded=${expanded} aria-controls=${id} aria-label="${expanded ? '收合' : '展開'} ${label}" @click=${() => toggle(!expanded)}><span aria-hidden="true">${expanded ? '▼' : '▶'}</span></button>
   ${visibilityEnabled ? html`<button type="button" class="card-visibility-toggle card-toolbar-icon" aria-pressed=${visible} aria-label="${visible ? '隱藏' : '顯示'} ${label}" @click=${() => onVisibleChange(!visible)}>${eye(!visible)}</button>` : nothing}${header}</div><div id=${id} class="card-disclosure-body" ?hidden=${!expanded}>${body}</div>`;
