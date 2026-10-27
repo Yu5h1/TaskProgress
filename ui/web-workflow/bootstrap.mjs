@@ -1,4 +1,4 @@
-import { registerUi } from '@web/ui';
+import { registerUi, buttonDesign } from '@web/ui';
 import { applyTheme, loadThemePreference, saveThemePreference, preferenceWithMode } from '@web/theme';
 import { THEME_STORAGE_KEY, THEME_OPTIONS } from './theme-options.mjs';
 
@@ -18,6 +18,7 @@ export function createBackLink(owner = null) {
 
 export async function bootstrap(page) {
   registerUi();
+  document.documentElement.style.setProperty('--taskprogress-icon-hover-scale', String(buttonDesign.tokens.ghostHoverIconScale.value));
   document.documentElement.dataset.taskprogressUi = 'web-ui-workflow';
   const options = THEME_OPTIONS;
   const boot = globalThis.taskprogressThemeBoot;
