@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-10-27T06:41:40.208993+00:00",
+  "updated_at": "2026-10-27T07:15:37.055395+00:00",
   "tasks": [
     {
       "id": "gap-scan",
@@ -3633,6 +3633,20 @@
               "session_id": "01a0d3c0-178f-7463-a65b-21c8bbe2676f",
               "at": "2026-10-27T06:41:59.362382+00:00",
               "note": "Bind retirement checklist to existing item; CLI does not support existing document_ref changes."
+            },
+            {
+              "event": "started",
+              "actor": "codex",
+              "at": "2026-10-27T06:58:03.063913+00:00",
+              "session": "Web UI all-entry adoption",
+              "session_id": "01a0d3c0-178f-7463-a65b-21c8bbe2676f"
+            },
+            {
+              "event": "released",
+              "actor": "codex",
+              "at": "2026-10-27T07:15:37.055395+00:00",
+              "session": "Web UI all-entry adoption",
+              "session_id": "01a0d3c0-178f-7463-a65b-21c8bbe2676f"
             }
           ],
           "document_ref": {
@@ -3676,9 +3690,90 @@
             "scope_id": "task-progress",
             "task": "svelte-retirement-release"
           }
+        },
+        {
+          "id": "all-entry-report-manual",
+          "title": "驗收 Report Viewer 的目標環境與實際操作",
+          "priority": 1,
+          "status": "planned",
+          "document_ref": {
+            "kind": "checklist",
+            "scope_id": "task-progress",
+            "task": "svelte-retirement-report-manual"
+          },
+          "waits_for": [
+            {
+              "scope_id": "task-progress",
+              "checklist": "svelte-retirement-entries",
+              "work_item": 1
+            }
+          ],
+          "activity": [
+            {
+              "event": "created",
+              "actor": "codex",
+              "at": "2026-10-27T07:15:37.055395+00:00",
+              "session": "Web UI all-entry adoption",
+              "session_id": "01a0d3c0-178f-7463-a65b-21c8bbe2676f"
+            }
+          ]
+        },
+        {
+          "id": "all-entry-checklist-manual",
+          "title": "驗收 Checklist Browser／Desktop 的目標環境與實際操作",
+          "priority": 1,
+          "status": "planned",
+          "document_ref": {
+            "kind": "checklist",
+            "scope_id": "task-progress",
+            "task": "svelte-retirement-checklist-manual"
+          },
+          "waits_for": [
+            {
+              "scope_id": "task-progress",
+              "checklist": "svelte-retirement-entries",
+              "work_item": 1
+            }
+          ],
+          "activity": [
+            {
+              "event": "created",
+              "actor": "codex",
+              "at": "2026-10-27T07:15:37.055395+00:00",
+              "session": "Web UI all-entry adoption",
+              "session_id": "01a0d3c0-178f-7463-a65b-21c8bbe2676f"
+            }
+          ]
+        },
+        {
+          "id": "all-entry-decisions-manual",
+          "title": "驗收 Decision Browser／Desktop 的目標環境與實際操作",
+          "priority": 1,
+          "status": "planned",
+          "document_ref": {
+            "kind": "checklist",
+            "scope_id": "task-progress",
+            "task": "svelte-retirement-decisions-manual"
+          },
+          "waits_for": [
+            {
+              "scope_id": "task-progress",
+              "checklist": "svelte-retirement-entries",
+              "work_item": 1
+            }
+          ],
+          "activity": [
+            {
+              "event": "created",
+              "actor": "codex",
+              "at": "2026-10-27T07:15:37.055395+00:00",
+              "session": "Web UI all-entry adoption",
+              "session_id": "01a0d3c0-178f-7463-a65b-21c8bbe2676f"
+            }
+          ]
         }
       ],
-      "summary": "試點及來源候選建置已有證據；剩餘工作是全入口接管、功能／保存與必要環境驗收、正式發布／回退及移除 Svelte。效能最佳化已移至 [獨立任務](http://127.0.0.1:8001/?scope=task-progress&pin=web-ui-performance)，不再阻擋退役；正式 Svelte 尚保留。",
+      "summary": "五個 Browser／Desktop 場景的 Web UI 候選與待發布目錄已備妥；30 項 Node、5 項保存／隔離及9項瀏覽器回歸通過，Desktop 真實載入與測試副本保存有證據。現在補三頁目標環境／實際操作驗收，再獨立核查與正式發布退役。效能另案，正式 Svelte 仍保留。",
       "id": "svelte-retirement"
     },
     {

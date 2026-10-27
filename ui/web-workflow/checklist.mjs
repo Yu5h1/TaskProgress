@@ -5,7 +5,7 @@ import { stackChecklistItems } from '@taskprogress/completed-stacking.js';
 import { createFilterSelection, loadFilterSelection, saveFilterSelection, groupingOrder, isDefaultLit, toggleDefault, toggleTag, DEFAULT_CAPSULE_ID } from '@taskprogress/filter-selection.js';
 import { createPersistenceController } from '@taskprogress/persistence-mode.js';
 import { createChecklistFilterOrder } from '@taskprogress/checklist-filter-order.js';
-import { createChecklistHttpTransport } from '@taskprogress/checklist-http-transport.js';
+import { createDocumentTransport } from '@taskprogress/document-transport.js';
 import { installForegroundRefresh } from '@taskprogress/foreground-refresh.js';
 import { documentLinkTarget, readLinkSelection } from '@taskprogress/link-selection.js';
 import { installFocusShield } from '@taskprogress/focus-shield.js';
@@ -13,7 +13,7 @@ import { installFocusShield } from '@taskprogress/focus-shield.js';
 const env = await bootstrap('checklist');
 const params = new URLSearchParams(location.search);
 let transport;
-try { transport = createChecklistHttpTransport({ scope: params.get('scope'), task: params.get('task') }); }
+try { transport = createDocumentTransport('checklist', { params }); }
 catch (error) { transport = { load: () => Promise.reject(error) }; }
 const TAGS = ['pending', 'passed', 'failed'];
 const STATUS = { pending: '未執行', passed: '通過', failed: '失敗' };
@@ -65,7 +65,7 @@ class Checklist extends View {
   async setCautious(value) { const initial=this.persistence;if(this.disposed||!initial)return;const data=await initial.setCautious(value);if(!this.disposed&&this.persistence===initial){this.data=data;this.draw();} }
   async save() { const initial=this.persistence;if(this.disposed||!initial)return;await initial.save();if(!this.disposed&&this.persistence===initial){this.data=initial.snapshot();this.draw();} }
   cycle(id, check) {
-    if (!this.editable) { this.message = '靜態預覽不保存結果；請使用隔離資料服務（8016）。'; this.draw(); return; }
+    if (!this.editable) { this.message = '此入口目前為唯讀，無法保存結果。'; this.draw(); return; }
     if (check.isAcceptance && check.recorder && check.recorder !== 'user' && !confirm('確認修改 agent 紀錄嗎？')) return;
     this.apply({ type: 'cycle-result', workItemId: id, checkIndex: check.index });
   }

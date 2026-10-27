@@ -22,7 +22,20 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="checklist-ui\**\*;decisions-ui\**\*">
+    <Content Include="checklist-ui\**\*;decisions-ui\**\*" Condition="'$(WebUiCandidateAssets)' == ''">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(WebUiCandidateAssets)' != ''">
+    <Content Include="$(WebUiCandidateAssets)\checklist-ui\**\*">
+      <Link>checklist-ui\%(RecursiveDir)%(Filename)%(Extension)</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="$(WebUiCandidateAssets)\decisions-ui\**\*">
+      <Link>decisions-ui\%(RecursiveDir)%(Filename)%(Extension)</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </Content>

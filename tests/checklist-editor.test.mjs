@@ -4,7 +4,7 @@ import test from "node:test";
 
 import { createChecklistEditorSession } from "../viewer/assets/checklist-editor.js";
 import { createEditorTransaction } from "../viewer/assets/editor-transaction.js";
-import { createChecklistBridgeTransport } from "../experiments/editor-svelte-spike/src/checklist-bridge.js";
+import { createChecklistBridgeTransport } from "../viewer/assets/checklist-bridge.js";
 
 function documentFixture() {
   return {
@@ -178,7 +178,7 @@ test("Checklist transport exposes only load, save and reset", async () => {
 test("Checklist Svelte source reuses SaveBar and never requests a path", async () => {
   const [app, bridge, host] = await Promise.all([
     readFile(new URL("../experiments/editor-svelte-spike/src/ChecklistApp.svelte", import.meta.url), "utf8"),
-    readFile(new URL("../experiments/editor-svelte-spike/src/checklist-bridge.js", import.meta.url), "utf8"),
+    readFile(new URL("../viewer/assets/checklist-bridge.js", import.meta.url), "utf8"),
     readFile(new URL("../src/TaskProgress.Cli/ChecklistBridge.cs", import.meta.url), "utf8"),
   ]);
   assert.match(app, /import SaveBar from "\.\/SaveBar\.svelte"/u);

@@ -1,7 +1,7 @@
 import { bootstrap } from './bootstrap.mjs';
 import { html, nothing, repeat, live, View, Cards, inline, copyButton, disclosure, filters, dialog, productBack, productTheme, historyTools } from './common.mjs';
 import { createDecisionSession, same } from '@taskprogress/decision-session.js';
-import { createDecisionHttpTransport } from '@taskprogress/decision-transport.js';
+import { createDocumentTransport } from '@taskprogress/document-transport.js';
 import { createFilterSelection, loadFilterSelection, saveFilterSelection, isDefaultLit, toggleTag, toggleDefault, DEFAULT_CAPSULE_ID } from '@taskprogress/filter-selection.js';
 import { stackDecisions } from '@taskprogress/completed-stacking.js';
 import { installForegroundRefresh } from '@taskprogress/foreground-refresh.js';
@@ -11,7 +11,7 @@ import { installFocusShield } from '@taskprogress/focus-shield.js';
 const env = await bootstrap('decisions');
 const params = new URLSearchParams(location.search);
 let transport;
-try { transport = createDecisionHttpTransport(params.get('scope'), params.get('task')); }
+try { transport = createDocumentTransport('decisions', { params }); }
 catch (error) { transport = { load: () => Promise.reject(error) }; }
 class Decisions extends View {
   constructor(target, options = {}) {
@@ -56,7 +56,7 @@ class Decisions extends View {
   }
   choose(id, value) {
     if(this.disposed||!this.session)return;
-    if (!this.editable) { this.message = '靜態預覽不保存答案；請使用隔離資料服務（8016）。'; this.draw(); return; }
+    if (!this.editable) { this.message = '此入口目前為唯讀，無法保存答案。'; this.draw(); return; }
     this.session.select(id, value); this.sync(); this.confirm(id);
   }
   confirm(id) {

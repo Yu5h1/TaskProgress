@@ -75,9 +75,7 @@ export async function buildCandidate() {
   await put('demo/taskprogress/assets/theme-control.js', await readFile(resolve(source, 'theme-control.mjs')));
   const entries = { 'demo.js': 'viewer-entry.mjs', 'checklist/checklist-ui.js': 'checklist.mjs', 'decisions/decisions-ui.js': 'decisions.mjs', 'theme-start.js': 'theme-start.js' };
   const graphs = {};
-  for (const [file, entry] of Object.entries(entries)) {
-    const webRoot = '../'.repeat(file.split('/').length + 1);
-    const assetRoot = file.includes('/') ? '../assets/' : './assets/';
+  async function compile(file, entry, destination, webRoot, assetRoot) {
     await build({ configFile: false, root, logLevel: 'error',
       plugins: [{ name: 'product-runtime-boundaries',
         resolveId(id) {
@@ -93,10 +91,11 @@ export async function buildCandidate() {
           }
           graphs[file] = modules.map(p => relative(root, p).replaceAll('\\', '/'));
         } }],
-      build: { outDir: dirname(resolve(output, file)), emptyOutDir: false, minify: true, target: 'es2022',
-        lib: { entry: resolve(source, entry), name: 'TaskProgressThemeBootstrap', formats: [file === 'theme-start.js' ? 'iife' : 'es'], fileName: () => file.split('/').at(-1) } }
+      build: { outDir: dirname(destination), emptyOutDir: false, minify: true, target: 'es2022',
+        lib: { entry: resolve(source, entry), name: 'TaskProgressThemeBootstrap', formats: [entry === 'theme-start.js' ? 'iife' : 'es'], fileName: () => destination.split(/[\\/]/).at(-1) } }
     });
   }
+  for (const [file, entry] of Object.entries(entries)) await compile(file, entry, resolve(output, file), '../'.repeat(file.split('/').length + 1), file.includes('/') ? '../assets/' : './assets/');
   for (const page of ['', 'checklist/', 'decisions/']) {
     const depth = page ? '../../../' : '../../', local = page ? '../' : './';
     let html = await readFile(resolve(root, 'viewer', page, 'index.html'), 'utf8');
@@ -105,6 +104,38 @@ export async function buildCandidate() {
     html = html.replace('</head>', `<link rel="stylesheet" href="${depth}theme/theme.css">\n<link rel="stylesheet" href="${local}assets/styles.css">\n<link rel="stylesheet" href="${local}component-styles.css">\n<link rel="stylesheet" href="${local}product.css">\n<script src="${depth}theme/bootstrap.js"></script>\n<script src="${local}theme-start.js"></script>\n<script type="module" src="${page ? './' + page.slice(0, -1) + '-ui.js' : './demo.js'}"></script>\n</head>`);
     html = html.replace('<body>', '<body><aside class="replica-notice" aria-label="TaskProgress 來源建置候選">TaskProgress 來源建置候選 · 獨立測試資料 · <a href="http://127.0.0.1:8001/?scope=task-progress">正式 Svelte 版</a></aside>');
     await put('demo/taskprogress/' + page + 'index.html', html);
+  }
+  // Stage the exact production layout separately; activation belongs to release acceptance.
+  const release = 'release/viewer/';
+  for (const path of await files(output)) {
+    const name = relative(output, path).replaceAll('\\', '/');
+    if (name.startsWith('reference/') || /^(assets\/viewer-ui\.|(?:checklist|decisions)\/.*-ui\.css)/.test(name)) continue;
+    let bytes = await readFile(path);
+    if (['index.html', 'checklist/index.html', 'decisions/index.html'].includes(name)) {
+      bytes = bytes.toString('utf8').replace(/(?:\.\.\/){2,3}theme\//g, (name.includes('/') ? '../' : './') + 'web/theme/');
+    }
+    await put(release + name, bytes);
+  }
+  for (const name of Object.keys(publicDelivery.files)) await put(release + 'web/' + name, await readFile(resolve(vendor, name)));
+  for (const [file, entry] of Object.entries(entries)) await compile(release + file, entry, resolve(site, release, file), (file.includes('/') ? '../' : './') + 'web/', file.includes('/') ? '../assets/' : './assets/');
+
+  // Each existing WebView2 virtual host gets a self-contained asset root. Both
+  // hosts compile the same screens and reuse the existing exact-file bridges.
+  for (const kind of ['checklist', 'decisions']) {
+    const prefix = `desktop/${kind}-ui/`;
+    for (const path of host) {
+      const name = relative(resolve(root, 'viewer'), path).replaceAll('\\', '/');
+      if (name.startsWith('assets/') && !name.startsWith('assets/viewer-ui.')) await put(prefix + name, await readFile(path));
+    }
+    for (const name of Object.keys(publicDelivery.files)) await put(prefix + name, await readFile(resolve(vendor, name)));
+    for (const name of ['component-styles.css', 'product.css']) await put(prefix + name, await readFile(resolve(output, name)));
+    await compile(prefix + kind + '-ui.js', kind + '.mjs', resolve(site, prefix, kind + '-ui.js'), './', './assets/');
+    await compile(prefix + 'theme-start.js', 'theme-start.js', resolve(site, prefix, 'theme-start.js'), './', './assets/');
+    let html = await readFile(resolve(root, 'viewer', kind, 'index.html'), 'utf8');
+    html = html.replace(/<link[^>]+href="\.\/(?:checklist|decisions)-ui\.css"[^>]*>/g, '');
+    html = html.replace('</head>', '<link rel="stylesheet" href="./theme/theme.css"><link rel="stylesheet" href="./assets/styles.css"><link rel="stylesheet" href="./component-styles.css"><link rel="stylesheet" href="./product.css"><script src="./theme/bootstrap.js"></script><script src="./theme-start.js"></script></head>');
+    html = html.replace('<body>', '<body><aside class="replica-notice">TaskProgress Web UI Desktop 候選 · 請使用測試副本</aside>');
+    await put(prefix + 'index.html', html);
   }
   // No implicit report. The source host's root route may show its scope directory.
   await put('index.html', '<!doctype html><html lang="zh-Hant"><meta charset="utf-8"><title>TaskProgress UI 候選</title><h1>TaskProgress Web UI Workflow 候選</h1><p>產品來源建置；原 Svelte 正式版保留。</p><a href="/demo/taskprogress/">開啟 Viewer／Scope 入口</a></html>');

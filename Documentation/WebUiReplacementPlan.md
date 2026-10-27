@@ -167,6 +167,18 @@ python scripts/web_ui_pilot.py --serve --candidate --port 8018
 
 也可在建置後開啟 `Start Web UI Candidate.cmd`。候選入口為 [8018 Viewer](http://127.0.0.1:8018/demo/taskprogress/?scope=task-progress)，使用獨立的 `candidate-data`；第一次複製資料後不自動同步。按 Ctrl+C 停止候選；8001 正式版與 8017 已匯入試點各自保留。
 
+### 五個執行場景的候選交付
+
+同一份產品畫面透過 `viewer/assets/document-transport.js` 選擇現有 HTTP 或 WebView2 bridge。Checklist bridge 由產品 assets 擁有，舊 Svelte 入口僅 re-export；Decision 沿用原有 transport，不建立第二個保存器。Desktop 無 scope 查詢字串仍可編輯，不呼叫 HTTP capabilities，也不顯示無目的地的返回連結。
+
+`npm run web-ui:build` 同時產生 Browser 三頁、`desktop/checklist-ui`、`desktop/decisions-ui`，以及供發布驗證使用的 `release/viewer` 目錄。每個 Desktop virtual host 有自己的完整 UI／Theme／host assets；產物與原始來源雜湊記在同一 candidate manifest。`release/viewer` 是待啟用的正式目錄形狀，仍帶候選標示，不能直接當作已發布；移除標示、正式複製與切換由發布清單擁有。
+
+準備 Desktop 候選：在 TaskProgress 根目錄執行 `node scripts/prepare-web-ui-desktop.mjs`。它以既有 .NET 依賴 `--no-restore` 建置原生宿主，透過 `WebUiCandidateAssets` 選用候選 Content，只寫 `bin/Migration/WebUiWorkflow/desktop-host/<identity>/`。未指定此屬性的正式建置仍使用原入口；不得在未驗收時改變預設。`desktop-data` 只在文件缺少時複製測試 fixture，重新準備不覆蓋使用者的測試結果。
+
+開啟 `Start Web UI Checklist Candidate.cmd` 或 `Start Web UI Decision Candidate.cmd` → 在原生視窗操作測試副本。Browser 仍以 `Start Web UI Candidate.cmd` 開啟 8018。三個頁面各自的人工清單綁在同一退役卡；它們核對新版宿主與尚缺的目標環境，適用的已通過試點結果不重做。頁面上的 fixture 勾選／答案只是保存驗證，真正驗收記錄在正式任務卡的清單。
+
+本批規模為中型、有界接線：沿用既有三頁、transport、WPF/WebView2、Content 複製與 candidate manifest；證據由全入口清單擁有。自動證據與人工結果分開，沒有實測的環境不由 API 探測或來源審查代替。
+
 ## TaskProgress UI 效能最佳化
 
 > Task ID: web-ui-performance

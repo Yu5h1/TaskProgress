@@ -64,9 +64,10 @@ export async function bootstrap(page) {
     if (title) { const heading = document.createElement('div'); heading.className = 'replica-title-row'; title.before(heading); heading.append(createBackLink(), title); }
   }
   const scope = new URLSearchParams(location.search).get('scope');
-  let editable = false;
-  if (scope) {
+  const desktop = page !== 'viewer' && typeof globalThis.chrome?.webview?.postMessage === 'function';
+  let editable = desktop;
+  if (!desktop && scope) {
     try { const result = await fetch('/__taskprogress/v1/capabilities/' + encodeURIComponent(scope)); editable = result.ok && (await result.json()).editable; } catch {}
   }
-  return { editable };
+  return { editable, desktop };
 }

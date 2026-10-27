@@ -46,7 +46,7 @@ class CandidateTests(base.PilotTests):
         script = self.client.get('/demo/taskprogress/demo.js').text
         self.assertNotIn('web.demo.theme.v1', script)
         self.assertNotIn('fixture.json', script)
-        self.assertTrue('THEME_STORAGE_KEY' in script, 'product bootstrap must consume the host-owned key')
+        self.assertIn('taskprogressThemeBoot', script, 'candidate must take over its first-paint theme controller')
         self.assertTrue('task-progress.theme.v1' in self.client.get('/demo/taskprogress/assets/theme-model.js').text)
         self.assertEqual(200, self.client.get('/__taskprogress/v1/capabilities/web-ui-pilot-test').status_code)
 

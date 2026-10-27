@@ -281,7 +281,7 @@ const themePlacement = (node) => {
 };
 export const productTheme = () => html`<span class="replica-theme" ${action(themePlacement, null)}></span>`;
 const backPlacement = node => { const link=createBackLink();node.append(link);return{destroy:()=>link.remove()}; };
-export const productBack = () => html`<span class="replica-back" ${action(backPlacement, null)}></span>`;
+export const productBack = () => globalThis.chrome?.webview ? nothing : html`<span class="replica-back" ${action(backPlacement, null)}></span>`;
 
 export function historyTools(p, view) {
   const h = p.history, key = p.id ?? 'history';

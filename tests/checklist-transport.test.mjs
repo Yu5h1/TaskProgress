@@ -6,7 +6,7 @@ import test from "node:test";
 
 import { createPersistenceController } from "../viewer/assets/persistence-mode.js";
 import { createChecklistEditorSession } from "../viewer/assets/checklist-editor.js";
-import { createChecklistBridgeTransport } from "../experiments/editor-svelte-spike/src/checklist-bridge.js";
+import { createChecklistBridgeTransport } from "../viewer/assets/checklist-bridge.js";
 
 const read = (path) =>
   readFile(new URL(`../experiments/editor-svelte-spike/src/${path}`, import.meta.url), "utf8");

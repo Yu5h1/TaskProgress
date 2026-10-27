@@ -381,7 +381,7 @@ test("the shared SaveBar owns both modes and the Checklist reuses it", async () 
     readFile(new URL("../experiments/editor-svelte-spike/src/SaveBar.svelte", import.meta.url), "utf8"),
     readFile(new URL("../experiments/editor-svelte-spike/src/ChecklistApp.svelte", import.meta.url), "utf8"),
     readFile(new URL("../viewer/assets/persistence-mode.js", import.meta.url), "utf8"),
-    readFile(new URL("../experiments/editor-svelte-spike/src/checklist-bridge.js", import.meta.url), "utf8"),
+    readFile(new URL("../viewer/assets/checklist-bridge.js", import.meta.url), "utf8"),
   ]);
 
   // Save and Discard exist only in cautious mode; status and history do not move.
