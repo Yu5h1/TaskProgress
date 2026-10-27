@@ -16,6 +16,14 @@ Web 的元件契約與中性案例由 [共用庫計畫](../../Web/Documentation/
 
 ## 系統階層與關係
 
+### 搜尋與歷史 UI 共用元件採用
+
+來源基準 `4ae1f80`。Report 搜尋以公開 `ui-search-field` 接入原 onSearch；Report／Checklist 保存列以 `ui-edit-history` 的雙按鈕模式接入既有 persistence，Decision 使用完整歷史面板及清除確認。宿主提供真實 metadata、disabled 與文件身分，接收 query-change、history-request 及 history-open-change；面板開啟期間仍禁止前景刷新。Web 不擁有第二份產品歷史，搜尋比對、交易合併、保存／衝突及謹慎模式不變。
+
+先以既有固定 vendor 與隔離資料驗證搜尋／組字／清除、復原重做與保存鎖定、歷史面板清除和取消／卸載，再重建五場景並按正式發布流程交付。回退恢復本片前產品來源與產物，不回退報告資料；本片不新增全域快捷鍵或替換交易核心。結果由 [採用清單](../checklists/shared-editor-tools.checklist) 擁有。
+
+規模：約 8 個來源／驗證／文件，移除約 20 行重複模板，新增約 120 行接線與案例，另更新產物。先例為既有 OptionPicker 採用與公開編輯工具；證據需隔離瀏覽器、定向交易測試及使用者實體輸入。
+
 ```text
 TaskProgress
 ├─ 產品資料與命令：Report／Checklist／Decisions／Time／Cost

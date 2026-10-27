@@ -1,0 +1,31 @@
+# 搜尋與歷史共用元件採用 Checklist
+
+Current round: `Documentation/WebUiReplacementPlan.md#搜尋與歷史-ui-共用元件採用`.
+
+- [ ] **1. 共用接線與產品語意**
+  Outcome: 三頁使用 Web 公開元件，產品保留搜尋與交易責任。
+  Checks:
+    - [ ] **搜尋與歷史接線**
+      - Action: 在隔離候選執行查詢回寫、IME／清除、宿主更新、Undo／Redo、保存鎖定、歷史清除及卸載案例，核對原交易測試。
+      - Expect: 查詢不改來源資料；按鈕反映宿主真實狀態；清除歷史不清除內容或保存資料；面板開啟阻止前景刷新，關閉與卸載不留過期狀態。
+    - [ ] **正式交付**
+      - Action: 重建並發布 Browser 三頁與 Desktop 兩個入口，核對公開元件交付及正式頁載入。
+      - Expect: 五場景使用相同固定 Web 產物，無產品私有 Web source 引用；保存與回退契約不變。
+
+- [ ] **2. 獨立核查**
+  Outcome: 實作符合採用邊界。
+  Checks:
+    - [ ] **驗收條件未被改動** `[acceptance]`
+      - Action: 依 Documentation/WebUiReplacementPlan.md#搜尋與歷史-ui-共用元件採用，對照本清單建立或最新條件修訂 commit 後的 acceptance 文字。
+      - Expect: 條件保持一致，沒有沿用舊輪次的結果。
+    - [ ] **共用採用與生命週期** `[acceptance]`
+      - Action: 依 Documentation/WebUiReplacementPlan.md#搜尋與歷史-ui-共用元件採用，核對公開元件、宿主回呼、disabled、文件切換與取消，以及隔離驗證證據。
+      - Expect: 無重複 UI 實作或第二份歷史核心，沒有未處理的必要功能缺陷。
+
+- [ ] **3. 外觀與實體輸入**
+  Outcome: 使用者接受共用搜尋框與復原重做操作。
+  Checks:
+    - [ ] **搜尋與歷史操作手感** `[manual]`
+      - Action: 開啟 [Report](http://127.0.0.1:8001/?scope=task-progress)，用中文輸入搜尋並清除；在自己的測試資料使用 Report／Checklist 復原重做，以及 Decision 歷史面板的取消與關閉。
+      - Expect: 中文組字、按鈕圖示、主題、焦點與面板位置合適；復原重做符合原操作，不出現重複面板。
+      - Reason: 外觀與實體輸入手感由使用者確認；不要為驗收修改正式業務資料。
