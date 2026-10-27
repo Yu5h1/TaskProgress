@@ -175,13 +175,13 @@ test("Checklist transport exposes only load, save and reset", async () => {
   assert.deepEqual(Object.keys(transport).sort(), ["load", "reset", "save"]);
 });
 
-test("Checklist Svelte source reuses SaveBar and never requests a path", async () => {
+test("Checklist reuses the shared save controls and never requests a path", async () => {
   const [app, bridge, host] = await Promise.all([
-    readFile(new URL("../experiments/editor-svelte-spike/src/ChecklistApp.svelte", import.meta.url), "utf8"),
-    readFile(new URL("../viewer/assets/checklist-bridge.js", import.meta.url), "utf8"),
-    readFile(new URL("../src/TaskProgress.Cli/ChecklistBridge.cs", import.meta.url), "utf8"),
+    readFile(new URL('../ui/web-workflow/checklist.mjs', import.meta.url), 'utf8'),
+    readFile(new URL('../viewer/assets/checklist-bridge.js', import.meta.url), 'utf8'),
+    readFile(new URL('../src/TaskProgress.Cli/ChecklistBridge.cs', import.meta.url), 'utf8'),
   ]);
-  assert.match(app, /import SaveBar from "\.\/SaveBar\.svelte"/u);
+  assert.match(app, /saveBar\(\{/u);
   assert.match(app, /createChecklistEditorSession/u);
   assert.doesNotMatch(app, /fetch\(|localStorage/u);
   assert.match(bridge, /new Set\(\["load", "save", "reset"\]\)/u);

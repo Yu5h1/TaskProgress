@@ -100,7 +100,7 @@ test("shared history shortcuts handle platform undo and redo only while active",
   assert.equal(prevented, 3);
 });
 
-// ItemRow's single-order contract now lives entirely in ItemRow.svelte's own
+// ItemRow's single-order contract now lives entirely in the product renderer's own
 // template — editor-surface-runtime.js no longer renders rows at all, so
 // there is nothing left here to configure per host. This guards against the
 // knob (`itemEditOrder`) that used to let two hosts drift into different
@@ -108,7 +108,7 @@ test("shared history shortcuts handle platform undo and redo only while active",
 test("item order is not host-configurable anywhere in the shared surface, the Viewer, or the retired Demo", async () => {
   const [runtime, itemRow, viewerApp, demoApp] = await Promise.all([
     readFile(new URL("../viewer/assets/editor-surface-runtime.js", import.meta.url), "utf8"),
-    readFile(new URL("../experiments/editor-svelte-spike/src/ItemRow.svelte", import.meta.url), "utf8"),
+    readFile(new URL("../ui/web-workflow/viewer.mjs", import.meta.url), "utf8"),
     readFile(new URL("../viewer/assets/app.js", import.meta.url), "utf8"),
     readFile(new URL("../experiments/time-reference/demo/app.js", import.meta.url), "utf8"),
   ]);

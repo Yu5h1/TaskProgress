@@ -9,7 +9,7 @@ const timeControlSource = await readFile(
   "utf8",
 );
 const timeDialogSource = await readFile(
-  new URL("../experiments/editor-svelte-spike/src/TimeDialog.svelte", import.meta.url),
+  new URL("../ui/web-workflow/assessment.mjs", import.meta.url),
   "utf8",
 );
 const appSource = await readFile(
@@ -17,15 +17,15 @@ const appSource = await readFile(
   "utf8",
 );
 const taskCardSource = await readFile(
-  new URL("../experiments/editor-svelte-spike/src/TaskCard.svelte", import.meta.url),
+  new URL("../ui/web-workflow/viewer.mjs", import.meta.url),
   "utf8",
 );
 const addControlSource = await readFile(
-  new URL("../experiments/editor-svelte-spike/src/AddControl.svelte", import.meta.url),
+  new URL("../ui/web-workflow/viewer.mjs", import.meta.url),
   "utf8",
 );
 const itemRowSource = await readFile(
-  new URL("../experiments/editor-svelte-spike/src/ItemRow.svelte", import.meta.url),
+  new URL("../ui/web-workflow/viewer.mjs", import.meta.url),
   "utf8",
 );
 const reportAdapterSource = await readFile(
@@ -33,7 +33,7 @@ const reportAdapterSource = await readFile(
   "utf8",
 );
 const manualEstimateEditorSource = await readFile(
-  new URL("../experiments/editor-svelte-spike/src/ManualEstimateEditor.svelte", import.meta.url),
+  new URL("../ui/web-workflow/assessment.mjs", import.meta.url),
   "utf8",
 );
 const timeViewerModuleSource = await readFile(
@@ -87,8 +87,8 @@ test("delivery date and capacity are edited in one place: the shared TimeDialog"
   assert.doesNotMatch(timeControlSource, /localStorage|prepareSave|setEditing|capacityEditorOpen/);
   assert.doesNotMatch(appSource, /timeController\?\.setEditing|timeController\?\.prepareSave/);
   assert.doesNotMatch(reportAdapterSource, /externalSave/);
-  assert.match(timeDialogSource, /<TimeSettingsEditor/);
-  assert.match(timeDialogSource, /<DeliveryRiskPreview preview=\{deliveryPreview\}/);
+  assert.match(timeDialogSource, /timeSettings\(p\.timeSettings, view\)/);
+  assert.match(timeDialogSource, /riskPreview\(p\.deliveryPreview\)/);
   // Only shown outside the dialog while there is truly nothing to build a
   // dialog from yet — no time.analysis.json means no TimeSummaryButton to
   // open one through.
@@ -109,22 +109,12 @@ test("production loading isolates deadline diagnostics from estimate diagnostics
   assert.match(timeManifestDiscoverySource, /期限分析已忽略/);
 });
 
-test("each production task card has one bottom child-item add control", () => {
-  // The task list is rendered through the UI adapter now, so the contract lives
-  // in the card component; the host only supplies the command.
-  const adderIndex = taskCardSource.indexOf("task-adder-section");
-  const columnsIndex = taskCardSource.indexOf("work-columns");
-  assert.ok(columnsIndex >= 0 && adderIndex > columnsIndex);
-  assert.equal(taskCardSource.split("spike-add-shell").length - 1, 1);
-  assert.match(taskCardSource, /\{#if editing\}\s*<div class="spike-add-shell">/);
-
-  // New children always land in pending_items regardless of panel order.
-  assert.match(appSource, /function addTaskItem\(taskId, draftTitle, priority\)/);
-  assert.match(appSource, /type: "add-item",\s*taskId,\s*field: "pending_items"/);
-  assert.match(appSource, /createUiView\("add-control", elements\.taskAddShell/);
-  // Creation default now comes from the policy inside the shared control.
-  assert.match(addControlSource, /policy\?\.creationDefaultValue/);
-  assert.match(appSource, /policy: PRIORITY_POLICY/);
+test("each production task card has one bottom child-item add control", async () => {
+  assert.match(taskCardSource, /p\.editing \? html`<div class="spike-add-shell"/u);
+  assert.match(appSource, /type: "add-item",\s*taskId,\s*field: "pending_items"/u);
+  assert.match(appSource, /createUiView\("add-control", elements\.taskAddShell/u);
+  assert.match(addControlSource, /creationDefaultValue/u);
+  assert.match(appSource, /policy: PRIORITY_POLICY/u);
 });
 
 test("production item time actions remain visible in global edit mode", async () => {
@@ -140,8 +130,8 @@ test("production item time actions remain visible in global edit mode", async ()
   // class is not also emitted from the shared row, which is asserted below.
   assert.equal(timeModuleDefinitionSource.split("time-item-button").length - 1, 2);
   assert.doesNotMatch(itemRowSource, /time-item-button|export let timeItem|onTimeClick\(/);
-  assert.match(itemRowSource, /<ModuleCapsuleStrip/);
-  assert.match(itemRowSource, /onModuleActivate\(id, \{ taskId, itemId: item\.id, itemTitle: item\.title \}\)/);
+  assert.match(itemRowSource, /moduleStrip\(/);
+  assert.match(itemRowSource, /p\.onModuleActivate\?\.\(id, \{ taskId: task\.id, itemId: item\.id, itemTitle: item\.title \}\)/);
   assert.match(timeModuleDefinitionSource, /查看估算依據/);
   // Opening an item's detail is the module's own business now: it holds the
   // controller, so the host neither calls showItemTime nor knows it exists.
@@ -149,8 +139,8 @@ test("production item time actions remain visible in global edit mode", async ()
   assert.doesNotMatch(appSource, /showItemTime|timeController/);
   assert.match(appSource, /activateCapsule\(state\.attachedModules, "item-inline", capsuleId, subject\)/);
   assert.doesNotMatch(appSource, /createItemTimeButton/);
-  assert.doesNotMatch(itemRowSource, /<details|spike-estimate-editor|onManualEstimate/);
-  assert.match(timeDialogSource, /<ManualEstimateEditor/);
+  assert.doesNotMatch(itemRowSource, /spike-estimate-editor|onManualEstimate/);
+  assert.match(timeDialogSource, /manualEstimate\(p, view\)/);
   assert.match(manualEstimateEditorSource, /人工工時（hr）/);
   assert.match(manualEstimateEditorSource, /人工依據/);
   assert.match(manualEstimateEditorSource, /人工確認此工時/);

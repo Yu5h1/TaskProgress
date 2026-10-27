@@ -1,77 +1,41 @@
-// One marker per manual check, in the left marker column, and nothing clickable
-// on Agent checks or derived work-item markers.
-import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
-import test from "node:test";
-
-const app = await readFile(
-  new URL("../experiments/editor-svelte-spike/src/ChecklistApp.svelte", import.meta.url),
-  "utf8",
-);
-const styles = await readFile(
-  new URL("../experiments/editor-svelte-spike/src/checklist-styles.css", import.meta.url),
-  "utf8",
-);
-const markerBox = await readFile(
-  new URL("../experiments/editor-svelte-spike/src/MarkerBox.svelte", import.meta.url),
-  "utf8",
-);
-const shared = await readFile(
-  new URL("../viewer/assets/styles.css", import.meta.url),
-  "utf8",
-);
-
-const template = app.slice(app.indexOf("</script>"));
-const checkHeading = template.slice(
-  template.indexOf("checklist-check-heading"),
-  template.indexOf("<dl>"),
-);
-
-test("the marker box is one component with three states", () => {
-  // Interactive and read-only are the same box, not two implementations.
-  assert.equal((markerBox.match(/marker-box/gu) ?? []).length > 1, true);
-  assert.match(markerBox, /export let status = "pending";/u);
-  assert.match(markerBox, /export let interactive = false;/u);
-  assert.match(markerBox, /GLYPH = \{ pending: "", passed: "✓", failed: "!" \}/u);
-  assert.match(markerBox, /\{#if interactive\}[\s\S]*<button/u);
-  assert.match(markerBox, /\{:else\}[\s\S]*<span/u);
-  assert.doesNotMatch(styles, /\.checklist-marker/u, "the checklist keeps no marker of its own");
+import assert from 'node:assert/strict';
+import test from 'node:test';
+import { loadTemplates, markup, view } from './helpers/web-ui-template.mjs';
+const { marker } = await loadTemplates('common');
+test('markers expose the supplied status with an accessible name', () => {
+  for (const status of ['pending', 'passed', 'failed']) {
+    const result = markup(marker(status, 'Check'));
+    assert.ok(result.includes(`marker-${status}`));
+    assert.match(result, /role="img"/u);
+    assert.match(result, /Check/u);
+    assert.doesNotMatch(result, /<button/u);
+  }
+});
+test('only a supplied cycle action creates an interactive marker', () => {
+  assert.equal((markup(marker('pending', 'Manual', () => {})).match(/<button/gu) ?? []).length, 1);
+  assert.doesNotMatch(markup(marker('pending', 'Agent')), /<button/u);
+});
+test('invalid recorded results remain distinguishable from a fresh result', () => {
+  assert.match(markup(marker('pending', 'Check', null, true)), /marker-stale/u);
+  assert.doesNotMatch(markup(marker('pending', 'Check')), /marker-stale/u);
 });
 
-test("a manual check has exactly one interactive marker", () => {
-  const buttons = checkHeading.match(/<button/gu) ?? [];
-  assert.equal(buttons.length, 0, "the marker is the shared component, not a local button");
-  assert.match(checkHeading, /<MarkerBox[\s\S]*interactive=\{isTagged\(check\) && !resetBusy && \(!locked \|\| check\.status !== "pending"\)\}/u);
-  assert.match(checkHeading, /onCycle=\{\(\) => cycleResult\(item\.id, check\)\}/u);
-  assert.match(app, /type: "cycle-result"/u);
-  assert.doesNotMatch(template, /checklist-result-controls/u);
-  assert.doesNotMatch(styles, /checklist-result-controls/u);
+const { Checklist } = await loadTemplates('checklist');
+function renderCheck(check, preceding = [], busy = false) {
+  const item = { id: 1, checks: [...preceding, check] };
+  const app = Object.assign(Object.create(Checklist.prototype), { data: { document: { items: [item] } }, editable: true, resetBusy: busy });
+  return markup(app.check(item, { index: 0, title: 'Check', action: '', expect: '', ...check }));
+}
+test('Checklist permits manual results only after prerequisites and blocks changes during reset', () => {
+  const manual = { isManual: true, status: 'pending' };
+  assert.match(renderCheck(manual), /marker-box-button/u);
+  assert.doesNotMatch(renderCheck(manual, [{ status: 'pending' }]), /marker-box-button/u);
+  assert.doesNotMatch(renderCheck(manual, [], true), /marker-box-button/u);
+  assert.doesNotMatch(renderCheck({ status: 'pending' }), /marker-box-button/u);
 });
-
-test("Agent checks and work-item markers stay read-only", () => {
-  // `interactive` requires a tag (and no reset in flight), so an Agent check gets the plain box.
-  assert.match(checkHeading, /interactive=\{isTagged\(check\) && !resetBusy && \(!locked \|\| check\.status !== "pending"\)\}/u);
-  const itemHeader = template.slice(
-    template.indexOf("checklist-item-header"),
-    template.indexOf("checklist-checks"),
-  );
-  assert.doesNotMatch(itemHeader, /<button|interactive/u, "a derived work-item marker is never clickable");
-  assert.match(itemHeader, /<MarkerBox status=\{item\.status\}/u);
-});
-
-test("a failure draft exposes one inline Observed field", () => {
-  const observed = template.slice(template.indexOf("{#if isTagged(check) && check.status === \"failed\"}"));
-  assert.match(observed, /class="checklist-observed"/u);
-  assert.equal((observed.match(/<textarea/gu) ?? []).length, 1);
-  assert.match(observed, /type: "set-observed"/u);
-  // The read-only Observed line steps aside for the editable field.
-  assert.match(template, /\{#if check\.observed && !\(isTagged\(check\) && check\.status === "failed"\)\}/u);
-});
-
-test("the Checklist uses the shared theme control and claims no scheme of its own", () => {
-  assert.match(app, /import ThemeControl from "\.\/ThemeControl\.svelte"/u);
-  assert.match(app, /createThemeControl/u);
-  assert.match(app, /<ThemeControl[\s\S]*onModeChange=/u);
-  assert.doesNotMatch(app, /localStorage/u, "storage stays in the shared theme adapter");
-  assert.doesNotMatch(styles, /color-scheme:/u, "the saved preference decides the scheme");
+test('failed tagged checks expose one Observed editor while agent checks remain read-only', () => {
+  for (const tag of ['isManual', 'isAcceptance']) {
+    assert.equal((renderCheck({ [tag]: true, status: 'failed' }).match(/<textarea/gu) ?? []).length, 1);
+  }
+  assert.doesNotMatch(renderCheck({ status: 'failed', observed: 'Diagnostic' }), /<textarea/u);
 });

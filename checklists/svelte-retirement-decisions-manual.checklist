@@ -6,14 +6,16 @@ Browser：TaskProgress 根目錄開啟 `Start Web UI Candidate.cmd`（8018）。
 
 支援環境沿用已選定的 Chromium／Edge ≥114、Firefox ≥125、Safari ≥17 與 Evergreen WebView2；只驗證手邊環境不能代表全部通過。缺少設備時保持未完成，另回報實際可測範圍。效能門檻已另案。
 
-- [ ] **1. Decision 目標環境與實際操作**
+- [x] **1. Decision 目標環境與實際操作**
   Outcome: 使用者確認新宿主與目前候選的必要操作相容。
   Checks:
-    - [ ] **Decision Browser 相容性** `[manual]`
+    - [x] **Decision Browser 相容性** `[manual]`
       - Action: 在約定目標 Browser 開啟 [Decision 測試副本](http://127.0.0.1:8018/demo/taskprogress/decisions/?scope=web-ui-pilot-test&task=pilot) → 改選答案、輸入其他理由、復原／重做 → 核對鍵盤、主題及重載。
       - Expect: 各必要 Browser 的選取、中文組字、保存、歷史與焦點符合基準；缺少的目標環境保持未完成，適用的既有試點結果可引用。
       - Reason: 需要使用者的目標環境、實體輸入法及輔助工具，合成事件與本機回歸不能代替。
-    - [ ] **Decision Desktop 操作與重開** `[manual]`
+      - Recorded: user; at=2026-10-27T08:47:03Z; fp=488188cb3d9f
+    - [x] **Decision Desktop 操作與重開** `[manual]`
       - Action: 在 TaskProgress 根目錄開啟 `Start Web UI Decision Candidate.cmd` → 選擇其他並輸入中文理由 → 改選答案及復原／重做 → 關閉後用同一入口重開。
       - Expect: Web UI Desktop 候選保存及重開後答案正確；主題、中文輸入、鍵盤／輔助工具正常，修改限於 desktop-data 測試副本。
       - Reason: 需要使用者的目標環境、實體輸入法及輔助工具，合成事件與本機回歸不能代替。
+      - Recorded: user; at=2026-10-27T08:38:09Z; fp=61afae47d085

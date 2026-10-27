@@ -9,32 +9,27 @@ import { createChecklistEditorSession } from "../viewer/assets/checklist-editor.
 import { createChecklistBridgeTransport } from "../viewer/assets/checklist-bridge.js";
 
 const read = (path) =>
-  readFile(new URL(`../experiments/editor-svelte-spike/src/${path}`, import.meta.url), "utf8");
+  readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
-const app = await read("ChecklistApp.svelte");
-const entry = await read("checklist-main.js");
+const app = await read("ui/web-workflow/checklist.mjs");
+const entry = await read("viewer/assets/document-transport.js");
 
-test("the screen resolves no global WebView object", () => {
-  assert.match(app, /export let transport = null;/u);
-  assert.match(app, /await transport\.load\(\)/u);
-  assert.match(app, /save: transport\.save/u);
-  // Code only: the comment naming the seam may say "WebView", the code may not
-  // reach for one.
-  const code = app.replace(/\/\*[\s\S]*?\*\//gu, "").replace(/\/\/.*$/gmu, "");
-  assert.doesNotMatch(code, /chrome|webview|createChecklistBridgeTransport/iu);
+test("the screen resolves no global WebView object", async () => {
+  assert.match(app, /this\.transport=options\.transport \?\? transport/u);
+  assert.match(app, /await this\.transport\.load\(\)/u);
+  assert.match(app, /await this\.transport\.save\(payload\)/u);
+  assert.doesNotMatch(app, /chrome|webview|createChecklistBridgeTransport/iu);
 });
 
-test("the desktop entry is the one place that knows about WebView2", () => {
-  assert.match(entry, /import \{ createChecklistBridgeTransport \}/u);
-  assert.match(entry, /props: \{ transport: resolveTransport\(\) \}/u);
+test("the transport boundary chooses desktop or browser without a second screen", async () => {
+  assert.match(entry, /createChecklistBridgeTransport/u);
+  assert.match(entry, /createChecklistHttpTransport/u);
+  assert.match(app, /createDocumentTransport\('checklist', \{ params \}\)/u);
 });
 
 test("assets opened outside WebView2 still report the reason", async () => {
-  // Resolving the bridge throws there, and the screen's load-failure path is
-  // what tells the reader why; a transport that rejects keeps that behaviour.
-  assert.match(entry, /catch \(error\)/u);
-  assert.match(entry, /const reject = \(\) => Promise\.reject\(error\)/u);
-
+  assert.match(app, /catch \(error\)/u);
+  assert.match(app, /load: \(\) => Promise\.reject\(error\)/u);
   assert.throws(() => createChecklistBridgeTransport(undefined), /Desktop Host/u);
 });
 

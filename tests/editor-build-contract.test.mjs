@@ -18,15 +18,7 @@ test("standalone Editor is retired while every committed UI bundle is guarded", 
   for (const path of [
     "../BuildEditor.cmd",
     "../scripts/verify-editor-build.mjs",
-    "../experiments/editor-svelte-spike/editor.html",
-    "../experiments/editor-svelte-spike/index.html",
-    "../experiments/editor-svelte-spike/vite.config.js",
-    "../experiments/editor-svelte-spike/src/App.svelte",
-    "../experiments/editor-svelte-spike/src/data-loader.js",
-    "../experiments/editor-svelte-spike/src/fixture.js",
-    "../experiments/editor-svelte-spike/src/main.js",
-    "../experiments/editor-svelte-spike/src/styles.css",
-    "../experiments/editor-svelte-spike/src/viewer-main.js",
+    "../experiments/editor-svelte-spike",
   ]) {
     await assert.rejects(access(new URL(path, import.meta.url)));
   }
@@ -39,13 +31,10 @@ test("standalone Editor is retired while every committed UI bundle is guarded", 
   assert.doesNotMatch(workflowText, /BuildEditor|editor:svelte:build/u);
   // Committed bundles are build products, so the dispatch must be gated on
   // rebuilding every host surface and finding no difference.
-  assert.match(workflowText, /npm run viewer:ui:build/u);
-  assert.match(workflowText, /npm run checklist:ui:build/u);
-  assert.match(workflowText, /npm run checklist:browser:build/u);
+  assert.match(workflowText, /npm run ui:build/u);
   assert.match(workflowText, /git diff --quiet -- "\$\{bundles\[@\]\}"/u);
-  assert.match(workflowText, /src\/TaskProgress\.Cli\/checklist-ui\/checklist-ui\.js/u);
-  assert.match(workflowText, /src\/TaskProgress\.Cli\/checklist-ui\/checklist-ui\.css/u);
-  assert.match(workflowText, /viewer\/checklist\/checklist-ui\.js/u);
-  assert.match(workflowText, /viewer\/checklist\/checklist-ui\.css/u);
+  assert.match(workflowText, /bundles=\(viewer src\/TaskProgress\.Cli\/checklist-ui src\/TaskProgress\.Cli\/decisions-ui\)/u);
+  assert.equal(packageJson.devDependencies.svelte, undefined);
+  assert.equal(packageJson.devDependencies['@sveltejs/vite-plugin-svelte'], undefined);
   assert.match(workflowText, /needs: verify-bundle/u);
 });

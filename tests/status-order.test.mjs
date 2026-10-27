@@ -124,19 +124,6 @@ test("status order storage is isolated and safely falls back when unavailable", 
   assert.equal(saveStatusOrder(unavailable, STATUSES), false);
 });
 
-const taskCard = await readFile(
-  new URL("../experiments/editor-svelte-spike/src/TaskCard.svelte", import.meta.url),
-  "utf8",
-);
-const filterStrip = await readFile(
-  new URL("../experiments/editor-svelte-spike/src/FilterStrip.svelte", import.meta.url),
-  "utf8",
-);
-const horizontalCapsules = await readFile(
-  new URL("../experiments/editor-svelte-spike/src/HorizontalCapsuleStrip.svelte", import.meta.url),
-  "utf8",
-);
-
 test("status and module order use the same capsule-order behavior", () => {
   const storage = createStorage();
   const modules = ["time", "cost", "quality"];
@@ -146,40 +133,17 @@ test("status and module order use the same capsule-order behavior", () => {
   assert.deepEqual(loadModuleOrder(storage, modules), ["cost", "time", "quality"]);
 });
 
-test("production Viewer exposes mouse, touch, and keyboard status ordering", async () => {
-  const [app, css] = await Promise.all([
-    readFile(path.join(ROOT, "viewer/assets/app.js"), "utf8"),
-    readFile(path.join(ROOT, "viewer/assets/styles.css"), "utf8"),
+test("production Viewer delegates status gestures to the shared reorder action", async () => {
+  const [app, common, viewer] = await Promise.all([
+    readFile(path.join(ROOT, 'viewer/assets/app.js'), 'utf8'),
+    readFile(path.join(ROOT, 'ui/web-workflow/common.mjs'), 'utf8'),
+    readFile(path.join(ROOT, 'ui/web-workflow/viewer.mjs'), 'utf8'),
   ]);
-  // Ordering interaction moved into the filter component; the host keeps
-  // persistence and re-render. Mouse drag, touch drag and keyboard must all
-  // survive the move. The path is now StatusFilters → FilterStrip →
-  // HorizontalCapsuleStrip, and ordering only happens because this screen opts
-  // in — the shared strip is selection-only by default.
-  assert.match(filterStrip, /HorizontalCapsuleStrip/);
-  assert.match(app, /reorderable: true,/);
-  assert.match(horizontalCapsules, /ondragstart=/);
-  assert.match(horizontalCapsules, /onpointerdown=/);
-  assert.match(horizontalCapsules, /Alt\+ArrowLeft Alt\+ArrowRight/);
-  assert.match(horizontalCapsules, /Math\.hypot\(deltaX, deltaY\) < 8/);
-  assert.match(horizontalCapsules, /Math\.abs\(deltaY\) > Math\.abs\(deltaX\)/);
-  assert.match(horizontalCapsules, /capsule-drop-after/);
-  assert.match(horizontalCapsules, /capsule-drop-before/);
-  assert.match(horizontalCapsules, /capsule-dragging/);
-  assert.match(app, /applyStatusOrder\(id, targetId, placeAfter\)/);
-  assert.match(app, /saveStatusOrder\(statusOrderStorage, state\.statusOrder\)/);
-  assert.match(app, /orderByCapsuleBoundary\(/);
-  assert.match(app, /stableSortTasksByPriority,/);
-  assert.match(app, /taskMatchesSelection\(task, selected\)/);
-  // Panel titles and their ordering moved into the card component; the host
-  // still supplies the reader's status order.
-  assert.match(app, /statusOrder: state\.statusOrder/);
-  assert.match(taskCard, /title: "待處理"/);
-  assert.match(taskCard, /statusOrder\.indexOf/);
-  assert.match(css, /\.filter-button\.status-sortable/);
-  assert.match(css, /touch-action: pan-y/);
-  assert.match(css, /content: "待處理"/);
-  // The drag hint lives on each status capsule now, not on the HTML container.
-  assert.match(app, /ariaLabel: `\$\{label\} \$\{count\}，排序第 \$\{index\}；可拖曳調整`/);
-  assert.match(app, /ariaLabel: "工作狀態篩選與排序"/);
+  assert.match(common, /bindReorder/u);
+  assert.match(common, /capsuleStrip\(/u);
+  assert.match(app, /reorderable: true,/u);
+  assert.match(app, /saveStatusOrder\(statusOrderStorage, state\.statusOrder\)/u);
+  assert.match(app, /orderByCapsuleBoundary\(/u);
+  assert.match(app, /statusOrder: state\.statusOrder/u);
+  assert.match(viewer, /p\.statusOrder\?\.indexOf/u);
 });

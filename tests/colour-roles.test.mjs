@@ -13,7 +13,7 @@ import test from "node:test";
 
 const styles = await readFile(new URL("../viewer/assets/styles.css", import.meta.url), "utf8");
 const checklistStyles = await readFile(
-  new URL("../experiments/editor-svelte-spike/src/checklist-styles.css", import.meta.url),
+  new URL("../ui/web-workflow/component-styles.css", import.meta.url),
   "utf8",
 );
 

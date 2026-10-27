@@ -22,28 +22,25 @@ function fakeStorage(initial = {}) {
 }
 
 const app = await readFile(
-  new URL("../experiments/editor-svelte-spike/src/ChecklistApp.svelte", import.meta.url),
+  new URL("../ui/web-workflow/checklist.mjs", import.meta.url),
   "utf8",
 );
 const strip = await readFile(
-  new URL("../experiments/editor-svelte-spike/src/FilterStrip.svelte", import.meta.url),
+  new URL("../ui/web-workflow/common.mjs", import.meta.url),
   "utf8",
 );
 
-test("one strip, and 預設 rides in the same order array", () => {
-  assert.equal((app.match(/<FilterStrip/gu) ?? []).length, 1, "one row");
-  assert.match(app, /reorderable=\{true\}/u);
-  assert.match(app, /supportedIds: \[DEFAULT_CAPSULE_ID, \.\.\.FILTER_TAGS\]/u);
-  assert.doesNotMatch(app, /checklist-filters/u, "no stacked wrapper");
+test("one strip, and 預設 rides in the same order array", async () => {
+  assert.equal((app.match(/filters\(\{/gu) ?? []).length, 1);
+  assert.match(app, /reorderable: true/u);
+  assert.match(app, /supportedIds: \[DEFAULT_CAPSULE_ID, \.\.\.TAGS\]/u);
 });
 
-test("selecting and ordering are separate gestures", () => {
-  // Clicking changes the selected set; dragging changes the capsule order.
-  assert.match(app, /onSelect=\{selectTag\}/u);
-  assert.match(app, /onSelectDefault=\{selectDefault\}/u);
-  assert.match(app, /onReorder=\{reorderFilter\}/u);
-  assert.match(strip, /export let selected = new Set\(\);/u);
-  assert.match(strip, /export let defaultLit = false;/u);
+test("selecting and ordering are separate gestures", async () => {
+  assert.match(app, /onSelect: id => this\.select\(toggleTag/u);
+  assert.match(app, /onSelectDefault: \(\) => this\.select\(toggleDefault/u);
+  assert.match(app, /onReorder: \(id, target, after\)/u);
+  assert.match(strip, /pressed: p\.selected\?\.has\(id\)/u);
 });
 
 test("capsule order persists in the user profile under its own key", () => {
@@ -91,7 +88,7 @@ test("capsule order is what reorders the cards", () => {
   const source = "" + createChecklistFilterOrder.toString();
   assert.doesNotMatch(source, /items|checks/u);
   // The screen applies it explicitly, and 預設 in first place means as written.
-  assert.match(app, /orderChecklistItems\(view\.document, capsuleOrder\)/u);
+  assert.match(app, /orderChecklistItems\(doc, this\.order\)/u);
 });
 
 test("storage stays out of the screen", () => {

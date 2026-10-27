@@ -4,27 +4,35 @@ Current round: `Documentation/WebUiReplacementPlan.md#必要退役條件2026-10-
 
 接續 svelte-retirement-entries.checklist。試點通過、計畫修訂或效能改善都不等於正式退役；本清單未完成前不宣告 Svelte 已移除。
 
-- [ ] **1. 發布候選與回退**
+2026-10-27 發布證據：使用者已完成三頁 6/6 正式人工驗收，全入口 checklist 4/4 有效通過。原版 `ca05a3f` 的 viewer 與 win-x64 已保存於 `bin/Migration/SvelteRetirement/rollback-ca05a3f/`；隔離 fixture 經新版 EXE/API 保存、舊版 EXE/API 重開、再回新版重開，三階段檔案 SHA-256 均為 `aa5750009e561d484cc875a8fb78e5219c96b870bec994e8119173284d206610`（`rollback-verification.json`）。此演練切換測試宿主與 EXE，不回退正式資料。
+
+鎖定依賴以 `npm ci --ignore-scripts` 乾淨還原，Svelte/plugin 已從 manifest/lock 移除；55 個舊實驗來源與設定退役。CSS 從已驗收候選原樣移交為產品 CSS。173 項既有測試遷移後通過，9 項建置／相依圖／transport 定向檢查、5 項發布 EXE 保存／衝突／隔離、9 項真實瀏覽器回歸通過。比較版只存在忽略的回退產物，正式建置不讀取它。Pages 的 index+assets 複製規則由獨立審查核對，正式 Viewer 的 67 個傳遞資產全在 assets 內。
+
+正式產物 `5cc55cfad8e5a2b2cb6bd0e9425a5efba88ff83ced37389d05b5ee2fd31a16cd` 由 `Publish.cmd --nopause --restart` 交付；Browser 與兩個 Desktop 根目錄共用同源 Web UI Workflow。原 scope 註冊未變；正常 start 同步後，catalog 14 個 scopes，14 個報告路由皆 200。正式 WebView2 的 Checklist 載入已保存 1/1 fixture；Decision 載入 0 待決／1 已答 fixture。這些是測試副本，不代替使用者人工驗收。Web 的 production-replacement／svelte-retirement 子項仍指向本消費端的全入口與發布清單，兩庫沒有各自宣告不同的 M2。
+
+- [x] **1. 發布候選與回退**
   Outcome: 正式交付可獨立建置，切換失敗可恢復原版且保留資料。
   Checks:
-    - [ ] **交付與回退核對**
+    - [x] **交付與回退核對**
       - Action: 核對全入口清單有效完成；固定原版 revision／可恢復產物，在隔離環境演練新舊版切換及已保存資料重開，確認候選的 Content／Pages／Desktop 資產清單。
       - Expect: 不依賴 Web sibling、開發服務或 CDN；回退不覆寫使用者資料，版本與操作可重現。正式切換按既有發布流程執行，保留回退證據。
 
-- [ ] **2. 移除 Svelte 並完成正式接管**
+- [x] **2. 移除 Svelte 並完成正式接管**
   Depends on: 1.
   Outcome: 正式來源與交付不再依賴 Svelte。
   Checks:
-    - [ ] **來源、建置與正式載入**
+    - [x] **來源、建置與正式載入**
       - Action: 將產品 CSS 的最終來源移出 .svelte；移除已無 caller 的 Svelte 元件、wrapper、plugin、依賴與專屬設定。使用鎖定依賴乾淨重建所有入口，按發布流程切換並核對正式載入及保存／重載。
       - Expect: 建置及正式執行相依圖無 Svelte 編譯／runtime／舊 bundle；所有正式入口用 Web UI Workflow，資料安全與功能回歸通過。保留其他仍使用的工具及可還原的舊版紀錄，不回退資料。
 
-- [ ] **3. 退役結案核查**
+- [x] **3. 退役結案核查**
   Outcome: 功能、正式交付與回退證據足以宣告退役。
   Checks:
-    - [ ] **驗收條件未被改動** `[acceptance]`
+    - [x] **驗收條件未被改動** `[acceptance]`
       - Action: 依 Documentation/WebUiReplacementPlan.md#必要退役條件2026-10-27-條件修訂 核對 git 中本清單自建立或最新「條件修訂」commit 後的 acceptance 條件。
       - Expect: acceptance 文字未被實作者改動；若需修訂，先提交條件修訂再重新核對，不沿用舊結論。
-    - [ ] **核對 M2** `[acceptance]`
+      - Recorded: codex:01a0d3c0-178f-7463-a65b-21c8bbe2676f/root/retirement_release_review; at=2026-10-27T09:22:02Z; fp=c3a8cf725d7b
+    - [x] **核對 M2** `[acceptance]`
       - Action: 依 Documentation/WebUiReplacementPlan.md#必要退役條件2026-10-27-條件修訂，由獨立驗收者核對五類必要條件、實際發布版本、依賴與入口盤點、保存回歸及回退紀錄；確認兩庫任務卡引用同一消費端結論。
       - Expect: M2 的必要條件全部通過，沒有仍需 Svelte 的產品路徑或未處理的必要操作缺陷。效能卡即使未完成也可退役；缺少本清單的證據仍不能結案。
+      - Recorded: codex:01a0d3c0-178f-7463-a65b-21c8bbe2676f/root/retirement_release_review; at=2026-10-27T09:22:13Z; fp=544b49167e31

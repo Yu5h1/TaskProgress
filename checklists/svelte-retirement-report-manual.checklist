@@ -6,14 +6,16 @@ Browser：TaskProgress 根目錄開啟 `Start Web UI Candidate.cmd`（8018）。
 
 支援環境沿用已選定的 Chromium／Edge ≥114、Firefox ≥125、Safari ≥17 與 Evergreen WebView2；只驗證手邊環境不能代表全部通過。缺少設備時保持未完成，另回報實際可測範圍。效能門檻已另案。
 
-- [ ] **1. Report Viewer 目標環境與實際操作**
+- [x] **1. Report Viewer 目標環境與實際操作**
   Outcome: 使用者確認新宿主與目前候選的必要操作相容。
   Checks:
-    - [ ] **Viewer 目標環境與排版** `[manual]`
+    - [x] **Viewer 目標環境與排版** `[manual]`
       - Action: 在約定的目標 Browser 開啟 [Viewer 候選](http://127.0.0.1:8018/demo/taskprogress/?scope=task-progress) → 核對與已驗收試點不同的卡片選單、窄版、捲動後離屏內容及鍵盤排序。
       - Expect: 在已選定的 Browser 支援範圍內，功能、焦點與內容完整；適用的原試點結果可引用。沒有測到的必要環境保持未完成，不用效能數值作為通過條件。
       - Reason: 需要使用者的目標環境、實體輸入法及輔助工具，合成事件與本機回歸不能代替。
-    - [ ] **Viewer 實際輸入與輔助操作** `[manual]`
+      - Recorded: user; at=2026-10-27T08:37:34Z; fp=811a37435f1f
+    - [x] **Viewer 實際輸入與輔助操作** `[manual]`
       - Action: 在同一 Viewer 候選使用你的中文輸入法、鍵盤與慣用輔助工具 → 開啟編輯／Dialog → 輸入、取消或保存到候選資料 → 切換主題並重載。
       - Expect: 輸入、焦點、主題與朗讀符合既有需求，沒有遺失草稿或無法完成操作；不需要重做未變更且仍適用的舊版試點驗收。
       - Reason: 需要使用者的目標環境、實體輸入法及輔助工具，合成事件與本機回歸不能代替。
+      - Recorded: user; at=2026-10-27T08:37:38Z; fp=87c59c41c085

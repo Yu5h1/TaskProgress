@@ -32,45 +32,27 @@ export async function verifyVendor(folder = vendor) {
   return manifest;
 }
 
-// Until the old renderer retires, its component-local styles remain the owner.
-// Preserve the scopes from the accepted replica, including naked button/SVG rules.
-async function componentStyles(paths) {
-  let styles = await readFile(resolve(root, 'experiments/editor-svelte-spike/src/checklist-styles.css'), 'utf8');
-  for (const path of paths.filter(p => p.endsWith('.svelte'))) {
-    const name = path.split(/[\\/]/).at(-1).replace('.svelte', '');
-    for (const match of (await readFile(path, 'utf8')).matchAll(/<style[^>]*>([\s\S]*?)<\/style>/g)) {
-      let css = match[1].replace(/:global\(([^)]+)\)/g, '$1');
-      if (name === 'DecisionApp') {
-        css = css.replace(/(^|})(\s*)button\s*\{/g, '$1$2button[data-decision-control] {');
-        css = css.replace(/(^|})(\s*)([^{}]+)\{/g, (_, end, space, selectors) => end + space + selectors.split(',').map(s => s.trim().startsWith('.decisions-shell') || s.trim() === 'button[data-decision-control]' ? s.trim() : '.decisions-shell ' + s.trim()).join(', ') + '{');
-      } else if (name === 'HistoryTools') css = css.replace(/(^|})(\s*)([^{}]+)\{/g, (_, end, space, selectors) => end + space + selectors.split(',').flatMap(s => s.trim().startsWith('.history-') ? [s.trim()] : ['.history-capsule ' + s.trim(), '.history-panel ' + s.trim()]).join(', ') + '{');
-      if (name !== 'DialogShell') styles += `\n/* ${name}: product component styles */\n${css}\n`;
-    }
-  }
-  return styles;
-}
-
-export async function buildCandidate() {
+export async function buildCandidate({ production = false } = {}) {
   const publicDelivery = await verifyVendor();
-  const host = await files(resolve(root, 'viewer'));
-  const components = await files(resolve(root, 'experiments/editor-svelte-spike/src'));
-  const inputs = [...await files(source), ...host, ...components.filter(p => p.endsWith('.svelte') || p.endsWith('checklist-styles.css')), resolve(root, 'package-lock.json'), fileURLToPath(import.meta.url)];
+  const host = (await files(resolve(root, 'viewer/assets'))).filter(p => {
+    const name = relative(resolve(root, 'viewer/assets'), p).replaceAll('\\', '/');
+    return !name.startsWith('web/') && !['viewer-ui.js', 'viewer-ui.css', 'theme-start.js', 'component-styles.css', 'product.css'].includes(name);
+  });
+  const inputs = [...await files(source), ...host, resolve(root, 'package-lock.json'), fileURLToPath(import.meta.url)];
   const sourceHashes = {};
   for (const path of inputs) sourceHashes[relative(root, path).replaceAll('\\', '/')] = sha(await readFile(path));
-  const identity = sha(json({ sourceHashes, publicDelivery }));
+  const identity = sha(json({ sourceHashes, publicDelivery, production }));
   const site = resolve(migration, 'candidates', identity, 'site');
   const output = resolve(site, 'demo/taskprogress');
   const put = async (name, bytes) => { const target = resolve(site, name); await mkdir(dirname(target), { recursive: true }); await writeFile(target, bytes); };
-  // Copy the current product host and a visibly separate old renderer for rollback comparison.
+  // Product controllers remain shared by Browser and Desktop. Historical Svelte
+  // comparison artifacts stay in the pinned rollback, never in a new delivery.
   for (const path of host) {
     const name = relative(resolve(root, 'viewer'), path).replaceAll('\\', '/');
     await put('demo/taskprogress/' + name, await readFile(path));
-    const bytes = await readFile(path);
-    await put('demo/taskprogress/reference/' + name, ['index.html', 'checklist/index.html', 'decisions/index.html'].includes(name)
-      ? bytes.toString('utf8').replace('<body>', '<body><aside>原版比較（Svelte）· 候選測試資料副本</aside>') : bytes);
   }
   for (const name of Object.keys(publicDelivery.files)) await put(name, await readFile(resolve(vendor, name)));
-  await put('demo/taskprogress/component-styles.css', await componentStyles(components));
+  await put('demo/taskprogress/component-styles.css', await readFile(resolve(source, 'component-styles.css')));
   await put('demo/taskprogress/product.css', await readFile(resolve(source, 'product.css')));
   await put('demo/taskprogress/assets/theme-control.js', await readFile(resolve(source, 'theme-control.mjs')));
   const entries = { 'demo.js': 'viewer-entry.mjs', 'checklist/checklist-ui.js': 'checklist.mjs', 'decisions/decisions-ui.js': 'decisions.mjs', 'theme-start.js': 'theme-start.js' };
@@ -98,11 +80,11 @@ export async function buildCandidate() {
   for (const [file, entry] of Object.entries(entries)) await compile(file, entry, resolve(output, file), '../'.repeat(file.split('/').length + 1), file.includes('/') ? '../assets/' : './assets/');
   for (const page of ['', 'checklist/', 'decisions/']) {
     const depth = page ? '../../../' : '../../', local = page ? '../' : './';
-    let html = await readFile(resolve(root, 'viewer', page, 'index.html'), 'utf8');
+    let html = await readFile(resolve(source, 'shells', (page ? page.slice(0, -1) : 'viewer') + '.html'), 'utf8');
     html = html.replace(/\s*<script[^>]+src="(?:assets\/(?:theme-bootstrap|viewer-ui|app)\.js|\.\/(?:checklist|decisions)-ui\.js)"[^>]*><\/script>/g, '');
     html = html.replace(/\s*<link[^>]+href="\.\/(?:checklist|decisions)-ui\.css"[^>]*>/g, '');
     html = html.replace('</head>', `<link rel="stylesheet" href="${depth}theme/theme.css">\n<link rel="stylesheet" href="${local}assets/styles.css">\n<link rel="stylesheet" href="${local}component-styles.css">\n<link rel="stylesheet" href="${local}product.css">\n<script src="${depth}theme/bootstrap.js"></script>\n<script src="${local}theme-start.js"></script>\n<script type="module" src="${page ? './' + page.slice(0, -1) + '-ui.js' : './demo.js'}"></script>\n</head>`);
-    html = html.replace('<body>', '<body><aside class="replica-notice" aria-label="TaskProgress 來源建置候選">TaskProgress 來源建置候選 · 獨立測試資料 · <a href="http://127.0.0.1:8001/?scope=task-progress">正式 Svelte 版</a></aside>');
+    if (!production) html = html.replace('<body>', '<body><aside class="replica-notice" aria-label="TaskProgress 來源建置候選">TaskProgress 來源建置候選 · 獨立測試資料 · <a href="http://127.0.0.1:8001/?scope=task-progress">正式版</a></aside>');
     await put('demo/taskprogress/' + page + 'index.html', html);
   }
   // Stage the exact production layout separately; activation belongs to release acceptance.
@@ -112,12 +94,20 @@ export async function buildCandidate() {
     if (name.startsWith('reference/') || /^(assets\/viewer-ui\.|(?:checklist|decisions)\/.*-ui\.css)/.test(name)) continue;
     let bytes = await readFile(path);
     if (['index.html', 'checklist/index.html', 'decisions/index.html'].includes(name)) {
-      bytes = bytes.toString('utf8').replace(/(?:\.\.\/){2,3}theme\//g, (name.includes('/') ? '../' : './') + 'web/theme/');
+      const local = name.includes('/') ? '../' : './';
+      bytes = bytes.toString('utf8').replace(/(?:\.\.\/){2,3}theme\//g, local + 'assets/web/theme/')
+        .replace(/((?:\.\/|\.\.\/))(component-styles\.css|product\.css|theme-start\.js)/g, '$1assets/$2')
+        .replace('./demo.js', './assets/viewer-ui.js');
     }
-    await put(release + name, bytes);
+    const target = name === 'demo.js' ? 'assets/viewer-ui.js' : ['theme-start.js', 'component-styles.css', 'product.css'].includes(name) ? 'assets/' + name : name;
+    await put(release + target, bytes);
   }
-  for (const name of Object.keys(publicDelivery.files)) await put(release + 'web/' + name, await readFile(resolve(vendor, name)));
-  for (const [file, entry] of Object.entries(entries)) await compile(release + file, entry, resolve(site, release, file), (file.includes('/') ? '../' : './') + 'web/', file.includes('/') ? '../assets/' : './assets/');
+  for (const name of Object.keys(publicDelivery.files)) await put(release + 'assets/web/' + name, await readFile(resolve(vendor, name)));
+  for (const [file, entry] of Object.entries(entries)) {
+    const child = file.includes('/');
+    const target = child ? file : 'assets/' + (file === 'demo.js' ? 'viewer-ui.js' : file);
+    await compile(release + target, entry, resolve(site, release, target), child ? '../assets/web/' : './web/', child ? '../assets/' : './');
+  }
 
   // Each existing WebView2 virtual host gets a self-contained asset root. Both
   // hosts compile the same screens and reuse the existing exact-file bridges.
@@ -131,20 +121,20 @@ export async function buildCandidate() {
     for (const name of ['component-styles.css', 'product.css']) await put(prefix + name, await readFile(resolve(output, name)));
     await compile(prefix + kind + '-ui.js', kind + '.mjs', resolve(site, prefix, kind + '-ui.js'), './', './assets/');
     await compile(prefix + 'theme-start.js', 'theme-start.js', resolve(site, prefix, 'theme-start.js'), './', './assets/');
-    let html = await readFile(resolve(root, 'viewer', kind, 'index.html'), 'utf8');
-    html = html.replace(/<link[^>]+href="\.\/(?:checklist|decisions)-ui\.css"[^>]*>/g, '');
+    let html = await readFile(resolve(source, 'shells', kind + '.html'), 'utf8');
+    html = html.replace(/\s*<link[^>]+href="\.\/(?:checklist|decisions)-ui\.css"[^>]*>/g, '');
     html = html.replace('</head>', '<link rel="stylesheet" href="./theme/theme.css"><link rel="stylesheet" href="./assets/styles.css"><link rel="stylesheet" href="./component-styles.css"><link rel="stylesheet" href="./product.css"><script src="./theme/bootstrap.js"></script><script src="./theme-start.js"></script></head>');
-    html = html.replace('<body>', '<body><aside class="replica-notice">TaskProgress Web UI Desktop 候選 · 請使用測試副本</aside>');
+    if (!production) html = html.replace('<body>', '<body><aside class="replica-notice">TaskProgress Web UI Desktop 候選 · 請使用測試副本</aside>');
     await put(prefix + 'index.html', html);
   }
   // No implicit report. The source host's root route may show its scope directory.
-  await put('index.html', '<!doctype html><html lang="zh-Hant"><meta charset="utf-8"><title>TaskProgress UI 候選</title><h1>TaskProgress Web UI Workflow 候選</h1><p>產品來源建置；原 Svelte 正式版保留。</p><a href="/demo/taskprogress/">開啟 Viewer／Scope 入口</a></html>');
+  await put('index.html', '<!doctype html><html lang="zh-Hant"><meta charset="utf-8"><title>TaskProgress UI 候選</title><h1>TaskProgress Web UI Workflow 候選</h1><p>獨立測試資料。</p><a href="/demo/taskprogress/">開啟 Viewer／Scope 入口</a></html>');
   const assets = {};
   for (const path of await files(site)) assets[relative(site, path).replaceAll('\\', '/')] = sha(await readFile(path));
   const result = { version: 1, identity, publicDelivery, sourceHashes, entries: graphs, files: assets };
   await mkdir(migration, { recursive: true });
   await writeFile(resolve(site, '../manifest.json'), json(result));
-  await writeFile(resolve(migration, 'candidate.json'), json({ version: 1, identity }));
+  if (!production) await writeFile(resolve(migration, 'candidate.json'), json({ version: 1, identity }));
   console.log('TaskProgress candidate: ' + site);
   return { site, manifest: result };
 }

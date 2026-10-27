@@ -32,7 +32,7 @@ test('public Web payload drift is rejected before building product source', asyn
   await assert.rejects(verifyVendor(temp), /delivery drift/);
 });
 test('candidate entry graphs use only local assets and one host registry, without Svelte', async () => {
-  for (const entry of ['demo/taskprogress/demo.js', 'demo/taskprogress/checklist/checklist-ui.js', 'demo/taskprogress/decisions/decisions-ui.js', 'desktop/checklist-ui/checklist-ui.js', 'desktop/decisions-ui/decisions-ui.js', 'release/viewer/demo.js', 'release/viewer/checklist/checklist-ui.js', 'release/viewer/decisions/decisions-ui.js']) {
+  for (const entry of ['demo/taskprogress/demo.js', 'demo/taskprogress/checklist/checklist-ui.js', 'demo/taskprogress/decisions/decisions-ui.js', 'desktop/checklist-ui/checklist-ui.js', 'desktop/decisions-ui/decisions-ui.js', 'release/viewer/assets/viewer-ui.js', 'release/viewer/checklist/checklist-ui.js', 'release/viewer/decisions/decisions-ui.js']) {
     let modules;
     await build({ configFile: false, root: site, logLevel: 'error',
       plugins: [{ name: 'inspect-runtime-graph', generateBundle(_, bundle) {
@@ -59,7 +59,7 @@ test('all five candidate shells keep local scripts, styles and WebView assets in
       assert.ok(!relative(hostRoot, path).startsWith('..'), `${prefix} escapes virtual host: ${match[1]}`);
       assert.ok((await readFile(path)).length, `missing ${path}`);
     }
-    assert.doesNotMatch(html, /assets\/viewer-ui\.js/);
+    if (!prefix.startsWith('release/')) assert.doesNotMatch(html, /assets\/viewer-ui\.js/);
     assert.match(html, /theme-start\.js/);
   }
 });

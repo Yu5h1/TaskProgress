@@ -506,7 +506,7 @@ test("time input draft versions direct human estimates and keeps the rationale",
   assert.match(rejected.error, /至少 1 分鐘/u);
 });
 
-test("Svelte edit-host client sends the dual-revision multi-file contract", async () => {
+test("Shared edit-host client sends the dual-revision multi-file contract", async () => {
   const calls = [];
   const firstSession = {
     token: "first-token",
@@ -585,142 +585,35 @@ test("Svelte edit-host client sends the dual-revision multi-file contract", asyn
   assert.equal(calls.at(-1).options.headers.Authorization, "Bearer next-token");
 });
 
-test("formal Viewer sources use shared Svelte components and the shared core", async () => {
-  const [packageText, cardText, rowText, addControlText, dialogText, manualEstimateText, adapterText, viewerAdapterText, clientText, timeDraftText, timeSettingsText, previewText, confirmationText, viewerStylesText, timeEditingText, presentationText] = await Promise.all([
-    readFile(new URL("../package.json", import.meta.url), "utf8"),
-    readFile(new URL("../experiments/editor-svelte-spike/src/TaskCard.svelte", import.meta.url), "utf8"),
-    readFile(new URL("../experiments/editor-svelte-spike/src/ItemRow.svelte", import.meta.url), "utf8"),
-    readFile(new URL("../experiments/editor-svelte-spike/src/AddControl.svelte", import.meta.url), "utf8"),
-    readFile(new URL("../experiments/editor-svelte-spike/src/TimeDialog.svelte", import.meta.url), "utf8"),
-    readFile(new URL("../experiments/editor-svelte-spike/src/ManualEstimateEditor.svelte", import.meta.url), "utf8"),
-    readFile(new URL("../viewer/assets/report-editor-adapter.js", import.meta.url), "utf8"),
-    readFile(new URL("../experiments/editor-svelte-spike/src/viewer-adapter.svelte.js", import.meta.url), "utf8"),
-    readFile(new URL("../viewer/assets/edit-host-client.js", import.meta.url), "utf8"),
-    readFile(new URL("../viewer/assets/time-input-draft.js", import.meta.url), "utf8"),
-    readFile(new URL("../experiments/editor-svelte-spike/src/TimeSettingsEditor.svelte", import.meta.url), "utf8"),
-    readFile(new URL("../viewer/assets/delivery-risk-preview.js", import.meta.url), "utf8"),
-    readFile(new URL("../experiments/editor-svelte-spike/src/DeliverySaveConfirmation.svelte", import.meta.url), "utf8"),
-    readFile(new URL("../viewer/assets/styles.css", import.meta.url), "utf8"),
-    readFile(new URL("../viewer/assets/editor-time-editing.css", import.meta.url), "utf8"),
-    readFile(new URL("../viewer/assets/editor-presentation.css", import.meta.url), "utf8"),
+test("formal Viewer delegates commands and assessment to the shared product core", async () => {
+  const [viewer, assessment, adapter, settings] = await Promise.all([
+    readFile(new URL('../ui/web-workflow/viewer.mjs', import.meta.url), 'utf8'),
+    readFile(new URL('../ui/web-workflow/assessment.mjs', import.meta.url), 'utf8'),
+    readFile(new URL('../viewer/assets/report-editor-adapter.js', import.meta.url), 'utf8'),
+    readFile(new URL('../ui/web-workflow/time-settings.mjs', import.meta.url), 'utf8'),
   ]);
-  const packageJson = JSON.parse(packageText);
-
-  assert.ok(packageJson.devDependencies.svelte);
-  assert.ok(packageJson.devDependencies.vite);
-  assert.equal(packageJson.devDependencies.vue, undefined);
-  assert.equal(packageJson.scripts["spike:svelte:build"], undefined);
-  assert.equal(packageJson.scripts["editor:svelte:build"], undefined);
-  assert.equal(packageJson.scripts["spike:svelte:dev"], undefined);
-  assert.match(viewerAdapterText, /"task-list": TaskList/u);
-  assert.match(viewerAdapterText, /"save-bar": SaveBar/u);
-  assert.match(viewerAdapterText, /"delivery-save-confirmation": DeliverySaveConfirmation/u);
-  assert.match(cardText, /<ItemRow/u);
-  // Item capsules are collected by the host from the module registry and
-  // routed through the card by stable item id (2026-08-25); the card no
-  // longer carries a Time-specific prop.
-  assert.match(cardText, /itemCapsules/u);
-  assert.match(rowText, /type:\s*"set-item-field"/u);
-  assert.doesNotMatch(rowText, /<details|spike-estimate-editor|onManualEstimate/u);
-  assert.match(rowText, /onModuleActivate\(id, \{ taskId, itemId: item\.id, itemTitle: item\.title \}\)/u);
-  // Match the code forms, not the bare words: the file's comment records
-  // what this row used to derive, and an assertion that forbids naming
-  // the history would push out the explanation of why it changed.
-  assert.doesNotMatch(rowText, /export let timeItem|onTimeClick\(/u);
-  // Item status is now the same five-state set a task card carries, and
-  // setting it is one command: the array an item lives in is derived from
-  // its status, so the row never issues a separate move (2026-08-25).
-  assert.match(rowText, /type:\s*"set-item-status"/u);
-  assert.doesNotMatch(rowText, /type:\s*"move-item"/u);
-  assert.match(rowText, /<ModuleCapsuleStrip/u);
-  // Preview shows a priority badge only while the priority still means
-  // something: not for an unset level, and not for a finished item, which has
-  // nothing left to rank (2026-08-26). Edit mode keeps the select in both
-  // cases, because that is the only entry point for changing them back.
-  assert.match(
-    rowText,
-    /editing \|\| \(itemStatus !== "done" && metadata && \(!metadata\.hidden \|\| !policy\.labelsValid\)\)/u,
-  );
-  assert.match(rowText, /class="item-row-utility-panel"/u);
-  assert.ok(
-    rowText.indexOf("item-row-modules") < rowText.indexOf("item-row-status")
-      && rowText.indexOf("item-row-status") < rowText.indexOf("item-row-action"),
-  );
-  assert.match(viewerStylesText, /\.item-row-status \.inline-status-select\s*\{[\s\S]*min-width:\s*var\(--editor-item-status-edit-width\)/u);
-  assert.match(viewerStylesText, /\.item-status-capsule\s*\{[\s\S]*width:\s*max-content/u);
-  assert.match(viewerStylesText, /\.editable-work-item \.item-row-priority\s*\{[\s\S]*width:\s*var\(--editor-item-priority-edit-width\)/u);
-  assert.match(rowText, /itemStatus === "done" \? "✓" : "○"/u);
-  assert.match(rowText, /bind:value=\{priorityValue\}/u);
-  assert.match(rowText, /policy\.normalize\(item\.priority, policy\.fallbackValue\)/u);
-  assert.match(rowText, /bind:value=\{statusValue\}/u);
-  assert.match(cardText, /bind:value=\{taskPriorityValue\}/u);
-  assert.match(cardText, /policy\.normalize\(task\.priority, policy\.fallbackValue\)/u);
-  assert.match(cardText, /bind:value=\{taskStatusValue\}/u);
-  assert.match(addControlText, /priority = policy\?\.creationDefaultValue \?\? 4/u);
-  assert.match(dialogText, /<ManualEstimateEditor/u);
-  assert.match(dialogText, /import TimeSettingsEditor from "\.\/TimeSettingsEditor\.svelte";/u);
-  assert.match(dialogText, /<TimeSettingsEditor/u);
-  assert.match(dialogText, /<DeliveryRiskPreview preview=\{deliveryPreview\}/u);
-  assert.doesNotMatch(dialogText, /TimeCapacityEditor/u, "the local browser-only capacity override is retired");
-  assert.match(manualEstimateText, /humanConfirmed:\s*estimateConfirmed/u);
-  assert.match(manualEstimateText, /人工確認此工時/u);
-  assert.match(manualEstimateText, /未勾選仍可儲存人工工時與依據/u);
-  assert.match(adapterText, /\.\/editor-core\.js/u);
-  assert.match(adapterText, /normalizeMeaningfulText/u);
-  assert.match(clientText, /inputs_revision/u);
-  assert.match(clientText, /\/preview/u);
-  assert.match(timeDraftText, /supersedes_estimate_id/u);
-  assert.match(timeDraftText, /setTimeSettings/u);
-  assert.match(timeSettingsText, /工作容量與交付日/u);
-  assert.ok(timeSettingsText.indexOf("spike-delivery-settings") < timeSettingsText.indexOf("spike-capacity-settings"));
-  assert.match(timeSettingsText, /既有私人理由會保留但不在此顯示或修改/u);
-  assert.match(timeSettingsText, /capacityExceptions/u);
-  assert.match(previewText, /capacityDelta/u);
-  assert.match(confirmationText, /確認儲存/u);
-  assert.match(confirmationText, /event\.key !== "Escape"/u);
-  assert.match(confirmationText, /onkeydown=\{keydown\}/u);
-  // Presentation remains split between geometry and themed editing rules.
-  assert.match(presentationText, /\.editor-layout-shell/u);
-  assert.match(timeEditingText, /\.spike-time-editor/u);
-  assert.match(cardText, /task-card editor-task-card/u);
-  assert.match(rowText, /class="editor-item-row"/u);
-  assert.doesNotMatch(cardText + rowText, /localStorage/u);
-  // The readout row (Documentation/AssessmentModuleArchitecturePlan.md#readout-的版面,
-  // 2026-08-27): label and value stay on one line at every width, so the two
-  // module-specific classes that used to draw it — one flex, one stacking
-  // grid — are retired in favour of one shared component.
-  assert.match(dialogText, /<AssessmentReadout label="預估工時" value=\{item\.likelyHoursLabel\}>/u);
-  assert.doesNotMatch(viewerStylesText, /\.time-estimate-readout|\.cost-readout\b/u);
-  // The manual-estimate form's own badges-above-an-editable-field row looks
-  // similar but is not this component — its value is a live input, not a
-  // fixed string — so it was named apart rather than folded in, and must not
-  // drift back onto the retired class it used to share by coincidence.
-  assert.match(manualEstimateText, /class="spike-estimate-row"/u);
-  assert.doesNotMatch(manualEstimateText, /time-estimate-readout|time-estimate-meta/u);
-  // The narrow rearrangement is sized against the dialog, not the viewport:
-  // this row lives in a dialog today and a shared detail slot later, and a
-  // viewport query would not react when the dialog itself narrows rather than
-  // the window. This is the project's first use of a container query.
-  assert.match(viewerStylesText, /\.theme-dialog\s*\{[\s\S]*?container-type:\s*inline-size/u);
-  assert.match(viewerStylesText, /@container \(max-width: 460px\) \{\s*\.assessment-readout/u);
+  for (const region of ['task-list', 'save-bar', 'delivery-save-confirmation']) assert.ok(viewer.includes(`'${region}':`));
+  assert.match(viewer, /cmd\('set-item-field'/u);
+  assert.match(viewer, /cmd\('set-item-status'/u);
+  assert.doesNotMatch(viewer, /type: ['"]move-item['"]|localStorage/u);
+  assert.match(viewer, /p\.itemCapsules\?\.get\(item\.id\)/u);
+  assert.match(viewer, /p\.onModuleActivate\?\.\(id, \{ taskId: task\.id, itemId: item\.id, itemTitle: item\.title \}\)/u);
+  assert.match(adapter, /\.\/editor-core\.js/u);
+  assert.match(adapter, /normalizeMeaningfulText/u);
+  assert.match(assessment, /timeSettings\(p\.timeSettings, view\)/u);
+  assert.match(assessment, /humanConfirmed: s\.confirmed/u);
+  assert.match(assessment, /dismissOnBackdrop:false/u);
+  assert.match(settings, /capacityExceptions/u);
 });
 
-test("Cost's dialog draws its readout through the same shared component as Time's", async () => {
-  const costDialogText = await readFile(
-    new URL("../experiments/editor-svelte-spike/src/CostDialog.svelte", import.meta.url),
-    "utf8",
-  );
-  assert.match(costDialogText, /import AssessmentReadout from "\.\/AssessmentReadout\.svelte";/u);
-  assert.match(costDialogText, /<AssessmentReadout label="估算成本" value=\{item\.exact\}>/u);
-  assert.match(costDialogText, /<AssessmentReadout label="估算總額" value=\{total\.exact\}>/u);
-  assert.doesNotMatch(costDialogText, /cost-readout\b/u);
+test("Cost and Time share one readout template", async () => {
+  const source = await readFile(new URL('../ui/web-workflow/assessment.mjs', import.meta.url), 'utf8');
+  for (const label of ['預估工時', '估算成本', '估算總額']) assert.ok(source.includes(`readout('${label}',`));
+  assert.equal((source.match(/const readout =/gu) ?? []).length, 1);
 });
 
 test("decision context, option descriptions and recommendation reasons render inline links; questions stay plain", async () => {
-  const decision = await readFile(new URL("../experiments/editor-svelte-spike/src/DecisionApp.svelte", import.meta.url), "utf8");
-  assert.match(decision, /import InlineLinks from "\.\/InlineLinks\.svelte"/u);
-  assert.match(decision, /<InlineLinks text=\{item\.context\} \/>/u);
-  assert.match(decision, /<InlineLinks text=\{option\.description\} \/>/u);
-  assert.match(decision, /<InlineLinks text=\{item\.recommendation\.reason\} \/>/u);
-  assert.doesNotMatch(decision, /<InlineLinks text=\{item\.question\}/u);
+  const decision = await readFile(new URL('../ui/web-workflow/decisions.mjs', import.meta.url), 'utf8');
+  for (const expression of ['item.context', 'o.description', 'item.recommendation.reason']) assert.ok(decision.includes(`inline(${expression})`));
+  assert.doesNotMatch(decision, /inline\(item\.question\)/u);
 });

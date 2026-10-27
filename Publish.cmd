@@ -35,6 +35,13 @@ set "EXIT_CODE=2"
 goto finish
 
 :parsed
+echo Building the Web UI Workflow delivery...
+pushd "%PROJECT_ROOT%"
+call npm run ui:build
+set "EXIT_CODE=%ERRORLEVEL%"
+popd
+if not "%EXIT_CODE%"=="0" goto finish
+
 echo Publishing TaskProgress single-file EXE...
 echo Project: %PROJECT_FILE%
 echo Output : %OUTPUT_DIR%

@@ -116,54 +116,31 @@ test("default palettes meet normal-text contrast while low contrast is reported"
   })).length >= 4);
 });
 
-test("the theme adapter keeps storage and the document root out of the component", () => {
-  const storage = createStorage();
-  const root = createRoot();
-  const control = createThemeControl({ root, storage, matchMedia: () => ({ matches: true }) });
-
-  assert.equal(control.mode, "system");
-  assert.equal(control.custom, null);
-  assert.equal(control.systemScheme, "dark");
-  assert.equal(root.dataset.theme, "system");
-
-  control.setMode("light");
-  assert.equal(control.mode, "light");
-  assert.equal(root.dataset.theme, "light");
-  assert.equal(JSON.parse(storage.getItem(THEME_STORAGE_KEY)).mode, "light");
-
-  const applied = control.applyCustom(createCustomPalette("dark", { accent: "#123456" }));
-  assert.equal(applied.mode, "custom");
-  assert.equal(control.custom.accent, "#123456");
-  assert.equal(root.dataset.themeBase, "dark");
-  assert.equal(root.properties.get("--color-accent"), "#123456");
-
-  // Switching away keeps the palette, so reopening the dialog shows it again.
-  control.setMode("system");
-  assert.equal(control.custom.accent, "#123456");
-  assert.equal(root.properties.size, 0);
+test("the theme adapter returns the bootstrap owner and rejects uninitialized hosts", async () => {
+  const previous = globalThis.taskprogressTheme;
+  try {
+    delete globalThis.taskprogressTheme;
+    assert.throws(() => createThemeControl(), /bootstrap/u);
+    const owner = { mode: 'system', setMode() {} };
+    globalThis.taskprogressTheme = owner;
+    assert.equal(createThemeControl(), owner);
+  } finally {
+    if (previous === undefined) delete globalThis.taskprogressTheme;
+    else globalThis.taskprogressTheme = previous;
+  }
 });
 
 test("the formal Viewer mounts the single theme picker and dialog implementation", async () => {
-  const [html, app, adapter, control] = await Promise.all([
-    readFile(new URL("../viewer/index.html", import.meta.url), "utf8"),
-    readFile(new URL("../viewer/assets/app.js", import.meta.url), "utf8"),
-    readFile(new URL("../experiments/editor-svelte-spike/src/viewer-adapter.svelte.js", import.meta.url), "utf8"),
-    readFile(new URL("../experiments/editor-svelte-spike/src/ThemeControl.svelte", import.meta.url), "utf8"),
+  const [app, bootstrap, options, adapter] = await Promise.all([
+    readFile(new URL('../viewer/assets/app.js', import.meta.url), 'utf8'),
+    readFile(new URL('../ui/web-workflow/bootstrap.mjs', import.meta.url), 'utf8'),
+    readFile(new URL('../ui/web-workflow/theme-options.mjs', import.meta.url), 'utf8'),
+    readFile(new URL('../ui/web-workflow/viewer.mjs', import.meta.url), 'utf8'),
   ]);
-
-  // The Viewer keeps a mount point; the markup belongs to the component.
-  assert.match(html, /<div class="theme-dock" id="theme-control"><\/div>/u);
-  assert.doesNotMatch(html, /id="theme-select"|id="theme-dialog"|id="theme-apply"/u);
   assert.match(app, /createUiView\("theme-control", elements\.themeControl/u);
-  assert.match(adapter, /"theme-control": ThemeControl/u);
-
-  // The formal host mounts one component, so `自訂` needs no second dialog or
-  // host-specific option list.
-  assert.match(control, /id="theme-select"/u);
-  assert.match(control, /id="theme-dialog"/u);
-  assert.match(control, /自訂…/u);
-
-  // Storage stays in the adapter; palette rules stay in the shared model.
-  assert.doesNotMatch(control, /localStorage/u);
-  assert.match(control, /viewer\/assets\/theme-model\.js/u);
+  assert.match(adapter, /'theme-control': productTheme/u);
+  assert.match(bootstrap, /document\.createElement\('ui-theme-control'\)/u);
+  assert.match(bootstrap, /saveThemePreference\(\(\) => localStorage, THEME_STORAGE_KEY/u);
+  assert.match(options, /export \{ THEME_STORAGE_KEY \} from '\.\.\/\.\.\/viewer\/assets\/theme-model\.js'/u);
+  assert.equal(THEME_STORAGE_KEY, 'task-progress.theme.v1');
 });

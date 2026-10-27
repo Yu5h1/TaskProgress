@@ -19,10 +19,7 @@ permissions:
   contents: read
 
 jobs:
-  # Viewer and Checklist UI bundles are build products kept under version
-  # control for hosts that do not run Vite. Nothing stops a `.svelte` change
-  # from being committed without rebuilding, and source-level tests cannot
-  # detect that drift. Rebuild both here and compare every committed artifact.
+  # Rebuild all Web UI Workflow Browser/Desktop outputs from their shared sources.
   verify-bundle:
     runs-on: ubuntu-latest
 
@@ -35,34 +32,19 @@ jobs:
           cache: npm
 
       - name: Install locked dependencies
-        run: npm ci --no-audit --no-fund
+        run: npm ci --ignore-scripts --no-audit --no-fund
 
       - name: Rebuild committed UI bundles
-        run: |
-          npm run viewer:ui:build
-          npm run checklist:ui:build
-          npm run checklist:browser:build
-          npm run decisions:ui:build
+        run: npm run ui:build
 
       - name: Fail if the committed bundle is stale
         shell: bash
         run: |
           set -euo pipefail
 
-          bundles=(
-            viewer/decisions/decisions-ui.js
-            viewer/decisions/decisions-ui.css
-            src/TaskProgress.Cli/decisions-ui/index.html
-            src/TaskProgress.Cli/decisions-ui/decisions-ui.js
-            src/TaskProgress.Cli/decisions-ui/decisions-ui.css
-            viewer/assets/viewer-ui.js
-            src/TaskProgress.Cli/checklist-ui/checklist-ui.js
-            src/TaskProgress.Cli/checklist-ui/checklist-ui.css
-            viewer/checklist/checklist-ui.js
-            viewer/checklist/checklist-ui.css
-          )
+          bundles=(viewer src/TaskProgress.Cli/checklist-ui src/TaskProgress.Cli/decisions-ui)
 
-          if git diff --quiet -- "${bundles[@]}"; then
+          if git diff --quiet -- "${bundles[@]}" && [[ -z "$(git ls-files --others --exclude-standard -- "${bundles[@]}")" ]]; then
             echo "All committed UI bundles match their sources."
             exit 0
           fi

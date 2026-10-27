@@ -1,8 +1,8 @@
 // Runs only on serve_web_ui_navigation.py's disposable candidate host.
 await import('/demo/taskprogress/demo.js');
 const web=(await import('/demo/taskprogress/assets/ui-host.js')).activeUiAdapter();
-await import('/demo/taskprogress/reference/assets/viewer-ui.js');
-const baseline=(await import('/demo/taskprogress/reference/assets/ui-host.js')).activeUiAdapter();
+await import('/__svelte-baseline/assets/viewer-ui.js');
+const baseline=(await import('/__svelte-baseline/assets/ui-host.js')).activeUiAdapter();
 const results=document.querySelector('#results'),fixture=document.querySelector('#fixture');
 document.querySelector('.page-shell').hidden=true;
 let pass=0,fail=0;

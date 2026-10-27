@@ -137,15 +137,10 @@ test("filtering never reaches a save", () => {
 });
 
 test("the Checklist screen wires one strip with no owner capsules", async () => {
-  const app = await readFile(
-    new URL("../experiments/editor-svelte-spike/src/ChecklistApp.svelte", import.meta.url),
-    "utf8",
-  );
-  assert.equal((app.match(/<FilterStrip/gu) ?? []).length, 1);
-  // Owner is still shown on each check; it is simply not a filter capsule.
-  assert.match(app, /const FILTER_TAGS = \["pending", "passed", "failed"\];/u);
-  assert.doesNotMatch(app, /owner:|OWNER_FILTER/u, "owner is not a filter");
+  const app = await readFile(new URL('../ui/web-workflow/checklist.mjs', import.meta.url), 'utf8');
+  assert.equal((app.match(/filters\(\{/gu) ?? []).length, 1);
+  assert.match(app, /const TAGS = \['pending', 'passed', 'failed'\]/u);
   assert.match(app, /filterChecklistBySelection\(/u);
-  assert.match(app, /const ordered = orderChecklistItems\(document, capsuleOrder\);/u);
-  assert.match(app, /defaultLit=\{isDefaultLit\(selection\)\}/u);
+  assert.match(app, /orderChecklistItems\(doc, this\.order\)/u);
+  assert.match(app, /defaultLit: isDefaultLit\(this\.selection\)/u);
 });

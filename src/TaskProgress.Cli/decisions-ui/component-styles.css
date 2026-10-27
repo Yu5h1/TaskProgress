@@ -1,0 +1,349 @@
+/* No `color-scheme` here: the shared theme adapter sets it on the document root
+   from the reader's saved preference, and a value declared here would claim one
+   scheme before that preference is even read. */
+body {
+  min-width: 0;
+  margin: 0;
+  background: var(--color-page-bg);
+}
+
+/* The page stacks header, summary, next step and items; gap owns the spacing so
+   adding a block between them needs no margin of its own. */
+.checklist-page {
+  display: grid;
+  align-content: start;
+  gap: 10px;
+  width: min(960px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 16px 0 104px;
+}
+
+.checklist-header h1,
+.checklist-item h2,
+.checklist-item p {
+  margin: 0;
+}
+
+.checklist-header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.checklist-header h1 {
+  margin-top: 4px;
+  color: var(--ink);
+  font-size: clamp(1.45rem, 3vw, 2rem);
+}
+
+.document-owner { margin: 4px 0 0; font-size: .85rem; color: var(--color-secondary-text); }
+.document-owner a { display: inline-flex; align-items: center; gap: 6px; color: var(--color-accent); text-decoration: none; overflow-wrap: anywhere; }
+.document-owner .owner-name { text-decoration: underline; }
+.document-owner .owner-arrow { font-size: 2.1em; font-weight: 700; line-height: 0.8; }
+
+.checklist-round,
+.checklist-notice {
+  color: var(--muted);
+}
+
+.checklist-items,
+.checklist-checks {
+  display: grid;
+  gap: 12px;
+}
+
+.checklist-item {
+  overflow: hidden;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+}
+
+/* Same rule as the task card: the border carries the state, except when the
+   work is done and there is nothing to draw the eye to. */
+.checklist-item.checklist-pending {
+  border-color: var(--role-status-pending);
+}
+
+.checklist-item.checklist-failed {
+  border-color: var(--role-status-failed);
+}
+
+.checklist-item-header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  padding: 17px 18px;
+  background: color-mix(in srgb, var(--surface-strong) 78%, transparent);
+}
+
+.checklist-item-header h2 {
+  color: var(--ink);
+  font-size: 1rem;
+}
+
+.checklist-item-header > div { flex: 1 1 min-content; min-width: 0; }
+.checklist-item-header > .checklist-status { margin-left: auto; }
+.card-disclosure-collapsed .checklist-item-header { padding-top: 7px; padding-bottom: 7px; }
+.checklist-item > .card-disclosure-collapsed > .card-disclosure-toggle { margin-top: 0; }
+.checklist-item-header > .marker-box { margin: 0; align-self: center; }
+.card-disclosure-collapsed .checklist-item-header h2 { margin-top: 0; margin-bottom: 0; }
+
+.checklist-item-header p {
+  margin-top: 6px;
+  color: var(--ink-soft);
+  line-height: 1.5;
+}
+
+/* Every label on a card is a capsule, so a dependency reads as a tag rather
+   than as a sentence fragment under the outcome. */
+.checklist-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 8px 0 0;
+}
+
+.checklist-chip {
+  padding: 2px 9px;
+  color: var(--muted);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font-family: var(--mono, ui-monospace, monospace);
+  font-size: 0.72rem;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.checklist-status,
+.checklist-owner {
+  padding: 4px 9px;
+  color: var(--muted);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font-size: 0.72rem;
+  white-space: nowrap;
+}
+
+.checklist-checks {
+  padding: 12px;
+}
+
+.checklist-check {
+  padding: 13px 14px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+
+/* A manual check is the reader's to act on, so its state is carried by the row
+   itself. Agent checks stay plain: they are evidence, not work. */
+.checklist-check.checklist-manual.checklist-pending {
+  background: color-mix(in srgb, var(--role-status-pending-surface) 30%, transparent);
+  border-color: color-mix(in srgb, var(--role-status-pending) 80%, white);
+}
+
+.checklist-check.checklist-manual.checklist-passed {
+  background: var(--role-status-passed-surface);
+  border-color: var(--role-status-passed);
+}
+
+.checklist-check.checklist-manual.checklist-failed {
+  background: color-mix(in srgb, var(--role-status-failed-surface) 30%, transparent);
+  border-color: color-mix(in srgb, var(--role-status-failed) 80%, white);
+}
+
+/* Acceptance checks are also someone's to act on, so they share the manual row treatment. */
+.checklist-check.checklist-acceptance.checklist-pending {
+  background: color-mix(in srgb, var(--role-status-pending-surface) 30%, transparent);
+  border-color: color-mix(in srgb, var(--role-status-pending) 80%, white);
+}
+
+.checklist-check.checklist-acceptance.checklist-passed {
+  background: var(--role-status-passed-surface);
+  border-color: var(--role-status-passed);
+}
+
+.checklist-check.checklist-acceptance.checklist-failed {
+  background: color-mix(in srgb, var(--role-status-failed-surface) 30%, transparent);
+  border-color: color-mix(in srgb, var(--role-status-failed) 80%, white);
+}
+
+.checklist-owner-acceptance {
+  color: var(--role-status-pending);
+  border-color: color-mix(in srgb, var(--role-status-pending) 60%, white);
+}
+
+.checklist-lock,
+.checklist-void {
+  margin: 6px 0 0 31px;
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+.checklist-void {
+  margin: 0;
+  color: var(--role-status-failed);
+}
+
+.checklist-operable-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 4px 0 8px;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.checklist-check-heading {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr) auto;
+  gap: 9px;
+  align-items: center;
+  color: var(--ink);
+}
+
+.checklist-check dl {
+  display: grid;
+  gap: 7px;
+  margin: 11px 0 0 31px;
+}
+
+.checklist-check dl div {
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr);
+  gap: 8px;
+}
+
+.checklist-check dt {
+  color: var(--muted);
+  font-size: 0.74rem;
+  font-weight: 760;
+}
+
+.checklist-check dd {
+  margin: 0;
+  color: var(--ink-soft);
+  line-height: 1.45;
+}
+
+.checklist-observed {
+  display: grid;
+  gap: 6px;
+  margin: 12px 0 0 31px;
+  color: var(--red);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.checklist-observed textarea {
+  resize: vertical;
+  padding: 9px 10px;
+  color: var(--ink);
+  background: var(--color-page-bg);
+  border: 1px solid var(--color-danger-border);
+  border-radius: 8px;
+  font: inherit;
+  font-weight: 500;
+}
+
+.checklist-error {
+  color: var(--red);
+}
+
+@media (max-width: 640px) {
+  .checklist-page {
+    width: min(100% - 20px, 960px);
+    padding-top: 24px;
+  }
+
+  .checklist-check dl,
+  .checklist-observed {
+    margin-left: 0;
+  }
+}
+
+.checklist-reset-button {
+  margin-left: auto;
+  padding: 5px 9px;
+  font-size: 0.7rem;
+}
+
+.checklist-header > div:first-child { min-width: 0; flex: 1; }
+.checklist-header h1 { overflow-wrap: anywhere; font-size: clamp(1.1rem, 3vw, 1.5rem); }
+.checklist-round { margin-top: 4px; font-size: 0.8rem; overflow-wrap: anywhere; }
+.checklist-round summary { cursor: pointer; }
+.checklist-round p { margin-block: 4px 0; }
+.checklist-toolbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
+.checklist-toolbar .status-filter-strip { margin: 0; }
+.checklist-check { scroll-margin-top: 12px; }
+.checklist-check:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+
+/* DecisionApp: product component styles */
+
+  .decisions-shell .decision-card{ display:grid; grid-template-columns:auto minmax(0, 1fr); column-gap:8px; padding-inline-start:12px; }
+  .decisions-shell .decision-card.decision-has-visibility{ grid-template-columns:auto auto minmax(0, 1fr); }
+  .decisions-shell .decision-card > .card-disclosure-heading{ display:contents; }
+  .decisions-shell .decision-card > .card-disclosure-heading > .card-disclosure-toggle{ grid-column:1; grid-row:1; align-self:center; margin:0; }
+  .decisions-shell .decision-card > .card-disclosure-heading > .card-visibility-toggle{ grid-column:2; grid-row:1; align-self:center; }
+  .decisions-shell .decision-card .checklist-item-header{ grid-column:-2 / -1; grid-row:1; padding-block:12px; }
+  .decisions-shell .decision-card .card-disclosure-collapsed > .checklist-item-header{ padding-block:7px; }
+  .decisions-shell .decision-card > .card-disclosure-body{ grid-column:-2 / -1; grid-row:2; min-width:0; }
+  .decisions-shell .decision-content{ display:grid; gap:20px; min-width:0; padding:4px 18px 18px; line-height:1.45; }
+  .decisions-shell .decision-description{ display:grid; gap:4px; }
+  .decisions-shell .decision-source{ display:grid; gap:4px; overflow-wrap:anywhere; }
+  .decisions-shell .decision-source small{ color:var(--muted); }
+  .decisions-shell .decision-source .source-link{ padding:0; border:0; background:none; color:var(--color-accent); text-align:start; text-decoration:underline; cursor:pointer; overflow-wrap:anywhere; }
+  .decisions-shell .source-content{ max-height:60vh; overflow:auto; white-space:pre-wrap; overflow-wrap:anywhere; }
+  .decisions-shell .source-content span{ display:block; }
+  .decisions-shell .source-target{ background:var(--color-panel-bg); border-inline-start:3px solid var(--color-accent); }
+  .decisions-shell .decision-overview{ display:grid; gap:4px; margin:10px 0 18px; }
+  .decisions-shell .decision-overview p{ margin:0; }
+  .decisions-shell .decision-controls{ display:grid; justify-items:start; gap:12px; margin-bottom:20px; }
+  .decisions-shell .decision-controls > button{ margin:0; }
+  .decisions-shell .arrangeable-cards{ gap:20px; }
+  .decisions-shell .checklist-item-header h2{ flex:1; min-width:0; overflow-wrap:anywhere; }
+  .decisions-shell .decision-option{ display:grid; grid-template-columns:1rem minmax(0, 1fr); gap:10px; align-items:start; padding:4px 0; line-height:1.4; }
+  .decisions-shell .decision-option input{ width:1rem; height:1rem; margin:4px 0 0; }
+  .decisions-shell .decision-option span{ min-width:0; overflow-wrap:anywhere; }
+  .decisions-shell .decision-option small{ display:block; margin-top:2px; color:var(--muted); }
+  .decisions-shell .decision-other{ display:grid; gap:6px; margin-top:14px; margin-inline-start:calc(1rem + 10px); }
+  .decisions-shell textarea{ display:block; width:100%; min-height:5rem; padding:10px 12px; box-sizing:border-box; font:inherit; resize:vertical; color:var(--color-item-text); background:var(--color-panel-bg); border:1px solid var(--color-border); }
+  .decisions-shell textarea:read-only, .decisions-shell textarea:disabled{ color:var(--muted); -webkit-text-fill-color:var(--muted); background:var(--color-panel-bg); border-color:var(--line); opacity:1; }
+  .decisions-shell textarea:read-only{ cursor:text; }
+  .decisions-shell textarea:disabled{ cursor:not-allowed; }
+  .decisions-shell fieldset{ min-width:0; margin:0; padding:0; border:0; }
+  .decisions-shell .decision-visually-hidden{ position:absolute; width:1px; height:1px; padding:0; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
+  .decisions-shell .decision-text{ white-space:pre-wrap; overflow-wrap:anywhere; }
+  .decisions-shell .decision-actions{ display:flex; flex-wrap:wrap; gap:8px; padding-top:12px; border-top:1px solid var(--line); }
+  .decisions-shell .decision-actions:empty{ display:none; }
+  button[data-decision-control]{ margin:.4rem .4rem .4rem 0; color:var(--color-item-text); background:var(--color-panel-bg); border:1px solid var(--color-border); border-radius:6px; padding:6px 12px; }
+  .decisions-shell .decision-content button{ justify-self:start; margin:0; }
+  .decisions-shell{ max-width:1000px; margin:auto; padding:1rem; }
+
+
+/* HistoryTools: product component styles */
+
+  .history-capsule{ display:inline-flex; align-items:center; padding:3px; border:1px solid var(--history-border, var(--color-border, GrayText)); border-radius:999px; background:var(--history-surface, var(--color-panel-bg, Canvas)); }
+  .history-capsule, .history-panel{ color:var(--history-text, var(--color-item-text, CanvasText)); }
+  .history-capsule button, .history-panel button{ font:inherit; color:inherit; background:var(--history-surface, var(--color-panel-bg, Canvas)); border:1px solid var(--history-border, var(--color-border, GrayText)); border-radius:6px; padding:6px 12px; cursor:pointer; }
+  .history-capsule button{ display:grid; place-items:center; width:40px; height:36px; margin:0; padding:8px; border:0; border-radius:999px; background:transparent; }
+  .history-capsule button:disabled, .history-panel button:disabled{ opacity:.4; cursor:default; }
+  .history-capsule button:focus-visible, .history-panel button:focus-visible{ outline:2px solid var(--history-accent, var(--color-accent, Highlight)); outline-offset:2px; }
+  .history-capsule button:hover:not(:disabled){ background:var(--history-hover, var(--color-reference-bg, ButtonFace)); }
+  .history-capsule svg, .history-panel svg{ width:20px; height:20px; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+  .history-panel{ display:grid; gap:14px; min-width:0; }
+  .history-capsule p, .history-panel p{ margin:0; }
+  .history-note, .history-capsule small, .history-panel small{ color:var(--history-muted, var(--color-secondary-text, GrayText)); }
+  .history-actions{ display:flex; flex-wrap:wrap; gap:8px; }
+  .history-actions button, .history-clear button{ margin:0; }
+  .history-entries{ display:grid; gap:6px; max-height:40vh; overflow:auto; padding:0; margin:0; list-style:none; }
+  .history-entries li{ display:flex; align-items:baseline; gap:12px; padding:8px 10px; border-radius:6px; overflow-wrap:anywhere; }
+  .history-entries span{ flex:1; min-width:0; }
+  .history-capsule small, .history-panel small{ flex-shrink:0; }
+  .history-redo{ opacity:.65; }
+  .history-entries .history-cursor{ color:var(--history-accent, var(--color-accent, Highlight)); border-block:1px solid var(--history-border, var(--color-border, GrayText)); font-size:.85em; }
+  .history-clear{ display:grid; gap:10px; border-top:1px solid var(--history-border, var(--color-border, GrayText)); padding-top:14px; }
+

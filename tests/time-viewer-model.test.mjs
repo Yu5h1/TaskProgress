@@ -133,56 +133,23 @@ test("Viewer markup exposes one shared dialog mount and all three detail tabs", 
 });
 
 test("the time summary button and its dialog are registered as one shared implementation", async () => {
-  const [adapter, app, timeDialog, timeSummaryButton, timeModule] = await Promise.all([
-    readFile(new URL("../experiments/editor-svelte-spike/src/viewer-adapter.svelte.js", import.meta.url), "utf8"),
-    readFile(new URL("../viewer/assets/app.js", import.meta.url), "utf8"),
-    readFile(new URL("../experiments/editor-svelte-spike/src/TimeDialog.svelte", import.meta.url), "utf8"),
-    readFile(new URL("../experiments/editor-svelte-spike/src/TimeSummaryButton.svelte", import.meta.url), "utf8"),
-    readFile(new URL("../viewer/assets/time-module-definition.js", import.meta.url), "utf8"),
+  const [adapter, app, assessment, common, timeModule] = await Promise.all([
+    readFile(new URL('../ui/web-workflow/viewer.mjs', import.meta.url), 'utf8'),
+    readFile(new URL('../viewer/assets/app.js', import.meta.url), 'utf8'),
+    readFile(new URL('../ui/web-workflow/assessment.mjs', import.meta.url), 'utf8'),
+    readFile(new URL('../ui/web-workflow/common.mjs', import.meta.url), 'utf8'),
+    readFile(new URL('../viewer/assets/time-module-definition.js', import.meta.url), 'utf8'),
   ]);
-
-  // The delivery capsule now mounts through the shared module strip rather
-  // than as a lone button, so the main-panel and item-row capsule rows are
-  // one implementation (2026-08-25). TimeSummaryButton itself stays
-  // registered for hosts that still mount a standalone capsule.
-  assert.match(adapter, /"project-module-strip": ModuleCapsuleStrip/);
-  assert.match(adapter, /"time-dialog": TimeDialog/);
-  assert.match(app, /createUiView\(\s*"project-module-strip",\s*elements\.timeSummaryButton/);
-
-  // The host no longer names Time's panel. Every module's detail mounts
-  // through one dock, and the module says which shared view renders it, so
-  // adding a module touches neither the markup nor the host.
-  assert.match(timeModule, /detailView: "time-dialog"/);
-  assert.match(app, /createUiView\(instance\.detailView, element, detail\)/);
-  assert.doesNotMatch(app, /"time-dialog"|"cost-dialog"/);
-
-  // Modal mechanics live in DialogShell, not in Time's panel. Time passes
-  // `open` through and renders its content into the shell's slot.
-  assert.match(timeDialog, /<DialogShell[\s\S]*?\{open\}/);
-  assert.doesNotMatch(timeDialog, /showModal\(|use:openOnMount/);
-
-  const dialogShell = await readFile(
-    new URL("../experiments/editor-svelte-spike/src/DialogShell.svelte", import.meta.url),
-    "utf8",
-  );
-  // The dialog element is structurally conditional on `open`, not toggled by
-  // an imperative call reacting to a prop change — see the comment in
-  // DialogShell.svelte for why a bare `$:`/action-update on that prop is
-  // unreliable in this project's imperative-mount setup.
-  assert.match(dialogShell, /\{#if open\}/);
-  assert.match(dialogShell, /use:openOnMount/);
-  // Closing is host-notified directly by the button/backdrop, not solely
-  // through the native `close` event.
-  assert.match(dialogShell, /function requestClose\(\)/);
-  assert.match(dialogShell, /dialogEl\?\.close\(\);\s*notifyClose\(\);/);
-  // `notifyClose` is that direct notification plus focus restoration.
-  assert.match(dialogShell, /function notifyClose\(\)[\s\S]*?onClose\(\);/);
-  // The shell stays domain-neutral: it imports nothing, so no domain
-  // component, model or formatter can be reached from inside it.
-  assert.doesNotMatch(dialogShell, /^\s*import\s/mu);
-
-  assert.doesNotMatch(timeSummaryButton, /localStorage/);
-  assert.doesNotMatch(timeDialog, /localStorage/);
+  assert.match(adapter, /'project-module-strip':/u);
+  assert.match(adapter, /'time-dialog': timeDialog/u);
+  assert.match(app, /createUiView\(instance\.detailView, element, detail\)/u);
+  assert.match(timeModule, /detailView: "time-dialog"/u);
+  assert.doesNotMatch(app, /"time-dialog"|"cost-dialog"/u);
+  assert.match(assessment, /return dialog\(/u);
+  assert.doesNotMatch(assessment, /showModal\(|localStorage/u);
+  assert.match(common, /<ui-dialog/u);
+  assert.match(common, /node\.addEventListener\('ui-close', close\)/u);
+  assert.match(common, /node\.removeEventListener\('ui-close', close\)/u);
 });
 
  test("unset entries accept absent durations; real estimates still require durations", () => {

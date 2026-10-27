@@ -1,0 +1,51 @@
+/* Product layout and styles come from the pinned original. Map only the demo
+   theme boundary; preserve domain status/priority colours from TaskProgress. */
+:root { --theme-page-bg:var(--ui-page); --theme-panel-bg:var(--ui-surface); --theme-heading:var(--ui-heading); --theme-panel-heading:var(--ui-panel-heading); --theme-item-text:var(--ui-text); --theme-secondary-text:var(--ui-muted); --theme-muted-text:var(--ui-muted); --theme-border:var(--ui-border); --theme-accent:var(--ui-accent); }
+body { background:var(--ui-page); color:var(--ui-text); }
+/* Native rendering windows retain searchable/focusable DOM and remembered
+   heights. Keep pins, selection rings and drop indicators outside containment. */
+.arrangeable-card > .task-card,
+.arrangeable-card > .checklist-item,
+.arrangeable-card > .decision-card {
+  content-visibility:auto;
+  contain-intrinsic-block-size:auto 240px;
+}
+/* Interactive overlays must be able to extend beyond their article. */
+.arrangeable-card:hover > *, .arrangeable-card:focus-within > *,
+.arrangeable-card > .task-card:has(.wait-menu-list),
+.arrangeable-card[data-reorder-dragging] > * { content-visibility:visible; }
+.replica-title-row { display:flex; align-items:center; gap:8px; min-width:0; }
+.site-header > .replica-title-row { flex:1; }
+.replica-title-row > h1, .replica-title-row > .brand { min-width:0; }
+.site-header:has(.editor-mode-dock:not([hidden])) .replica-title-row #report-title.brand { max-width:100%; }
+.replica-back, .replica-theme { display:flex; flex:none; align-items:center; }
+.demo-back-link { display:grid; place-items:center; flex:none; width:32px; height:32px; border-radius:50%; color:var(--ui-text); text-decoration:none; }
+.demo-back-link:hover { background:var(--ui-hover); }
+.demo-back-link:focus-visible { outline:3px solid var(--ui-focus); outline-offset:2px; }
+@media(max-width:640px) {
+  .site-header { flex-wrap:wrap; }
+  .site-header > .replica-title-row { flex-basis:100%; }
+  .site-header > .header-actions { margin-inline-start:auto; }
+}
+.replica-notice { max-width:1180px; margin:10px auto; padding:8px 12px; font-size:12px; color:var(--ui-muted); border:1px solid var(--ui-border); border-radius:8px; background:var(--ui-surface); }
+.replica-notice a { color:var(--ui-accent); }
+.replica-notice details { margin-top:4px; }
+.replica-gap { color:var(--ui-muted); }
+.replica-choice-panel { padding:4px; border:1px solid var(--ui-border); border-radius:8px; color:var(--ui-text); background:var(--ui-surface); }
+.replica-choice-panel[popover]:not(:popover-open) { display:none; }
+.replica-choice-panel button:hover, .replica-choice-panel button[aria-pressed="true"] { background:var(--ui-hover); }
+.icon-choice > button { touch-action:none; }
+.replica-card-grip { position:absolute; inset-inline-end:4px; bottom:4px; color:var(--ui-muted); background:var(--ui-surface); border:1px solid var(--ui-border); }
+[data-reorder-over="before"] { outline:2px solid var(--ui-accent); outline-offset:2px; }
+[data-reorder-over="after"] { outline:2px dashed var(--ui-accent); outline-offset:2px; }
+.arrangeable-card[data-reorder-over], .editor-item-row[data-reorder-over], .capsule-button[data-reorder-over] { outline:none; }
+.horizontal-capsule-strip [data-reorder-handle] { touch-action:pan-y; }
+.arrangeable-card > [data-reorder-handle] { touch-action:pan-x; }
+.item-row-grip { touch-action:pan-x; }
+ui-dialog.replica-time-dialog::part(surface), ui-dialog.replica-cost-dialog::part(surface) { container-type:inline-size; padding:22px; color:var(--color-item-text); background:var(--color-panel-bg); border:1px solid var(--color-border); border-radius:var(--radius-lg); }
+ui-dialog.replica-time-dialog::part(surface) { width:min(680px,calc(100% - 32px)); max-height:min(820px,calc(100vh - 32px)); }
+ui-dialog.replica-cost-dialog::part(surface) { width:min(620px,calc(100% - 28px)); max-height:min(760px,calc(100vh - 32px)); }
+ui-dialog.replica-time-dialog::part(header), ui-dialog.replica-cost-dialog::part(header) { margin-bottom:0; align-items:center; gap:20px; }
+ui-dialog.replica-time-dialog::part(heading), ui-dialog.replica-cost-dialog::part(heading) { margin:0; color:var(--color-heading); font-size:1.25rem; line-height:1.3; }
+ui-dialog.replica-delivery-confirmation::part(surface) { width:min(640px,calc(100% - 28px)); max-height:calc(100vh - 28px); padding:18px; border-radius:16px; }
+ui-dialog.replica-delivery-confirmation::part(close-button) { display:none; }

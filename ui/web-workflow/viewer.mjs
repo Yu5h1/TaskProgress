@@ -73,6 +73,7 @@ function itemRow(p, v, task, field, item, lead) {
 function developer(d) {
   if (!d) return nothing;
   const next = d.next_step ?? d.next_steps?.[0];
+  if (!next && !d.next_steps?.length && !d.blockers?.length && !d.decisions?.length && !d.routes?.length && !d.claim) return nothing;
   return html`<details class="developer-details"><summary class="developer-summary">${next ? html`<span class="developer-next-label">後續：</span><span class="developer-next-action">${next}</span>` : nothing}<span class="developer-expand-hint">展開作法與方向</span></summary><div class="developer-body"><h4 class="developer-body-title">作法與方向</h4>
     ${[['後續', d.next_step ? d.next_steps : d.next_steps?.slice(1)], ['Blockers', d.blockers]].map(([label, list]) => list?.length ? html`<section class="detail-section"><h4 class="detail-heading">${label}</h4><ul class="detail-list">${list.map(value => html`<li>${value}</li>`)}</ul></section>` : nothing)}
     ${d.decisions?.map(item => html`<article class="decision-item"><p>${item.summary}</p><code>${item.reference ?? ''}</code></article>`)}

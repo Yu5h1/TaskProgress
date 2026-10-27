@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="task-progress-source" content="Yu5h1/TaskProgress:viewer" />
+    <meta
+      name="description"
+      content="TaskProgress Viewer — 以唯讀、可分享連結呈現專案與 Agent scope 的任務進展。"
+    />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self' https: http://localhost:* http://127.0.0.1:*; img-src 'self' data:; base-uri 'none'; form-action 'none'"
+    />
+    <title>TaskProgress Viewer</title>
+    <script src="assets/theme-bootstrap.js"></script>
+    <link rel="stylesheet" href="assets/styles.css" />
+    <link rel="stylesheet" href="assets/editor-presentation.css" />
+    <link rel="stylesheet" href="assets/editor-time-editing.css" />
+    <!-- Registers the task-list UI implementation before app.js renders. -->
+    <script type="module" src="assets/viewer-ui.js"></script>
+    <script type="module" src="assets/app.js"></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">跳至主要內容</a>
+    <div class="page-shell editor-layout-shell">
+      <header class="site-header">
+        <a class="brand" id="report-title" href="./" title="正在載入報告…">正在載入報告…</a>
+        <div class="header-actions">
+          <div class="mode-badge" id="mode-badge" hidden>Developer overlay</div>
+          <!-- Mount point only. The shared ModeToggle component renders the
+               button itself; nesting one button inside another is invalid. -->
+          <div class="view-mode-dock" id="view-mode-toggle"></div>
+          <!-- Mount point only. The shared ThemeControl component renders the
+               picker and its custom-palette dialog, so the editor offers the
+               same 自訂 entry point instead of a second dialog. -->
+          <div class="theme-dock" id="theme-control"></div>
+        </div>
+      </header>
+
+      <!-- Mount point only, shared by every module. Each attached module's
+           detail panel is created inside this one dock in attach order; no
+           module gets a dock of its own, so adding one touches no markup. -->
+      <div class="module-detail-dock" id="module-detail-dock"></div>
+
+      <main id="main-content">
+        <p class="scope-directory-link" id="scope-directory-link" hidden>
+          <a href="./"><span class="owner-arrow" aria-hidden="true">←</span><span class="owner-name">Scopes 入口</span></a>
+        </p>
+        <section class="hero" aria-labelledby="report-title">
+          <div class="project-title-line">
+            <!-- Mount point only. The shared ReportSummary component renders
+                 the line itself, in preview and in edit. -->
+            <div id="report-summary"></div>
+            <!-- Mount point only. The shared TimeSummaryButton component
+                 renders the pill itself. -->
+            <div class="time-summary-dock" id="time-summary-dock" hidden></div>
+          </div>
+          <dl class="report-meta" id="report-meta" hidden>
+            <div>
+              <dt>最後更新</dt>
+              <dd id="updated-at">—</dd>
+            </div>
+            <div>
+              <dt>Report ID</dt>
+              <dd id="report-id">—</dd>
+            </div>
+          </dl>
+          <div class="project-progress" id="project-progress" hidden></div>
+        </section>
+
+        <section class="diagnostics" id="diagnostics" aria-live="polite" hidden></section>
+
+        <section id="report-content" hidden>
+          <!-- Bootstrap-only prompt: a project with no time.config.json and
+               no time.analysis.json has no delivery button to open a
+               TimeDialog through yet. Every other time setting, including
+               delivery date, is edited inside the shared TimeDialog. -->
+          <div class="time-settings-dock" id="time-settings-dock" hidden></div>
+
+          <div class="task-workspace">
+          <div class="task-list editor-task-list" id="task-list"></div>
+          </div>
+          <div class="task-add-shell" id="task-add-shell" hidden></div>
+          <p class="empty-state" id="empty-state" hidden>這個篩選條件下沒有任務。</p>
+        </section>
+
+        <section class="start-panel" id="start-panel" hidden>
+          <p class="section-kicker" id="start-kicker">Link-first viewer</p>
+          <h2 id="start-title">從報告連結開始</h2>
+          <p id="start-description">
+            本機 <code>?scope=</code> 會自動載入存在的 Developer report；公開網站只載入基本報告。
+            可用 <code>&amp;dev=none</code> 強制停用 Developer overlay。
+          </p>
+          <a
+            class="primary-link"
+            id="example-link"
+            href="?scope=example"
+          >
+            開啟 scope 範例
+          </a>
+          <div class="scope-directory" id="scope-directory" aria-label="已註冊的 Scope" hidden></div>
+        </section>
+      </main>
+
+      <footer>
+        <span class="footer-brand">
+          <span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></span>
+          <span class="footer-brand-text"><strong>TaskProgress</strong> <span>Viewer</span></span>
+        </span>
+        <span id="viewer-mode-label">Viewer is read-only</span>
+      </footer>
+    </div>
+    <aside class="edit-save-bar" id="edit-save-bar" hidden></aside>
+    <!-- Mount point only. The shared DeliverySaveConfirmation component is a
+         self-managing <dialog> (calls showModal() itself); the host only
+         creates and destroys it, never opens it directly. -->
+    <div id="delivery-save-confirmation-dock"></div>
+  </body>
+</html>

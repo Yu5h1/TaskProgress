@@ -18,7 +18,6 @@ Build/
 .DS_Store
 *.log
 coverage/
-experiments/editor-svelte-spike/dist/
 
 # A local report fixtures directory at the repository root is intentionally not
 # versioned; the tracked public sample lives under reports/example/. Anchored to

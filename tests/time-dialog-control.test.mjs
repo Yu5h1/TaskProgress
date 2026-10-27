@@ -161,13 +161,8 @@ test("an unset item still opens its panel, and says it is unset", () => {
  * into an "estimate" without anyone deciding anything.
  */
 test("the manual estimate editor starts empty for an unset item", async () => {
-  const source = await readFile(
-    new URL("../experiments/editor-svelte-spike/src/ManualEstimateEditor.svelte", import.meta.url),
-    "utf8",
-  );
-  assert.match(source, /item\.unset \? "" : String\(item\.likelyMinutes \/ 60\)/u);
-  // The card class this block used was folded into AssessmentNote; leaving the
-  // old name here silently drops its styling, which no other test would catch.
+  const source = await readFile(new URL('../ui/web-workflow/assessment.mjs', import.meta.url), 'utf8');
+  assert.match(source, /item\.unset \? '' : String\(item\.likelyMinutes \/ 60\)/u);
+  assert.match(source, /note\('估算依據'/u);
   assert.doesNotMatch(source, /time-explanation-card/u);
-  assert.match(source, /<AssessmentNote heading="估算依據">/u);
 });

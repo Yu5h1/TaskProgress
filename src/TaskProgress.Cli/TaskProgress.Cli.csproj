@@ -57,4 +57,8 @@
     <InternalsVisibleTo Include="TaskProgress.Checklist.Tests" />
   </ItemGroup>
 
+  <Target Name="RemoveRetiredSvelteStyles" AfterTargets="Publish">
+    <Delete Files="$(PublishDir)checklist-ui/checklist-ui.css;$(PublishDir)decisions-ui/decisions-ui.css" />
+  </Target>
+
 </Project>

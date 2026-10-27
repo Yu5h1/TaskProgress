@@ -1,0 +1,314 @@
+import { createEditorTransaction } from "./editor-transaction.js";
+import { groupingOrder } from "./filter-selection.js";
+import { orderByCapsuleBoundary } from "./status-order.js";
+
+function findCheck(document, workItemId, checkIndex) {
+  const item = document.items.find((candidate) => candidate.id === workItemId);
+  if (!item) throw new Error(`找不到 work item ${workItemId}。`);
+  const check = item.checks.find((candidate) => candidate.index === checkIndex);
+  if (!check) throw new Error(`找不到 work item ${workItemId} 的 check ${checkIndex}。`);
+  return { item, check };
+}
+
+// The one place the derived work-item rule lives: any failure fails the item,
+// otherwise every check must pass.
+function itemStatus(item) {
+  if (item.checks.some((check) => check.status === "failed")) return "failed";
+  if (item.checks.length > 0 && item.checks.every((check) => check.status === "passed")) return "passed";
+  return "pending";
+}
+
+function derive(document) {
+  const result = structuredClone(document);
+  result.items.forEach((item) => {
+    item.status = itemStatus(item);
+    item.progress = { passed: item.checks.filter((check) => check.status === "passed").length, total: item.checks.length };
+  });
+  return result;
+}
+
+function isBlocked(item, byId) {
+  return (item.dependsOn ?? []).some((id) => itemStatus(byId.get(id) ?? { checks: [] }) !== "passed");
+}
+
+/*
+ * Counts, bar cells and the single outstanding check, derived from the whole
+ * document.
+ *
+ * Always the whole document: a filtered view changes what is on screen, never
+ * what is true, so a summary computed from a filter would misreport progress.
+ *
+ * The next step prefers a failure over a pending check — a failure is a stop
+ * condition someone has to answer — and skips any item still waiting on an
+ * unfinished dependency, because starting there is not actually possible yet.
+ */
+export function summarizeChecklist(document) {
+  const items = document?.items ?? [];
+  const byId = new Map(items.map((item) => [item.id, item]));
+  const cells = [];
+  const checks = { total: 0, passed: 0, failed: 0, pending: 0 };
+  const itemCounts = { total: items.length, passed: 0, failed: 0, pending: 0 };
+  let failedStep = null;
+  let pendingStep = null;
+
+  items.forEach((item) => {
+    itemCounts[itemStatus(item)] += 1;
+    const blocked = isBlocked(item, byId);
+    item.checks.forEach((check) => {
+      checks.total += 1;
+      checks[check.status] = (checks[check.status] ?? 0) + 1;
+      cells.push(check.status);
+      const step = {
+        workItemId: item.id,
+        checkIndex: check.index,
+        itemTitle: item.title,
+        title: check.title,
+        action: check.action,
+        expect: check.expect,
+        isManual: check.isManual,
+        isAcceptance: Boolean(check.isAcceptance),
+      };
+      if (check.status === "failed" && !failedStep) failedStep = step;
+      if (check.status === "pending" && !blocked && !pendingStep) pendingStep = step;
+    });
+  });
+
+  return Object.freeze({
+    items: Object.freeze(itemCounts),
+    checks: Object.freeze(checks),
+    cells: Object.freeze(cells),
+    nextStep: failedStep ?? pendingStep ?? null,
+  });
+}
+
+const CYCLE = { pending: "passed", passed: "failed", failed: "pending" };
+export const REJECT_REASONS = Object.freeze(["implementation", "condition"]);
+
+export function isTagged(check) {
+  return Boolean(check?.isManual || check?.isAcceptance);
+}
+
+/**
+ * Why a tagged check cannot take a result yet: acceptance waits for the executor's checks,
+ * manual also waits for acceptance. Null when it may be recorded.
+ */
+export function lockReason(document, check) {
+  const checks = (document?.items ?? []).flatMap((item) => item.checks ?? []);
+  const executorDone = checks.filter((candidate) => !isTagged(candidate)).every((candidate) => candidate.status === "passed");
+  const acceptanceDone = checks.filter((candidate) => candidate.isAcceptance)
+    .every((candidate) => candidate.status === "passed" && (candidate.validity ?? "valid") === "valid");
+  if (check?.isAcceptance && !executorDone) return "等執行者的檢查全部完成";
+  if (check?.isManual && !executorDone) return "等執行者的檢查全部完成";
+  if (check?.isManual && !acceptanceDone) return "等他驗全部通過";
+  return null;
+}
+
+function reduce(document, command) {
+  const { item, check } = findCheck(document, command.workItemId, command.checkIndex);
+  if (!isTagged(check)) throw new Error("Agent check 是唯讀的。");
+  if (command.type === "set-result" || command.type === "cycle-result") {
+    const next = command.type === "cycle-result"
+      ? CYCLE[check.status] ?? "pending"
+      : command.status;
+    if (!["pending", "passed", "failed"].includes(next)) {
+      throw new Error("不支援的檢查狀態。");
+    }
+    const locked = next === "pending" ? null : lockReason(document, check);
+    if (locked) throw new Error(`「${check.title}」還不能記錄：${locked}。`);
+    check.status = next;
+    if (next !== "failed") {
+      check.observed = null;
+      check.resolved = null;
+      check.rejectReason = null;
+    } else if (check.isAcceptance) {
+      check.rejectReason = check.rejectReason ?? "implementation";
+    }
+  } else if (command.type === "set-observed") {
+    if (check.status !== "failed") throw new Error("只有失敗草稿可以填寫 Observed。");
+    check.observed = String(command.value ?? "");
+  } else if (command.type === "set-reason") {
+    if (!check.isAcceptance || check.status !== "failed") throw new Error("只有不通過的 [acceptance] 可以選擇原因。");
+    if (!REJECT_REASONS.includes(command.value)) throw new Error("原因只能是實作不符或條件不符。");
+    check.rejectReason = command.value;
+  } else {
+    throw new Error(`不支援的 Checklist command：${command.type}`);
+  }
+  item.status = itemStatus(item);
+  return document;
+}
+
+/** Keeps only the checks this panel's user can record, for 「只顯示我能操作的檢查」. */
+export function filterOperableChecks(document) {
+  return {
+    ...document,
+    items: document.items
+      .map((item) => ({ ...item, checks: item.checks.filter(isTagged) }))
+      .filter((item) => item.checks.length > 0),
+  };
+}
+
+// Revision and the saved comparison baseline belong to the session, never history.
+function normalize(document) {
+  const normalized = derive(document);
+  delete normalized.revision;
+  return normalized;
+}
+
+/*
+ * Checklist filtering and ordering.
+ *
+ * A filter decides what is on screen and nothing else: it never reaches the
+ * summary, which counts the whole document, and never reaches a save. Ordering
+ * is the other gesture — where the reader dragged the capsules — and the two do
+ * not touch each other.
+ */
+export const CHECKLIST_FILTERS = Object.freeze({
+  status: Object.freeze(["pending", "passed", "failed"]),
+});
+
+/*
+ * Filtering looks at every check, never at the work item's derived marker: that
+ * marker takes the worst state, so a card holding one failure would hide the
+ * unexecuted work still inside it.
+ *
+ * A card survives when any of its checks matches, and keeps only those checks.
+ */
+export function filterChecklistBySelection(document, selected) {
+  const keep = new Set(selected ?? []);
+  return {
+    ...document,
+    items: document.items
+      .map((item) => ({
+        ...item,
+        checks: item.checks.filter((check) => keep.has(check.status)),
+      }))
+      .filter((item) => item.checks.length > 0),
+  };
+}
+
+/*
+ * Order work items by where the reader put the capsules.
+ *
+ * 預設 marks where explicit ordering stops: the statuses to its left are
+ * grouped in that order, and everything else keeps the document's own
+ * sequence. 預設 leading therefore means "as written". Nothing is renumbered
+ * either way — an id is identity, not position.
+ */
+export function orderChecklistItems(document, capsuleOrder = []) {
+  const groupOrder = groupingOrder(capsuleOrder)
+    .filter((id) => CHECKLIST_FILTERS.status.includes(id));
+  if (groupOrder.length === 0) return document;
+  return {
+    ...document,
+    items: orderByCapsuleBoundary(document.items, groupOrder, itemStatus),
+  };
+}
+
+export function checklistFilterCategories(document) {
+  const checks = document.items.flatMap((item) => item.checks);
+  // Every status shows, including the ones at zero: a capsule set that changes
+  // with the data moves the filter under the reader's hands.
+  return CHECKLIST_FILTERS.status.map((id) => ({
+    id,
+    count: checks.filter((check) => check.status === id).length,
+  }));
+}
+
+/*
+ * A void tagged result (no recorder, changed content, or passed before a later
+ * release) counts as not recorded, so the panel edits its effective status:
+ * the marker, progress and locks all read it, and recording it again starts
+ * from an empty box. The file keeps the old marker until a result is saved.
+ */
+function effectiveDocument(source) {
+  const document = structuredClone(source);
+  document.items?.forEach((item) => item.checks?.forEach((check) => {
+    check.status = check.effectiveStatus ?? check.status;
+  }));
+  return document;
+}
+
+export function createChecklistEditorSession(source, options = {}) {
+  const document = effectiveDocument(source);
+  // The source revision follows the last saved document, not the draft: Undo can
+  // restore an older draft, and that older draft must still be written against
+  // the revision the file actually has now.
+  let persisted = structuredClone(document);
+  const transaction = createEditorTransaction(document, {
+    normalize,
+    derive,
+    historyLimit: options.historyLimit,
+  });
+
+  function snapshot() {
+    const document = structuredClone(transaction.derived);
+    document.revision = persisted.revision;
+    return Object.freeze({
+      document,
+      summary: summarizeChecklist(document),
+      dirty: transaction.dirty,
+      history: transaction.history,
+    });
+  }
+
+  function dispatch(command) {
+    const mergeKey = command.type === "set-observed"
+      ? `${command.type}:${command.workItemId}:${command.checkIndex}`
+      : "";
+    transaction.apply(command, reduce, mergeKey);
+    return snapshot();
+  }
+
+  function prepareSave() {
+    const results = [];
+    const errors = [];
+    transaction.derived.items.forEach((item) => item.checks.forEach((check) => {
+      if (!isTagged(check)) return;
+      const observed = String(check.observed ?? "").trim();
+      const savedCheck = findCheck(persisted, item.id, check.index).check;
+      const persistedObserved = String(savedCheck.observed ?? "").trim();
+      if (check.status === savedCheck.status && observed === persistedObserved
+        && (check.rejectReason ?? null) === (savedCheck.rejectReason ?? null)) return;
+      if (check.status === "failed" && !observed) {
+        errors.push({
+          code: "observed_required",
+          workItemId: item.id,
+          checkIndex: check.index,
+          message: `「${check.title}」失敗時必須填寫 Observed。`,
+        });
+        return;
+      }
+      const result = {
+        workItemId: item.id,
+        checkIndex: check.index,
+        status: check.status,
+        observed: check.status === "failed" ? observed : null,
+      };
+      if (check.isAcceptance && check.status === "failed") result.reason = check.rejectReason ?? "implementation";
+      results.push(result);
+    }));
+    if (transaction.dirty && results.length === 0 && errors.length === 0) {
+      errors.push({ code: "empty_change", message: "沒有可儲存的實機檢查結果。" });
+    }
+    return Object.freeze({
+      revision: persisted.revision,
+      results,
+      errors,
+    });
+  }
+
+  return Object.freeze({
+    snapshot,
+    dispatch,
+    prepareSave,
+    undo() { transaction.undo(); return snapshot(); },
+    redo() { transaction.redo(); return snapshot(); },
+    discard() { transaction.discard(); return snapshot(); },
+    commit(savedDocument) {
+      const next = effectiveDocument(savedDocument);
+      transaction.commit(next, { keepHistory: true });
+      persisted = next;
+      return snapshot();
+    },
+  });
+}

@@ -13,14 +13,18 @@
       content="default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self' https: http://localhost:* http://127.0.0.1:*; img-src 'self' data:; base-uri 'none'; form-action 'none'"
     />
     <title>TaskProgress Viewer</title>
-    <script src="assets/theme-bootstrap.js"></script>
     <link rel="stylesheet" href="assets/styles.css" />
     <link rel="stylesheet" href="assets/editor-presentation.css" />
     <link rel="stylesheet" href="assets/editor-time-editing.css" />
     <!-- Registers the task-list UI implementation before app.js renders. -->
-    <script type="module" src="assets/viewer-ui.js"></script>
-    <script type="module" src="assets/app.js"></script>
-  </head>
+  <link rel="stylesheet" href="./assets/web/theme/theme.css">
+<link rel="stylesheet" href="./assets/styles.css">
+<link rel="stylesheet" href="./assets/component-styles.css">
+<link rel="stylesheet" href="./assets/product.css">
+<script src="./assets/web/theme/bootstrap.js"></script>
+<script src="./assets/theme-start.js"></script>
+<script type="module" src="./assets/viewer-ui.js"></script>
+</head>
   <body>
     <a class="skip-link" href="#main-content">跳至主要內容</a>
     <div class="page-shell editor-layout-shell">

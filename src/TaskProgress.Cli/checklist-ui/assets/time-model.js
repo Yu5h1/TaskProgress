@@ -1,0 +1,395 @@
+const ID_PATTERN = /^[a-z0-9]+(?:[._-][a-z0-9]+)*$/;
+
+function isRecord(value) {
+  return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+
+function clamp(value, minimum, maximum) {
+  return Math.min(maximum, Math.max(minimum, value));
+}
+
+function localDateTimeParts(value, timeZone) {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  }).formatToParts(value);
+  const values = Object.fromEntries(
+    parts
+      .filter((part) => part.type !== "literal")
+      .map((part) => [part.type, part.value]),
+  );
+  return {
+    date: `${values.year}-${values.month}-${values.day}`,
+    minuteOfDay: Number(values.hour) * 60 + Number(values.minute),
+  };
+}
+
+function clockMinutes(value) {
+  const match = /^([01]\d|2[0-3]):([0-5]\d)$/.exec(value);
+  if (!match) throw new Error(`無效的本地時間：${value}`);
+  return Number(match[1]) * 60 + Number(match[2]);
+}
+
+export function resolveTimeAnalysisSource(
+  reportSource,
+  baseUrl,
+  explicitTimeSource = undefined,
+) {
+  if (explicitTimeSource === "none") return null;
+  if (explicitTimeSource) return new URL(explicitTimeSource, baseUrl);
+  const reportUrl = new URL(reportSource, baseUrl);
+  return new URL("time.analysis.json", reportUrl);
+}
+
+export function inspectTimeAnalysis(value, expectedScopeId) {
+  const errors = [];
+  const deadlineErrors = [];
+  if (!isRecord(value)) {
+    return {
+      errors: ["time.analysis.json 的根節點必須是物件。"],
+      deadlineAvailable: false,
+      deadlineErrors,
+    };
+  }
+  if (value.schema_version !== "0.2") errors.push("time.analysis.json schema_version 必須是 0.2。");
+  if (value.scope_id !== expectedScopeId) {
+    errors.push(`time.analysis.json scope_id 必須是 ${expectedScopeId}。`);
+  }
+  if (!isRecord(value.method)
+    || typeof value.method.name !== "string"
+    || typeof value.method.version !== "string") {
+    errors.push("time.analysis.json 缺少有效的 method。");
+  }
+  if (!isRecord(value.summary)) {
+    errors.push("time.analysis.json 缺少 summary。");
+    return { errors, deadlineAvailable: false, deadlineErrors };
+  }
+  const summary = value.summary;
+  const capacityFeasibilityMethod =
+    value.method?.name === "deterministic-capacity-feasibility"
+    && value.method?.version === "0.3";
+  for (const field of [
+    "nominal_daily_capacity_minutes",
+    "total_estimated_minutes",
+    "calibrated_total_minutes",
+  ]) {
+    if (!Number.isFinite(summary[field]) || summary[field] < 0) {
+      errors.push(`summary.${field} 必須是非負數值。`);
+    }
+  }
+  if (!isRecord(summary.execution_calibration)
+    || !Number.isFinite(summary.execution_calibration.factor)
+    || summary.execution_calibration.factor <= 0) {
+    errors.push("summary.execution_calibration.factor 必須大於零。");
+  }
+  if (capacityFeasibilityMethod
+    && (!Number.isFinite(summary.remaining_estimated_minutes)
+      || summary.remaining_estimated_minutes < 0)) {
+    errors.push("v0.3 需要有效的 summary.remaining_estimated_minutes。");
+  }
+  const deadlineAvailable = isRecord(summary.deadline);
+  if (deadlineAvailable) {
+    if (!isRecord(summary.deadline.schedule)) {
+      deadlineErrors.push("deadline.schedule 缺少或無效。");
+    } else {
+    const { deadline } = summary;
+    if (Number.isNaN(Date.parse(deadline.started_at))
+      || Number.isNaN(Date.parse(deadline.delivery_at))) {
+      deadlineErrors.push("deadline 的開始或交付時間無效。");
+    }
+    const schedule = deadline.schedule;
+    if (capacityFeasibilityMethod
+      && (!Number.isFinite(deadline.remaining_estimated_minutes)
+        || deadline.remaining_estimated_minutes < 0)) {
+      deadlineErrors.push("v0.3 期限分析缺少 remaining_estimated_minutes。");
+    }
+    if (typeof schedule.timezone !== "string"
+      || typeof schedule.workday_start_local !== "string"
+      || typeof schedule.workday_end_local !== "string"
+      || !isRecord(schedule.risk_thresholds)
+      || !Array.isArray(schedule.capacity_timeline)
+      || schedule.capacity_timeline.length === 0) {
+      deadlineErrors.push("deadline.schedule 缺少重算風險所需資料。");
+    }
+    if (schedule.capacity_profile !== undefined) {
+      const profile = schedule.capacity_profile;
+      if (!isRecord(profile)
+        || !Array.isArray(profile.working_weekdays)
+        || !Array.isArray(profile.capacity_exceptions)) {
+        deadlineErrors.push("deadline.schedule.capacity_profile 無效。");
+      }
+    }
+    }
+  }
+  if (!Array.isArray(value.tasks)) {
+    errors.push("time.analysis.json tasks 必須是陣列。");
+    return { errors, deadlineAvailable: false, deadlineErrors };
+  }
+  const taskIds = new Set();
+  const itemIds = new Set();
+  value.tasks.forEach((task, taskIndex) => {
+    if (!isRecord(task) || typeof task.task_id !== "string" || !ID_PATTERN.test(task.task_id)) {
+      errors.push(`tasks[${taskIndex}].task_id 無效。`);
+      return;
+    }
+    if (taskIds.has(task.task_id)) errors.push(`task_id「${task.task_id}」重複。`);
+    taskIds.add(task.task_id);
+    if (!Number.isFinite(task.total_likely_minutes) || !Array.isArray(task.items)) {
+      errors.push(`tasks[${taskIndex}] 缺少工時或 items。`);
+      return;
+    }
+    task.items.forEach((item, itemIndex) => {
+      if (!isRecord(item)
+        || typeof item.item_id !== "string"
+        || !ID_PATTERN.test(item.item_id)
+        || (!isUnsetEstimate(item) && (!Number.isFinite(item.likely_minutes)
+          || !Number.isFinite(item.display_hours)))) {
+        errors.push(`tasks[${taskIndex}].items[${itemIndex}] 無效。`);
+        return;
+      }
+      if (itemIds.has(item.item_id)) errors.push(`item_id「${item.item_id}」重複。`);
+      itemIds.add(item.item_id);
+    });
+  });
+  return {
+    errors,
+    deadlineAvailable: deadlineAvailable && deadlineErrors.length === 0,
+    deadlineErrors,
+  };
+}
+
+export function validateTimeAnalysis(value, expectedScopeId) {
+  const result = inspectTimeAnalysis(value, expectedScopeId);
+  return [...result.errors, ...result.deadlineErrors];
+}
+
+export function calculateDeadlineRisk(deadline, nowValue = new Date()) {
+  const now = new Date(nowValue);
+  if (Number.isNaN(now.getTime())) throw new Error("目前時間無效。");
+  const deliveryAt = new Date(deadline.delivery_at);
+  const startedAt = new Date(deadline.started_at);
+  if (Number.isNaN(deliveryAt.getTime()) || Number.isNaN(startedAt.getTime())) {
+    throw new Error("開始或交付時間無效。");
+  }
+
+  const schedule = deadline.schedule;
+  const timeline = schedule.capacity_timeline;
+  if (!Array.isArray(timeline) || timeline.length === 0) {
+    throw new Error("期限前容量時間線不可為空。");
+  }
+  const dates = new Set();
+  timeline.forEach((day) => {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(day.date)) {
+      throw new Error(`容量日期無效：${day.date}`);
+    }
+    if (dates.has(day.date)) throw new Error(`容量日期重複：${day.date}`);
+    dates.add(day.date);
+    if (!Number.isInteger(day.capacity_minutes) || day.capacity_minutes < 0) {
+      throw new Error(`每日容量無效：${day.date}`);
+    }
+  });
+  const totalCapacityMinutes = timeline.reduce(
+    (total, day) => total + day.capacity_minutes,
+    0,
+  );
+  if (!(totalCapacityMinutes > 0)) throw new Error("期限前總容量必須大於零。");
+
+  const rawWorkProgressRatio = Number(deadline.work_progress_ratio);
+  if (!Number.isFinite(rawWorkProgressRatio)) throw new Error("工作進度必須是有效數值。");
+  const workProgressRatio = clamp(rawWorkProgressRatio, 0, 1);
+  const startMinute = clockMinutes(schedule.workday_start_local);
+  const endMinute = clockMinutes(schedule.workday_end_local);
+  if (endMinute <= startMinute) throw new Error("每日工作結束時間必須晚於開始時間。");
+
+  let elapsedCapacityMinutes = 0;
+  if (now >= deliveryAt) {
+    elapsedCapacityMinutes = totalCapacityMinutes;
+  } else if (now > startedAt) {
+    const localNow = localDateTimeParts(now, schedule.timezone);
+    timeline.forEach((day) => {
+      if (day.date < localNow.date) {
+        elapsedCapacityMinutes += day.capacity_minutes;
+      } else if (day.date === localNow.date) {
+        const fraction = clamp(
+          (localNow.minuteOfDay - startMinute) / (endMinute - startMinute),
+          0,
+          1,
+        );
+        elapsedCapacityMinutes += day.capacity_minutes * fraction;
+      }
+    });
+  }
+
+  elapsedCapacityMinutes = Math.round(
+    clamp(elapsedCapacityMinutes, 0, totalCapacityMinutes),
+  );
+  const timeProgressRatio = elapsedCapacityMinutes / totalCapacityMinutes;
+  const evaluatedAt = now.toISOString();
+  const remainingEstimatedValue = Number(deadline.remaining_estimated_minutes);
+  const capacityAware =
+    Number.isFinite(remainingEstimatedValue) && remainingEstimatedValue >= 0;
+  const remainingEstimatedMinutes = capacityAware ? remainingEstimatedValue : null;
+  const capacityMetrics = (elapsedMinutes) => {
+    const remainingCapacityMinutes = Math.max(
+      0,
+      totalCapacityMinutes - elapsedMinutes,
+    );
+    if (!capacityAware) return { remaining_capacity_minutes: remainingCapacityMinutes };
+    const capacityBalanceMinutes =
+      remainingCapacityMinutes - remainingEstimatedMinutes;
+    return {
+      remaining_capacity_minutes: remainingCapacityMinutes,
+      remaining_estimated_minutes: remainingEstimatedMinutes,
+      capacity_balance_minutes: capacityBalanceMinutes,
+      ...(remainingCapacityMinutes > 0
+        ? {
+          feasibility_ratio:
+            remainingEstimatedMinutes / remainingCapacityMinutes,
+        }
+        : {}),
+    };
+  };
+
+  if (workProgressRatio >= 1
+    || (capacityAware && remainingEstimatedMinutes <= 0)) {
+    return {
+      evaluated_at: evaluatedAt,
+      elapsed_capacity_minutes: elapsedCapacityMinutes,
+      total_capacity_minutes: totalCapacityMinutes,
+      ...capacityMetrics(elapsedCapacityMinutes),
+      time_progress_ratio: timeProgressRatio,
+      work_progress_ratio: workProgressRatio,
+      progress_pressure_ratio: 0,
+      boundary_state: "complete",
+      urgency: "complete",
+      ...(capacityAware ? { risk_basis: "complete" } : {}),
+    };
+  }
+  if (now >= deliveryAt) {
+    return {
+      evaluated_at: evaluatedAt,
+      elapsed_capacity_minutes: totalCapacityMinutes,
+      total_capacity_minutes: totalCapacityMinutes,
+      ...capacityMetrics(totalCapacityMinutes),
+      time_progress_ratio: 1,
+      work_progress_ratio: workProgressRatio,
+      boundary_state: "delivery_reached",
+      urgency: "critical",
+      ...(capacityAware ? { risk_basis: "boundary" } : {}),
+    };
+  }
+  if (timeProgressRatio >= 1) {
+    return {
+      evaluated_at: evaluatedAt,
+      elapsed_capacity_minutes: totalCapacityMinutes,
+      total_capacity_minutes: totalCapacityMinutes,
+      ...capacityMetrics(totalCapacityMinutes),
+      time_progress_ratio: 1,
+      work_progress_ratio: workProgressRatio,
+      boundary_state: "capacity_exhausted",
+      urgency: "critical",
+      ...(capacityAware ? { risk_basis: "boundary" } : {}),
+    };
+  }
+
+  const progressPressureRatio = (1 - workProgressRatio) / (1 - timeProgressRatio);
+  const thresholds = schedule.risk_thresholds;
+  if (!isRecord(thresholds)
+    || !Number.isFinite(thresholds.on_track_max)
+    || !Number.isFinite(thresholds.at_risk_max)
+    || thresholds.on_track_max <= 0
+    || thresholds.at_risk_max < thresholds.on_track_max) {
+    throw new Error("風險門檻無效。");
+  }
+  const progressUrgency = progressPressureRatio <= thresholds.on_track_max
+    ? "on_track"
+    : progressPressureRatio <= thresholds.at_risk_max
+      ? "at_risk"
+      : "critical";
+  const metrics = capacityMetrics(elapsedCapacityMinutes);
+  const capacityAtRiskRatio = Number.isFinite(thresholds.capacity_at_risk_ratio)
+    ? thresholds.capacity_at_risk_ratio
+    : 0.8;
+  let urgency = progressUrgency;
+  let riskBasis = "progress_pressure";
+  if (capacityAware && metrics.capacity_balance_minutes < 0) {
+    urgency = "critical";
+    riskBasis = "capacity_shortfall";
+  } else if (capacityAware
+    && metrics.feasibility_ratio > capacityAtRiskRatio
+    && progressUrgency === "on_track") {
+    urgency = "at_risk";
+    riskBasis = "capacity_tight";
+  }
+  return {
+    evaluated_at: evaluatedAt,
+    elapsed_capacity_minutes: elapsedCapacityMinutes,
+    total_capacity_minutes: totalCapacityMinutes,
+    ...metrics,
+    time_progress_ratio: timeProgressRatio,
+    work_progress_ratio: workProgressRatio,
+    progress_pressure_ratio: progressPressureRatio,
+    boundary_state: "active",
+    urgency,
+    ...(capacityAware ? { risk_basis: riskBasis } : {}),
+  };
+}
+
+/*
+ * An item the analyzer had no active estimate for is *unset*, not estimated
+ * at 8 hours. The analyzer still substitutes its configured default and marks
+ * the entry `mode: "default"`, so that marker is what identifies an item
+ * nobody has actually estimated.
+ *
+ * Substituting a default is worse than substituting zero: zero at least reads
+ * as visibly low, while a default produces a complete-looking figure with
+ * nothing behind it. Measured on this repository when the rule was written,
+ * every one of 113 items was `default` and the Viewer presented the result as
+ * 約需 88 hr, indistinguishable from a real estimate.
+ */
+export function isUnsetEstimate(item) {
+  return item?.mode === "default";
+}
+
+/*
+ * The index carries only estimates someone actually made. Task totals are
+ * recomputed from the surviving items rather than trusting
+ * `total_likely_minutes`, which the analyzer computed with the substituted
+ * defaults included.
+ *
+ * `coverage` is per level and not all-or-nothing: a task with some estimated
+ * items reports the sum of those and `partial`, because that is real data
+ * merely incomplete. Only when every item is unset does a task have nothing
+ * to show, and then it shows nothing at all rather than a placeholder.
+ */
+export function createTimeIndex(analysis) {
+  const tasks = new Map();
+  const items = new Map();
+  /*
+   * Every item, estimated or not. `items` drives display and rollup and must
+   * stay estimated-only; this map exists so an unset item can still be opened
+   * — the `-hr` marker is an entry point, and an entry point whose subject
+   * cannot be looked up leads nowhere.
+   */
+  const allItems = new Map();
+  analysis.tasks.forEach((task) => {
+    task.items.forEach((item) => allItems.set(item.item_id, item));
+    const estimated = task.items.filter((item) => !isUnsetEstimate(item));
+    estimated.forEach((item) => items.set(item.item_id, item));
+    tasks.set(task.task_id, {
+      ...task,
+      total_likely_minutes: estimated.reduce((sum, item) => sum + item.likely_minutes, 0),
+      estimated_item_count: estimated.length,
+      item_count: task.items.length,
+      coverage: estimated.length === 0
+        ? "none"
+        : (estimated.length === task.items.length ? "complete" : "partial"),
+    });
+  });
+  return { tasks, items, allItems };
+}

@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
+import { loadTemplates } from "./helpers/web-ui-template.mjs";
 
 import { installForegroundRefresh } from "../viewer/assets/foreground-refresh.js";
 
@@ -106,26 +107,17 @@ test("disposing the lifecycle prevents an already scheduled reload", () => {
 });
 
 test("Report and Checklist Browser wire the shared lifecycle at host boundaries", async () => {
-  const [report, checklistBrowser, checklistDesktop, checklistApp] = await Promise.all([
-    readFile(new URL("../viewer/assets/app.js", import.meta.url), "utf8"),
-    readFile(new URL("../experiments/editor-svelte-spike/src/checklist-browser-main.js", import.meta.url), "utf8"),
-    readFile(new URL("../experiments/editor-svelte-spike/src/checklist-main.js", import.meta.url), "utf8"),
-    readFile(new URL("../experiments/editor-svelte-spike/src/ChecklistApp.svelte", import.meta.url), "utf8"),
+  const [report, checklist] = await Promise.all([
+    readFile(new URL('../viewer/assets/app.js', import.meta.url), 'utf8'),
+    readFile(new URL('../ui/web-workflow/checklist.mjs', import.meta.url), 'utf8'),
   ]);
-
-  assert.match(report, /import \{ installForegroundRefresh \} from "\.\/foreground-refresh\.js"/u);
-  for (const guard of ["dirty", "saving", "pending", "previewing", "timeSettingsPending", "confirmingDeliverySave"]) {
-    assert.match(report, new RegExp(`!state\\.editor(?:\\.persistenceView\\?)?\\.${guard}`, "u"));
+  assert.match(report, /installForegroundRefresh/u);
+  for (const guard of ['dirty', 'saving', 'pending', 'previewing', 'timeSettingsPending', 'confirmingDeliverySave']) {
+    assert.match(report, new RegExp(`!state\\.editor(?:\\.persistenceView\\?)?\\.${guard}`, 'u'));
   }
-
-  assert.match(checklistBrowser, /import \{ installForegroundRefresh \}/u);
-  assert.match(checklistBrowser, /onPersistenceChange/u);
-  for (const guard of ["dirty", "saving", "pending"]) {
-    assert.match(checklistBrowser, new RegExp(`!persistenceView\\?\\.${guard}`, "u"));
-  }
-  assert.doesNotMatch(checklistDesktop, /installForegroundRefresh/u);
-  assert.match(checklistApp, /export let onPersistenceChange = \(\) => \{\}/u);
-  assert.match(checklistApp, /\$: onPersistenceChange\(view \? \{ \.\.\.view, pending: view\.pending \|\| resetOpen \|\| resetBusy \} : view\)/u);
+  assert.match(checklist, /installForegroundRefresh\(\{ canRefresh: \(\) => this\.canRefresh\(\)/u);
+  for (const guard of ['dirty', 'saving', 'pending']) assert.ok(checklist.includes(`!this.data.${guard}`));
+  assert.ok(checklist.includes('!this.resetOpen && !this.resetBusy'));
 });
 
 test("sequential leave and return cycles continue to refresh", () => {
@@ -214,70 +206,51 @@ test("async reload rejection restores refreshing state in finally so subsequent 
 });
 
 test("Checklist refresh guards against in-flight draft creation and state changes", async () => {
-  const checklistApp = await readFile(
-    new URL("../experiments/editor-svelte-spike/src/ChecklistApp.svelte", import.meta.url),
-    "utf8"
-  );
-
-  // Verifies that refresh captures initial session identity and revision
-  assert.match(checklistApp, /const initialPersistence = persistence/u);
-  assert.match(checklistApp, /const initialRevision = view\?\.document\?\.revision/u);
-
-  // Verifies that refresh checks session identity, revision, dirty, saving, pending, reset before applying
-  assert.match(checklistApp, /persistence !== initialPersistence/u);
-  assert.match(checklistApp, /view\.document\?\.revision !== initialRevision/u);
-  assert.match(checklistApp, /view\.dirty \|\| view\.saving \|\| view\.pending \|\| resetOpen \|\| resetBusy/u);
+  const source = await readFile(new URL('../ui/web-workflow/checklist.mjs', import.meta.url), 'utf8');
+  assert.match(source, /const initial = this\.persistence, revision = this\.data\.document\.revision/u);
+  assert.match(source, /!this\.canRefresh\(\) \|\| this\.persistence !== initial \|\| this\.data\.document\.revision !== revision/u);
 });
 
-test("Checklist in-flight draft scenario preserves user draft when load returns different revision", async () => {
-  let installedDocument = null;
-  let view = {
-    document: { revision: "rev-1" },
-    dirty: false,
-    saving: false,
-    pending: false,
-  };
-  let persistence = { id: "session-1" };
-  let resetOpen = false;
-  let resetBusy = false;
-
-  let resolveLoad = null;
-  const transport = {
-    load: () => new Promise((resolve) => {
-      resolveLoad = resolve;
-    }),
-  };
-
-  async function simulatedRefresh() {
-    if (!transport || !view || view.dirty || view.saving || view.pending || resetOpen || resetBusy) return;
-    const initialPersistence = persistence;
-    const initialRevision = view?.document?.revision;
-    try {
-      const document = await transport.load();
-      if (!document || !document.revision) return;
-      if (!persistence || persistence !== initialPersistence || !view) return;
-      if (view.document?.revision !== initialRevision) return;
-      if (view.dirty || view.saving || view.pending || resetOpen || resetBusy) return;
-      if (document.revision === initialRevision) return;
-      installedDocument = document;
-    } catch {
-      // ignore
-    }
+test("Checklist late refresh preserves a draft, replaced session, or changed revision", async () => {
+  const { Checklist } = await loadTemplates('checklist');
+  for (const interfere of [
+    app => { app.data.dirty = true; },
+    app => { app.data.saving = true; },
+    app => { app.data.pending = true; },
+    app => { app.resetOpen = true; },
+    app => { app.resetBusy = true; },
+    app => { app.disposed = true; },
+    app => { app.persistence = {}; },
+    app => { app.data.document.revision = 'local-new'; },
+  ]) {
+    let resolveLoad, installed = false;
+    const app = Object.assign(Object.create(Checklist.prototype), {
+      data: { document: { revision: 'baseline' } }, persistence: {},
+      transport: { load: () => new Promise(resolve => { resolveLoad = resolve; }) },
+      install() { installed = true; }, draw() {},
+    });
+    const pending = app.refreshSource();
+    interfere(app);
+    resolveLoad({ revision: 'remote-new' });
+    await pending;
+    assert.equal(installed, false, interfere.toString());
   }
+});
 
-  // 1. Start refresh when clean
-  const refreshPromise = simulatedRefresh();
-
-  // 2. While load is in-flight, user edits and creates a draft
-  view.dirty = true;
-
-  // 3. Load returns with a new remote revision
-  resolveLoad({ revision: "rev-2", items: [] });
-  await refreshPromise;
-
-  // 4. In-flight response must be discarded; draft not overwritten!
-  assert.equal(installedDocument, null, "In-flight response must not install new document over user draft");
-  assert.equal(view.dirty, true, "User draft state must be preserved");
+test("Checklist clean refresh installs a new revision and preserves cautious mode", async () => {
+  const { Checklist } = await loadTemplates('checklist');
+  for (const revision of ['baseline', 'remote-new']) {
+    const events = [];
+    const app = Object.assign(Object.create(Checklist.prototype), {
+      data: { document: { revision: 'baseline' }, cautious: true },
+      persistence: { async setCautious(value) { events.push(value); } },
+      transport: { load: async () => ({ revision }) },
+      install(document) { events.push(document.revision); },
+      draw() {},
+    });
+    await app.refreshSource();
+    assert.deepEqual(events, revision === 'baseline' ? [] : ['remote-new', true]);
+  }
 });
 
 

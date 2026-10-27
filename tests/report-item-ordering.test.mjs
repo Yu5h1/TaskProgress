@@ -1,25 +1,11 @@
 // Render the real shared card so an unconnected sorting helper cannot pass these checks.
 import assert from "node:assert/strict";
-import test, { before, after } from "node:test";
-import { fileURLToPath } from "node:url";
-import { createServer } from "vite";
-import { svelte } from "@sveltejs/vite-plugin-svelte";
+import test from "node:test";
+import { loadTemplates, markup, view } from "./helpers/web-ui-template.mjs";
 import { createReportEditorAdapter } from "../viewer/assets/report-editor-adapter.js";
 import "../viewer/assets/priority-policy.js";
 
-let server;
-let TaskCard;
-let render;
-before(async () => {
-  server = await createServer({
-    configFile: false, plugins: [svelte()],
-    resolve: { alias: { "@editor": fileURLToPath(new URL("../viewer/assets", import.meta.url)) } },
-    server: { middlewareMode: true, watch: null },
-  });
-  TaskCard = (await server.ssrLoadModule("/experiments/editor-svelte-spike/src/TaskCard.svelte")).default;
-  ({ render } = await server.ssrLoadModule("svelte/server"));
-});
-after(async () => { await server?.close(); });
+const { taskCard } = await loadTemplates("viewer");
 
 function fixture() {
   return {
@@ -40,10 +26,8 @@ function fixture() {
 }
 
 function card(task, editing = true) {
-  return render(TaskCard, { props: {
-    task, editing, progress: { completed: 2, total: 5 },
-    policy: globalThis.TaskProgressPriorityPolicy, onCommand() {}, onAddItem() {},
-  } }).body;
+  return markup(taskCard({ editing, progress: { [task.id]: { completed: 2, total: 5 } },
+    policy: globalThis.TaskProgressPriorityPolicy, onCommand() {}, onAddItem() {} }, view(), task, {}));
 }
 
 function assertOrder(html, titles) {

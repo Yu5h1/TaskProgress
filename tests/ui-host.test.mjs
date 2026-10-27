@@ -114,58 +114,23 @@ test("the contract stays narrow: data in, callbacks out, no DOM crossing back", 
 // repository cannot verify, and a missing bundle takes the whole report down
 // rather than degrading it — createUiView throws, and showFatal replaces the
 // page. Keep the bundle flat.
-test("the preview bundle ships flat inside viewer/assets", async () => {
-  const [html, config, bundle] = await Promise.all([
-    readFile(new URL("../viewer/index.html", import.meta.url), "utf8"),
-    readFile(
-      new URL("../experiments/editor-svelte-spike/vite.viewer-ui.config.js", import.meta.url),
-      "utf8",
-    ),
-    readFile(new URL("../viewer/assets/viewer-ui.js", import.meta.url), "utf8"),
-  ]);
-
-  assert.match(html, /src="assets\/viewer-ui\.js"/);
-  assert.doesNotMatch(html, /assets\/[a-z-]+\/viewer-ui\.js/);
-  assert.match(config, /outDir: fileURLToPath\(new URL\("\.\.\/\.\.\/viewer\/assets"/);
-  // True would delete every hand-written source in viewer/assets.
-  assert.match(config, /emptyOutDir: false/);
-  // The host stays external and resolves as a sibling, not a parent.
-  assert.match(bundle, /from "\.\/ui-host\.js"/);
-
-  // Registration must run before app.js asks for a view.
-  const bundleIndex = html.indexOf("assets/viewer-ui.js");
-  const appIndex = html.indexOf("assets/app.js");
-  assert.ok(bundleIndex >= 0 && appIndex > bundleIndex);
+test("the product adapter registers before the host starts creating views", async () => {
+  const entry = await readFile(new URL('../ui/web-workflow/viewer-entry.mjs', import.meta.url), 'utf8');
+  assert.ok(entry.indexOf("import './viewer.mjs'") < entry.indexOf("await import('@taskprogress/app.js')"));
+  const html = await readFile(new URL('../viewer/index.html', import.meta.url), 'utf8');
+  assert.match(html, /demo\.js/u);
+  assert.doesNotMatch(html, /viewer-ui\.js/u);
 });
 
-test("the Svelte adapter implements the contract and keeps framework detail inside", async () => {
-  const source = await readFile(
-    new URL("../experiments/editor-svelte-spike/src/viewer-adapter.svelte.js", import.meta.url),
-    "utf8",
-  );
-  assert.match(source, /id:\s*"svelte"/);
-  assert.match(source, /regions: Object\.keys\(components\)/);
-  // Every preview region the Viewer mounts must be declared here.
-  for (const region of [
-    "task-list", "status-overview", "status-filters", "project-progress",
-    "mode-toggle", "save-bar", "add-control", "diagnostics", "scope-directory",
-    "theme-control", "time-summary-button", "time-dialog", "cost-dialog", "report-summary",
-    "delivery-save-confirmation",
-  ]) {
-    assert.match(source, new RegExp(`"${region}":`, "u"));
-  }
-  assert.match(source, /mount\(region, target, props\)/);
-  assert.match(source, /update\(instance, props\)/);
-  assert.match(source, /destroy\(instance\)/);
-  assert.match(source, /from "svelte"/);
-
-  // Registration happens in the preview entry, not in the host.
-  const entry = await readFile(
-    new URL("../experiments/editor-svelte-spike/src/viewer-ui.js", import.meta.url),
-    "utf8",
-  );
-  assert.match(entry, /registerUiAdapter\(svelteViewerAdapter\)/);
-
-  const host = await readFile(new URL("../viewer/assets/ui-host.js", import.meta.url), "utf8");
-  assert.doesNotMatch(host, /svelte/i);
+test("the product adapter implements the narrow host contract", async () => {
+  const source = await readFile(new URL('../ui/web-workflow/viewer.mjs', import.meta.url), 'utf8');
+  assert.match(source, /id: 'yu5h1-web-ui-workflow'/u);
+  assert.match(source, /regions: Object\.keys\(templates\)/u);
+  for (const region of ['task-list', 'status-overview', 'status-filters', 'project-progress', 'mode-toggle', 'save-bar', 'add-control', 'diagnostics', 'scope-directory', 'theme-control', 'time-summary-button', 'time-dialog', 'cost-dialog', 'report-summary', 'delivery-save-confirmation']) assert.ok(source.includes(`'${region}':`));
+  assert.match(source, /mount\(region, target, props\)/u);
+  assert.match(source, /update\(instance, props\)/u);
+  assert.match(source, /destroy\(instance\)/u);
+  assert.match(source, /registerUiAdapter\(webViewerAdapter\)/u);
+  const host = await readFile(new URL('../viewer/assets/ui-host.js', import.meta.url), 'utf8');
+  assert.doesNotMatch(host, /from ['"]lit|@web\/ui/u);
 });

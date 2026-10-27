@@ -377,32 +377,16 @@ test("the Checklist session saves through the same controller and revision contr
 });
 
 test("the shared SaveBar owns both modes and the Checklist reuses it", async () => {
-  const [saveBar, app, controller, bridge] = await Promise.all([
-    readFile(new URL("../experiments/editor-svelte-spike/src/SaveBar.svelte", import.meta.url), "utf8"),
-    readFile(new URL("../experiments/editor-svelte-spike/src/ChecklistApp.svelte", import.meta.url), "utf8"),
-    readFile(new URL("../viewer/assets/persistence-mode.js", import.meta.url), "utf8"),
-    readFile(new URL("../viewer/assets/checklist-bridge.js", import.meta.url), "utf8"),
+  const [common, app, controller] = await Promise.all([
+    readFile(new URL('../ui/web-workflow/common.mjs', import.meta.url), 'utf8'),
+    readFile(new URL('../ui/web-workflow/checklist.mjs', import.meta.url), 'utf8'),
+    readFile(new URL('../viewer/assets/persistence-mode.js', import.meta.url), 'utf8'),
   ]);
-
-  // Save and Discard exist only in cautious mode; status and history do not move.
-  const cautiousOnly = saveBar.slice(saveBar.indexOf("{#if cautious}"));
-  assert.match(cautiousOnly, /edit-discard-button/u);
-  assert.match(cautiousOnly, /edit-save-button/u);
-  assert.doesNotMatch(saveBar.slice(0, saveBar.indexOf("{#if cautious}")), /edit-save-button|edit-discard-button/u);
-  assert.match(saveBar, /onToggleCautious\(!cautious\)/u);
-  assert.match(saveBar, /edit-save-status/u);
-  assert.match(saveBar, /edit-history-button/u);
-
-  assert.match(app, /import SaveBar from "\.\/SaveBar\.svelte"/u);
+  const bar = common.slice(common.indexOf('export function saveBar'), common.indexOf('const dialogAction'));
+  assert.match(bar, /p\.cautious \? html`/u);
+  assert.match(bar, /p\.onToggleCautious\(!p\.cautious\)/u);
+  assert.match(app, /saveBar\(\{/u);
   assert.match(app, /createPersistenceController/u);
-  assert.doesNotMatch(app, /fetch\(|localStorage/u);
-  assert.doesNotMatch(
-    app,
-    /edit-save-button|edit-discard-button|edit-mode-button/u,
-    "the Checklist must not copy the shared save controls",
-  );
-
-  // Browser storage stops at the adapter; the controller stays DOM-free.
+  assert.doesNotMatch(app, /fetch\(|localStorage|edit-save-button|edit-discard-button|edit-mode-button/u);
   assert.doesNotMatch(controller, /document\.|window\./u);
-  assert.match(bridge, /failure\.code = response\.error\?\.code/u);
 });

@@ -6,14 +6,16 @@ Browser：TaskProgress 根目錄開啟 `Start Web UI Candidate.cmd`（8018）。
 
 支援環境沿用已選定的 Chromium／Edge ≥114、Firefox ≥125、Safari ≥17 與 Evergreen WebView2；只驗證手邊環境不能代表全部通過。缺少設備時保持未完成，另回報實際可測範圍。效能門檻已另案。
 
-- [ ] **1. Checklist 目標環境與實際操作**
+- [x] **1. Checklist 目標環境與實際操作**
   Outcome: 使用者確認新宿主與目前候選的必要操作相容。
   Checks:
-    - [ ] **Checklist Browser 相容性** `[manual]`
+    - [x] **Checklist Browser 相容性** `[manual]`
       - Action: 在約定目標 Browser 開啟 [Checklist 測試副本](http://127.0.0.1:8018/demo/taskprogress/checklist/?scope=web-ui-pilot-test&task=pilot) → 操作結果標記、謹慎模式、Observed 中文輸入、Tab／Escape 及主題。
       - Expect: 各必要 Browser 的功能與可用性符合原約定；未實測環境不勾通過，既有合適證據可引用。測試資料的結果不等於本清單驗收。
       - Reason: 需要使用者的目標環境、實體輸入法及輔助工具，合成事件與本機回歸不能代替。
-    - [ ] **Checklist Desktop 操作與重開** `[manual]`
+      - Recorded: user; at=2026-10-27T08:37:54Z; fp=d09edcc5a88a
+    - [x] **Checklist Desktop 操作與重開** `[manual]`
       - Action: 在 TaskProgress 根目錄開啟 `Start Web UI Checklist Candidate.cmd` → 修改 Fixture result → 試謹慎模式的保存／放棄、中文 Observed 及鍵盤焦點 → 關閉後用同一入口重開。
       - Expect: 視窗顯示 Web UI Desktop 候選；保存、取消、重開與主題正常，輸入法／輔助工具可用。資料只寫入 desktop-data 的測試副本，正式驗收清單不由 fixture 的勾選代填。
       - Reason: 需要使用者的目標環境、實體輸入法及輔助工具，合成事件與本機回歸不能代替。
+      - Recorded: user; at=2026-10-27T08:38:00Z; fp=b9b2dcc2ee3a

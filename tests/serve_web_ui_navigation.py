@@ -6,6 +6,8 @@ from pathlib import Path
 import uvicorn
 from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.routing import APIRoute
+from starlette.staticfiles import StaticFiles
+from starlette.routing import Mount
 
 ROOT = Path(__file__).resolve().parents[1]
 spec = importlib.util.spec_from_file_location('candidate_pilot', ROOT / 'scripts/web_ui_pilot.py')
@@ -31,6 +33,9 @@ def create_check_app(data_root):
     # Exact checks must precede the candidate's catch-all static mount.
     app.router.routes.insert(0, APIRoute('/__candidate-navigation.html', page, methods=['GET']))
     app.router.routes.insert(0, APIRoute('/__candidate-navigation.mjs', script, methods=['GET']))
+    # Comparison-only archive. It is never copied into the current delivery.
+    baseline = ROOT / 'bin/Migration/SvelteRetirement/rollback-ca05a3f/viewer'
+    app.router.routes.insert(0, Mount('/__svelte-baseline', StaticFiles(directory=baseline)))
     return app
 
 

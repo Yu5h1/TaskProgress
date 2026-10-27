@@ -3,8 +3,311 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-10-27T07:15:37.055395+00:00",
+  "updated_at": "2026-10-27T09:23:04.914057+00:00",
   "tasks": [
+    {
+      "priority": 1,
+      "status": "done",
+      "title": "Svelte 退役與 Web UI Workflow 正式接管",
+      "completed_items": [],
+      "pending_items": [
+        {
+          "status": "planned",
+          "title": "人工驗收 Web UI Workflow 試點：Viewer／Checklist／Decision；[Web 遷移驗收](http://127.0.0.1:8001/?scope=yu5h1lib-web&pin=taskprogress-web-ui-migration)",
+          "document_ref": {
+            "scope_id": "task-progress",
+            "kind": "checklist",
+            "task": "viewer-web-ui-pilot-manual"
+          },
+          "id": "web-ui-pilot-manual",
+          "priority": 1,
+          "activity": [
+            {
+              "event": "created",
+              "actor": "codex",
+              "at": "2026-10-26T12:23:38.343492+00:00",
+              "session": "TaskProgress 無 Svelte 副刻",
+              "session_id": "6390111e-2331-485b-a016-8e9a724b7730"
+            },
+            {
+              "event": "updated",
+              "actor": "codex",
+              "at": "2026-10-26T12:53:25.305535+00:00",
+              "session": "TaskProgress 無 Svelte 副刻",
+              "session_id": "6390111e-2331-485b-a016-8e9a724b7730"
+            },
+            {
+              "event": "updated",
+              "actor": "codex",
+              "at": "2026-10-26T12:59:54.225816+00:00",
+              "session": "TaskProgress 無 Svelte 副刻",
+              "session_id": "6390111e-2331-485b-a016-8e9a724b7730",
+              "note": "Moved viewer-core -> svelte-retirement; CLI does not support cross-card moves."
+            }
+          ]
+        },
+        {
+          "title": "將產品 adapter 納入 TaskProgress 正式建置",
+          "status": "planned",
+          "waits_for": [
+            {
+              "scope_id": "task-progress",
+              "task_id": "svelte-retirement",
+              "item_id": "web-ui-pilot-manual",
+              "strict": true
+            },
+            {
+              "scope_id": "task-progress",
+              "task_id": "web-ui-replacement",
+              "item_id": "web-ui-browser-pilot",
+              "strict": true
+            }
+          ],
+          "id": "production-build",
+          "priority": 1,
+          "activity": [
+            {
+              "event": "created",
+              "actor": "codex",
+              "at": "2026-10-26T13:01:16.695127+00:00",
+              "session": "TaskProgress 無 Svelte 副刻",
+              "session_id": "6390111e-2331-485b-a016-8e9a724b7730"
+            },
+            {
+              "event": "updated",
+              "actor": "codex",
+              "at": "2026-10-26T14:12:12.378073+00:00",
+              "session": "TaskProgress 無 Svelte 副刻",
+              "session_id": "6390111e-2331-485b-a016-8e9a724b7730"
+            },
+            {
+              "event": "updated",
+              "actor": "codex",
+              "at": "2026-10-26T14:12:31.562486+00:00",
+              "session": "TaskProgress 無 Svelte 副刻",
+              "session_id": "6390111e-2331-485b-a016-8e9a724b7730",
+              "note": "Bind existing production-build checklist; CLI does not support changing document_ref on existing entries."
+            },
+            {
+              "event": "started",
+              "actor": "codex",
+              "at": "2026-10-26T14:12:53.089519+00:00",
+              "session": "TaskProgress 無 Svelte 副刻",
+              "session_id": "6390111e-2331-485b-a016-8e9a724b7730"
+            },
+            {
+              "event": "released",
+              "actor": "codex",
+              "at": "2026-10-26T14:24:54.124794+00:00",
+              "session": "TaskProgress 無 Svelte 副刻",
+              "session_id": "6390111e-2331-485b-a016-8e9a724b7730"
+            }
+          ],
+          "document_ref": {
+            "kind": "checklist",
+            "scope_id": "task-progress",
+            "task": "svelte-retirement-build"
+          }
+        },
+        {
+          "title": "接管全部 Browser／Desktop 入口並驗收功能、保存與必要環境",
+          "status": "planned",
+          "waits_for": [
+            {
+              "scope_id": "task-progress",
+              "task_id": "svelte-retirement",
+              "item_id": "production-build",
+              "strict": true
+            }
+          ],
+          "id": "all-entry-replacement",
+          "priority": 1,
+          "activity": [
+            {
+              "event": "created",
+              "actor": "codex",
+              "at": "2026-10-26T13:01:16.695127+00:00",
+              "session": "TaskProgress 無 Svelte 副刻",
+              "session_id": "6390111e-2331-485b-a016-8e9a724b7730"
+            },
+            {
+              "event": "updated",
+              "actor": "codex",
+              "at": "2026-10-26T14:12:12.378073+00:00",
+              "session": "TaskProgress 無 Svelte 副刻",
+              "session_id": "6390111e-2331-485b-a016-8e9a724b7730"
+            },
+            {
+              "event": "updated",
+              "actor": "codex",
+              "at": "2026-10-27T06:41:40.208993+00:00",
+              "session": "TaskProgress retirement conditions",
+              "session_id": "01a0d3c0-178f-7463-a65b-21c8bbe2676f"
+            },
+            {
+              "event": "updated",
+              "actor": "codex",
+              "session": "TaskProgress retirement conditions",
+              "session_id": "01a0d3c0-178f-7463-a65b-21c8bbe2676f",
+              "at": "2026-10-27T06:41:59.362382+00:00",
+              "note": "Bind retirement checklist to existing item; CLI does not support existing document_ref changes."
+            },
+            {
+              "event": "started",
+              "actor": "codex",
+              "at": "2026-10-27T06:58:03.063913+00:00",
+              "session": "Web UI all-entry adoption",
+              "session_id": "01a0d3c0-178f-7463-a65b-21c8bbe2676f"
+            },
+            {
+              "event": "released",
+              "actor": "codex",
+              "at": "2026-10-27T07:15:37.055395+00:00",
+              "session": "Web UI all-entry adoption",
+              "session_id": "01a0d3c0-178f-7463-a65b-21c8bbe2676f"
+            }
+          ],
+          "document_ref": {
+            "kind": "checklist",
+            "scope_id": "task-progress",
+            "task": "svelte-retirement-entries"
+          }
+        },
+        {
+          "title": "完成正式發布回歸、移除 Svelte 並結案",
+          "status": "planned",
+          "waits_for": [
+            {
+              "item_id": "all-entry-replacement",
+              "scope_id": "task-progress",
+              "task_id": "svelte-retirement",
+              "strict": true
+            }
+          ],
+          "id": "release-validation-and-retirement",
+          "priority": 1,
+          "activity": [
+            {
+              "event": "created",
+              "actor": "codex",
+              "at": "2026-10-26T13:01:16.695127+00:00",
+              "session": "TaskProgress 無 Svelte 副刻",
+              "session_id": "6390111e-2331-485b-a016-8e9a724b7730"
+            },
+            {
+              "event": "updated",
+              "actor": "codex",
+              "session": "TaskProgress retirement conditions",
+              "session_id": "01a0d3c0-178f-7463-a65b-21c8bbe2676f",
+              "at": "2026-10-27T06:41:59.362382+00:00",
+              "note": "Bind retirement checklist to existing item; CLI does not support existing document_ref changes."
+            },
+            {
+              "event": "started",
+              "actor": "codex",
+              "at": "2026-10-27T08:57:53.519687+00:00",
+              "session": "Svelte production retirement",
+              "session_id": "01a0d3c0-178f-7463-a65b-21c8bbe2676f"
+            },
+            {
+              "event": "released",
+              "actor": "codex",
+              "at": "2026-10-27T09:19:20.092612+00:00",
+              "session": "Svelte production retirement",
+              "session_id": "01a0d3c0-178f-7463-a65b-21c8bbe2676f"
+            }
+          ],
+          "document_ref": {
+            "kind": "checklist",
+            "scope_id": "task-progress",
+            "task": "svelte-retirement-release"
+          }
+        },
+        {
+          "id": "all-entry-report-manual",
+          "title": "驗收 Report Viewer 的目標環境與實際操作",
+          "priority": 1,
+          "status": "planned",
+          "document_ref": {
+            "kind": "checklist",
+            "scope_id": "task-progress",
+            "task": "svelte-retirement-report-manual"
+          },
+          "waits_for": [
+            {
+              "scope_id": "task-progress",
+              "checklist": "svelte-retirement-entries",
+              "work_item": 1
+            }
+          ],
+          "activity": [
+            {
+              "event": "created",
+              "actor": "codex",
+              "at": "2026-10-27T07:15:37.055395+00:00",
+              "session": "Web UI all-entry adoption",
+              "session_id": "01a0d3c0-178f-7463-a65b-21c8bbe2676f"
+            }
+          ]
+        },
+        {
+          "id": "all-entry-checklist-manual",
+          "title": "驗收 Checklist Browser／Desktop 的目標環境與實際操作",
+          "priority": 1,
+          "status": "planned",
+          "document_ref": {
+            "kind": "checklist",
+            "scope_id": "task-progress",
+            "task": "svelte-retirement-checklist-manual"
+          },
+          "waits_for": [
+            {
+              "scope_id": "task-progress",
+              "checklist": "svelte-retirement-entries",
+              "work_item": 1
+            }
+          ],
+          "activity": [
+            {
+              "event": "created",
+              "actor": "codex",
+              "at": "2026-10-27T07:15:37.055395+00:00",
+              "session": "Web UI all-entry adoption",
+              "session_id": "01a0d3c0-178f-7463-a65b-21c8bbe2676f"
+            }
+          ]
+        },
+        {
+          "id": "all-entry-decisions-manual",
+          "title": "驗收 Decision Browser／Desktop 的目標環境與實際操作",
+          "priority": 1,
+          "status": "planned",
+          "document_ref": {
+            "kind": "checklist",
+            "scope_id": "task-progress",
+            "task": "svelte-retirement-decisions-manual"
+          },
+          "waits_for": [
+            {
+              "scope_id": "task-progress",
+              "checklist": "svelte-retirement-entries",
+              "work_item": 1
+            }
+          ],
+          "activity": [
+            {
+              "event": "created",
+              "actor": "codex",
+              "at": "2026-10-27T07:15:37.055395+00:00",
+              "session": "Web UI all-entry adoption",
+              "session_id": "01a0d3c0-178f-7463-a65b-21c8bbe2676f"
+            }
+          ]
+        }
+      ],
+      "summary": "Svelte 已正式退役（2026-10-27）：Web UI Workflow 接管三個 Browser 與兩個 Desktop 場景，已發布至正式 8001，14 個 scopes 與報告入口正常。使用者人工驗收、全入口與發布獨立核查全部通過；來源／依賴與舊產物已移除，保存／衝突與回退演練通過。回退產物保留，效能優化另案。",
+      "id": "svelte-retirement"
+    },
     {
       "id": "gap-scan",
       "title": "專案缺口與退場盤點",
@@ -3486,295 +3789,6 @@
       "status": "planned",
       "priority": 2,
       "summary": "目標：每個任務以圖形化節點表示，從節點圖直接看出阻塞點，Report 卡片保留作細節說明；資料結構先不改，遞迴節點要先估成本、測可行才替換。見 [問題與目標](https://github.com/Yu5h1/TaskProgress/blob/main/Documentation/NodeProgressViewPlan.md#問題與目標)。"
-    },
-    {
-      "priority": 1,
-      "status": "in_progress",
-      "title": "Svelte 退役與 Web UI Workflow 正式接管",
-      "completed_items": [],
-      "pending_items": [
-        {
-          "status": "planned",
-          "title": "人工驗收 Web UI Workflow 試點：Viewer／Checklist／Decision；[Web 遷移驗收](http://127.0.0.1:8001/?scope=yu5h1lib-web&pin=taskprogress-web-ui-migration)",
-          "document_ref": {
-            "scope_id": "task-progress",
-            "kind": "checklist",
-            "task": "viewer-web-ui-pilot-manual"
-          },
-          "id": "web-ui-pilot-manual",
-          "priority": 1,
-          "activity": [
-            {
-              "event": "created",
-              "actor": "codex",
-              "at": "2026-10-26T12:23:38.343492+00:00",
-              "session": "TaskProgress 無 Svelte 副刻",
-              "session_id": "6390111e-2331-485b-a016-8e9a724b7730"
-            },
-            {
-              "event": "updated",
-              "actor": "codex",
-              "at": "2026-10-26T12:53:25.305535+00:00",
-              "session": "TaskProgress 無 Svelte 副刻",
-              "session_id": "6390111e-2331-485b-a016-8e9a724b7730"
-            },
-            {
-              "event": "updated",
-              "actor": "codex",
-              "at": "2026-10-26T12:59:54.225816+00:00",
-              "session": "TaskProgress 無 Svelte 副刻",
-              "session_id": "6390111e-2331-485b-a016-8e9a724b7730",
-              "note": "Moved viewer-core -> svelte-retirement; CLI does not support cross-card moves."
-            }
-          ]
-        },
-        {
-          "title": "將產品 adapter 納入 TaskProgress 正式建置",
-          "status": "planned",
-          "waits_for": [
-            {
-              "scope_id": "task-progress",
-              "task_id": "svelte-retirement",
-              "item_id": "web-ui-pilot-manual",
-              "strict": true
-            },
-            {
-              "scope_id": "task-progress",
-              "task_id": "web-ui-replacement",
-              "item_id": "web-ui-browser-pilot",
-              "strict": true
-            }
-          ],
-          "id": "production-build",
-          "priority": 1,
-          "activity": [
-            {
-              "event": "created",
-              "actor": "codex",
-              "at": "2026-10-26T13:01:16.695127+00:00",
-              "session": "TaskProgress 無 Svelte 副刻",
-              "session_id": "6390111e-2331-485b-a016-8e9a724b7730"
-            },
-            {
-              "event": "updated",
-              "actor": "codex",
-              "at": "2026-10-26T14:12:12.378073+00:00",
-              "session": "TaskProgress 無 Svelte 副刻",
-              "session_id": "6390111e-2331-485b-a016-8e9a724b7730"
-            },
-            {
-              "event": "updated",
-              "actor": "codex",
-              "at": "2026-10-26T14:12:31.562486+00:00",
-              "session": "TaskProgress 無 Svelte 副刻",
-              "session_id": "6390111e-2331-485b-a016-8e9a724b7730",
-              "note": "Bind existing production-build checklist; CLI does not support changing document_ref on existing entries."
-            },
-            {
-              "event": "started",
-              "actor": "codex",
-              "at": "2026-10-26T14:12:53.089519+00:00",
-              "session": "TaskProgress 無 Svelte 副刻",
-              "session_id": "6390111e-2331-485b-a016-8e9a724b7730"
-            },
-            {
-              "event": "released",
-              "actor": "codex",
-              "at": "2026-10-26T14:24:54.124794+00:00",
-              "session": "TaskProgress 無 Svelte 副刻",
-              "session_id": "6390111e-2331-485b-a016-8e9a724b7730"
-            }
-          ],
-          "document_ref": {
-            "kind": "checklist",
-            "scope_id": "task-progress",
-            "task": "svelte-retirement-build"
-          }
-        },
-        {
-          "title": "接管全部 Browser／Desktop 入口並驗收功能、保存與必要環境",
-          "status": "planned",
-          "waits_for": [
-            {
-              "scope_id": "task-progress",
-              "task_id": "svelte-retirement",
-              "item_id": "production-build",
-              "strict": true
-            }
-          ],
-          "id": "all-entry-replacement",
-          "priority": 1,
-          "activity": [
-            {
-              "event": "created",
-              "actor": "codex",
-              "at": "2026-10-26T13:01:16.695127+00:00",
-              "session": "TaskProgress 無 Svelte 副刻",
-              "session_id": "6390111e-2331-485b-a016-8e9a724b7730"
-            },
-            {
-              "event": "updated",
-              "actor": "codex",
-              "at": "2026-10-26T14:12:12.378073+00:00",
-              "session": "TaskProgress 無 Svelte 副刻",
-              "session_id": "6390111e-2331-485b-a016-8e9a724b7730"
-            },
-            {
-              "event": "updated",
-              "actor": "codex",
-              "at": "2026-10-27T06:41:40.208993+00:00",
-              "session": "TaskProgress retirement conditions",
-              "session_id": "01a0d3c0-178f-7463-a65b-21c8bbe2676f"
-            },
-            {
-              "event": "updated",
-              "actor": "codex",
-              "session": "TaskProgress retirement conditions",
-              "session_id": "01a0d3c0-178f-7463-a65b-21c8bbe2676f",
-              "at": "2026-10-27T06:41:59.362382+00:00",
-              "note": "Bind retirement checklist to existing item; CLI does not support existing document_ref changes."
-            },
-            {
-              "event": "started",
-              "actor": "codex",
-              "at": "2026-10-27T06:58:03.063913+00:00",
-              "session": "Web UI all-entry adoption",
-              "session_id": "01a0d3c0-178f-7463-a65b-21c8bbe2676f"
-            },
-            {
-              "event": "released",
-              "actor": "codex",
-              "at": "2026-10-27T07:15:37.055395+00:00",
-              "session": "Web UI all-entry adoption",
-              "session_id": "01a0d3c0-178f-7463-a65b-21c8bbe2676f"
-            }
-          ],
-          "document_ref": {
-            "kind": "checklist",
-            "scope_id": "task-progress",
-            "task": "svelte-retirement-entries"
-          }
-        },
-        {
-          "title": "完成正式發布回歸、移除 Svelte 並結案",
-          "status": "planned",
-          "waits_for": [
-            {
-              "item_id": "all-entry-replacement",
-              "scope_id": "task-progress",
-              "task_id": "svelte-retirement",
-              "strict": true
-            }
-          ],
-          "id": "release-validation-and-retirement",
-          "priority": 1,
-          "activity": [
-            {
-              "event": "created",
-              "actor": "codex",
-              "at": "2026-10-26T13:01:16.695127+00:00",
-              "session": "TaskProgress 無 Svelte 副刻",
-              "session_id": "6390111e-2331-485b-a016-8e9a724b7730"
-            },
-            {
-              "event": "updated",
-              "actor": "codex",
-              "session": "TaskProgress retirement conditions",
-              "session_id": "01a0d3c0-178f-7463-a65b-21c8bbe2676f",
-              "at": "2026-10-27T06:41:59.362382+00:00",
-              "note": "Bind retirement checklist to existing item; CLI does not support existing document_ref changes."
-            }
-          ],
-          "document_ref": {
-            "kind": "checklist",
-            "scope_id": "task-progress",
-            "task": "svelte-retirement-release"
-          }
-        },
-        {
-          "id": "all-entry-report-manual",
-          "title": "驗收 Report Viewer 的目標環境與實際操作",
-          "priority": 1,
-          "status": "planned",
-          "document_ref": {
-            "kind": "checklist",
-            "scope_id": "task-progress",
-            "task": "svelte-retirement-report-manual"
-          },
-          "waits_for": [
-            {
-              "scope_id": "task-progress",
-              "checklist": "svelte-retirement-entries",
-              "work_item": 1
-            }
-          ],
-          "activity": [
-            {
-              "event": "created",
-              "actor": "codex",
-              "at": "2026-10-27T07:15:37.055395+00:00",
-              "session": "Web UI all-entry adoption",
-              "session_id": "01a0d3c0-178f-7463-a65b-21c8bbe2676f"
-            }
-          ]
-        },
-        {
-          "id": "all-entry-checklist-manual",
-          "title": "驗收 Checklist Browser／Desktop 的目標環境與實際操作",
-          "priority": 1,
-          "status": "planned",
-          "document_ref": {
-            "kind": "checklist",
-            "scope_id": "task-progress",
-            "task": "svelte-retirement-checklist-manual"
-          },
-          "waits_for": [
-            {
-              "scope_id": "task-progress",
-              "checklist": "svelte-retirement-entries",
-              "work_item": 1
-            }
-          ],
-          "activity": [
-            {
-              "event": "created",
-              "actor": "codex",
-              "at": "2026-10-27T07:15:37.055395+00:00",
-              "session": "Web UI all-entry adoption",
-              "session_id": "01a0d3c0-178f-7463-a65b-21c8bbe2676f"
-            }
-          ]
-        },
-        {
-          "id": "all-entry-decisions-manual",
-          "title": "驗收 Decision Browser／Desktop 的目標環境與實際操作",
-          "priority": 1,
-          "status": "planned",
-          "document_ref": {
-            "kind": "checklist",
-            "scope_id": "task-progress",
-            "task": "svelte-retirement-decisions-manual"
-          },
-          "waits_for": [
-            {
-              "scope_id": "task-progress",
-              "checklist": "svelte-retirement-entries",
-              "work_item": 1
-            }
-          ],
-          "activity": [
-            {
-              "event": "created",
-              "actor": "codex",
-              "at": "2026-10-27T07:15:37.055395+00:00",
-              "session": "Web UI all-entry adoption",
-              "session_id": "01a0d3c0-178f-7463-a65b-21c8bbe2676f"
-            }
-          ]
-        }
-      ],
-      "summary": "五個 Browser／Desktop 場景的 Web UI 候選與待發布目錄已備妥；30 項 Node、5 項保存／隔離及9項瀏覽器回歸通過，Desktop 真實載入與測試副本保存有證據。現在補三頁目標環境／實際操作驗收，再獨立核查與正式發布退役。效能另案，正式 Svelte 仍保留。",
-      "id": "svelte-retirement"
     },
     {
       "id": "web-ui-performance",

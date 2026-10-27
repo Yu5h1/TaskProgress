@@ -99,17 +99,8 @@ test("the session snapshot carries the summary and keeps it whole-document", () 
 });
 
 test("the screen labels the shared summary instead of drawing its own", async () => {
-  const app = await readFile(
-    new URL("../experiments/editor-svelte-spike/src/ChecklistApp.svelte", import.meta.url),
-    "utf8",
-  );
-  assert.match(app, /import ProgressSummary from "\.\/ProgressSummary\.svelte"/u);
-  assert.match(app, /bar=\{\{ form: "segmented", cells: view\.summary\.cells \}\}/u);
-  // The screen no longer draws its own next-step line: "Next" belongs to the
-  // Report's scope-wide marker (Documentation/NextMarkerPlan.md).
-  assert.doesNotMatch(app, /checklist-next-step|view\.summary\.nextStep/u);
-  // No second count anywhere: the screen reads the derived summary only. It
-  // may filter its own capsule list, but never recount the document.
-  assert.doesNotMatch(app, /summary\.[a-z]+\.filter\(|\.reduce\(/u, "counting belongs to the session");
-  assert.doesNotMatch(app, /document\.items\.filter\(|checks\.length/u);
+  const app = await readFile(new URL('../ui/web-workflow/checklist.mjs', import.meta.url), 'utf8');
+  assert.match(app, /progressSummary\(\{ bar: \{ form: 'segmented', cells: d\.summary\.cells \}/u);
+  assert.doesNotMatch(app, /checklist-next-step|summary\.nextStep/u);
+  assert.doesNotMatch(app, /summary\.[a-z]+\.filter\(|\.reduce\(/u);
 });

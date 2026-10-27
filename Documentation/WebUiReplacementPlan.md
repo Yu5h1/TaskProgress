@@ -148,7 +148,15 @@ TaskProgress Browser 試點／8017
 
 執行順序：已通過的試點與候選建置 → [全入口接管清單](../checklists/svelte-retirement-entries.checklist) → [發布與退役清單](../checklists/svelte-retirement-release.checklist)。Report 的 all-entry-replacement 僅等待消費端 production-build；其清單核對必要 G0／M1 功能證據，不再等待 Web 整張試點彙整或效能卡。release-validation-and-retirement 嚴格等待全入口清單完成。這次修訂不宣告任一缺證項通過，也不執行正式部署或刪除 Svelte。
 
-### 產品原始碼與候選建置
+### 正式建置、發布與回退
+
+正式 UI 原始碼由 `ui/web-workflow/` 擁有，`shells/*.html` 是三頁 HTML 模板，`component-styles.css` 保存驗收候選的原始樣式；不再讀取 `.svelte`。共用控制器及保存規則繼續由 `viewer/assets/` 擁有，Web 公開模組由固定指紋的 `vendor/web-ui/` 提供。
+
+`npm ci --ignore-scripts` 還原鎖定依賴，`npm run ui:build` 建置並複製 Browser 與兩個 Desktop 根目錄；舊的四個 UI build 命令保留為同一建置的別名。`Publish.cmd --nopause --restart` 先建置 UI，成功後經 TrayHost 正常退出、發布原生宿主並同步全部已註冊 scope。正式入口仍為 8001；不更換 scope registry，也不從 demo 資料覆蓋正式報告。公開 Viewer 沿用 Pages 的 `index.html`＋`assets/` 遞迴複製契約；公開 Web 模組、CSS 與 theme bootstrap 全部放入 `assets/`。本機另外交付 Checklist／Decision 兩個子目錄。
+
+原版回退基準為 `ca05a3f`；本機產物保存在忽略的 `bin/Migration/SvelteRetirement/rollback-ca05a3f/`，含原 `viewer/` 與 `win-x64/`，不含待回退的報告資料。回退時經 TrayHost 正常退出服務，恢復這兩個資產目錄後以原 EXE 的 `start --no-browser` 啟動並同步 scope；不得回退 report、checklist、decision 或使用者偏好。歷史來源可由 Git 的該 revision 重建；效能比較使用已固定的歷史候選，不將 Svelte 再帶回正式依賴。
+
+### 產品原始碼與候選建置（退役前交付設計）
 
 建置準備在消費端 Browser 試點的獨立審查與人工操作通過後進行；完整 Web M1 證據仍在全入口正式切換前核對。候選建置只寫 `bin/Migration/WebUiWorkflow/`，不覆寫 `viewer/`、Desktop 交付或 8001，因此準備產物與正式啟用分開。
 

@@ -1,89 +1,25 @@
-// A Report pointer card is read-only end to end: no `editing`, no `onCommand`,
-// no edit affordance to leave read-only. It shows one layer of another
-// report's own tasks, projected by `projectPointerCard` and handed down as
-// plain data — this file only asserts the presentation contract.
-import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
-import test from "node:test";
-
-import { compile } from "svelte/compiler";
-
-const card = await readFile(
-  new URL("../experiments/editor-svelte-spike/src/ReportPointerCard.svelte", import.meta.url),
-  "utf8",
-);
-const taskList = await readFile(
-  new URL("../experiments/editor-svelte-spike/src/TaskList.svelte", import.meta.url),
-  "utf8",
-);
-const styles = await readFile(new URL("../viewer/assets/styles.css", import.meta.url), "utf8");
-
-const script = card.slice(0, card.indexOf("</script>"));
-const template = card.slice(card.indexOf("</script>"));
-
-test("the component compiles cleanly", () => {
-  const compiled = compile(card, { name: "ReportPointerCard" });
-  assert.deepEqual(compiled.warnings.map((warning) => warning.code), []);
+import assert from 'node:assert/strict';
+import test from 'node:test';
+import { loadTemplates, markup, view } from './helpers/web-ui-template.mjs';
+const { pointer } = await loadTemplates('viewer');
+const task = { id: 'child', title: 'Child report', kind: 'report_pointer' };
+const card = { summary: 'Child summary', status: 'in_progress', progress: { completed: 1, total: 2, percentage: 50 }, rows: [{ title: 'Nested pointer' }, { title: 'Ready', status: 'done' }] };
+const render = state => markup(pointer({ editing: true, pointerCards: { child: state } }, task, {}));
+test('pointer loading and error states never display stale ready projections', () => {
+  assert.match(render({ status: 'loading', card }), /role="status"/u);
+  assert.doesNotMatch(render({ status: 'loading', card }), /Child summary/u);
+  const failed = render({ status: 'error', card, message: 'Unavailable' });
+  assert.match(failed, /Unavailable/u);
+  assert.doesNotMatch(failed, /Child summary/u);
 });
-
-test("no prop can mutate anything", () => {
-  for (const prop of ["editing", "onCommand", "onAddItem", "onModuleReorder", "onTimeClick"]) {
-    assert.doesNotMatch(script, new RegExp(`export let ${prop}\\b`, "u"), `${prop} is a write affordance`);
-  }
-  assert.doesNotMatch(template, /<(input|textarea|select|button)\b/iu, "a pointer card renders no editable control");
+test('ready pointers preserve links, projected status and accessible progress', () => {
+  const result = render({ status: 'ready', card, openHref: '?scope=child' });
+  assert.match(result, /href="\?scope=child"/u);
+  assert.match(result, /Child summary/u);
+  assert.match(result, /aria-label="子任務完成 1，共 2"/u);
+  assert.match(result, /指路/u);
+  assert.match(result, /aria-labelledby="task-child-title"/u);
 });
-
-test("the card takes only the pointer task and its projected state", () => {
-  assert.match(script, /export let task;/u);
-  assert.match(script, /export let state = \{ status: "loading" \};/u);
-  const imports = [...script.matchAll(/^\s*import (\w+) from "([^"]+)";/gmu)].map(([, name, from]) => `${name} ${from}`);
-  assert.deepEqual(imports, ["CardDisclosure ./CardDisclosure.svelte", "ExpandableText ./ExpandableText.svelte"], "only presentation components, no data source");
-});
-
-test("every status the card can show comes from the report-model status table", () => {
-  const labels = Object.fromEntries(
-    [...script.matchAll(/(\w+): \{ label: "([^"]+)", tone: "(\w+)" \}/gu)]
-      .map(([, status, label, tone]) => [status, { label, tone }]),
-  );
-  assert.deepEqual(labels, {
-    planned: { label: "待處理", tone: "neutral" },
-    in_progress: { label: "進行中", tone: "active" },
-    blocked: { label: "受阻", tone: "danger" },
-    done: { label: "已完成", tone: "success" },
-    archive: { label: "已封存", tone: "muted" },
-  }, "must match report-model.js's STATUS_META exactly, or the two Viewer surfaces would disagree");
-});
-
-test("loading, error and ready are three distinct states", () => {
-  assert.match(template, /\{#if state\.status === "loading"\}<span role="status">/u);
-  assert.match(template, /\{#if state\.status === "error"\}<span class="pointer-card-error" role="alert">/u);
-  assert.match(script, /\$: card = state\.status === "ready" \? state\.card : null;/u, "only a ready state yields card content");
-  assert.match(template, /role="alert"/u, "an error state must be announced");
-});
-
-test("opening the target is a plain link, the same mechanism every other scope switch already uses", () => {
-  assert.match(template, /<a class="pointer-card-title-link" href=\{state\.openHref\}>\{task\.title\}<\/a>/u);
-  assert.match(template, /<a class="pointer-card-badge" href=\{state\.openHref\}>/u, "the badge itself is the open action, not a separate label");
-  assert.doesNotMatch(script, /preventDefault|pushState|history\./u, "no in-page navigation mechanism is introduced");
-});
-
-test("the badge is the one open action — no second, redundant link", () => {
-  assert.doesNotMatch(template, /指路卡/u, "the badge reads as an action, not a category label");
-  assert.equal((template.match(/href=\{state\.openHref\}/gu) ?? []).length, 2, "title link + badge, nothing else opens the target");
-});
-
-test("TaskList dispatches by kind and never passes a pointer card a write prop", () => {
-  assert.match(taskList, /\{#if task\.kind === "report_pointer"\}/u);
-  const tag = taskList.match(/<ReportPointerCard [^\n]*\/>/u)?.[0] ?? "";
-  assert.match(tag, /\{task\} state=\{pointerCards\[task\.id\] \?\? \{ status: "loading" \}\} \/>$/u);
-  assert.doesNotMatch(tag, /(editing|onCommand|onAddItem|onModuleReorder|onTimeClick)/u, "a pointer card receives no write prop");
-});
-
-test("the pointer badge and error text use theme tokens, not literals", () => {
-  const block = styles.slice(
-    styles.indexOf(".pointer-card-badge {"),
-    styles.indexOf(".developer-details {"),
-  );
-  assert.doesNotMatch(block, /#[0-9a-f]{3,8}\b/iu, "colour must come from a variable, not a literal");
-  assert.match(block, /color: var\(--color-danger-text\);/u);
+test('pointer cards remain read-only even when the surrounding report is editable', () => {
+  assert.doesNotMatch(render({ status: 'ready', card }), /<input|<textarea|<select|spike-add-button|inline-delete/u);
 });

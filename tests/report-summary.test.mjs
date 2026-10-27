@@ -68,18 +68,12 @@ test("the Viewer shows the written summary and falls back when there is none", (
 });
 
 test("every screen renders that line through the one shared region", async () => {
-  assert.doesNotMatch(app, /elements\.summary\.textContent/u, "the host must not write the node");
+  assert.doesNotMatch(app, /elements\.summary\.textContent/u);
   assert.match(app, /createUiView\("report-summary", elements\.summary, props\)/u);
-  // The start screen, the scope directory, a fatal error and the report itself.
-  assert.equal(app.match(/renderReportSummary\(/gu).length, 6);
-
-  const component = await readFile(
-    new URL("../experiments/editor-svelte-spike/src/ReportSummary.svelte", import.meta.url),
-    "utf8",
-  );
-  assert.match(component, /<p class="hero-summary">\{text\}<\/p>/u);
-  assert.match(component, /<textarea/u);
-  assert.doesNotMatch(component, /import /u, "a presentation component owns no data path");
+  const component = await readFile(new URL('../ui/web-workflow/viewer.mjs', import.meta.url), 'utf8');
+  assert.match(component, /'report-summary':/u);
+  assert.match(component, /p\.onCommit\(e\.currentTarget\.value\)/u);
+  assert.match(component, /class="hero-summary">\$\{p\.text/u);
 });
 
 test("editing the summary reuses the task-summary command path", () => {

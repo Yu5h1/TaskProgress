@@ -1,0 +1,5 @@
+Internal workspace delivery from Yu5h1Lib.Web. Source revision: cf958e7491f596108eeaff3ae31fb6162761b41a
+Source delivery SHA-256: d3c60c1c64a36179b24c8f0840b142423646e5c3f14a8986c3eab02f14ea0dff
+Web package is private and declares no distribution license in its current package metadata.
+Third-party notices remain in ui/index.js.LEGAL.txt and other adjacent LEGAL.txt files.
+This internal transfer does not establish permission to publish a package.
