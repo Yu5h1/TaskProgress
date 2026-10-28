@@ -10,7 +10,15 @@
 
 需要辨別啟動階段時，可對一次有界診斷呼叫設定 `COREHOST_TRACE=1` 並擷取 stderr；看到 `.net/...` 下反覆 `Retrying Rename ... EACCES`，表示問題在 host 的解壓階段。診斷結束後移除該次環境設定。保留原沙箱權限與檔案，不透過 ACL、解壓目錄搬移或安全性排除處理。
 
-PowerShell 要等待 WinExe 的 CLI 結果，可使用輸出管線（例如 `& $exe checklist validate $file | Out-String`）並檢查 `$LASTEXITCODE`。不要對無參數或 `open` 啟動入口套用這個等待方式；那些入口的流程由相應技能規範。
+EXE 是 GUI 子系統程式（WinExe），雙擊或無參數啟動時才不會開出主控台視窗。PowerShell 只在 GUI 程式的輸出接到下一段管線時才等它結束：不接管線直接呼叫，或只指派給變數（`$out = & $exe ...`），PowerShell 會立刻繼續，`$LASTEXITCODE` 不更新，CLI 稍後寫出的 JSON 會落在之後的畫面上或完全收不到。因此在 PowerShell 執行 `report`、`checklist`、`decisions`、`scope` 等命令時，一律把輸出接到 `Out-String`，再檢查 `$LASTEXITCODE`：
+
+```powershell
+$exe = "<TaskProgress>\Build\win-x64\task-progress.exe"
+$out = & $exe report apply "C:\Project" --input changes.json --dry-run | Out-String
+"exit=$LASTEXITCODE"; $out
+```
+
+本文件其他範例省略管線，寫成 `task-progress.exe ...`；在 PowerShell 照上面的方式執行。不要對無參數或 `open` 啟動入口套用這個等待方式；那些入口的流程由相應技能規範。
 
 ## 讀取與驗證
 
@@ -24,7 +32,7 @@ task-progress.exe report get --scope project
 
 ## 更新卡片及子項
 
-先讀取 → 將實際 revision 填入 `changes.json` → 預覽 → 提交：
+先讀取 → 將實際 revision 填入 `changes.json` → 預覽 → 提交。請求的頂層欄位固定：必填 `version`（目前為 `"1"`）、`expected_revision`、`actor`、`operations`；選填 `session`、`session_id`。缺少必填欄位或出現其他頂層欄位，CLI 會以 exit code 2 拒絕整個請求。範例：
 
 ```json
 {
