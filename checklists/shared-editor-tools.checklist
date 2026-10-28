@@ -29,10 +29,11 @@ Current round: `Documentation/WebUiReplacementPlan.md#搜尋與歷史-ui-共用�
       - Expect: 無重複 UI 實作或第二份歷史核心，沒有未處理的必要功能缺陷。
       - Recorded: codex:01a17d73-dc8b-71e2-9a9c-56a294509157; at=2026-10-27T13:18:42Z; fp=12b6780cef7a
 
-- [ ] **3. 外觀與實體輸入**
+- [x] **3. 外觀與實體輸入**
   Outcome: 使用者接受共用搜尋框與復原重做操作。
   Checks:
-    - [ ] **搜尋與歷史操作手感** `[manual]`
+    - [x] **搜尋與歷史操作手感** `[manual]`
       - Action: 開啟 [Report](http://127.0.0.1:8001/?scope=task-progress)，用中文輸入搜尋並清除；在自己的測試資料使用 Report／Checklist 復原重做，以及 Decision 歷史面板的取消與關閉。
       - Expect: 中文組字、按鈕圖示、主題、焦點與面板位置合適；復原重做符合原操作，不出現重複面板。
       - Reason: 外觀與實體輸入手感由使用者確認；不要為驗收修改正式業務資料。
+      - Recorded: user; at=2026-10-27T14:35:15Z; fp=d7c1d1e008e2
