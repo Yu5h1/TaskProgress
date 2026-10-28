@@ -369,7 +369,8 @@ TrayHost 已有 standalone 的互斥機制：identity 由 manifest 的 `id` 與 
   "displayName": "TaskProgress Local Server",
   "icon": {
     "light": "light.ico",
-    "dark": "dark.ico"
+    "dark": "dark.ico",
+    "text": "TP"
   },
   "protocol": "trayhost-jsonlines-v1",
   "copy": { "URL": "http://127.0.0.1:8001/" },
@@ -386,7 +387,7 @@ TrayHost 已有 standalone 的互斥機制：identity 由 manifest 的 `id` 與 
 }
 ```
 
-`copy` 讓 tray 選單提供 `Copy URL`，複製 worker 預設 port 的 Viewer 首頁網址。
+`copy` 讓 tray 選單提供 `Copy URL`，複製 worker 預設 port 的 Viewer 首頁網址。亮暗 icon 為清單同目錄的靜態資源，文字為 `TP`。
 
 啟動方式固定使用 standalone 的 `invoke`（見「啟動入口」）。不要使用 `host` 直接啟動，也不要使用 TrayHost 的 legacy 無動詞啟動 —— 後者用的是另一個 mutex 名稱，不受上面的單一實例規則保護。
 
@@ -428,7 +429,7 @@ TrayHost 已有 standalone 的互斥機制：identity 由 manifest 的 `id` 與 
 
 ### Phase 2：manifest 與發布 —— 已實作
 
-- 專案根目錄的 `taskprogress.trayapp` 為唯一簽入與執行來源，指向 `Build/win-x64/task-progress.exe`。`light.ico`／`dark.ico` 不簽入：每次 invoke 都帶 `--buildIcon`，由 TrayHost 在 manifest 目錄補齊 icon 並將清單升級為 schema 2，icon 取 `displayName` 首字 `T`。
+- 專案根目錄的 `taskprogress.trayapp` 為唯一簽入與執行來源，指向 `Build/win-x64/task-progress.exe`。`light.ico`／`dark.ico` 與清單一起簽入；每次 invoke 仍帶 `--buildIcon`，僅在缺檔時補齊，不依賴第一次啟動才能顯示自己的圖示。
 - `TrayHostLauncher.cs`：executable 探索（`TASK_PROGRESS_TRAY_HOST` → 向上找 `Winform/bin/TrayHost/{Release,Debug}/`）、manifest 解析（TaskProgress 專案根目錄）、轉呼叫 `invoke ... --standalone -- <args>`。
 - `Program.cs`：start 參數與 TrayHost invoke 分派。
 - **只呼叫 `invoke`，不呼叫 `host`。** 單一實例由 TrayHost identity 保證，本專案不寫第二套。
