@@ -46,7 +46,7 @@
        are not here on purpose: they are generated next to this manifest on
        first launch, so they belong to the deployment rather than the sources. -->
   <ItemGroup>
-    <Content Include="taskprogress.trayapp.json">
+    <Content Include="taskprogress.trayapp">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </Content>

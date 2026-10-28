@@ -10,7 +10,8 @@ set "PROJECT_ROOT=%~dp0"
 set "PROJECT_FILE=%PROJECT_ROOT%src\TaskProgress.Cli\TaskProgress.Cli.csproj"
 set "OUTPUT_DIR=%PROJECT_ROOT%Build\win-x64"
 set "OUTPUT_EXE=%OUTPUT_DIR%\task-progress.exe"
-set "MANIFEST=%OUTPUT_DIR%\taskprogress.trayapp.json"
+set "MANIFEST=%OUTPUT_DIR%\taskprogress.trayapp"
+set "LEGACY_MANIFEST=%OUTPUT_DIR%\taskprogress.trayapp.json"
 set "TRAY_HOST=%TASK_PROGRESS_TRAY_HOST%"
 if not defined TRAY_HOST set "TRAY_HOST=%PROJECT_ROOT%..\Winform\bin\TrayHost\Release\Yu5h1Lib.TrayHost.exe"
 set "PAUSE_AT_END=1"
@@ -47,6 +48,7 @@ echo Project: %PROJECT_FILE%
 echo Output : %OUTPUT_DIR%
 echo.
 
+if not exist "%MANIFEST%" if exist "%LEGACY_MANIFEST%" set "MANIFEST=%LEGACY_MANIFEST%"
 if not exist "%MANIFEST%" goto publish
 if not exist "%TRAY_HOST%" (
     echo TrayHost not found: %TRAY_HOST%
@@ -77,6 +79,8 @@ if not exist "%OUTPUT_EXE%" (
     set "EXIT_CODE=1"
     goto finish
 )
+
+if exist "%LEGACY_MANIFEST%" del "%LEGACY_MANIFEST%"
 
 echo BUILD SUCCESS
 echo %OUTPUT_EXE%

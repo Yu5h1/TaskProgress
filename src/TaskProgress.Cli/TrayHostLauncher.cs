@@ -26,7 +26,7 @@ namespace TaskProgress;
 /// </summary>
 internal static class TrayHostLauncher
 {
-    internal const string ManifestFileName = "taskprogress.trayapp.json";
+    internal const string ManifestFileName = "taskprogress.trayapp";
     private const string ExecutableName = "Yu5h1Lib.TrayHost.exe";
 
     /// <summary>
