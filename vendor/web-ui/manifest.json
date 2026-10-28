@@ -1,8 +1,8 @@
 {
   "version": 1,
-  "web_revision": "99aae2a40d2a768a8009ce5661d206b4c37e0e7b",
+  "web_revision": "9cfb6f95bf7b872f6f5ca771ce5961d9b17915fe",
   "source_dirty": true,
-  "source_delivery": "2b8d6999b3b34231c53b6b7bd23402d1e2f09d7cda491104b4bd20c3e42443aa",
+  "source_delivery": "6032ecc0dd1de24a6c926901f62543a3f1440eb7521ecfc763cfda6c241c44a3",
   "source_files": {
     "Documentation/NativeUIAndDataUpdatePlan.md": "a37cf0115446331b214d957aab62bf1792759dac66628cc93d5f04d55250a88f",
     "Documentation/SettingsPanelPlan.md": "b0b35202395cf098abca49d9a79e480c9081d10f7e3fccfc01ed8ad9cadfdbff",
@@ -32,7 +32,7 @@
     "src/ui/apps-menu.ts": "f2fc171bff7c0a37b0f45148a3ed1b1b02478e96c57b0e837d776b501ea71a5a",
     "src/ui/button.ts": "c01f430f9aba1cd7f00eabd4debd1a4a30272d1b4c79b0fcc10e9a13351a6087",
     "src/ui/change-request.ts": "bb628c1d52e86f6c03a065042ac38f4501997c7cefa77af67d0f9ce27e649078",
-    "src/ui/choice-picker.ts": "76920420ed0b5ce17b6b18886435e38e8ed3e405505e38b79a8bf0a38b327d58",
+    "src/ui/choice-picker.ts": "847c8a6b6310f13e604aa6b72f093433184c4a879f9de02a4c2cb36a15a6f34e",
     "src/ui/dialog.ts": "d5680d1f0fef46c84c674a58aba29019d4e7ce34abf79502ebdc2950ac91cfe8",
     "src/ui/dock.ts": "058fa3d2b401ba678cc1ba845d6b8ac9e0bb9941862eaa01526b3ea8e8388943",
     "src/ui/dropdown.ts": "f7e73b1bbb83991133bea09dcaf83f3ff48f9bbe7a2d60227d0acd3945431f7e",
@@ -51,7 +51,7 @@
     "src/ui/provider.ts": "00e35dfe827bd701f19447178a10af7fdef9e68a98101080089ffec0983f4ddd",
     "src/ui/reorder.ts": "77e6265fd4fc26046ea3b67651c02d86fb21c3bc39b240b378b3d638f6633dfe",
     "src/ui/save-bar.ts": "1a24f95849edd98bed2afa9acb5bc56bf45f0362bf6fba760105df9d3da178ea",
-    "src/ui/search-field.ts": "d26c2b48c0ba06ab502de36fcd1682f7b7a063c9e72c54ae10281b008a14fb91",
+    "src/ui/search-field.ts": "7cb0dd51d5f7f82f3d4cc12b5e7fb3c0a786d9cbf44be30d5e7c1eb11d07bc6e",
     "src/ui/settings-design.ts": "73b24edaadf643868112fd3e49e7041bd020d4016a6370cee26be01b21418661",
     "src/ui/settings-fields.ts": "a127c4f1ab8a2ebf9f3b525fffc8d5436765805fcb18e2fd5f6014d5d3f55ecd",
     "src/ui/settings-panel.ts": "6d9efa4b4560ea65ef9f0051502bab763b9cd7db617143306c03de47496141d6",
@@ -82,7 +82,7 @@
     "theme/bootstrap.js": "c034a82f5c14b465f8d88297f2a8d5ea2b34e813214cda90d4723b469aa18ce6",
     "theme/index.js": "b828acb9ac4a167244807f84fde945e1b9d184fe2eb44d59f3c39d51c3d881c5",
     "theme/theme.css": "68f29bbad6955998448ba01cdb44a5c2ad8bb9ee906b4f8c92ea6c57f08efda0",
-    "ui/index.js": "ff0503b1ccef66958ef48257b1e772d57d83b02d33c2cb2d882b1d30ef14bd1b",
+    "ui/index.js": "bf096e77b2cc0c9caef998d4ee0fe5ae4b88275823c3023214d2f1be21ac5e12",
     "ui/index.js.LEGAL.txt": "58e11ac100ff1393d72b63067b5606af0ecfefdd84f1cc1f2d944776c8db3a00"
   }
 }

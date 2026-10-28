@@ -14,6 +14,10 @@ Current round: `Documentation/WebUiReplacementPlan.md#optionpicker-共用元件�
       - Action: 匯入 Web 99aae2a 交付並執行 npm run ui:build。
       - Expect: Browser 與 Desktop UI 產物引用同一修正版，不變更 CSP 或加入產品 Button CSS。
       - Observed: 2026-10-28 雜湊校驗匯入與 UI 建置通過；Web 五項定向檢查涵蓋 style-src 'self'、無 label ghost 正方形透明及 iframe。正式瀏覽器重新整理後控制連線逾時，未取得本次實頁讀回證據；人工外觀仍由第 2 項記錄。
+    - [x] **Button 屬性委派及緊湊搜尋清除鈕交付**
+      - Action: 匯入 Web 9cfb6f9 並執行 npm run ui:build。
+      - Expect: 工具列沿用共用 OptionPicker，搜尋清除鈕由共用 Button 接收緊湊尺寸，產品不另加按鈕外觀 CSS。
+      - Observed: 2026-10-28 雜湊校驗與 UI 建置通過；Web 兩項分層與兩項定向瀏覽器檢查通過。產品來源未改，更新 Browser／Desktop 共用交付；未跑完整驗證或新增實頁人工結果。
 
 - [ ] **2. 人工外觀與操作**
   Outcome: 使用者接受三頁共用工具列。
