@@ -89,6 +89,8 @@ missing. Each is cheap; none is sufficient alone.
 
 ## The entrances
 
+Before running the published single-file EXE, use [CLI execution context](../../../Documentation/ReportCliUsage.md#cli-執行環境). On Windows AppContainer/sandbox hosts, run that same EXE as the current ordinary user outside the sandbox (Codex: `sandbox_permissions: "require_escalated"`); its .NET extraction can otherwise retry access-denied renames before any command or diagnostic runs. This applies to read-only `checklist validate` too. Follow the command's own permissions; this does not authorize services, hidden child processes or writes. A no-output timeout is not a parser verdict or proof a command is missing.
+
 | Want | Entrance |
 |---|---|
 | Create, run or accept executable items with verification options | The acting agent's user-level `task-progress` entry (§ Initialize the user-level entry), which routes to [task-progress](../task-progress/SKILL.md). |

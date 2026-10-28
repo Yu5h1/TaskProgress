@@ -254,6 +254,8 @@ by its owner instead.
 
 ### Verify the document
 
+Use the published EXE in the [CLI execution context](../../../Documentation/ReportCliUsage.md#cli-執行環境): Windows sandbox/AppContainer startup can stall in .NET extraction before the parser runs, even for this read-only command. Run it outside that sandbox as the ordinary user; preserve the command's authorization boundaries.
+
 This section applies when the agent writes or changes a round, or when the user explicitly requests
 validation; a request only to open or show a `.checklist` is navigation
 ([taskprogress-capabilities § Open-only requests](../taskprogress-capabilities/SKILL.md#open-only-requests)).

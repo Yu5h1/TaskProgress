@@ -10,6 +10,7 @@ description: Generate, update, validate, roll up, register, and locally deploy T
 - Treat the directory containing the shared `.agents` folder as `<yu5h1lib-root>`.
 - Treat `<yu5h1lib-root>\TaskProgress` as `<task-progress-root>`.
 - Treat `<task-progress-root>\Build\win-x64\task-progress.exe` (the `Publish.cmd` output) as `<task-progress-exe>`. It is not on `PATH`. Take command shapes from this skill, [Report CLI usage](../../../Documentation/ReportCliUsage.md), or `PrintHelp()` in `src/TaskProgress.Cli/Program.cs`; never probe with missing arguments or subcommand `--help`, which opens a usage dialog on the user's screen.
+- Before invoking that single-file EXE, follow [CLI execution context](../../../Documentation/ReportCliUsage.md#cli-執行環境). Windows sandbox/AppContainer extraction failures can occur before `report` starts; execute outside that sandbox as the current ordinary user, within the command's existing authorization.
 - Place another project's reports at the project root:
   - `<project-root>\report.json`
   - `<project-root>\report.dev.json` only when developer details exist or the user requests it.

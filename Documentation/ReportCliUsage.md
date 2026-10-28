@@ -2,6 +2,16 @@
 
 使用含 `report` 命令的 TaskProgress CLI，搭配專案 `service/`、`schemas/` 及已安裝 jsonschema 的 Python。需要指定 Python 時設定 `TASK_PROGRESS_PYTHON`；指定專案位置時設定 `TASK_PROGRESS_VIEWER_ROOT` 為本專案的 `viewer` 目錄。命令不啟動本機服務。
 
+## CLI 執行環境
+
+正式入口是 `Build/win-x64/task-progress.exe`。在一般 Windows 使用者環境執行；當呼叫端使用 Windows sandbox／AppContainer 時，透過呼叫工具的核准機制，在沙箱外以同一個一般使用者執行。Codex 對應 `sandbox_permissions: "require_escalated"`，不需要系統管理員提升。命令本身的讀寫、服務及子程序授權仍依原規範處理。
+
+單檔 EXE 會先由 .NET host 解壓原生元件，再進入命令入口。若沙箱暫存目錄的 rename 被拒絕，host 可能持續重試且沒有一般 stdout；`checklist validate` 也會受影響，尚未開始解析文件。此時應停止有界逾時的診斷程序，於一般使用者環境執行相同命令。不要將無輸出當成命令不存在或清單格式正確，也不要把繞過正式 CLI 的 JSON 讀取當成含 `derived_state` 的 `report get`。
+
+需要辨別啟動階段時，可對一次有界診斷呼叫設定 `COREHOST_TRACE=1` 並擷取 stderr；看到 `.net/...` 下反覆 `Retrying Rename ... EACCES`，表示問題在 host 的解壓階段。診斷結束後移除該次環境設定。保留原沙箱權限與檔案，不透過 ACL、解壓目錄搬移或安全性排除處理。
+
+PowerShell 要等待 WinExe 的 CLI 結果，可使用輸出管線（例如 `& $exe checklist validate $file | Out-String`）並檢查 `$LASTEXITCODE`。不要對無參數或 `open` 啟動入口套用這個等待方式；那些入口的流程由相應技能規範。
+
 ## 讀取與驗證
 
 ```powershell
