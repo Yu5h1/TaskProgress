@@ -10,7 +10,7 @@ set "PROJECT_ROOT=%~dp0"
 set "PROJECT_FILE=%PROJECT_ROOT%src\TaskProgress.Cli\TaskProgress.Cli.csproj"
 set "OUTPUT_DIR=%PROJECT_ROOT%Build\win-x64"
 set "OUTPUT_EXE=%OUTPUT_DIR%\task-progress.exe"
-set "MANIFEST=%OUTPUT_DIR%\taskprogress.trayapp"
+set "MANIFEST=%PROJECT_ROOT%taskprogress.trayapp"
 set "LEGACY_MANIFEST=%OUTPUT_DIR%\taskprogress.trayapp.json"
 set "TRAY_HOST=%TASK_PROGRESS_TRAY_HOST%"
 if not defined TRAY_HOST set "TRAY_HOST=%PROJECT_ROOT%..\Winform\bin\TrayHost\Release\Yu5h1Lib.TrayHost.exe"
@@ -48,7 +48,6 @@ echo Project: %PROJECT_FILE%
 echo Output : %OUTPUT_DIR%
 echo.
 
-if not exist "%MANIFEST%" if exist "%LEGACY_MANIFEST%" set "MANIFEST=%LEGACY_MANIFEST%"
 if not exist "%MANIFEST%" goto publish
 if not exist "%TRAY_HOST%" (
     echo TrayHost not found: %TRAY_HOST%
@@ -63,6 +62,11 @@ if not "%EXIT_CODE%"=="0" (
     echo Exit TaskProgress from its tray menu, then run Publish.cmd again.
     goto finish
 )
+if not exist "%LEGACY_MANIFEST%" goto publish
+echo Closing the legacy TaskProgress tray...
+"%TRAY_HOST%" exit "%LEGACY_MANIFEST%" --standalone
+set "EXIT_CODE=%ERRORLEVEL%"
+if not "%EXIT_CODE%"=="0" goto finish
 
 :publish
 dotnet publish "%PROJECT_FILE%" -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:PublishTrimmed=false -p:EnableCompressionInSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -o "%OUTPUT_DIR%"

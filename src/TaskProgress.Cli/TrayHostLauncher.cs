@@ -6,7 +6,7 @@
 // "already open, do not open again" rule next to the one TrayHost identity
 // already enforces, so this only ever calls `invoke`.
 //
-// The manifest is resolved beside this executable. That is what keeps one
+// The manifest is resolved in the TaskProgress project root. That keeps one
 // deployment to one tray: TrayHost derives standalone identity from the
 // manifest's canonical path, so a second copy of the file would be a second
 // tray competing for the same port.
@@ -60,7 +60,7 @@ internal static class TrayHostLauncher
         startInfo.ArgumentList.Add("--buildIcon");
         // TrayHost applies recovery hints only when the manifest is missing.
         startInfo.ArgumentList.Add("--init-executable");
-        startInfo.ArgumentList.Add("task-progress.exe");
+        startInfo.ArgumentList.Add("Build/win-x64/task-progress.exe");
         startInfo.ArgumentList.Add("--init-argument");
         startInfo.ArgumentList.Add("worker");
         if (arguments.Count == 0 || !arguments[0].Equals("start", StringComparison.OrdinalIgnoreCase))
@@ -130,12 +130,12 @@ internal static class TrayHostLauncher
     }
 
     /// <summary>
-    ///   Returns this deployment's manifest path; TrayHost owns missing-file initialization and validation.
+    ///   Returns the project-root manifest path; TrayHost owns missing-file initialization and validation.
     /// </summary>
     internal static string ResolveManifest()
     {
         var directory = Path.GetDirectoryName(Environment.ProcessPath) ?? AppContext.BaseDirectory;
-        return ResolveManifest(directory);
+        return ResolveManifest(Path.GetFullPath(Path.Combine(directory, "..", "..")));
     }
 
     /// <summary>Resolves the full path without requiring an existing file or directory.</summary>

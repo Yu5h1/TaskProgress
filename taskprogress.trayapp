@@ -6,9 +6,9 @@
   "copy": { "URL": "http://127.0.0.1:8001/" },
   "output": { "notify": true, "clipboard": false },
   "process": {
-    "executable": "task-progress.exe",
+    "executable": "Build/win-x64/task-progress.exe",
     "arguments": ["worker"],
-    "workingDirectory": "."
+    "workingDirectory": "Build/win-x64"
   },
   "timeouts": {
     "startupSeconds": 60,

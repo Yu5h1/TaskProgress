@@ -70,7 +70,7 @@ internal static class TrayHostLauncherTests
             var expected = new List<string>
             {
                 "invoke", manifest, "--standalone", "--buildIcon",
-                "--init-executable", "task-progress.exe", "--init-argument", "worker"
+                "--init-executable", "Build/win-x64/task-progress.exe", "--init-argument", "worker"
             };
             if (noNotify) expected.Add("--no-notify");
             expected.Add("--");

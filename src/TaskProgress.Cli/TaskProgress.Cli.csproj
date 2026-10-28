@@ -41,17 +41,6 @@
     </Content>
   </ItemGroup>
 
-  <!-- TrayHost derives standalone identity from the manifest's canonical path,
-       so this must land beside task-progress.exe and nowhere else. The icons
-       are not here on purpose: they are generated next to this manifest on
-       first launch, so they belong to the deployment rather than the sources. -->
-  <ItemGroup>
-    <Content Include="taskprogress.trayapp">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-    </Content>
-  </ItemGroup>
-
   <ItemGroup>
     <InternalsVisibleTo Include="TaskProgress.Cli.Tests" />
     <InternalsVisibleTo Include="TaskProgress.Checklist.Tests" />

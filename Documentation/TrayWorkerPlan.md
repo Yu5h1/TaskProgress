@@ -41,7 +41,7 @@ TaskProgress 由短命的啟動入口與常駐 `worker` 組成。使用者雙擊
 
 ### Manifest 路徑與取消契約
 
-TaskProgress 只解析並提供與自身 executable 同目錄的完整 `taskprogress.trayapp` 路徑。`ResolveManifest` 不以檔案存在與否阻擋呼叫，也不建立、複製、編輯或驗證 manifest 內容。
+TaskProgress 只解析並提供專案根目錄的完整 `taskprogress.trayapp` 路徑。`ResolveManifest` 不以檔案存在與否阻擋呼叫，也不建立、複製、編輯或驗證 manifest 內容。
 
 TrayHost 單一擁有缺檔初始化、schema 2 草稿、Manifest Editor、Save 驗證與取消語意。缺檔時由 TrayHost 開啟編輯器；Save 驗證成功後繼續原命令。既有文件的編輯與驗證結果也由 TrayHost 決定；TaskProgress 只依取消或失敗結果處理，不提供自動覆寫或 fallback。需要具備此契約的 TrayHost 版本，不能以 TaskProgress 的純測試推定外部 binary 已支援。
 
@@ -350,7 +350,7 @@ TrayHost App 端向 worker 送 `status` request，把回傳的整行字串當成
 
 TrayHost 已有 standalone 的互斥機制：identity 由 manifest 的 `id` 與 canonical path 推導，`host` 模式取不到 mutex 就結束。要讓「不能重複」成立，還需要補三件事：
 
-1. **只保留一份 manifest。** identity 含 canonical path 是刻意的（避免不同專案的同名 manifest 互連），所以同一份 manifest 被複製到兩個位置就會產生兩個 tray、兩個 worker，並同時搶 port 8001。對策是規定 `taskprogress.trayapp` 只放在 `Build/win-x64/`，與 `task-progress.exe` 同目錄，由 `Publish.cmd` 一起輸出。不要改 Winform 的 identity 規則來繞過這點。
+1. **只保留一份 manifest。** identity 含 canonical path 是刻意的（避免不同專案的同名 manifest 互連），所以同一份 manifest 被複製到兩個位置就會產生兩個 tray、兩個 worker，並同時搶 port 8001。對策是規定 `taskprogress.trayapp` 只放在 TaskProgress 根目錄，執行檔回找此路徑，避免發布目錄留下第二份。不要改 Winform 的 identity 規則來繞過這點。
 2. **重複啟動要浮出既有 instance，而不是靜默結束。** 現在第二個 process 直接 `return 0`，使用者會以為沒反應而再點一次。計畫是在既有的 instance pipe 上新增一個 `activate` broker request，第二個 process 送出後由既有 instance 打開 Settings 視窗，再結束自己。
 3. **worker 必須在 stdin EOF 時自己結束。** 否則 host 異常死亡後殘留的 worker 會讓下一次啟動變成兩個 worker。
 
@@ -360,7 +360,7 @@ TrayHost 已有 standalone 的互斥機制：identity 由 manifest 的 `id` 與 
 
 ### Manifest
 
-`Build/win-x64/taskprogress.trayapp`：
+`taskprogress.trayapp`（專案根目錄）：
 
 ```json
 {
@@ -374,9 +374,9 @@ TrayHost 已有 standalone 的互斥機制：identity 由 manifest 的 `id` 與 
   "protocol": "trayhost-jsonlines-v1",
   "copy": { "URL": "http://127.0.0.1:8001/" },
   "process": {
-    "executable": "task-progress.exe",
+    "executable": "Build/win-x64/task-progress.exe",
     "arguments": ["worker"],
-    "workingDirectory": "."
+    "workingDirectory": "Build/win-x64"
   },
   "timeouts": {
     "startupSeconds": 30,
@@ -428,8 +428,8 @@ TrayHost 已有 standalone 的互斥機制：identity 由 manifest 的 `id` 與 
 
 ### Phase 2：manifest 與發布 —— 已實作
 
-- `src/TaskProgress.Cli/taskprogress.trayapp` 為簽入來源，csproj 以 `Content` 複製到輸出與發布目錄，因此 `Build/win-x64/` 由 `Publish.cmd` 一起帶出。`light.ico`／`dark.ico` 不簽入：每次 invoke 都帶 `--buildIcon`，由 TrayHost 在部署目錄補齊 icon 並將清單升級為 schema 2，icon 取 `displayName` 首字 `T`。
-- `TrayHostLauncher.cs`：executable 探索（`TASK_PROGRESS_TRAY_HOST` → 向上找 `Winform/bin/TrayHost/{Release,Debug}/`）、manifest 解析（與自己的 executable 同目錄）、轉呼叫 `invoke ... --standalone -- <args>`。
+- 專案根目錄的 `taskprogress.trayapp` 為唯一簽入與執行來源，指向 `Build/win-x64/task-progress.exe`。`light.ico`／`dark.ico` 不簽入：每次 invoke 都帶 `--buildIcon`，由 TrayHost 在 manifest 目錄補齊 icon 並將清單升級為 schema 2，icon 取 `displayName` 首字 `T`。
+- `TrayHostLauncher.cs`：executable 探索（`TASK_PROGRESS_TRAY_HOST` → 向上找 `Winform/bin/TrayHost/{Release,Debug}/`）、manifest 解析（TaskProgress 專案根目錄）、轉呼叫 `invoke ... --standalone -- <args>`。
 - `Program.cs`：start 參數與 TrayHost invoke 分派。
 - **只呼叫 `invoke`，不呼叫 `host`。** 單一實例由 TrayHost identity 保證，本專案不寫第二套。
 

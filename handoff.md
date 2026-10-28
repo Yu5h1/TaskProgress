@@ -6,7 +6,7 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
 
 ## Current state (2026-09-29)
 
-- **TrayHost 清單改用 `.trayapp`，尚未發布（2026-10-28）。** 來源改為 `src/TaskProgress.Cli/taskprogress.trayapp`，`copy` 的 `URL` 為 `http://127.0.0.1:8001/`（tray `Copy URL`）；`TrayHostLauncher.ManifestFileName`、csproj 與 [TrayWorkerPlan〈Manifest〉](Documentation/TrayWorkerPlan.md#manifest) 已同步。`Build/win-x64` 仍是舊 EXE 與 TrayHost 草稿 `taskprogress.trayapp.json`（id `taskprogress`、notify false），tray 仍從該路徑執行；agent 執行 `Publish.cmd --nopause --restart` 被權限分類器拒絕，需使用者執行或允許。新清單不存在時 `Publish.cmd` 改以舊清單關閉 tray，發布成功後刪除舊清單，避免同目錄兩份清單成為兩個 identity；之後部署改用來源清單（id `task-progress`、notify true）。遷移發布完成後可移除 `LEGACY_MANIFEST` 相關三行。
+- **TrayHost 清單位置（2026-10-28）。** 唯一來源與啟動入口改在專案根目錄 `taskprogress.trayapp`，指向 `Build/win-x64/task-progress.exe`；CLI 回找根目錄，Publish.cmd 先關閉根目錄及舊 `Build/win-x64/taskprogress.trayapp.json` identity，再發布並移除舊清單。詳見 [TrayWorkerPlan〈Manifest〉](Documentation/TrayWorkerPlan.md#manifest)。舊 EXE 尚未重新發布；執行新版程式前需依既有發布程序更新。
 
 - **Published CLI under Windows sandbox:** use [CLI execution context](Documentation/ReportCliUsage.md#cli-執行環境) before invoking the single-file EXE. The host can retry an access-denied extraction-cache rename before entering the command; the same ordinary-user invocation outside the sandbox reaches the parser. Consumer validation evidence: [Web ShortcutEditor checklist](../Web/checklists/shortcut-settings.checklist). The capabilities, Report and checklist skills route to this execution boundary.
 
