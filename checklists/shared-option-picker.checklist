@@ -10,6 +10,10 @@ Current round: `Documentation/WebUiReplacementPlan.md#optionpicker-共用元件�
     - [x] **隔離探針與正式接線**
       - Action: 固定 Web 產物，先跑隔離排序／可見性案例，再重建並確認三頁工具列與五場景交付。
       - Expect: 循環、選取及重置保持產品意義，單一共用面板；取消／卸載沒有殘留，資料保存契約不變。
+    - [x] **共用 Button 嚴格 CSP 修正版交付**
+      - Action: 匯入 Web 99aae2a 交付並執行 npm run ui:build。
+      - Expect: Browser 與 Desktop UI 產物引用同一修正版，不變更 CSP 或加入產品 Button CSS。
+      - Observed: 2026-10-28 雜湊校驗匯入與 UI 建置通過；Web 五項定向檢查涵蓋 style-src 'self'、無 label ghost 正方形透明及 iframe。正式瀏覽器重新整理後控制連線逾時，未取得本次實頁讀回證據；人工外觀仍由第 2 項記錄。
 
 - [ ] **2. 人工外觀與操作**
   Outcome: 使用者接受三頁共用工具列。
