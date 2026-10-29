@@ -33,6 +33,53 @@ function reorderItems(p, view, task) {
   } };
 }
 
+const itemContext = url => [...url.searchParams].filter(([key]) => key !== 'pin' && key !== 'link-tone').sort().map(pair => pair.join('=')).join('&');
+
+function navigateVisibleItem(event, view) {
+  if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return false;
+  const link = event.target.closest('a[href]');
+  if (!link || link.hasAttribute('download') || (link.target && link.target !== '_self')) return false;
+  const destination = new URL(link.href, location.href), current = new URL(location.href);
+  if (destination.origin !== current.origin || destination.pathname !== current.pathname || !destination.hash.startsWith('#item-')) return false;
+  const source = new URL(location.href);
+  source.hash = event.currentTarget.id;
+  sessionStorage.setItem('taskprogress-item-arrival', JSON.stringify({ destination: destination.href, source: source.href }));
+  if (itemContext(destination) !== itemContext(current)) return false;
+  const target = [...view.target.querySelectorAll('[data-item-row]')].find(row => `#${row.id}` === destination.hash && row.getClientRects().length);
+  if (!target || target.closest('[data-card-id]') !== event.currentTarget.closest('[data-card-id]')) return false;
+  event.preventDefault();
+  history.pushState(null, '', destination.href);
+  activateItemTarget(view, true);
+  view.lastItemHash = null;
+  view.itemTargetPulse = (view.itemTargetPulse ?? 0) + 1;
+  view.refresh();
+  return true;
+}
+
+function activateItemTarget(view, force = false) {
+  const hash = location.hash.startsWith('#item-') ? location.hash : null;
+  view.activeItemHash = hash && (force || history.state?.itemTargetShown !== hash) ? hash : null;
+  let arrival;
+  try { arrival = JSON.parse(sessionStorage.getItem('taskprogress-item-arrival')); } catch { arrival = null; }
+  view.itemReturnUrl = view.activeItemHash && arrival?.destination === location.href ? arrival.source : null;
+  sessionStorage.removeItem('taskprogress-item-arrival');
+  if (view.activeItemHash) history.replaceState({ ...history.state, itemTargetShown: hash }, '');
+}
+
+function returnToItem(view) {
+  if (!view.itemReturnUrl) return;
+  const destination = new URL(view.itemReturnUrl), current = new URL(location.href);
+  if (destination.origin !== current.origin || destination.pathname !== current.pathname || itemContext(destination) !== itemContext(current)) {
+    location.assign(destination.href);
+    return;
+  }
+  history.pushState(null, '', destination.href);
+  activateItemTarget(view, true);
+  view.lastItemHash = null;
+  view.itemTargetPulse = (view.itemTargetPulse ?? 0) + 1;
+  view.refresh();
+}
+
 function itemRow(p, v, task, field, item, lead) {
   const editing = p.editing, itemStatus = item.status ?? (field === 'completed_items' ? 'done' : 'planned');
   const meta = item.derivedState && item.derivedState !== 'done' ? { label: item.derivedStateLabel, tone: item.derivedStateTone } : status(itemStatus);
@@ -48,12 +95,13 @@ function itemRow(p, v, task, field, item, lead) {
   if (!linked.length) v.state[`wait:${key}`] = false;
   const canReorder=(editing || p.reorderable) && field==='pending_items' && item.id && !item.legacy;
   const copyCount=selected ? v.state.selection.keys.size : 1, copyTitle=copyCount>1?`複製已選取的 ${copyCount} 項參照`:reference;
-  return html`<li class="editor-item-row ${editing ? 'editable-work-item' : canReorder ? 'item-row-reorderable' : ''} ${selected ? 'is-selected' : ''} ${isNext ? 'is-next' : ''}" data-select-key=${reference && p.selection ? reference : nothing}
+  return html`<li id=${!editing && reference ? `item-${task.id}--${item.id}` : nothing} ?data-item-target=${!!reference && v.activeItemHash === `#item-${task.id}--${item.id}`} data-item-pulse=${reference && v.activeItemHash === `#item-${task.id}--${item.id}` ? (v.itemTargetPulse ?? 0) % 2 : nothing} class="editor-item-row ${editing ? 'editable-work-item' : canReorder ? 'item-row-reorderable' : ''} ${selected ? 'is-selected' : ''} ${isNext ? 'is-next' : ''}" data-select-key=${reference && p.selection ? reference : nothing}
     data-item-row=${key} data-reorder-id=${item.id} data-reorder-sortable=${String(!!canReorder)} data-reorder-group=${String(p.policy.normalize(item.priority,p.policy.fallbackValue))}
     tabindex=${reference && p.selection ? 0 : nothing} title=${editing ? nothing : formatActivity(item.activity)}
     ${action(holdAction, { enabled: !!(p.onSetNext && reference && !editing), onTrigger: setNext })}
-    @click=${e => reference && p.selection?.rowClick(reference, e)} @focus=${() => reference && p.selection?.rowFocus(reference)}
+    @click=${e => { if (!navigateVisibleItem(e, v) && reference) p.selection?.rowClick(reference, e); }} @focus=${() => reference && p.selection?.rowFocus(reference)}
     @keydown=${e => { if (!editing && e.shiftKey && e.key === 'Enter' && p.onSetNext && reference && e.target === e.currentTarget) { e.preventDefault(); setNext(); return; } if (reference) p.selection?.rowKeydown(reference, e); }}>
+    ${!editing && v.itemReturnUrl && v.activeItemHash === `#item-${task.id}--${item.id}` ? html`<span class="item-return-anchor"><button type="button" class="item-return" aria-label="返回來源項目" title="返回來源項目" @pointerdown=${e => e.stopPropagation()} @click=${e => { e.stopPropagation(); returnToItem(v); }}>⮪</button></span>` : nothing}
     ${editing && canReorder ? html`<button type="button" class="item-row-grip" data-item-ref=${key} data-reorder-handle draggable="true" aria-label="移動「${item.title}」（Alt+↑／↓，限同優先級）">⠿</button>` : html`<span class="item-row-marker item-row-marker-${itemStatus}" aria-hidden="true">${itemStatus === 'done' ? '✓' : '○'}</span>`}
     ${editing || (itemStatus !== 'done' && priority && (!priority.hidden || !p.policy.labelsValid)) ? html`<span class="item-row-priority">${editing ? prioritySelect(p.policy, item.priority, `設定「${item.title}」的優先級`, value => cmd('set-item-field', { property: 'priority', value })) : html`<span class="priority-badge priority-${priority.tone}">${p.policy.format(item.priority)}</span>`}</span>` : nothing}
     <div class="item-row-description" data-reorder-content>${editing ? html`<input class="inline-edit-input" aria-label="編輯子項目：${item.title}" title=${item.title} maxlength="500" .value=${live(item.title)} @input=${e => cmd('set-item-field', { property: 'title', value: e.currentTarget.value })}>`
@@ -101,12 +149,20 @@ function taskCard(p, v, task, card) {
 
 const templates = {
   'task-list': (p, v) => {
-    if (!v.cards) v.cards = new Cards(v);
+    if (!v.cards) { v.cards = new Cards(v); activateItemTarget(v); v.on(window, 'hashchange', () => { activateItemTarget(v); v.lastItemHash = null; v.refresh(); }); v.on(window, 'popstate', () => { v.activeItemHash = null; v.itemReturnUrl = null; v.refresh(); }); }
+    if (v.activeItemHash && v.lastItemHash !== v.activeItemHash) {
+      const hash = v.activeItemHash;
+      queueMicrotask(() => queueMicrotask(() => {
+        if (v.disposed || location.hash !== hash) return;
+        const target = [...v.target.querySelectorAll('[data-item-row]')].find(row => `#${row.id}` === hash && row.getClientRects().length);
+        if (target) { v.lastItemHash = hash; target.scrollIntoView({ block: 'center', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }); }
+      }));
+    }
     if (v.selectionSource !== p.selection) { v.unsubscribe?.(); v.selectionSource = p.selection; v.unsubscribe = p.selection?.subscribe(s => { v.state.selection = s; queueMicrotask(v.refresh); }); v.cleanups.push(() => v.unsubscribe?.()); }
     return html`${v.cards.render({ items: p.tasks, allIds: p.allIds, storageKey: p.cardStorageKey, pinEnabled: true, requestedPin: p.requestedPin, nextId: p.nextTaskId, hiddenCount: p.hiddenCount, onShowHidden: p.onShowHidden },
       (task, card) => task.kind === 'report_pointer' ? pointer(p, task, card) : taskCard(p, v, task, card), p.filters ? filters(p.filters) : nothing,
-      p.onSearch ? html`<ui-search-field class="task-search" label="搜尋任務卡名稱、摘要與子項" placeholder="搜尋名稱、摘要、子項"
-        .query=${p.searchQuery ?? ''} @query-change=${e => p.onSearch(e.detail.query)}></ui-search-field>` : nothing)}${!p.tasks.length ? html`<p class="empty-state">${p.emptyLabel}</p>` : nothing}`;
+      html`${p.onSearch ? html`<ui-search-field class="task-search" label="搜尋任務卡名稱、摘要與子項" placeholder="搜尋名稱、摘要、子項"
+        .query=${p.searchQuery ?? ''} @query-change=${e => p.onSearch(e.detail.query)}></ui-search-field>` : nothing}`)}${!p.tasks.length ? html`<p class="empty-state">${p.emptyLabel}</p>` : nothing}`;
   },
   'report-summary': p => p.editable ? html`<textarea class="report-summary-input" aria-label=${p.label ?? '報告摘要'} maxlength="1000" rows="2" placeholder=${p.placeholder ?? ''} .value=${live(p.value ?? '')} @input=${e => p.onCommit(e.currentTarget.value)}></textarea>` : html`<p class="hero-summary">${p.text}</p>`,
   'project-progress': p => html`<div class="project-progress-label"><strong id="project-progress-value">整體約 ${p.percentage}%</strong></div>${progressBar({ ...p, form: 'segmented', label: `整體進度 ${p.percentage}%，已完成 ${p.completed}，共 ${p.total}`, extraClass: 'project-progress-meter' })}`,

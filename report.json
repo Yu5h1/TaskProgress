@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-10-29T09:42:51.268281+00:00",
+  "updated_at": "2026-10-29T13:51:26.941079+00:00",
   "tasks": [
     {
       "priority": 1,
@@ -2672,6 +2672,40 @@
               "session": "Taskprogess",
               "session_id": "016492fa-7464-498b-9444-0e6296cd1267",
               "at": "2026-10-25T05:56:11.948776+00:00"
+            }
+          ]
+        },
+        {
+          "priority": 0,
+          "title": "同卡項目提示測試：[前往外部寫入往返](/?scope=task-progress&pin=third-party-checklist-write#item-third-party-checklist-write--item-third-party-checklist-write-roundtrip)",
+          "status": "planned",
+          "id": "item-link-highlight-demo",
+          "activity": [
+            {
+              "event": "created",
+              "actor": "codex",
+              "at": "2026-10-29T12:16:10.860979+00:00",
+              "session": "目標視覺提示試驗"
+            },
+            {
+              "event": "updated",
+              "actor": "codex",
+              "at": "2026-10-29T13:51:26.941079+00:00",
+              "session": "目標視覺提示試驗"
+            }
+          ]
+        },
+        {
+          "status": "planned",
+          "priority": 0,
+          "id": "item-link-highlight-cross-scope",
+          "title": "跨頁提示測試：[前往 Yu5h1Lib 測試目標](/?scope=yu5h1lib&pin=link-highlight-cross-scope-demo#item-link-highlight-cross-scope-demo--link-highlight-cross-scope-target)",
+          "activity": [
+            {
+              "event": "created",
+              "actor": "codex",
+              "at": "2026-10-29T13:45:15.489442+00:00",
+              "session": "跨頁目標視覺提示試驗"
             }
           ]
         },

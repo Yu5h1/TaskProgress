@@ -1504,14 +1504,14 @@ r();
 var hn = Object.entries(l).map(([e, t]) => ({
 	value: e,
 	...t
-})), $ = (e) => l[e] ?? {
+})), gn = (e) => l[e] ?? {
 	label: e,
 	tone: "muted"
-}, gn = (e, t, n, r, i = "") => N`<select class=${i} aria-label=${n} .value=${q(String(t))} @change=${(e) => r(e.currentTarget.value)}>${e.map((e) => N`<option .value=${String(e.value)} ?selected=${String(e.value) === String(t)}>${e.label}</option>`)}</select>`, _n = (e, t, n, r) => gn(e.levels.map((t) => ({
+}, _n = (e, t, n, r, i = "") => N`<select class=${i} aria-label=${n} .value=${q(String(t))} @change=${(e) => r(e.currentTarget.value)}>${e.map((e) => N`<option .value=${String(e.value)} ?selected=${String(e.value) === String(t)}>${e.label}</option>`)}</select>`, vn = (e, t, n, r) => _n(e.levels.map((t) => ({
 	value: t.value,
 	label: e.format(t.value)
 })), e.normalize(t, e.fallbackValue), n, (e) => r(Number(e)), "inline-priority-select");
-function vn(e, t, n) {
+function yn(e, t, n) {
 	return {
 		enabled: !!(e.editing || e.reorderable),
 		axis: "vertical",
@@ -1547,11 +1547,49 @@ function vn(e, t, n) {
 		}
 	};
 }
-function yn(e, t, n, r, i, a) {
+var bn = (e) => [...e.searchParams].filter(([e]) => e !== "pin" && e !== "link-tone").sort().map((e) => e.join("=")).join("&");
+function xn(e, t) {
+	if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return !1;
+	let n = e.target.closest("a[href]");
+	if (!n || n.hasAttribute("download") || n.target && n.target !== "_self") return !1;
+	let r = new URL(n.href, location.href), i = new URL(location.href);
+	if (r.origin !== i.origin || r.pathname !== i.pathname || !r.hash.startsWith("#item-")) return !1;
+	let a = new URL(location.href);
+	if (a.hash = e.currentTarget.id, sessionStorage.setItem("taskprogress-item-arrival", JSON.stringify({
+		destination: r.href,
+		source: a.href
+	})), bn(r) !== bn(i)) return !1;
+	let o = [...t.target.querySelectorAll("[data-item-row]")].find((e) => `#${e.id}` === r.hash && e.getClientRects().length);
+	return !o || o.closest("[data-card-id]") !== e.currentTarget.closest("[data-card-id]") ? !1 : (e.preventDefault(), history.pushState(null, "", r.href), $(t, !0), t.lastItemHash = null, t.itemTargetPulse = (t.itemTargetPulse ?? 0) + 1, t.refresh(), !0);
+}
+function $(e, t = !1) {
+	let n = location.hash.startsWith("#item-") ? location.hash : null;
+	e.activeItemHash = n && (t || history.state?.itemTargetShown !== n) ? n : null;
+	let r;
+	try {
+		r = JSON.parse(sessionStorage.getItem("taskprogress-item-arrival"));
+	} catch {
+		r = null;
+	}
+	e.itemReturnUrl = e.activeItemHash && r?.destination === location.href ? r.source : null, sessionStorage.removeItem("taskprogress-item-arrival"), e.activeItemHash && history.replaceState({
+		...history.state,
+		itemTargetShown: n
+	}, "");
+}
+function Sn(e) {
+	if (!e.itemReturnUrl) return;
+	let t = new URL(e.itemReturnUrl), n = new URL(location.href);
+	if (t.origin !== n.origin || t.pathname !== n.pathname || bn(t) !== bn(n)) {
+		location.assign(t.href);
+		return;
+	}
+	history.pushState(null, "", t.href), $(e, !0), e.lastItemHash = null, e.itemTargetPulse = (e.itemTargetPulse ?? 0) + 1, e.refresh();
+}
+function Cn(e, t, n, r, i, a) {
 	let o = e.editing, s = i.status ?? (r === "completed_items" ? "done" : "planned"), c = i.derivedState && i.derivedState !== "done" ? {
 		label: i.derivedStateLabel,
 		tone: i.derivedStateTone
-	} : $(s), l = e.policy.metadata(i.priority), u = o ? null : p({
+	} : gn(s), l = e.policy.metadata(i.priority), u = o ? null : p({
 		scopeId: e.scopeId,
 		taskId: n.id,
 		item: i
@@ -1571,14 +1609,16 @@ function yn(e, t, n, r, i, a) {
 	})), y = v.filter((e) => e.href), b = `${n.id}/${i.id}`;
 	y.length || (t.state[`wait:${b}`] = !1);
 	let x = (o || e.reorderable) && r === "pending_items" && i.id && !i.legacy, S = d ? t.state.selection.keys.size : 1, re = S > 1 ? `複製已選取的 ${S} 項參照` : u;
-	return N`<li class="editor-item-row ${o ? "editable-work-item" : x ? "item-row-reorderable" : ""} ${d ? "is-selected" : ""} ${g ? "is-next" : ""}" data-select-key=${u && e.selection ? u : I}
+	return N`<li id=${!o && u ? `item-${n.id}--${i.id}` : I} ?data-item-target=${!!u && t.activeItemHash === `#item-${n.id}--${i.id}`} data-item-pulse=${u && t.activeItemHash === `#item-${n.id}--${i.id}` ? (t.itemTargetPulse ?? 0) % 2 : I} class="editor-item-row ${o ? "editable-work-item" : x ? "item-row-reorderable" : ""} ${d ? "is-selected" : ""} ${g ? "is-next" : ""}" data-select-key=${u && e.selection ? u : I}
     data-item-row=${b} data-reorder-id=${i.id} data-reorder-sortable=${String(!!x)} data-reorder-group=${String(e.policy.normalize(i.priority, e.policy.fallbackValue))}
     tabindex=${u && e.selection ? 0 : I} title=${o ? I : m(i.activity)}
     ${Y(Ht, {
 		enabled: !!(e.onSetNext && u && !o),
 		onTrigger: ne
 	})}
-    @click=${(t) => u && e.selection?.rowClick(u, t)} @focus=${() => u && e.selection?.rowFocus(u)}
+    @click=${(n) => {
+		!xn(n, t) && u && e.selection?.rowClick(u, n);
+	}} @focus=${() => u && e.selection?.rowFocus(u)}
     @keydown=${(t) => {
 		if (!o && t.shiftKey && t.key === "Enter" && e.onSetNext && u && t.target === t.currentTarget) {
 			t.preventDefault(), ne();
@@ -1586,8 +1626,11 @@ function yn(e, t, n, r, i, a) {
 		}
 		u && e.selection?.rowKeydown(u, t);
 	}}>
+    ${!o && t.itemReturnUrl && t.activeItemHash === `#item-${n.id}--${i.id}` ? N`<span class="item-return-anchor"><button type="button" class="item-return" aria-label="返回來源項目" title="返回來源項目" @pointerdown=${(e) => e.stopPropagation()} @click=${(e) => {
+		e.stopPropagation(), Sn(t);
+	}}>⮪</button></span>` : I}
     ${o && x ? N`<button type="button" class="item-row-grip" data-item-ref=${b} data-reorder-handle draggable="true" aria-label="移動「${i.title}」（Alt+↑／↓，限同優先級）">⠿</button>` : N`<span class="item-row-marker item-row-marker-${s}" aria-hidden="true">${s === "done" ? "✓" : "○"}</span>`}
-    ${o || s !== "done" && l && (!l.hidden || !e.policy.labelsValid) ? N`<span class="item-row-priority">${o ? _n(e.policy, i.priority, `設定「${i.title}」的優先級`, (e) => _("set-item-field", {
+    ${o || s !== "done" && l && (!l.hidden || !e.policy.labelsValid) ? N`<span class="item-row-priority">${o ? vn(e.policy, i.priority, `設定「${i.title}」的優先級`, (e) => _("set-item-field", {
 		property: "priority",
 		value: e
 	})) : N`<span class="priority-badge priority-${l.tone}">${e.policy.format(i.priority)}</span>`}</span>` : I}
@@ -1620,7 +1663,7 @@ function yn(e, t, n, r, i, a) {
 			itemTitle: i.title
 		})
 	})}</span>
-    <span class="item-row-status">${o ? gn(hn, s, `設定「${i.title}」的狀態`, (e) => _("set-item-status", { status: e }), "inline-status-select") : v.length === 1 && y.length === 1 ? N`<a class="item-status-capsule status-${c.tone} is-link" href=${y[0].href} title=${h(i) ?? y[0].label}>${c.label}</a>` : y.length ? N`<span class="wait-menu" @focusout=${(e) => {
+    <span class="item-row-status">${o ? _n(hn, s, `設定「${i.title}」的狀態`, (e) => _("set-item-status", { status: e }), "inline-status-select") : v.length === 1 && y.length === 1 ? N`<a class="item-status-capsule status-${c.tone} is-link" href=${y[0].href} title=${h(i) ?? y[0].label}>${c.label}</a>` : y.length ? N`<span class="wait-menu" @focusout=${(e) => {
 		e.currentTarget.contains(e.relatedTarget) || (t.state[`wait:${b}`] = !1, t.draw());
 	}} @keydown=${(e) => {
 		e.key === "Escape" && (t.state[`wait:${b}`] = !1, t.draw());
@@ -1630,7 +1673,7 @@ function yn(e, t, n, r, i, a) {
     ${o ? N`<span class="item-row-action"><button class="inline-delete-button" type="button" aria-label="刪除子項目：${i.title}" @click=${() => _("delete-item", {})}>刪除</button></span>` : I}</span>
   </li>`;
 }
-function bn(e) {
+function wn(e) {
 	if (!e) return I;
 	let t = e.next_step ?? e.next_steps?.[0];
 	return !t && !e.next_steps?.length && !e.blockers?.length && !e.decisions?.length && !e.routes?.length && !e.claim ? I : N`<details class="developer-details"><summary class="developer-summary">${t ? N`<span class="developer-next-label">後續：</span><span class="developer-next-action">${t}</span>` : I}<span class="developer-expand-hint">展開作法與方向</span></summary><div class="developer-body"><h4 class="developer-body-title">作法與方向</h4>
@@ -1640,8 +1683,8 @@ function bn(e) {
     ${e.claim ? N`<section class="detail-section claim-section"><h4>Claim</h4><p>Agent: ${e.claim.agent}</p><p>${e.claim.worktree ?? ""}</p>${e.claim.source_paths?.map((e) => N`<code class="reference">${e}</code>`)}</section>` : I}
   </div></details>`;
 }
-function xn(e, t, n, r) {
-	let i = $(n.status), a = e.policy.metadata(n.priority), o = e.progress[n.id], s = (t, r) => e.onCommand({
+function Tn(e, t, n, r) {
+	let i = gn(n.status), a = e.policy.metadata(n.priority), o = e.progress[n.id], s = (t, r) => e.onCommand({
 		type: "set-task-field",
 		taskId: n.id,
 		field: t,
@@ -1669,14 +1712,14 @@ function xn(e, t, n, r) {
 		...r,
 		id: `task-body-${n.id}`,
 		label: n.title
-	}, N`<header class="task-header"><div class="task-title-group">${e.editing ? N`<div class="time-task-status-line">${gn(hn, n.status, `${n.title} 狀態`, (e) => s("status", e), "inline-status-select")}${_n(e.policy, n.priority, `${n.title} 優先級`, (e) => s("priority", e))}</div>` : I}
+	}, N`<header class="task-header"><div class="task-title-group">${e.editing ? N`<div class="time-task-status-line">${_n(hn, n.status, `${n.title} 狀態`, (e) => s("status", e), "inline-status-select")}${vn(e.policy, n.priority, `${n.title} 優先級`, (e) => s("priority", e))}</div>` : I}
     <div class="time-task-title-line">${e.editing ? N`<input id="task-${n.id}-title" class="task-title-input" aria-label="任務名稱" maxlength="160" .value=${q(n.title)} @input=${(e) => s("title", e.currentTarget.value)}>` : N`${Ot(n.id, n.title)}<h3 id="task-${n.id}-title">${n.title}</h3>`}</div>
     ${e.moduleTotals?.[n.id]?.length ? N`<div class="task-module-totals">${e.moduleTotals[n.id].map((e) => N`<span class="task-module-total task-module-total-${e.id}">${e.label}</span>`)}</div>` : I}</div>
     <div class="task-header-meta"><strong class="task-fraction" aria-label="子項目完成 ${o.completed}，共 ${o.total}">${o.completed} / ${o.total}</strong><span class="status-badge status-${i.tone}">${i.label}</span><code class="task-id">${n.id}</code></div></header>`, N`${e.editing ? N`<textarea class="task-summary-input" aria-label="任務描述" maxlength="1000" rows="3" .value=${q(n.summary ?? "")} @input=${(e) => s("summary", e.currentTarget.value)}></textarea>` : N`<div class="task-summary">${wt(n.summary, {
 		lines: 2,
 		emphasis: !0
-	})}</div>`}${bn(n.developer)}
-      <div class="work-columns">${c.map((i) => i.items.length || e.editing ? N`<section class="detail-section ${i.className}"><h4 class="detail-heading">${i.title}</h4><ul class="detail-list" id="task-${n.id}-${i.field}" ${Y(jt, vn(e, t, n))}>${K(i.status === "done" && !t.state[`completed:${n.id}`] ? i.items.slice(0, 1) : i.items, (e) => e.id, (a, o) => yn(e, t, n, i.field, a, r.lead && i.status !== "done" && o === 0 || a.id === e.nextItemId))}</ul>
+	})}</div>`}${wn(n.developer)}
+      <div class="work-columns">${c.map((i) => i.items.length || e.editing ? N`<section class="detail-section ${i.className}"><h4 class="detail-heading">${i.title}</h4><ul class="detail-list" id="task-${n.id}-${i.field}" ${Y(jt, yn(e, t, n))}>${K(i.status === "done" && !t.state[`completed:${n.id}`] ? i.items.slice(0, 1) : i.items, (e) => e.id, (a, o) => Cn(e, t, n, i.field, a, r.lead && i.status !== "done" && o === 0 || a.id === e.nextItemId))}</ul>
       ${i.status === "done" && i.items.length > 1 ? N`<button type="button" class="completed-more" aria-expanded=${!!t.state[`completed:${n.id}`]} aria-controls="task-${n.id}-${i.field}" @click=${() => {
 		t.state[`completed:${n.id}`] = !t.state[`completed:${n.id}`], t.draw();
 	}}><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d=${t.state[`completed:${n.id}`] ? "M3 10l5-5 5 5" : "M3 6l5 5 5-5"} fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" /></svg>${t.state[`completed:${n.id}`] ? "收合" : `顯示更多（${i.items.length - 1}項）`}</button>` : I}</section>` : I)}
@@ -1691,20 +1734,37 @@ function xn(e, t, n, r) {
 	}}>＋</button>`}</div>` : I}</section></div>`)}
   </article>`;
 }
-var Sn = {
-	"task-list": (e, t) => (t.cards ||= new Rt(t), t.selectionSource !== e.selection && (t.unsubscribe?.(), t.selectionSource = e.selection, t.unsubscribe = e.selection?.subscribe((e) => {
-		t.state.selection = e, queueMicrotask(t.refresh);
-	}), t.cleanups.push(() => t.unsubscribe?.())), N`${t.cards.render({
-		items: e.tasks,
-		allIds: e.allIds,
-		storageKey: e.cardStorageKey,
-		pinEnabled: !0,
-		requestedPin: e.requestedPin,
-		nextId: e.nextTaskId,
-		hiddenCount: e.hiddenCount,
-		onShowHidden: e.onShowHidden
-	}, (n, r) => n.kind === "report_pointer" ? Cn(e, n, r) : xn(e, t, n, r), e.filters ? Nt(e.filters) : I, e.onSearch ? N`<ui-search-field class="task-search" label="搜尋任務卡名稱、摘要與子項" placeholder="搜尋名稱、摘要、子項"
-        .query=${e.searchQuery ?? ""} @query-change=${(t) => e.onSearch(t.detail.query)}></ui-search-field>` : I)}${e.tasks.length ? I : N`<p class="empty-state">${e.emptyLabel}</p>`}`),
+var En = {
+	"task-list": (e, t) => {
+		if (t.cards || (t.cards = new Rt(t), $(t), t.on(window, "hashchange", () => {
+			$(t), t.lastItemHash = null, t.refresh();
+		}), t.on(window, "popstate", () => {
+			t.activeItemHash = null, t.itemReturnUrl = null, t.refresh();
+		})), t.activeItemHash && t.lastItemHash !== t.activeItemHash) {
+			let e = t.activeItemHash;
+			queueMicrotask(() => queueMicrotask(() => {
+				if (t.disposed || location.hash !== e) return;
+				let n = [...t.target.querySelectorAll("[data-item-row]")].find((t) => `#${t.id}` === e && t.getClientRects().length);
+				n && (t.lastItemHash = e, n.scrollIntoView({
+					block: "center",
+					behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth"
+				}));
+			}));
+		}
+		return t.selectionSource !== e.selection && (t.unsubscribe?.(), t.selectionSource = e.selection, t.unsubscribe = e.selection?.subscribe((e) => {
+			t.state.selection = e, queueMicrotask(t.refresh);
+		}), t.cleanups.push(() => t.unsubscribe?.())), N`${t.cards.render({
+			items: e.tasks,
+			allIds: e.allIds,
+			storageKey: e.cardStorageKey,
+			pinEnabled: !0,
+			requestedPin: e.requestedPin,
+			nextId: e.nextTaskId,
+			hiddenCount: e.hiddenCount,
+			onShowHidden: e.onShowHidden
+		}, (n, r) => n.kind === "report_pointer" ? Dn(e, n, r) : Tn(e, t, n, r), e.filters ? Nt(e.filters) : I, N`${e.onSearch ? N`<ui-search-field class="task-search" label="搜尋任務卡名稱、摘要與子項" placeholder="搜尋名稱、摘要、子項"
+        .query=${e.searchQuery ?? ""} @query-change=${(t) => e.onSearch(t.detail.query)}></ui-search-field>` : I}`)}${e.tasks.length ? I : N`<p class="empty-state">${e.emptyLabel}</p>`}`;
+	},
 	"report-summary": (e) => e.editable ? N`<textarea class="report-summary-input" aria-label=${e.label ?? "報告摘要"} maxlength="1000" rows="2" placeholder=${e.placeholder ?? ""} .value=${q(e.value ?? "")} @input=${(t) => e.onCommit(t.currentTarget.value)}></textarea>` : N`<p class="hero-summary">${e.text}</p>`,
 	"project-progress": (e) => N`<div class="project-progress-label"><strong id="project-progress-value">整體約 ${e.percentage}%</strong></div>${kt({
 		...e,
@@ -1713,7 +1773,7 @@ var Sn = {
 		extraClass: "project-progress-meter"
 	})}`,
 	"status-filters": Nt,
-	"status-overview": (e) => (e.statusOrder ?? []).filter((e) => e !== "planned" && l[e]).map((t) => N`<article class="overview-card overview-${$(t).tone}" data-status=${t}><span class="overview-value">${e.counts[t] ?? 0}</span><span class="overview-label">${t === "in_progress" ? "目前進行" : $(t).label}</span></article>`),
+	"status-overview": (e) => (e.statusOrder ?? []).filter((e) => e !== "planned" && l[e]).map((t) => N`<article class="overview-card overview-${gn(t).tone}" data-status=${t}><span class="overview-value">${e.counts[t] ?? 0}</span><span class="overview-label">${t === "in_progress" ? "目前進行" : gn(t).label}</span></article>`),
 	"mode-toggle": (e) => N`<button class="view-mode-toggle editor-mode-dock ${e.mode === "edit" ? "is-editing" : ""}" type="button" ?disabled=${e.disabled || !e.available} ?hidden=${e.hideWhenUnavailable && !e.available} title=${e.available ? "" : e.unavailableTitle} aria-label="切換到${e.mode === "edit" ? "預覽" : "編輯"}模式" @click=${() => e.onToggle(e.mode === "edit" ? "preview" : "edit")}>${e.mode === "edit" ? "預覽" : "編輯"}模式</button>`,
 	"save-bar": zt,
 	"add-control": (e, t) => e.expanded ? N`<form class=${e.kind === "task" ? "task-add-form" : "inline-add-form"} @keydown=${(t) => {
@@ -1736,7 +1796,7 @@ var Sn = {
 	"time-dialog": sn,
 	"cost-dialog": cn
 };
-function Cn(e, t, n) {
+function Dn(e, t, n) {
 	let r = e.pointerCards?.[t.id] ?? { status: "loading" }, i = r.status === "ready" ? r.card : null, a = (e) => e ? l[e] ?? {
 		label: e,
 		tone: "muted"
@@ -1750,11 +1810,11 @@ function Cn(e, t, n) {
 		label: t.title
 	}, N`<header class="task-header"><div class="task-title-group"><div class="time-task-title-line"><h3 id=${`task-${t.id}-title`}>${r.openHref ? N`<a class="pointer-card-title-link" href=${r.openHref}>${t.title}</a>` : t.title}</h3></div>${r.openHref ? N`<a class="pointer-card-badge" href=${r.openHref}>開啟專案報告 →</a>` : I}</div><div class="task-header-meta">${i ? N`<strong class="task-fraction">${i.progress.completed} / ${i.progress.total}</strong><span class="status-badge status-${a(i.status).tone}">${a(i.status).label}</span>` : I}${r.status === "error" ? N`<span class="pointer-card-error" role="alert">${r.message}</span>` : r.status === "loading" ? N`<span role="status">讀取目標報告中…</span>` : I}</div></header>`, i ? N`<div class="task-summary">${wt(i.summary, { emphasis: !0 })}</div><p class="pointer-card-progress" aria-label=${`子任務完成 ${i.progress.completed}，共 ${i.progress.total}`}>${i.progress.completed} / ${i.progress.total}（${i.progress.percentage}%）</p><ul class="pointer-card-rows">${i.rows.map((e) => N`<li class="pointer-card-row"><span class="pointer-card-row-title">${e.title}</span><span class="status-badge status-${a(e.status).tone}">${a(e.status).label}</span></li>`)}</ul>` : I)}</article>`;
 }
-var wn = {
+var On = {
 	id: "yu5h1-web-ui-workflow",
-	regions: Object.keys(Sn),
+	regions: Object.keys(En),
 	mount(e, t, n) {
-		let r = new At(t, n, Sn[e]);
+		let r = new At(t, n, En[e]);
 		return r.draw(), r;
 	},
 	update(e, t) {
@@ -1764,5 +1824,5 @@ var wn = {
 		e.destroy();
 	}
 };
-c(wn), await se("viewer"), await import("./app.js");
+c(On), await se("viewer"), await import("./app.js");
 //#endregion
