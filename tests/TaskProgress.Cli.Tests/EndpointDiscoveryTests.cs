@@ -35,8 +35,14 @@ internal static class EndpointDiscoveryTests
             var token = descriptor.RootElement.GetProperty("client_token").GetString();
             if (string.IsNullOrEmpty(token)) throw new Exception("Endpoint token is absent.");
             var sid = WindowsIdentity.GetCurrent().User ?? throw new Exception("Current user SID is unavailable.");
-            var rules = new FileInfo(endpointPath).GetAccessControl().GetAccessRules(true, true, typeof(SecurityIdentifier));
-            if (rules.Cast<FileSystemAccessRule>().Any(rule => rule.AccessControlType == AccessControlType.Allow && !sid.Equals(rule.IdentityReference)))
+            var security = new FileInfo(endpointPath).GetAccessControl();
+            var raw = new RawSecurityDescriptor(security.GetSecurityDescriptorBinaryForm(), 0);
+            if (!raw.ControlFlags.HasFlag(ControlFlags.DiscretionaryAclPresent) || raw.DiscretionaryAcl is null)
+                throw new Exception("Endpoint has no discretionary access control list.");
+            var rules = security.GetAccessRules(true, true, typeof(SecurityIdentifier)).Cast<FileSystemAccessRule>().ToArray();
+            if (!rules.Any(rule => rule.AccessControlType == AccessControlType.Allow && sid.Equals(rule.IdentityReference) && (rule.FileSystemRights & FileSystemRights.ReadData) != 0))
+                throw new Exception("Current user has no endpoint read permission.");
+            if (rules.Any(rule => rule.AccessControlType == AccessControlType.Allow && !sid.Equals(rule.IdentityReference)))
                 throw new Exception("Endpoint grants access to another identity.");
             using (var reused = await LocalWebServiceClient.EnsureAsync(settings, timeout.Token))
             {
