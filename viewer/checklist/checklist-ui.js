@@ -1485,7 +1485,11 @@ var Q = [
 				...n,
 				id: `checklist-body-${t.id}`,
 				label: t.title
-			}, P`<header class="checklist-item-header">${It(t.status, `工作項目 ${t.id}`)}${Rt(t.id, t.title)}<div><h2>${t.id}. ${t.title}</h2></div><span class="checklist-status" aria-label="通過 ${r.progress.passed}，共 ${r.progress.total}">${r.progress.passed}/${r.progress.total}</span></header>`, P`<div class="checklist-checks"><p class="checklist-outcome">${Pt(t.outcome)}</p>${t.dependsOn.length ? P`<p class="checklist-chips"><span class="checklist-chip">Depends on ${t.dependsOn.join(", ")}</span></p>` : L}${St(t.checks, (e) => e.index, (e) => this.check(t, e))}</div>`)}</article>`;
+			}, P`<header class="checklist-item-header">${It(t.status, `工作項目 ${t.id}`)}${Rt([
+				this.params.get("scope"),
+				this.params.get("task") || e.document.fileName?.replace(/\.checklist$/i, ""),
+				t.id
+			].filter((e) => e != null && e !== "").join(" › "), t.title)}<div><h2>${t.id}. ${t.title}</h2></div><span class="checklist-status" aria-label="通過 ${r.progress.passed}，共 ${r.progress.total}">${r.progress.passed}/${r.progress.total}</span></header>`, P`<div class="checklist-checks"><p class="checklist-outcome">${Pt(t.outcome)}</p>${t.dependsOn.length ? P`<p class="checklist-chips"><span class="checklist-chip">Depends on ${t.dependsOn.join(", ")}</span></p>` : L}${St(t.checks, (e) => e.index, (e) => this.check(t, e))}</div>`)}</article>`;
 		}, Wt({
 			categories: [...ce(e.document).map((e) => ({
 				...e,
