@@ -4,18 +4,18 @@ import "./assets/expandable-text.js";
 import { inlineLinks as s } from "./assets/inline-links.js";
 import { displayCards as c, moveVisibleCard as l, promotePin as u } from "./assets/card-order.js";
 import { loadDisclosure as d, saveDisclosure as f } from "./assets/card-disclosure-state.js";
-import { DEFAULT_CAPSULE_ID as p, createFilterSelection as m, groupingOrder as h, isDefaultLit as g, loadFilterSelection as _, saveFilterSelection as ee, toggleDefault as te, toggleTag as ne } from "./assets/filter-selection.js";
-import { createLinkSelection as re, documentLinkTarget as ie, readLinkSelection as ae } from "./assets/link-selection.js";
-import { copyText as oe } from "./assets/item-reference.js";
-import { checklistFilterCategories as se, createChecklistEditorSession as ce, filterChecklistBySelection as le, filterOperableChecks as ue, isTagged as v, lockReason as de, orderChecklistItems as fe } from "./assets/checklist-editor.js";
-import { stackChecklistItems as pe } from "./assets/completed-stacking.js";
-import { createPersistenceController as me } from "./assets/persistence-mode.js";
-import { createChecklistFilterOrder as he } from "./assets/checklist-filter-order.js";
-import { createDocumentTransport as ge } from "./assets/document-transport.js";
-import { installForegroundRefresh as _e } from "./assets/foreground-refresh.js";
-import { installFocusShield as ve } from "./assets/focus-shield.js";
+import { DEFAULT_CAPSULE_ID as p, createFilterSelection as m, groupingOrder as h, isDefaultLit as g, loadFilterSelection as ee, saveFilterSelection as te, toggleDefault as ne, toggleTag as re } from "./assets/filter-selection.js";
+import { createLinkSelection as ie, documentLinkTarget as ae, readLinkSelection as oe } from "./assets/link-selection.js";
+import { copyText as se } from "./assets/item-reference.js";
+import { checklistFilterCategories as ce, createChecklistEditorSession as le, filterChecklistBySelection as ue, filterOperableChecks as de, isTagged as _, lockReason as fe, orderChecklistItems as pe } from "./assets/checklist-editor.js";
+import { stackChecklistItems as me } from "./assets/completed-stacking.js";
+import { createPersistenceController as he } from "./assets/persistence-mode.js";
+import { createChecklistFilterOrder as ge } from "./assets/checklist-filter-order.js";
+import { createDocumentTransport as _e } from "./assets/document-transport.js";
+import { installForegroundRefresh as ve } from "./assets/foreground-refresh.js";
+import { installFocusShield as ye } from "./assets/focus-shield.js";
 //#region viewer/assets/theme-model.js
-var ye = "task-progress.theme.v1";
+var be = "task-progress.theme.v1";
 Object.freeze({
 	light: Object.freeze({
 		pageBackground: "#f5f3ec",
@@ -43,10 +43,10 @@ Object.freeze({
 });
 //#endregion
 //#region ui/web-workflow/theme-options.mjs
-var be = Object.freeze({ defaultMode: "system" });
+var xe = Object.freeze({ defaultMode: "system" });
 //#endregion
 //#region ui/web-workflow/bootstrap.mjs
-function y(t = null) {
+function Se(t = null) {
 	let n = document.createElement("a");
 	n.className = "demo-back-link", n.href = t?.href ?? "/", n.setAttribute("aria-label", t ? `回到 ${t.title}` : "回到 Scopes 入口"), n.title = t ? `回到 ${t.title}` : "回到 Scopes 入口";
 	let r = document.createElementNS("http://www.w3.org/2000/svg", "svg");
@@ -70,15 +70,15 @@ function y(t = null) {
 		iconElement: r
 	}), n.style.setProperty("--button-foreground", "var(--blue)"), n;
 }
-async function xe(e) {
+async function Ce(e) {
 	n(), document.documentElement.dataset.taskprogressUi = "web-ui-workflow";
-	let t = be, s = globalThis.taskprogressThemeBoot, c = s?.preference ?? i(() => localStorage, "task-progress.theme.v1", t);
+	let t = xe, s = globalThis.taskprogressThemeBoot, c = s?.preference ?? i(() => localStorage, "task-progress.theme.v1", t);
 	s?.controller.dispose(), delete globalThis.taskprogressThemeBoot;
 	let l = document.createElement("ui-theme-control"), u = matchMedia("(prefers-color-scheme: dark)"), d, f = () => {
 		l.preference = c, l.systemScheme = u.matches ? "dark" : "light", document.documentElement.dataset.theme = c.mode, c.mode === "custom" ? document.documentElement.dataset.themeBase = c.custom.base : delete document.documentElement.dataset.themeBase;
 	}, p = () => {
-		d || (c = i(() => localStorage, ye, t), d = r(document.documentElement, c, t), u.addEventListener("change", f), f());
-	}, m = (e) => (c = o(() => localStorage, ye, e, t), d?.update(c), f(), c);
+		d || (c = i(() => localStorage, be, t), d = r(document.documentElement, c, t), u.addEventListener("change", f), f());
+	}, m = (e) => (c = o(() => localStorage, be, e, t), d?.update(c), f(), c);
 	if (p(), l.addEventListener("theme-change", (e) => m(e.detail.preference)), globalThis.taskprogressTheme = {
 		control: l,
 		get mode() {
@@ -107,52 +107,52 @@ async function xe(e) {
 		let e = document.querySelector("#report-title");
 		if (e) {
 			let t = document.createElement("div");
-			t.className = "replica-title-row", e.before(t), t.append(y(), e);
+			t.className = "replica-title-row", e.before(t), t.append(Se(), e);
 		}
 	}
-	let h = new URLSearchParams(location.search).get("scope"), g = e !== "viewer" && typeof globalThis.chrome?.webview?.postMessage == "function", _ = g;
+	let h = new URLSearchParams(location.search).get("scope"), g = e !== "viewer" && typeof globalThis.chrome?.webview?.postMessage == "function", ee = g;
 	if (!g && h) try {
 		let e = await fetch("/__taskprogress/v1/capabilities/" + encodeURIComponent(h));
-		_ = e.ok && (await e.json()).editable;
+		ee = e.ok && (await e.json()).editable;
 	} catch {}
 	return {
-		editable: _,
+		editable: ee,
 		desktop: g
 	};
 }
 //#endregion
 //#region node_modules/@lit/reactive-element/css-tag.js
-var b = globalThis, x = b.ShadowRoot && (b.ShadyCSS === void 0 || b.ShadyCSS.nativeShadow) && "adoptedStyleSheets" in Document.prototype && "replace" in CSSStyleSheet.prototype, Se = Symbol(), Ce = /* @__PURE__ */ new WeakMap(), we = class {
+var v = globalThis, y = v.ShadowRoot && (v.ShadyCSS === void 0 || v.ShadyCSS.nativeShadow) && "adoptedStyleSheets" in Document.prototype && "replace" in CSSStyleSheet.prototype, we = Symbol(), Te = /* @__PURE__ */ new WeakMap(), Ee = class {
 	constructor(e, t, n) {
-		if (this._$cssResult$ = !0, n !== Se) throw Error("CSSResult is not constructable. Use `unsafeCSS` or `css` instead.");
+		if (this._$cssResult$ = !0, n !== we) throw Error("CSSResult is not constructable. Use `unsafeCSS` or `css` instead.");
 		this.cssText = e, this.t = t;
 	}
 	get styleSheet() {
 		let e = this.o, t = this.t;
-		if (x && e === void 0) {
+		if (y && e === void 0) {
 			let n = t !== void 0 && t.length === 1;
-			n && (e = Ce.get(t)), e === void 0 && ((this.o = e = new CSSStyleSheet()).replaceSync(this.cssText), n && Ce.set(t, e));
+			n && (e = Te.get(t)), e === void 0 && ((this.o = e = new CSSStyleSheet()).replaceSync(this.cssText), n && Te.set(t, e));
 		}
 		return e;
 	}
 	toString() {
 		return this.cssText;
 	}
-}, Te = (e) => new we(typeof e == "string" ? e : e + "", void 0, Se), Ee = (e, t) => {
-	if (x) e.adoptedStyleSheets = t.map((e) => e instanceof CSSStyleSheet ? e : e.styleSheet);
+}, De = (e) => new Ee(typeof e == "string" ? e : e + "", void 0, we), Oe = (e, t) => {
+	if (y) e.adoptedStyleSheets = t.map((e) => e instanceof CSSStyleSheet ? e : e.styleSheet);
 	else for (let n of t) {
-		let t = document.createElement("style"), r = b.litNonce;
+		let t = document.createElement("style"), r = v.litNonce;
 		r !== void 0 && t.setAttribute("nonce", r), t.textContent = n.cssText, e.appendChild(t);
 	}
-}, De = x ? (e) => e : (e) => e instanceof CSSStyleSheet ? ((e) => {
+}, ke = y ? (e) => e : (e) => e instanceof CSSStyleSheet ? ((e) => {
 	let t = "";
 	for (let n of e.cssRules) t += n.cssText;
-	return Te(t);
-})(e) : e, { is: Oe, defineProperty: ke, getOwnPropertyDescriptor: Ae, getOwnPropertyNames: je, getOwnPropertySymbols: Me, getPrototypeOf: Ne } = Object, S = globalThis, Pe = S.trustedTypes, Fe = Pe ? Pe.emptyScript : "", Ie = S.reactiveElementPolyfillSupport, C = (e, t) => e, w = {
+	return De(t);
+})(e) : e, { is: Ae, defineProperty: je, getOwnPropertyDescriptor: Me, getOwnPropertyNames: Ne, getOwnPropertySymbols: Pe, getPrototypeOf: Fe } = Object, b = globalThis, Ie = b.trustedTypes, Le = Ie ? Ie.emptyScript : "", Re = b.reactiveElementPolyfillSupport, x = (e, t) => e, S = {
 	toAttribute(e, t) {
 		switch (t) {
 			case Boolean:
-				e = e ? Fe : null;
+				e = e ? Le : null;
 				break;
 			case Object:
 			case Array: e = e == null ? e : JSON.stringify(e);
@@ -177,30 +177,30 @@ var b = globalThis, x = b.ShadowRoot && (b.ShadyCSS === void 0 || b.ShadyCSS.nat
 		}
 		return n;
 	}
-}, Le = (e, t) => !Oe(e, t), Re = {
+}, ze = (e, t) => !Ae(e, t), Be = {
 	attribute: !0,
 	type: String,
-	converter: w,
+	converter: S,
 	reflect: !1,
 	useDefault: !1,
-	hasChanged: Le
+	hasChanged: ze
 };
-Symbol.metadata ??= Symbol("metadata"), S.litPropertyMetadata ??= /* @__PURE__ */ new WeakMap();
-var T = class extends HTMLElement {
+Symbol.metadata ??= Symbol("metadata"), b.litPropertyMetadata ??= /* @__PURE__ */ new WeakMap();
+var C = class extends HTMLElement {
 	static addInitializer(e) {
 		this._$Ei(), (this.l ??= []).push(e);
 	}
 	static get observedAttributes() {
 		return this.finalize(), this._$Eh && [...this._$Eh.keys()];
 	}
-	static createProperty(e, t = Re) {
+	static createProperty(e, t = Be) {
 		if (t.state && (t.attribute = !1), this._$Ei(), this.prototype.hasOwnProperty(e) && ((t = Object.create(t)).wrapped = !0), this.elementProperties.set(e, t), !t.noAccessor) {
 			let n = Symbol(), r = this.getPropertyDescriptor(e, n, t);
-			r !== void 0 && ke(this.prototype, e, r);
+			r !== void 0 && je(this.prototype, e, r);
 		}
 	}
 	static getPropertyDescriptor(e, t, n) {
-		let { get: r, set: i } = Ae(this.prototype, e) ?? {
+		let { get: r, set: i } = Me(this.prototype, e) ?? {
 			get() {
 				return this[t];
 			},
@@ -219,17 +219,17 @@ var T = class extends HTMLElement {
 		};
 	}
 	static getPropertyOptions(e) {
-		return this.elementProperties.get(e) ?? Re;
+		return this.elementProperties.get(e) ?? Be;
 	}
 	static _$Ei() {
-		if (this.hasOwnProperty(C("elementProperties"))) return;
-		let e = Ne(this);
+		if (this.hasOwnProperty(x("elementProperties"))) return;
+		let e = Fe(this);
 		e.finalize(), e.l !== void 0 && (this.l = [...e.l]), this.elementProperties = new Map(e.elementProperties);
 	}
 	static finalize() {
-		if (this.hasOwnProperty(C("finalized"))) return;
-		if (this.finalized = !0, this._$Ei(), this.hasOwnProperty(C("properties"))) {
-			let e = this.properties, t = [...je(e), ...Me(e)];
+		if (this.hasOwnProperty(x("finalized"))) return;
+		if (this.finalized = !0, this._$Ei(), this.hasOwnProperty(x("properties"))) {
+			let e = this.properties, t = [...Ne(e), ...Pe(e)];
 			for (let n of t) this.createProperty(n, e[n]);
 		}
 		let e = this[Symbol.metadata];
@@ -248,8 +248,8 @@ var T = class extends HTMLElement {
 		let t = [];
 		if (Array.isArray(e)) {
 			let n = new Set(e.flat(Infinity).reverse());
-			for (let e of n) t.unshift(De(e));
-		} else e !== void 0 && t.push(De(e));
+			for (let e of n) t.unshift(ke(e));
+		} else e !== void 0 && t.push(ke(e));
 		return t;
 	}
 	static _$Eu(e, t) {
@@ -275,7 +275,7 @@ var T = class extends HTMLElement {
 	}
 	createRenderRoot() {
 		let e = this.shadowRoot ?? this.attachShadow(this.constructor.shadowRootOptions);
-		return Ee(e, this.constructor.elementStyles), e;
+		return Oe(e, this.constructor.elementStyles), e;
 	}
 	connectedCallback() {
 		this.renderRoot ??= this.createRenderRoot(), this.enableUpdating(!0), this._$EO?.forEach((e) => e.hostConnected?.());
@@ -290,14 +290,14 @@ var T = class extends HTMLElement {
 	_$ET(e, t) {
 		let n = this.constructor.elementProperties.get(e), r = this.constructor._$Eu(e, n);
 		if (r !== void 0 && !0 === n.reflect) {
-			let i = (n.converter?.toAttribute === void 0 ? w : n.converter).toAttribute(t, n.type);
+			let i = (n.converter?.toAttribute === void 0 ? S : n.converter).toAttribute(t, n.type);
 			this._$Em = e, i == null ? this.removeAttribute(r) : this.setAttribute(r, i), this._$Em = null;
 		}
 	}
 	_$AK(e, t) {
 		let n = this.constructor, r = n._$Eh.get(e);
 		if (r !== void 0 && this._$Em !== r) {
-			let e = n.getPropertyOptions(r), i = typeof e.converter == "function" ? { fromAttribute: e.converter } : e.converter?.fromAttribute === void 0 ? w : e.converter;
+			let e = n.getPropertyOptions(r), i = typeof e.converter == "function" ? { fromAttribute: e.converter } : e.converter?.fromAttribute === void 0 ? S : e.converter;
 			this._$Em = r;
 			let a = i.fromAttribute(t, e.type);
 			this[r] = a ?? this._$Ej?.get(r) ?? a, this._$Em = null;
@@ -306,7 +306,7 @@ var T = class extends HTMLElement {
 	requestUpdate(e, t, n, r = !1, i) {
 		if (e !== void 0) {
 			let a = this.constructor;
-			if (!1 === r && (i = this[e]), n ??= a.getPropertyOptions(e), !((n.hasChanged ?? Le)(i, t) || n.useDefault && n.reflect && i === this._$Ej?.get(e) && !this.hasAttribute(a._$Eu(e, n)))) return;
+			if (!1 === r && (i = this[e]), n ??= a.getPropertyOptions(e), !((n.hasChanged ?? ze)(i, t) || n.useDefault && n.reflect && i === this._$Ej?.get(e) && !this.hasAttribute(a._$Eu(e, n)))) return;
 			this.C(e, t, n);
 		}
 		!1 === this.isUpdatePending && (this._$ES = this._$EP());
@@ -370,17 +370,17 @@ var T = class extends HTMLElement {
 	updated(e) {}
 	firstUpdated(e) {}
 };
-T.elementStyles = [], T.shadowRootOptions = { mode: "open" }, T[C("elementProperties")] = /* @__PURE__ */ new Map(), T[C("finalized")] = /* @__PURE__ */ new Map(), Ie?.({ ReactiveElement: T }), (S.reactiveElementVersions ??= []).push("2.1.2");
+C.elementStyles = [], C.shadowRootOptions = { mode: "open" }, C[x("elementProperties")] = /* @__PURE__ */ new Map(), C[x("finalized")] = /* @__PURE__ */ new Map(), Re?.({ ReactiveElement: C }), (b.reactiveElementVersions ??= []).push("2.1.2");
 //#endregion
 //#region node_modules/lit-html/lit-html.js
-var E = globalThis, ze = (e) => e, D = E.trustedTypes, Be = D ? D.createPolicy("lit-html", { createHTML: (e) => e }) : void 0, Ve = "$lit$", O = `lit$${Math.random().toFixed(9).slice(2)}$`, He = "?" + O, Ue = `<${He}>`, k = document, A = () => k.createComment(""), j = (e) => e === null || typeof e != "object" && typeof e != "function", We = Array.isArray, Ge = (e) => We(e) || typeof e?.[Symbol.iterator] == "function", Ke = "[ 	\n\f\r]", M = /<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g, qe = /-->/g, Je = />/g, N = RegExp(`>|${Ke}(?:([^\\s"'>=/]+)(${Ke}*=${Ke}*(?:[^ \t\n\f\r"'\`<>=]|("|')|))|$)`, "g"), Ye = /'/g, Xe = /"/g, Ze = /^(?:script|style|textarea|title)$/i, Qe = (e) => (t, ...n) => ({
+var w = globalThis, Ve = (e) => e, T = w.trustedTypes, He = T ? T.createPolicy("lit-html", { createHTML: (e) => e }) : void 0, E = "$lit$", D = `lit$${Math.random().toFixed(9).slice(2)}$`, O = "?" + D, Ue = `<${O}>`, k = document, A = () => k.createComment(""), j = (e) => e === null || typeof e != "object" && typeof e != "function", We = Array.isArray, Ge = (e) => We(e) || typeof e?.[Symbol.iterator] == "function", Ke = "[ 	\n\f\r]", M = /<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g, qe = /-->/g, Je = />/g, N = RegExp(`>|${Ke}(?:([^\\s"'>=/]+)(${Ke}*=${Ke}*(?:[^ \t\n\f\r"'\`<>=]|("|')|))|$)`, "g"), Ye = /'/g, Xe = /"/g, Ze = /^(?:script|style|textarea|title)$/i, Qe = (e) => (t, ...n) => ({
 	_$litType$: e,
 	strings: t,
 	values: n
 }), P = Qe(1), F = Qe(2), I = Symbol.for("lit-noChange"), L = Symbol.for("lit-nothing"), $e = /* @__PURE__ */ new WeakMap(), R = k.createTreeWalker(k, 129);
 function et(e, t) {
 	if (!We(e) || !e.hasOwnProperty("raw")) throw Error("invalid template strings array");
-	return Be === void 0 ? t : Be.createHTML(t);
+	return He === void 0 ? t : He.createHTML(t);
 }
 var tt = (e, t) => {
 	let n = e.length - 1, r = [], i, a = t === 2 ? "<svg>" : t === 3 ? "<math>" : "", o = M;
@@ -388,7 +388,7 @@ var tt = (e, t) => {
 		let n = e[t], s, c, l = -1, u = 0;
 		for (; u < n.length && (o.lastIndex = u, c = o.exec(n), c !== null);) u = o.lastIndex, o === M ? c[1] === "!--" ? o = qe : c[1] === void 0 ? c[2] === void 0 ? c[3] !== void 0 && (o = N) : (Ze.test(c[2]) && (i = RegExp("</" + c[2], "g")), o = N) : o = Je : o === N ? c[0] === ">" ? (o = i ?? M, l = -1) : c[1] === void 0 ? l = -2 : (l = o.lastIndex - c[2].length, s = c[1], o = c[3] === void 0 ? N : c[3] === "\"" ? Xe : Ye) : o === Xe || o === Ye ? o = N : o === qe || o === Je ? o = M : (o = N, i = void 0);
 		let d = o === N && e[t + 1].startsWith("/>") ? " " : "";
-		a += o === M ? n + Ue : l >= 0 ? (r.push(s), n.slice(0, l) + Ve + n.slice(l) + O + d) : n + O + (l === -2 ? t : d);
+		a += o === M ? n + Ue : l >= 0 ? (r.push(s), n.slice(0, l) + E + n.slice(l) + D + d) : n + D + (l === -2 ? t : d);
 	}
 	return [et(e, a + (e[n] || "<?>") + (t === 2 ? "</svg>" : t === 3 ? "</math>" : "")), r];
 }, nt = class e {
@@ -402,8 +402,8 @@ var tt = (e, t) => {
 		}
 		for (; (i = R.nextNode()) !== null && c.length < s;) {
 			if (i.nodeType === 1) {
-				if (i.hasAttributes()) for (let e of i.getAttributeNames()) if (e.endsWith(Ve)) {
-					let t = u[o++], n = i.getAttribute(e).split(O), r = /([.?@])?(.*)/.exec(t);
+				if (i.hasAttributes()) for (let e of i.getAttributeNames()) if (e.endsWith(E)) {
+					let t = u[o++], n = i.getAttribute(e).split(D), r = /([.?@])?(.*)/.exec(t);
 					c.push({
 						type: 1,
 						index: a,
@@ -411,14 +411,14 @@ var tt = (e, t) => {
 						strings: n,
 						ctor: r[1] === "." ? it : r[1] === "?" ? at : r[1] === "@" ? ot : V
 					}), i.removeAttribute(e);
-				} else e.startsWith(O) && (c.push({
+				} else e.startsWith(D) && (c.push({
 					type: 6,
 					index: a
 				}), i.removeAttribute(e));
 				if (Ze.test(i.tagName)) {
-					let e = i.textContent.split(O), t = e.length - 1;
+					let e = i.textContent.split(D), t = e.length - 1;
 					if (t > 0) {
-						i.textContent = D ? D.emptyScript : "";
+						i.textContent = T ? T.emptyScript : "";
 						for (let n = 0; n < t; n++) i.append(e[n], A()), R.nextNode(), c.push({
 							type: 2,
 							index: ++a
@@ -426,16 +426,16 @@ var tt = (e, t) => {
 						i.append(e[t], A());
 					}
 				}
-			} else if (i.nodeType === 8) if (i.data === He) c.push({
+			} else if (i.nodeType === 8) if (i.data === O) c.push({
 				type: 2,
 				index: a
 			});
 			else {
 				let e = -1;
-				for (; (e = i.data.indexOf(O, e + 1)) !== -1;) c.push({
+				for (; (e = i.data.indexOf(D, e + 1)) !== -1;) c.push({
 					type: 7,
 					index: a
-				}), e += O.length - 1;
+				}), e += D.length - 1;
 			}
 			a++;
 		}
@@ -526,8 +526,8 @@ var rt = class {
 	}
 	_$AR(e = this._$AA.nextSibling, t) {
 		for (this._$AP?.(!1, !0, t); e !== this._$AB;) {
-			let t = ze(e).nextSibling;
-			ze(e).remove(), e = t;
+			let t = Ve(e).nextSibling;
+			Ve(e).remove(), e = t;
 		}
 	}
 	setConnected(e) {
@@ -592,9 +592,9 @@ var rt = class {
 		z(this, e);
 	}
 }, ct = {
-	M: Ve,
-	P: O,
-	A: He,
+	M: E,
+	P: D,
+	A: O,
 	C: 1,
 	L: tt,
 	R: rt,
@@ -606,8 +606,8 @@ var rt = class {
 	U: ot,
 	B: it,
 	F: st
-}, lt = E.litHtmlPolyfillSupport;
-lt?.(nt, B), (E.litHtmlVersions ??= []).push("3.3.3");
+}, lt = w.litHtmlPolyfillSupport;
+lt?.(nt, B), (w.litHtmlVersions ??= []).push("3.3.3");
 var ut = (e, t, n) => {
 	let r = n?.renderBefore ?? t, i = r._$litPart$;
 	if (i === void 0) {
@@ -615,7 +615,7 @@ var ut = (e, t, n) => {
 		r._$litPart$ = i = new B(t.insertBefore(A(), e), e, void 0, n ?? {});
 	}
 	return i._$AI(e), i;
-}, dt = globalThis, H = class extends T {
+}, dt = globalThis, H = class extends C {
 	constructor() {
 		super(...arguments), this.renderOptions = { host: this }, this._$Do = void 0;
 	}
@@ -898,7 +898,7 @@ var Nt = jt(), X = W(class extends At {
 		t.stopPropagation(), clearTimeout(r);
 		let a = ++i, o = n.successFeedback?.(), s = !1;
 		try {
-			s = await (n.copy ? n.copy() : oe(String(n.id)));
+			s = await (n.copy ? n.copy() : se(String(n.id)));
 		} catch {}
 		!e.isConnected || a !== i || (e.textContent = s ? "✓" : "✕", e.classList.add("is-done"), e.classList.toggle("is-copied", s), s && o ? (e.dataset.copyFeedback = o, e.classList.remove("copy-feedback"), e.offsetWidth, e.classList.add("copy-feedback")) : (delete e.dataset.copyFeedback, e.classList.remove("copy-feedback")), n.feedbackTitle && (e.title = s ? o || "已複製" : "無法複製"), r = setTimeout(() => {
 			e.isConnected && (e.textContent = "⧉", e.classList.remove("is-done", "is-copied", "copy-feedback"), delete e.dataset.copyFeedback, n.feedbackTitle && (e.title = n.title));
@@ -1071,7 +1071,7 @@ function qt({ id: e, label: t, expanded: n = !0, toggle: r, visibilityEnabled: i
 }
 var Jt = class {
 	constructor(e) {
-		this.view = e, this.order = [], this.pins = [], this.mode = "forward", this.visibility = "disabled", this.hidden = [], this.selected = null, this.expanded = !0, this.overrides = {}, this.key = null, this.linkSelection = re(ae(location.search));
+		this.view = e, this.order = [], this.pins = [], this.mode = "forward", this.visibility = "disabled", this.hidden = [], this.selected = null, this.expanded = !0, this.overrides = {}, this.key = null, this.linkSelection = ie(oe(location.search));
 		let t = (t) => {
 			let n = t.target.closest(".arrangeable-card");
 			(!n || !e.target.contains(n)) && this.select(null);
@@ -1259,19 +1259,19 @@ var Xt = (e, t) => {
 		t.parentNode === e && t.remove();
 	} };
 }, $t = () => P`<span class="replica-theme" ${X(Qt, null)}></span>`, en = (e, t) => {
-	let n = y(t);
+	let n = Se(t);
 	return e.append(n), {
 		update(e) {
 			if (t.href === e.href && t.title === e.title) return;
 			t = e;
-			let r = y(e);
+			let r = Se(e);
 			n.replaceWith(r), n = r;
 		},
 		destroy: () => n.remove()
 	};
-}, tn = (e) => !e || globalThis.chrome?.webview ? L : P`<span class="replica-back" ${X(en, e)}></span>`, nn = await xe("checklist"), rn = new URLSearchParams(location.search), an;
+}, tn = (e) => !e || globalThis.chrome?.webview ? L : P`<span class="replica-back" ${X(en, e)}></span>`, nn = await Ce("checklist"), rn = new URLSearchParams(location.search), an;
 try {
-	an = ge("checklist", { params: rn });
+	an = _e("checklist", { params: rn });
 } catch (e) {
 	an = { load: () => Promise.reject(e) };
 }
@@ -1289,7 +1289,7 @@ var Q = [
 	released: "需重驗：之後重新執行過"
 }, $ = new class extends Vt {
 	constructor(e, t = {}) {
-		super(e, {}, (e, t) => t.template()), this.transport = t.transport ?? an, this.editable = t.editable ?? nn.editable, this.params = t.params ?? rn, this.storage = t.storage, this.loadGeneration = 0, this.cards = new Jt(this), this.message = "正在載入 Checklist…", this.loading = !0, this.operable = !1, this.selection = m(Q), this.orderController = he({ supportedIds: [p, ...Q] }), this.order = this.orderController.order, this.linkRequest = ae(location.search), this.linked = this.linkRequest?.id ?? null, this.held = null, this.activeCard = null, this.resetOpen = !1, this.resetBusy = !1, this.resetTargets = [], this.cleanups.push(ve()), this.cleanups.push(_e({
+		super(e, {}, (e, t) => t.template()), this.transport = t.transport ?? an, this.editable = t.editable ?? nn.editable, this.params = t.params ?? rn, this.storage = t.storage, this.loadGeneration = 0, this.cards = new Jt(this), this.message = "正在載入 Checklist…", this.loading = !0, this.operable = !1, this.selection = m(Q), this.orderController = ge({ supportedIds: [p, ...Q] }), this.order = this.orderController.order, this.linkRequest = oe(location.search), this.linked = this.linkRequest?.id ?? null, this.held = null, this.activeCard = null, this.resetOpen = !1, this.resetBusy = !1, this.resetTargets = [], this.cleanups.push(ye()), this.cleanups.push(ve({
 			canRefresh: () => this.canRefresh(),
 			reload: () => this.refreshSource()
 		})), this.on(window, "beforeunload", (e) => {
@@ -1302,8 +1302,8 @@ var Q = [
 	install(e) {
 		if (this.disposed) return;
 		let t, n = () => !this.disposed && this.persistence === t;
-		t = me({
-			session: ce(e),
+		t = he({
+			session: le(e),
 			storage: this.storage,
 			timers: this.timers,
 			save: async (e) => {
@@ -1318,7 +1318,7 @@ var Q = [
 			}
 		}), this.persistence = t, this.data = this.persistence.snapshot(), this.message = this.data.message;
 		let r = `taskprogress.disclosure:checklist:${location.pathname}:${location.search}:${e.fileName}:${e.roundIdentity}`;
-		this.filterKey !== r + ":filters" && (this.filterKey = r + ":filters", this.selection = _(this.filterKey, Q)), this.resolvedLink ||= (this.linked = ie(this.linkRequest, e.items.map((e) => e.id)), !0);
+		this.filterKey !== r + ":filters" && (this.filterKey = r + ":filters", this.selection = ee(this.filterKey, Q)), this.resolvedLink ||= (this.linked = ae(this.linkRequest, e.items.map((e) => e.id)), !0);
 	}
 	async load() {
 		if (this.disposed) return;
@@ -1379,7 +1379,7 @@ var Q = [
 		});
 	}
 	select(e) {
-		this.selection = e, ee(this.filterKey, e), this.draw();
+		this.selection = e, te(this.filterKey, e), this.draw();
 	}
 	selectCard(e, t) {
 		if (this.activeCard !== e) {
@@ -1400,11 +1400,11 @@ var Q = [
 				checks: t.checks.flatMap((e) => n.checks.find((t) => t.index === e.index) ?? [])
 			}] : [];
 		});
-		let t = fe(e, this.order), n = {
+		let t = pe(e, this.order), n = {
 			...t,
-			items: pe(t.items, { asWritten: h(this.order).filter((e) => Q.includes(e)).length === 0 })
+			items: me(t.items, { asWritten: h(this.order).filter((e) => Q.includes(e)).length === 0 })
 		};
-		return this.operable && (n = ue(n)), n.items.flatMap((e) => String(e.id) === this.linked ? [e] : le({ items: [e] }, this.selection.selected).items);
+		return this.operable && (n = de(n)), n.items.flatMap((e) => String(e.id) === this.linked ? [e] : ue({ items: [e] }, this.selection.selected).items);
 	}
 	manualTargets() {
 		return this.data?.document.items.flatMap((e) => e.checks.filter((e) => e.isManual).map((t) => ({
@@ -1431,7 +1431,7 @@ var Q = [
 		}
 	}
 	check(e, t) {
-		let n = t.isAcceptance ? "acceptance" : t.isManual ? "manual" : null, r = v(t) ? de(this.data.document, t) : null, i = v(t) && !this.resetBusy && (!r || t.status !== "pending");
+		let n = t.isAcceptance ? "acceptance" : t.isManual ? "manual" : null, r = _(t) ? fe(this.data.document, t) : null, i = _(t) && !this.resetBusy && (!r || t.status !== "pending");
 		return P`<section id="check-${e.id}-${t.index}" tabindex="-1" class="checklist-check checklist-${t.status} ${n ? `checklist-${n}` : ""}">
       <div class="checklist-check-heading">${It(t.status, t.title, i ? () => this.cycle(e.id, t) : null, !!t.validity && t.validity !== "valid")}<strong>${t.title}</strong><span class="checklist-owner ${n ? `checklist-owner-${n}` : ""}">${{
 			manual: "實機",
@@ -1439,7 +1439,7 @@ var Q = [
 		}[n] ?? "Agent"}</span></div>
       ${r && t.status === "pending" ? P`<p class="checklist-lock">${r}</p>` : L}<dl><div><dt>Action</dt><dd>${Pt(t.action)}</dd></div><div><dt>Expect</dt><dd>${Pt(t.expect)}</dd></div>
       ${t.reason ? P`<div><dt>Reason</dt><dd>${t.reason}</dd></div>` : L}
-      ${t.observed && !(v(t) && t.status === "failed") ? P`<div><dt>Observed</dt><dd>${t.observed}</dd></div>` : L}
+      ${t.observed && !(_(t) && t.status === "failed") ? P`<div><dt>Observed</dt><dd>${t.observed}</dd></div>` : L}
       ${t.resolved ? P`<div><dt>Resolved</dt><dd>${t.resolved}</dd></div>` : L}
       ${t.validity && t.validity !== "valid" ? P`<div><dt>狀態</dt><dd class="checklist-void">${sn[t.validity]}</dd></div>` : t.recorder ? P`<div><dt>記錄</dt><dd>${t.recorder === "user" ? "使用者" : t.recorder}</dd></div>` : L}</dl>
       ${t.isAcceptance && t.status === "failed" ? P`<label class="checklist-observed"><span>不通過的原因</span><select ?disabled=${this.resetBusy || !this.editable} .value=${Tt(t.rejectReason ?? "implementation")} @change=${(n) => this.apply({
@@ -1448,7 +1448,7 @@ var Q = [
 			checkIndex: t.index,
 			value: n.currentTarget.value
 		})}><option value="implementation">實作不符</option><option value="condition">條件不符</option></select></label>` : L}
-      ${v(t) && t.status === "failed" ? P`<label class="checklist-observed"><span>Observed</span><textarea rows="3" ?disabled=${this.resetBusy || !this.editable} .value=${Tt(t.observed ?? "")} @input=${(n) => this.apply({
+      ${_(t) && t.status === "failed" ? P`<label class="checklist-observed"><span>Observed</span><textarea rows="3" ?disabled=${this.resetBusy || !this.editable} .value=${Tt(t.observed ?? "")} @input=${(n) => this.apply({
 			type: "set-observed",
 			workItemId: e.id,
 			checkIndex: t.index,
@@ -1468,12 +1468,9 @@ var Q = [
 			caption: `${e.summary.checks.passed} / ${e.summary.checks.total} checks 通過`,
 			note: e.summary.checks.failed > 0 ? `${e.summary.checks.failed} 個失敗` : ""
 		})}
-      <label class="checklist-operable-toggle"><input type="checkbox" .checked=${this.operable} @change=${(e) => {
-			this.operable = e.currentTarget.checked, this.draw();
-		}}><span>只顯示我能操作的檢查</span></label>
       <section class="checklist-items" aria-label="Implementation checklist items">${this.cards.render({
 			items: t,
-			allIds: fe(e.document, this.order).items.map((e) => e.id),
+			allIds: pe(e.document, this.order).items.map((e) => e.id),
 			storageKey: this.params.has("scope") ? `taskprogress.cards.checklist.v1:${location.pathname}:${this.params.get("scope")}:${this.params.get("task")}:${e.document.roundIdentity}` : null,
 			disclosureKey: `taskprogress.disclosure:checklist:${location.pathname}:${location.search}:${e.document.fileName}:${e.document.roundIdentity}`,
 			heldOrder: this.heldOrder,
@@ -1490,18 +1487,28 @@ var Q = [
 				label: t.title
 			}, P`<header class="checklist-item-header">${It(t.status, `工作項目 ${t.id}`)}${Rt(t.id, t.title)}<div><h2>${t.id}. ${t.title}</h2></div><span class="checklist-status" aria-label="通過 ${r.progress.passed}，共 ${r.progress.total}">${r.progress.passed}/${r.progress.total}</span></header>`, P`<div class="checklist-checks"><p class="checklist-outcome">${Pt(t.outcome)}</p>${t.dependsOn.length ? P`<p class="checklist-chips"><span class="checklist-chip">Depends on ${t.dependsOn.join(", ")}</span></p>` : L}${St(t.checks, (e) => e.index, (e) => this.check(t, e))}</div>`)}</article>`;
 		}, Wt({
-			categories: se(e.document).map((e) => ({
+			categories: [...ce(e.document).map((e) => ({
 				...e,
 				label: on[e.id]
-			})),
-			order: this.order,
-			selected: this.selection.selected,
-			defaultLit: g(this.selection),
+			})), {
+				id: "agent",
+				label: "Agent",
+				count: e.document.items.flatMap((e) => e.checks).filter((e) => !_(e)).length,
+				sortable: !1
+			}],
+			order: [...this.order, "agent"],
+			selected: /* @__PURE__ */ new Set([...this.selection.selected, ...this.operable ? [] : ["agent"]]),
+			defaultLit: g(this.selection) && !this.operable,
 			className: "status-filter-strip status-summary-filters",
-			ariaLabel: "依 check 狀態篩選；可拖曳調整順序",
+			ariaLabel: "依 check 狀態及執行者篩選；狀態可拖曳調整順序",
 			reorderable: !0,
-			onSelect: (e) => this.select(ne(this.selection, e)),
-			onSelectDefault: () => this.select(te(this.selection)),
+			onSelect: (e) => {
+				e === "agent" ? (this.operable = !this.operable, this.draw()) : this.select(re(this.selection, e));
+			},
+			onSelectDefault: () => {
+				let e = g(this.selection) && !this.operable;
+				this.operable = e, this.select(e ? ne(this.selection) : m(Q));
+			},
 			onReorder: (e, t, n) => {
 				this.order = [...this.orderController.move(e, t, n)], this.draw();
 			}

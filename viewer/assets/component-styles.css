@@ -184,14 +184,6 @@ body {
   color: var(--role-status-failed);
 }
 
-.checklist-operable-toggle {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  margin: 4px 0 8px;
-  color: var(--muted);
-  font-size: 0.85rem;
-}
 
 .checklist-check-heading {
   display: grid;
