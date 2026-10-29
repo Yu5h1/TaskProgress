@@ -3240,7 +3240,7 @@ footer {
 .work-columns .detail-list li.editor-item-row[data-item-target] { overflow: visible; }
 .detail-list li.editor-item-row[data-item-target][data-item-pulse="1"] { animation-name: item-target-arrival-again, item-target-fade-again; }
 .item-return-anchor { position: relative; align-self: stretch; flex: 0 0 0; margin-right: calc(-1 * var(--editor-item-gap)); }
-.item-return { position: absolute; z-index: 2; left: 20px; top: -18px; border: 0; padding: 0 3px; background: transparent; color: inherit; font: inherit; font-size: 1.1rem; cursor: pointer; }
+.item-return { position: absolute; z-index: 2; left: 7px; top: calc(-1 * var(--editor-item-padding-block)); transform: translate(-50%, -50%); border: 0; padding: 0 3px; background: transparent; color: inherit; font: inherit; font-size: 1.1rem; line-height: 1; cursor: pointer; }
 .item-return:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
 @keyframes item-target-arrival {
   0%, 100% { transform: scale(1); }
