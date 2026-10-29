@@ -1458,7 +1458,7 @@ var Q = [
 	}
 	template() {
 		let e = this.data, t = this.visible();
-		return P`<main class="checklist-page"><header class="checklist-header"><div><div class="replica-title-row">${tn(this.owner)}<h1>${e?.document.fileName ?? "TaskProgress Checklist"}</h1></div>${e ? P`<details class="checklist-round"><summary>本輪依據</summary><p>${e.document.roundIdentity}</p></details>` : L}</div>${$t()}</header>
+		return P`<main class="checklist-page"><header class="checklist-header"><div><div class="replica-title-row">${tn(this.owner)}<h1>${e?.document.fileName ?? "TaskProgress Checklist"}</h1></div>${e ? P`<p class="checklist-round">${e.document.roundIdentity}</p>` : L}</div>${$t()}</header>
       ${this.loading ? P`<p class="checklist-notice" role="status">${this.message}</p>` : e ? P`
       ${Bt({
 			bar: {
