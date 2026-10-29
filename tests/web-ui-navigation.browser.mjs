@@ -19,6 +19,22 @@ async function pair(region,props,run){
   finally{baseline.destroy(a);web.destroy(b);old.remove();current.remove();}
 }
 await check('Candidate uses its own public Web renderer',async()=>assert(web.id==='yu5h1-web-ui-workflow','active product adapter'));
+await check('Child reference copy is independent of the row hold gesture',async()=>{
+  const target=document.createElement('div');fixture.append(target);
+  const task={id:'copy-card',title:'Copy',status:'planned',priority:2,summary:'',completed_items:[],pending_items:[{id:'child',title:'Child',status:'planned',priority:2}]};
+  const copied=[],next=[];
+  const selection={subscribe:fn=>{fn({keys:new Set()});return ()=>{};},copyReferences:async ref=>{copied.push(ref);return true;},rowClick(){},rowFocus(){},rowKeydown(){}};
+  const view=web.mount('task-list',target,{tasks:[task],allIds:[task.id],scopeId:'scope',policy:globalThis.TaskProgressPriorityPolicy,progress:{'copy-card':{completed:0,total:1}},selection,onSetNext:value=>next.push(value)});
+  try {
+    await tick();const button=target.querySelector('.item-row-copy');
+    const pointer={bubbles:true,cancelable:true,pointerId:1,isPrimary:true,button:0,clientX:-100,clientY:-100};
+    button.dispatchEvent(new PointerEvent('pointerdown',pointer));
+    document.dispatchEvent(new PointerEvent('pointerup',pointer));
+    button.dispatchEvent(new PointerEvent('click',{...pointer,detail:1}));
+    await tick();equal(copied,['scope › copy-card › child'],'copy reaches selected reference');
+    assert(button.textContent==='✓'&&!next.length,'copy feedback appears without triggering Next');
+  } finally {web.destroy(view);target.remove();}
+});
 await check('Scope directory preserves host links and label updates',async()=>{
   await pair('scope-directory',{scopes:[{id:'child',href:'?scope=child',baseOnlyHref:'?scope=child&dev=off'}],baseOnlyLabel:'Custom base'},async(old,current,update)=>{
     equal(links(current),links(old),'initial URLs and supplied label');

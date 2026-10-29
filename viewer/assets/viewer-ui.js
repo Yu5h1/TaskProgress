@@ -1601,7 +1601,7 @@ function yn(e, t, n, r, i, a) {
 		expanded: a,
 		linkTone: c.tone
 	})}</div>`}</div>
-    ${u ? N`<button type="button" class="item-row-copy" data-item-ref=${b} tabindex=${e.selection ? -1 : 0} aria-label=${S > 1 ? `複製已選取的 ${S} 項參照` : `複製「${i.title}」的參照`} title=${re} ${Y(Dt, {
+    ${u ? N`<button type="button" class="item-row-copy" data-item-ref=${b} tabindex=${e.selection ? -1 : 0} aria-label=${S > 1 ? `複製已選取的 ${S} 項參照` : `複製「${i.title}」的參照`} title=${re} @pointerdown=${(e) => e.stopPropagation()} ${Y(Dt, {
 		copy: () => e.selection ? e.selection.copyReferences(u) : f(u),
 		feedbackTitle: !0,
 		title: re
