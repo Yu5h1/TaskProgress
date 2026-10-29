@@ -1,7 +1,7 @@
 {
   "schema": 2,
   "id": "task-progress",
-  "displayName": "TaskProgress Local Server",
+  "displayName": "TaskProgress",
   "icon": { "text": "TP", "light": "light.ico", "dark": "dark.ico" },
   "protocol": "trayhost-jsonlines-v1",
   "copy": { "URL": "http://127.0.0.1:8001/" },
