@@ -4,9 +4,9 @@ Current round: `Documentation/ThirdPartyChecklistWritePlan.md#分階段`.
 
 計畫第 4 階段（使用者 2026-09-05 定案：不寫操作教學 skill，入口表只補一列，且不得在第 2 階段完成前加）。現況：入口表沒有第三方寫入這一列，所以之後的 agent 找不到入口、可能重造一次。要達成：taskprogress-capabilities 的入口表多一列，指向計畫〈6. 呼叫端看到的東西〉。本子項宣告等待授權與端點探索兩個子項完成。不在本輪：操作教學、SDK、各 scope 的 demo 接線。一個檔案只放一輪。
 
-- [ ] **1. 入口表補一列**
+- [x] **1. 入口表補一列**
   Outcome: 需要從外部工具標記 checklist 的 agent，從能力入口表找得到第三方寫入。
   Checks:
-    - [ ] **入口列內容**
+    - [x] **入口列內容**
       - Action: 在 `.agents/skills/taskprogress-capabilities/SKILL.md`〈The entrances〉的表格加一列，描述第三方以 HTTP POST 經端點探索與 bearer token 寫入單一 check，連到 `Documentation/ThirdPartyChecklistWritePlan.md#6-呼叫端看到的東西一個-http-post`。
       - Expect: 只有一列，不複製請求形狀或操作步驟；連結能開到計畫第 6 節；寫明 UX demo 由使用者操作的事件觸發標記 `[manual]`，以及只記 demo 能完整見證的格子。
