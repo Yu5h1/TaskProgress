@@ -23,12 +23,14 @@ Current round: `Documentation/ThirdPartyChecklistWritePlan.md#5-端點探索`.
       - Action: 在隔離目錄驗證 ACL、TASK_PROGRESS_HOME／port 對應、啟動參數、Viewer root／mount／exact-file 的端點曝露拒絕。
       - Expect: 其他一般使用者不能讀取 token；token 不在 argv、health 或公開 routes；錯誤目錄設定拒絕啟動。
 
-- [ ] **3. 獨立驗收**
+- [x] **3. 獨立驗收**
   Outcome: 未參與本輪的驗收者依計畫確認端點探索契約。
   Checks:
-    - [ ] **驗收條件未被改動** `[acceptance]`
+    - [x] **驗收條件未被改動** `[acceptance]`
       - Action: 比對本檔建立提交或最新標有「條件修訂」的提交與目前版本。
       - Expect: acceptance 條件沒有被執行者修改以配合交付結果。
-    - [ ] **端點探索符合計畫** `[acceptance]`
+      - Recorded: codex:endpoint-acceptance-20261029-01; at=2026-10-29T11:48:48Z; fp=ac0284700610
+    - [x] **端點探索符合計畫** `[acceptance]`
       - Action: 依 Documentation/ThirdPartyChecklistWritePlan.md#5-端點探索 與〈驗證〉的端點判活項目，核對端點檔的寫入／刪除程式、檔案內容、目錄權限與判活測試。
       - Expect: 端點檔放在 `endpoints/<port>.json`，欄位符合計畫且不含 LocalWebService control token；`start` 寫入前替換同 port 舊檔、`service stop` 刪除自己的檔案、不掃描其他 port；判活以 health 的 `service` 欄位為準而不看 PID；token 只有目前使用者讀得到。
+      - Recorded: codex:endpoint-acceptance-20261029-01; at=2026-10-29T11:49:42Z; fp=36ed89c4eb50
