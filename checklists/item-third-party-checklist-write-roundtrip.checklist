@@ -15,6 +15,6 @@ Current round: `Documentation/ThirdPartyChecklistWritePlan.md#驗證`.
   Outcome: 使用者確認外部寫入與人工後路共用同一份結果。
   Checks:
     - [ ] **外部寫入與瀏覽器手動覆寫往返** `[manual]`
-      - Action: 1. 執行第 1 項補上的 `set` 指令；2. 開啟 [試驗用 checklist](http://127.0.0.1:8001/checklist/?scope=task-progress&task=third-party-write-sandbox)，確認「外部寫入目標」顯示通過，再手動點回未勾選；3. 停止本機服務後，再執行一次 `set` 指令。
-      - Expect: 外部寫入後頁面顯示通過；使用者能手動改回；服務停止時指令回報失敗，checklist 檔案沒有被改動或損壞。
+      - Action: 開啟 PowerShell → 執行 `& 'C:\Users\Yu5h1\Dev\VSProjects\Yu5h1Lib\TaskProgress\scripts\third-party-write-roundtrip.ps1' -Mode set` → 開啟 [試驗用 checklist](http://127.0.0.1:8001/checklist/?scope=task-progress&task=third-party-write-sandbox)，確認「外部寫入目標」通過並手動改回未勾選 → 在同一 PowerShell 執行 `$before = (Get-FileHash -LiteralPath 'C:\Users\Yu5h1\Dev\VSProjects\Yu5h1Lib\TaskProgress\checklists\third-party-write-sandbox.checklist').Hash` → 從 TaskProgress 系統匣選單選 Exit 停止服務 → 再執行 `& 'C:\Users\Yu5h1\Dev\VSProjects\Yu5h1Lib\TaskProgress\scripts\third-party-write-roundtrip.ps1' -Mode set` → 執行 `$before -eq (Get-FileHash -LiteralPath 'C:\Users\Yu5h1\Dev\VSProjects\Yu5h1Lib\TaskProgress\checklists\third-party-write-sandbox.checklist').Hash` → 執行 `& 'C:\Users\Yu5h1\Dev\VSProjects\Yu5h1Lib\TaskProgress\Build\win-x64\task-progress.exe' open --scope task-progress --no-browser` 重新開啟服務並重新整理本頁。
+      - Expect: 外部寫入後頁面顯示通過；使用者能手動改回；服務停止時指令回報失敗，雜湊比較回傳 `True`，checklist 檔案沒有被改動或損壞。
       - Reason: 需要在真實的外部呼叫與瀏覽器頁面上核對人工後路。
