@@ -19,6 +19,28 @@ async function pair(region,props,run){
   finally{baseline.destroy(a);web.destroy(b);old.remove();current.remove();}
 }
 await check('Candidate uses its own public Web renderer',async()=>assert(web.id==='yu5h1-web-ui-workflow','active product adapter'));
+await check('Report filter selection survives a new page for the same report',async()=>{
+  const frame=document.createElement('iframe');frame.src='/demo/taskprogress/?scope=web-ui-pilot-test';fixture.append(frame);
+  let key,previous;
+  try {
+    const button=()=>frame.contentDocument?.querySelector('.status-summary-filters [data-capsule-id="planned"]');
+    await wait(()=>button());
+    const storage=frame.contentWindow.localStorage;
+    key=[...Array(storage.length)].map((_,i)=>storage.key(i)).find(k=>k?.startsWith('taskprogress.filters.report.v1:')&&k.includes('web-ui-pilot-test'));
+    if(key) previous=storage.getItem(key);
+    const before=button().getAttribute('aria-pressed');button().click();await tick();
+    const after=button().getAttribute('aria-pressed');assert(after!==before,'filter toggles');
+    key=[...Array(storage.length)].map((_,i)=>storage.key(i)).find(k=>k?.startsWith('taskprogress.filters.report.v1:')&&k.includes('web-ui-pilot-test'));
+    assert(key,'report selection stored in local storage');
+    const loaded=new Promise(resolve=>frame.addEventListener('load',resolve,{once:true}));
+    frame.src='/demo/taskprogress/?scope=web-ui-pilot-test';await loaded;
+    await wait(()=>button());
+    assert(button().getAttribute('aria-pressed')===after,'new page restores filter');
+  } finally {
+    if(key) { if(previous==null) localStorage.removeItem(key); else localStorage.setItem(key,previous); }
+    frame.remove();
+  }
+});
 await check('Child reference copy is independent of the row hold gesture',async()=>{
   const target=document.createElement('div');fixture.append(target);
   const task={id:'copy-card',title:'Copy',status:'planned',priority:2,summary:'',completed_items:[],pending_items:[{id:'child',title:'Child',status:'planned',priority:2}]};
