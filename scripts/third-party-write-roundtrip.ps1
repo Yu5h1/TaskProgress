@@ -1,4 +1,4 @@
-param(
+﻿param(
     [Parameter(Mandatory)]
     [ValidateSet('probe', 'set', 'reset')]
     [string]$Mode
