@@ -6,6 +6,7 @@ internal static class Program
 {
     public static async Task<int> Main(string[] args)
     {
+        if (args.Contains("--endpoint-discovery-only")) { await EndpointDiscoveryTests.RunAsync(); return 0; }
         if (args.Contains("--service-identity-only")) { ServiceIdentityTests.Run(); return 0; }
         if (args.Contains("--tray-launcher-only")) { await TrayHostLauncherTests.RunAsync(); return 0; }
         if (args.Contains("--open-pin-only")) { OpenPinTests.Run(); return 0; }

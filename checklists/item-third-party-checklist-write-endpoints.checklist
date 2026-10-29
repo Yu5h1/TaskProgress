@@ -4,14 +4,14 @@ Current round: `Documentation/ThirdPartyChecklistWritePlan.md#5-端點探索`.
 
 計畫第 3 階段（使用者 2026-09-05 定案）。現況：端點探索檔與 Launcher 傳遞端點目錄已實作，完整驗收依使用者 2026-09-08 指示延後；2026-10-25 使用者要交給其他 agent 執行，延後取消。第 2 項的建置檢查沿用原 `checklists/third-party-checklist-write.checklist` 的結果（該檔已拆分刪除，內容見 git 歷史）。要達成：服務啟動時發布當前 port 的私人端點檔，停止時刪除自己的檔案，第三方能以 health 的 `service` 欄位判活。不在本輪：授權矩陣（另一個子項）、外部寫入往返的人工確認。一個檔案只放一輪。
 
-- [ ] **1. 端點檔遵守服務生命週期**
+- [x] **1. 端點檔遵守服務生命週期**
   Outcome: 啟動發布、停止刪除、重啟換 token，不改動其他 port。
   Checks:
-    - [ ] **生命週期與判活**
+    - [x] **生命週期與判活**
       - Action: 驗證啟動／停止／重啟／沿用服務、同 port 陳舊檔替換、其他 port 檔案保留，以及錯誤服務占用 port 的情境。
       - Expect: 端點檔只含公開連線欄位與 client token；沿用服務不輪換 token，停止只清本次 token 的檔案；呼叫端需以 health 的 `service` 欄位確認身份，錯誤服務占用 port 時判為未啟動。
 
-- [ ] **2. Launcher 傳遞私人端點目錄**
+- [x] **2. Launcher 傳遞私人端點目錄**
   Outcome: Launcher 依應用程式 home 傳入 endpoints 目錄，以目前使用者專用 ACL 保護，host 拒絕靜態公開該位置。
   Checks:
     - [x] **必要建置與語法檢查**
@@ -19,7 +19,7 @@ Current round: `Documentation/ThirdPartyChecklistWritePlan.md#5-端點探索`.
       - Expect: C# 建置成功且 Python 語法合法。
       - Observed: 預設 .NET 10.0.400 的 no-restore 建置回 NETSDK1127，未解析到專案所需的 targeting packs。
       - Resolved: 改用已安裝的 .NET 9.0.315 MSBuild 後建置成功，未下載依賴；Python AST 解析通過。
-    - [ ] **權限與曝露邊界**
+    - [x] **權限與曝露邊界**
       - Action: 在隔離目錄驗證 ACL、TASK_PROGRESS_HOME／port 對應、啟動參數、Viewer root／mount／exact-file 的端點曝露拒絕。
       - Expect: 其他一般使用者不能讀取 token；token 不在 argv、health 或公開 routes；錯誤目錄設定拒絕啟動。
 
