@@ -896,12 +896,12 @@ var Nt = jt(), X = W(class extends At {
 }, Lt = (e, t) => {
 	let n = t, r, i = 0, a = async (t) => {
 		t.stopPropagation(), clearTimeout(r);
-		let a = ++i, o = !1;
+		let a = ++i, o = n.successFeedback?.(), s = !1;
 		try {
-			o = await (n.copy ? n.copy() : oe(String(n.id)));
+			s = await (n.copy ? n.copy() : oe(String(n.id)));
 		} catch {}
-		!e.isConnected || a !== i || (e.textContent = o ? "✓" : "✕", e.classList.add("is-done"), e.classList.toggle("is-copied", o), n.feedbackTitle && (e.title = o ? "已複製" : "無法複製"), r = setTimeout(() => {
-			e.isConnected && (e.textContent = "⧉", e.classList.remove("is-done", "is-copied"), n.feedbackTitle && (e.title = n.title));
+		!e.isConnected || a !== i || (e.textContent = s ? "✓" : "✕", e.classList.add("is-done"), e.classList.toggle("is-copied", s), s && o ? (e.dataset.copyFeedback = o, e.classList.remove("copy-feedback"), e.offsetWidth, e.classList.add("copy-feedback")) : (delete e.dataset.copyFeedback, e.classList.remove("copy-feedback")), n.feedbackTitle && (e.title = s ? o || "已複製" : "無法複製"), r = setTimeout(() => {
+			e.isConnected && (e.textContent = "⧉", e.classList.remove("is-done", "is-copied", "copy-feedback"), delete e.dataset.copyFeedback, n.feedbackTitle && (e.title = n.title));
 		}, 1500));
 	};
 	return e.addEventListener("click", a), {

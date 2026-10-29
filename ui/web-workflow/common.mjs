@@ -63,12 +63,15 @@ export const copyAction = (node, initial) => {
   let data = initial, timer, generation = 0;
   const copy = async event => {
     event.stopPropagation(); clearTimeout(timer); const operation = ++generation;
+    const feedback = data.successFeedback?.();
     let copied = false;
     try { copied = await (data.copy ? data.copy() : copyText(String(data.id))); } catch { /* Copy failure is visible on the button. */ }
     if (!node.isConnected || operation !== generation) return;
     node.textContent = copied ? '✓' : '✕'; node.classList.add('is-done'); node.classList.toggle('is-copied', copied);
-    if (data.feedbackTitle) node.title = copied ? '已複製' : '無法複製';
-    timer = setTimeout(() => { if (!node.isConnected) return; node.textContent = '⧉'; node.classList.remove('is-done', 'is-copied'); if (data.feedbackTitle) node.title = data.title; }, 1500);
+    if (copied && feedback) { node.dataset.copyFeedback = feedback; node.classList.remove('copy-feedback'); void node.offsetWidth; node.classList.add('copy-feedback'); }
+    else { delete node.dataset.copyFeedback; node.classList.remove('copy-feedback'); }
+    if (data.feedbackTitle) node.title = copied ? feedback || '已複製' : '無法複製';
+    timer = setTimeout(() => { if (!node.isConnected) return; node.textContent = '⧉'; node.classList.remove('is-done', 'is-copied', 'copy-feedback'); delete node.dataset.copyFeedback; if (data.feedbackTitle) node.title = data.title; }, 1500);
   };
   node.addEventListener('click', copy);
   return { update: value => { data = value; }, destroy() { generation++; clearTimeout(timer); node.removeEventListener('click', copy); } };

@@ -883,12 +883,12 @@ var Ct = xt(), Y = U(class extends bt {
 })}></div>`, Tt = (e = !1, t = !1) => P`<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${e ? P`<path d="M3 9c4 7 14 7 18 0M5 12l-2 3m6-1-1 3m7-3 1 3m3-5 2 3" />` : P`<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z" /><circle cx="12" cy="12" r="3" />`}${t ? P`<path d="M3 3l18 18" />` : I}</svg>`, Et = (e) => P`<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true">${e === "free" ? P`<path d="M4 5h15M4 10h8M4 15h17M4 20h11" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" />` : P`<path d=${e === "forward" ? "M5 3v18m-3-3 3 3 3-3" : "M5 21V3m-3 3 3-3 3 3"} fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /><path d=${e === "forward" ? "M11 4h10M11 9h8M11 14h6M11 19h3" : "M11 4h3M11 9h6M11 14h8M11 19h10"} fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" />`}</svg>`, Dt = (e, t) => {
 	let n = t, r, i = 0, a = async (t) => {
 		t.stopPropagation(), clearTimeout(r);
-		let a = ++i, o = !1;
+		let a = ++i, o = n.successFeedback?.(), s = !1;
 		try {
-			o = await (n.copy ? n.copy() : f(String(n.id)));
+			s = await (n.copy ? n.copy() : f(String(n.id)));
 		} catch {}
-		!e.isConnected || a !== i || (e.textContent = o ? "✓" : "✕", e.classList.add("is-done"), e.classList.toggle("is-copied", o), n.feedbackTitle && (e.title = o ? "已複製" : "無法複製"), r = setTimeout(() => {
-			e.isConnected && (e.textContent = "⧉", e.classList.remove("is-done", "is-copied"), n.feedbackTitle && (e.title = n.title));
+		!e.isConnected || a !== i || (e.textContent = s ? "✓" : "✕", e.classList.add("is-done"), e.classList.toggle("is-copied", s), s && o ? (e.dataset.copyFeedback = o, e.classList.remove("copy-feedback"), e.offsetWidth, e.classList.add("copy-feedback")) : (delete e.dataset.copyFeedback, e.classList.remove("copy-feedback")), n.feedbackTitle && (e.title = s ? o || "已複製" : "無法複製"), r = setTimeout(() => {
+			e.isConnected && (e.textContent = "⧉", e.classList.remove("is-done", "is-copied", "copy-feedback"), delete e.dataset.copyFeedback, n.feedbackTitle && (e.title = n.title));
 		}, 1500));
 	};
 	return e.addEventListener("click", a), {
@@ -1603,6 +1603,10 @@ function yn(e, t, n, r, i, a) {
 	})}</div>`}</div>
     ${u ? N`<button type="button" class="item-row-copy" data-item-ref=${b} tabindex=${e.selection ? -1 : 0} aria-label=${S > 1 ? `複製已選取的 ${S} 項參照` : `複製「${i.title}」的參照`} title=${re} @pointerdown=${(e) => e.stopPropagation()} ${Y(Dt, {
 		copy: () => e.selection ? e.selection.copyReferences(u) : f(u),
+		successFeedback: () => {
+			let t = e.selection?.references?.(u).length ?? 1;
+			return t > 1 ? `複製 ${t} 項` : "";
+		},
 		feedbackTitle: !0,
 		title: re
 	})}>⧉</button>` : I}
