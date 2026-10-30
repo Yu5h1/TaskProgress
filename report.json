@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-10-29T13:51:26.941079+00:00",
+  "updated_at": "2026-10-30T01:47:29.132Z",
   "tasks": [
     {
       "priority": 1,
@@ -394,7 +394,8 @@
             }
           ]
         }
-      ]
+      ],
+      "completed_items": []
     },
     {
       "id": "agent-workflow",
@@ -1482,7 +1483,8 @@
             }
           ]
         }
-      ]
+      ],
+      "pending_items": []
     },
     {
       "id": "item-activity-log",
@@ -2614,6 +2616,50 @@
       "summary": "階段 0／1 已完成；階段 2／3 與瀏覽器清空 UI 已實作，2026-10-25 起取消延後、交給 agent 驗收：授權與端點探索各自他驗，外部寫入往返與清空確認框由使用者人工驗收，入口表等前兩項完成後補上。主要用途是 UX demo 由使用者操作觸發標記 [manual]，見 [計畫〈主要用途〉](https://github.com/Yu5h1/TaskProgress/blob/main/Documentation/ThirdPartyChecklistWritePlan.md#主要用途ux-demo-的動作觸發標記)。",
       "completed_items": [
         {
+          "status": "done",
+          "priority": 0,
+          "id": "item-link-highlight-cross-scope",
+          "title": "跨頁提示測試：[前往 Yu5h1Lib 測試目標](/?scope=yu5h1lib&pin=link-highlight-cross-scope-demo#item-link-highlight-cross-scope-demo--link-highlight-cross-scope-target)",
+          "activity": [
+            {
+              "event": "created",
+              "actor": "codex",
+              "at": "2026-10-29T13:45:15.489442+00:00",
+              "session": "跨頁目標視覺提示試驗"
+            },
+            {
+              "event": "done",
+              "actor": "user",
+              "at": "2026-10-29T15:46:09.590Z"
+            }
+          ]
+        },
+        {
+          "priority": 0,
+          "title": "同卡項目提示測試：[前往外部寫入往返](/?scope=task-progress&pin=third-party-checklist-write#item-third-party-checklist-write--item-third-party-checklist-write-roundtrip)",
+          "status": "done",
+          "id": "item-link-highlight-demo",
+          "activity": [
+            {
+              "event": "created",
+              "actor": "codex",
+              "at": "2026-10-29T12:16:10.860979+00:00",
+              "session": "目標視覺提示試驗"
+            },
+            {
+              "event": "updated",
+              "actor": "codex",
+              "at": "2026-10-29T13:51:26.941079+00:00",
+              "session": "目標視覺提示試驗"
+            },
+            {
+              "event": "done",
+              "actor": "user",
+              "at": "2026-10-29T15:46:06.499Z"
+            }
+          ]
+        },
+        {
           "id": "item-third-party-checklist-write-done-1",
           "title": "讀碼核對三條來源需求的 Evidence，並確認寫入規則可直接沿用 ApplyManualResults",
           "priority": 3
@@ -2672,40 +2718,6 @@
               "session": "Taskprogess",
               "session_id": "016492fa-7464-498b-9444-0e6296cd1267",
               "at": "2026-10-25T05:56:11.948776+00:00"
-            }
-          ]
-        },
-        {
-          "priority": 0,
-          "title": "同卡項目提示測試：[前往外部寫入往返](/?scope=task-progress&pin=third-party-checklist-write#item-third-party-checklist-write--item-third-party-checklist-write-roundtrip)",
-          "status": "planned",
-          "id": "item-link-highlight-demo",
-          "activity": [
-            {
-              "event": "created",
-              "actor": "codex",
-              "at": "2026-10-29T12:16:10.860979+00:00",
-              "session": "目標視覺提示試驗"
-            },
-            {
-              "event": "updated",
-              "actor": "codex",
-              "at": "2026-10-29T13:51:26.941079+00:00",
-              "session": "目標視覺提示試驗"
-            }
-          ]
-        },
-        {
-          "status": "planned",
-          "priority": 0,
-          "id": "item-link-highlight-cross-scope",
-          "title": "跨頁提示測試：[前往 Yu5h1Lib 測試目標](/?scope=yu5h1lib&pin=link-highlight-cross-scope-demo#item-link-highlight-cross-scope-demo--link-highlight-cross-scope-target)",
-          "activity": [
-            {
-              "event": "created",
-              "actor": "codex",
-              "at": "2026-10-29T13:45:15.489442+00:00",
-              "session": "跨頁目標視覺提示試驗"
             }
           ]
         },
@@ -3737,7 +3749,8 @@
             }
           ]
         }
-      ]
+      ],
+      "completed_items": []
     },
     {
       "id": "worktree-report",
@@ -3794,7 +3807,8 @@
             }
           ]
         }
-      ]
+      ],
+      "completed_items": []
     },
     {
       "id": "web-ui-replacement",
@@ -3879,14 +3893,17 @@
             }
           ]
         }
-      ]
+      ],
+      "completed_items": []
     },
     {
       "id": "node-progress-view",
       "title": "任務進程的圖形化節點監控",
       "status": "planned",
       "priority": 2,
-      "summary": "目標：每個任務以圖形化節點表示，從節點圖直接看出阻塞點，Report 卡片保留作細節說明；資料結構先不改，遞迴節點要先估成本、測可行才替換。見 [問題與目標](https://github.com/Yu5h1/TaskProgress/blob/main/Documentation/NodeProgressViewPlan.md#問題與目標)。"
+      "summary": "目標：每個任務以圖形化節點表示，從節點圖直接看出阻塞點，Report 卡片保留作細節說明；資料結構先不改，遞迴節點要先估成本、測可行才替換。見 [問題與目標](https://github.com/Yu5h1/TaskProgress/blob/main/Documentation/NodeProgressViewPlan.md#問題與目標)。",
+      "completed_items": [],
+      "pending_items": []
     },
     {
       "id": "web-ui-performance",
@@ -3915,7 +3932,8 @@
             }
           ]
         }
-      ]
+      ],
+      "completed_items": []
     }
   ]
 }
