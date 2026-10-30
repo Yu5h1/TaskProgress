@@ -1261,6 +1261,10 @@ h1 {
   color: var(--color-item-text);
 }
 
+.work-columns .pending-work .detail-list > li.editor-item-row:first-child:not(.is-next):not(.is-selected) {
+  background: color-mix(in srgb, var(--color-item-text) 5%, transparent);
+}
+
 /*
  * Editing must not resize or shift the row: the box, gap and marker come from
  * `.editor-item-row` in editor-presentation.css and are identical in both
