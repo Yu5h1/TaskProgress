@@ -14,10 +14,11 @@ Current round: `Documentation/ThirdPartyChecklistWritePlan.md#3-reset清空後�
       - Action: 執行 tests/checklist-http-transport.test.mjs 已備妥的 reset 測試。
       - Expect: 明確 targets 原樣送出、未指定與空 targets 保持不同語意、Browser 不加 bearer token，bridge 拒絕不自動重試。
 
-- [ ] **2. 人工驗收**
+- [x] **2. 人工驗收**
   Outcome: 使用者確認清空確認框的行為。
   Checks:
-    - [ ] **清空確認框操作與狀態隔離** `[manual]`
+    - [x] **清空確認框操作與狀態隔離** `[manual]`
       - Action: 開啟 [試驗用 checklist](http://127.0.0.1:8001/checklist/?scope=task-progress&task=third-party-write-sandbox)，先手動把第 2 項的兩格標成通過。1. 點「清空」開啟對話框，按「取消」；2. 再開啟並按「確認」；3. 編輯未存或儲存中時看清空按鈕，以及對話框開著時切換視窗再回來。
       - Expect: 對話框說出會清掉幾格且 agent 結果不受影響；取消不發出請求；確認後只重設人工項目與其說明，第 1 項的 agent 結果保留；編輯中清空按鈕停用；切換前景不打斷對話框；請求失敗時顯示錯誤且不自動重試。
       - Reason: 需要在真實瀏覽器操作對話框、核對筆數提示與前景回焦。
+      - Recorded: user; at=2026-10-29T18:22:54Z; fp=d457b13829d9
