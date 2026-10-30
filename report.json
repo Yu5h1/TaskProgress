@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-10-30T01:47:29.132Z",
+  "updated_at": "2026-10-30T19:21:38.333125+00:00",
   "tasks": [
     {
       "priority": 1,
@@ -3879,9 +3879,31 @@
           ]
         },
         {
-          "id": "web-report-encoding",
-          "title": "問題：Web 已提交 report.json／handoff.md 編碼損壞，無法安全更新遷移彙整卡；修復需求記於 Documentation/Requirements.Web.md（TASKPROGRESS-WEB-1）",
           "status": "planned",
+          "document_ref": {
+            "scope_id": "task-progress",
+            "task": "web-ui-product-evidence",
+            "kind": "checklist"
+          },
+          "title": "正式產品驗收：補核 Windows 輔助操作、窄版、主題與瀏覽器",
+          "priority": 1,
+          "id": "web-ui-product-evidence",
+          "activity": [
+            {
+              "event": "created",
+              "actor": "codex",
+              "at": "2026-10-30T19:21:38.333125+00:00",
+              "session": "Web UI migration evidence",
+              "session_id": "01a1873a-2fef-74c2-a673-a41bb27657dd"
+            }
+          ]
+        }
+      ],
+      "completed_items": [
+        {
+          "id": "web-report-encoding",
+          "title": "Web 文件編碼與遷移追蹤修復完成（TASKPROGRESS-WEB-1）",
+          "status": "done",
           "priority": 2,
           "activity": [
             {
@@ -3890,11 +3912,23 @@
               "at": "2026-10-27T06:41:40.208993+00:00",
               "session": "TaskProgress retirement conditions",
               "session_id": "01a0d3c0-178f-7463-a65b-21c8bbe2676f"
+            },
+            {
+              "event": "updated",
+              "actor": "codex",
+              "at": "2026-10-30T19:15:16.420217+00:00",
+              "session": "Web UI migration evidence"
+            },
+            {
+              "event": "done",
+              "actor": "codex",
+              "at": "2026-10-30T19:17:59.748627+00:00",
+              "session": "Web UI migration evidence",
+              "session_id": "01a1873a-2fef-74c2-a673-a41bb27657dd"
             }
           ]
         }
-      ],
-      "completed_items": []
+      ]
     },
     {
       "id": "node-progress-view",
