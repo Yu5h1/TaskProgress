@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-10-30T19:21:38.333125+00:00",
+  "updated_at": "2026-10-31T13:27:28.534432+00:00",
   "tasks": [
     {
       "priority": 1,
@@ -400,7 +400,7 @@
     {
       "id": "agent-workflow",
       "title": "優化 agent workflow",
-      "status": "done",
+      "status": "in_progress",
       "summary": "已結案（2026-10-25，使用者結案驗收通過）：使用者確認目標與驗收、agent 跑完中間的流程已落實在 task-progress、task-progress-report、Report CLI 與 Viewer，並以九項端到端試跑驗證；卡片目標見 [目標與流程](https://github.com/Yu5h1/TaskProgress/blob/main/Documentation/AcceptanceChainPlan.md#目標與流程)，經驗與指標在 experience/agent-workflow.md。",
       "pending_items": [
         {
@@ -479,6 +479,25 @@
               "actor": "claude",
               "at": "2026-10-24T18:41:10.780876+00:00",
               "session_id": "016492fa-7464-498b-9444-0e6296cd1267"
+            }
+          ]
+        },
+        {
+          "id": "dx-manual-four-reasons",
+          "title": "checklist-round 與 task-progress 依 DX 決定改規則：[manual] 四種理由、人工檢查集中在卡片 close-out、出題改四類以外自答、口頭成功代記錄、resolved 改欄位名（agents scope dx-blockers 已落地對應三份 skill）",
+          "status": "planned",
+          "priority": 1,
+          "document_ref": {
+            "kind": "checklist",
+            "scope_id": "task-progress",
+            "task": "dx-manual-four-reasons"
+          },
+          "activity": [
+            {
+              "event": "created",
+              "actor": "claude",
+              "at": "2026-10-31T13:27:28.534432+00:00",
+              "session_id": "8f1fda5e-f37d-4ad0-8fdf-26ad0c1f98d1"
             }
           ]
         }
