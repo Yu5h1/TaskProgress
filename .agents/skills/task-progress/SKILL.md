@@ -120,7 +120,7 @@ them, not created. Pick each new item's verification by § Verification and its 
 
 Evaluation never ends at a stop. A decision question it raises is answered on the spot when
 [agent-executable-items § Evaluate a scope](../../../../.agents/skills/agent-executable-items/SKILL.md#evaluate-a-scope)
-rates it low-risk: record the recommendation as the answer through `decisions request`
+puts it outside the four kinds only the user answers (a name, a specification change, a product preference, an irreversible action): record the recommendation as the answer through `decisions request`
 (`confirm`, the recommended `option_id`, `reason` 「採建議，未經使用者確認」) and continue; the
 report names every answer taken this way so the user can overturn it on the decisions page. Other
 questions wait for the user. Before sorting anything, read the scope's decisions files for answers
@@ -143,7 +143,7 @@ to set, clear or keep the marker, do exactly that.
 
 When nothing in the range can proceed, the evaluation still moves its first item by priority, by
 what holds it: a choice the user has not made becomes a decision question bound to that item
-(answered on the spot when low-risk, as above); an item awaiting the user names the checklist they
+(answered on the spot when outside the four user-only kinds, as above); an item awaiting the user names the checklist they
 tick; an item waiting on another scope names the invocation that starts that work there. It never
 takes work from outside the range.
 
@@ -174,7 +174,12 @@ the user wants to follow without verification stages is an unbound item (§ Unbo
 
 A card whose goal the user judges ends with a close-out item: a checklist of `[manual]` checks only,
 comparing the card's whole result with its goal, bound to an item that waits on the card's work
-items. It becomes the user's turn after § Close-out review.
+items. It becomes the user's turn after § Close-out review. It is the user's try-out list, not a
+restatement of acceptance conditions: each check says what this card added or changed, where to try
+it (its `Action` links the page), and what the user should see; the checks that stay `[manual]` are
+the four reasons in
+[agent-work-route § Hand verification over](../../../../.agents/skills/agent-work-route/SKILL.md#hand-verification-over-when-the-project-opts-in),
+and this one file holds every page's remaining checks for the card.
 
 To have the user confirm something midway, check what kind it is: a result ("is this colour right
 before I apply it to ten pages?") is a `[manual]` check on that intermediate item, and items waiting
@@ -196,7 +201,12 @@ anyone executes, even this session.
    stop instead of patching until it passes
    ([agent-work-route](../../../../.agents/skills/agent-work-route/SKILL.md#separate-a-wrong-implementation-from-a-wrong-spec)):
    a wrong goal goes back to § Settle the goal first, a wrong spec is rewritten before you resume.
-3. For `manual`, complete the `[manual]` drafts (links that answer, steps).
+3. For `manual`, complete the `[manual]` drafts (links that answer, steps). When the user says in
+   the conversation that a `[manual]` check passed or failed, record it for them: quote their words,
+   write the result through `checklist request` under the `[manual]` rules (a failure with their
+   words as `Observed`), and never ask them to go and tick it themselves. Where the CLI refuses an
+   agent's `[manual]` `[x]`, keep the quote in the item's report and name the tick as what waits on
+   the user.
 4. `task-progress.exe checklist validate <file>`, release
    (`{"op": "item.event", "task_id": "<card>", "item_id": "<item>", "event": "released"}`), then
    commit the work and the release's `report.json` change together, so an interruption never leaves
@@ -314,7 +324,8 @@ pending until recorded again.
 `observed`; give its grounds in your report. When your pass completes the card's last work item, run
 § Close-out review next. Use
 `"reason":"condition"` when the condition itself contradicts the spec. Passing a check that
-failed before needs `"resolved"`. The CLI refuses the creator's or an executor's session, results before the
+failed before keeps `"status":"passed"` and adds a `"resolved":"<what changed>"` field (`status`
+accepts only `pending`, `passed` and `failed`). The CLI refuses the creator's or an executor's session, results before the
 executor's checks pass, `[manual]` before every `[acceptance]` passes, and `[manual]` `[x]` from an
 agent; a refusal is a reply with `"type":"error"` while the exit code stays 0, so read `type`.
 

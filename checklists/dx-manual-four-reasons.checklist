@@ -4,32 +4,36 @@ Current round: `../.agents/plans/DX阻礙_pstack比對_討論.md#已決定`.
 
 現況：checklist-round〈Tagged checks〉接受「外觀由使用者判」為 `[manual]` 理由，並規定一頁一份人工檔（UX 第 89 題）；task-progress〈Resolve the target〉以「low-risk」判哪些題 agent 自答，〈Execute〉沒有說使用者口頭說成功時誰記錄，〈Verification and its checklist〉的 close-out 項目只寫成「比較結果與目標」，〈Accept〉寫「Passing a check that failed before needs `resolved`」被讀成狀態值。使用者 2026-10-31 的決定（.agents 的 DX 討論稿〈已決定〉第 2、3、6 條）已在 agents scope 落地到 agent-work-route、spec-adoption、agent-executable-items；本輪把 TaskProgress 擁有的兩份 skill 改成一致。不改 CLI 程式；不改既有 checklist 檔；UX 的新決策答案與 Web 的 verify skill 各在自己的 scope。
 
-- [ ] **1. checklist-round〈Tagged checks〉**
+- [x] **1. checklist-round〈Tagged checks〉**
   Outcome: `[manual]` 只接受四種理由，人工檢查集中在卡片的 close-out 項目，不再一頁一份檔。
   Checks:
-    - [ ] **四種理由**
+    - [x] **四種理由**
       - Action: 把「`[manual]` to the user, for what needs the user's device, environment, protected data, or direct UX judgement」與「『外觀由使用者判』 is a capability reason」改為指向 agent-work-route〈Hand verification over〉的四種理由（真實輸入法組字、OS 原生元件、實體裝置手感、產品偏好），`Reason` 要寫出是哪一種；保留「『使用者比較快』不是理由」。範例的 Reason 一併改。
       - Expect: 段落裡找不到「外觀由使用者判」作為合格理由；四種理由可從這段或它連結的段落讀到；範例 Reason 是四種之一。
-    - [ ] **one manual file per page 段改為 close-out**
+    - [x] **one manual file per page 段改為 close-out**
       - Action: 把「A workflow that decided on one manual file per page（UX decision 89）…」那段改為：剩下的 `[manual]` 檢查寫進該卡 close-out 項目的 checklist（task-progress〈Verification and its checklist〉），每條 Action 連到該頁；一卡一份；既有的頁檔保留不動。
       - Expect: 不再要求每頁一檔、每頁一個子項目；close-out 的指向可解析；寫明既有頁檔不動。
-    - [ ] **引用句同步**
+    - [x] **引用句同步**
       - Action: grep 本 repo `.agents/skills` 與 Documentation 裡引用「one manual file per page」「第 89 題」「decision 89」的句子，判定改寫或保留為歷史。
       - Expect: skill 裡沒有仍要求一頁一份的句子；Documentation 的計畫文件若為歷史紀錄則保留並在 Observed 列出。
+      - Observed: 命中 checklist-round〈Tagged checks〉一段與 task-progress-report〈Maintain child items〉一句；Documentation 無命中。
+      - Resolved: 兩處都改為指向卡片 close-out 項目。
 
-- [ ] **2. task-progress 四處用詞**
+- [x] **2. task-progress 四處用詞**
   Outcome: task-progress 的出題、記錄、close-out 與驗收用語與 agents scope 的新規則一致。
   Checks:
-    - [ ] **〈Resolve the target〉low-risk 改為四類以外**
+    - [x] **〈Resolve the target〉low-risk 改為四類以外**
       - Action: 兩處「low-risk」改為「四類必問以外的題」，指向 agent-executable-items〈Evaluate a scope〉的兩層規則；confirm 的 reason 文字不變。
       - Expect: 檔內 grep `low-risk` 為零；指向的 anchor 可解析。
-    - [ ] **〈Execute〉口頭成功代為記錄**
+    - [x] **〈Execute〉口頭成功代為記錄**
       - Action: 在 `manual` 的說明後加一句：使用者在對話中口頭說某個 `[manual]` 檢查通過或失敗時，agent 引用原話，透過 checklist request 以 `[manual]` 的規則代為記錄（失敗附 Observed），不要求使用者自己去勾。
       - Expect: 句子存在；與 checklist-round「只有使用者能標 `[manual]` `[x]`」的規則不衝突（代記錄仍以使用者的話為依據，寫明出處）；若 CLI 目前拒絕 agent 標 `[manual]` `[x]`，在 Observed 寫明並改為記為「問題：」項目。
-    - [ ] **〈Verification and its checklist〉close-out 寫成「有哪些可以試」**
+      - Observed: checklist-round〈Recording tagged results〉與 task-progress〈Accept〉都寫明 CLI 拒絕 agent 的 `[manual]` `[x]`，agent 只能標 `[!]`。
+      - Resolved: 句子寫成：失敗由 agent 代記；通過時引用原話留在項目報告並點名「等使用者勾」，不改 CLI；讓 CLI 接受附使用者引言的代記另記為「問題：」項目。
+    - [x] **〈Verification and its checklist〉close-out 寫成「有哪些可以試」**
       - Action: 在 close-out 項目的定義加一句：它的每條 `[manual]` 檢查以「這張卡新增或改了什麼、到哪裡試、看到什麼算對」寫，是使用者的試用清單，不是驗收條件的複述；每條 Action 連到該頁。
       - Expect: 句子存在；與 checklist-round〈Tagged checks〉的 `[manual]` Action 寫法不衝突。
-    - [ ] **〈Accept〉resolved 改為欄位名**
+    - [x] **〈Accept〉resolved 改為欄位名**
       - Action: 把「Passing a check that failed before needs `"resolved"`」改為「status 仍是 `passed`，另帶 `"resolved":"<文字>"` 欄位（status 只接受 pending、passed、failed）」。
       - Expect: 讀者不會再送 `"status":"resolved"`。
 

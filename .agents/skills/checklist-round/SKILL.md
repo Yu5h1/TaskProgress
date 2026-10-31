@@ -89,10 +89,11 @@ work-item title; every referenced ID belongs to another item in the same round.
 
 `Action` covers commands, URLs, and hands-on steps; `Expect` gives the observable
 pass condition. Tags are permission labels and only registered tags parse:
-untagged checks belong to the executor; `[manual]` to the user, for what needs the
-user's device, environment, protected data, or direct UX judgment, with a short
-`Reason`; `[acceptance]` to an agent session other than the executor (§ Tagged
-checks). "The user is faster" is not a capability reason. Do not use separate
+untagged checks belong to the executor; `[manual]` to the user, for one of the four
+reasons the agent cannot judge (input-method composition, an OS-native control,
+physical device feel, a product preference), named in a short `Reason`;
+`[acceptance]` to an agent session other than the executor (§ Tagged checks).
+"The user is faster" and "it is appearance" are not capability reasons. Do not use separate
 `Entry`, `Verification`, `By`, or `Why not agent` fields; they duplicate this
 structure. Every check field is a nested Markdown list entry using the exact
 `      - Field: value` shape. This applies to required `Action` and `Expect` and
@@ -169,12 +170,12 @@ The program orders them, so tagged work items carry no `Depends on`: an
 `[manual]` result until every `[acceptance]` has passed. Checklists written
 before these rules keep their structure.
 
-A workflow that decided on one manual file per page (UX decision 89, used by
-spec-adoption) keeps that form: the file holds the `[manual]`
-checks for exactly one page of one piece of work, is named after its own Task ID
-`checklists/<work>-<check>-<page>.checklist` (`toggle-tg02-playback`), is opened
-only after the work's own round has every check `[x]`, and binds its own child
-item under the same existing card.
+The `[manual]` checks that remain after a work's own round has every check `[x]`
+go into the card's close-out item
+([task-progress § Verification and its checklist](../task-progress/SKILL.md#verification-and-its-checklist)):
+one file per card, each check's `Action` linking its page, never one file or
+child item per page. Per-page manual files written before this rule
+(`toggle-tg02-playback` and the like) stay as they are.
 
 Write `[manual]` `Action` so the user can reach the target from the checklist,
 then the hands-on steps:
@@ -197,8 +198,12 @@ then the hands-on steps:
 
 Which target, address or scene to name belongs to the project or the acceptance
 workflow that asks for the check, not to this skill.
-`Expect` names what the user must see; `Reason` says why the agent
-cannot judge it (「外觀由使用者判」 is a capability reason).
+`Expect` names what the user must see; `Reason` names which of the four
+reasons in [agent-work-route § Hand verification over](../../../../.agents/skills/agent-work-route/SKILL.md#hand-verification-over-when-the-project-opts-in)
+applies: real input-method composition, an OS-native control, physical device
+feel, or a product preference. 「外觀由使用者判」 alone is not one of them:
+appearance the agent can capture (text not clipped, focus visible, state colours,
+layout, light and dark parity) is an untagged check with the evidence attached.
 
 ```markdown
 - [ ] **3. 人工驗收**
@@ -206,8 +211,8 @@ cannot judge it (「外觀由使用者判」 is a capability reason).
   Checks:
     - [ ] **播放／暫停與循環播放** `[manual]`
       - Action: 開啟 [animation 播放列](http://127.0.0.1:8015/demo/animation/)，按播放再按暫停，開關循環播放。
-      - Expect: 播放鈕只換名稱與圖示、沒有亮底；循環播放開著時底色為 accent。
-      - Reason: 外觀由使用者判。
+      - Expect: 按下去的回饋與循環播放的切換手感符合預期。
+      - Reason: 實體裝置手感。
 ```
 
 ### Recording tagged results
