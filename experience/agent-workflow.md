@@ -9,4 +9,5 @@
 - [promoted → task-progress-report〈Bind Checklist and Decision documents〉] 2026-10-25 claude › decide-goal-flow › misled：技能寫決策檔名「不必等於 Report 任務 ID」，服務卻只讀以卡片代號命名的決策檔；另開的 goal-flow.decisions 在 Viewer 顯示「來源不可用」，已併入 agent-workflow.decisions（使用者發現）
 
 指標：驗收不通過 0／3、重做 0、重講目標 4、週期 4 天
-- [open] 2026-10-31 claude › dx-manual-four-reasons › judgment：規則用詞替換（low-risk、外觀由使用者判）在 agents 與 TaskProgress 兩個 scope 各漏改一句，都由驗收者抓到（實作衝突句、Verification 的「appearance, feel, the user's device」）。執行者在 release 前應對舊詞的同義詞（appearance／外觀／feel／device／low-risk）跨全檔 grep 一次，不只找原句 → 候選：task-progress〈Execute〉第 4 步加「替換用詞前先 grep 同義詞」
+- [promoted → task-progress〈Execute〉第 2 步「替換用詞前先 grep 同義詞」] 2026-10-31 claude › dx-manual-four-reasons › judgment：規則用詞替換（low-risk、外觀由使用者判）在 agents 與 TaskProgress 兩個 scope 各漏改一句，都由驗收者抓到（實作衝突句、Verification 的「appearance, feel, the user's device」）。執行者在 release 前應對舊詞的同義詞（appearance／外觀／feel／device／low-risk）跨全檔 grep 一次，不只找原句 → 候選：task-progress〈Execute〉第 4 步加「替換用詞前先 grep 同義詞」
+指標（dx-manual-four-reasons 補輪）：驗收不通過 1／2、重做 1、重講目標 0、週期 1 天

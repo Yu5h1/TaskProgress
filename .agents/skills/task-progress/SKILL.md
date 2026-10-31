@@ -204,6 +204,9 @@ anyone executes, even this session.
    stop instead of patching until it passes
    ([agent-work-route](../../../../.agents/skills/agent-work-route/SKILL.md#separate-a-wrong-implementation-from-a-wrong-spec)):
    a wrong goal goes back to § Settle the goal first, a wrong spec is rewritten before you resume.
+   When the work replaces a rule's wording, grep the whole file set for the old term and its
+   synonyms (not only the sentence you were pointed at) before you release; a sentence left behind
+   is the most common acceptance failure.
 3. For `manual`, complete the `[manual]` drafts (links that answer, steps). When the user says in
    the conversation that a `[manual]` check passed or failed, record it for them: quote their words,
    write the result through `checklist request` under the `[manual]` rules (a failure with their
