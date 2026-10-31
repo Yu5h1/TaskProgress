@@ -37,12 +37,15 @@ Current round: `../.agents/plans/DX阻礙_pstack比對_討論.md#已決定`.
       - Action: 把「Passing a check that failed before needs `"resolved"`」改為「status 仍是 `passed`，另帶 `"resolved":"<文字>"` 欄位（status 只接受 pending、passed、failed）」。
       - Expect: 讀者不會再送 `"status":"resolved"`。
 
-- [ ] **3. 獨立驗收**
+- [!] **3. 獨立驗收**
   Outcome: 未參與本輪的驗收者確認兩份 skill 與 agents scope 的決定一致。
   Checks:
-    - [ ] **驗收條件未被改動** `[acceptance]`
+    - [x] **驗收條件未被改動** `[acceptance]`
       - Action: 比對本檔建立提交或最新標有「條件修訂」的提交與目前版本。
       - Expect: acceptance 條件沒有被執行者修改以配合交付結果。
-    - [ ] **依已決定核對交付** `[acceptance]`
+      - Recorded: claude:9ca4e052-b5c9-4b53-82ca-34929634cc0d; at=2026-10-31T13:30:42Z; fp=ac0284700610
+    - [!] **依已決定核對交付** `[acceptance]`
       - Action: 依 ../.agents/plans/DX阻礙_pstack比對_討論.md#已決定 第 2、3、6 條，讀 .agents/skills/checklist-round/SKILL.md〈Tagged checks〉與 .agents/skills/task-progress/SKILL.md 的四處，並對照 ../.agents/skills/agent-work-route/SKILL.md〈Hand verification over〉與 agent-executable-items〈Evaluate a scope〉。
       - Expect: 四種理由、close-out、兩層規則三處用語一致，沒有一方仍保留舊規則；所有新加的相對連結可解析；CLI 程式與既有 checklist 檔沒有被改。
+      - Observed: task-progress SKILL.md section Verification and its checklist still says: Choose: user-only judgment (appearance, feel, the user device) -> add manual. This keeps appearance as a reason for manual verification, while checklist-round now says appearance is not a capability reason and the spec (decided item 2) moves other appearance items to untagged checks with evidence. Everything else checked: four reasons, close-out per card, four user-only question kinds consistent across checklist-round, task-progress, task-progress-report, agent-work-route and agent-executable-items; grep for low-risk, one manual file per page, decision 89 is zero, the only wai-guan hit is the sentence that rejects it; all three added relative links resolve to existing files and headings; commit bad5046 touches only the three skills, this checklist and report.json.
+      - Recorded: claude:9ca4e052-b5c9-4b53-82ca-34929634cc0d; at=2026-10-31T13:30:42Z; fp=1a415a0a8387; reason=implementation
