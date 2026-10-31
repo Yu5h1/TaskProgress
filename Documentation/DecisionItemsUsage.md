@@ -53,10 +53,10 @@ Agent 開始或接續任務時，先檢查 `decisions/<task-id>.decisions`；pen
 本機 stdin／stdout 入口：
 
 ```powershell
-Get-Content -Raw -Encoding UTF8 request.json | task-progress.exe decisions request --file "C:\Project\decisions\task-a.decisions"
+cmd /c 'type request.json | task-progress.exe decisions request --file "C:\Project\decisions\task-a.decisions"'
 ```
 
-呼叫程式須以 UTF-8 寫入 stdin。Windows PowerShell 5 的管線另受 `$OutputEncoding` 影響，呼叫前應設為 UTF-8。
+呼叫程式須以 UTF-8（無 BOM）寫入 stdin。`task-progress.exe` 是 Windows 視窗子系統程式，PowerShell 的 `|` 接不上它的 stdin／stdout，結果是沒有任何輸出；請經 `cmd /c` 的管線，或從 Git Bash 等 shell 直接管線。
 
 先送 `{"operation":"load"}` 取得 document、revision 與 document_key。修改請求使用下列結構：
 

@@ -187,9 +187,10 @@ task-progress.exe report next "C:\Project" --actor codex [--task feature-b] [--s
 ## stdin 與結果
 
 ```powershell
-$OutputEncoding = [System.Text.UTF8Encoding]::new($false)
-Get-Content -Raw -Encoding UTF8 changes.json | task-progress.exe report apply "C:\Project" --input -
+cmd /c 'type changes.json | task-progress.exe report apply "C:\Project" --input -'
 ```
+
+stdin 須為無 BOM 的 UTF-8。`task-progress.exe` 是 Windows 視窗子系統程式，PowerShell 的 `|` 接不上它的 stdin／stdout；請經 `cmd /c` 或 Git Bash 等 shell 管線，能給檔案時優先用 `--input <檔案>`。
 
 stdout 固定為單一 JSON；exit code：0 成功、2 輸入／驗證錯誤、3 revision 衝突、4 執行／保存／分析／回復失敗。錯誤中的 operation_index 從 0 起算。
 
