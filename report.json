@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-10-31T13:35:43.442220+00:00",
+  "updated_at": "2026-10-31T15:57:35.243631+00:00",
   "tasks": [
     {
       "id": "agent-workflow",
@@ -3932,6 +3932,20 @@
               "at": "2026-10-30T19:21:38.333125+00:00",
               "session": "Web UI migration evidence",
               "session_id": "01a1873a-2fef-74c2-a673-a41bb27657dd"
+            }
+          ]
+        },
+        {
+          "id": "web-ui-notice-mit",
+          "title": "問題：vendor/web-ui/NOTICE.txt 仍寫 Web 未宣告授權；Web 已於 2026-10-31 改為 MIT（LICENSE、package.json），交付 NOTICE 與建置輸出需改寫並保留第三方 LEGAL.txt",
+          "priority": 2,
+          "status": "planned",
+          "activity": [
+            {
+              "event": "created",
+              "actor": "claude",
+              "at": "2026-10-31T15:57:35.243631+00:00",
+              "session_id": "b5803ea8-4c1f-4ea5-94ae-8f9570172059"
             }
           ]
         }
