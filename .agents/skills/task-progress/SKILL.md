@@ -167,7 +167,10 @@ follows those documents' own rules and starts no flow.
 | `cross` | untagged + `[acceptance]` | 2: executor (may be the creator), acceptor |
 | `cross manual` | all three | 2, plus the user |
 
-Choose: user-only judgment (appearance, feel, the user's device) → add `manual`; a requirement easy
+Choose: a check that needs one of the four reasons in
+[agent-work-route § Hand verification over](../../../../.agents/skills/agent-work-route/SKILL.md#hand-verification-over-when-the-project-opts-in)
+(input-method composition, an OS-native control, physical device feel, a product preference) → add
+`manual`, while appearance the agent can capture stays an untagged check with evidence; a requirement easy
 to misread (deriving implementation from a spec, changing a published spec, design data, cases or
 code) → add `cross`; otherwise `self`. Work nobody reads back is direct work (§ Direct work); work
 the user wants to follow without verification stages is an unbound item (§ Unbound items).
