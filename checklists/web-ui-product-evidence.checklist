@@ -4,30 +4,34 @@ Current round: `Documentation/WebUiReplacementPlan.md#正式產品驗收證據�
 
 既有正式驗收的通過結果保留；本輪只補目前 Windows 設備能執行的證據。試驗清單可供測試結果與草稿，不使用其他正式任務資料。Safari、觸控及手寫筆仍需另行取得環境與證據；瀏覽器版本請回報，方便核對支援環境。
 
-- [ ] **1. Windows 鍵盤與螢幕閱讀器**
+- [x] **1. Windows 鍵盤與螢幕閱讀器**
   Outcome: 正式 Checklist 的操作名稱、焦點及對話框能被辨識。
   Checks:
-    - [ ] **朗讀與焦點** `[manual]`
+    - [x] **朗讀與焦點** `[manual]`
       - Action: 開啟 [試驗清單](http://127.0.0.1:8001/checklist/?scope=task-progress&task=third-party-write-sandbox) → 開啟 Windows 朗讀程式（Win+Ctrl+Enter）或 NVDA → 使用 Tab、Shift+Tab 操作清單與「清空結果」→ 開啟確認框後按 Escape 或取消。
       - Expect: 控制項可辨識名稱與狀態；確認框開啟時焦點進入、標題可辨識；取消後焦點回到觸發按鈕，試驗資料不被清空。
       - Reason: 朗讀內容及焦點體驗須由使用者在實際輔助工具判斷。
+      - Recorded: user; at=2026-10-30T19:26:08Z; fp=a6e08c9ace81
 
-- [ ] **2. Windows 畫面與草稿**
+- [x] **2. Windows 畫面與草稿**
   Outcome: 窄視窗及切換主題時，正式產品的內容與草稿仍可使用。
   Checks:
-    - [ ] **窄視窗與展開** `[manual]`
+    - [x] **窄視窗與展開** `[manual]`
       - Action: 開啟 [Report](http://127.0.0.1:8001/?scope=task-progress&pin=web-ui-replacement) → 將視窗縮窄至約 360–400px → 展開較長的摘要或項目文字並收合。
       - Expect: 控制項仍可見、可操作；長文字可展開再收合，不遮擋相鄰內容。
       - Reason: 窄視窗的視覺排版與操作手感須由使用者判斷。
-    - [ ] **主題切換與草稿** `[manual]`
+      - Recorded: user; at=2026-10-30T19:26:10Z; fp=206f918723ac
+    - [x] **主題切換與草稿** `[manual]`
       - Action: 開啟 [試驗清單](http://127.0.0.1:8001/checklist/?scope=task-progress&task=third-party-write-sandbox) → 開啟謹慎模式 → 在人工項目切換一個結果形成未保存草稿 → 切換亮色與暗色 → 核對草稿 → 放棄變更。
       - Expect: 主題切換後草稿仍在、文字清楚；放棄後恢復原結果，未寫入試驗清單。
       - Reason: 實際主題可讀性與草稿狀態須由使用者核對。
+      - Recorded: user; at=2026-10-30T19:26:11Z; fp=803059d7ce6d
 
-- [ ] **3. 瀏覽器版本**
+- [x] **3. 瀏覽器版本**
   Outcome: 已約定支援的瀏覽器實際載入及操作結果可追溯。
   Checks:
-    - [ ] **Windows 瀏覽器** `[manual]`
+    - [x] **Windows 瀏覽器** `[manual]`
       - Action: 分別用 Chrome、Edge、Firefox 開啟 [Report](http://127.0.0.1:8001/?scope=task-progress&pin=web-ui-replacement) 與 [試驗清單](http://127.0.0.1:8001/checklist/?scope=task-progress&task=third-party-write-sandbox) → 試搜尋、卡片收展與鍵盤操作 → 回報各瀏覽器版本及結果。
       - Expect: 三種瀏覽器均可載入、搜尋、收展及使用鍵盤，沒有遮擋或無法完成操作；結果與版本可追溯。
       - Reason: 需要使用者在實際瀏覽器核對顯示與操作。
+      - Recorded: user; at=2026-10-30T19:26:15Z; fp=260c80e4f2e6
