@@ -351,11 +351,40 @@ and give the reason in the report; the user overrides it with a long press. A ta
 queue; an item
 target in a state the queue does not take is reported with its `derived_state`, never forced.
 
-Several items: when this agent can start sessions (§ Agent specifics), start one per item, one at a
-time per scope — wait for its completion notice before the next. An item with `[acceptance]` then
-goes to an independent acceptance context, never this one when it created the item; wait for that
-acceptance too before starting the next item. Without that ability, `run`/`accept` stop after one item and name
-the next candidate; `auto` executes everything itself and hands the items with `[acceptance]` to an
+Several items, when this agent can start sessions (§ Agent specifics): group them first, then run
+the groups at the same time, each in its own worktree
+([WorktreeReportPlan § 已決定](../../../Documentation/WorktreeReportPlan.md#已決定)):
+
+- **Group by what can collide.** Read each candidate's checklist header: `Paths:` (the files or
+  folders it changes) and `Needs:` (the shared resources it uses; [checklist-round § Document
+  header](../checklist-round/SKILL.md#document-header)). Two items go in the same group, run one
+  after the other, when their paths overlap, when both touch the same generated single-file
+  artifact (a bundle, a lockfile), or when both name the same shared resource. An item with no
+  `Paths:` line is treated as overlapping everything and runs alone, after the groups. Groups
+  whose items share nothing run at the same time, one worktree session per group, the branch named
+  after the group's first item ID; inside a group the items run in order, a group that another
+  group waits on (`waits_for`) runs first.
+- **The dispatcher.** The session that runs the command on the main line is the dispatcher: during
+  the parallel run it is the only writer of the main-line `report.json`. Before starting a group it
+  claims each of the group's items with `item.update` `status: in_progress`, `session`
+  `dispatch:<group>` ([task-progress-report § Maintain child items](../task-progress-report/SKILL.md#maintain-child-items)),
+  so no other agent takes them. A worktree session writes only its own code, documents and
+  checklist; it never writes `report.json` and never rebuilds a generated single-file artifact.
+- **Merge, rebuild, record.** When a group finishes, the dispatcher merges its branch into the main
+  line in dependency order (the waited group first), rebuilds the single-file artifacts on the main
+  line and commits them, then writes that group's execution records into `report.json` in one
+  apply (the items' `released` events), and only then do the items with `[acceptance]` go to
+  § Independent acceptance; a merge conflict stops the merge and goes back to that group's session
+  to resolve on its branch. Deleting the merged worktree ends its claim. The acceptance rules do
+  not change.
+- **Shared resources.** A resource named in `Needs:` is held by one task at a time, the one the
+  dispatcher assigned it to. Unity's Editor and MCP go to that one task only, and only when the
+  user has allowed MCP; every other Unity step in the run uses batchmode.
+
+An item with `[acceptance]` goes to an independent acceptance context, never the session that
+created it; the dispatcher waits for that acceptance before merging the next group that depends on
+it. Without the ability to start sessions, `run`/`accept` stop after one item and name the next
+candidate; `auto` executes everything itself and hands the items with `[acceptance]` to an
 independent acceptance context: a sub-agent started without this context when the tool has one,
 otherwise listed for the user to accept from a new chat.
 

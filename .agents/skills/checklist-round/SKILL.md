@@ -60,6 +60,22 @@ Two anchors joined by prose, or a full-width `。`, fail the whole document —
 not just that line. The anchor names a section, so it carries the spec heading's
 `#<fragment>` rather than a bare file path.
 
+Two optional header lines may follow `Current round` directly, before the blank
+line, so a dispatcher can group items that may run at the same time
+([WorktreeReportPlan § 已決定](../../../Documentation/WorktreeReportPlan.md#已決定), points 7 and 11):
+
+```markdown
+Paths: src/ui/button.ts, demo/acceptance/, docs/Button.md
+Needs: unity-editor, port-8001
+```
+
+`Paths:` lists the files or folders this item changes, relative to the scope
+root, comma-separated, globs allowed; `Needs:` lists the shared resources it
+uses, things only one task can hold at a time (`unity-editor`, `port-8001`, a
+long-lived service). An item without `Paths:` is treated as overlapping every
+other item and runs alone; an item without `Needs:` uses no shared resource.
+The parser treats both lines as prose, so they never fail validation.
+
 The file's own prose follows after a blank line, before the first work item.
 The file is UTF-8 and uses one newline style throughout; CRLF and LF must not be
 mixed.

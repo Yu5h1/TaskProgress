@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-11-02T05:05:51.485325+00:00",
+  "updated_at": "2026-11-02T05:07:10.085584+00:00",
   "tasks": [
     {
       "id": "agent-workflow",
@@ -3865,6 +3865,18 @@
               "event": "updated",
               "actor": "claude",
               "at": "2026-11-02T05:05:51.485325+00:00",
+              "session_id": "8f1fda5e-f37d-4ad0-8fdf-26ad0c1f98d1"
+            },
+            {
+              "event": "started",
+              "actor": "claude",
+              "at": "2026-11-02T05:06:42.063199+00:00",
+              "session_id": "8f1fda5e-f37d-4ad0-8fdf-26ad0c1f98d1"
+            },
+            {
+              "event": "released",
+              "actor": "claude",
+              "at": "2026-11-02T05:07:10.085584+00:00",
               "session_id": "8f1fda5e-f37d-4ad0-8fdf-26ad0c1f98d1"
             }
           ]

@@ -4,36 +4,38 @@ Current round: `Documentation/WorktreeReportPlan.md#已決定`.
 
 現況：task-progress〈Queues and sessions〉規定每個 scope 一次一個 session、做完一項再開下一項；checklist-round 的文件標頭沒有 `Paths:`／`Needs:`；task-progress-report 沒有「分派者在主線 report 標記項目已分派」的寫法。WorktreeReportPlan 11 點已定（第 11 題 2026-11-02 定為 `Needs:` 宣告同組依序）。本輪只改 TaskProgress 擁有的三份 skill 的文字，讓第 1 階段（平行執行）的規則成立：依 `Paths:` 與 `Needs:` 分組、不重疊的組各開 worktree session 同時做、分派者是主線 report.json 唯一寫入者並標記分派、依依賴順序合併、產物合併後在主線重建、合併時寫入執行紀錄再他驗。不改 CLI 與服務程式（第 2、3 階段）；agents scope 的 agent-executable-items〈One writer per scope〉與 agent-work-route 由 agents scope 的項目改；兩個 agent 實際平行跑一次的完成標準由 Web scope 的試點項目證明。
 
-- [ ] **1. task-progress〈Queues and sessions〉改為依組平行**
+- [x] **1. task-progress〈Queues and sessions〉改為依組平行**
   Outcome: 能開 session 的 agent 把範圍內的項目依 `Paths:`／`Needs:` 分組，不重疊的組同時各開一個 worktree session，同組依序；分派者留在主線。
   Checks:
-    - [ ] **分組與分派**
+    - [x] **分組與分派**
       - Action: 把「start one per item, one at a time per scope — wait for its completion notice before the next」改寫為：先讀每個候選項目 checklist 的 `Paths:` 與 `Needs:`，路徑重疊、都碰同一個單一檔案產物、或宣告同一共用資源的項目放同一組依序做，其餘分到不同組；每組一個 worktree session（分支名含組內第一個項目 ID），組與組同時進行；沒有宣告的項目視為與所有項目重疊，只能單獨依序做。指向 WorktreeReportPlan〈已決定〉。
       - Expect: 段落讀不到「一次一個 session」；分組三條件與「未宣告即重疊」都寫到；同組依序、異組同時各一句。
-    - [ ] **分派者的職責**
+    - [x] **分派者的職責**
       - Action: 加一段：主線上開 session 的那個 session 是分派者，平行期間唯一寫主線 report.json 的人；分派前以 `item.update` 把項目標成 in_progress 並在 activity note 寫明分派到哪一組（已決定 9）；worktree 裡的 session 只寫自己的程式、文件與 checklist，不寫 report.json、不重建單一檔案產物（已決定 10）。
       - Expect: 分派者定義、標記方式、worktree 內禁寫的兩樣東西都有；與 § Agent specifics 的「能開 session 的工具」一致。
-    - [ ] **合併、重建與執行紀錄**
+    - [x] **合併、重建與執行紀錄**
       - Action: 加一段：每組做完後由分派者依 `waits_for` 的依賴順序合併回主線（被等的組先）；合併後在主線重建單一檔案產物並提交；合併時由分派者在 report.json 一次寫入建立、執行與釋放紀錄（已決定 5、8），之後才進入 § Independent acceptance；合併衝突停下回報，交回那一組在它的分支修。worktree 刪除後認領自動消失（已決定 3）。
       - Expect: 順序、重建、紀錄時機、衝突處理、worktree 清理各一句；他驗規則本身沒有改動。
-    - [ ] **共用資源**
+    - [x] **共用資源**
       - Action: 加一句：`Needs:` 宣告的資源同一時間只給分派者指定的一個任務；Unity 的 MCP／Editor 只給那一個任務且只在使用者允許時使用，其他 Unity 步驟用 batchmode（已決定 11）。
       - Expect: 句子存在並指向已決定 11。
 
-- [ ] **2. checklist-round 的 `Paths:` 與 `Needs:` 標頭**
+- [x] **2. checklist-round 的 `Paths:` 與 `Needs:` 標頭**
   Outcome: checklist 文件標頭可以宣告本項目會改的路徑與會用的共用資源，格式可被 validate 接受。
   Checks:
-    - [ ] **標頭行定義**
+    - [x] **標頭行定義**
       - Action: 在〈Document header〉的 `Current round` 之後定義可選的兩行：`Paths:` 列出會改的檔案或資料夾（相對 scope 根，逗號分隔，可用 glob）；`Needs:` 列出共用資源名稱（`unity-editor`、`port-8001`，逗號分隔）。沒有這兩行的項目視為與所有項目重疊。
       - Expect: 兩行的位置、格式、省略時的意義各寫清楚；指向 WorktreeReportPlan〈已決定〉第 7、11 點。
-    - [ ] **validate 接受**
+    - [x] **validate 接受**
       - Action: 在一份暫時的 checklist 上加這兩行跑 `task-progress.exe checklist validate`。
       - Expect: 現行 parser 接受（標頭後的散文允許任意行）或在 Observed 寫明被拒的行與錯誤，並記為「問題：」項目交第 2 階段。
+      - Observed: 暫時檔在 Current round 之後、空行之前加 `Paths:` 與 `Needs:` 兩行，validate 回「格式正確」，exit 0。
+      - Resolved: 現行 parser 把兩行當散文接受；第 2 階段的服務若要讀取再做結構化解析。
 
-- [ ] **3. task-progress-report 的分派標記**
+- [x] **3. task-progress-report 的分派標記**
   Outcome: 〈Maintain child items〉寫明分派者怎麼在主線標記項目已分派到某組。
   Checks:
-    - [ ] **標記寫法**
+    - [x] **標記寫法**
       - Action: 在 claim 的段落加一句：分派者把項目設 in_progress 時 `session` 寫「dispatch:<組名>」、`session_id` 用自己的；worktree 內的 session 不再 claim；合併時分派者 release。
       - Expect: 與 task-progress 第 1 項的分派者段一致；與既有 claim_conflict 規則不衝突。
 
