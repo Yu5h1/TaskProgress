@@ -2,7 +2,7 @@
 
 > Task ID: worktree-report
 >
-> 狀態：方向已定案，尚未實作。目標由使用者對齊（2026-10-24）；已決定的 10 點來自 [worktree-report.decisions](../decisions/worktree-report.decisions) 第 1～10 題（使用者 2026-10-24）；共用外部資源（第 11 題）待決。
+> 狀態：方向已定案，第 1 階段實作中（2026-11-02）。目標由使用者對齊（2026-10-24）；已決定的 11 點來自 [worktree-report.decisions](../decisions/worktree-report.decisions)（第 1～10 題 2026-10-24，第 11 題 2026-11-02）。
 >
 > 與其他文件的關係：綁定見 [DocumentBindingPlan](DocumentBindingPlan.md)；認領、釋放與他驗見 [AcceptanceChainPlan](AcceptanceChainPlan.md)；Next 見 [NextMarkerPlan](NextMarkerPlan.md)。
 
@@ -45,6 +45,7 @@ TaskProgress
 8. **合併。** 由分派者（主線上開 session 的那個）依依賴順序合併各組、重建產物、寫入執行紀錄。
 9. **分派期間的認領。** 分派者在主線 report 上先標記項目已分派給哪一組，第 1 階段就能防止別的 agent 拿走同一項；主線 report 仍只有分派者寫入。
 10. **單一檔案產物。** 分支只提交原始檔，不提交重建的產物；合併後由合併者在主線重建一次並提交。
+11. **共用資源（使用者 2026-11-02）。** 項目在 checklist 開頭再寫一行 `Needs:` 宣告會用到的共用資源（`unity-editor`、`port-8001` 這類同一時間只能一個人用的東西）；需要同一資源的項目排進同一組依序做。保留 2026-10-23 的條件：同一時間只有分派者指定的那一個任務可用 MCP／Editor，其他 Unity 步驟只用 batchmode，且 MCP 只在使用者允許時使用。
 
 ## 已知問題
 
@@ -68,7 +69,7 @@ TaskProgress
 以下對應〈尚未決定〉的選項；已決定的部分照〈已決定〉。
 
 - **規劃。** 每個項目在 checklist 開頭寫一行 `Paths:`（已決定 7）。兩個項目範圍重疊，或都會碰到同一個單一檔案產物，就放進同一組依序做；不重疊的分到不同組。跨組的依賴用既有 `waits_for`，被等的那組排前面。
-- **共用資源（待第 11 題）。** 候選做法：再寫一行 `Needs:` 宣告需要的共用資源（例如 `unity-editor`）；需要同一資源的項目全部排進同一組依序做，同一時間只有一個 session 用 Unity Editor 與 MCP。只需編譯或跑測試的 Unity 步驟可改用 batchmode（`-batchmode -nographics -runTests`），不開視窗、不搶畫面，但仍要等該 worktree 的 `Library` 匯入完成。
+- **共用資源（已決定 11）。** 再寫一行 `Needs:` 宣告需要的共用資源（例如 `unity-editor`）；需要同一資源的項目全部排進同一組依序做，同一時間只有分派者指定的那一個任務用 Unity Editor 與 MCP。只需編譯或跑測試的 Unity 步驟改用 batchmode（`-batchmode -nographics -runTests`），不開視窗、不搶畫面，但仍要等該 worktree 的 `Library` 匯入完成。
 - **分派。** `run`／`auto` 每組開一個 session，各自一個 worktree 與分支；同組依序，組與組同時進行。主線上開 session 的那個 session（分派者）是平行期間唯一寫主線 report.json 的人。
 - **worktree 裡的寫入。** 只寫自己的程式與文件，不寫 report.json，不重建單一檔案產物。
 - **追蹤。** 服務以 `git worktree list` 找出同一 repo 的 worktree，依已決定 1、2、4 顯示；決策題可作答。
@@ -108,4 +109,4 @@ Proof:     第 1 階段要實際讓兩個 agent 平行做兩個不重疊的項�
 
 ## 尚未決定
 
-[worktree-report.decisions](../decisions/worktree-report.decisions) 第 11 題：需要 Unity Editor 這類共用資源的項目怎麼排。
+無。11 題都已在 [worktree-report.decisions](../decisions/worktree-report.decisions) 定案。

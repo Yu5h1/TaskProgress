@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-10-31T15:57:35.243631+00:00",
+  "updated_at": "2026-11-02T05:05:51.485325+00:00",
   "tasks": [
     {
       "id": "agent-workflow",
@@ -3792,9 +3792,9 @@
     {
       "id": "worktree-report",
       "title": "同一 repo 的多 agent 平行執行",
-      "status": "planned",
+      "status": "in_progress",
       "priority": 1,
-      "summary": "方向已定案、尚未實作：讓 agent 規劃出可平行的項目，交給不同 agent 在同一個 repo 同時執行並安全合併，過程中可在 Report 追蹤。已決定 10 點（含先做第 1 階段平行執行）；待決 1 題：Unity Editor 這類共用資源怎麼排。見 [計畫](https://github.com/Yu5h1/TaskProgress/blob/main/Documentation/WorktreeReportPlan.md)。",
+      "summary": "方向已定案，第 1 階段（平行執行）實作中：11 題都已決定（第 11 題 2026-11-02：Needs: 宣告共用資源、同組依序）。第 1 階段先改規則：TaskProgress 的三份 skill 在本卡，agents scope 的 agent-executable-items〈One writer per scope〉與 agent-work-route 另在該 scope 建項目，兩個 agent 實際平行一次的完成標準由 Web 試點證明。見 [計畫](https://github.com/Yu5h1/TaskProgress/blob/main/Documentation/WorktreeReportPlan.md)。",
       "pending_items": [
         {
           "id": "worktree-report-decisions",
@@ -3841,6 +3841,31 @@
               "at": "2026-10-23T17:33:39.723110+00:00",
               "session": "worktree-report 共用資源",
               "session_id": "8db3d9df-8d4e-461e-96c2-37ca30b33c56"
+            }
+          ]
+        },
+        {
+          "id": "parallel-rules",
+          "title": "第 1 階段：task-progress〈Queues and sessions〉依 Paths:／Needs: 分組平行、分派者唯一寫 report、合併後重建與寫紀錄；checklist-round 加 Paths:／Needs: 標頭；task-progress-report 加分派標記",
+          "status": "planned",
+          "priority": 1,
+          "document_ref": {
+            "kind": "checklist",
+            "scope_id": "task-progress",
+            "task": "parallel-rules"
+          },
+          "activity": [
+            {
+              "event": "created",
+              "actor": "claude",
+              "at": "2026-11-02T05:05:38.187580+00:00",
+              "session_id": "8f1fda5e-f37d-4ad0-8fdf-26ad0c1f98d1"
+            },
+            {
+              "event": "updated",
+              "actor": "claude",
+              "at": "2026-11-02T05:05:51.485325+00:00",
+              "session_id": "8f1fda5e-f37d-4ad0-8fdf-26ad0c1f98d1"
             }
           ]
         }
@@ -4020,5 +4045,9 @@
       ],
       "completed_items": []
     }
-  ]
+  ],
+  "next": {
+    "task_id": "worktree-report",
+    "item_id": "parallel-rules"
+  }
 }
