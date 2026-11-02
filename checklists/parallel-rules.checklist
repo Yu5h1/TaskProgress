@@ -39,12 +39,14 @@ Current round: `Documentation/WorktreeReportPlan.md#已決定`.
       - Action: 在 claim 的段落加一句：分派者把項目設 in_progress 時 `session` 寫「dispatch:<組名>」、`session_id` 用自己的；worktree 內的 session 不再 claim；合併時分派者 release。
       - Expect: 與 task-progress 第 1 項的分派者段一致；與既有 claim_conflict 規則不衝突。
 
-- [ ] **4. 獨立驗收**
+- [x] **4. 獨立驗收**
   Outcome: 未參與本輪的驗收者確認三份 skill 與 11 點決定一致、彼此不矛盾。
   Checks:
-    - [ ] **驗收條件未被改動** `[acceptance]`
+    - [x] **驗收條件未被改動** `[acceptance]`
       - Action: 比對本檔建立提交或最新標有「條件修訂」的提交與目前版本。
       - Expect: acceptance 條件沒有被執行者修改以配合交付結果。
-    - [ ] **依已決定核對交付** `[acceptance]`
+      - Recorded: claude:6bf714a6-6230-4770-8be5-94f55dee8621; at=2026-11-02T05:09:15Z; fp=ac0284700610
+    - [x] **依已決定核對交付** `[acceptance]`
       - Action: 依 Documentation/WorktreeReportPlan.md#已決定 11 點與〈階段〉第 1 階段，讀 .agents/skills/task-progress/SKILL.md〈Queues and sessions〉、checklist-round〈Document header〉、task-progress-report〈Maintain child items〉。
       - Expect: 11 點中屬第 1 階段的（3、5、7、8、9、10、11）都有對應句子；三份文件對分派者、worktree 內禁寫、合併順序的說法一致；沒有仍說「一次一個 session」的句子；新加的連結與 anchor 可解析；CLI 與服務程式沒有被改。
+      - Recorded: claude:6bf714a6-6230-4770-8be5-94f55dee8621; at=2026-11-02T05:09:15Z; fp=4e88079cf171
