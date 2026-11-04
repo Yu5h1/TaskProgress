@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-11-04T18:22:03.538969+00:00",
+  "updated_at": "2026-11-04T18:27:22.855626+00:00",
   "tasks": [
     {
       "id": "agent-workflow",
@@ -961,12 +961,14 @@
               "session_id": "8db3d9df-8d4e-461e-96c2-37ca30b33c56"
             }
           ]
-        },
+        }
+      ],
+      "completed_items": [
         {
           "priority": 2,
           "title": "問題：Report CLI 的 next.set 先以磁碟上的舊 Report 驗證，和 task.add／item.add 放同一批時會拒絕該批新增的目標。分兩批可完成；ReportCliUsage〈新增卡片或子項〉的同批引用說明應補上這個限制，或讓 CLI 按批次順序驗證。",
           "id": "issue-next-set-same-batch",
-          "status": "planned",
+          "status": "done",
           "activity": [
             {
               "event": "created",
@@ -974,11 +976,23 @@
               "at": "2026-11-04T18:22:03.538969+00:00",
               "session": "Combat-Aesthetics 推進規劃",
               "session_id": "01a1a7c5-00d1-7051-b849-07a53be937d4"
+            },
+            {
+              "event": "started",
+              "actor": "codex",
+              "at": "2026-11-04T18:25:16.192951+00:00",
+              "session": "next-marker 同批設定",
+              "session_id": "01a1873a-2fef-74c2-a673-a41bb27657dd"
+            },
+            {
+              "event": "done",
+              "actor": "codex",
+              "at": "2026-11-04T18:27:22.855626+00:00",
+              "session": "next-marker 同批設定",
+              "session_id": "01a1873a-2fef-74c2-a673-a41bb27657dd"
             }
           ]
-        }
-      ],
-      "completed_items": [
+        },
         {
           "id": "next-manual-check",
           "title": "使用者實機確認：長按子項設為 Next 的手感、金色與優先琥珀的區別",
