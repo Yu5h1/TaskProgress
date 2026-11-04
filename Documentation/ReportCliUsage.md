@@ -111,7 +111,7 @@ task-progress.exe report apply "C:\Project" --input changes.json
 ]
 ```
 
-後面的操作可引用同批新增的 ID。舊字串子項必須先另行遷移為具 ID 物件，不能用顯示文字或陣列位置定位。第一版不提供刪除、改名 ID 或修改指路卡。
+後面的操作可引用同批新增的 ID。`next.set` 是例外：CLI 會先以目前磁碟上的 Report 驗證目標，因此不能指向同批 `task.add`／`item.add` 新增的卡片或子項。先提交新增操作，再使用回傳的 revision 在第二批執行 `next.set`。舊字串子項必須先另行遷移為具 ID 物件，不能用顯示文字或陣列位置定位。第一版不提供刪除、改名 ID 或修改指路卡。
 
 ## 子項目位置與狀態
 
