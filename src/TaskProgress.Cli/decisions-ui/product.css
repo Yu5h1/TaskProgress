@@ -2,11 +2,27 @@
    theme boundary; preserve domain status/priority colours from TaskProgress. */
 :root { --theme-page-bg:var(--ui-page); --theme-panel-bg:var(--ui-surface); --theme-heading:var(--ui-heading); --theme-panel-heading:var(--ui-panel-heading); --theme-item-text:var(--ui-text); --theme-secondary-text:var(--ui-muted); --theme-muted-text:var(--ui-muted); --theme-border:var(--ui-border); --theme-accent:var(--ui-accent); }
 body { background:var(--ui-page); color:var(--ui-text); }
+.task-title-copy, .item-row-copy { position:static; }
 .task-title-copy::part(title) { white-space:normal; overflow:visible; }
-.time-task-title-line .task-title-copy { margin-inline-start:16px; }
-.checklist-item-header:has(.task-title-copy) { column-gap:24px; padding-inline-start:24px; }
-.item-row-copy { display:flex; flex:1; margin-inline-start:24px; }
+.item-row-copy { display:flex; flex:1; }
 .item-row-copy::part(title) { width:100%; overflow:visible; }
+/* Anchor the copy control in existing leading padding, outside the title flow. */
+.task-card > .card-disclosure-heading:has(.task-title-copy),
+.checklist-item-header:has(.task-title-copy),
+.detail-list li.editor-item-row:has(.item-row-copy) { position:relative; }
+.work-columns .detail-list li.editor-item-row:has(.item-row-copy) { overflow:visible; }
+.task-title-copy::part(button), .item-row-copy::part(button) {
+  inset-inline:0 auto;
+  inline-size:18px;
+  min-inline-size:18px;
+  block-size:18px;
+}
+.task-card .task-title-copy::part(button) { inset-inline-start:-18px; top:12px; }
+.editor-item-row .item-row-copy::part(button) { inset-inline-start:-18px; }
+.task-card > .card-disclosure-heading:hover .task-title-copy::part(button),
+.checklist-item-header:hover .task-title-copy::part(button),
+.editor-item-row:hover .item-row-copy::part(button),
+.editor-item-row:focus-within .item-row-copy::part(button) { opacity:1; pointer-events:auto; }
 /* Native rendering windows retain searchable/focusable DOM and remembered
    heights. Keep pins, selection rings and drop indicators outside containment. */
 .arrangeable-card > .task-card,
