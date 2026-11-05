@@ -11,14 +11,16 @@ Current round: `Documentation/ThirdPartyChecklistWritePlan.md#驗證`.
       - Action: 讀取本檔第 1 項。
       - Expect: 清空人工結果後，這一格仍是 [x]。
 
-- [ ] **2. 人工項目**
+- [x] **2. 人工項目**
   Outcome: 外部工具與使用者都可以記錄的人工結果。
   Checks:
-    - [ ] **外部寫入目標** `[manual]`
+    - [x] **外部寫入目標** `[manual]`
       - Action: 由外部工具以 `set` 標成通過，或在本頁手動切換。
       - Expect: 寫入後顯示通過；使用者可以手動改回。
       - Reason: 試驗用，由使用者或外部工具記錄。
-    - [ ] **清空對象** `[manual]`
+      - Recorded: user; at=2026-10-29T18:23:22Z; fp=db146ba574f6
+    - [x] **清空對象** `[manual]`
       - Action: 在本頁手動標成通過，再用清空按鈕重設。
       - Expect: 清空後回到未勾選。
       - Reason: 試驗用，由使用者記錄。
+      - Recorded: user; at=2026-10-29T17:57:45Z; fp=7e8232ee4ebb
