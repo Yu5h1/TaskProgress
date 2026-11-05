@@ -7,7 +7,7 @@ import { createPersistenceController } from '@taskprogress/persistence-mode.js';
 import { createChecklistFilterOrder } from '@taskprogress/checklist-filter-order.js';
 import { createDocumentTransport } from '@taskprogress/document-transport.js';
 import { installForegroundRefresh } from '@taskprogress/foreground-refresh.js';
-import { documentLinkTarget, readLinkSelection } from '@taskprogress/link-selection.js';
+import { checklistReturnOwner, documentLinkTarget, readLinkSelection } from '@taskprogress/link-selection.js';
 import { installFocusShield } from '@taskprogress/focus-shield.js';
 
 const env = await bootstrap('checklist');
@@ -111,7 +111,7 @@ class Checklist extends View {
   }
   template() {
     const d = this.data, items = this.visible();
-    return html`<main class="checklist-page"><header class="checklist-header"><div><div class="replica-title-row">${productBack(this.owner)}<h1>${d?.document.fileName ?? 'TaskProgress Checklist'}</h1></div>${d ? html`<p class="checklist-round">${d.document.roundIdentity}</p>` : nothing}</div>${productTheme()}</header>
+    return html`<main class="checklist-page"><header class="checklist-header"><div><div class="replica-title-row">${productBack(checklistReturnOwner(this.owner, location.search))}<h1>${d?.document.fileName ?? 'TaskProgress Checklist'}</h1></div>${d ? html`<p class="checklist-round">${d.document.roundIdentity}</p>` : nothing}</div>${productTheme()}</header>
       ${this.loading ? html`<p class="checklist-notice" role="status">${this.message}</p>` : !d ? html`<p class="checklist-notice checklist-error" role="alert">${this.failure}</p>` : html`
       ${progressSummary({ bar: { form: 'segmented', cells: d.summary.cells }, caption: `${d.summary.checks.passed} / ${d.summary.checks.total} checks 通過`, note: d.summary.checks.failed > 0 ? `${d.summary.checks.failed} 個失敗` : '' })}
       <section class="checklist-items" aria-label="Implementation checklist items">${this.cards.render({ items, allIds: orderChecklistItems(d.document, this.order).items.map(i => i.id), storageKey: this.params.has('scope') ? `taskprogress.cards.checklist.v1:${location.pathname}:${this.params.get('scope')}:${this.params.get('task')}:${d.document.roundIdentity}` : null,

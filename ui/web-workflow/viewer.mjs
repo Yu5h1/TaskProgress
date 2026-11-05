@@ -4,7 +4,7 @@ import { liftNextItem } from '@taskprogress/next-marker.js';
 import { itemReference, copyText } from '@taskprogress/item-reference.js';
 import { formatActivity } from '@taskprogress/item-activity.js';
 import { statusLinks, statusTooltip } from '@taskprogress/item-state.js';
-import { linkSelectionHref } from '@taskprogress/link-selection.js';
+import { checklistReturnHref, linkSelectionHref } from '@taskprogress/link-selection.js';
 import { html, nothing, repeat, live, View, Cards, text, inline, action, holdAction, reorderAction, copyAction, disclosure, copyButton, filters, progressBar, moduleStrip, saveBar, dialog, productTheme } from './common.mjs';
 import { registerUi } from '@web/ui';
 import { timeDialog, costDialog, deliveryConfirmation } from './assessment.mjs';
@@ -89,7 +89,7 @@ function itemRow(p, v, task, field, item, lead) {
   const isNext = item.id === p.nextItemId;
   const setNext = () => p.onSetNext?.({ taskId: task.id, itemId: item.id, clear: isNext });
   const cmd = (type, fields) => p.onCommand({ type, taskId: task.id, field, itemId: item.id, ...fields });
-  const targets = editing ? [] : statusLinks(item).map(t => ({ ...t, href: t.href ? linkSelectionHref(t.href, meta.tone) : null }));
+  const targets = editing ? [] : statusLinks(item).map(t => ({ ...t, href: t.href ? checklistReturnHref(linkSelectionHref(t.href, meta.tone), task.id, item.id) : null }));
   const linked = targets.filter(t => t.href);
   const key = `${task.id}/${item.id}`;
   if (!linked.length) v.state[`wait:${key}`] = false;
@@ -106,7 +106,7 @@ function itemRow(p, v, task, field, item, lead) {
     ${editing || (itemStatus !== 'done' && priority && (!priority.hidden || !p.policy.labelsValid)) ? html`<span class="item-row-priority">${editing ? prioritySelect(p.policy, item.priority, `設定「${item.title}」的優先級`, value => cmd('set-item-field', { property: 'priority', value })) : html`<span class="priority-badge priority-${priority.tone}">${p.policy.format(item.priority)}</span>`}</span>` : nothing}
     <div class="item-row-description" data-reorder-content>${editing ? html`<input class="inline-edit-input" aria-label="編輯子項目：${item.title}" title=${item.title} maxlength="500" .value=${live(item.title)} @input=${e => cmd('set-item-field', { property: 'title', value: e.currentTarget.value })}>`
       : html`<div class="item-row-text">${isNext ? html`<span class="item-next-capsule">Next</span>` : nothing}${selected ? html`<span class="item-row-selected-label">已選取</span>` : nothing}
-      ${item.sourceRef ? item.sourceRef.available ? html`<a class="document-source-link" href=${linkSelectionHref(item.sourceRef.href, meta.tone)} title=${item.sourceRef.title}><span class="source-icon" aria-hidden="true">${item.sourceRef.kind === 'decision' ? '⚖' : item.sourceRef.manual ? '📋' : '🤖'}</span><span class="source-label">${item.sourceRef.label}</span></a>` : html`<span class="document-source-link source-unavailable" title=${item.sourceRef.error ?? '來源無法讀取'}>⚠️ 來源不可用</span>` : nothing}
+      ${item.sourceRef ? item.sourceRef.available ? html`<a class="document-source-link" href=${checklistReturnHref(linkSelectionHref(item.sourceRef.href, meta.tone), task.id, item.id)} title=${item.sourceRef.title}><span class="source-icon" aria-hidden="true">${item.sourceRef.kind === 'decision' ? '⚖' : item.sourceRef.manual ? '📋' : '🤖'}</span><span class="source-label">${item.sourceRef.label}</span></a>` : html`<span class="document-source-link source-unavailable" title=${item.sourceRef.error ?? '來源無法讀取'}>⚠️ 來源不可用</span>` : nothing}
       ${text(item.displayTitle ?? item.title, { lines: 1, expanded: lead, linkTone: meta.tone })}</div>`}</div>
     ${reference ? html`<button type="button" class="item-row-copy" data-item-ref=${key} tabindex=${p.selection ? -1 : 0} aria-label=${copyCount>1?`複製已選取的 ${copyCount} 項參照`:`複製「${item.title}」的參照`} title=${copyTitle} @pointerdown=${e => e.stopPropagation()} ${action(copyAction,{copy:()=>p.selection?p.selection.copyReferences(reference):copyText(reference),successFeedback:()=>{const count=p.selection?.references?.(reference).length ?? 1; return count>1?`複製 ${count} 項`:'';},feedbackTitle:true,title:copyTitle})}>⧉</button>` : nothing}
     <span class="item-row-utility-panel"><span class="item-row-modules">${moduleStrip({ capsules: p.itemCapsules?.get(item.id) ?? [], moduleOrder: p.moduleOrder, onReorder: p.onModuleReorder, onActivate: id => p.onModuleActivate?.(id, { taskId: task.id, itemId: item.id, itemTitle: item.title }) })}</span>

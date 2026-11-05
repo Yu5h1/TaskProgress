@@ -1,8 +1,22 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { createLinkSelection, documentLinkTarget, linkSelectionHref, readLinkSelection } from "../viewer/assets/link-selection.js";
+import { checklistReturnHref, checklistReturnOwner, createLinkSelection, documentLinkTarget, linkSelectionHref, readLinkSelection } from "../viewer/assets/link-selection.js";
 
 const base = "http://127.0.0.1:8001/?scope=task-progress";
+test("checklist links return to their exact source item and reject unrelated targets", () => {
+  const href = checklistReturnHref('/checklist/?scope=other&task=example', 'card', 'item', base);
+  const dest = new URL(href);
+  const owner = { title: 'Report', href: '/?scope=other' };
+  const result = checklistReturnOwner(owner, dest.search, dest.href);
+  const source = new URL(result.href);
+  assert.equal(source.searchParams.get('scope'), 'task-progress');
+  assert.equal(source.searchParams.get('pin'), 'card');
+  assert.equal(source.hash, '#item-card--item');
+  assert.equal(checklistReturnOwner(owner, '?return_to=https%3A%2F%2Fevil.example%2F%3Fscope%3Dx%23item-x', dest.href), owner);
+  assert.equal(checklistReturnOwner(owner, '?return_to=%2Fchecklist%2F%3Fscope%3Dx%23item-x', dest.href), owner);
+  assert.equal(checklistReturnOwner(owner, '', dest.href), owner);
+  assert.equal(checklistReturnHref('https://example.com/checklist/?scope=x', 'card', 'item', base), 'https://example.com/checklist/?scope=x');
+});
 test("internal targets carry the source tone and preserve addressing", () => {
   const href = linkSelectionHref("/checklist/?scope=ux&task=input&work_item=5#checks", "danger", base);
   const url = new URL(href, base);
