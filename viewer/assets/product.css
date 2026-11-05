@@ -2,6 +2,11 @@
    theme boundary; preserve domain status/priority colours from TaskProgress. */
 :root { --theme-page-bg:var(--ui-page); --theme-panel-bg:var(--ui-surface); --theme-heading:var(--ui-heading); --theme-panel-heading:var(--ui-panel-heading); --theme-item-text:var(--ui-text); --theme-secondary-text:var(--ui-muted); --theme-muted-text:var(--ui-muted); --theme-border:var(--ui-border); --theme-accent:var(--ui-accent); }
 body { background:var(--ui-page); color:var(--ui-text); }
+.task-title-copy::part(title) { white-space:normal; overflow:visible; }
+.time-task-title-line .task-title-copy { margin-inline-start:16px; }
+.checklist-item-header:has(.task-title-copy) { column-gap:24px; padding-inline-start:24px; }
+.item-row-copy { display:flex; flex:1; margin-inline-start:24px; }
+.item-row-copy::part(title) { width:100%; overflow:visible; }
 /* Native rendering windows retain searchable/focusable DOM and remembered
    heights. Keep pins, selection rings and drop indicators outside containment. */
 .arrangeable-card > .task-card,

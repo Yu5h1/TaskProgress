@@ -10,7 +10,6 @@ import { displayCards, promotePin, moveVisibleCard } from '@taskprogress/card-or
 import { loadDisclosure, saveDisclosure } from '@taskprogress/card-disclosure-state.js';
 import { DEFAULT_CAPSULE_ID } from '@taskprogress/filter-selection.js';
 import { createLinkSelection, readLinkSelection } from '@taskprogress/link-selection.js';
-import { copyText } from '@taskprogress/item-reference.js';
 import { bindLongPress, bindReorder, registerUi } from '@web/ui';
 import { createBackLink } from './bootstrap.mjs';
 import { createActionQueue } from './action-queue.mjs';
@@ -59,24 +58,7 @@ export const marker = (status, label, onCycle = null, stale = false) => {
   return onCycle ? html`<button type="button" class="marker-box marker-${status} ${stale ? 'marker-stale' : ''} marker-box-button" aria-label="${description}，點擊切換下一個結果" @click=${onCycle}><span aria-hidden="true">${glyph}</span></button>`
     : html`<span class="marker-box marker-${status} ${stale ? 'marker-stale' : ''}" role="img" aria-label=${description}><span aria-hidden="true">${glyph}</span></span>`;
 };
-export const copyAction = (node, initial) => {
-  let data = initial, timer, generation = 0;
-  const copy = async event => {
-    event.stopPropagation(); clearTimeout(timer); const operation = ++generation;
-    const feedback = data.successFeedback?.();
-    let copied = false;
-    try { copied = await (data.copy ? data.copy() : copyText(String(data.id))); } catch { /* Copy failure is visible on the button. */ }
-    if (!node.isConnected || operation !== generation) return;
-    node.textContent = copied ? '✓' : '✕'; node.classList.add('is-done'); node.classList.toggle('is-copied', copied);
-    if (copied && feedback) { node.dataset.copyFeedback = feedback; node.classList.remove('copy-feedback'); void node.offsetWidth; node.classList.add('copy-feedback'); }
-    else { delete node.dataset.copyFeedback; node.classList.remove('copy-feedback'); }
-    if (data.feedbackTitle) node.title = copied ? feedback || '已複製' : '無法複製';
-    timer = setTimeout(() => { if (!node.isConnected) return; node.textContent = '⧉'; node.classList.remove('is-done', 'is-copied', 'copy-feedback'); delete node.dataset.copyFeedback; if (data.feedbackTitle) node.title = data.title; }, 1500);
-  };
-  node.addEventListener('click', copy);
-  return { update: value => { data = value; }, destroy() { generation++; clearTimeout(timer); node.removeEventListener('click', copy); } };
-};
-export const copyButton = (id, label) => html`<button type="button" class="task-id-copy" title=${String(id)} aria-label="複製「${label}」的卡片 ID" ${action(copyAction, { id })}>⧉</button>`;
+export const copyButton = (id, label) => html`<ui-copy-id class="task-title-copy" .value=${String(id)} .label=${label}>${label}</ui-copy-id>`;
 export const progressBar = ({ cells = [], form = 'segmented', ratio = 0, label = '', extraClass = '' } = {}) => form === 'segmented'
   ? html`<div class="progress-bar progress-bar-segmented ${extraClass}" role="img" aria-label=${label}>${cells.map(c => html`<i class="progress-cell progress-tone-${c}"></i>`)}</div>`
   : html`<progress class="progress-meter ${extraClass}" max="100" .value=${Math.max(0, Math.min(100, ratio * 100))} aria-label=${label}></progress>`;

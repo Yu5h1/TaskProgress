@@ -41,20 +41,37 @@ await check('Report filter selection survives a new page for the same report',as
     frame.remove();
   }
 });
-await check('Child reference copy is independent of the row hold gesture',async()=>{
+await check('Shared child copy preserves selection order and count without triggering row gestures',async()=>{
   const target=document.createElement('div');fixture.append(target);
-  const task={id:'copy-card',title:'Copy',status:'planned',priority:2,summary:'',completed_items:[],pending_items:[{id:'child',title:'Child',status:'planned',priority:2}]};
-  const copied=[],next=[];
-  const selection={subscribe:fn=>{fn({keys:new Set()});return ()=>{};},copyReferences:async ref=>{copied.push(ref);return true;},rowClick(){},rowFocus(){},rowKeydown(){}};
-  const view=web.mount('task-list',target,{tasks:[task],allIds:[task.id],scopeId:'scope',policy:globalThis.TaskProgressPriorityPolicy,progress:{'copy-card':{completed:0,total:1}},selection,onSetNext:value=>next.push(value)});
+  const {createItemSelection}=await import('/demo/taskprogress/assets/item-selection.js');
+  const children=['first','second','third','other'].map(id=>({id,title:id,status:'planned',priority:2}));
+  const task={id:'copy-card',title:'Copy',status:'planned',priority:2,summary:'',completed_items:[],pending_items:children};
+  const copied=[],next=[],selection=createItemSelection({root:target});
+  const view=web.mount('task-list',target,{tasks:[task],allIds:[task.id],scopeId:'scope',policy:globalThis.TaskProgressPriorityPolicy,progress:{'copy-card':{completed:0,total:4}},selection,onSetNext:value=>next.push(value)});
   try {
-    await tick();const button=target.querySelector('.item-row-copy');
-    const pointer={bubbles:true,cancelable:true,pointerId:1,isPrimary:true,button:0,clientX:-100,clientY:-100};
+    await wait(()=>target.querySelectorAll('.item-row-copy').length===4);
+    for (const id of ['third','first','second']) target.querySelector(`#item-copy-card--${id}`).dispatchEvent(new MouseEvent('click',{bubbles:true,ctrlKey:true}));
+    const [first,second,third,other]=children.map(({id})=>`scope › copy-card › ${id}`);
+    const control=target.querySelector('#item-copy-card--third ui-copy-id');
+    control.writeText=async text=>{copied.push(text);};
+    await control.updateComplete;
+    const button=control.shadowRoot.querySelector('button');
+    const pointer={bubbles:true,composed:true,cancelable:true,pointerId:1,isPrimary:true,button:0,clientX:-100,clientY:-100};
     button.dispatchEvent(new PointerEvent('pointerdown',pointer));
     document.dispatchEvent(new PointerEvent('pointerup',pointer));
     button.dispatchEvent(new PointerEvent('click',{...pointer,detail:1}));
-    await tick();equal(copied,['scope › copy-card › child'],'copy reaches selected reference');
-    assert(button.textContent==='✓'&&!next.length,'copy feedback appears without triggering Next');
+    await wait(()=>button.dataset.feedback==='success');
+    equal(copied,[[first,second,third].join('\n')],'copy follows display order');
+    equal(control.shadowRoot.querySelector('[role="status"]').textContent,'複製 3 項','announced count');
+    equal(control.shadowRoot.querySelector('.feedback').textContent,'複製 3 項','visible count');
+    equal(selection.references(),[first,second,third],'copy keeps the current selection');
+    assert(!next.length,'copy does not trigger Next');
+    const unselected=target.querySelector('#item-copy-card--other ui-copy-id');
+    unselected.writeText=control.writeText;
+    await unselected.updateComplete;
+    unselected.shadowRoot.querySelector('button').click();
+    await wait(()=>copied.length===2);
+    equal(copied[1],other,'copying an unselected row copies only that row');
   } finally {web.destroy(view);target.remove();}
 });
 await check('Scope directory preserves host links and label updates',async()=>{

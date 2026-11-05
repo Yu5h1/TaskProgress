@@ -1,6 +1,30 @@
 // Navigation context lasts for the first selection, regardless of loading time.
 const TONES = new Set(["active", "success", "danger", "warning", "muted", "neutral"]);
 
+export function checklistReturnHref(href, taskId, itemId, base = globalThis.location?.href) {
+  if (!href || !taskId || !itemId || !base) return href;
+  try {
+    const source = new URL(base), target = new URL(href, source);
+    if (target.origin !== source.origin || !target.pathname.endsWith('/checklist/')) return href;
+    source.searchParams.set('pin', taskId);
+    source.hash = `item-${taskId}--${itemId}`;
+    target.searchParams.set('return_to', source.href);
+    return target.href;
+  } catch { return href; }
+}
+
+export function checklistReturnOwner(owner, search, base = globalThis.location?.href) {
+  if (!owner || !base) return owner;
+  try {
+    const value = new URLSearchParams(search).get('return_to');
+    if (!value) return owner;
+    const target = new URL(value, base), current = new URL(base);
+    const reportPath = current.pathname.replace(/checklist\/$/, '');
+    if (target.origin !== current.origin || ![reportPath, `${reportPath}index.html`].includes(target.pathname) || !target.searchParams.has('scope') || !target.hash.startsWith('#item-')) return owner;
+    return { ...owner, href: target.href };
+  } catch { return owner; }
+}
+
 export function linkSelectionHref(href, tone, base = globalThis.location?.href) {
   if (!href || !TONES.has(tone) || !base) return href;
   try {

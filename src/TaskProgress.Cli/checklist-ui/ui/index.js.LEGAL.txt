@@ -35,6 +35,7 @@ lit-html/directives/live.js:
 
 lit-html/directives/style-map.js:
 lit-html/directives/if-defined.js:
+lit-html/directives/guard.js:
   /**
    * @license
    * Copyright 2018 Google LLC

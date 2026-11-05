@@ -1,4 +1,4 @@
-/* Yu5h1Lib.Web Theme source SHA-256: 9c0bd88db66b26d18a5dff10e42968499d5918f1359b9a1bbb89ddb458c0db20 */
+/* Yu5h1Lib.Web Theme source SHA-256: 2d7ab2dc0c06137524bd7f98622846ec583f4e125e66824284c02f57df832686 */
 /* Generated from src/theme/index.ts; no global reset. */
 [data-ui-scheme="light"] {
   color-scheme: light;
@@ -17,6 +17,8 @@
   --ui-overlay: #17233266;
   --ui-danger: #a33c38;
   --ui-control-border: #808981;
+  --ui-viewport-selection: #a16207;
+  --ui-viewport-active: #854d0e;
 }
 [data-ui-scheme="dark"] {
   color-scheme: dark;
@@ -35,4 +37,6 @@
   --ui-overlay: #00000099;
   --ui-danger: #f1aaa6;
   --ui-control-border: #737d8c;
+  --ui-viewport-selection: #facc15;
+  --ui-viewport-active: #fde68a;
 }

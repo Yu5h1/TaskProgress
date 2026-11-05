@@ -1,11 +1,11 @@
 import { registerUiAdapter } from '@taskprogress/ui-host.js';
 import { stableSortTaskItemsByPriority, STATUS_META } from '@taskprogress/report-model.js';
 import { liftNextItem } from '@taskprogress/next-marker.js';
-import { itemReference, copyText } from '@taskprogress/item-reference.js';
+import { itemReference } from '@taskprogress/item-reference.js';
 import { formatActivity } from '@taskprogress/item-activity.js';
 import { statusLinks, statusTooltip } from '@taskprogress/item-state.js';
 import { checklistReturnHref, linkSelectionHref } from '@taskprogress/link-selection.js';
-import { html, nothing, repeat, live, View, Cards, text, inline, action, holdAction, reorderAction, copyAction, disclosure, copyButton, filters, progressBar, moduleStrip, saveBar, dialog, productTheme } from './common.mjs';
+import { html, nothing, repeat, live, View, Cards, text, inline, action, holdAction, reorderAction, disclosure, copyButton, filters, progressBar, moduleStrip, saveBar, dialog, productTheme } from './common.mjs';
 import { registerUi } from '@web/ui';
 import { timeDialog, costDialog, deliveryConfirmation } from './assessment.mjs';
 
@@ -94,7 +94,14 @@ function itemRow(p, v, task, field, item, lead) {
   const key = `${task.id}/${item.id}`;
   if (!linked.length) v.state[`wait:${key}`] = false;
   const canReorder=(editing || p.reorderable) && field==='pending_items' && item.id && !item.legacy;
-  const copyCount=selected ? v.state.selection.keys.size : 1, copyTitle=copyCount>1?`複製已選取的 ${copyCount} 項參照`:reference;
+  const copyCount = selected ? v.state.selection.keys.size : 1;
+  const title = html`<div class="item-row-text">${isNext ? html`<span class="item-next-capsule">Next</span>` : nothing}${selected ? html`<span class="item-row-selected-label">已選取</span>` : nothing}
+      ${item.sourceRef ? item.sourceRef.available ? html`<a class="document-source-link" href=${checklistReturnHref(linkSelectionHref(item.sourceRef.href, meta.tone), task.id, item.id)} title=${item.sourceRef.title}><span class="source-icon" aria-hidden="true">${item.sourceRef.kind === 'decision' ? '⚖' : item.sourceRef.manual ? '📋' : '🤖'}</span><span class="source-label">${item.sourceRef.label}</span></a>` : html`<span class="document-source-link source-unavailable" title=${item.sourceRef.error ?? '來源無法讀取'}>⚠️ 來源不可用</span>` : nothing}
+      ${text(item.displayTitle ?? item.title, { lines: 1, expanded: lead, linkTone: meta.tone })}</div>`;
+  const prepareCopy = ref => {
+    const refs = p.selection?.references(ref) ?? [ref];
+    return { text: refs.join('\n'), successMessage: refs.length > 1 ? `複製 ${refs.length} 項` : undefined };
+  };
   return html`<li id=${!editing && reference ? `item-${task.id}--${item.id}` : nothing} ?data-item-target=${!!reference && v.activeItemHash === `#item-${task.id}--${item.id}`} data-item-pulse=${reference && v.activeItemHash === `#item-${task.id}--${item.id}` ? (v.itemTargetPulse ?? 0) % 2 : nothing} class="editor-item-row ${editing ? 'editable-work-item' : canReorder ? 'item-row-reorderable' : ''} ${selected ? 'is-selected' : ''} ${isNext ? 'is-next' : ''}" data-select-key=${reference && p.selection ? reference : nothing}
     data-item-row=${key} data-reorder-id=${item.id} data-reorder-sortable=${String(!!canReorder)} data-reorder-group=${String(p.policy.normalize(item.priority,p.policy.fallbackValue))}
     tabindex=${reference && p.selection ? 0 : nothing} title=${editing ? nothing : formatActivity(item.activity)}
@@ -105,10 +112,7 @@ function itemRow(p, v, task, field, item, lead) {
     ${editing && canReorder ? html`<button type="button" class="item-row-grip" data-item-ref=${key} data-reorder-handle draggable="true" aria-label="移動「${item.title}」（Alt+↑／↓，限同優先級）">⠿</button>` : html`<span class="item-row-marker item-row-marker-${itemStatus}" aria-hidden="true">${itemStatus === 'done' ? '✓' : '○'}</span>`}
     ${editing || (itemStatus !== 'done' && priority && (!priority.hidden || !p.policy.labelsValid)) ? html`<span class="item-row-priority">${editing ? prioritySelect(p.policy, item.priority, `設定「${item.title}」的優先級`, value => cmd('set-item-field', { property: 'priority', value })) : html`<span class="priority-badge priority-${priority.tone}">${p.policy.format(item.priority)}</span>`}</span>` : nothing}
     <div class="item-row-description" data-reorder-content>${editing ? html`<input class="inline-edit-input" aria-label="編輯子項目：${item.title}" title=${item.title} maxlength="500" .value=${live(item.title)} @input=${e => cmd('set-item-field', { property: 'title', value: e.currentTarget.value })}>`
-      : html`<div class="item-row-text">${isNext ? html`<span class="item-next-capsule">Next</span>` : nothing}${selected ? html`<span class="item-row-selected-label">已選取</span>` : nothing}
-      ${item.sourceRef ? item.sourceRef.available ? html`<a class="document-source-link" href=${checklistReturnHref(linkSelectionHref(item.sourceRef.href, meta.tone), task.id, item.id)} title=${item.sourceRef.title}><span class="source-icon" aria-hidden="true">${item.sourceRef.kind === 'decision' ? '⚖' : item.sourceRef.manual ? '📋' : '🤖'}</span><span class="source-label">${item.sourceRef.label}</span></a>` : html`<span class="document-source-link source-unavailable" title=${item.sourceRef.error ?? '來源無法讀取'}>⚠️ 來源不可用</span>` : nothing}
-      ${text(item.displayTitle ?? item.title, { lines: 1, expanded: lead, linkTone: meta.tone })}</div>`}</div>
-    ${reference ? html`<button type="button" class="item-row-copy" data-item-ref=${key} tabindex=${p.selection ? -1 : 0} aria-label=${copyCount>1?`複製已選取的 ${copyCount} 項參照`:`複製「${item.title}」的參照`} title=${copyTitle} @pointerdown=${e => e.stopPropagation()} ${action(copyAction,{copy:()=>p.selection?p.selection.copyReferences(reference):copyText(reference),successFeedback:()=>{const count=p.selection?.references?.(reference).length ?? 1; return count>1?`複製 ${count} 項`:'';},feedbackTitle:true,title:copyTitle})}>⧉</button>` : nothing}
+      : reference ? html`<ui-copy-id class="item-row-copy" .value=${reference} .label=${copyCount > 1 ? `已選取的 ${copyCount} 項參照` : item.title} .prepare=${prepareCopy}>${title}</ui-copy-id>` : title}</div>
     <span class="item-row-utility-panel"><span class="item-row-modules">${moduleStrip({ capsules: p.itemCapsules?.get(item.id) ?? [], moduleOrder: p.moduleOrder, onReorder: p.onModuleReorder, onActivate: id => p.onModuleActivate?.(id, { taskId: task.id, itemId: item.id, itemTitle: item.title }) })}</span>
     <span class="item-row-status">${editing ? options(statuses, itemStatus, `設定「${item.title}」的狀態`, value => cmd('set-item-status', { status: value }), 'inline-status-select')
       : targets.length === 1 && linked.length === 1 ? html`<a class="item-status-capsule status-${meta.tone} is-link" href=${linked[0].href} title=${statusTooltip(item) ?? linked[0].label}>${meta.label}</a>`
@@ -137,7 +141,7 @@ function taskCard(p, v, task, card) {
   groups.sort((a, b) => { const rank = id => { const i = p.statusOrder?.indexOf(id) ?? -1; return i < 0 ? 99 : i; }; return rank(a.status) - rank(b.status); });
   return html`<article class="task-card editor-task-card priority-${priority?.tone ?? 'unspecified'}" aria-labelledby="task-${task.id}-title">${disclosure({ ...card, id: `task-body-${task.id}`, label: task.title },
     html`<header class="task-header"><div class="task-title-group">${p.editing ? html`<div class="time-task-status-line">${options(statuses, task.status, `${task.title} 狀態`, v => command('status', v), 'inline-status-select')}${prioritySelect(p.policy, task.priority, `${task.title} 優先級`, value => command('priority', value))}</div>` : nothing}
-    <div class="time-task-title-line">${p.editing ? html`<input id="task-${task.id}-title" class="task-title-input" aria-label="任務名稱" maxlength="160" .value=${live(task.title)} @input=${e => command('title', e.currentTarget.value)}>` : html`${copyButton(task.id, task.title)}<h3 id="task-${task.id}-title">${task.title}</h3>`}</div>
+    <div class="time-task-title-line">${p.editing ? html`<input id="task-${task.id}-title" class="task-title-input" aria-label="任務名稱" maxlength="160" .value=${live(task.title)} @input=${e => command('title', e.currentTarget.value)}>` : html`<h3 id="task-${task.id}-title">${copyButton(task.id, task.title)}</h3>`}</div>
     ${p.moduleTotals?.[task.id]?.length ? html`<div class="task-module-totals">${p.moduleTotals[task.id].map(t => html`<span class="task-module-total task-module-total-${t.id}">${t.label}</span>`)}</div>` : nothing}</div>
     <div class="task-header-meta"><strong class="task-fraction" aria-label="子項目完成 ${progress.completed}，共 ${progress.total}">${progress.completed} / ${progress.total}</strong><span class="status-badge status-${meta.tone}">${meta.label}</span><code class="task-id">${task.id}</code></div></header>`,
     html`${p.editing ? html`<textarea class="task-summary-input" aria-label="任務描述" maxlength="1000" rows="3" .value=${live(task.summary ?? '')} @input=${e => command('summary', e.currentTarget.value)}></textarea>` : html`<div class="task-summary">${text(task.summary, { lines: 2, emphasis: true })}</div>`}${developer(task.developer)}

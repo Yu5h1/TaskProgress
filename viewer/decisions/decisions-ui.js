@@ -6,14 +6,13 @@ import { displayCards as c, moveVisibleCard as l, promotePin as u } from "../ass
 import { loadDisclosure as d, saveDisclosure as f } from "../assets/card-disclosure-state.js";
 import { DEFAULT_CAPSULE_ID as p, createFilterSelection as m, isDefaultLit as h, loadFilterSelection as g, saveFilterSelection as _, toggleDefault as ee, toggleTag as te } from "../assets/filter-selection.js";
 import { createLinkSelection as ne, documentLinkTarget as re, readLinkSelection as ie } from "../assets/link-selection.js";
-import { copyText as ae } from "../assets/item-reference.js";
-import { createDecisionSession as oe, same as se } from "../assets/decision-session.js";
-import { createDocumentTransport as ce } from "../assets/document-transport.js";
-import { stackDecisions as le } from "../assets/completed-stacking.js";
-import { installForegroundRefresh as ue } from "../assets/foreground-refresh.js";
-import { installFocusShield as de } from "../assets/focus-shield.js";
+import { createDecisionSession as ae, same as oe } from "../assets/decision-session.js";
+import { createDocumentTransport as se } from "../assets/document-transport.js";
+import { stackDecisions as ce } from "../assets/completed-stacking.js";
+import { installForegroundRefresh as le } from "../assets/foreground-refresh.js";
+import { installFocusShield as ue } from "../assets/focus-shield.js";
 //#region viewer/assets/theme-model.js
-var fe = "task-progress.theme.v1";
+var de = "task-progress.theme.v1";
 Object.freeze({
 	light: Object.freeze({
 		pageBackground: "#f5f3ec",
@@ -41,10 +40,10 @@ Object.freeze({
 });
 //#endregion
 //#region ui/web-workflow/theme-options.mjs
-var pe = Object.freeze({ defaultMode: "system" });
+var fe = Object.freeze({ defaultMode: "system" });
 //#endregion
 //#region ui/web-workflow/bootstrap.mjs
-function me(t = null) {
+function pe(t = null) {
 	let n = document.createElement("a");
 	n.className = "demo-back-link", n.href = t?.href ?? "/", n.setAttribute("aria-label", t ? `回到 ${t.title}` : "回到 Scopes 入口"), n.title = t ? `回到 ${t.title}` : "回到 Scopes 入口";
 	let r = document.createElementNS("http://www.w3.org/2000/svg", "svg");
@@ -68,15 +67,15 @@ function me(t = null) {
 		iconElement: r
 	}), n.style.setProperty("--button-foreground", "var(--blue)"), n;
 }
-async function he(e) {
+async function me(e) {
 	n(), document.documentElement.dataset.taskprogressUi = "web-ui-workflow";
-	let t = pe, s = globalThis.taskprogressThemeBoot, c = s?.preference ?? i(() => localStorage, "task-progress.theme.v1", t);
+	let t = fe, s = globalThis.taskprogressThemeBoot, c = s?.preference ?? i(() => localStorage, "task-progress.theme.v1", t);
 	s?.controller.dispose(), delete globalThis.taskprogressThemeBoot;
 	let l = document.createElement("ui-theme-control"), u = matchMedia("(prefers-color-scheme: dark)"), d, f = () => {
 		l.preference = c, l.systemScheme = u.matches ? "dark" : "light", document.documentElement.dataset.theme = c.mode, c.mode === "custom" ? document.documentElement.dataset.themeBase = c.custom.base : delete document.documentElement.dataset.themeBase;
 	}, p = () => {
-		d || (c = i(() => localStorage, fe, t), d = r(document.documentElement, c, t), u.addEventListener("change", f), f());
-	}, m = (e) => (c = o(() => localStorage, fe, e, t), d?.update(c), f(), c);
+		d || (c = i(() => localStorage, de, t), d = r(document.documentElement, c, t), u.addEventListener("change", f), f());
+	}, m = (e) => (c = o(() => localStorage, de, e, t), d?.update(c), f(), c);
 	if (p(), l.addEventListener("theme-change", (e) => m(e.detail.preference)), globalThis.taskprogressTheme = {
 		control: l,
 		get mode() {
@@ -105,7 +104,7 @@ async function he(e) {
 		let e = document.querySelector("#report-title");
 		if (e) {
 			let t = document.createElement("div");
-			t.className = "replica-title-row", e.before(t), t.append(me(), e);
+			t.className = "replica-title-row", e.before(t), t.append(pe(), e);
 		}
 	}
 	let h = new URLSearchParams(location.search).get("scope"), g = e !== "viewer" && typeof globalThis.chrome?.webview?.postMessage == "function", _ = g;
@@ -120,37 +119,37 @@ async function he(e) {
 }
 //#endregion
 //#region node_modules/@lit/reactive-element/css-tag.js
-var v = globalThis, ge = v.ShadowRoot && (v.ShadyCSS === void 0 || v.ShadyCSS.nativeShadow) && "adoptedStyleSheets" in Document.prototype && "replace" in CSSStyleSheet.prototype, _e = Symbol(), ve = /* @__PURE__ */ new WeakMap(), ye = class {
+var v = globalThis, y = v.ShadowRoot && (v.ShadyCSS === void 0 || v.ShadyCSS.nativeShadow) && "adoptedStyleSheets" in Document.prototype && "replace" in CSSStyleSheet.prototype, he = Symbol(), ge = /* @__PURE__ */ new WeakMap(), _e = class {
 	constructor(e, t, n) {
-		if (this._$cssResult$ = !0, n !== _e) throw Error("CSSResult is not constructable. Use `unsafeCSS` or `css` instead.");
+		if (this._$cssResult$ = !0, n !== he) throw Error("CSSResult is not constructable. Use `unsafeCSS` or `css` instead.");
 		this.cssText = e, this.t = t;
 	}
 	get styleSheet() {
 		let e = this.o, t = this.t;
-		if (ge && e === void 0) {
+		if (y && e === void 0) {
 			let n = t !== void 0 && t.length === 1;
-			n && (e = ve.get(t)), e === void 0 && ((this.o = e = new CSSStyleSheet()).replaceSync(this.cssText), n && ve.set(t, e));
+			n && (e = ge.get(t)), e === void 0 && ((this.o = e = new CSSStyleSheet()).replaceSync(this.cssText), n && ge.set(t, e));
 		}
 		return e;
 	}
 	toString() {
 		return this.cssText;
 	}
-}, be = (e) => new ye(typeof e == "string" ? e : e + "", void 0, _e), xe = (e, t) => {
-	if (ge) e.adoptedStyleSheets = t.map((e) => e instanceof CSSStyleSheet ? e : e.styleSheet);
+}, ve = (e) => new _e(typeof e == "string" ? e : e + "", void 0, he), ye = (e, t) => {
+	if (y) e.adoptedStyleSheets = t.map((e) => e instanceof CSSStyleSheet ? e : e.styleSheet);
 	else for (let n of t) {
 		let t = document.createElement("style"), r = v.litNonce;
 		r !== void 0 && t.setAttribute("nonce", r), t.textContent = n.cssText, e.appendChild(t);
 	}
-}, Se = ge ? (e) => e : (e) => e instanceof CSSStyleSheet ? ((e) => {
+}, be = y ? (e) => e : (e) => e instanceof CSSStyleSheet ? ((e) => {
 	let t = "";
 	for (let n of e.cssRules) t += n.cssText;
-	return be(t);
-})(e) : e, { is: Ce, defineProperty: we, getOwnPropertyDescriptor: Te, getOwnPropertyNames: Ee, getOwnPropertySymbols: De, getPrototypeOf: Oe } = Object, y = globalThis, ke = y.trustedTypes, Ae = ke ? ke.emptyScript : "", je = y.reactiveElementPolyfillSupport, b = (e, t) => e, Me = {
+	return ve(t);
+})(e) : e, { is: xe, defineProperty: Se, getOwnPropertyDescriptor: Ce, getOwnPropertyNames: we, getOwnPropertySymbols: Te, getPrototypeOf: Ee } = Object, b = globalThis, De = b.trustedTypes, Oe = De ? De.emptyScript : "", ke = b.reactiveElementPolyfillSupport, x = (e, t) => e, Ae = {
 	toAttribute(e, t) {
 		switch (t) {
 			case Boolean:
-				e = e ? Ae : null;
+				e = e ? Oe : null;
 				break;
 			case Object:
 			case Array: e = e == null ? e : JSON.stringify(e);
@@ -175,30 +174,30 @@ var v = globalThis, ge = v.ShadowRoot && (v.ShadyCSS === void 0 || v.ShadyCSS.na
 		}
 		return n;
 	}
-}, Ne = (e, t) => !Ce(e, t), Pe = {
+}, je = (e, t) => !xe(e, t), Me = {
 	attribute: !0,
 	type: String,
-	converter: Me,
+	converter: Ae,
 	reflect: !1,
 	useDefault: !1,
-	hasChanged: Ne
+	hasChanged: je
 };
-Symbol.metadata ??= Symbol("metadata"), y.litPropertyMetadata ??= /* @__PURE__ */ new WeakMap();
-var x = class extends HTMLElement {
+Symbol.metadata ??= Symbol("metadata"), b.litPropertyMetadata ??= /* @__PURE__ */ new WeakMap();
+var S = class extends HTMLElement {
 	static addInitializer(e) {
 		this._$Ei(), (this.l ??= []).push(e);
 	}
 	static get observedAttributes() {
 		return this.finalize(), this._$Eh && [...this._$Eh.keys()];
 	}
-	static createProperty(e, t = Pe) {
+	static createProperty(e, t = Me) {
 		if (t.state && (t.attribute = !1), this._$Ei(), this.prototype.hasOwnProperty(e) && ((t = Object.create(t)).wrapped = !0), this.elementProperties.set(e, t), !t.noAccessor) {
 			let n = Symbol(), r = this.getPropertyDescriptor(e, n, t);
-			r !== void 0 && we(this.prototype, e, r);
+			r !== void 0 && Se(this.prototype, e, r);
 		}
 	}
 	static getPropertyDescriptor(e, t, n) {
-		let { get: r, set: i } = Te(this.prototype, e) ?? {
+		let { get: r, set: i } = Ce(this.prototype, e) ?? {
 			get() {
 				return this[t];
 			},
@@ -217,17 +216,17 @@ var x = class extends HTMLElement {
 		};
 	}
 	static getPropertyOptions(e) {
-		return this.elementProperties.get(e) ?? Pe;
+		return this.elementProperties.get(e) ?? Me;
 	}
 	static _$Ei() {
-		if (this.hasOwnProperty(b("elementProperties"))) return;
-		let e = Oe(this);
+		if (this.hasOwnProperty(x("elementProperties"))) return;
+		let e = Ee(this);
 		e.finalize(), e.l !== void 0 && (this.l = [...e.l]), this.elementProperties = new Map(e.elementProperties);
 	}
 	static finalize() {
-		if (this.hasOwnProperty(b("finalized"))) return;
-		if (this.finalized = !0, this._$Ei(), this.hasOwnProperty(b("properties"))) {
-			let e = this.properties, t = [...Ee(e), ...De(e)];
+		if (this.hasOwnProperty(x("finalized"))) return;
+		if (this.finalized = !0, this._$Ei(), this.hasOwnProperty(x("properties"))) {
+			let e = this.properties, t = [...we(e), ...Te(e)];
 			for (let n of t) this.createProperty(n, e[n]);
 		}
 		let e = this[Symbol.metadata];
@@ -246,8 +245,8 @@ var x = class extends HTMLElement {
 		let t = [];
 		if (Array.isArray(e)) {
 			let n = new Set(e.flat(Infinity).reverse());
-			for (let e of n) t.unshift(Se(e));
-		} else e !== void 0 && t.push(Se(e));
+			for (let e of n) t.unshift(be(e));
+		} else e !== void 0 && t.push(be(e));
 		return t;
 	}
 	static _$Eu(e, t) {
@@ -273,7 +272,7 @@ var x = class extends HTMLElement {
 	}
 	createRenderRoot() {
 		let e = this.shadowRoot ?? this.attachShadow(this.constructor.shadowRootOptions);
-		return xe(e, this.constructor.elementStyles), e;
+		return ye(e, this.constructor.elementStyles), e;
 	}
 	connectedCallback() {
 		this.renderRoot ??= this.createRenderRoot(), this.enableUpdating(!0), this._$EO?.forEach((e) => e.hostConnected?.());
@@ -288,14 +287,14 @@ var x = class extends HTMLElement {
 	_$ET(e, t) {
 		let n = this.constructor.elementProperties.get(e), r = this.constructor._$Eu(e, n);
 		if (r !== void 0 && !0 === n.reflect) {
-			let i = (n.converter?.toAttribute === void 0 ? Me : n.converter).toAttribute(t, n.type);
+			let i = (n.converter?.toAttribute === void 0 ? Ae : n.converter).toAttribute(t, n.type);
 			this._$Em = e, i == null ? this.removeAttribute(r) : this.setAttribute(r, i), this._$Em = null;
 		}
 	}
 	_$AK(e, t) {
 		let n = this.constructor, r = n._$Eh.get(e);
 		if (r !== void 0 && this._$Em !== r) {
-			let e = n.getPropertyOptions(r), i = typeof e.converter == "function" ? { fromAttribute: e.converter } : e.converter?.fromAttribute === void 0 ? Me : e.converter;
+			let e = n.getPropertyOptions(r), i = typeof e.converter == "function" ? { fromAttribute: e.converter } : e.converter?.fromAttribute === void 0 ? Ae : e.converter;
 			this._$Em = r;
 			let a = i.fromAttribute(t, e.type);
 			this[r] = a ?? this._$Ej?.get(r) ?? a, this._$Em = null;
@@ -304,7 +303,7 @@ var x = class extends HTMLElement {
 	requestUpdate(e, t, n, r = !1, i) {
 		if (e !== void 0) {
 			let a = this.constructor;
-			if (!1 === r && (i = this[e]), n ??= a.getPropertyOptions(e), !((n.hasChanged ?? Ne)(i, t) || n.useDefault && n.reflect && i === this._$Ej?.get(e) && !this.hasAttribute(a._$Eu(e, n)))) return;
+			if (!1 === r && (i = this[e]), n ??= a.getPropertyOptions(e), !((n.hasChanged ?? je)(i, t) || n.useDefault && n.reflect && i === this._$Ej?.get(e) && !this.hasAttribute(a._$Eu(e, n)))) return;
 			this.C(e, t, n);
 		}
 		!1 === this.isUpdatePending && (this._$ES = this._$EP());
@@ -368,85 +367,85 @@ var x = class extends HTMLElement {
 	updated(e) {}
 	firstUpdated(e) {}
 };
-x.elementStyles = [], x.shadowRootOptions = { mode: "open" }, x[b("elementProperties")] = /* @__PURE__ */ new Map(), x[b("finalized")] = /* @__PURE__ */ new Map(), je?.({ ReactiveElement: x }), (y.reactiveElementVersions ??= []).push("2.1.2");
+S.elementStyles = [], S.shadowRootOptions = { mode: "open" }, S[x("elementProperties")] = /* @__PURE__ */ new Map(), S[x("finalized")] = /* @__PURE__ */ new Map(), ke?.({ ReactiveElement: S }), (b.reactiveElementVersions ??= []).push("2.1.2");
 //#endregion
 //#region node_modules/lit-html/lit-html.js
-var Fe = globalThis, Ie = (e) => e, S = Fe.trustedTypes, Le = S ? S.createPolicy("lit-html", { createHTML: (e) => e }) : void 0, C = "$lit$", w = `lit$${Math.random().toFixed(9).slice(2)}$`, T = "?" + w, Re = `<${T}>`, E = document, D = () => E.createComment(""), O = (e) => e === null || typeof e != "object" && typeof e != "function", k = Array.isArray, ze = (e) => k(e) || typeof e?.[Symbol.iterator] == "function", A = "[ 	\n\f\r]", j = /<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g, Be = /-->/g, Ve = />/g, M = RegExp(`>|${A}(?:([^\\s"'>=/]+)(${A}*=${A}*(?:[^ \t\n\f\r"'\`<>=]|("|')|))|$)`, "g"), He = /'/g, Ue = /"/g, We = /^(?:script|style|textarea|title)$/i, Ge = (e) => (t, ...n) => ({
+var Ne = globalThis, Pe = (e) => e, C = Ne.trustedTypes, Fe = C ? C.createPolicy("lit-html", { createHTML: (e) => e }) : void 0, w = "$lit$", T = `lit$${Math.random().toFixed(9).slice(2)}$`, E = "?" + T, Ie = `<${E}>`, D = document, O = () => D.createComment(""), k = (e) => e === null || typeof e != "object" && typeof e != "function", Le = Array.isArray, Re = (e) => Le(e) || typeof e?.[Symbol.iterator] == "function", ze = "[ 	\n\f\r]", A = /<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g, Be = /-->/g, Ve = />/g, j = RegExp(`>|${ze}(?:([^\\s"'>=/]+)(${ze}*=${ze}*(?:[^ \t\n\f\r"'\`<>=]|("|')|))|$)`, "g"), He = /'/g, Ue = /"/g, We = /^(?:script|style|textarea|title)$/i, Ge = (e) => (t, ...n) => ({
 	_$litType$: e,
 	strings: t,
 	values: n
-}), N = Ge(1), P = Ge(2), F = Symbol.for("lit-noChange"), I = Symbol.for("lit-nothing"), Ke = /* @__PURE__ */ new WeakMap(), L = E.createTreeWalker(E, 129);
+}), M = Ge(1), N = Ge(2), P = Symbol.for("lit-noChange"), F = Symbol.for("lit-nothing"), Ke = /* @__PURE__ */ new WeakMap(), I = D.createTreeWalker(D, 129);
 function qe(e, t) {
-	if (!k(e) || !e.hasOwnProperty("raw")) throw Error("invalid template strings array");
-	return Le === void 0 ? t : Le.createHTML(t);
+	if (!Le(e) || !e.hasOwnProperty("raw")) throw Error("invalid template strings array");
+	return Fe === void 0 ? t : Fe.createHTML(t);
 }
 var Je = (e, t) => {
-	let n = e.length - 1, r = [], i, a = t === 2 ? "<svg>" : t === 3 ? "<math>" : "", o = j;
+	let n = e.length - 1, r = [], i, a = t === 2 ? "<svg>" : t === 3 ? "<math>" : "", o = A;
 	for (let t = 0; t < n; t++) {
 		let n = e[t], s, c, l = -1, u = 0;
-		for (; u < n.length && (o.lastIndex = u, c = o.exec(n), c !== null);) u = o.lastIndex, o === j ? c[1] === "!--" ? o = Be : c[1] === void 0 ? c[2] === void 0 ? c[3] !== void 0 && (o = M) : (We.test(c[2]) && (i = RegExp("</" + c[2], "g")), o = M) : o = Ve : o === M ? c[0] === ">" ? (o = i ?? j, l = -1) : c[1] === void 0 ? l = -2 : (l = o.lastIndex - c[2].length, s = c[1], o = c[3] === void 0 ? M : c[3] === "\"" ? Ue : He) : o === Ue || o === He ? o = M : o === Be || o === Ve ? o = j : (o = M, i = void 0);
-		let d = o === M && e[t + 1].startsWith("/>") ? " " : "";
-		a += o === j ? n + Re : l >= 0 ? (r.push(s), n.slice(0, l) + C + n.slice(l) + w + d) : n + w + (l === -2 ? t : d);
+		for (; u < n.length && (o.lastIndex = u, c = o.exec(n), c !== null);) u = o.lastIndex, o === A ? c[1] === "!--" ? o = Be : c[1] === void 0 ? c[2] === void 0 ? c[3] !== void 0 && (o = j) : (We.test(c[2]) && (i = RegExp("</" + c[2], "g")), o = j) : o = Ve : o === j ? c[0] === ">" ? (o = i ?? A, l = -1) : c[1] === void 0 ? l = -2 : (l = o.lastIndex - c[2].length, s = c[1], o = c[3] === void 0 ? j : c[3] === "\"" ? Ue : He) : o === Ue || o === He ? o = j : o === Be || o === Ve ? o = A : (o = j, i = void 0);
+		let d = o === j && e[t + 1].startsWith("/>") ? " " : "";
+		a += o === A ? n + Ie : l >= 0 ? (r.push(s), n.slice(0, l) + w + n.slice(l) + T + d) : n + T + (l === -2 ? t : d);
 	}
 	return [qe(e, a + (e[n] || "<?>") + (t === 2 ? "</svg>" : t === 3 ? "</math>" : "")), r];
-}, R = class e {
+}, L = class e {
 	constructor({ strings: t, _$litType$: n }, r) {
 		let i;
 		this.parts = [];
 		let a = 0, o = 0, s = t.length - 1, c = this.parts, [l, u] = Je(t, n);
-		if (this.el = e.createElement(l, r), L.currentNode = this.el.content, n === 2 || n === 3) {
+		if (this.el = e.createElement(l, r), I.currentNode = this.el.content, n === 2 || n === 3) {
 			let e = this.el.content.firstChild;
 			e.replaceWith(...e.childNodes);
 		}
-		for (; (i = L.nextNode()) !== null && c.length < s;) {
+		for (; (i = I.nextNode()) !== null && c.length < s;) {
 			if (i.nodeType === 1) {
-				if (i.hasAttributes()) for (let e of i.getAttributeNames()) if (e.endsWith(C)) {
-					let t = u[o++], n = i.getAttribute(e).split(w), r = /([.?@])?(.*)/.exec(t);
+				if (i.hasAttributes()) for (let e of i.getAttributeNames()) if (e.endsWith(w)) {
+					let t = u[o++], n = i.getAttribute(e).split(T), r = /([.?@])?(.*)/.exec(t);
 					c.push({
 						type: 1,
 						index: a,
 						name: r[2],
 						strings: n,
-						ctor: r[1] === "." ? Xe : r[1] === "?" ? Ze : r[1] === "@" ? Qe : V
+						ctor: r[1] === "." ? Xe : r[1] === "?" ? Ze : r[1] === "@" ? Qe : B
 					}), i.removeAttribute(e);
-				} else e.startsWith(w) && (c.push({
+				} else e.startsWith(T) && (c.push({
 					type: 6,
 					index: a
 				}), i.removeAttribute(e));
 				if (We.test(i.tagName)) {
-					let e = i.textContent.split(w), t = e.length - 1;
+					let e = i.textContent.split(T), t = e.length - 1;
 					if (t > 0) {
-						i.textContent = S ? S.emptyScript : "";
-						for (let n = 0; n < t; n++) i.append(e[n], D()), L.nextNode(), c.push({
+						i.textContent = C ? C.emptyScript : "";
+						for (let n = 0; n < t; n++) i.append(e[n], O()), I.nextNode(), c.push({
 							type: 2,
 							index: ++a
 						});
-						i.append(e[t], D());
+						i.append(e[t], O());
 					}
 				}
-			} else if (i.nodeType === 8) if (i.data === T) c.push({
+			} else if (i.nodeType === 8) if (i.data === E) c.push({
 				type: 2,
 				index: a
 			});
 			else {
 				let e = -1;
-				for (; (e = i.data.indexOf(w, e + 1)) !== -1;) c.push({
+				for (; (e = i.data.indexOf(T, e + 1)) !== -1;) c.push({
 					type: 7,
 					index: a
-				}), e += w.length - 1;
+				}), e += T.length - 1;
 			}
 			a++;
 		}
 	}
 	static createElement(e, t) {
-		let n = E.createElement("template");
+		let n = D.createElement("template");
 		return n.innerHTML = e, n;
 	}
 };
-function z(e, t, n = e, r) {
-	if (t === F) return t;
-	let i = r === void 0 ? n._$Cl : n._$Co?.[r], a = O(t) ? void 0 : t._$litDirective$;
-	return i?.constructor !== a && (i?._$AO?.(!1), a === void 0 ? i = void 0 : (i = new a(e), i._$AT(e, n, r)), r === void 0 ? n._$Cl = i : (n._$Co ??= [])[r] = i), i !== void 0 && (t = z(e, i._$AS(e, t.values), i, r)), t;
+function R(e, t, n = e, r) {
+	if (t === P) return t;
+	let i = r === void 0 ? n._$Cl : n._$Co?.[r], a = k(t) ? void 0 : t._$litDirective$;
+	return i?.constructor !== a && (i?._$AO?.(!1), a === void 0 ? i = void 0 : (i = new a(e), i._$AT(e, n, r)), r === void 0 ? n._$Cl = i : (n._$Co ??= [])[r] = i), i !== void 0 && (t = R(e, i._$AS(e, t.values), i, r)), t;
 }
 var Ye = class {
 	constructor(e, t) {
@@ -459,28 +458,28 @@ var Ye = class {
 		return this._$AM._$AU;
 	}
 	u(e) {
-		let { el: { content: t }, parts: n } = this._$AD, r = (e?.creationScope ?? E).importNode(t, !0);
-		L.currentNode = r;
-		let i = L.nextNode(), a = 0, o = 0, s = n[0];
+		let { el: { content: t }, parts: n } = this._$AD, r = (e?.creationScope ?? D).importNode(t, !0);
+		I.currentNode = r;
+		let i = I.nextNode(), a = 0, o = 0, s = n[0];
 		for (; s !== void 0;) {
 			if (a === s.index) {
 				let t;
-				s.type === 2 ? t = new B(i, i.nextSibling, this, e) : s.type === 1 ? t = new s.ctor(i, s.name, s.strings, this, e) : s.type === 6 && (t = new $e(i, this, e)), this._$AV.push(t), s = n[++o];
+				s.type === 2 ? t = new z(i, i.nextSibling, this, e) : s.type === 1 ? t = new s.ctor(i, s.name, s.strings, this, e) : s.type === 6 && (t = new $e(i, this, e)), this._$AV.push(t), s = n[++o];
 			}
-			a !== s?.index && (i = L.nextNode(), a++);
+			a !== s?.index && (i = I.nextNode(), a++);
 		}
-		return L.currentNode = E, r;
+		return I.currentNode = D, r;
 	}
 	p(e) {
 		let t = 0;
 		for (let n of this._$AV) n !== void 0 && (n.strings === void 0 ? n._$AI(e[t]) : (n._$AI(e, n, t), t += n.strings.length - 2)), t++;
 	}
-}, B = class e {
+}, z = class e {
 	get _$AU() {
 		return this._$AM?._$AU ?? this._$Cv;
 	}
 	constructor(e, t, n, r) {
-		this.type = 2, this._$AH = I, this._$AN = void 0, this._$AA = e, this._$AB = t, this._$AM = n, this.options = r, this._$Cv = r?.isConnected ?? !0;
+		this.type = 2, this._$AH = F, this._$AN = void 0, this._$AA = e, this._$AB = t, this._$AM = n, this.options = r, this._$Cv = r?.isConnected ?? !0;
 	}
 	get parentNode() {
 		let e = this._$AA.parentNode, t = this._$AM;
@@ -493,7 +492,7 @@ var Ye = class {
 		return this._$AB;
 	}
 	_$AI(e, t = this) {
-		e = z(this, e, t), O(e) ? e === I || e == null || e === "" ? (this._$AH !== I && this._$AR(), this._$AH = I) : e !== this._$AH && e !== F && this._(e) : e._$litType$ === void 0 ? e.nodeType === void 0 ? ze(e) ? this.k(e) : this._(e) : this.T(e) : this.$(e);
+		e = R(this, e, t), k(e) ? e === F || e == null || e === "" ? (this._$AH !== F && this._$AR(), this._$AH = F) : e !== this._$AH && e !== P && this._(e) : e._$litType$ === void 0 ? e.nodeType === void 0 ? Re(e) ? this.k(e) : this._(e) : this.T(e) : this.$(e);
 	}
 	O(e) {
 		return this._$AA.parentNode.insertBefore(e, this._$AB);
@@ -502,10 +501,10 @@ var Ye = class {
 		this._$AH !== e && (this._$AR(), this._$AH = this.O(e));
 	}
 	_(e) {
-		this._$AH !== I && O(this._$AH) ? this._$AA.nextSibling.data = e : this.T(E.createTextNode(e)), this._$AH = e;
+		this._$AH !== F && k(this._$AH) ? this._$AA.nextSibling.data = e : this.T(D.createTextNode(e)), this._$AH = e;
 	}
 	$(e) {
-		let { values: t, _$litType$: n } = e, r = typeof n == "number" ? this._$AC(e) : (n.el === void 0 && (n.el = R.createElement(qe(n.h, n.h[0]), this.options)), n);
+		let { values: t, _$litType$: n } = e, r = typeof n == "number" ? this._$AC(e) : (n.el === void 0 && (n.el = L.createElement(qe(n.h, n.h[0]), this.options)), n);
 		if (this._$AH?._$AD === r) this._$AH.p(t);
 		else {
 			let e = new Ye(r, this), n = e.u(this.options);
@@ -514,24 +513,24 @@ var Ye = class {
 	}
 	_$AC(e) {
 		let t = Ke.get(e.strings);
-		return t === void 0 && Ke.set(e.strings, t = new R(e)), t;
+		return t === void 0 && Ke.set(e.strings, t = new L(e)), t;
 	}
 	k(t) {
-		k(this._$AH) || (this._$AH = [], this._$AR());
+		Le(this._$AH) || (this._$AH = [], this._$AR());
 		let n = this._$AH, r, i = 0;
-		for (let a of t) i === n.length ? n.push(r = new e(this.O(D()), this.O(D()), this, this.options)) : r = n[i], r._$AI(a), i++;
+		for (let a of t) i === n.length ? n.push(r = new e(this.O(O()), this.O(O()), this, this.options)) : r = n[i], r._$AI(a), i++;
 		i < n.length && (this._$AR(r && r._$AB.nextSibling, i), n.length = i);
 	}
 	_$AR(e = this._$AA.nextSibling, t) {
 		for (this._$AP?.(!1, !0, t); e !== this._$AB;) {
-			let t = Ie(e).nextSibling;
-			Ie(e).remove(), e = t;
+			let t = Pe(e).nextSibling;
+			Pe(e).remove(), e = t;
 		}
 	}
 	setConnected(e) {
 		this._$AM === void 0 && (this._$Cv = e, this._$AP?.(e));
 	}
-}, V = class {
+}, B = class {
 	get tagName() {
 		return this.element.tagName;
 	}
@@ -539,41 +538,41 @@ var Ye = class {
 		return this._$AM._$AU;
 	}
 	constructor(e, t, n, r, i) {
-		this.type = 1, this._$AH = I, this._$AN = void 0, this.element = e, this.name = t, this._$AM = r, this.options = i, n.length > 2 || n[0] !== "" || n[1] !== "" ? (this._$AH = Array(n.length - 1).fill(/* @__PURE__ */ new String()), this.strings = n) : this._$AH = I;
+		this.type = 1, this._$AH = F, this._$AN = void 0, this.element = e, this.name = t, this._$AM = r, this.options = i, n.length > 2 || n[0] !== "" || n[1] !== "" ? (this._$AH = Array(n.length - 1).fill(/* @__PURE__ */ new String()), this.strings = n) : this._$AH = F;
 	}
 	_$AI(e, t = this, n, r) {
 		let i = this.strings, a = !1;
-		if (i === void 0) e = z(this, e, t, 0), a = !O(e) || e !== this._$AH && e !== F, a && (this._$AH = e);
+		if (i === void 0) e = R(this, e, t, 0), a = !k(e) || e !== this._$AH && e !== P, a && (this._$AH = e);
 		else {
 			let r = e, o, s;
-			for (e = i[0], o = 0; o < i.length - 1; o++) s = z(this, r[n + o], t, o), s === F && (s = this._$AH[o]), a ||= !O(s) || s !== this._$AH[o], s === I ? e = I : e !== I && (e += (s ?? "") + i[o + 1]), this._$AH[o] = s;
+			for (e = i[0], o = 0; o < i.length - 1; o++) s = R(this, r[n + o], t, o), s === P && (s = this._$AH[o]), a ||= !k(s) || s !== this._$AH[o], s === F ? e = F : e !== F && (e += (s ?? "") + i[o + 1]), this._$AH[o] = s;
 		}
 		a && !r && this.j(e);
 	}
 	j(e) {
-		e === I ? this.element.removeAttribute(this.name) : this.element.setAttribute(this.name, e ?? "");
+		e === F ? this.element.removeAttribute(this.name) : this.element.setAttribute(this.name, e ?? "");
 	}
-}, Xe = class extends V {
+}, Xe = class extends B {
 	constructor() {
 		super(...arguments), this.type = 3;
 	}
 	j(e) {
-		this.element[this.name] = e === I ? void 0 : e;
+		this.element[this.name] = e === F ? void 0 : e;
 	}
-}, Ze = class extends V {
+}, Ze = class extends B {
 	constructor() {
 		super(...arguments), this.type = 4;
 	}
 	j(e) {
-		this.element.toggleAttribute(this.name, !!e && e !== I);
+		this.element.toggleAttribute(this.name, !!e && e !== F);
 	}
-}, Qe = class extends V {
+}, Qe = class extends B {
 	constructor(e, t, n, r, i) {
 		super(e, t, n, r, i), this.type = 5;
 	}
 	_$AI(e, t = this) {
-		if ((e = z(this, e, t, 0) ?? I) === F) return;
-		let n = this._$AH, r = e === I && n !== I || e.capture !== n.capture || e.once !== n.once || e.passive !== n.passive, i = e !== I && (n === I || r);
+		if ((e = R(this, e, t, 0) ?? F) === P) return;
+		let n = this._$AH, r = e === F && n !== F || e.capture !== n.capture || e.once !== n.once || e.passive !== n.passive, i = e !== F && (n === F || r);
 		r && this.element.removeEventListener(this.name, this, n), i && this.element.addEventListener(this.name, this, e), this._$AH = e;
 	}
 	handleEvent(e) {
@@ -587,33 +586,33 @@ var Ye = class {
 		return this._$AM._$AU;
 	}
 	_$AI(e) {
-		z(this, e);
+		R(this, e);
 	}
 }, et = {
-	M: C,
-	P: w,
-	A: T,
+	M: w,
+	P: T,
+	A: E,
 	C: 1,
 	L: Je,
 	R: Ye,
-	D: ze,
-	V: z,
-	I: B,
-	H: V,
+	D: Re,
+	V: R,
+	I: z,
+	H: B,
 	N: Ze,
 	U: Qe,
 	B: Xe,
 	F: $e
-}, tt = Fe.litHtmlPolyfillSupport;
-tt?.(R, B), (Fe.litHtmlVersions ??= []).push("3.3.3");
-var nt = (e, t, n) => {
+}, tt = Ne.litHtmlPolyfillSupport;
+tt?.(L, z), (Ne.litHtmlVersions ??= []).push("3.3.3");
+var V = (e, t, n) => {
 	let r = n?.renderBefore ?? t, i = r._$litPart$;
 	if (i === void 0) {
 		let e = n?.renderBefore ?? null;
-		r._$litPart$ = i = new B(t.insertBefore(D(), e), e, void 0, n ?? {});
+		r._$litPart$ = i = new z(t.insertBefore(O(), e), e, void 0, n ?? {});
 	}
 	return i._$AI(e), i;
-}, rt = globalThis, H = class extends x {
+}, H = globalThis, U = class extends S {
 	constructor() {
 		super(...arguments), this.renderOptions = { host: this }, this._$Do = void 0;
 	}
@@ -623,7 +622,7 @@ var nt = (e, t, n) => {
 	}
 	update(e) {
 		let t = this.render();
-		this.hasUpdated || (this.renderOptions.isConnected = this.isConnected), super.update(e), this._$Do = nt(t, this.renderRoot, this.renderOptions);
+		this.hasUpdated || (this.renderOptions.isConnected = this.isConnected), super.update(e), this._$Do = V(t, this.renderRoot, this.renderOptions);
 	}
 	connectedCallback() {
 		super.connectedCallback(), this._$Do?.setConnected(!0);
@@ -632,25 +631,25 @@ var nt = (e, t, n) => {
 		super.disconnectedCallback(), this._$Do?.setConnected(!1);
 	}
 	render() {
-		return F;
+		return P;
 	}
 };
-H._$litElement$ = !0, H.finalized = !0, rt.litElementHydrateSupport?.({ LitElement: H });
-var it = rt.litElementPolyfillSupport;
-it?.({ LitElement: H }), (rt.litElementVersions ??= []).push("4.2.2");
+U._$litElement$ = !0, U.finalized = !0, H.litElementHydrateSupport?.({ LitElement: U });
+var nt = H.litElementPolyfillSupport;
+nt?.({ LitElement: U }), (H.litElementVersions ??= []).push("4.2.2");
 //#endregion
 //#region node_modules/lit-html/directive.js
-var U = {
+var W = {
 	ATTRIBUTE: 1,
 	CHILD: 2,
 	PROPERTY: 3,
 	BOOLEAN_ATTRIBUTE: 4,
 	EVENT: 5,
 	ELEMENT: 6
-}, W = (e) => (...t) => ({
+}, G = (e) => (...t) => ({
 	_$litDirective$: e,
 	values: t
-}), G = class {
+}), K = class {
 	constructor(e) {}
 	get _$AU() {
 		return this._$AM._$AU;
@@ -664,9 +663,9 @@ var U = {
 	update(e, t) {
 		return this.render(...t);
 	}
-}, { I: at } = et, ot = (e) => e, st = (e) => e.strings === void 0, ct = () => document.createComment(""), K = (e, t, n) => {
+}, { I: rt } = et, it = (e) => e, at = (e) => e.strings === void 0, ot = () => document.createComment(""), q = (e, t, n) => {
 	let r = e._$AA.parentNode, i = t === void 0 ? e._$AB : t._$AA;
-	if (n === void 0) n = new at(r.insertBefore(ct(), i), r.insertBefore(ct(), i), e, e.options);
+	if (n === void 0) n = new rt(r.insertBefore(ot(), i), r.insertBefore(ot(), i), e, e.options);
 	else {
 		let t = n._$AB.nextSibling, a = n._$AM, o = a !== e;
 		if (o) {
@@ -676,21 +675,21 @@ var U = {
 		if (t !== i || o) {
 			let e = n._$AA;
 			for (; e !== t;) {
-				let t = ot(e).nextSibling;
-				ot(r).insertBefore(e, i), e = t;
+				let t = it(e).nextSibling;
+				it(r).insertBefore(e, i), e = t;
 			}
 		}
 	}
 	return n;
-}, q = (e, t, n = e) => (e._$AI(t, n), e), lt = {}, ut = (e, t = lt) => e._$AH = t, dt = (e) => e._$AH, ft = (e) => {
+}, J = (e, t, n = e) => (e._$AI(t, n), e), st = {}, ct = (e, t = st) => e._$AH = t, lt = (e) => e._$AH, ut = (e) => {
 	e._$AR(), e._$AA.remove();
-}, pt = (e, t, n) => {
+}, dt = (e, t, n) => {
 	let r = /* @__PURE__ */ new Map();
 	for (let i = t; i <= n; i++) r.set(e[i], i);
 	return r;
-}, mt = W(class extends G {
+}, ft = G(class extends K {
 	constructor(e) {
-		if (super(e), e.type !== U.CHILD) throw Error("repeat() can only be used in text expressions");
+		if (super(e), e.type !== W.CHILD) throw Error("repeat() can only be used in text expressions");
 	}
 	dt(e, t, n) {
 		let r;
@@ -706,107 +705,107 @@ var U = {
 		return this.dt(e, t, n).values;
 	}
 	update(e, [t, n, r]) {
-		let i = dt(e), { values: a, keys: o } = this.dt(t, n, r);
+		let i = lt(e), { values: a, keys: o } = this.dt(t, n, r);
 		if (!Array.isArray(i)) return this.ut = o, a;
 		let s = this.ut ??= [], c = [], l, u, d = 0, f = i.length - 1, p = 0, m = a.length - 1;
 		for (; d <= f && p <= m;) if (i[d] === null) d++;
 		else if (i[f] === null) f--;
-		else if (s[d] === o[p]) c[p] = q(i[d], a[p]), d++, p++;
-		else if (s[f] === o[m]) c[m] = q(i[f], a[m]), f--, m--;
-		else if (s[d] === o[m]) c[m] = q(i[d], a[m]), K(e, c[m + 1], i[d]), d++, m--;
-		else if (s[f] === o[p]) c[p] = q(i[f], a[p]), K(e, i[d], i[f]), f--, p++;
-		else if (l === void 0 && (l = pt(o, p, m), u = pt(s, d, f)), l.has(s[d])) if (l.has(s[f])) {
+		else if (s[d] === o[p]) c[p] = J(i[d], a[p]), d++, p++;
+		else if (s[f] === o[m]) c[m] = J(i[f], a[m]), f--, m--;
+		else if (s[d] === o[m]) c[m] = J(i[d], a[m]), q(e, c[m + 1], i[d]), d++, m--;
+		else if (s[f] === o[p]) c[p] = J(i[f], a[p]), q(e, i[d], i[f]), f--, p++;
+		else if (l === void 0 && (l = dt(o, p, m), u = dt(s, d, f)), l.has(s[d])) if (l.has(s[f])) {
 			let t = u.get(o[p]), n = t === void 0 ? null : i[t];
 			if (n === null) {
-				let t = K(e, i[d]);
-				q(t, a[p]), c[p] = t;
-			} else c[p] = q(n, a[p]), K(e, i[d], n), i[t] = null;
+				let t = q(e, i[d]);
+				J(t, a[p]), c[p] = t;
+			} else c[p] = J(n, a[p]), q(e, i[d], n), i[t] = null;
 			p++;
-		} else ft(i[f]), f--;
-		else ft(i[d]), d++;
+		} else ut(i[f]), f--;
+		else ut(i[d]), d++;
 		for (; p <= m;) {
-			let t = K(e, c[m + 1]);
-			q(t, a[p]), c[p++] = t;
+			let t = q(e, c[m + 1]);
+			J(t, a[p]), c[p++] = t;
 		}
 		for (; d <= f;) {
 			let e = i[d++];
-			e !== null && ft(e);
+			e !== null && ut(e);
 		}
-		return this.ut = o, ut(e, c), F;
+		return this.ut = o, ct(e, c), P;
 	}
-}), ht = {}, gt = W(class extends G {
+}), pt = {}, mt = G(class extends K {
 	constructor() {
-		super(...arguments), this.ot = ht;
+		super(...arguments), this.ot = pt;
 	}
 	render(e, t) {
 		return t();
 	}
 	update(e, [t, n]) {
 		if (Array.isArray(t)) {
-			if (Array.isArray(this.ot) && this.ot.length === t.length && t.every((e, t) => e === this.ot[t])) return F;
-		} else if (this.ot === t) return F;
+			if (Array.isArray(this.ot) && this.ot.length === t.length && t.every((e, t) => e === this.ot[t])) return P;
+		} else if (this.ot === t) return P;
 		return this.ot = Array.isArray(t) ? Array.from(t) : t, this.render(t, n);
 	}
-}), _t = W(class extends G {
+}), ht = G(class extends K {
 	constructor(e) {
-		if (super(e), e.type !== U.PROPERTY && e.type !== U.ATTRIBUTE && e.type !== U.BOOLEAN_ATTRIBUTE) throw Error("The `live` directive is not allowed on child or event bindings");
-		if (!st(e)) throw Error("`live` bindings can only contain a single expression");
+		if (super(e), e.type !== W.PROPERTY && e.type !== W.ATTRIBUTE && e.type !== W.BOOLEAN_ATTRIBUTE) throw Error("The `live` directive is not allowed on child or event bindings");
+		if (!at(e)) throw Error("`live` bindings can only contain a single expression");
 	}
 	render(e) {
 		return e;
 	}
 	update(e, [t]) {
-		if (t === F || t === I) return t;
+		if (t === P || t === F) return t;
 		let n = e.element, r = e.name;
-		if (e.type === U.PROPERTY) {
-			if (t === n[r]) return F;
-		} else if (e.type === U.BOOLEAN_ATTRIBUTE) {
-			if (!!t === n.hasAttribute(r)) return F;
-		} else if (e.type === U.ATTRIBUTE && n.getAttribute(r) === t + "") return F;
-		return ut(e), t;
+		if (e.type === W.PROPERTY) {
+			if (t === n[r]) return P;
+		} else if (e.type === W.BOOLEAN_ATTRIBUTE) {
+			if (!!t === n.hasAttribute(r)) return P;
+		} else if (e.type === W.ATTRIBUTE && n.getAttribute(r) === t + "") return P;
+		return ct(e), t;
 	}
-}), J = (e, t) => {
+}), Y = (e, t) => {
 	let n = e._$AN;
 	if (n === void 0) return !1;
-	for (let e of n) e._$AO?.(t, !1), J(e, t);
+	for (let e of n) e._$AO?.(t, !1), Y(e, t);
 	return !0;
-}, Y = (e) => {
+}, X = (e) => {
 	let t, n;
 	do {
 		if ((t = e._$AM) === void 0) break;
 		n = t._$AN, n.delete(e), e = t;
 	} while (n?.size === 0);
-}, vt = (e) => {
+}, gt = (e) => {
 	for (let t; t = e._$AM; e = t) {
 		let n = t._$AN;
 		if (n === void 0) t._$AN = n = /* @__PURE__ */ new Set();
 		else if (n.has(e)) break;
-		n.add(e), xt(t);
+		n.add(e), yt(t);
 	}
 };
-function yt(e) {
-	this._$AN === void 0 ? this._$AM = e : (Y(this), this._$AM = e, vt(this));
+function _t(e) {
+	this._$AN === void 0 ? this._$AM = e : (X(this), this._$AM = e, gt(this));
 }
-function bt(e, t = !1, n = 0) {
+function vt(e, t = !1, n = 0) {
 	let r = this._$AH, i = this._$AN;
-	if (i !== void 0 && i.size !== 0) if (t) if (Array.isArray(r)) for (let e = n; e < r.length; e++) J(r[e], !1), Y(r[e]);
-	else r != null && (J(r, !1), Y(r));
-	else J(this, e);
+	if (i !== void 0 && i.size !== 0) if (t) if (Array.isArray(r)) for (let e = n; e < r.length; e++) Y(r[e], !1), X(r[e]);
+	else r != null && (Y(r, !1), X(r));
+	else Y(this, e);
 }
-var xt = (e) => {
-	e.type == U.CHILD && (e._$AP ??= bt, e._$AQ ??= yt);
-}, St = class extends G {
+var yt = (e) => {
+	e.type == W.CHILD && (e._$AP ??= vt, e._$AQ ??= _t);
+}, bt = class extends K {
 	constructor() {
 		super(...arguments), this._$AN = void 0;
 	}
 	_$AT(e, t, n) {
-		super._$AT(e, t, n), vt(this), this.isConnected = e._$AU;
+		super._$AT(e, t, n), gt(this), this.isConnected = e._$AU;
 	}
 	_$AO(e, t = !0) {
-		e !== this.isConnected && (this.isConnected = e, e ? this.reconnected?.() : this.disconnected?.()), t && (J(this, e), Y(this));
+		e !== this.isConnected && (this.isConnected = e, e ? this.reconnected?.() : this.disconnected?.()), t && (Y(this, e), X(this));
 	}
 	setValue(e) {
-		if (st(this._$Ct)) this._$Ct._$AI(e, this);
+		if (at(this._$Ct)) this._$Ct._$AI(e, this);
 		else {
 			let t = [...this._$Ct._$AH];
 			t[this._$Ci] = e, this._$Ct._$AI(t, this, 0);
@@ -817,7 +816,7 @@ var xt = (e) => {
 };
 //#endregion
 //#region ui/web-workflow/action-queue.mjs
-function Ct(e = queueMicrotask) {
+function xt(e = queueMicrotask) {
 	let t = /* @__PURE__ */ new Set(), n = !1, r = () => {
 		n = !1;
 		let r = [...t];
@@ -840,7 +839,7 @@ function Ct(e = queueMicrotask) {
 }
 //#endregion
 //#region ui/web-workflow/enabled-action.mjs
-function wt(e, t = (e) => e.enabled !== !1) {
+function St(e, t = (e) => e.enabled !== !1) {
 	return (n, r) => {
 		let i, a = (r) => {
 			t(r) ? i ? i.update?.(r) : i = e(n, r) : (i?.destroy(), i = void 0);
@@ -855,21 +854,21 @@ function wt(e, t = (e) => e.enabled !== !1) {
 }
 //#endregion
 //#region ui/web-workflow/common.mjs
-var Tt = Ct(), X = W(class extends St {
+var Ct = xt(), Z = G(class extends bt {
 	render() {
-		return I;
+		return F;
 	}
 	update(e, [t, n]) {
-		return this.node = e.element, this.factory !== t && (this.clear(), this.factory = t), this.value = n, this.schedule(), I;
+		return this.node = e.element, this.factory !== t && (this.clear(), this.factory = t), this.value = n, this.schedule(), F;
 	}
 	schedule() {
-		Tt.add(this);
+		Ct.add(this);
 	}
 	flush() {
 		!this.isConnected || !this.node.isConnected || (this.binding ? this.binding.update?.(this.value) : this.binding = this.factory(this.node, this.value));
 	}
 	clear() {
-		Tt.delete(this), this.binding?.destroy?.(), this.binding?.dispose?.(), this.binding = null;
+		Ct.delete(this), this.binding?.destroy?.(), this.binding?.dispose?.(), this.binding = null;
 	}
 	disconnected() {
 		this.clear();
@@ -877,29 +876,10 @@ var Tt = Ct(), X = W(class extends St {
 	reconnected() {
 		this.factory && this.schedule();
 	}
-}), Et = (e) => {
+}), wt = (e) => {
 	let t = String(e ?? "");
-	return t.includes("[") ? N`<span ${X(s, { text: t })}></span>` : t;
-}, Z = (e = !1, t = !1) => P`<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${e ? P`<path d="M3 9c4 7 14 7 18 0M5 12l-2 3m6-1-1 3m7-3 1 3m3-5 2 3" />` : P`<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z" /><circle cx="12" cy="12" r="3" />`}${t ? P`<path d="M3 3l18 18" />` : I}</svg>`, Dt = (e) => P`<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true">${e === "free" ? P`<path d="M4 5h15M4 10h8M4 15h17M4 20h11" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" />` : P`<path d=${e === "forward" ? "M5 3v18m-3-3 3 3 3-3" : "M5 21V3m-3 3 3-3 3 3"} fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /><path d=${e === "forward" ? "M11 4h10M11 9h8M11 14h6M11 19h3" : "M11 4h3M11 9h6M11 14h8M11 19h10"} fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" />`}</svg>`, Ot = (e, t) => {
-	let n = t, r, i = 0, a = async (t) => {
-		t.stopPropagation(), clearTimeout(r);
-		let a = ++i, o = n.successFeedback?.(), s = !1;
-		try {
-			s = await (n.copy ? n.copy() : ae(String(n.id)));
-		} catch {}
-		!e.isConnected || a !== i || (e.textContent = s ? "✓" : "✕", e.classList.add("is-done"), e.classList.toggle("is-copied", s), s && o ? (e.dataset.copyFeedback = o, e.classList.remove("copy-feedback"), e.offsetWidth, e.classList.add("copy-feedback")) : (delete e.dataset.copyFeedback, e.classList.remove("copy-feedback")), n.feedbackTitle && (e.title = s ? o || "已複製" : "無法複製"), r = setTimeout(() => {
-			e.isConnected && (e.textContent = "⧉", e.classList.remove("is-done", "is-copied", "copy-feedback"), delete e.dataset.copyFeedback, n.feedbackTitle && (e.title = n.title));
-		}, 1500));
-	};
-	return e.addEventListener("click", a), {
-		update: (e) => {
-			n = e;
-		},
-		destroy() {
-			i++, clearTimeout(r), e.removeEventListener("click", a);
-		}
-	};
-}, kt = (e, t) => N`<button type="button" class="task-id-copy" title=${String(e)} aria-label="複製「${t}」的卡片 ID" ${X(Ot, { id: e })}>⧉</button>`, At = class {
+	return t.includes("[") ? M`<span ${Z(s, { text: t })}></span>` : t;
+}, Q = (e = !1, t = !1) => N`<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${e ? N`<path d="M3 9c4 7 14 7 18 0M5 12l-2 3m6-1-1 3m7-3 1 3m3-5 2 3" />` : N`<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z" /><circle cx="12" cy="12" r="3" />`}${t ? N`<path d="M3 3l18 18" />` : F}</svg>`, Tt = (e) => N`<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true">${e === "free" ? N`<path d="M4 5h15M4 10h8M4 15h17M4 20h11" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" />` : N`<path d=${e === "forward" ? "M5 3v18m-3-3 3 3 3-3" : "M5 21V3m-3 3 3-3 3 3"} fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /><path d=${e === "forward" ? "M11 4h10M11 9h8M11 14h6M11 19h3" : "M11 4h3M11 9h6M11 14h8M11 19h10"} fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" />`}</svg>`, Et = (e, t) => M`<ui-copy-id class="task-title-copy" .value=${String(e)} .label=${t}>${t}</ui-copy-id>`, Dt = class {
 	constructor(e, t = {}, n) {
 		this.target = e, this.props = { ...t }, this.state = {}, this.renderer = n, this.abort = new AbortController(), this.cleanups = [], this.disposed = !1;
 		let r = /* @__PURE__ */ new Set();
@@ -923,7 +903,7 @@ var Tt = Ct(), X = W(class extends St {
 		return Object.assign(this.props, e), this.draw(), this;
 	}
 	draw({ reuseCardContent: e = !1 } = {}) {
-		this.disposed || (e || (this.contentVersion = (this.contentVersion ?? 0) + 1), nt(this.renderer(this.props, this), this.target));
+		this.disposed || (e || (this.contentVersion = (this.contentVersion ?? 0) + 1), V(this.renderer(this.props, this), this.target));
 	}
 	refresh = () => this.draw();
 	on(e, t, n, r = {}) {
@@ -933,9 +913,9 @@ var Tt = Ct(), X = W(class extends St {
 		});
 	}
 	destroy() {
-		this.disposed || (this.disposed = !0, this.abort.abort(), this.cleanups.forEach((e) => typeof e == "function" ? e() : e?.dispose?.()), nt(I, this.target));
+		this.disposed || (this.disposed = !0, this.abort.abort(), this.cleanups.forEach((e) => typeof e == "function" ? e() : e?.dispose?.()), V(F, this.target));
 	}
-}, jt = wt((e, n) => {
+}, Ot = St((e, n) => {
 	let r = n, i = !1, a = new AbortController(), o = /* @__PURE__ */ new Map(), s = () => {
 		let t = r.previewClasses ?? {};
 		for (let n of /* @__PURE__ */ new Set([...o.keys(), ...e.children])) {
@@ -996,9 +976,9 @@ var Tt = Ct(), X = W(class extends St {
 		}
 	};
 });
-function Mt(e = [], t = {}) {
-	return N`<div class="horizontal-capsule-strip ${t.className ?? ""}" role="toolbar" aria-label=${t.ariaLabel ?? "模組"}
-    ${X(jt, {
+function kt(e = [], t = {}) {
+	return M`<div class="horizontal-capsule-strip ${t.className ?? ""}" role="toolbar" aria-label=${t.ariaLabel ?? "模組"}
+    ${Z(Ot, {
 		axis: "horizontal",
 		focusAfterMove: !0,
 		previewClasses: {
@@ -1008,15 +988,15 @@ function Mt(e = [], t = {}) {
 		},
 		onMove: (e) => t.onReorder?.(e.id, e.targetId, e.placement === "after")
 	})}>
-    ${mt(e, (e) => e.id, (e) => N`<button type="button" data-capsule-id=${e.id} data-reorder-capsule=${String(e.sortable !== !1)} data-reorder-id=${e.id} data-reorder-handle data-reorder-sortable=${String(e.sortable !== !1)}
-      class="capsule-button ${e.className ?? ""} ${e.sortable === !1 ? "" : "capsule-sortable"}" aria-pressed=${e.pressed ?? I}
-      aria-label=${e.ariaLabel ?? e.label} aria-keyshortcuts=${e.sortable === !1 ? I : "Alt+ArrowLeft Alt+ArrowRight"} title=${e.title ?? I} ?disabled=${e.disabled} draggable=${e.sortable !== !1}
-      @click=${() => t.onActivate?.(e.id)}><span>${e.label}</span>${e.showDot ? N`<span class="time-risk-dot ${e.dotClass ?? ""}"></span>` : I}${e.showChevron ? N`<span class="time-chevron">›</span>` : I}</button>`)}
+    ${ft(e, (e) => e.id, (e) => M`<button type="button" data-capsule-id=${e.id} data-reorder-capsule=${String(e.sortable !== !1)} data-reorder-id=${e.id} data-reorder-handle data-reorder-sortable=${String(e.sortable !== !1)}
+      class="capsule-button ${e.className ?? ""} ${e.sortable === !1 ? "" : "capsule-sortable"}" aria-pressed=${e.pressed ?? F}
+      aria-label=${e.ariaLabel ?? e.label} aria-keyshortcuts=${e.sortable === !1 ? F : "Alt+ArrowLeft Alt+ArrowRight"} title=${e.title ?? F} ?disabled=${e.disabled} draggable=${e.sortable !== !1}
+      @click=${() => t.onActivate?.(e.id)}><span>${e.label}</span>${e.showDot ? M`<span class="time-risk-dot ${e.dotClass ?? ""}"></span>` : F}${e.showChevron ? M`<span class="time-chevron">›</span>` : F}</button>`)}
   </div>`;
 }
-function Nt(e = {}) {
+function At(e = {}) {
 	let t = new Map((e.categories ?? []).map((e) => [e.id, e])), n = e.order?.length ? e.order : [p, ...t.keys()], r = n.find((e) => !t.has(e)), i = e.defaultLabel ?? "預設";
-	return Mt(n.map((n) => n === r ? {
+	return kt(n.map((n) => n === r ? {
 		id: n,
 		label: i,
 		ariaLabel: `${i}，${e.defaultLit ? "已全選" : "選取全部"}`,
@@ -1038,22 +1018,22 @@ function Nt(e = {}) {
 		onActivate: (t) => t === r ? e.onSelectDefault?.() : e.onSelect?.(t)
 	});
 }
-var Pt = Object.freeze({
+var jt = Object.freeze({
 	icon: !0,
 	label: !1,
 	appearance: "ghost"
 });
-function Ft(e, t, n, r, i, a, o = "both") {
-	return N`<ui-option-picker class="icon-choice" aria-label=${i} .label=${i} .options=${n}
+function Mt(e, t, n, r, i, a, o = "both") {
+	return M`<ui-option-picker class="icon-choice" aria-label=${i} .label=${i} .options=${n}
     .value=${r} .interaction=${o} .delay=${300} orientation="vertical"
-    .triggerDisplay=${Pt} .optionDisplay=${Pt}
+    .triggerDisplay=${jt} .optionDisplay=${jt}
     @choice-request=${(e) => a(e.detail.id)}></ui-option-picker>`;
 }
-function It({ id: e, label: t, expanded: n = !0, toggle: r, visibilityEnabled: i = !1, visible: a = !0, onVisibleChange: o }, s, c) {
-	return N`<div class="card-disclosure-heading ${n ? "" : "card-disclosure-collapsed"}"><button type="button" class="card-disclosure-toggle" aria-expanded=${n} aria-controls=${e} aria-label="${n ? "收合" : "展開"} ${t}" @click=${() => r(!n)}><span aria-hidden="true">${n ? "▼" : "▶"}</span></button>
-  ${i ? N`<button type="button" class="card-visibility-toggle card-toolbar-icon" aria-pressed=${a} aria-label="${a ? "隱藏" : "顯示"} ${t}" @click=${() => o(!a)}>${Z(!a)}</button>` : I}${s}</div><div id=${e} class="card-disclosure-body" ?hidden=${!n}>${c}</div>`;
+function Nt({ id: e, label: t, expanded: n = !0, toggle: r, visibilityEnabled: i = !1, visible: a = !0, onVisibleChange: o }, s, c) {
+	return M`<div class="card-disclosure-heading ${n ? "" : "card-disclosure-collapsed"}"><button type="button" class="card-disclosure-toggle" aria-expanded=${n} aria-controls=${e} aria-label="${n ? "收合" : "展開"} ${t}" @click=${() => r(!n)}><span aria-hidden="true">${n ? "▼" : "▶"}</span></button>
+  ${i ? M`<button type="button" class="card-visibility-toggle card-toolbar-icon" aria-pressed=${a} aria-label="${a ? "隱藏" : "顯示"} ${t}" @click=${() => o(!a)}>${Q(!a)}</button>` : F}${s}</div><div id=${e} class="card-disclosure-body" ?hidden=${!n}>${c}</div>`;
 }
-var Lt = class {
+var Pt = class {
 	constructor(e) {
 		this.view = e, this.order = [], this.pins = [], this.mode = "forward", this.visibility = "disabled", this.hidden = [], this.selected = null, this.expanded = !0, this.overrides = {}, this.key = null, this.linkSelection = ne(ie(location.search));
 		let t = (t) => {
@@ -1088,7 +1068,7 @@ var Lt = class {
 		} catch {}
 		this.view.draw({ reuseCardContent: e });
 	}
-	render(e, t, n = I, r = I) {
+	render(e, t, n = F, r = F) {
 		this.props = e;
 		let i = e.storageKey ?? null;
 		if (this.key !== i && (this.key = i, this.lastPin = null, this.order = [], this.pins = [], this.mode = "forward", this.hidden = [], this.visibility = "disabled", this.selected = null, i)) try {
@@ -1125,9 +1105,9 @@ var Lt = class {
 		let f = this.linkSelection.selectionChanged(this.selected), p = (e) => this.visibility !== "closed" && (this.visibility !== "enabled" || !this.hidden.includes(e.id)), m = (t) => {
 			this.mode !== "free" || e.pinEnabled && (this.pins.includes(t.id) || this.pins.includes(t.targetId)) || (this.order = l(e.allIds ?? o.map((e) => e.id), this.order, o.filter((t) => p(t) && !(e.pinEnabled && this.pins.includes(t.id))).map((e) => e.id), t.id, t.targetId, t.placement === "after"), e.onSelectionChange?.(null), this.selected = t.id, e.onSelectionChange?.(t.id), this.persist(), queueMicrotask(() => [...this.view.target.querySelectorAll("[data-card-id]")].find((e) => e.dataset.cardId === String(t.id))?.focus()));
 		}, h = o.find(p)?.id;
-		return N`<div class="card-list-controls"><div class="card-list-heading"><p class="section-kicker">工作項目</p>${n}</div><div class="card-list-tools">
+		return M`<div class="card-list-controls"><div class="card-list-heading"><p class="section-kicker">工作項目</p>${n}</div><div class="card-list-tools">
       <button type="button" class="card-toolbar-icon" aria-label=${this.expanded ? "全部收合" : "全部展開"} @click=${() => this.all(!this.expanded)}><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d=${this.expanded ? "M5 15l7-7 7 7" : "M5 9l7 7 7-7"} fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" /></svg></button>
-      ${Ft(this.view, "order", [
+      ${Mt(this.view, "order", [
 			"forward",
 			"reverse",
 			"free"
@@ -1138,36 +1118,36 @@ var Lt = class {
 				reverse: "逆排",
 				free: "自由排序（可拖曳）"
 			}[e],
-			icon: Dt(e)
+			icon: Tt(e)
 		})), this.mode, "排序", (e) => {
 			this.mode = e, this.persist(!0);
 		})}
-      ${Ft(this.view, "visibility", [
+      ${Mt(this.view, "visibility", [
 			{
 				id: "enabled",
 				label: "啟用",
-				icon: Z()
+				icon: Q()
 			},
 			{
 				id: "closed",
 				label: "全體關閉",
-				icon: Z(!0)
+				icon: Q(!0)
 			},
 			{
 				id: "disabled",
 				label: "禁用",
-				icon: Z(!1, !0)
+				icon: Q(!1, !0)
 			},
 			{
 				id: "reset",
 				label: "重置",
 				kind: "action",
-				icon: N`<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10a9 9 0 1 1 2 8M3 4v6h6" /></svg>`
+				icon: M`<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10a9 9 0 1 1 2 8M3 4v6h6" /></svg>`
 			}
 		], this.visibility, "可見性", (e) => {
 			e === "reset" ? (this.hidden = [], this.visibility = "enabled") : this.visibility = e, this.persist();
 		}, "picker")}${r}
-    </div></div><div class="arrangeable-cards" ${X(jt, {
+    </div></div><div class="arrangeable-cards" ${Z(Ot, {
 			axis: "vertical",
 			surface: !0,
 			previewClasses: {
@@ -1176,17 +1156,17 @@ var Lt = class {
 			},
 			onMove: m
 		})}>
-    ${mt(o, (e) => e.id, (n, r) => N`<div class="arrangeable-card ${this.selected === n.id ? "card-selected" : ""}" role="group" tabindex="0" data-render-window data-card-id=${n.id} data-reorder-id=${n.id} data-reorder-sortable=${String(this.mode === "free" && !this.pins.includes(n.id))}
-      aria-label=${`${n.title ?? n.question ?? ""}${this.selected === n.id ? "，已選取" : ""}`} data-link-tone=${this.selected === n.id ? f ?? I : I} ?hidden=${!p(n)}
+    ${ft(o, (e) => e.id, (n, r) => M`<div class="arrangeable-card ${this.selected === n.id ? "card-selected" : ""}" role="group" tabindex="0" data-render-window data-card-id=${n.id} data-reorder-id=${n.id} data-reorder-sortable=${String(this.mode === "free" && !this.pins.includes(n.id))}
+      aria-label=${`${n.title ?? n.question ?? ""}${this.selected === n.id ? "，已選取" : ""}`} data-link-tone=${this.selected === n.id ? f ?? F : F} ?hidden=${!p(n)}
       @pointerdown=${(e) => {
 			e.button === 0 && this.select(n.id);
 		}} @focusin=${() => this.select(n.id)} @keydown=${(e) => {
 			e.target === e.currentTarget && ["Enter", " "].includes(e.key) && (e.preventDefault(), this.select(n.id));
 		}}>
-      ${e.pinEnabled ? N`<button type="button" class="card-pin ${this.pins.includes(n.id) ? "is-pinned" : ""} ${n.id === e.nextId ? "is-next" : ""}" aria-label="${this.pins.includes(n.id) ? "取消釘選" : "釘選置頂"}：${n.title}" aria-pressed=${this.pins.includes(n.id)} @click=${() => {
+      ${e.pinEnabled ? M`<button type="button" class="card-pin ${this.pins.includes(n.id) ? "is-pinned" : ""} ${n.id === e.nextId ? "is-next" : ""}" aria-label="${this.pins.includes(n.id) ? "取消釘選" : "釘選置頂"}：${n.title}" aria-pressed=${this.pins.includes(n.id)} @click=${() => {
 			this.pins = this.pins.includes(n.id) ? this.pins.filter((e) => e !== n.id) : u(this.pins, n.id), this.persist();
-		}}><svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M8 3h8l-1 7 4 4v2H5v-2l4-4-1-7Zm4 13v6" fill=${this.pins.includes(n.id) ? "currentColor" : "none"} stroke="currentColor" stroke-width="1.6" /></svg></button>` : I}
-      ${gt([
+		}}><svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M8 3h8l-1 7 4 4v2H5v-2l4-4-1-7Zm4 13v6" fill=${this.pins.includes(n.id) ? "currentColor" : "none"} stroke="currentColor" stroke-width="1.6" /></svg></button>` : F}
+      ${mt([
 			this.view.contentVersion,
 			n,
 			n.id === h,
@@ -1203,10 +1183,10 @@ var Lt = class {
 				this.hidden = e ? this.hidden.filter((e) => e !== n.id) : [...this.hidden, n.id], this.persist();
 			}
 		}))}
-      ${this.mode === "free" ? N`<button type="button" class="replica-card-grip" data-reorder-handle draggable="true" aria-label="移動 ${n.title ?? n.question}">⠿</button>` : I}
-    </div>`)}</div>${e.hiddenCount > 0 ? N`<p class="card-list-hidden"><button type="button" class="card-list-hidden-link" @click=${e.onShowHidden}>…顯示隱藏項目(${e.hiddenCount})</button></p>` : I}`;
+      ${this.mode === "free" ? M`<button type="button" class="replica-card-grip" data-reorder-handle draggable="true" aria-label="移動 ${n.title ?? n.question}">⠿</button>` : F}
+    </div>`)}</div>${e.hiddenCount > 0 ? M`<p class="card-list-hidden"><button type="button" class="card-list-hidden-link" @click=${e.onShowHidden}>…顯示隱藏項目(${e.hiddenCount})</button></p>` : F}`;
 	}
-}, Rt = (e, t) => {
+}, Ft = (e, t) => {
 	let n = t, r = () => n.onClose?.();
 	e.addEventListener("ui-close", r);
 	let i = (t) => {
@@ -1218,23 +1198,23 @@ var Lt = class {
 			e.removeEventListener("ui-close", r), e.close();
 		}
 	};
-}, zt = (e, t) => (n(), N`<ui-dialog id=${e.id ?? I} class=${e.className ?? ""} .heading=${e.title ?? ""} .kicker=${e.kicker ?? ""} .closeLabel=${e.closeLabel ?? ""} .dismissDisabled=${!!e.busy} .dismissOnBackdrop=${e.dismissOnBackdrop ?? !0} ${X(Rt, e)}>${e.open ? t : I}</ui-dialog>`), Bt = (e) => {
+}, It = (e, t) => (n(), M`<ui-dialog id=${e.id ?? F} class=${e.className ?? ""} .heading=${e.title ?? ""} .kicker=${e.kicker ?? ""} .closeLabel=${e.closeLabel ?? ""} .dismissDisabled=${!!e.busy} .dismissOnBackdrop=${e.dismissOnBackdrop ?? !0} ${Z(Ft, e)}>${e.open ? t : F}</ui-dialog>`), Lt = (e) => {
 	let t = globalThis.taskprogressTheme.control;
 	return e.append(t), { destroy() {
 		t.parentNode === e && t.remove();
 	} };
-}, Vt = () => N`<span class="replica-theme" ${X(Bt, null)}></span>`, Ht = (e, t) => {
-	let n = me(t);
+}, Rt = () => M`<span class="replica-theme" ${Z(Lt, null)}></span>`, zt = (e, t) => {
+	let n = pe(t);
 	return e.append(n), {
 		update(e) {
 			if (t.href === e.href && t.title === e.title) return;
 			t = e;
-			let r = me(e);
+			let r = pe(e);
 			n.replaceWith(r), n = r;
 		},
 		destroy: () => n.remove()
 	};
-}, Ut = (e) => !e || globalThis.chrome?.webview ? I : N`<span class="replica-back" ${X(Ht, e)}></span>`, Wt = (e, t) => {
+}, Bt = (e) => !e || globalThis.chrome?.webview ? F : M`<span class="replica-back" ${Z(zt, e)}></span>`, Vt = (e, t) => {
 	let n = t;
 	return {
 		update: (e) => {
@@ -1243,25 +1223,25 @@ var Lt = class {
 		destroy: () => n.onOpenChange?.(!1)
 	};
 };
-function Gt(e) {
-	return n(), N`<ui-edit-history .history=${e.history} .disabled=${!!e.disabled} .targetId=${e.targetId ?? e.id ?? ""}
+function Ht(e) {
+	return n(), M`<ui-edit-history .history=${e.history} .disabled=${!!e.disabled} .targetId=${e.targetId ?? e.id ?? ""}
     .retentionLabel=${"紀錄只保留在目前頁面，重新整理或離開後會清除。復原與重做仍依編輯器的保存方式處理。"}
     @history-request=${(t) => {
 		e.disabled || (t.detail.action === "undo" && e.history.canUndo ? e.onUndo?.() : t.detail.action === "redo" && e.history.canRedo ? e.onRedo?.() : t.detail.action === "clearHistory" && e.history.canClear && e.onClear?.());
 	}} @history-open-change=${(t) => e.onOpenChange?.(t.detail.open)}
-    ${X(Wt, e)}></ui-edit-history>`;
+    ${Z(Vt, e)}></ui-edit-history>`;
 }
 //#endregion
 //#region ui/web-workflow/decisions.mjs
-var Kt = await he("decisions"), qt = new URLSearchParams(location.search), Q;
+var Ut = await me("decisions"), Wt = new URLSearchParams(location.search), Gt;
 try {
-	Q = ce("decisions", { params: qt });
+	Gt = se("decisions", { params: Wt });
 } catch (e) {
-	Q = { load: () => Promise.reject(e) };
+	Gt = { load: () => Promise.reject(e) };
 }
-var $ = new class extends At {
+var $ = new class extends Dt {
 	constructor(e, t = {}) {
-		super(e, {}, (e, t) => t.template()), this.transport = t.transport ?? Q, this.editable = t.editable ?? Kt.editable, this.loadGeneration = 0, this.cards = new Lt(this), this.message = "載入中…", this.queued = /* @__PURE__ */ new Set(), this.failed = /* @__PURE__ */ new Set(), this.sourceOverrides = {}, this.sourceRequest = 0, this.selection = g(null, ["pending", "decided"], void 0, ["pending"]), this.linkRequest = ie(location.search), this.linked = this.linkRequest?.id ?? null, this.cleanups.push(de()), this.cleanups.push(ue({
+		super(e, {}, (e, t) => t.template()), this.transport = t.transport ?? Gt, this.editable = t.editable ?? Ut.editable, this.loadGeneration = 0, this.cards = new Pt(this), this.message = "載入中…", this.queued = /* @__PURE__ */ new Set(), this.failed = /* @__PURE__ */ new Set(), this.sourceOverrides = {}, this.sourceRequest = 0, this.selection = g(null, ["pending", "decided"], void 0, ["pending"]), this.linkRequest = ie(location.search), this.linked = this.linkRequest?.id ?? null, this.cleanups.push(ue()), this.cleanups.push(le({
 			canRefresh: () => this.canRefresh(),
 			reload: () => this.refreshSource()
 		})), this.on(window, "beforeunload", (e) => {
@@ -1300,7 +1280,7 @@ var $ = new class extends At {
 				this.summary = e, this.message = "", this.draw();
 				return;
 			}
-			this.session = oe(e), this.data = this.session.view(), this.filterKey = `taskprogress.filters.decisions.v1:${e.document_key}`, this.selection = g(this.filterKey, ["pending", "decided"], void 0, ["pending"]), this.linked = re(this.linkRequest, this.decisions().map((e) => e.id)), this.message = "", this.draw();
+			this.session = ae(e), this.data = this.session.view(), this.filterKey = `taskprogress.filters.decisions.v1:${e.document_key}`, this.selection = g(this.filterKey, ["pending", "decided"], void 0, ["pending"]), this.linked = re(this.linkRequest, this.decisions().map((e) => e.id)), this.message = "", this.draw();
 		} catch (e) {
 			t() && (this.message = e.message, this.draw());
 		}
@@ -1313,7 +1293,7 @@ var $ = new class extends At {
 			let t = await this.transport.load();
 			if (this.disposed || this.session !== e) return;
 			if (!t.ok) throw Error(t.error?.message ?? "無法載入決策文件");
-			t.files ? this.summary = t : this.session ? (t.revision !== this.data.snapshot.revision || !se(t.sources, this.data.snapshot.sources)) && (this.session.merge(t), this.sourceOverrides = {}, this.sync()) : (this.session = oe(t), this.sync());
+			t.files ? this.summary = t : this.session ? (t.revision !== this.data.snapshot.revision || !oe(t.sources, this.data.snapshot.sources)) && (this.session.merge(t), this.sourceOverrides = {}, this.sync()) : (this.session = ae(t), this.sync());
 		} catch (e) {
 			this.disposed || console.warn("Decision foreground refresh failed:", e);
 		} finally {
@@ -1407,39 +1387,39 @@ var $ = new class extends At {
 		this.draw();
 	}
 	visible() {
-		return le(this.decisions().filter((e) => this.held ? this.held.includes(e.id) : String(e.id) === this.linked || this.selection.selected.has(e.status)));
+		return ce(this.decisions().filter((e) => this.held ? this.held.includes(e.id) : String(e.id) === this.linked || this.selection.selected.has(e.status)));
 	}
 	canClear() {
 		return !this.disposed && this.editable && this.data && !this.data.pending && !this.data.busy && !this.refreshing && (this.decisions().some((e) => e.answer) || this.data.dirty);
 	}
 	card(e, t) {
 		let n = this.data, r = Object.hasOwn(n.drafts, e.id) ? n.drafts[e.id] : null, i = r ? r.choice : e.answer?.kind === "other" ? "__other" : e.answer?.option_id ?? "", a = !this.editable || this.refreshing || n.pending?.operation === "clear_all" || !!n.pending && !n.busy || r?.conflict, o = this.sourceOverrides[e.id] ?? n.snapshot.sources?.[e.id];
-		return N`<article class="checklist-item decision-card ${t.visibilityEnabled ? "decision-has-visibility" : ""}">${It({
+		return M`<article class="checklist-item decision-card ${t.visibilityEnabled ? "decision-has-visibility" : ""}">${Nt({
 			...t,
 			id: `body-${e.id}`,
 			label: e.question
-		}, N`<header class="checklist-item-header">${kt(e.id, e.question)}<h2 id="decision-${e.id}" tabindex="-1">${e.question}</h2><span class="checklist-status">${e.status === "pending" ? "待決策" : "已決策"}</span></header>`, N`<div class="decision-content">${e.source_ref ? N`<div class="decision-source">${o?.status === "available" ? N`<button data-decision-control type="button" class="source-link" @click=${() => this.openSource(e.id)}>來源：${e.source_ref}</button>` : N`<span>${o?.message ?? "來源尚未檢查，請更新並重啟服務"}</span><small>${e.source_ref}</small>${o ? N`<button data-decision-control type="button" class="source-link" @click=${() => this.openSource(e.id)}>重新檢查來源</button>` : I}`}</div>` : I}
-      ${e.context || e.recommendation ? N`<div class="decision-description">${e.context ? N`<p class="decision-text">${Et(e.context)}</p>` : I}${e.recommendation ? N`<p>建議：${e.options.find((t) => t.id === e.recommendation.option_id)?.label} — ${Et(e.recommendation.reason)}</p>` : I}</div>` : I}
-      <fieldset ?disabled=${a}><legend class="decision-visually-hidden">${e.question}</legend>${mt(e.options, (e) => e.id, (t, n) => N`<label class="decision-option"><input type="radio" name="answer-${e.id}" .checked=${_t(i === t.id)} @click=${() => this.choose(e.id, t.id)}><span>${String.fromCharCode(65 + n)}　${t.label}${t.id === e.recommendation?.option_id ? "（建議）" : ""}${t.description ? N` <small>${Et(t.description)}</small>` : I}</span></label>`)}
-      ${e.allow_other ? N`<label class="decision-option"><input type="radio" name="answer-${e.id}" .checked=${_t(i === "__other")} @click=${() => {
+		}, M`<header class="checklist-item-header"><h2 id="decision-${e.id}" tabindex="-1">${Et(e.id, e.question)}</h2><span class="checklist-status">${e.status === "pending" ? "待決策" : "已決策"}</span></header>`, M`<div class="decision-content">${e.source_ref ? M`<div class="decision-source">${o?.status === "available" ? M`<button data-decision-control type="button" class="source-link" @click=${() => this.openSource(e.id)}>來源：${e.source_ref}</button>` : M`<span>${o?.message ?? "來源尚未檢查，請更新並重啟服務"}</span><small>${e.source_ref}</small>${o ? M`<button data-decision-control type="button" class="source-link" @click=${() => this.openSource(e.id)}>重新檢查來源</button>` : F}`}</div>` : F}
+      ${e.context || e.recommendation ? M`<div class="decision-description">${e.context ? M`<p class="decision-text">${wt(e.context)}</p>` : F}${e.recommendation ? M`<p>建議：${e.options.find((t) => t.id === e.recommendation.option_id)?.label} — ${wt(e.recommendation.reason)}</p>` : F}</div>` : F}
+      <fieldset ?disabled=${a}><legend class="decision-visually-hidden">${e.question}</legend>${ft(e.options, (e) => e.id, (t, n) => M`<label class="decision-option"><input type="radio" name="answer-${e.id}" .checked=${ht(i === t.id)} @click=${() => this.choose(e.id, t.id)}><span>${String.fromCharCode(65 + n)}　${t.label}${t.id === e.recommendation?.option_id ? "（建議）" : ""}${t.description ? M` <small>${wt(t.description)}</small>` : F}</span></label>`)}
+      ${e.allow_other ? M`<label class="decision-option"><input type="radio" name="answer-${e.id}" .checked=${ht(i === "__other")} @click=${() => {
 			this.choose(e.id, "__other"), queueMicrotask(() => document.getElementById(`other-${e.id}`)?.focus());
 		}}><span>其他</span></label><div class="decision-other"><label for="other-${e.id}">其他方案與理由</label><textarea id="other-${e.id}" ?readonly=${i !== "__other" && this.editingOther !== e.id} @focus=${() => {
 			this.editingOther = e.id, this.draw();
 		}} @blur=${() => {
 			this.editingOther = null, this.draw();
-		}} .value=${_t(r ? r.other : e.answer?.kind === "other" ? e.answer.text : "")} @input=${(t) => this.changeOther(e.id, t.currentTarget.value)}></textarea></div>` : I}</fieldset>
-      ${r?.conflict ? N`<p role="alert">此題已變更，原草稿保留：${r.choice} ${r.other}</p><button data-decision-control ?disabled=${this.refreshing || !!n.pending} @click=${() => {
+		}} .value=${ht(r ? r.other : e.answer?.kind === "other" ? e.answer.text : "")} @input=${(t) => this.changeOther(e.id, t.currentTarget.value)}></textarea></div>` : F}</fieldset>
+      ${r?.conflict ? M`<p role="alert">此題已變更，原草稿保留：${r.choice} ${r.other}</p><button data-decision-control ?disabled=${this.refreshing || !!n.pending} @click=${() => {
 			this.session.rebase(e.id), this.sync(), this.confirm(e.id);
-		}}>已核對最新題目，套用選擇</button>` : I}
-      <div class="decision-actions">${this.failed.has(e.id) && r && !r.conflict && !n.pending ? N`<button data-decision-control ?disabled=${this.refreshing} @click=${() => this.confirm(e.id)}>重試保存</button>` : I}</div></div>`)}</article>`;
+		}}>已核對最新題目，套用選擇</button>` : F}
+      <div class="decision-actions">${this.failed.has(e.id) && r && !r.conflict && !n.pending ? M`<button data-decision-control ?disabled=${this.refreshing} @click=${() => this.confirm(e.id)}>重試保存</button>` : F}</div></div>`)}</article>`;
 	}
 	template() {
 		let e = this.data, t = this.decisions(), n = this.visible();
-		return N`<main class="checklist-shell decisions-shell"><header class="checklist-header"><div><div class="replica-title-row">${Ut(this.owner)}<h1>決策項目</h1></div></div>${Vt()}</header>
-      ${this.message ? N`<p role="status">${this.message}</p>` : I}
-      ${this.summary ? N`<p>待決策 ${this.summary.pending}${this.summary.incomplete ? "（統計不完整）" : ""}</p>${this.summary.files.map((e) => N`<article class="checklist-item"><a href="?scope=${this.summary.scope_id}&task=${e.task_id}">${e.task_id}</a><p>${e.error ?? `待決策 ${e.pending}／全部 ${e.total}`}</p></article>`)}${this.summary.files.length ? I : N`<p>尚未建立決策文件。</p>`}` : e ? N`
+		return M`<main class="checklist-shell decisions-shell"><header class="checklist-header"><div><div class="replica-title-row">${Bt(this.owner)}<h1>決策項目</h1></div></div>${Rt()}</header>
+      ${this.message ? M`<p role="status">${this.message}</p>` : F}
+      ${this.summary ? M`<p>待決策 ${this.summary.pending}${this.summary.incomplete ? "（統計不完整）" : ""}</p>${this.summary.files.map((e) => M`<article class="checklist-item"><a href="?scope=${this.summary.scope_id}&task=${e.task_id}">${e.task_id}</a><p>${e.error ?? `待決策 ${e.pending}／全部 ${e.total}`}</p></article>`)}${this.summary.files.length ? F : M`<p>尚未建立決策文件。</p>`}` : e ? M`
       <div class="decision-overview"><p>待決策 ${t.filter((e) => e.status === "pending").length}／全部 ${t.length}</p><p>選項可隨時修改；選取「其他」後，文字更動會自動保存，空白則為待決策。未選取時可點擊文字欄編輯本頁草稿。保存失敗會保留修改供重試。</p></div>
-      <div class="decision-controls">${Gt({
+      <div class="decision-controls">${Ht({
 			id: "decision-history",
 			targetId: e.snapshot.document_key,
 			history: e.history,
@@ -1459,7 +1439,7 @@ var $ = new class extends At {
 		}}>下一項待決策</button><button data-decision-control type="button" ?disabled=${!this.canClear()} @click=${() => {
 			this.clearOpen = !0, this.draw();
 		}}>清除全部答案</button></div>
-      ${e.pending && !e.busy ? N`<button data-decision-control type="button" @click=${() => this.send(null, null, !0)}>${e.pending.operation === "clear_all" ? "查詢／重送清除操作" : "查詢／重送保存操作"}</button>` : I}${n.length ? I : N`<p>目前沒有符合條件的決策項目。</p>`}
+      ${e.pending && !e.busy ? M`<button data-decision-control type="button" @click=${() => this.send(null, null, !0)}>${e.pending.operation === "clear_all" ? "查詢／重送清除操作" : "查詢／重送保存操作"}</button>` : F}${n.length ? F : M`<p>目前沒有符合條件的決策項目。</p>`}
       ${this.cards.render({
 			items: n,
 			allIds: t.map((e) => e.id),
@@ -1469,7 +1449,7 @@ var $ = new class extends At {
 			onSelectionChange: (e) => this.selectCard(e),
 			hiddenCount: t.length - n.length,
 			onShowHidden: () => this.select(m(["pending", "decided"]))
-		}, (e, t) => this.card(e, t), Nt({
+		}, (e, t) => this.card(e, t), At({
 			categories: [{
 				id: "pending",
 				label: "待決策"
@@ -1488,23 +1468,23 @@ var $ = new class extends At {
 			onSelect: (e) => this.select(te(this.selection, e)),
 			onSelectDefault: () => this.select(ee(this.selection))
 		}))}
-      ${Object.entries(e.drafts).filter(([e]) => !t.some((t) => t.id === e)).map(([e, t]) => N`<p role="alert">已移除題目 ${e} 的原草稿：${t.choice} ${t.other}</p><button data-decision-control @click=${() => {
+      ${Object.entries(e.drafts).filter(([e]) => !t.some((t) => t.id === e)).map(([e, t]) => M`<p role="alert">已移除題目 ${e} 的原草稿：${t.choice} ${t.other}</p><button data-decision-control @click=${() => {
 			this.session.discard(e), this.sync();
-		}}>關閉已移除題目提示</button>`)}` : I}</main>
-      ${zt({
+		}}>關閉已移除題目提示</button>`)}` : F}</main>
+      ${It({
 			open: !!this.sourceOpen,
 			title: "決策來源",
 			onClose: () => {
 				this.sourceOpen = !1, this.sourceRequest++, this.draw();
 			}
-		}, N`${this.sourcePreview ? N`<p class="decision-text">${this.sourcePreview.reference}</p>` : I}${this.sourceMessage ? N`<p role="status">${this.sourceMessage}</p>` : I}${this.sourcePreview?.status === "available" ? N`<pre class="source-content" aria-label="來源文件內容">${this.sourcePreview.content.replace(/\r\n/g, "\n").split("\n").map((e, t) => N`<span id="source-line-${t + 1}" class=${t + 1 === this.sourcePreview.line ? "source-target" : ""}>${e || " "}${"\n"}</span>`)}</pre>` : I}`)}
-      ${zt({
+		}, M`${this.sourcePreview ? M`<p class="decision-text">${this.sourcePreview.reference}</p>` : F}${this.sourceMessage ? M`<p role="status">${this.sourceMessage}</p>` : F}${this.sourcePreview?.status === "available" ? M`<pre class="source-content" aria-label="來源文件內容">${this.sourcePreview.content.replace(/\r\n/g, "\n").split("\n").map((e, t) => M`<span id="source-line-${t + 1}" class=${t + 1 === this.sourcePreview.line ? "source-target" : ""}>${e || " "}${"\n"}</span>`)}</pre>` : F}`)}
+      ${It({
 			open: !!this.clearOpen,
 			title: "清除全部決策答案？",
 			onClose: () => {
 				this.clearOpen = !1, this.draw();
 			}
-		}, N`<p>將清除目前文件「${e?.snapshot.document.task_id}」全部 ${t.length} 題的答案、「其他」理由及尚未保存的輸入，包含篩選後隱藏的題目。所有題目回到待決策，題目與選項保留。</p><p>清除成功後可在本頁按「復原」還原；重新整理或離開頁面後，歷史不會保留。</p><div class="theme-dialog-actions"><button data-decision-control type="button" class="secondary-button" @click=${() => {
+		}, M`<p>將清除目前文件「${e?.snapshot.document.task_id}」全部 ${t.length} 題的答案、「其他」理由及尚未保存的輸入，包含篩選後隱藏的題目。所有題目回到待決策，題目與選項保留。</p><p>清除成功後可在本頁按「復原」還原；重新整理或離開頁面後，歷史不會保留。</p><div class="theme-dialog-actions"><button data-decision-control type="button" class="secondary-button" @click=${() => {
 			this.clearOpen = !1, this.draw();
 		}}>取消</button><button data-decision-control type="button" class="primary-button" ?disabled=${!this.canClear()} @click=${() => {
 			this.clearOpen = !1, this.send(null, "clear_all");
@@ -1514,7 +1494,7 @@ var $ = new class extends At {
 $.draw(), await $.load(), globalThis.taskprogressWebUi = {
 	kind: "decisions",
 	app: $,
-	editable: Kt.editable
+	editable: Ut.editable
 }, addEventListener("pagehide", (e) => {
 	e.persisted || $.destroy();
 });
