@@ -879,13 +879,13 @@ function renderFilters() {
     reorderable: true,
     onSelect: (status) => {
       state.selection = toggleTag(state.selection, status);
-      saveFilterSelection(state.filterStorageKey, state.selection);
+      saveFilterSelection(state.filterStorageKey, state.selection, statusOrderStorage);
       renderFilters();
       renderTasks();
     },
     onSelectDefault: () => {
       state.selection = toggleDefault(state.selection);
-      saveFilterSelection(state.filterStorageKey, state.selection);
+      saveFilterSelection(state.filterStorageKey, state.selection, statusOrderStorage);
       renderFilters();
       renderTasks();
     },
@@ -1082,7 +1082,7 @@ function hiddenEntryCount(allTasks, shownTasks) {
 
 function showHiddenEntries() {
   state.selection = createFilterSelection(state.statusOrder.filter((id) => id !== DEFAULT_CAPSULE_ID));
-  saveFilterSelection(state.filterStorageKey, state.selection);
+  saveFilterSelection(state.filterStorageKey, state.selection, statusOrderStorage);
   state.searchQuery = "";
   renderFilters();
   renderTasks();
@@ -1633,7 +1633,7 @@ async function main() {
     state.report = report;
     const filterKey = `taskprogress.filters.report.v1:${new URL(request.reportSource, location.href).href}:${report.scope_id}:${report.report_id}`;
     if (state.filterStorageKey !== filterKey) {
-      state.selection = loadFilterSelection(filterKey, supportedStatuses);
+      state.selection = loadFilterSelection(filterKey, supportedStatuses, statusOrderStorage);
       state.filterStorageKey = filterKey;
     }
     state.persistedReport = structuredClone(report);
