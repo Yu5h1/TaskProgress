@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-11-07T06:08:54.716833+00:00",
+  "updated_at": "2026-11-07T06:32:52.801820+00:00",
   "tasks": [
     {
       "id": "agent-workflow",
@@ -3911,8 +3911,25 @@
           ]
         },
         {
-          "title": "檢討跨平台接續工作為何仍需複製長指示：已有 TaskProgress，平台不能互相通知時，使用者應只需對 session 說「請繼續 A」「請驗收 A」，agent 即依文件定位範圍、worktree、交付與驗收結果。啟動條件：CharacterBuilder A、B、C、D、E、F 全部完成後；此前僅記錄，不展開檢討或改流程。",
+          "priority": 2,
+          "title": "落實跨平台文件式接續：讓專案入口唯一定位「請繼續 A／請驗收 A」，沿用 Report／checklist 保存範圍、交付與返工；依 Documentation/CharacterBuilder-Parallel-Workflow-Review.md 的接續情境驗證，不依賴平台互相通知。",
+          "id": "document-driven-session-continuation",
           "status": "planned",
+          "activity": [
+            {
+              "event": "created",
+              "actor": "codex",
+              "at": "2026-11-07T06:32:52.801820+00:00",
+              "session": "接手角色建造器工作",
+              "session_id": "01a1b422-9a30-77c1-81e3-e6b4104ccaab"
+            }
+          ]
+        }
+      ],
+      "completed_items": [
+        {
+          "title": "完成 CharacterBuilder A–F 跨平台工作方式檢討：分派未先落入正式項目、唯讀調查缺固定交付路由、分支交付與主線驗收階段混淆；證據及落實建議見 Documentation/CharacterBuilder-Parallel-Workflow-Review.md。",
+          "status": "done",
           "priority": 2,
           "id": "character-builder-abcdef-workflow-retrospective",
           "activity": [
@@ -3922,11 +3939,17 @@
               "at": "2026-11-07T06:08:54.716833+00:00",
               "session": "接手角色建造器工作",
               "session_id": "01a1b422-9a30-77c1-81e3-e6b4104ccaab"
+            },
+            {
+              "event": "done",
+              "actor": "codex",
+              "at": "2026-11-07T06:32:52.801820+00:00",
+              "session": "接手角色建造器工作",
+              "session_id": "01a1b422-9a30-77c1-81e3-e6b4104ccaab"
             }
           ]
         }
-      ],
-      "completed_items": []
+      ]
     },
     {
       "id": "web-ui-replacement",

@@ -6,6 +6,8 @@
 >
 > 與其他文件的關係：綁定見 [DocumentBindingPlan](DocumentBindingPlan.md)；認領、釋放與他驗見 [AcceptanceChainPlan](AcceptanceChainPlan.md)；Next 見 [NextMarkerPlan](NextMarkerPlan.md)。
 
+CharacterBuilder A–F 於 2026-11-07 這輪的實際協作問題與改進建議，見 [跨平台協作檢討](CharacterBuilder-Parallel-Workflow-Review.md)。
+
 ## 系統階層與關係
 
 ```text
