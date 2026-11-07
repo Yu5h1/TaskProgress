@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-11-07T07:54:53.233042+00:00",
+  "updated_at": "2026-11-07T08:15:53.012826+00:00",
   "tasks": [
     {
       "id": "agent-workflow",
@@ -3912,9 +3912,9 @@
         },
         {
           "priority": 2,
-          "title": "試行既有 TaskProgress 的最小接續修正：選已有本地 Report 及有效綁定的兩個現成項目，沿用文件分派、原項目返工、分派者收件合併與獨立他驗，記錄必要的人工啟動及轉貼次數；不新增服務、不重建流程。方案見 Documentation/CharacterBuilder-Parallel-Workflow-Review.md。",
+          "title": "試行既有 TaskProgress 的最小接續修正：本輪先驗證原項目文件交接、收件與資訊修正可省掉的手動轉貼；完整兩項平行、實作返工、合併及外部平台喚醒保留未驗證，不重做已完成項目。指示與固定交付見 Documentation/CharacterBuilder-Parallel-Workflow-Review.md〈文件接續試行〉。",
           "id": "document-driven-session-continuation",
-          "status": "planned",
+          "status": "in_progress",
           "activity": [
             {
               "event": "created",
@@ -3934,6 +3934,13 @@
               "event": "updated",
               "actor": "codex",
               "at": "2026-11-07T06:54:38.776782+00:00",
+              "session": "接手角色建造器工作",
+              "session_id": "01a1b422-9a30-77c1-81e3-e6b4104ccaab"
+            },
+            {
+              "event": "started",
+              "actor": "codex",
+              "at": "2026-11-07T08:15:53.012826+00:00",
               "session": "接手角色建造器工作",
               "session_id": "01a1b422-9a30-77c1-81e3-e6b4104ccaab"
             }
