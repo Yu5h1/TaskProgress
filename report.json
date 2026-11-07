@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-11-04T18:27:22.855626+00:00",
+  "updated_at": "2026-11-07T06:08:54.716833+00:00",
   "tasks": [
     {
       "id": "agent-workflow",
@@ -3907,6 +3907,21 @@
               "actor": "claude",
               "at": "2026-11-02T05:07:10.085584+00:00",
               "session_id": "8f1fda5e-f37d-4ad0-8fdf-26ad0c1f98d1"
+            }
+          ]
+        },
+        {
+          "title": "檢討跨平台接續工作為何仍需複製長指示：已有 TaskProgress，平台不能互相通知時，使用者應只需對 session 說「請繼續 A」「請驗收 A」，agent 即依文件定位範圍、worktree、交付與驗收結果。啟動條件：CharacterBuilder A、B、C、D、E、F 全部完成後；此前僅記錄，不展開檢討或改流程。",
+          "status": "planned",
+          "priority": 2,
+          "id": "character-builder-abcdef-workflow-retrospective",
+          "activity": [
+            {
+              "event": "created",
+              "actor": "codex",
+              "at": "2026-11-07T06:08:54.716833+00:00",
+              "session": "接手角色建造器工作",
+              "session_id": "01a1b422-9a30-77c1-81e3-e6b4104ccaab"
             }
           ]
         }
