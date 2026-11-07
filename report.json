@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-11-07T06:45:58.410867+00:00",
+  "updated_at": "2026-11-07T06:54:38.776782+00:00",
   "tasks": [
     {
       "id": "agent-workflow",
@@ -3912,7 +3912,7 @@
         },
         {
           "priority": 2,
-          "title": "評估並試行更好的跨平台開發流程：共用 TaskProgress 指示、文件與方向，釐清協調者、成果收件及 session 通知／啟動能力；比較既有工具與整合方案，以減少人工轉貼及接續次數驗證，不預設固定短指令。見 Documentation/CharacterBuilder-Parallel-Workflow-Review.md。",
+          "title": "試行既有 TaskProgress 的最小接續修正：選已有本地 Report 及有效綁定的兩個現成項目，沿用文件分派、原項目返工、分派者收件合併與獨立他驗，記錄必要的人工啟動及轉貼次數；不新增服務、不重建流程。方案見 Documentation/CharacterBuilder-Parallel-Workflow-Review.md。",
           "id": "document-driven-session-continuation",
           "status": "planned",
           "activity": [
@@ -3929,13 +3929,20 @@
               "at": "2026-11-07T06:45:58.410867+00:00",
               "session": "接手角色建造器工作",
               "session_id": "01a1b422-9a30-77c1-81e3-e6b4104ccaab"
+            },
+            {
+              "event": "updated",
+              "actor": "codex",
+              "at": "2026-11-07T06:54:38.776782+00:00",
+              "session": "接手角色建造器工作",
+              "session_id": "01a1b422-9a30-77c1-81e3-e6b4104ccaab"
             }
           ]
         }
       ],
       "completed_items": [
         {
-          "title": "完成 CharacterBuilder A–F 跨平台工作方式檢討：分派未先落入正式項目、唯讀調查缺固定交付路由、分支交付與主線驗收階段混淆；證據及落實建議見 Documentation/CharacterBuilder-Parallel-Workflow-Review.md。",
+          "title": "核對 CharacterBuilder A–F 與既有流程：區分未落實安排、一般委派接續規則不足及平台啟動限制；釐清分支預檢、合併、獨立他驗與主線驗證的證據範圍。最小方案見 Documentation/CharacterBuilder-Parallel-Workflow-Review.md。",
           "status": "done",
           "priority": 2,
           "id": "character-builder-abcdef-workflow-retrospective",
@@ -3951,6 +3958,13 @@
               "event": "done",
               "actor": "codex",
               "at": "2026-11-07T06:32:52.801820+00:00",
+              "session": "接手角色建造器工作",
+              "session_id": "01a1b422-9a30-77c1-81e3-e6b4104ccaab"
+            },
+            {
+              "event": "updated",
+              "actor": "codex",
+              "at": "2026-11-07T06:54:38.776782+00:00",
               "session": "接手角色建造器工作",
               "session_id": "01a1b422-9a30-77c1-81e3-e6b4104ccaab"
             }

@@ -1,77 +1,86 @@
 # CharacterBuilder A–F 跨平台協作檢討
 
 ```text
-跨平台協作
-├─ 共用工作依據：TaskProgress → 目標、項目、相依及負責文件
-├─ 工作執行：各平台 agent → 讀取指示、隔離修改、留下交付與驗證
-├─ 接續協調：協調者 → 收件、安排驗收、合併及下一階段
-└─ 通知與啟動：依平台能力接續 session（整合方式待評估）
-   └─ 使用者：決定方向、處理真正需要人的決策
+既有 TaskProgress
+├─ 任務卡／項目 → 目標、相依、文件連結與分派紀錄
+├─ checklist → 同一項目的指示、執行、返工及他驗證據
+├─ 分派者 → 認領、分組、收件、合併與主線紀錄
+└─ 平台 session → 實際執行與獨立驗收
+   └─ 無接續通道時，由使用者啟動；內容仍從文件取得
 ```
 
-## 問題與目標
+## 問題與範圍
 
-2026-11-07，使用者要求在 CharacterBuilder A–F 全部通過後檢討：已有 TaskProgress 與連到文件的超連結，agent 應能看見同一份指示與開發方向，為何仍須由使用者反覆傳遞訊息？目標是找出更好的開發流程，減少人工分派、收件與接續協調。「請繼續 A」「請驗收 A」只是使用者舉例，不能直接定為流程或驗收標準。
+使用者於 2026-11-07 要求核對這輪 A–F：哪些是分派者沒有照既有流程做、哪些是規則不足、哪些是平台限制，並提出最小改善。目標是讓 agent 讀取共同的指示與開發方向，減少使用者轉貼與接續協調。「請繼續 A」只是例子，不是固定命令或成功標準。
 
-本文件記錄這輪檢討的證據、根因及落實建議。它不新增任務狀態來源，也不將建議冒充為已修改的共用規則。所屬卡片為 [同一 repo 的多 agent 平行執行](WorktreeReportPlan.md)；進度由該卡片的 Report 項目承擔。
+本紀錄屬於[同一 repo 的多 agent 平行執行](WorktreeReportPlan.md)卡片。檢討沿用 `character-builder-abcdef-workflow-retrospective`，後續試行沿用 `document-driven-session-continuation`；進度由 Report 擁有。本輪只核對並提出方案，不新增服務、不啟動任務隊列、不修改共用規則，也不追補虛構的 A–F 認領或他驗紀錄。
 
-## 本輪證據
+## 核對依據與適用邊界
 
-| 現象 | 可核對的證據 | 造成的負擔 |
+| 既有來源 | 已有要求 |
+|---|---|
+| [task-progress：Verification and its checklist](../.agents/skills/task-progress/SKILL.md#verification-and-its-checklist) | 執行前提交 checklist 與綁定，指示與可觀察條件放在同一項目 |
+| [agent-executable-items：Where an item lives](../../.agents/skills/agent-executable-items/SKILL.md#where-an-item-lives)、[One writer on the main line, one per worktree](../../.agents/skills/agent-executable-items/SKILL.md#one-writer-on-the-main-line-one-per-worktree) | 沿用工作所屬任務卡，接手者經 Report 讀項目及 checklist，不讀轉貼摘要；主線只有分派者寫入 |
+| [task-progress：Queues and sessions](../.agents/skills/task-progress/SKILL.md#queues-and-sessions) | 依 Paths／Needs 分組，分派前認領；分派者依相依合併、重建並記錄，再進獨立他驗 |
+| [task-progress：Execute](../.agents/skills/task-progress/SKILL.md#execute-run-and-the-instruction-form)、[Independent acceptance](../.agents/skills/task-progress/SKILL.md#independent-acceptance) | 返工沿用同項目；改做後舊的通過結果失效；建立、執行或修改條件的上下文不能擔任他驗 |
+| [agent-work-route：Work alongside another agent](../../.agents/skills/agent-work-route/SKILL.md#work-alongside-another-agent)、[Keep work a person takes part in on the main line](../../.agents/skills/agent-work-route/SKILL.md#keep-work-a-person-takes-part-in-on-the-main-line) | 一般開發也要按可合併範圍分工；分派者負責主線；使用者參與的畫面驗證在主線進行 |
+
+完整 task-progress 流程以明確 invocation 啟動。這輪聊天沒有該 invocation，所以「沒有完整綁定」應判為**沒有採用已有機制及一般分派接續不足**，不能一概說成違反已啟動的 task-progress 隊列。一般開發仍受 agent-work-route 與共享紀錄責任約束；未啟動隊列也不能讓交付只存在聊天。
+
+2026-11-07 核對結果：
+
+- `report get` 的 `worktree-report-decisions`、`parallel-rules` 均為 `derived_state: done`；不能因儲存值仍為 planned 就重做已完成的規則。
+- CharacterBuilder 沒有本地 `report.json` 或 `checklists/`，handoff 將進度指向 data-driven 的 `limb-system-foundation`。該 Report 中未找到這輪 A–F 的對應分支或交付檔參照，六個分支也沒有 checklist 交付；檢討文字不能取代正式的項目紀錄。
+- data-driven 該卡另有既存規範項目，不能把它們當作這輪 A–F，更不能為了補歷史而複製建立 A–F。
+- 跨 repo 的 checklist 寫入限制已由既有 `document-binding/cross-scope-checklist-recorder` 追蹤，見 [handoff](../handoff.md)。這次不另開相同問題、不擴充此機制；試行先選有本地 Report 與有效綁定的既有項目。
+
+## A–F 對照
+
+下表是 2026-11-07 的歷史核對，CharacterBuilder 主線為 `f142cdd`。聊天技術檢查及使用者對 C／E 的確認仍是本輪證據；沒有把它們追認為 CLI 已記錄的獨立他驗。
+
+| 項目 | 實際證據 | 判定與責任 |
 |---|---|---|
-| A–F 的完整工作指示主要存在聊天 code block | 本聊天最初分派與兩輪返工指示；CharacterBuilder 的 handoff 將進度路由到 data-driven Report，但本輪分派沒有先在那裡建立 A–F 的對應項目與清單 | 使用者成為指示內容的搬運者 |
-| 已有共同文件，仍反覆重貼規則與路徑 | 各次 A–F 指示重複列 AgentsRule、handoff、worktree 及交付要求 | 每次接續都像重新交辦，無法只傳一個訊號 |
-| C 的唯讀調查起初只要求以回覆交付 | 主線第一次查無 C 的分支或報告；後續才建立 `cb-triangle-investigation` 的 `Documentation/Triangle-Quadrangulation-Investigation.md`（`d5571ec`） | 完成訊號無法直接連到成果，使用者被要求再次提供位置 |
-| A 的文件修正與主線畫面驗收沒有連成明確的階段 | `cb-narrow-panels` 的 `acc5a85` 已修正文檔，但直到本輪合入 `7664b6b`，8090 才實際載入該版本 | 「驗收通過」「已合併」「主線驗證」混在聊天中，需要使用者另行催辦 |
-| B、E 的驗收回饋又被包成新的完整指示 | B 在 `b5a1422` 補上產物重建比對；E 在 `7d59192` 校正歷史日期 | 缺少固定的待修項目入口與同一項目的接續紀錄 |
+| A：窄面板 | `5bf146d` 實作、`acc5a85` 文件修正；合併 `7664b6b` 後才完成 8090 畫面驗證，`f142cdd` 記錄 | **我未接完主線階段。** 已有主線驗證規則，仍留待使用者催辦；不是平台不能操作畫面 |
+| B：裙子來源 | `2973bfa` 交付，`b5a1422` 補 GLB／描述檔逐位元組比較；分支另提交 bin 下產物 | **我未建立原項目的返工入口。** 修正要求靠另一份聊天指示；單一產物主線重建已有規則，未在分派中落實，不能歸咎工作者 |
+| C：三角面調查 | 起初查無固定交付，後以 `d5571ec` 提交 `Documentation/Triangle-Quadrangulation-Investigation.md` | **我未先指定可收件成果。** 唯讀不代表沒有交付文件；後來要求使用者再提供內容，是前面分派與路由不足的代價 |
+| D：凍結 GLB 測試 | `38c9314` 僅交付 `skin/frozen-glb-roundtrip.test.mjs`，先前定向測試 5/5 | 隔離與測試有成果；**共同缺口是未接 Report／checklist 的接續紀錄**，沒有證據顯示需要新增測試流程 |
+| E：skin 文件 | `7c868f6` 交付，`7d59192` 修正歷史驗收日期；使用者確認 C／E 已驗收 | **我未讓返工回到同一文件入口。** 日期是一般正確性問題；反覆要求轉貼是協作問題，兩者不應混為平台限制 |
+| F：輸出保留測試 | `186ecff` 僅交付 `authoring/output-preservation.test.mjs`，先前定向測試 6/6 | 隔離與測試有成果；與 D 相同，**未接正式接續紀錄**，不能因此說實作本身未完成 |
 
-檢討的啟動依據是本輪 A 主線畫面驗收、先前 B／D／F 的定向驗收，以及使用者對 C／E 的驗收確認。A 的證據與限制由 CharacterBuilder 的 Bone-Mirror、Smoothing-Group-Panel 擁有。本文件不表示所有其他分支也已合入主線。
+另有兩項共同回報缺失：
 
-## 根因
+1. 當時只有 A 已合入主線；B～F 的分支尖端均非主線祖先。我用「A～F 全部通過」概括了分支檢查、使用者確認、合併與主線驗證，應改報各自證據範圍。這次不重做測試、不自行合併其他分支。
+2. 本 chat 參與分派及條件整理，不能把自己的檢查稱為 task-progress 的獨立他驗。已有規則足夠清楚；問題是我沒有區分技術預檢與正式他驗。本次分類不推翻使用者確認，也不虛構其他平台已符合獨立性。
 
-1. **沒有先把分派變成可接續的項目。** TaskProgress 已有 Report、checklist、認領及相依機制，這次卻先產生聊天指示，未建立可由 A–F 唯一定位的文件入口。這是分派方式的缺失，不能歸因於缺少通知 API。
-2. **把共用內容、通知與啟動混在一起。** 文件能保存內容；通知讓接收者知道有變更；啟動讓已停止的 session 再執行。文件更新本身不保證後兩者發生，也不能因此把兩者直接交回使用者。
-3. **沒有固定所有交付的收件位置。** 唯讀調查也會產生需要他驗的成果。C 的「只回覆、不落檔」讓主線無法按文件收件。
-4. **沒有用階段區分分支交付與主線驗證。** 隔離測試、文件審查、合併及主線畫面驗收各有完成條件。A 的畫面驗收必須等主線載入正確版本，不能靠 worktree 中的樣式或文件推定完成。
-5. **沒有按實際能力安排接續責任。** 共用 `task-progress` 的〈Queues and sessions〉已定義分派者及主線紀錄，但本輪沒有確認各平台能否通知、啟動或恢復 session，便讓使用者逐次接續。技能中 Codex 的「Starting sessions：Treat as unavailable until documented」也不能取代當前宿主工具的能力確認。user-level entry 的明確 invocation 邊界仍須保留。
+## 三類原因
 
-## 通知能力核對（2026-11-07）
-
-| 層次 | 本輪可確認的能力 | 限制 |
+| 類別 | 核對結論 | 最小處理 |
 |---|---|---|
-| 本 Codex 宿主 | 提供 `send_message_to_thread`、`read_thread`、`wait_threads`，可對既有支援的 chat 接續及查閱 | 傳訊需要使用者明確授權；本輪僅核對工具，沒有傳訊 |
-| Codex 與外部平台 | 本環境沒有連到 Claude／Antigravity 的傳訊工具 | 不能由 Codex 內部工具推論跨供應商互通；外部平台的 API 與 session 恢復能力須另查 |
-| TaskProgress | CLI、Report、文件連結、認領／相依及平行流程提供共用工作依據 | 已核對 CLI 目錄、技能與 handoff；尚無已交付的跨平台 session 通知／喚醒入口；目前聊天附件清單也沒有相關原型 |
+| 我沒有落實已有安排 | 分派先變成聊天長文；交付位置、同項目返工及主線收尾沒接上；不同完成階段被混稱通過 | 直接使用既有卡、項目、checklist、分派者及獨立他驗規則；不新增制度 |
+| 規則接續不足 | 一般自然語言分派不啟動完整隊列，但 agent-work-route 的一般委派段沒有明確要求先留下唯一接續入口；跨平台人工啟動後如何回既有項目收件也未寫清 | 建議僅在一般委派規則補「先落檔再交辦」，在 Queues 的無啟動能力分支補「文件收件與人工喚醒邊界」；本輪先提出文字，不改共用技能 |
+| 能力紀錄不足 | Agent specifics 仍把 Codex 啟動 session 視為未記載；本宿主實際提供 chat 管理工具 | 更新時以當前宿主工具及授權條件為據，不把某平台一律寫成不能，也不推定外部平台能互通 |
+| 平台限制 | 本宿主可查閱／等待既有 Codex chat，傳訊需使用者明確授權；目前工具沒有連到 Claude／Antigravity 的傳訊入口 | 未授權時不發訊；沒有外部通道時保留人工啟動，內容與成果仍落文件。工具存在不等於本輪已實測互通 |
+| 既有產品限制 | worktree 自動追蹤仍屬 WorktreeReportPlan 後續階段；跨 repo acceptance 寫入另有既有問題項目 | 活躍分派者直接讀已知 worktree／提交；試行避開跨 repo 寫入限制，不新建掃描或通知服務 |
 
-Codex 的 [App Server](https://learn.chatgpt.com/docs/app-server) 提供開始／恢復 thread、啟動 turn 與串流事件的介面；[MCP](https://learn.chatgpt.com/docs/extend/mcp?surface=cli) 可連接外部工具。它們是建立整合的介面，並不表示這個專案已接好跨平台通道，或任意外部平台都能恢復既有 session。
+## 最小試行方案
 
-## 改善方向（討論草稿）
+沿用既有工作安排，先在一個已有本地 Report、有效 checklist 綁定的 scope 選兩個現成且範圍不重疊的項目。這是後續試行的建議，不是本輪已啟動執行。
 
-以下是待比較、試行的方案；使用者尚未選定通知技術或自動化程度。
+| 時點 | 沿用的動作 | 能接續到哪裡、何時需要使用者 |
+|---|---|---|
+| 開始前 | 分派者核對原項目的目標、文件、Paths／Needs、固定成果位置、相依及驗收資格，主線先記分派；沿用穩定項目參照 | agent 可完成資料核對與分組。若要啟動整個 task-progress 隊列，仍需既有明確 invocation；不用每項重新交代內容 |
+| 工作者啟動 | 從 Report 讀原項目及指示，只改自己的 worktree；依原位置提交成果與定向驗證 | 同一份已授權工作中的實作與自測由 agent 接續。沒有平台啟動通道時，由使用者開啟工作 chat，交項目參照即可 |
+| 收件／返工 | 活躍分派者直接讀已知 worktree、提交與 checklist；分支預檢失敗回原項目，指向未滿足的原條件 | 分派者可自行查找交付，不要求使用者轉貼回報；若分派者已結束而外部平台不能喚醒它，仍需使用者喚醒一次，可合併一批通知 |
+| 合併／他驗 | 分支預檢後由分派者依依賴合併、主線重建並記錄，再交獨立上下文他驗；失敗回同項目修正，重新驗證 | 在已授權且 session 活躍時可接續既有操作；缺少獨立上下文或啟動通道時，使用者仍須啟動驗收 chat；不讓建立者自己驗過 |
+| 主線收尾 | 完成真正頁面／產物驗證，按原項目記錄結果與下一步 | 可量測的畫面與行為由 agent 驗；產品取捨、真正需要人工的檢查、接管衝突及既有安全閘門才交使用者 |
 
-### 分派前先寫入既有文件
+這個方案能消除完整指示重貼、成果全文轉貼、每次返工重建任務及另催主線收尾；它不能在無接續通道時消除外部 chat 的人工啟動，也不能保證兩個已停止的 session 自動互相喚醒。共享文件提供可接續狀態，活躍的執行上下文才會讀它並做下一步。
 
-先建立或沿用正式項目與 checklist／負責文件，再交給其他 session。文件帶上目標、Paths、Needs、驗收條件、worktree／分支、固定交付位置及目前階段；詳細設計仍由原負責文件擁有。跨 worktree 必須明確指向同一個權威工作來源，不能以分支上過期的 report 副本代替最新方向。任務定位沿用既有穩定參照，命令字樣留到流程試行後再決定。
+### 建議補充的最短文字
 
-### 由協調者接續，使用者處理方向與例外
+以下是待試行驗證的規則建議，不是已生效的共享規則：
 
-建議先試行一個協調者負責收件與安排下一階段。工作者把成果寫到固定位置；協調者在獲授權的執行期間讀取結果，安排返工或獨立驗收。可直接傳訊的平台用其原生工具；缺少通道的平台先明示仍需人工啟動的邊界，再評估整合。新一輪工作由使用者授權，之後的一般接續應盡量在該範圍內完成。已結束的 chat 不會因共享文件改變就自然醒來。
+- **agent-work-route／Delegate：**「委派前，先把範圍、固定交付位置與下一步放入既有項目的權威文件，交接只傳該項目的參照。未啟動 task-progress 隊列的一般委派也要有可接續入口；不要以聊天摘要作唯一指示。」
+- **task-progress／Queues：**「無法啟動外部 session 時，使用者只負責必要的啟動。分派者在活躍期間直接讀原項目的交付並收件；返工留在原項目。結束前明列等待哪個 session 被啟動，不把轉貼內容列為使用者工作。宿主能力依可用工具與使用者授權確認。」
 
-先以既有工具與文件驗證此責任分配，再決定是否需要常駐監看與跨平台連接器；不先假定要增加服務，也不把反覆人工傳訊當成目標流程。
-
-### 完成與返工回到原項目
-
-每項工作都有固定交付檔或文件中的固定章節，唯讀調查也一樣。完成回報只需項目、提交與驗證結果；返工寫回原項目的未通過條件，由原 session 讀取，不再產生另一份長 prompt 作為唯一入口。
-
-### 分派者負責收件與主線階段
-
-分支交付、定向驗收、合併及主線畫面驗收分開記錄。工作已足以進入下一階段時，分派者依既有授權接續處理，不等待使用者再次搬運相同指示。共用服務、port 與正式 Report 仍由唯一負責者協調。
-
-## 後續評估與驗證
-
-1. 比較「協調者使用既有平台工具」與「新增跨平台接續整合」：能否啟動／恢復 session、是否支援完成事件、需多少人工介入，以及失聯／重複通知時如何處理。
-2. 選兩個實際使用的平台試行完整一輪：分派 → 交付 → 退回修正 → 獨立驗收 → 合併 → 主線驗證。記錄使用者傳訊及轉貼內容的次數，不以某一句固定指令是否能解析作為成功標準。
-3. 確認方向變更能從同一個文件來源讀到、完成訊號能追到提交與驗證、工作未被重複執行、待人工啟動與真正的產品決策可以區分。每項人工介入都應有具體原因。
-4. 流程試行成立後，再將已證實的接續規則寫入 `agent-work-route`、`task-progress` 的〈Queues and sessions〉及必要的 Report 路由。通知技術另依其實際責任確定擁有者，沿用 Report／checklist 的進度來源。
-
-本輪僅修正檢討目標與提出比較方式；尚未建立通知通道、啟動監看服務或修改共用技能。
+試行沿用 `document-driven-session-continuation`，不另建協調卡或狀態檔。以一輪實際的「分派、交付、一次返工、他驗、主線驗證」核對：使用者不轉貼完整指示或成果；每次人工啟動皆能說明缺少哪個通道；所有 agent 能從原項目找到同一份指示、成果與未完成條件。尚未完成試行前，不把這兩段升格成已證實的通用流程。
