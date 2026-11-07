@@ -102,6 +102,8 @@ Web package 目前 private，不能假設可從公開 npm 安裝。建議消費�
 
 此證據涵蓋 vendor 原始交付。既有 `tests/web-ui-build.test.mjs` 載入時會呼叫 `buildCandidate()`，本分派不執行它；正式 Browser／Desktop 的 NOTICE 重建與核對由分派者收件後處理。本輪沒有重建共用產物、發布或啟停服務。
 
+主線收件後，分派者執行 `npm run ui:build`，正式來源產物 identity 為 `739cfe9f8302ac08553e8a3393acb919e94a2828d6e9a2ce20fcae5126763c96`。`viewer/assets/web/NOTICE.txt` 與兩份 `src/TaskProgress.Cli/{checklist,decisions}-ui/NOTICE.txt` 均與 vendor NOTICE bytes 相同；三份相鄰 `ui/index.js.LEGAL.txt` 與修正前提交逐位元組相同。重建僅形成上述三份 NOTICE 的 Git 差異，未啟停服務。正式 `Build/win-x64` 發布後的副本核對由後續發布紀錄承擔。
+
 ## 分段替換與完成條件
 
 ### 先行 Browser 並行試點
