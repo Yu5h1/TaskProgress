@@ -144,7 +144,7 @@
 - **已重現**：在正式 `Build/win-x64/task-progress.exe decisions request --file tests/fixtures/decision-example.decisions` 只送 `load`；無 BOM 時 `ok:true`，加 UTF-8 BOM 時 `ok:false`，錯誤為 `0xEF is an invalid start of a value`。不修改 fixture 或實際決策。
 - **修改範圍**：`src/TaskProgress.Cli/DecisionCommand.cs`、`tests/TaskProgress.Cli.Tests/DecisionTests.cs`、`Documentation/DecisionItemsUsage.md`；必要時可加入本問題的定向真實 CLI 測試，不改命令目錄或公共資料格式。
 - **驗證**：同一有效請求含／不含前導 BOM 都成功，包含中文字仍正確；無效 JSON 仍拒絕；load 不修改決策檔。執行既有 `--decisions-only` 定向測試及獨立建置 EXE 的真實 stdin 往返。
-- **建置與資源**：隔離輸出使用 repo 下 `bin/Validation/TaskProgressDecisions/Debug`；只使用既有鎖定依賴。不得啟動、停止或發布共用服務；正式 EXE 發布由分派者在收件後依既有規則處理。
+- **建置與資源**：隔離輸出使用 repo 下 `bin/Validation/TaskProgressDecisions/Debug`；只使用既有鎖定依賴。正式 single-file EXE 的執行環境依 [Report CLI usage〈CLI 執行環境〉](ReportCliUsage.md#cli-執行環境)，在 sandbox 內的解壓逾時不當成 parser 結論；以目前普通使用者在 sandbox 外執行同一命令（Codex：`require_escalated`），不改用管理員或修改安全設定。不得啟動、停止或發布共用服務；正式 EXE 發布由分派者在收件後依既有規則處理。
 - **固定交付**：以上程式／測試／使用文件的同一個提交；實測命令、結果與限制記入使用文件的本輪證據章節，分派者直接從提交收件。
 
 ### Web 交付的 MIT NOTICE
