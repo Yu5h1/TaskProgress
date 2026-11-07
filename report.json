@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-11-07T06:32:52.801820+00:00",
+  "updated_at": "2026-11-07T06:45:58.410867+00:00",
   "tasks": [
     {
       "id": "agent-workflow",
@@ -3912,7 +3912,7 @@
         },
         {
           "priority": 2,
-          "title": "落實跨平台文件式接續：讓專案入口唯一定位「請繼續 A／請驗收 A」，沿用 Report／checklist 保存範圍、交付與返工；依 Documentation/CharacterBuilder-Parallel-Workflow-Review.md 的接續情境驗證，不依賴平台互相通知。",
+          "title": "評估並試行更好的跨平台開發流程：共用 TaskProgress 指示、文件與方向，釐清協調者、成果收件及 session 通知／啟動能力；比較既有工具與整合方案，以減少人工轉貼及接續次數驗證，不預設固定短指令。見 Documentation/CharacterBuilder-Parallel-Workflow-Review.md。",
           "id": "document-driven-session-continuation",
           "status": "planned",
           "activity": [
@@ -3920,6 +3920,13 @@
               "event": "created",
               "actor": "codex",
               "at": "2026-11-07T06:32:52.801820+00:00",
+              "session": "接手角色建造器工作",
+              "session_id": "01a1b422-9a30-77c1-81e3-e6b4104ccaab"
+            },
+            {
+              "event": "updated",
+              "actor": "codex",
+              "at": "2026-11-07T06:45:58.410867+00:00",
               "session": "接手角色建造器工作",
               "session_id": "01a1b422-9a30-77c1-81e3-e6b4104ccaab"
             }
