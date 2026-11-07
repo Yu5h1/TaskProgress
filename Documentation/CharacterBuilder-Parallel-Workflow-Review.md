@@ -130,3 +130,32 @@
 兩輪共發生 1 次工具委派、1 次工具接續及 2 次直接收件；明確 invocation 之後，使用者額外轉貼指示、成果或補錄內容均為 0 次。這證實在本次 Codex 宿主內，可以省掉「重貼長指示」「人工轉寄成果」「把補入的內容再貼回讀取者」三種搬運。父 agent 實際接收並保存結果，不以聊天裡的完成宣告取代文件。
 
 本輪證據僅到「項目參照 → 文件解析 → 直接收件 → 原文件補錄 → 同參照重讀」。補錄後重讀不是開發實作返工；工具接續不是外部平台通知。完整兩項平行、實作返工、分支合併、正式獨立他驗、Claude／Antigravity 通訊及停止 chat 的喚醒都沒有在本輪驗證，原試行項目不因此標成完成。
+
+## 兩項實作試行（2026-11-07）
+
+使用者要求接續挑選兩個既有未完成項目，實際試行實作、收件與驗收，不重開已完成項目、不新增服務。以下兩項在選取時皆為 `not_started` 且沒有 checklist 綁定，沿用 task-progress 的無綁定項目流程；由獨立上下文審查交付，不虛構 CLI 的正式他驗狀態，也不另建任務卡或取代項目。
+
+權威 Report 為 `C:\Users\Yu5h1\Dev\VSProjects\Yu5h1Lib\TaskProgress\report.json`。工作者在各自 worktree 實作，只讀取主線 Report、不修改任何 report.json；分派者唯一負責主線 Report、收件、合併及共用產物重建。交接只傳 repo、原項目參照、所分派動作與權限邊界。
+
+### 決策 CLI 的 stdin BOM
+
+- **項目**：`task-progress › decision-example › problem-decisions-stdin-bom`。
+- **原要求與來源**：該項目記錄 PowerShell／UTF-8 BOM 輸入會失敗；現行入口為 `src/TaskProgress.Cli/DecisionCommand.cs`，使用方式由 `Documentation/DecisionItemsUsage.md` 擁有。
+- **已重現**：在正式 `Build/win-x64/task-progress.exe decisions request --file tests/fixtures/decision-example.decisions` 只送 `load`；無 BOM 時 `ok:true`，加 UTF-8 BOM 時 `ok:false`，錯誤為 `0xEF is an invalid start of a value`。不修改 fixture 或實際決策。
+- **修改範圍**：`src/TaskProgress.Cli/DecisionCommand.cs`、`tests/TaskProgress.Cli.Tests/DecisionTests.cs`、`Documentation/DecisionItemsUsage.md`；必要時可加入本問題的定向真實 CLI 測試，不改命令目錄或公共資料格式。
+- **驗證**：同一有效請求含／不含前導 BOM 都成功，包含中文字仍正確；無效 JSON 仍拒絕；load 不修改決策檔。執行既有 `--decisions-only` 定向測試及獨立建置 EXE 的真實 stdin 往返。
+- **建置與資源**：隔離輸出使用 worktree 下 `bin/Validation/TaskProgressDecisions/Debug`；只使用既有鎖定依賴。不得啟動、停止或發布共用服務；正式 EXE 發布由分派者在收件後依既有規則處理。
+- **固定交付**：以上程式／測試／使用文件的同一個提交；實測命令、結果與限制記入使用文件的本輪證據章節，分派者直接從提交收件。
+
+### Web 交付的 MIT NOTICE
+
+- **項目**：`task-progress › web-ui-replacement › web-ui-notice-mit`。
+- **原要求與來源**：`vendor/web-ui/NOTICE.txt` 仍稱 Web 未宣告授權；Web 的已提交 `LICENSE` 與 `package.json` 已為 MIT，採用紀錄由 `Documentation/WebUiReplacementPlan.md` 擁有。
+- **修改範圍**：`vendor/web-ui/NOTICE.txt`、`vendor/web-ui/manifest.json` 的 NOTICE 指紋，以及 `Documentation/WebUiReplacementPlan.md` 的本輪證據；不改 Web 程式、LEGAL 檔或其他 vendor 內容。
+- **驗證**：NOTICE 正確保留 Web 的 MIT 授權與既有來源出處；manifest 與 NOTICE bytes 相符，其他交付指紋及第三方 LEGAL bytes 不變。使用既有 `verifyVendor` 機制核對，不以另寫一套比對代替。
+- **建置與資源**：Web 工作樹有其他人的未提交修改，只讀已提交的授權檔，不重匯入其 dist。工作分支不重建單一共用產物，正式 Browser／Desktop NOTICE 的重建與核對由分派者合併後負責，不新增服務。
+- **固定交付**：以上原始 NOTICE、manifest 與採用紀錄的同一個提交，附既有驗證結果；分派者直接從提交收件。
+
+### 收件、審查與介入紀錄
+
+分派者在此記錄本輪實際的委派／收件、提交、測試、獨立審查與必要人工介入。若預檢或審查有真實缺口，先寫回原項目的固定交付文件，再以原參照請工作者處理；不要求使用者轉貼缺陷或成果。無綁定項目的結案仍由原項目狀態承擔，正式 tagged acceptance 與外部平台喚醒另留未驗證。

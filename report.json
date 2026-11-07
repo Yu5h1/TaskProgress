@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-11-07T08:50:13.245658+00:00",
+  "updated_at": "2026-11-07T09:14:54.657729+00:00",
   "tasks": [
     {
       "id": "agent-workflow",
@@ -1853,8 +1853,8 @@
         },
         {
           "id": "problem-decisions-stdin-bom",
-          "title": "問題：decisions request 從 stdin 讀入時沒去掉 BOM，PowerShell 管線送入會失敗（'0xEF' is an invalid start of a value）；report apply 的同一問題已在 5b56ef2 修正",
-          "status": "planned",
+          "title": "問題：decisions request 的 stdin 前導 UTF-8 BOM 使有效請求失敗；本輪修正與定向驗證的範圍、固定交付見 Documentation/CharacterBuilder-Parallel-Workflow-Review.md〈決策 CLI 的 stdin BOM〉。",
+          "status": "in_progress",
           "priority": 2,
           "activity": [
             {
@@ -1863,6 +1863,13 @@
               "at": "2026-10-23T17:01:47.716453+00:00",
               "session": "worktree-report 目標對齊",
               "session_id": "8db3d9df-8d4e-461e-96c2-37ca30b33c56"
+            },
+            {
+              "event": "started",
+              "actor": "codex",
+              "at": "2026-11-07T09:14:54.657729+00:00",
+              "session": "dispatch:document-continuation-trial",
+              "session_id": "01a1b422-9a30-77c1-81e3-e6b4104ccaab"
             }
           ]
         }
@@ -4112,15 +4119,22 @@
         },
         {
           "id": "web-ui-notice-mit",
-          "title": "問題：vendor/web-ui/NOTICE.txt 仍寫 Web 未宣告授權；Web 已於 2026-10-31 改為 MIT（LICENSE、package.json），交付 NOTICE 與建置輸出需改寫並保留第三方 LEGAL.txt",
+          "title": "問題：Web 已宣告 MIT，但消費端 NOTICE 仍稱未宣告授權；修正 NOTICE 與指紋、保留第三方 LEGAL，分派與固定交付見 Documentation/CharacterBuilder-Parallel-Workflow-Review.md〈Web 交付的 MIT NOTICE〉。",
           "priority": 2,
-          "status": "planned",
+          "status": "in_progress",
           "activity": [
             {
               "event": "created",
               "actor": "claude",
               "at": "2026-10-31T15:57:35.243631+00:00",
               "session_id": "b5803ea8-4c1f-4ea5-94ae-8f9570172059"
+            },
+            {
+              "event": "started",
+              "actor": "codex",
+              "at": "2026-11-07T09:14:54.657729+00:00",
+              "session": "dispatch:document-continuation-trial",
+              "session_id": "01a1b422-9a30-77c1-81e3-e6b4104ccaab"
             }
           ]
         }
