@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-11-07T08:20:37.628716+00:00",
+  "updated_at": "2026-11-07T08:22:46.476997+00:00",
   "tasks": [
     {
       "id": "agent-workflow",
@@ -3912,7 +3912,7 @@
         },
         {
           "priority": 2,
-          "title": "試行既有 TaskProgress 的最小接續修正：已取得不繼承聊天之唯讀上下文的文件交接與直接收件證據；本輪仍進行中，完整兩項平行、實作返工、合併、正式他驗及外部平台喚醒未驗證。指示、證據與下一步見 Documentation/CharacterBuilder-Parallel-Workflow-Review.md〈文件接續試行〉。",
+          "title": "試行既有 TaskProgress 的最小接續修正：已有兩輪唯讀證據證實原項目文件解析、直接收件及同參照重讀可省轉貼；完整兩項平行、實作返工、合併、正式他驗及外部平台喚醒仍未驗證，保留未完成。證據與下一步見 Documentation/CharacterBuilder-Parallel-Workflow-Review.md〈文件接續試行〉。",
           "id": "document-driven-session-continuation",
           "status": "in_progress",
           "activity": [
@@ -3920,13 +3920,6 @@
               "event": "created",
               "actor": "codex",
               "at": "2026-11-07T06:32:52.801820+00:00",
-              "session": "接手角色建造器工作",
-              "session_id": "01a1b422-9a30-77c1-81e3-e6b4104ccaab"
-            },
-            {
-              "event": "updated",
-              "actor": "codex",
-              "at": "2026-11-07T06:45:58.410867+00:00",
               "session": "接手角色建造器工作",
               "session_id": "01a1b422-9a30-77c1-81e3-e6b4104ccaab"
             },
@@ -3948,6 +3941,13 @@
               "event": "updated",
               "actor": "codex",
               "at": "2026-11-07T08:20:37.628716+00:00",
+              "session": "接手角色建造器工作",
+              "session_id": "01a1b422-9a30-77c1-81e3-e6b4104ccaab"
+            },
+            {
+              "event": "updated",
+              "actor": "codex",
+              "at": "2026-11-07T08:22:46.476997+00:00",
               "session": "接手角色建造器工作",
               "session_id": "01a1b422-9a30-77c1-81e3-e6b4104ccaab"
             }
