@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-11-07T06:54:38.776782+00:00",
+  "updated_at": "2026-11-07T07:54:53.233042+00:00",
   "tasks": [
     {
       "id": "agent-workflow",
@@ -3942,7 +3942,7 @@
       ],
       "completed_items": [
         {
-          "title": "核對 CharacterBuilder A–F 與既有流程：區分未落實安排、一般委派接續規則不足及平台啟動限制；釐清分支預檢、合併、獨立他驗與主線驗證的證據範圍。最小方案見 Documentation/CharacterBuilder-Parallel-Workflow-Review.md。",
+          "title": "核對 CharacterBuilder A–F 與既有流程：區分未落實安排、接續規則不足及平台限制。後續 B～F 已合入主線；整合驗證與備份清理的文件路由見 Documentation/CharacterBuilder-Parallel-Workflow-Review.md。",
           "status": "done",
           "priority": 2,
           "id": "character-builder-abcdef-workflow-retrospective",
@@ -3965,6 +3965,13 @@
               "event": "updated",
               "actor": "codex",
               "at": "2026-11-07T06:54:38.776782+00:00",
+              "session": "接手角色建造器工作",
+              "session_id": "01a1b422-9a30-77c1-81e3-e6b4104ccaab"
+            },
+            {
+              "event": "updated",
+              "actor": "codex",
+              "at": "2026-11-07T07:54:53.233042+00:00",
               "session": "接手角色建造器工作",
               "session_id": "01a1b422-9a30-77c1-81e3-e6b4104ccaab"
             }

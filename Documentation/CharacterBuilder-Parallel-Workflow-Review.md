@@ -34,6 +34,10 @@
 - data-driven 該卡另有既存規範項目，不能把它們當作這輪 A–F，更不能為了補歷史而複製建立 A–F。
 - 跨 repo 的 checklist 寫入限制已由既有 `document-binding/cross-scope-checklist-recorder` 追蹤，見 [handoff](../handoff.md)。這次不另開相同問題、不擴充此機制；試行先選有本地 Report 與有效綁定的既有項目。
 
+## 後續主線整合（2026-11-07）
+
+使用者另行授權合併 B～F 後，CharacterBuilder 主線已在 `ff3f880` 包含全部六個分支；76 項定向測試與三種 GLB 命令驗證通過。合併提交、驗證範圍、需備份的兩個 repo 及六個保留 worktree，由 [CharacterBuilder 整合與備份紀錄](file:///W:/Yu5h1Lib/CharacterBuilder/Documentation/Parallel-Work-Integration.md) 擁有。此處保留下面 `f142cdd` 時點的歷史核對，不再把那時尚未合併的狀態當成目前狀態。
+
 ## A–F 對照
 
 下表是 2026-11-07 的歷史核對，CharacterBuilder 主線為 `f142cdd`。聊天技術檢查及使用者對 C／E 的確認仍是本輪證據；沒有把它們追認為 CLI 已記錄的獨立他驗。
