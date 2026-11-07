@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-11-07T09:32:55.891614+00:00",
+  "updated_at": "2026-11-07T09:47:21.095738+00:00",
   "tasks": [
     {
       "id": "agent-workflow",
@@ -1850,11 +1850,13 @@
             "scope_id": "task-progress",
             "task": "decision-example"
           }
-        },
+        }
+      ],
+      "completed_items": [
         {
           "id": "problem-decisions-stdin-bom",
-          "title": "問題：decisions stdin BOM 修正已提交並通過獨立複驗；正式 EXE 發布後核對待完成。指示與交付見 Documentation/CharacterBuilder-Parallel-Workflow-Review.md〈決策 CLI 的 stdin BOM〉。",
-          "status": "blocked",
+          "title": "問題：decisions stdin 的前導 UTF-8 BOM 已修正；正式 EXE 的 BOM／中文往返、拒絕無效 JSON 與檔案保留驗證通過。證據見 Documentation/DecisionItemsUsage.md〈stdin BOM 修正驗證〉。",
+          "status": "done",
           "priority": 2,
           "activity": [
             {
@@ -1877,12 +1879,17 @@
               "at": "2026-11-07T09:32:55.891614+00:00",
               "session": "dispatch:document-continuation-trial",
               "session_id": "01a1b422-9a30-77c1-81e3-e6b4104ccaab"
+            },
+            {
+              "event": "done",
+              "actor": "codex",
+              "at": "2026-11-07T09:47:21.095738+00:00",
+              "session": "dispatch:document-continuation-trial",
+              "session_id": "01a1b422-9a30-77c1-81e3-e6b4104ccaab"
             }
-          ],
-          "blocked_reason": "實作及獨立複驗已通過；等待使用者授權既有 Publish.cmd --nopause --restart，更新正式 EXE 並重啟原 TaskProgress，之後驗證正式輸入。"
+          ]
         }
-      ],
-      "completed_items": []
+      ]
     },
     {
       "id": "viewer-core",
@@ -3934,7 +3941,7 @@
         },
         {
           "priority": 2,
-          "title": "文件接續試行已有兩個原項目的實作、直接收件與獨立技術審查證據，待正式發布授權後複驗；worktree 合併、正式 tagged acceptance 及外部平台喚醒仍未驗證。證據見 Documentation/CharacterBuilder-Parallel-Workflow-Review.md。",
+          "title": "文件接續試行已取得兩個原項目之主線分區實作、直接收件、獨立技術審查與正式發布後驗證證據；worktree 合併、正式 tagged acceptance、真實程式返工與外部平台喚醒仍未驗證。證據與介入計數見 Documentation/CharacterBuilder-Parallel-Workflow-Review.md。",
           "id": "document-driven-session-continuation",
           "status": "in_progress",
           "activity": [
@@ -3955,13 +3962,6 @@
             {
               "event": "updated",
               "actor": "codex",
-              "at": "2026-11-07T08:22:46.476997+00:00",
-              "session": "接手角色建造器工作",
-              "session_id": "01a1b422-9a30-77c1-81e3-e6b4104ccaab"
-            },
-            {
-              "event": "updated",
-              "actor": "codex",
               "at": "2026-11-07T08:50:13.245658+00:00",
               "session": "接手角色建造器工作",
               "session_id": "01a1b422-9a30-77c1-81e3-e6b4104ccaab"
@@ -3970,6 +3970,13 @@
               "event": "updated",
               "actor": "codex",
               "at": "2026-11-07T09:32:55.891614+00:00",
+              "session": "dispatch:document-continuation-trial",
+              "session_id": "01a1b422-9a30-77c1-81e3-e6b4104ccaab"
+            },
+            {
+              "event": "updated",
+              "actor": "codex",
+              "at": "2026-11-07T09:47:21.095738+00:00",
               "session": "dispatch:document-continuation-trial",
               "session_id": "01a1b422-9a30-77c1-81e3-e6b4104ccaab"
             }
@@ -4124,12 +4131,14 @@
               "session_id": "01a1873a-2fef-74c2-a673-a41bb27657dd"
             }
           ]
-        },
+        }
+      ],
+      "completed_items": [
         {
           "id": "web-ui-notice-mit",
-          "title": "問題：Web MIT NOTICE、manifest 及三份主線交付副本已修正並審查；正式 Build 副本核對待完成。分派與固定交付見 Documentation/CharacterBuilder-Parallel-Workflow-Review.md〈Web 交付的 MIT NOTICE〉。",
+          "title": "問題：Web MIT NOTICE 與交付指紋已修正；正式 Browser／Desktop 發布副本及 HTTP bytes 核對通過，第三方 LEGAL 保留。證據見 Documentation/WebUiReplacementPlan.md〈MIT NOTICE 修正證據〉。",
           "priority": 2,
-          "status": "blocked",
+          "status": "done",
           "activity": [
             {
               "event": "created",
@@ -4150,12 +4159,16 @@
               "at": "2026-11-07T09:32:55.891614+00:00",
               "session": "dispatch:document-continuation-trial",
               "session_id": "01a1b422-9a30-77c1-81e3-e6b4104ccaab"
+            },
+            {
+              "event": "done",
+              "actor": "codex",
+              "at": "2026-11-07T09:47:21.095738+00:00",
+              "session": "dispatch:document-continuation-trial",
+              "session_id": "01a1b422-9a30-77c1-81e3-e6b4104ccaab"
             }
-          ],
-          "blocked_reason": "vendor 與主線 Browser／Desktop NOTICE 已驗證；等待使用者授權既有 Publish.cmd --nopause --restart，再核對正式 Build 的交付副本。"
-        }
-      ],
-      "completed_items": [
+          ]
+        },
         {
           "id": "web-report-encoding",
           "title": "Web 文件編碼與遷移追蹤修復完成（TASKPROGRESS-WEB-1）",

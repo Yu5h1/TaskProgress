@@ -97,3 +97,9 @@ python tests/decision-stdin-test.py bin/Validation/TaskProgressDecisions/Debug/n
 建置成功，0 warnings、0 errors；`--decisions-only` 的生命週期、衝突、receipt、migration、UTF-8 與來源驗證通過，新增的入口回歸檢查也通過。真實 EXE 腳本分別送出無 BOM／有 BOM 的 UTF-8 位元組，兩者皆能讀取與確認，中文字 request ID、題目、其他理由及實際保存答案正確；`load` 與無效 JSON 都保留決策副本原始位元組，內文夾入 BOM 仍拒絕，來源 fixture 未變。
 
 測試執行於普通使用者、沙箱外，依 [CLI 執行環境](ReportCliUsage.md#cli-執行環境) 使用核准機制。沙箱內首次正式 EXE 呼叫曾在 20 秒逾時，Debug EXE 的暫存副本確認曾回存取被拒；均未當成 parser 結論。僅使用既有依賴及隔離 Debug 輸出，未啟停服務、未發布或覆寫正式 EXE；正式發布後的驗證由收件者接續。
+
+### 正式發布後驗證（2026-11-07）
+
+使用者明確授權後，分派者在主線 `7b9a859` 執行既有 `Publish.cmd --nopause --restart`，沿用鎖定依賴，發布並啟動既有 TaskProgress 8001 服務，程序 exit 0。Release publish 出現既有 `ReportCommand.cs` 的 IL3000 警告，本項未修改該檔；未擴大修正範圍。
+
+以正式產物執行 `python tests/decision-stdin-test.py Build/win-x64/task-progress.exe` 全部通過：含／不含 BOM 的 load 與 confirm、中文 request ID／題目／理由與保存結果正確；無效 JSON、內文 BOM 仍拒絕；load／無效請求保留副本 bytes，來源 fixture 未變。正式 EXE SHA-256：`8d12a54c5ed8c3e17e4c6997afa62410c25e8f405b621a1e0d9cdf6ccd6ffb3f`。

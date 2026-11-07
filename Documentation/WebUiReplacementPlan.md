@@ -104,6 +104,8 @@ Web package 目前 private，不能假設可從公開 npm 安裝。建議消費�
 
 主線收件後，分派者執行 `npm run ui:build`，正式來源產物 identity 為 `739cfe9f8302ac08553e8a3393acb919e94a2828d6e9a2ce20fcae5126763c96`。`viewer/assets/web/NOTICE.txt` 與兩份 `src/TaskProgress.Cli/{checklist,decisions}-ui/NOTICE.txt` 均與 vendor NOTICE bytes 相同；三份相鄰 `ui/index.js.LEGAL.txt` 與修正前提交逐位元組相同。重建僅形成上述三份 NOTICE 的 Git 差異，未啟停服務。正式 `Build/win-x64` 發布後的副本核對由後續發布紀錄承擔。
 
+使用者授權既有發布與重啟後（2026-11-07），`Publish.cmd --nopause --restart` exit 0；正式 `Build/win-x64/{checklist,decisions}-ui/NOTICE.txt` 也與 vendor 逐位元組相同。連同上述三份來源／Browser 副本，共五份 NOTICE 的 SHA-256 均為 `8dbd55ecb6e72d4498464edc17022c50ef54af89ec0c84a131006226ed0b9f71`；正式 Desktop 與 Browser 的第三方 LEGAL 均維持原 bytes。既有 8001 服務的 `/assets/web/NOTICE.txt` 與 `/assets/web/ui/index.js.LEGAL.txt` 均 HTTP 200，回應 bytes 與本地已核對的 NOTICE／LEGAL 相同。本次未新增服務或自動啟動設定。
+
 ## 分段替換與完成條件
 
 ### 先行 Browser 並行試點
