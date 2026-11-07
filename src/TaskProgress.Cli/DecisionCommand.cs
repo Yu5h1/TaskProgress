@@ -15,7 +15,7 @@ internal static class DecisionCommand
         ArgumentNullException.ThrowIfNull(args);
         if ((args.Length == 3 || args.Length == 5 && args[3] == "--task") && args[0] == "request" && args[1] == "--file")
         {
-            var response = new DecisionStore(args[2]).Handle(Console.In.ReadToEnd(), args.Length == 5 ? args[4] : null);
+            var response = new DecisionStore(args[2]).Handle(Console.In.ReadToEnd().TrimStart('\uFEFF'), args.Length == 5 ? args[4] : null);
             Console.WriteLine(response.ToJsonString());
             return 0;
         }

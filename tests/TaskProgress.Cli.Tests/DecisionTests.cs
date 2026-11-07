@@ -12,6 +12,27 @@ internal static class DecisionTests
         ["expected_revision"] = snapshot["revision"]!.DeepClone(),
         ["expected_version"] = snapshot["document"]!["decisions"]![0]!["version"]!.DeepClone(), ["payload"] = payload
     };
+
+    private static JsonObject RunRequest(string path, string input)
+    {
+        var originalIn = Console.In;
+        var originalOut = Console.Out;
+        using var reader = new StringReader(input);
+        using var output = new StringWriter();
+        try
+        {
+            Console.SetIn(reader);
+            Console.SetOut(output);
+            Check(DecisionCommand.Run(["request", "--file", path]) == 0, "request transport exit code");
+            return JsonNode.Parse(output.ToString())!.AsObject();
+        }
+        finally
+        {
+            Console.SetIn(originalIn);
+            Console.SetOut(originalOut);
+        }
+    }
+
     internal static void Run()
     {
         var folder = Path.Combine(Path.GetTempPath(), "taskprogress-decisions-" + Guid.NewGuid().ToString("N"));
@@ -24,6 +45,18 @@ internal static class DecisionTests
             var store = new DecisionStore(path);
             var initial = Load(store);
             Check(initial["ok"]!.GetValue<bool>(), "load fixture");
+            var initialBytes = File.ReadAllBytes(path);
+            foreach (var prefix in new[] { "", "\uFEFF" })
+            {
+                var loaded = RunRequest(path, prefix + "{\"operation\":\"load\",\"request_id\":\"中文讀取\"}");
+                Check(loaded["ok"]!.GetValue<bool>(), "stdin load accepts optional leading BOM");
+                Check(loaded["request_id"]!.GetValue<string>() == "中文讀取", "stdin request preserves Chinese");
+                Check(JsonNode.DeepEquals(initial["document"], loaded["document"]), "stdin load preserves document and Chinese");
+                Check(initialBytes.SequenceEqual(File.ReadAllBytes(path)), "stdin load leaves bytes intact");
+                Check(!RunRequest(path, prefix + "{\"operation\":")["ok"]!.GetValue<bool>(), "stdin invalid JSON rejected with optional BOM");
+                Check(initialBytes.SequenceEqual(File.ReadAllBytes(path)), "invalid stdin leaves bytes intact");
+            }
+            Check(!RunRequest(path, "{\uFEFF\"operation\":\"load\"}")["ok"]!.GetValue<bool>(), "embedded BOM remains invalid JSON");
             Check(store.Handle("{\"operation\":\"load\"}", "different-task")["error"]!["code"]!.GetValue<string>() == "task_mismatch", "task identity checked inside lock");
             Check(!store.Handle("{\"operation\":\"load\",\"operation\":\"load\"}")["ok"]!.GetValue<bool>(), "duplicate request properties");
             Check(DecisionFileRegistration.BuildLaunchCommand(@"C:\tools checklist build\task-progress.exe") == "\"C:\\tools checklist build\\task-progress.exe\" \"%1\"", "registration keeps executable path");

@@ -56,7 +56,7 @@ Agent 開始或接續任務時，先檢查 `decisions/<task-id>.decisions`；pen
 cmd /c 'type request.json | task-progress.exe decisions request --file "C:\Project\decisions\task-a.decisions"'
 ```
 
-呼叫程式須以 UTF-8（無 BOM）寫入 stdin。`task-progress.exe` 是 Windows 視窗子系統程式，PowerShell 的 `|` 接不上它的 stdin／stdout，結果是沒有任何輸出；請經 `cmd /c` 的管線，或從 Git Bash 等 shell 直接管線。
+呼叫程式須以 UTF-8 寫入 stdin，可含前導 BOM；CLI 在解析 JSON 前移除前導 BOM，中文字與 JSON 內文保持原樣。`task-progress.exe` 是 Windows 視窗子系統程式，PowerShell 的 `|` 接不上它的 stdin／stdout，結果是沒有任何輸出；請經 `cmd /c` 的管線，或從 Git Bash 等 shell 直接管線。
 
 先送 `{"operation":"load"}` 取得 document、revision 與 document_key。修改請求使用下列結構：
 
@@ -79,3 +79,21 @@ cmd /c 'type request.json | task-progress.exe decisions request --file "C:\Proje
 - 重試原請求保留完全相同的 request ID 與內容。`already_applied` 回傳最新狀態，不代表題目現在仍已決策。
 
 答案確認只記錄選擇；不代表程式已實作、驗收已通過，亦不觸發部署。
+
+## stdin BOM 修正驗證（2026-11-07）
+
+原項目：`task-progress › decision-example › problem-decisions-stdin-bom`。修正只在 `decisions request` 的 stdin 邊界移除前導 BOM，沿用既有 JSON 驗證與回應格式。
+
+修正前，以普通使用者在沙箱外呼叫正式 `Build/win-x64/task-progress.exe decisions request --file tests/fixtures/decision-example.decisions`，送入相同的 `{"operation":"load"}`：無 BOM 回 `ok:true`，加 UTF-8 BOM 回 `ok:false`、`invalid_or_unavailable` 與 `0xEF is an invalid start of a value`。兩次呼叫均未修改 fixture。獨立 Debug EXE 也重現同一結果；新增的真實 stdin 腳本在修正前通過無 BOM 中文往返，於 BOM 的 `load` 失敗。
+
+在 TaskProgress 根目錄建置與複驗：
+
+```powershell
+dotnet build tests/TaskProgress.Cli.Tests/TaskProgress.Cli.Tests.csproj --no-restore --configuration Debug -p:BaseOutputPath=C:/Users/Yu5h1/Dev/VSProjects/Yu5h1Lib/TaskProgress/bin/Validation/TaskProgressDecisions/ --nologo
+& bin/Validation/TaskProgressDecisions/Debug/net9.0-windows/TaskProgress.Cli.Tests.exe --decisions-only | Out-String
+python tests/decision-stdin-test.py bin/Validation/TaskProgressDecisions/Debug/net9.0-windows/task-progress.exe
+```
+
+建置成功，0 warnings、0 errors；`--decisions-only` 的生命週期、衝突、receipt、migration、UTF-8 與來源驗證通過，新增的入口回歸檢查也通過。真實 EXE 腳本分別送出無 BOM／有 BOM 的 UTF-8 位元組，兩者皆能讀取與確認，中文字 request ID、題目、其他理由及實際保存答案正確；`load` 與無效 JSON 都保留決策副本原始位元組，內文夾入 BOM 仍拒絕，來源 fixture 未變。
+
+測試執行於普通使用者、沙箱外，依 [CLI 執行環境](ReportCliUsage.md#cli-執行環境) 使用核准機制。沙箱內首次正式 EXE 呼叫曾在 20 秒逾時，Debug EXE 的暫存副本確認曾回存取被拒；均未當成 parser 結論。僅使用既有依賴及隔離 Debug 輸出，未啟停服務、未發布或覆寫正式 EXE；正式發布後的驗證由收件者接續。
