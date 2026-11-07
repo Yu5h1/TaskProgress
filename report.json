@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-11-07T08:15:53.012826+00:00",
+  "updated_at": "2026-11-07T08:20:37.628716+00:00",
   "tasks": [
     {
       "id": "agent-workflow",
@@ -3912,7 +3912,7 @@
         },
         {
           "priority": 2,
-          "title": "試行既有 TaskProgress 的最小接續修正：本輪先驗證原項目文件交接、收件與資訊修正可省掉的手動轉貼；完整兩項平行、實作返工、合併及外部平台喚醒保留未驗證，不重做已完成項目。指示與固定交付見 Documentation/CharacterBuilder-Parallel-Workflow-Review.md〈文件接續試行〉。",
+          "title": "試行既有 TaskProgress 的最小接續修正：已取得不繼承聊天之唯讀上下文的文件交接與直接收件證據；本輪仍進行中，完整兩項平行、實作返工、合併、正式他驗及外部平台喚醒未驗證。指示、證據與下一步見 Documentation/CharacterBuilder-Parallel-Workflow-Review.md〈文件接續試行〉。",
           "id": "document-driven-session-continuation",
           "status": "in_progress",
           "activity": [
@@ -3941,6 +3941,28 @@
               "event": "started",
               "actor": "codex",
               "at": "2026-11-07T08:15:53.012826+00:00",
+              "session": "接手角色建造器工作",
+              "session_id": "01a1b422-9a30-77c1-81e3-e6b4104ccaab"
+            },
+            {
+              "event": "updated",
+              "actor": "codex",
+              "at": "2026-11-07T08:20:37.628716+00:00",
+              "session": "接手角色建造器工作",
+              "session_id": "01a1b422-9a30-77c1-81e3-e6b4104ccaab"
+            }
+          ]
+        },
+        {
+          "title": "問題：平行執行的 handoff 與既有決策項目標題仍說第 11 題待答，但計畫及 Report 推算為已完成，容易使接續者誤重做。證據見 Documentation/CharacterBuilder-Parallel-Workflow-Review.md〈本輪證據與接續〉。",
+          "priority": 2,
+          "id": "problem-worktree-decision-text-stale",
+          "status": "planned",
+          "activity": [
+            {
+              "event": "created",
+              "actor": "codex",
+              "at": "2026-11-07T08:20:37.628716+00:00",
               "session": "接手角色建造器工作",
               "session_id": "01a1b422-9a30-77c1-81e3-e6b4104ccaab"
             }
