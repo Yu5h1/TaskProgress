@@ -92,6 +92,16 @@ Web package 目前 private，不能假設可從公開 npm 安裝。建議消費�
 
 正式部署不得依賴 sibling Web source、開發 server 或遠端 CDN。Viewer、兩份 Checklist、Decisions 複製流程及 C# Content 清單逐一檢查。`ui-host.js` 維持外部單例，避免打包出第二份 registry。Svelte 專用 plugin 最後移除，Vite 等仍有用途的工具保留。
 
+### MIT NOTICE 修正證據（2026-11-07）
+
+`vendor/web-ui/NOTICE.txt` 保留原交付的來源 revision 與 delivery SHA-256，移除未宣告授權及內部移交不授予發布權限的過時文字，附上 Web 已提交的完整 MIT License 與 `Copyright (c) 2026 Yu5h1`。授權文字與 `package.json` 的 `license: MIT` 取自 Web 提交 `633893ded232536b50072617ad217dc0418e9bfa`；沒有從 Web 工作樹重匯入 dist。package 的 `private` 欄位仍是套件發布設定。
+
+本輪只更新 NOTICE 及 manifest 的 `files["NOTICE.txt"]`；來源交付 pin、其他 manifest 欄位與第三方 LEGAL 保持原值。實測 `node --input-type=module -e "const {verifyVendor}=await import('./scripts/build-web-ui.mjs'); await verifyVendor(); console.log('verifyVendor passed');"` 通過，沿用既有交付檢查，沒有另建驗證器。
+
+另以 Node 斷言核對：NOTICE 的完整授權文字與上述已提交 LICENSE 相同，前兩行來源資訊保留；manifest 除 NOTICE 指紋外與 TaskProgress 修改前的 HEAD 相同，其他五個交付檔逐一與 HEAD 比對 bytes 相同。NOTICE SHA-256 為 `8dbd55ecb6e72d4498464edc17022c50ef54af89ec0c84a131006226ed0b9f71`；`ui/index.js.LEGAL.txt` 維持 `73353655368d690e22226182bfb7e90312459a13e588489d81b7ca7bc89f5602`。
+
+此證據涵蓋 vendor 原始交付。既有 `tests/web-ui-build.test.mjs` 載入時會呼叫 `buildCandidate()`，本分派不執行它；正式 Browser／Desktop 的 NOTICE 重建與核對由分派者收件後處理。本輪沒有重建共用產物、發布或啟停服務。
+
 ## 分段替換與完成條件
 
 ### 先行 Browser 並行試點
