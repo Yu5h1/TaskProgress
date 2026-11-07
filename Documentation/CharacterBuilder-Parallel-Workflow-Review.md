@@ -13,6 +13,8 @@
 
 本節彙整「兩個既有未完成項目實作 → 收件 → 獨立技術審查 → 正式發布後驗證」，證據截至 `082f64b`。BOM 與 MIT NOTICE 的修正均已在原項目結案；完整流程尚未驗證的部分仍由原試行項目追蹤，進度以 Report 為準。
 
+本輪減少的是使用者替 agent 轉貼指示與成果的工作。分派者仍應主動讓使用者知道做了什麼、驗證結果與限制、剩餘工作，以及需要使用者決定或授權的事；agent 直接收件後，仍要向使用者報告。
+
 ### 已省掉的手動傳遞
 
 | 內容搬運 | 本輪做法 | 使用者全文轉貼 |
@@ -24,15 +26,15 @@
 
 定向測試、獨立技術審查、交付產物重建、正式 EXE 與 HTTP 檔案核對，也都由 agent 完成。本輪沒有需要使用者代為操作的可量測驗證。
 
-### 實際仍需介入的部分
+### 本輪的必要決策與報告缺口
 
 | 使用者介入 | 本輪次數 | 後續界線 |
 |---|---|---|
 | 決定改換執行方式 | 1 次：worktree 工具未回覆後，同意主線分區 | 原機制失效且要改換方式時，依既有規則取得方向；正常接續不逐步重問 |
 | 補足服務啟停授權 | 1 次：允許既有 TaskProgress 發布與重啟 | 原授權未涵蓋的操作才取得新授權，既有授權持續適用 |
-| 要求先說明改了什麼 | 1 次 | 可避免的額外釐清，不列為固定人工步驟；分派者應在請求決策／授權前先交代具體改動、已完成檢查與剩餘動作 |
+| 使用者追問改動內容 | 1 次 | 分派者未先報告，才讓使用者必須追問；應補足主動說明，尤其在請求決策／授權前。這項資訊是必要報告，不列為應省掉的內容 |
 
-因此本輪是 **0 次內容搬運、2 項必要決策／授權、1 次可避免的資訊釐清**，不是「零人工」。這個統計窗口不含先前唯讀試行啟動時、額外重送 invocation 的那一次摩擦；完整 task-progress 的初次啟動仍依既有入口，已授權工作的正常接續不重貼任務全文。
+因此本輪是 **0 次替 agent 搬運內容、2 項必要決策／授權、1 次因分派者未先報告而產生的追問**。改善的是讓使用者不必追問，報告本身仍須主動提供。這個統計窗口不含先前唯讀試行啟動時、額外重送 invocation 的那一次摩擦；完整 task-progress 的初次啟動仍依既有入口，已授權工作的正常接續不重貼任務全文。
 
 ### 尚未驗證，不能推定可自動接續
 
@@ -118,7 +120,7 @@
 
 ### 已驗證做法的共用入口
 
-兩輪唯讀及兩項實作所驗證的文件交接、直接收件、證據與交付目標核對、同參照重讀及求助前說明，由 [agent-work-route〈Hand off through the existing item〉](../../.agents/skills/agent-work-route/SKILL.md#hand-off-through-the-existing-item) 擁有；[task-progress〈Queues and sessions〉](../.agents/skills/task-progress/SKILL.md#queues-and-sessions) 引用該段，不另抄一套程序。本文件保留試行證據。
+兩輪唯讀及兩項實作所驗證的文件交接、直接收件、證據與交付目標核對、同參照重讀，以及使用者確認應保留的主動報告與求助前說明，由 [agent-work-route〈Hand off through the existing item〉](../../.agents/skills/agent-work-route/SKILL.md#hand-off-through-the-existing-item) 擁有；[task-progress〈Queues and sessions〉](../.agents/skills/task-progress/SKILL.md#queues-and-sessions) 引用該段，不另抄一套程序。本文件保留試行證據。
 
 外部平台通知、停止 session 的喚醒、完整開發返工與合併仍需實測；沒有將這些未驗證部分升格成已具備的能力，也沒有調整 invocation、認領或正式他驗規則。
 
@@ -170,6 +172,8 @@
 ## 兩項實作試行（2026-11-07）
 
 使用者要求接續挑選兩個既有未完成項目，實際試行實作、收件與驗收，不重開已完成項目、不新增服務。以下兩項在選取時皆為 `not_started` 且沒有 checklist 綁定，沿用 task-progress 的無綁定項目流程；由獨立上下文審查交付，不虛構 CLI 的正式他驗狀態，也不另建任務卡或取代項目。
+
+本輪指示的入口是 Report 原任務卡下的子項目，詳細範圍、驗證要求及固定交付位置則由子項目 title 路由至以下兩節（分派提交 `dd732e7`）。一般有綁定的項目，其執行指示與驗證條件由 checklist 擁有；本輪兩項未綁定 checklist，不能把這次文件交接視為已驗證 checklist 的完整流程。
 
 權威 Report 為 `C:\Users\Yu5h1\Dev\VSProjects\Yu5h1Lib\TaskProgress\report.json`。原先呼叫 managed worktree 建立工具未取得回覆或 operation ID；停止等待後核對 Git 沒有新登記或目錄。使用者明確同意改用主線分區：兩名工作者在同一 `main` 只改下列互不重疊的指定檔案，不修改任何 report.json，各自以 pathspec 提交自己的檔案，不 stash、不 reset，也不提交對方的內容。分派者唯一負責 Report、收件與共用產物重建。交接只傳 repo、原項目參照、所分派動作與權限邊界；本輪不宣稱驗證 worktree 合併。
 
