@@ -13,7 +13,7 @@
 
 使用者於 2026-11-07 要求核對這輪 A–F：哪些是分派者沒有照既有流程做、哪些是規則不足、哪些是平台限制，並提出最小改善。目標是讓 agent 讀取共同的指示與開發方向，減少使用者轉貼與接續協調。「請繼續 A」只是例子，不是固定命令或成功標準。
 
-本紀錄屬於[同一 repo 的多 agent 平行執行](WorktreeReportPlan.md)卡片。檢討沿用 `character-builder-abcdef-workflow-retrospective`，後續試行沿用 `document-driven-session-continuation`；進度由 Report 擁有。先前檢討階段只核對並提出方案；使用者後續明確啟動既有試行項目，本輪範圍見文末。不新增服務、不修改共用規則，也不追補虛構的 A–F 認領或他驗紀錄。
+本紀錄屬於[同一 repo 的多 agent 平行執行](WorktreeReportPlan.md)卡片。檢討沿用 `character-builder-abcdef-workflow-retrospective`，後續試行沿用 `document-driven-session-continuation`；進度由 Report 擁有。先前檢討與唯讀試行的範圍及證據見下文；使用者後續授權將已驗證部分補入既有共用規則，入口見〈已驗證做法的共用入口〉。未新增服務，也不追補虛構的 A–F 認領或他驗紀錄。
 
 ## 核對依據與適用邊界
 
@@ -80,14 +80,13 @@
 
 這個方案能消除完整指示重貼、成果全文轉貼、每次返工重建任務及另催主線收尾；它不能在無接續通道時消除外部 chat 的人工啟動，也不能保證兩個已停止的 session 自動互相喚醒。共享文件提供可接續狀態，活躍的執行上下文才會讀它並做下一步。
 
-### 建議補充的最短文字
+### 已驗證做法的共用入口
 
-以下是待試行驗證的規則建議，不是已生效的共享規則：
+兩輪文件交接、直接收件與同參照重讀的做法，由 [agent-work-route〈Hand off through the existing item〉](../../.agents/skills/agent-work-route/SKILL.md#hand-off-through-the-existing-item) 擁有；[task-progress〈Queues and sessions〉](../.agents/skills/task-progress/SKILL.md#queues-and-sessions) 引用該段，不另抄一套程序。本文件保留試行證據。
 
-- **agent-work-route／Delegate：**「委派前，先把範圍、固定交付位置與下一步放入既有項目的權威文件，交接只傳該項目的參照。未啟動 task-progress 隊列的一般委派也要有可接續入口；不要以聊天摘要作唯一指示。」
-- **task-progress／Queues：**「無法啟動外部 session 時，使用者只負責必要的啟動。分派者在活躍期間直接讀原項目的交付並收件；返工留在原項目。結束前明列等待哪個 session 被啟動，不把轉貼內容列為使用者工作。宿主能力依可用工具與使用者授權確認。」
+外部平台通知、停止 session 的喚醒、完整開發返工與合併仍需實測；沒有將這些未驗證部分升格成已具備的能力，也沒有調整 invocation、認領或正式他驗規則。
 
-試行沿用 `document-driven-session-continuation`，不另建協調卡或狀態檔。以一輪實際的「分派、交付、一次返工、他驗、主線驗證」核對：使用者不轉貼完整指示或成果；每次人工啟動皆能說明缺少哪個通道；所有 agent 能從原項目找到同一份指示、成果與未完成條件。尚未完成試行前，不把這兩段升格成已證實的通用流程。
+試行沿用 `document-driven-session-continuation`，不另建協調卡或狀態檔。以一輪實際的「分派、交付、一次返工、他驗、主線驗證」核對：使用者不轉貼完整指示或成果；每次人工啟動皆能說明缺少哪個通道；所有 agent 能從原項目找到同一份指示、成果與未完成條件。完整開發與跨平台階段需各自取得實測證據，不能由文件交接結果推定通過。
 
 ## 文件接續試行（2026-11-07）
 

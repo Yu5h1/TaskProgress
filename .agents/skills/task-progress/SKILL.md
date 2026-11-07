@@ -351,6 +351,10 @@ and give the reason in the report; the user overrides it with a long press. A ta
 queue; an item
 target in a state the queue does not take is reported with its `derived_state`, never forced.
 
+For document-based handoff and receipt, follow
+[agent-work-route § Hand off through the existing item](../../../../.agents/skills/agent-work-route/SKILL.md#hand-off-through-the-existing-item).
+Invocation, claims and acceptance follow this skill's own rules.
+
 Several items, when this agent can start sessions (§ Agent specifics): group them first, then run
 the groups at the same time, each in its own worktree
 ([WorktreeReportPlan § 已決定](../../../Documentation/WorktreeReportPlan.md#已決定)):

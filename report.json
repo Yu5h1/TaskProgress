@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-11-07T08:22:46.476997+00:00",
+  "updated_at": "2026-11-07T08:50:13.245658+00:00",
   "tasks": [
     {
       "id": "agent-workflow",
@@ -3832,7 +3832,7 @@
             "scope_id": "task-progress",
             "task": "worktree-report"
           },
-          "title": "決定 [平行執行計畫](https://github.com/Yu5h1/TaskProgress/blob/main/Documentation/WorktreeReportPlan.md) 的待決題：1～10 已答；第 11 題待答（Unity Editor、MCP、固定 port 這類共用資源怎麼排）",
+          "title": "平行執行的分組、認領、合併及共用資源安排，見[決策紀錄](/decisions/?scope=task-progress&task=worktree-report)。",
           "status": "planned",
           "priority": 1,
           "activity": [
@@ -3870,6 +3870,13 @@
               "at": "2026-10-23T17:33:39.723110+00:00",
               "session": "worktree-report 共用資源",
               "session_id": "8db3d9df-8d4e-461e-96c2-37ca30b33c56"
+            },
+            {
+              "event": "updated",
+              "actor": "codex",
+              "at": "2026-11-07T08:50:13.245658+00:00",
+              "session": "接手角色建造器工作",
+              "session_id": "01a1b422-9a30-77c1-81e3-e6b4104ccaab"
             }
           ]
         },
@@ -3912,7 +3919,7 @@
         },
         {
           "priority": 2,
-          "title": "試行既有 TaskProgress 的最小接續修正：已有兩輪唯讀證據證實原項目文件解析、直接收件及同參照重讀可省轉貼；完整兩項平行、實作返工、合併、正式他驗及外部平台喚醒仍未驗證，保留未完成。證據與下一步見 Documentation/CharacterBuilder-Parallel-Workflow-Review.md〈文件接續試行〉。",
+          "title": "試行既有 TaskProgress 的最小接續修正：兩輪文件交接、直接收件及同參照重讀已驗證並補入共用規則；完整兩項平行、實作返工、合併、正式他驗及外部平台喚醒仍未驗證，保留未完成。證據與下一步見 Documentation/CharacterBuilder-Parallel-Workflow-Review.md〈文件接續試行〉。",
           "id": "document-driven-session-continuation",
           "status": "in_progress",
           "activity": [
@@ -3920,13 +3927,6 @@
               "event": "created",
               "actor": "codex",
               "at": "2026-11-07T06:32:52.801820+00:00",
-              "session": "接手角色建造器工作",
-              "session_id": "01a1b422-9a30-77c1-81e3-e6b4104ccaab"
-            },
-            {
-              "event": "updated",
-              "actor": "codex",
-              "at": "2026-11-07T06:54:38.776782+00:00",
               "session": "接手角色建造器工作",
               "session_id": "01a1b422-9a30-77c1-81e3-e6b4104ccaab"
             },
@@ -3950,19 +3950,11 @@
               "at": "2026-11-07T08:22:46.476997+00:00",
               "session": "接手角色建造器工作",
               "session_id": "01a1b422-9a30-77c1-81e3-e6b4104ccaab"
-            }
-          ]
-        },
-        {
-          "title": "問題：平行執行的 handoff 與既有決策項目標題仍說第 11 題待答，但計畫及 Report 推算為已完成，容易使接續者誤重做。證據見 Documentation/CharacterBuilder-Parallel-Workflow-Review.md〈本輪證據與接續〉。",
-          "priority": 2,
-          "id": "problem-worktree-decision-text-stale",
-          "status": "planned",
-          "activity": [
+            },
             {
-              "event": "created",
+              "event": "updated",
               "actor": "codex",
-              "at": "2026-11-07T08:20:37.628716+00:00",
+              "at": "2026-11-07T08:50:13.245658+00:00",
               "session": "接手角色建造器工作",
               "session_id": "01a1b422-9a30-77c1-81e3-e6b4104ccaab"
             }
@@ -3970,6 +3962,28 @@
         }
       ],
       "completed_items": [
+        {
+          "title": "問題：已完成的第 11 題曾被過期文字誤列為待答；已移除 handoff 的過期 Open decisions 入口，決策項目改用固定文件路由，保留原綁定與完成推算。",
+          "priority": 2,
+          "id": "problem-worktree-decision-text-stale",
+          "status": "done",
+          "activity": [
+            {
+              "event": "created",
+              "actor": "codex",
+              "at": "2026-11-07T08:20:37.628716+00:00",
+              "session": "接手角色建造器工作",
+              "session_id": "01a1b422-9a30-77c1-81e3-e6b4104ccaab"
+            },
+            {
+              "event": "done",
+              "actor": "codex",
+              "at": "2026-11-07T08:50:13.245658+00:00",
+              "session": "接手角色建造器工作",
+              "session_id": "01a1b422-9a30-77c1-81e3-e6b4104ccaab"
+            }
+          ]
+        },
         {
           "title": "核對 CharacterBuilder A–F 與既有流程：區分未落實安排、接續規則不足及平台限制。後續 B～F 已合入主線；整合驗證與備份清理的文件路由見 Documentation/CharacterBuilder-Parallel-Workflow-Review.md。",
           "status": "done",
