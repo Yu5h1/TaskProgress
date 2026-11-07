@@ -105,3 +105,23 @@
 ### 本輪證據與接續
 
 本節只記本次試行實際發生的動作、來源版本、交接結果與其限制。項目的持續進度仍由既有 Report 擁有。
+
+第一輪在指示提交 `dc00441` 上執行。分派者以 Codex 宿主的 `spawn_agent` 啟動 `fork_turns: none` 的唯讀上下文 `continuation_reader`，委派內容只有 repo、項目參照、規則入口與唯讀限制，沒有貼上本輪指示或預期結論。
+
+該上下文自行使用正式 CLI `report get --scope task-progress --task worktree-report`，讀到 revision `37c29414581c65382075e5d8d94d924b1a4affe96204cc1db6869af727e5d9e8`、原項目 `derived_state: in_progress`，再經 title 找到本節。它回報本輪目標、固定交付位置、下一步及未驗證範圍均可由文件解析，不需要原聊天；並指出交付章節當時尚未記錄實際收件與訊息統計。分派者直接收到回覆，將這份證據寫回同一交付章節，沒有請使用者轉貼。
+
+它實際讀取的來源鏈為：AgentsRule／AgentsKnowledgeIndex → TaskProgress handoff → CLI Report → 原項目 title → 本文件〈文件接續試行〉；另由 WorktreeReportPlan 的 Task ID 與連結核對卡片歸屬。首次讀取的本文件 SHA-256 為 `cfb33fcb8be73cf6a966984a8aa4cf9c88b021675ab22c7e8f341133cd4665c3`。此結果是唯讀交接證據，沒有對已完成項目改狀態。
+
+| 訊息或操作 | 第一輪觀察 | 能證明的範圍 |
+|---|---|---|
+| 使用者重新貼完整工作指示 | 明確 invocation 後 0 次 | 讀取者能從原項目找到本輪工作，不需原聊天 |
+| 使用者轉貼成果全文／交付路徑 | 0 次 | 分派者透過宿主子 agent 回傳直接收件，再寫原文件 |
+| 分派者提供的 task 內容副本 | 0 份 | 路由資訊及唯讀動作仍需給出，但未複製原任務內容 |
+| 既有項目／文件 | 原項目及原文件持續使用 | 沒有另建試行卡、取代項目或狀態檔 |
+| 前一輪的啟動摩擦 | 使用者被要求額外重送 1 次明確 invocation | 上面的 0 次不包含這次摩擦；既有啟動規則未改，分派者應在一開始就辨認入口，避免先承諾執行再要求重送 |
+
+以上跨本聊天的訊息數由分派者依實際工具及對話記錄計數；唯讀上下文只見證它自己收到的委派，沒有被宣稱能獨立核對使用者的整輪訊息總數。
+
+第一輪還發現既存的狀態文字過期：handoff 與決策項目 title 仍說第 11 題待答，但 canonical plan 及 CLI `derived_state: done` 表示決策已完成。本輪依 CLI 狀態讀取，沒有重做決策；此既存問題依 AgentsRule 記在原 worktree-report 卡，未順手修改已完成項目或 handoff。
+
+本次沒有真正的開發實作返工，沒有合併分支，也沒有測試 Claude／Antigravity 或已停止的 chat 被喚醒。讀到文件足夠，不代表這些階段已驗證。
