@@ -32,7 +32,10 @@ class DocumentPage extends View {
       const response = await fetch(`/__taskprogress/v1/documents/${encodeURIComponent(this.scope)}?${new URLSearchParams({ path: this.path })}`,
         { headers: { Accept: 'application/json' }, cache: 'no-store' });
       const body = await response.json().catch(() => null);
-      if (!response.ok) throw new Error(body?.detail ? `${body.title}：${body.detail}` : body?.title ?? `HTTP ${response.status}`);
+      if (!response.ok) {
+        if (!body?.code) throw new Error(response.status === 404 ? '本機服務還沒有文件頁功能，重新啟動 TaskProgress 服務後再開啟。' : `HTTP ${response.status}`);
+        throw new Error(body.detail ? `${body.title}：${body.detail}` : body.title);
+      }
       this.document = body;
       document.title = `${body.title} — TaskProgress`;
     } catch (error) {

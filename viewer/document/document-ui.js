@@ -856,7 +856,7 @@ var Q = new URLSearchParams(location.search), $ = new class extends Ve {
 				headers: { Accept: "application/json" },
 				cache: "no-store"
 			}), t = await e.json().catch(() => null);
-			if (!e.ok) throw Error(t?.detail ? `${t.title}：${t.detail}` : t?.title ?? `HTTP ${e.status}`);
+			if (!e.ok) throw t?.code ? Error(t.detail ? `${t.title}：${t.detail}` : t.title) : Error(e.status === 404 ? "本機服務還沒有文件頁功能，重新啟動 TaskProgress 服務後再開啟。" : `HTTP ${e.status}`);
 			this.document = t, document.title = `${t.title} — TaskProgress`;
 		} catch (e) {
 			this.failure = `文件無法開啟。${e instanceof Error ? e.message : ""}`;
