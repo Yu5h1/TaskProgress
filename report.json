@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-11-08T14:53:41.700306+00:00",
+  "updated_at": "2026-11-08T14:55:44.855923+00:00",
   "tasks": [
     {
       "id": "agent-workflow",
@@ -1914,6 +1914,26 @@
       "summary": "正式 Viewer 已具備可分享的唯讀進度報告、Developer overlay、主題系統與響應式介面。",
       "completed_items": [
         {
+          "status": "done",
+          "priority": 2,
+          "title": "Next 以卡片與子項 ID 配對，修正跨卡同名子項的重複標記、提前與設定／取消",
+          "id": "problem-next-item-scope-collision",
+          "activity": [
+            {
+              "event": "created",
+              "actor": "codex",
+              "at": "2026-11-08T14:06:07.457838+00:00",
+              "session": "Report forward source reorder"
+            },
+            {
+              "event": "done",
+              "actor": "codex",
+              "at": "2026-11-08T14:55:44.855923+00:00",
+              "session": "Next card-local identity"
+            }
+          ]
+        },
+        {
           "id": "card-list-hidden-link",
           "title": "三個面板卡片清單底部的「…顯示隱藏項目(N)」：置中、5px 間距、只有文字底線可按，重設全部篩選標籤（NextMarkerPlan 第 10 點）",
           "status": "done",
@@ -2149,20 +2169,6 @@
               "event": "created",
               "actor": "codex",
               "at": "2026-11-08T13:56:19.772698+00:00",
-              "session": "Report forward source reorder"
-            }
-          ]
-        },
-        {
-          "status": "planned",
-          "priority": 2,
-          "title": "問題：Next 子項僅比對 item ID，跨卡同名子項會一起顯示與提前（順排隔離 fixture 已重現）",
-          "id": "problem-next-item-scope-collision",
-          "activity": [
-            {
-              "event": "created",
-              "actor": "codex",
-              "at": "2026-11-08T14:06:07.457838+00:00",
               "session": "Report forward source reorder"
             }
           ]

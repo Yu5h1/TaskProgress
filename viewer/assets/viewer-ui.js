@@ -1691,6 +1691,10 @@ function Tn(e) {
   </div></details>`;
 }
 function En(e, t, n, r) {
+	e = {
+		...e,
+		nextItemId: n.id === e.nextTaskId ? e.nextItemId : null
+	};
 	let i = _n(n.status), a = e.policy.metadata(n.priority), o = e.progress[n.id], s = (t, r) => e.onCommand({
 		type: "set-task-field",
 		taskId: n.id,

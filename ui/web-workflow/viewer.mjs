@@ -143,6 +143,8 @@ function developer(d) {
   </div></details>`;
 }
 function taskCard(p, v, task, card) {
+  // Child IDs are local to a card; scope every row's Next behavior to its owner.
+  p = { ...p, nextItemId: task.id === p.nextTaskId ? p.nextItemId : null };
   const meta = status(task.status), priority = p.policy.metadata(task.priority), progress = p.progress[task.id];
   const command = (field, value) => p.onCommand({ type: 'set-task-field', taskId: task.id, field, value });
   const groups = [{ status: 'done', title: '已完成', className: 'completed-work', field: 'completed_items', items: task.completed_items ?? [] },
