@@ -1,6 +1,7 @@
 (function initializeTaskProgressEditorCoreRuntime(global) {
 function createEditorCore({
   createEditorTransaction = global.TaskProgressEditorTransactionRuntime?.createEditorTransaction,
+  moveReportCard,
   calculateProjectProgress,
   calculateTaskProgress,
   validateReport,
@@ -321,6 +322,11 @@ function createReportEditorSession(
         const index = draft.tasks.findIndex((task) => task.id === command.taskId);
         if (index < 0) throw new Error(`找不到任務「${command.taskId}」。`);
         draft.tasks.splice(index, 1);
+        break;
+      }
+      case "reorder-task": {
+        if (typeof moveReportCard !== 'function') throw new Error('此宿主未提供任務卡換位。');
+        draft.tasks = moveReportCard(draft, command).tasks;
         break;
       }
       case "add-task": {

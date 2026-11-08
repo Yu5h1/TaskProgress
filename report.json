@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-11-08T09:26:53.154680+00:00",
+  "updated_at": "2026-11-08T14:06:07.457838+00:00",
   "tasks": [
     {
       "id": "agent-workflow",
@@ -2131,6 +2131,39 @@
               "at": "2026-10-27T13:18:12.067899+00:00",
               "session": "TaskProgress 共用搜尋與歷史採用",
               "session_id": "01a0d3c0-178f-7463-a65b-21c8bbe2676f"
+            }
+          ]
+        },
+        {
+          "status": "planned",
+          "document_ref": {
+            "kind": "checklist",
+            "task": "report-card-source-reorder",
+            "scope_id": "task-progress"
+          },
+          "title": "順排卡片可在同優先級間拖曳並保存原始順序",
+          "priority": 1,
+          "id": "report-card-source-reorder",
+          "activity": [
+            {
+              "event": "created",
+              "actor": "codex",
+              "at": "2026-11-08T13:56:19.772698+00:00",
+              "session": "Report forward source reorder"
+            }
+          ]
+        },
+        {
+          "status": "planned",
+          "priority": 2,
+          "title": "問題：Next 子項僅比對 item ID，跨卡同名子項會一起顯示與提前（順排隔離 fixture 已重現）",
+          "id": "problem-next-item-scope-collision",
+          "activity": [
+            {
+              "event": "created",
+              "actor": "codex",
+              "at": "2026-11-08T14:06:07.457838+00:00",
+              "session": "Report forward source reorder"
             }
           ]
         }

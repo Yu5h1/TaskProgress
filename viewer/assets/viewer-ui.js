@@ -1070,7 +1070,7 @@ var zt = class {
 	}
 	persist(e = !1) {
 		try {
-			this.key && (localStorage.setItem(this.key, JSON.stringify(this.order)), localStorage.setItem(`${this.key}:pins`, JSON.stringify(this.pins)), localStorage.setItem(`${this.key}:mode`, this.mode), sessionStorage.setItem(`${this.key}:visibility`, JSON.stringify({
+			this.key && (localStorage.setItem(`${this.key}:pins`, JSON.stringify(this.pins)), localStorage.setItem(`${this.key}:mode`, this.mode), sessionStorage.setItem(`${this.key}:visibility`, JSON.stringify({
 				mode: this.visibility,
 				hiddenIds: this.hidden
 			})));
@@ -1081,16 +1081,16 @@ var zt = class {
 		this.props = e;
 		let i = e.storageKey ?? null;
 		if (this.key !== i && (this.key = i, this.lastPin = null, this.order = [], this.pins = [], this.mode = "forward", this.hidden = [], this.visibility = "disabled", this.selected = null, i)) try {
-			let e = JSON.parse(localStorage.getItem(i)), t = JSON.parse(localStorage.getItem(`${i}:pins`)), n = JSON.parse(sessionStorage.getItem(`${i}:visibility`)), r = localStorage.getItem(`${i}:mode`);
-			this.order = Array.isArray(e) ? e : [], this.pins = Array.isArray(t) ? [...new Set(t.filter((e) => typeof e == "string" || typeof e == "number"))] : [], this.mode = [
+			let e = JSON.parse(localStorage.getItem(`${i}:pins`)), t = JSON.parse(sessionStorage.getItem(`${i}:visibility`)), n = localStorage.getItem(`${i}:mode`);
+			this.pins = Array.isArray(e) ? [...new Set(e.filter((e) => typeof e == "string" || typeof e == "number"))] : [], this.mode = [
 				"forward",
 				"reverse",
 				"free"
-			].includes(r) ? r : Array.isArray(e) ? "free" : "forward", this.visibility = [
+			].includes(n) ? n : "forward", this.visibility = [
 				"enabled",
 				"closed",
 				"disabled"
-			].includes(n?.mode) ? n.mode : n?.enabled === !0 ? "enabled" : "disabled", this.hidden = Array.isArray(n?.hiddenIds) ? n.hiddenIds : [];
+			].includes(t?.mode) ? t.mode : t?.enabled === !0 ? "enabled" : "disabled", this.hidden = Array.isArray(t?.hiddenIds) ? t.hiddenIds : [];
 		} catch {}
 		let a = e.disclosureKey ?? `taskprogress.disclosure:${i ?? location.href}`;
 		if (this.disclosureKey !== a) {
@@ -1111,9 +1111,28 @@ var zt = class {
 			let t = [...this.view.target.querySelectorAll("[data-card-id]")].find((e) => e.dataset.cardId === String(s.id));
 			t?.focus({ preventScroll: !0 }), t?.scrollIntoView({ block: "center" });
 		}));
-		let c = this.linkSelection.selectionChanged(this.selected), l = (e) => this.visibility !== "closed" && (this.visibility !== "enabled" || !this.hidden.includes(e.id)), u = (t) => {
-			this.mode !== "free" || e.pinEnabled && (this.pins.includes(t.id) || this.pins.includes(t.targetId)) || (this.order = b(e.allIds ?? o.map((e) => e.id), this.order, o.filter((t) => l(t) && !(e.pinEnabled && this.pins.includes(t.id))).map((e) => e.id), t.id, t.targetId, t.placement === "after"), e.onSelectionChange?.(null), this.selected = t.id, e.onSelectionChange?.(t.id), this.persist(), queueMicrotask(() => [...this.view.target.querySelectorAll("[data-card-id]")].find((e) => e.dataset.cardId === String(t.id))?.focus()));
-		}, d = o.find(l)?.id;
+		let c = this.linkSelection.selectionChanged(this.selected), l = (e) => this.visibility !== "closed" && (this.visibility !== "enabled" || !this.hidden.includes(e.id)), u = this.mode === "forward" && typeof e.onSourceReorder == "function", d = (t) => !this.moving && l(t) && t.id !== e.nextId && !(e.pinEnabled && this.pins.includes(t.id)) && (this.mode === "free" || u && Object.hasOwn(e.reorderGroups ?? {}, t.id)), f = async (t) => {
+			let n = o.find((e) => e.id === t.id), r = o.find((e) => e.id === t.targetId);
+			if (!(!n || !r || !d(n) || !d(r))) {
+				if (u) {
+					if (e.reorderGroups[t.id] !== e.reorderGroups[t.targetId]) return;
+					let n = o.filter((n) => d(n) && e.reorderGroups[n.id] === e.reorderGroups[t.id]).map((e) => e.id);
+					this.moving = !0, this.view.draw();
+					try {
+						if (await e.onSourceReorder({
+							taskId: t.id,
+							position: { [t.placement === "after" ? "after" : "before"]: t.targetId },
+							visibleIds: n
+						}) === !1) return;
+					} finally {
+						this.moving = !1, this.view.draw();
+					}
+				} else this.order = b(e.allIds ?? o.map((e) => e.id), this.order, o.filter(d).map((e) => e.id), t.id, t.targetId, t.placement === "after");
+				e.onSelectionChange?.(null), this.selected = t.id, e.onSelectionChange?.(t.id), this.persist(), queueMicrotask(() => {
+					this.view.disposed || [...this.view.target.querySelectorAll("[data-card-id]")].find((e) => e.dataset.cardId === String(t.id))?.focus();
+				});
+			}
+		}, p = o.find(l)?.id;
 		return P`<div class="card-list-controls"><div class="card-list-heading"><p class="section-kicker">工作項目</p>${n}</div><div class="card-list-tools">
       <button type="button" class="card-toolbar-icon" aria-label=${this.expanded ? "全部收合" : "全部展開"} @click=${() => this.all(!this.expanded)}><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d=${this.expanded ? "M5 15l7-7 7 7" : "M5 9l7 7 7-7"} fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" /></svg></button>
       ${Lt(this.view, "order", [
@@ -1125,7 +1144,7 @@ var zt = class {
 			label: {
 				forward: "順排",
 				reverse: "逆排",
-				free: "自由排序（可拖曳）"
+				free: "不排（暫時換位）"
 			}[e],
 			icon: Dt(e)
 		})), this.mode, "排序", (e) => {
@@ -1163,9 +1182,9 @@ var zt = class {
 				before: "card-drop-before",
 				after: "card-drop-after"
 			},
-			onMove: u
+			onMove: f
 		})}>
-    ${G(o, (e) => e.id, (n, r) => P`<div class="arrangeable-card ${this.selected === n.id ? "card-selected" : ""}" role="group" tabindex="0" data-render-window data-card-id=${n.id} data-reorder-id=${n.id} data-reorder-sortable=${String(this.mode === "free" && !this.pins.includes(n.id))}
+    ${G(o, (e) => e.id, (n, r) => P`<div class="arrangeable-card ${this.selected === n.id ? "card-selected" : ""}" role="group" tabindex="0" data-render-window data-card-id=${n.id} data-reorder-id=${n.id} data-reorder-sortable=${String(d(n))} data-reorder-group=${u ? e.reorderGroups?.[n.id] ?? L : L}
       aria-label=${`${n.title ?? n.question ?? ""}${this.selected === n.id ? "，已選取" : ""}`} data-link-tone=${this.selected === n.id ? c ?? L : L} ?hidden=${!l(n)}
       @pointerdown=${(e) => {
 			e.button === 0 && this.select(n.id);
@@ -1178,12 +1197,12 @@ var zt = class {
       ${ht([
 			this.view.contentVersion,
 			n,
-			n.id === d,
+			n.id === p,
 			this.isExpanded(n.id),
 			this.visibility,
 			this.hidden.includes(n.id)
 		], () => t(n, {
-			lead: n.id === d,
+			lead: n.id === p,
 			expanded: this.isExpanded(n.id),
 			toggle: (e) => this.expand(n.id, e),
 			visibilityEnabled: this.visibility === "enabled",
@@ -1192,7 +1211,7 @@ var zt = class {
 				this.hidden = e ? this.hidden.filter((e) => e !== n.id) : [...this.hidden, n.id], this.persist();
 			}
 		}))}
-      ${this.mode === "free" ? P`<button type="button" class="replica-card-grip" data-reorder-handle draggable="true" aria-label="移動 ${n.title ?? n.question}">⠿</button>` : L}
+      ${d(n) ? P`<button type="button" class="replica-card-grip" data-reorder-handle draggable="true" aria-label="移動 ${n.title ?? n.question}" title=${u ? "調整原始順序；限同優先級" : "暫時換位，不改原始順序"}>⠿</button>` : L}
     </div>`)}</div>${e.hiddenCount > 0 ? P`<p class="card-list-hidden"><button type="button" class="card-list-hidden-link" @click=${e.onShowHidden}>…顯示隱藏項目(${e.hiddenCount})</button></p>` : L}`;
 	}
 };
@@ -1748,6 +1767,8 @@ var Dn = {
 			pinEnabled: !0,
 			requestedPin: e.requestedPin,
 			nextId: e.nextTaskId,
+			onSourceReorder: e.onCardReorder,
+			reorderGroups: e.cardReorderGroups,
 			hiddenCount: e.hiddenCount,
 			onShowHidden: e.onShowHidden
 		}, (n, r) => n.kind === "report_pointer" ? On(e, n, r) : En(e, t, n, r), e.filters ? Pt(e.filters) : L, P`${e.onSearch ? P`<ui-search-field class="task-search" label="搜尋任務卡名稱、摘要與子項" placeholder="搜尋名稱、摘要、子項"

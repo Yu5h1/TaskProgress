@@ -1,5 +1,6 @@
 import { requestedCardPin } from "./card-order.js";
 import { moveUnfinishedItem } from "./item-reorder.js";
+import { cardPriorityGroup, moveReportCard } from "./card-reorder.js";
 import { recordUserActivity } from "./item-activity.js";
 import { clearNextMarker, liftNextTask, nextRefusal, resolveNext, setNextMarker } from "./next-marker.js";
 import { SELECT_KEY_ATTRIBUTE, createItemSelection } from "./item-selection.js";
@@ -1146,6 +1147,22 @@ function renderTasks() {
     renderTasks();
   };
   props.allIds = orderedTasks.map(task => task.id);
+  // Use the complete, unfiltered cards: filtering child rows must not change a card's priority group.
+  const sourceIds = new Set((state.editor.editing ? state.report : state.persistedReport).tasks.map(task => task.id));
+  const explicitGroups = groupingOrder(state.statusOrder);
+  props.cardReorderGroups = Object.fromEntries(orderedTasks.filter(task => sourceIds.has(task.id)).map(task => [
+    task.id, JSON.stringify([explicitGroups.includes(task.status) ? task.status : null, cardPriorityGroup(task)]),
+  ]));
+  props.onCardReorder = state.editor.available ? async command => {
+    try {
+      return state.editor.editing
+        ? applyEditorCommand({ type: 'reorder-task', ...command }, '有尚未儲存的換位', { render: true })
+        : await reorderCardInPreview(command);
+    } catch (error) {
+      actionNotice.show({ level:'error', message:error instanceof Error ? error.message : '卡片換位失敗；請重新操作。' });
+      return false;
+    }
+  } : null;
   props.cardStorageKey = `taskprogress.cards.report.v1:${location.pathname}:${state.report.scope_id}:${state.report.report_id}`;
   if (state.taskListView) state.taskListView.update(props);
   else state.taskListView = createUiView("task-list", elements.taskList, props);
@@ -1438,6 +1455,18 @@ async function reorderInPreview(command) {
     build: (report) => recordUserActivity(report, moveUnfinishedItem(report, command)),
     staleMessage: "報告已被其他人更新，已重新載入；請再拖一次。",
     failureMessage: "換位儲存失敗；原始檔案未變更。",
+    onWritten: (before, after) => previewHistory.record(before, after),
+  });
+}
+
+/** Uses the same revision gate, transaction and undo history as child-item moves. */
+async function reorderCardInPreview(command) {
+  const reordered = moveReportCard(state.persistedReport, command);
+  if (reordered.tasks.every((task, index) => task.id === state.persistedReport.tasks[index].id)) return false;
+  return await writeInPreview({
+    build: report => moveReportCard(report, command),
+    staleMessage: '報告已被其他人更新，已重新載入；請再拖一次。',
+    failureMessage: '卡片換位儲存失敗；原始檔案未變更。',
     onWritten: (before, after) => previewHistory.record(before, after),
   });
 }

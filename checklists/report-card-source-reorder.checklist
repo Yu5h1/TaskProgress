@@ -1,0 +1,36 @@
+# Report 順排同級換位 Checklist
+
+Current round: `Documentation/CardDisclosurePlan.md#順排寫回原始順序`.
+Paths: viewer/assets/card-reorder.js, viewer/assets/editor-core*, viewer/assets/app.js, ui/web-workflow/, tests/card-reorder*, tests/serve_card_reorder.py
+
+本輪證據：正式入口重現於 `../Web/.verify/copy-id-delivery-b341bdcb/source/.verify/product-card-order-baseline/2026-11-08T13-47-54-648Z/`。修正後候選 `f07b296cc13a31211220f72686c8fcee25febe645e134aaa6ff950d059c3c770` 的明暗模式 30/30 見同一 evidence root 的 `product-card-order/2026-11-08T14-02-36-605Z/summary.json`；拖曳使用合成 HTML DragEvent，保存、檔案讀回、歷史及新增表單為真實候選/API，沒有操作正式 8001 資料。定向 Node 32/32、既有 card-order 9 項與原保存／stale revision Python 案例通過。獨立複核已核對新卡草稿邊界與 Browser／Desktop 同源產物；前景 8021 已停止並釋放拋棄式資料。
+
+- [x] **1. 確認原始互動缺口**
+  Outcome: 在正式 Report 重現順排無法拖曳，固定本輪修正對象。
+  Checks:
+    - [x] **順排重現**
+      - Action: 在正式 8001 Report 的順排模式檢查卡片拖曳能力並保存畫面。
+      - Expect: 本輪修改前的卡片均不可排序，沒有把手；證據指向使用者看到的正式入口。
+
+- [x] **2. 同級來源與歷史**
+  Outcome: 同級來源順序可修改及復原，不改優先級或其他卡片內容。
+  Checks:
+    - [x] **模型與草稿**
+      - Action: 執行 card-reorder、editor-core、item-reorder、preview-history 的定向 Node 測試。
+      - Expect: 同級前後換位、隱藏槽位、輸入不變、跨優先級拒絕、無效請求、Undo／Redo 與取消通過。
+
+- [x] **3. 實際瀏覽器與原始檔往返**
+  Outcome: 順排拖曳寫入原始順序，不排只暫時換位。
+  Checks:
+    - [x] **拋棄式資料驗證**
+      - Action: 使用隔離候選與拋棄式 fixture，在明暗模式操作拖曳、跨級落點、重載、復原及不排；核對原始檔與請求。
+      - Expect: 順排同級拖曳實際保存且重載保留；跨級不保存；不排不寫檔且重載清除暫時順序；保留選取、釘選、Next 與唯讀限制。
+      - Observed: 首次隔離瀏覽器驗證已保存同級原始順序並保留其他卡片，但成功重畫時儲存中的 capability 被留在畫面，保存後把手未恢復可用；證據為 product-card-order/2026-11-08T13-57-18-127Z。
+      - Resolved: UI 的忙碌狀態交由 Cards.moving 與既有寫入 guard 控制，不再把暫時 busy 固定成回呼缺失；明暗模式完成連續拖曳、復原重做、重載及謹慎模式往返，新建尚未儲存卡片亦可同級換位並取消，30/30 通過。
+
+- [x] **4. 共用交付與獨立複核**
+  Outcome: 正式產物與共用元件邊界一致。
+  Checks:
+    - [x] **建置與複核**
+      - Action: 重建 Browser／Desktop 入口，由另一個 context 對照本節的規則複核差異與驗證證據。
+      - Expect: 建置通過，沒有另一份拖曳或儲存系統；複核具體問題已處理，既有文件頁與子項操作不受影響。

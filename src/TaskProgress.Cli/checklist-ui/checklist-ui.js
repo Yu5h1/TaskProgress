@@ -4,17 +4,17 @@ import "./assets/expandable-text.js";
 import { inlineLinks as s } from "./assets/inline-links.js";
 import { displayCards as c, moveVisibleCard as l, promotePin as u } from "./assets/card-order.js";
 import { loadDisclosure as d, saveDisclosure as f } from "./assets/card-disclosure-state.js";
-import { DEFAULT_CAPSULE_ID as p, createFilterSelection as m, groupingOrder as h, isDefaultLit as g, loadFilterSelection as ee, saveFilterSelection as te, toggleDefault as ne, toggleTag as re } from "./assets/filter-selection.js";
-import { checklistReturnOwner as ie, createLinkSelection as ae, documentLinkTarget as oe, readLinkSelection as se } from "./assets/link-selection.js";
-import { checklistFilterCategories as ce, createChecklistEditorSession as le, filterChecklistBySelection as ue, filterOperableChecks as de, isTagged as _, lockReason as fe, orderChecklistItems as pe } from "./assets/checklist-editor.js";
-import { stackChecklistItems as me } from "./assets/completed-stacking.js";
-import { createPersistenceController as he } from "./assets/persistence-mode.js";
-import { createChecklistFilterOrder as ge } from "./assets/checklist-filter-order.js";
-import { createDocumentTransport as _e } from "./assets/document-transport.js";
-import { installForegroundRefresh as ve } from "./assets/foreground-refresh.js";
-import { installFocusShield as ye } from "./assets/focus-shield.js";
+import { DEFAULT_CAPSULE_ID as p, createFilterSelection as m, groupingOrder as h, isDefaultLit as g, loadFilterSelection as _, saveFilterSelection as ee, toggleDefault as te, toggleTag as ne } from "./assets/filter-selection.js";
+import { checklistReturnOwner as re, createLinkSelection as ie, documentLinkTarget as ae, readLinkSelection as oe } from "./assets/link-selection.js";
+import { checklistFilterCategories as se, createChecklistEditorSession as ce, filterChecklistBySelection as le, filterOperableChecks as ue, isTagged as v, lockReason as de, orderChecklistItems as fe } from "./assets/checklist-editor.js";
+import { stackChecklistItems as pe } from "./assets/completed-stacking.js";
+import { createPersistenceController as me } from "./assets/persistence-mode.js";
+import { createChecklistFilterOrder as he } from "./assets/checklist-filter-order.js";
+import { createDocumentTransport as ge } from "./assets/document-transport.js";
+import { installForegroundRefresh as _e } from "./assets/foreground-refresh.js";
+import { installFocusShield as ve } from "./assets/focus-shield.js";
 //#region viewer/assets/theme-model.js
-var be = "task-progress.theme.v1";
+var ye = "task-progress.theme.v1";
 Object.freeze({
 	light: Object.freeze({
 		pageBackground: "#f5f3ec",
@@ -42,10 +42,10 @@ Object.freeze({
 });
 //#endregion
 //#region ui/web-workflow/theme-options.mjs
-var xe = Object.freeze({ defaultMode: "system" });
+var be = Object.freeze({ defaultMode: "system" });
 //#endregion
 //#region ui/web-workflow/bootstrap.mjs
-function Se(t = null) {
+function xe(t = null) {
 	let n = document.createElement("a");
 	n.className = "demo-back-link", n.href = t?.href ?? "/", n.setAttribute("aria-label", t ? `回到 ${t.title}` : "回到 Scopes 入口"), n.title = t ? `回到 ${t.title}` : "回到 Scopes 入口";
 	let r = document.createElementNS("http://www.w3.org/2000/svg", "svg");
@@ -69,15 +69,15 @@ function Se(t = null) {
 		iconElement: r
 	}), n.style.setProperty("--button-foreground", "var(--blue)"), n;
 }
-async function Ce(e) {
+async function Se(e) {
 	n(), document.documentElement.dataset.taskprogressUi = "web-ui-workflow";
-	let t = xe, s = globalThis.taskprogressThemeBoot, c = s?.preference ?? i(() => localStorage, "task-progress.theme.v1", t);
+	let t = be, s = globalThis.taskprogressThemeBoot, c = s?.preference ?? i(() => localStorage, "task-progress.theme.v1", t);
 	s?.controller.dispose(), delete globalThis.taskprogressThemeBoot;
 	let l = document.createElement("ui-theme-control"), u = matchMedia("(prefers-color-scheme: dark)"), d, f = () => {
 		l.preference = c, l.systemScheme = u.matches ? "dark" : "light", document.documentElement.dataset.theme = c.mode, c.mode === "custom" ? document.documentElement.dataset.themeBase = c.custom.base : delete document.documentElement.dataset.themeBase;
 	}, p = () => {
-		d || (c = i(() => localStorage, be, t), d = r(document.documentElement, c, t), u.addEventListener("change", f), f());
-	}, m = (e) => (c = o(() => localStorage, be, e, t), d?.update(c), f(), c);
+		d || (c = i(() => localStorage, ye, t), d = r(document.documentElement, c, t), u.addEventListener("change", f), f());
+	}, m = (e) => (c = o(() => localStorage, ye, e, t), d?.update(c), f(), c);
 	if (p(), l.addEventListener("theme-change", (e) => m(e.detail.preference)), globalThis.taskprogressTheme = {
 		control: l,
 		get mode() {
@@ -106,29 +106,29 @@ async function Ce(e) {
 		let e = document.querySelector("#report-title");
 		if (e) {
 			let t = document.createElement("div");
-			t.className = "replica-title-row", e.before(t), t.append(Se(), e);
+			t.className = "replica-title-row", e.before(t), t.append(xe(), e);
 		}
 	}
-	let h = new URLSearchParams(location.search).get("scope"), g = e !== "viewer" && typeof globalThis.chrome?.webview?.postMessage == "function", ee = g;
+	let h = new URLSearchParams(location.search).get("scope"), g = e !== "viewer" && typeof globalThis.chrome?.webview?.postMessage == "function", _ = g;
 	if (!g && h) try {
 		let e = await fetch("/__taskprogress/v1/capabilities/" + encodeURIComponent(h));
-		ee = e.ok && (await e.json()).editable;
+		_ = e.ok && (await e.json()).editable;
 	} catch {}
 	return {
-		editable: ee,
+		editable: _,
 		desktop: g
 	};
 }
 //#endregion
 //#region node_modules/@lit/reactive-element/css-tag.js
-var v = globalThis, y = v.ShadowRoot && (v.ShadyCSS === void 0 || v.ShadyCSS.nativeShadow) && "adoptedStyleSheets" in Document.prototype && "replace" in CSSStyleSheet.prototype, we = Symbol(), Te = /* @__PURE__ */ new WeakMap(), Ee = class {
+var y = globalThis, Ce = y.ShadowRoot && (y.ShadyCSS === void 0 || y.ShadyCSS.nativeShadow) && "adoptedStyleSheets" in Document.prototype && "replace" in CSSStyleSheet.prototype, we = Symbol(), Te = /* @__PURE__ */ new WeakMap(), Ee = class {
 	constructor(e, t, n) {
 		if (this._$cssResult$ = !0, n !== we) throw Error("CSSResult is not constructable. Use `unsafeCSS` or `css` instead.");
 		this.cssText = e, this.t = t;
 	}
 	get styleSheet() {
 		let e = this.o, t = this.t;
-		if (y && e === void 0) {
+		if (Ce && e === void 0) {
 			let n = t !== void 0 && t.length === 1;
 			n && (e = Te.get(t)), e === void 0 && ((this.o = e = new CSSStyleSheet()).replaceSync(this.cssText), n && Te.set(t, e));
 		}
@@ -138,12 +138,12 @@ var v = globalThis, y = v.ShadowRoot && (v.ShadyCSS === void 0 || v.ShadyCSS.nat
 		return this.cssText;
 	}
 }, De = (e) => new Ee(typeof e == "string" ? e : e + "", void 0, we), Oe = (e, t) => {
-	if (y) e.adoptedStyleSheets = t.map((e) => e instanceof CSSStyleSheet ? e : e.styleSheet);
+	if (Ce) e.adoptedStyleSheets = t.map((e) => e instanceof CSSStyleSheet ? e : e.styleSheet);
 	else for (let n of t) {
-		let t = document.createElement("style"), r = v.litNonce;
+		let t = document.createElement("style"), r = y.litNonce;
 		r !== void 0 && t.setAttribute("nonce", r), t.textContent = n.cssText, e.appendChild(t);
 	}
-}, ke = y ? (e) => e : (e) => e instanceof CSSStyleSheet ? ((e) => {
+}, ke = Ce ? (e) => e : (e) => e instanceof CSSStyleSheet ? ((e) => {
 	let t = "";
 	for (let n of e.cssRules) t += n.cssText;
 	return De(t);
@@ -1051,7 +1051,7 @@ function qt({ id: e, label: t, expanded: n = !0, toggle: r, visibilityEnabled: i
 }
 var Jt = class {
 	constructor(e) {
-		this.view = e, this.order = [], this.pins = [], this.mode = "forward", this.visibility = "disabled", this.hidden = [], this.selected = null, this.expanded = !0, this.overrides = {}, this.key = null, this.linkSelection = ae(se(location.search));
+		this.view = e, this.order = [], this.pins = [], this.mode = "forward", this.visibility = "disabled", this.hidden = [], this.selected = null, this.expanded = !0, this.overrides = {}, this.key = null, this.linkSelection = ie(oe(location.search));
 		let t = (t) => {
 			let n = t.target.closest(".arrangeable-card");
 			(!n || !e.target.contains(n)) && this.select(null);
@@ -1077,7 +1077,7 @@ var Jt = class {
 	}
 	persist(e = !1) {
 		try {
-			this.key && (localStorage.setItem(this.key, JSON.stringify(this.order)), localStorage.setItem(`${this.key}:pins`, JSON.stringify(this.pins)), localStorage.setItem(`${this.key}:mode`, this.mode), sessionStorage.setItem(`${this.key}:visibility`, JSON.stringify({
+			this.key && (localStorage.setItem(`${this.key}:pins`, JSON.stringify(this.pins)), localStorage.setItem(`${this.key}:mode`, this.mode), sessionStorage.setItem(`${this.key}:visibility`, JSON.stringify({
 				mode: this.visibility,
 				hiddenIds: this.hidden
 			})));
@@ -1088,16 +1088,16 @@ var Jt = class {
 		this.props = e;
 		let i = e.storageKey ?? null;
 		if (this.key !== i && (this.key = i, this.lastPin = null, this.order = [], this.pins = [], this.mode = "forward", this.hidden = [], this.visibility = "disabled", this.selected = null, i)) try {
-			let e = JSON.parse(localStorage.getItem(i)), t = JSON.parse(localStorage.getItem(`${i}:pins`)), n = JSON.parse(sessionStorage.getItem(`${i}:visibility`)), r = localStorage.getItem(`${i}:mode`);
-			this.order = Array.isArray(e) ? e : [], this.pins = Array.isArray(t) ? [...new Set(t.filter((e) => typeof e == "string" || typeof e == "number"))] : [], this.mode = [
+			let e = JSON.parse(localStorage.getItem(`${i}:pins`)), t = JSON.parse(sessionStorage.getItem(`${i}:visibility`)), n = localStorage.getItem(`${i}:mode`);
+			this.pins = Array.isArray(e) ? [...new Set(e.filter((e) => typeof e == "string" || typeof e == "number"))] : [], this.mode = [
 				"forward",
 				"reverse",
 				"free"
-			].includes(r) ? r : Array.isArray(e) ? "free" : "forward", this.visibility = [
+			].includes(n) ? n : "forward", this.visibility = [
 				"enabled",
 				"closed",
 				"disabled"
-			].includes(n?.mode) ? n.mode : n?.enabled === !0 ? "enabled" : "disabled", this.hidden = Array.isArray(n?.hiddenIds) ? n.hiddenIds : [];
+			].includes(t?.mode) ? t.mode : t?.enabled === !0 ? "enabled" : "disabled", this.hidden = Array.isArray(t?.hiddenIds) ? t.hiddenIds : [];
 		} catch {}
 		let a = e.disclosureKey ?? `taskprogress.disclosure:${i ?? location.href}`;
 		if (this.disclosureKey !== a) {
@@ -1118,9 +1118,28 @@ var Jt = class {
 			let t = [...this.view.target.querySelectorAll("[data-card-id]")].find((e) => e.dataset.cardId === String(s.id));
 			t?.focus({ preventScroll: !0 }), t?.scrollIntoView({ block: "center" });
 		}));
-		let f = this.linkSelection.selectionChanged(this.selected), p = (e) => this.visibility !== "closed" && (this.visibility !== "enabled" || !this.hidden.includes(e.id)), m = (t) => {
-			this.mode !== "free" || e.pinEnabled && (this.pins.includes(t.id) || this.pins.includes(t.targetId)) || (this.order = l(e.allIds ?? o.map((e) => e.id), this.order, o.filter((t) => p(t) && !(e.pinEnabled && this.pins.includes(t.id))).map((e) => e.id), t.id, t.targetId, t.placement === "after"), e.onSelectionChange?.(null), this.selected = t.id, e.onSelectionChange?.(t.id), this.persist(), queueMicrotask(() => [...this.view.target.querySelectorAll("[data-card-id]")].find((e) => e.dataset.cardId === String(t.id))?.focus()));
-		}, h = o.find(p)?.id;
+		let f = this.linkSelection.selectionChanged(this.selected), p = (e) => this.visibility !== "closed" && (this.visibility !== "enabled" || !this.hidden.includes(e.id)), m = this.mode === "forward" && typeof e.onSourceReorder == "function", h = (t) => !this.moving && p(t) && t.id !== e.nextId && !(e.pinEnabled && this.pins.includes(t.id)) && (this.mode === "free" || m && Object.hasOwn(e.reorderGroups ?? {}, t.id)), g = async (t) => {
+			let n = o.find((e) => e.id === t.id), r = o.find((e) => e.id === t.targetId);
+			if (!(!n || !r || !h(n) || !h(r))) {
+				if (m) {
+					if (e.reorderGroups[t.id] !== e.reorderGroups[t.targetId]) return;
+					let n = o.filter((n) => h(n) && e.reorderGroups[n.id] === e.reorderGroups[t.id]).map((e) => e.id);
+					this.moving = !0, this.view.draw();
+					try {
+						if (await e.onSourceReorder({
+							taskId: t.id,
+							position: { [t.placement === "after" ? "after" : "before"]: t.targetId },
+							visibleIds: n
+						}) === !1) return;
+					} finally {
+						this.moving = !1, this.view.draw();
+					}
+				} else this.order = l(e.allIds ?? o.map((e) => e.id), this.order, o.filter(h).map((e) => e.id), t.id, t.targetId, t.placement === "after");
+				e.onSelectionChange?.(null), this.selected = t.id, e.onSelectionChange?.(t.id), this.persist(), queueMicrotask(() => {
+					this.view.disposed || [...this.view.target.querySelectorAll("[data-card-id]")].find((e) => e.dataset.cardId === String(t.id))?.focus();
+				});
+			}
+		}, _ = o.find(p)?.id;
 		return P`<div class="card-list-controls"><div class="card-list-heading"><p class="section-kicker">工作項目</p>${n}</div><div class="card-list-tools">
       <button type="button" class="card-toolbar-icon" aria-label=${this.expanded ? "全部收合" : "全部展開"} @click=${() => this.all(!this.expanded)}><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d=${this.expanded ? "M5 15l7-7 7 7" : "M5 9l7 7 7-7"} fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" /></svg></button>
       ${Kt(this.view, "order", [
@@ -1132,7 +1151,7 @@ var Jt = class {
 			label: {
 				forward: "順排",
 				reverse: "逆排",
-				free: "自由排序（可拖曳）"
+				free: "不排（暫時換位）"
 			}[e],
 			icon: Ft(e)
 		})), this.mode, "排序", (e) => {
@@ -1170,9 +1189,9 @@ var Jt = class {
 				before: "card-drop-before",
 				after: "card-drop-after"
 			},
-			onMove: m
+			onMove: g
 		})}>
-    ${St(o, (e) => e.id, (n, r) => P`<div class="arrangeable-card ${this.selected === n.id ? "card-selected" : ""}" role="group" tabindex="0" data-render-window data-card-id=${n.id} data-reorder-id=${n.id} data-reorder-sortable=${String(this.mode === "free" && !this.pins.includes(n.id))}
+    ${St(o, (e) => e.id, (n, r) => P`<div class="arrangeable-card ${this.selected === n.id ? "card-selected" : ""}" role="group" tabindex="0" data-render-window data-card-id=${n.id} data-reorder-id=${n.id} data-reorder-sortable=${String(h(n))} data-reorder-group=${m ? e.reorderGroups?.[n.id] ?? L : L}
       aria-label=${`${n.title ?? n.question ?? ""}${this.selected === n.id ? "，已選取" : ""}`} data-link-tone=${this.selected === n.id ? f ?? L : L} ?hidden=${!p(n)}
       @pointerdown=${(e) => {
 			e.button === 0 && this.select(n.id);
@@ -1185,12 +1204,12 @@ var Jt = class {
       ${wt([
 			this.view.contentVersion,
 			n,
-			n.id === h,
+			n.id === _,
 			this.isExpanded(n.id),
 			this.visibility,
 			this.hidden.includes(n.id)
 		], () => t(n, {
-			lead: n.id === h,
+			lead: n.id === _,
 			expanded: this.isExpanded(n.id),
 			toggle: (e) => this.expand(n.id, e),
 			visibilityEnabled: this.visibility === "enabled",
@@ -1199,7 +1218,7 @@ var Jt = class {
 				this.hidden = e ? this.hidden.filter((e) => e !== n.id) : [...this.hidden, n.id], this.persist();
 			}
 		}))}
-      ${this.mode === "free" ? P`<button type="button" class="replica-card-grip" data-reorder-handle draggable="true" aria-label="移動 ${n.title ?? n.question}">⠿</button>` : L}
+      ${h(n) ? P`<button type="button" class="replica-card-grip" data-reorder-handle draggable="true" aria-label="移動 ${n.title ?? n.question}" title=${m ? "調整原始順序；限同優先級" : "暫時換位，不改原始順序"}>⠿</button>` : L}
     </div>`)}</div>${e.hiddenCount > 0 ? P`<p class="card-list-hidden"><button type="button" class="card-list-hidden-link" @click=${e.onShowHidden}>…顯示隱藏項目(${e.hiddenCount})</button></p>` : L}`;
 	}
 };
@@ -1239,19 +1258,19 @@ var Xt = (e, t) => {
 		t.parentNode === e && t.remove();
 	} };
 }, $t = () => P`<span class="replica-theme" ${X(Qt, null)}></span>`, en = (e, t) => {
-	let n = Se(t);
+	let n = xe(t);
 	return e.append(n), {
 		update(e) {
 			if (t.href === e.href && t.title === e.title) return;
 			t = e;
-			let r = Se(e);
+			let r = xe(e);
 			n.replaceWith(r), n = r;
 		},
 		destroy: () => n.remove()
 	};
-}, tn = (e) => !e || globalThis.chrome?.webview ? L : P`<span class="replica-back" ${X(en, e)}></span>`, nn = await Ce("checklist"), rn = new URLSearchParams(location.search), an;
+}, tn = (e) => !e || globalThis.chrome?.webview ? L : P`<span class="replica-back" ${X(en, e)}></span>`, nn = await Se("checklist"), rn = new URLSearchParams(location.search), an;
 try {
-	an = _e("checklist", { params: rn });
+	an = ge("checklist", { params: rn });
 } catch (e) {
 	an = { load: () => Promise.reject(e) };
 }
@@ -1269,7 +1288,7 @@ var Q = [
 	released: "需重驗：之後重新執行過"
 }, $ = new class extends Vt {
 	constructor(e, t = {}) {
-		super(e, {}, (e, t) => t.template()), this.transport = t.transport ?? an, this.editable = t.editable ?? nn.editable, this.params = t.params ?? rn, this.storage = t.storage, this.loadGeneration = 0, this.cards = new Jt(this), this.message = "正在載入 Checklist…", this.loading = !0, this.operable = !1, this.selection = m(Q), this.orderController = ge({ supportedIds: [p, ...Q] }), this.order = this.orderController.order, this.linkRequest = se(location.search), this.linked = this.linkRequest?.id ?? null, this.held = null, this.activeCard = null, this.resetOpen = !1, this.resetBusy = !1, this.resetTargets = [], this.cleanups.push(ye()), this.cleanups.push(ve({
+		super(e, {}, (e, t) => t.template()), this.transport = t.transport ?? an, this.editable = t.editable ?? nn.editable, this.params = t.params ?? rn, this.storage = t.storage, this.loadGeneration = 0, this.cards = new Jt(this), this.message = "正在載入 Checklist…", this.loading = !0, this.operable = !1, this.selection = m(Q), this.orderController = he({ supportedIds: [p, ...Q] }), this.order = this.orderController.order, this.linkRequest = oe(location.search), this.linked = this.linkRequest?.id ?? null, this.held = null, this.activeCard = null, this.resetOpen = !1, this.resetBusy = !1, this.resetTargets = [], this.cleanups.push(ve()), this.cleanups.push(_e({
 			canRefresh: () => this.canRefresh(),
 			reload: () => this.refreshSource()
 		})), this.on(window, "beforeunload", (e) => {
@@ -1282,8 +1301,8 @@ var Q = [
 	install(e) {
 		if (this.disposed) return;
 		let t, n = () => !this.disposed && this.persistence === t;
-		t = he({
-			session: le(e),
+		t = me({
+			session: ce(e),
 			storage: this.storage,
 			timers: this.timers,
 			save: async (e) => {
@@ -1298,7 +1317,7 @@ var Q = [
 			}
 		}), this.persistence = t, this.data = this.persistence.snapshot(), this.message = this.data.message;
 		let r = `taskprogress.disclosure:checklist:${location.pathname}:${location.search}:${e.fileName}:${e.roundIdentity}`;
-		this.filterKey !== r + ":filters" && (this.filterKey = r + ":filters", this.selection = ee(this.filterKey, Q)), this.resolvedLink ||= (this.linked = oe(this.linkRequest, e.items.map((e) => e.id)), !0);
+		this.filterKey !== r + ":filters" && (this.filterKey = r + ":filters", this.selection = _(this.filterKey, Q)), this.resolvedLink ||= (this.linked = ae(this.linkRequest, e.items.map((e) => e.id)), !0);
 	}
 	async load() {
 		if (this.disposed) return;
@@ -1359,7 +1378,7 @@ var Q = [
 		});
 	}
 	select(e) {
-		this.selection = e, te(this.filterKey, e), this.draw();
+		this.selection = e, ee(this.filterKey, e), this.draw();
 	}
 	selectCard(e, t) {
 		if (this.activeCard !== e) {
@@ -1380,11 +1399,11 @@ var Q = [
 				checks: t.checks.flatMap((e) => n.checks.find((t) => t.index === e.index) ?? [])
 			}] : [];
 		});
-		let t = pe(e, this.order), n = {
+		let t = fe(e, this.order), n = {
 			...t,
-			items: me(t.items, { asWritten: h(this.order).filter((e) => Q.includes(e)).length === 0 })
+			items: pe(t.items, { asWritten: h(this.order).filter((e) => Q.includes(e)).length === 0 })
 		};
-		return this.operable && (n = de(n)), n.items.flatMap((e) => String(e.id) === this.linked ? [e] : ue({ items: [e] }, this.selection.selected).items);
+		return this.operable && (n = ue(n)), n.items.flatMap((e) => String(e.id) === this.linked ? [e] : le({ items: [e] }, this.selection.selected).items);
 	}
 	manualTargets() {
 		return this.data?.document.items.flatMap((e) => e.checks.filter((e) => e.isManual).map((t) => ({
@@ -1411,7 +1430,7 @@ var Q = [
 		}
 	}
 	check(e, t) {
-		let n = t.isAcceptance ? "acceptance" : t.isManual ? "manual" : null, r = _(t) ? fe(this.data.document, t) : null, i = _(t) && !this.resetBusy && (!r || t.status !== "pending");
+		let n = t.isAcceptance ? "acceptance" : t.isManual ? "manual" : null, r = v(t) ? de(this.data.document, t) : null, i = v(t) && !this.resetBusy && (!r || t.status !== "pending");
 		return P`<section id="check-${e.id}-${t.index}" tabindex="-1" class="checklist-check checklist-${t.status} ${n ? `checklist-${n}` : ""}">
       <div class="checklist-check-heading">${It(t.status, t.title, i ? () => this.cycle(e.id, t) : null, !!t.validity && t.validity !== "valid")}<strong>${t.title}</strong><span class="checklist-owner ${n ? `checklist-owner-${n}` : ""}">${{
 			manual: "實機",
@@ -1419,7 +1438,7 @@ var Q = [
 		}[n] ?? "Agent"}</span></div>
       ${r && t.status === "pending" ? P`<p class="checklist-lock">${r}</p>` : L}<dl><div><dt>Action</dt><dd>${Pt(t.action)}</dd></div><div><dt>Expect</dt><dd>${Pt(t.expect)}</dd></div>
       ${t.reason ? P`<div><dt>Reason</dt><dd>${t.reason}</dd></div>` : L}
-      ${t.observed && !(_(t) && t.status === "failed") ? P`<div><dt>Observed</dt><dd>${t.observed}</dd></div>` : L}
+      ${t.observed && !(v(t) && t.status === "failed") ? P`<div><dt>Observed</dt><dd>${t.observed}</dd></div>` : L}
       ${t.resolved ? P`<div><dt>Resolved</dt><dd>${t.resolved}</dd></div>` : L}
       ${t.validity && t.validity !== "valid" ? P`<div><dt>狀態</dt><dd class="checklist-void">${sn[t.validity]}</dd></div>` : t.recorder ? P`<div><dt>記錄</dt><dd>${t.recorder === "user" ? "使用者" : t.recorder}</dd></div>` : L}</dl>
       ${t.isAcceptance && t.status === "failed" ? P`<label class="checklist-observed"><span>不通過的原因</span><select ?disabled=${this.resetBusy || !this.editable} .value=${Tt(t.rejectReason ?? "implementation")} @change=${(n) => this.apply({
@@ -1428,7 +1447,7 @@ var Q = [
 			checkIndex: t.index,
 			value: n.currentTarget.value
 		})}><option value="implementation">實作不符</option><option value="condition">條件不符</option></select></label>` : L}
-      ${_(t) && t.status === "failed" ? P`<label class="checklist-observed"><span>Observed</span><textarea rows="3" ?disabled=${this.resetBusy || !this.editable} .value=${Tt(t.observed ?? "")} @input=${(n) => this.apply({
+      ${v(t) && t.status === "failed" ? P`<label class="checklist-observed"><span>Observed</span><textarea rows="3" ?disabled=${this.resetBusy || !this.editable} .value=${Tt(t.observed ?? "")} @input=${(n) => this.apply({
 			type: "set-observed",
 			workItemId: e.id,
 			checkIndex: t.index,
@@ -1438,7 +1457,7 @@ var Q = [
 	}
 	template() {
 		let e = this.data, t = this.visible();
-		return P`<main class="checklist-page"><header class="checklist-header"><div><div class="replica-title-row">${tn(ie(this.owner, location.search))}<h1>${e?.document.fileName ?? "TaskProgress Checklist"}</h1></div>${e ? P`<p class="checklist-round">${e.document.roundIdentity}</p>` : L}</div>${$t()}</header>
+		return P`<main class="checklist-page"><header class="checklist-header"><div><div class="replica-title-row">${tn(re(this.owner, location.search))}<h1>${e?.document.fileName ?? "TaskProgress Checklist"}</h1></div>${e ? P`<p class="checklist-round">${e.document.roundIdentity}</p>` : L}</div>${$t()}</header>
       ${this.loading ? P`<p class="checklist-notice" role="status">${this.message}</p>` : e ? P`
       ${Bt({
 			bar: {
@@ -1450,7 +1469,7 @@ var Q = [
 		})}
       <section class="checklist-items" aria-label="Implementation checklist items">${this.cards.render({
 			items: t,
-			allIds: pe(e.document, this.order).items.map((e) => e.id),
+			allIds: fe(e.document, this.order).items.map((e) => e.id),
 			storageKey: this.params.has("scope") ? `taskprogress.cards.checklist.v1:${location.pathname}:${this.params.get("scope")}:${this.params.get("task")}:${e.document.roundIdentity}` : null,
 			disclosureKey: `taskprogress.disclosure:checklist:${location.pathname}:${location.search}:${e.document.fileName}:${e.document.roundIdentity}`,
 			heldOrder: this.heldOrder,
@@ -1471,13 +1490,13 @@ var Q = [
 				t.id
 			].filter((e) => e != null && e !== "").join(" › "), t.title, t.id)}</h2></div><span class="checklist-status" aria-label="通過 ${r.progress.passed}，共 ${r.progress.total}">${r.progress.passed}/${r.progress.total}</span></header>`, P`<div class="checklist-checks"><p class="checklist-outcome">${Pt(t.outcome)}</p>${t.dependsOn.length ? P`<p class="checklist-chips"><span class="checklist-chip">Depends on ${t.dependsOn.join(", ")}</span></p>` : L}${St(t.checks, (e) => e.index, (e) => this.check(t, e))}</div>`)}</article>`;
 		}, Wt({
-			categories: [...ce(e.document).map((e) => ({
+			categories: [...se(e.document).map((e) => ({
 				...e,
 				label: on[e.id]
 			})), {
 				id: "agent",
 				label: "Agent",
-				count: e.document.items.flatMap((e) => e.checks).filter((e) => !_(e)).length,
+				count: e.document.items.flatMap((e) => e.checks).filter((e) => !v(e)).length,
 				sortable: !1
 			}],
 			order: [...this.order, "agent"],
@@ -1487,11 +1506,11 @@ var Q = [
 			ariaLabel: "依 check 狀態及執行者篩選；狀態可拖曳調整順序",
 			reorderable: !0,
 			onSelect: (e) => {
-				e === "agent" ? (this.operable = !this.operable, this.draw()) : this.select(re(this.selection, e));
+				e === "agent" ? (this.operable = !this.operable, this.draw()) : this.select(ne(this.selection, e));
 			},
 			onSelectDefault: () => {
 				let e = g(this.selection) && !this.operable;
-				this.operable = e, this.select(e ? ne(this.selection) : m(Q));
+				this.operable = e, this.select(e ? te(this.selection) : m(Q));
 			},
 			onReorder: (e, t, n) => {
 				this.order = [...this.orderController.move(e, t, n)], this.draw();

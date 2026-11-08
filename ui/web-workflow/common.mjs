@@ -193,7 +193,7 @@ export class Cards {
   // Only the order-mode control reuses body templates. Every data, selection,
   // capability or disclosure draw invalidates them through View.contentVersion.
   persist(reuseCardContent = false) {
-    try { if (this.key) { localStorage.setItem(this.key, JSON.stringify(this.order)); localStorage.setItem(`${this.key}:pins`, JSON.stringify(this.pins)); localStorage.setItem(`${this.key}:mode`, this.mode); sessionStorage.setItem(`${this.key}:visibility`, JSON.stringify({ mode:this.visibility, hiddenIds:this.hidden })); } } catch {}
+    try { if (this.key) { localStorage.setItem(`${this.key}:pins`, JSON.stringify(this.pins)); localStorage.setItem(`${this.key}:mode`, this.mode); sessionStorage.setItem(`${this.key}:visibility`, JSON.stringify({ mode:this.visibility, hiddenIds:this.hidden })); } } catch {}
     this.view.draw({ reuseCardContent });
   }
   render(p, itemTemplate, filter = nothing, tools = nothing) {
@@ -202,9 +202,9 @@ export class Cards {
     if (this.key !== key) {
       this.key = key; this.lastPin = null; this.order = []; this.pins = []; this.mode = 'forward'; this.hidden = []; this.visibility = 'disabled'; this.selected = null;
       if (key) try {
-        const order = JSON.parse(localStorage.getItem(key)), pins = JSON.parse(localStorage.getItem(`${key}:pins`)), visibility = JSON.parse(sessionStorage.getItem(`${key}:visibility`)), mode = localStorage.getItem(`${key}:mode`);
-        this.order = Array.isArray(order) ? order : []; this.pins = Array.isArray(pins) ? [...new Set(pins.filter(id => typeof id === 'string' || typeof id === 'number'))] : [];
-        this.mode = ['forward','reverse','free'].includes(mode) ? mode : Array.isArray(order) ? 'free' : 'forward';
+        const pins = JSON.parse(localStorage.getItem(`${key}:pins`)), visibility = JSON.parse(sessionStorage.getItem(`${key}:visibility`)), mode = localStorage.getItem(`${key}:mode`);
+        this.pins = Array.isArray(pins) ? [...new Set(pins.filter(id => typeof id === 'string' || typeof id === 'number'))] : [];
+        this.mode = ['forward','reverse','free'].includes(mode) ? mode : 'forward';
         this.visibility = ['enabled','closed','disabled'].includes(visibility?.mode) ? visibility.mode : visibility?.enabled === true ? 'enabled' : 'disabled'; this.hidden = Array.isArray(visibility?.hiddenIds) ? visibility.hiddenIds : [];
       } catch {}
     }
@@ -230,19 +230,37 @@ export class Cards {
     }
     const linkTone = this.linkSelection.selectionChanged(this.selected);
     const visible = i => this.visibility !== 'closed' && (this.visibility !== 'enabled' || !this.hidden.includes(i.id));
-    const move = r => { if (this.mode !== 'free' || (p.pinEnabled && (this.pins.includes(r.id) || this.pins.includes(r.targetId)))) return; this.order = moveVisibleCard(p.allIds ?? items.map(i => i.id), this.order, items.filter(i => visible(i) && !(p.pinEnabled && this.pins.includes(i.id))).map(i => i.id), r.id, r.targetId, r.placement === 'after'); p.onSelectionChange?.(null); this.selected = r.id; p.onSelectionChange?.(r.id); this.persist(); queueMicrotask(() => [...this.view.target.querySelectorAll('[data-card-id]')].find(n => n.dataset.cardId === String(r.id))?.focus()); };
+    const sourceMode = this.mode === 'forward' && typeof p.onSourceReorder === 'function';
+    const movable = i => !this.moving && visible(i) && i.id !== p.nextId && !(p.pinEnabled && this.pins.includes(i.id))
+      && (this.mode === 'free' || (sourceMode && Object.hasOwn(p.reorderGroups ?? {}, i.id)));
+    const move = async r => {
+      const source = items.find(i => i.id === r.id), target = items.find(i => i.id === r.targetId);
+      if (!source || !target || !movable(source) || !movable(target)) return;
+      if (sourceMode) {
+        if (p.reorderGroups[r.id] !== p.reorderGroups[r.targetId]) return;
+        const visibleIds = items.filter(i => movable(i) && p.reorderGroups[i.id] === p.reorderGroups[r.id]).map(i => i.id);
+        this.moving = true; this.view.draw();
+        try {
+          if (await p.onSourceReorder({ taskId:r.id, position:{ [r.placement === 'after' ? 'after' : 'before']:r.targetId }, visibleIds }) === false) return;
+        } finally { this.moving = false; this.view.draw(); }
+      } else {
+        this.order = moveVisibleCard(p.allIds ?? items.map(i => i.id), this.order, items.filter(movable).map(i => i.id), r.id, r.targetId, r.placement === 'after');
+      }
+      p.onSelectionChange?.(null); this.selected = r.id; p.onSelectionChange?.(r.id); this.persist();
+      queueMicrotask(() => { if (!this.view.disposed) [...this.view.target.querySelectorAll('[data-card-id]')].find(n => n.dataset.cardId === String(r.id))?.focus(); });
+    };
     const leadId = items.find(visible)?.id;
     return html`<div class="card-list-controls"><div class="card-list-heading"><p class="section-kicker">工作項目</p>${filter}</div><div class="card-list-tools">
       <button type="button" class="card-toolbar-icon" aria-label=${this.expanded ? '全部收合' : '全部展開'} @click=${() => this.all(!this.expanded)}><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d=${this.expanded ? "M5 15l7-7 7 7" : "M5 9l7 7 7-7"} fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" /></svg></button>
-      ${choice(this.view, 'order', ['forward','reverse','free'].map(id => ({ id, label: ({forward:'順排',reverse:'逆排',free:'自由排序（可拖曳）'})[id], icon:orderIcon(id) })), this.mode, '排序', id => { this.mode = id; this.persist(true); })}
+      ${choice(this.view, 'order', ['forward','reverse','free'].map(id => ({ id, label: ({forward:'順排',reverse:'逆排',free:'不排（暫時換位）'})[id], icon:orderIcon(id) })), this.mode, '排序', id => { this.mode = id; this.persist(true); })}
       ${choice(this.view, 'visibility', [{ id:'enabled',label:'啟用',icon:eye() },{ id:'closed',label:'全體關閉',icon:eye(true) },{ id:'disabled',label:'禁用',icon:eye(false,true) },{ id:'reset',label:'重置',kind:'action',icon:html`<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10a9 9 0 1 1 2 8M3 4v6h6" /></svg>` }], this.visibility, '可見性', id => { if (id === 'reset') { this.hidden = []; this.visibility = 'enabled'; } else this.visibility = id; this.persist(); }, 'picker')}${tools}
     </div></div><div class="arrangeable-cards" ${action(reorderAction, { axis: 'vertical', surface: true, previewClasses:{before:'card-drop-before',after:'card-drop-after'}, onMove: move })}>
-    ${repeat(items, i => i.id, (i, index) => html`<div class="arrangeable-card ${this.selected === i.id ? 'card-selected' : ''}" role="group" tabindex="0" data-render-window data-card-id=${i.id} data-reorder-id=${i.id} data-reorder-sortable=${String(this.mode === 'free' && !this.pins.includes(i.id))}
+    ${repeat(items, i => i.id, (i, index) => html`<div class="arrangeable-card ${this.selected === i.id ? 'card-selected' : ''}" role="group" tabindex="0" data-render-window data-card-id=${i.id} data-reorder-id=${i.id} data-reorder-sortable=${String(movable(i))} data-reorder-group=${sourceMode ? p.reorderGroups?.[i.id] ?? nothing : nothing}
       aria-label=${`${i.title ?? i.question ?? ''}${this.selected === i.id ? '，已選取' : ''}`} data-link-tone=${this.selected === i.id ? linkTone ?? nothing : nothing} ?hidden=${!visible(i)}
       @pointerdown=${e => { if (e.button === 0) this.select(i.id); }} @focusin=${() => this.select(i.id)} @keydown=${e => { if (e.target === e.currentTarget && ['Enter',' '].includes(e.key)) { e.preventDefault(); this.select(i.id); } }}>
       ${p.pinEnabled ? html`<button type="button" class="card-pin ${this.pins.includes(i.id) ? 'is-pinned' : ''} ${i.id === p.nextId ? 'is-next' : ''}" aria-label="${this.pins.includes(i.id) ? '取消釘選' : '釘選置頂'}：${i.title}" aria-pressed=${this.pins.includes(i.id)} @click=${() => { this.pins = this.pins.includes(i.id) ? this.pins.filter(id => id !== i.id) : promotePin(this.pins, i.id); this.persist(); }}><svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M8 3h8l-1 7 4 4v2H5v-2l4-4-1-7Zm4 13v6" fill=${this.pins.includes(i.id) ? 'currentColor' : 'none'} stroke="currentColor" stroke-width="1.6" /></svg></button>` : nothing}
       ${guard([this.view.contentVersion, i, i.id === leadId, this.isExpanded(i.id), this.visibility, this.hidden.includes(i.id)], () => itemTemplate(i, { lead: i.id === leadId, expanded: this.isExpanded(i.id), toggle: value => this.expand(i.id, value), visibilityEnabled: this.visibility === 'enabled', visible: !this.hidden.includes(i.id), onVisibleChange: value => { this.hidden = value ? this.hidden.filter(id => id !== i.id) : [...this.hidden, i.id]; this.persist(); } }))}
-      ${this.mode === 'free' ? html`<button type="button" class="replica-card-grip" data-reorder-handle draggable="true" aria-label="移動 ${i.title ?? i.question}">⠿</button>` : nothing}
+      ${movable(i) ? html`<button type="button" class="replica-card-grip" data-reorder-handle draggable="true" aria-label="移動 ${i.title ?? i.question}" title=${sourceMode ? '調整原始順序；限同優先級' : '暫時換位，不改原始順序'}>⠿</button>` : nothing}
     </div>`)}</div>${p.hiddenCount > 0 ? html`<p class="card-list-hidden"><button type="button" class="card-list-hidden-link" @click=${p.onShowHidden}>…顯示隱藏項目(${p.hiddenCount})</button></p>` : nothing}`;
   }
 }
