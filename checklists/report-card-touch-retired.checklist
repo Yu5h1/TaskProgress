@@ -1,0 +1,36 @@
+# 卡片長按換位與退場配色 Checklist
+
+Current round: `Documentation/CardDisclosurePlan.md#選取與換位`.
+Paths: ui/web-workflow/common.mjs, ui/web-workflow/product.css, viewer/assets, viewer/checklist, viewer/decisions, src/TaskProgress.Cli/checklist-ui, src/TaskProgress.Cli/decisions-ui, tests/card-ui.browser.mjs, tests/card-reorder.browser.mjs, tests/serve_card_reorder.py
+
+配色依 [退場狀態決定](../Documentation/GapScanPlan.md#已決定)。測試以 `python tests/serve_card_reorder.py --card-ui` 啟動 8021 前景站，僅使用臨時資料。證據根目錄：`../Web/.verify/copy-id-delivery-b341bdcb/source/.verify/`。實機觸控手感未宣稱驗收；本輪使用 Chrome 原生觸控事件驗證操作與保存。
+
+本輪正式 identity：`dab1bdbd71868fd0c3b635c64ebbea7c8492cff274fd1eb4dc25720abcb93c99`。`Publish.cmd --nopause --restart` 以 exit 0 完成；獨立 context 複核未見具體待修問題。正式 8001 的唯讀檢查見 `card-ui-formal/2026-11-08T15-28-16-465Z`，確認無角落把手、狀態模組與樣式已載入退場 tone，3/3 通過；正式 scope 未顯示退場列，灰綠外觀證據採下列 fixture 的明暗截圖。8021 本輪前景站已正常停止。
+
+- [x] **1. 移除獨立把手並保留換位操作**
+  Outcome: 卡片沒有角落拖曳按鈕；滑鼠空白拖曳、觸控長按與鍵盤換位使用相同排序規則。
+  Checks:
+    - [x] **修正前重現**
+      - Action: 開啟 card-ui fixture，查看卡片右下角與退場項目。
+      - Expect: 記錄本輪修正前的可見把手與退場同色現象。
+      - Observed: card-ui-baseline/2026-11-08T15-09-29-966Z 的 2 項重現檢查與截圖確認角落把手可見，退場與一般待處理渲染色相同。
+      - Resolved: product-card-ui/2026-11-08T15-20-01-635Z 證明角落把手已移除，兩種退場狀態採用灰綠色。
+    - [x] **原生觸控短滑、長按、取消與復原**
+      - Action: 在 390px 視口用原生 touchStart／touchMove／touchEnd／touchCancel，短滑卡片標題，長按後拖到同級卡片，取消或置放，再復原。
+      - Expect: 短滑捲動且不改來源；長按後顯示落點，取消不寫入，置放保存來源且可復原。
+      - Observed: 首輪測試座標命中收展按鈕或子項，且收合後幾乎沒有可捲動空間，未能證明需要的觸控操作。
+      - Resolved: 改從可捲動頁面的被動卡片標題操作；product-card-ui/2026-11-08T15-20-01-635Z 明暗 14/14 通過，含無把手、退場 tone 與觸控往返；觸控插入預覽有截圖。
+    - [x] **滑鼠與鍵盤回歸**
+      - Action: 從核對過的卡片空白處原生拖曳，驗證同級／跨級、釘選、Next、暫時換位、謹慎草稿與新卡；以 Alt＋方向鍵換位並復原。
+      - Expect: 保留原有保存、限制、預覽與歷史；不需要可見把手。
+      - Observed: 初次新卡測試在捲動後立即取座標而未等原生渲染，會不穩定。
+      - Resolved: 改成捲動後等兩個 animation frames 再核對空白命中，未修改產品配合測試計時。product-card-order/2026-11-08T15-23-28-937Z 明暗 34/34；card-keyboard/2026-11-08T15-24-11-857Z 2/2。
+
+- [x] **2. 退場狀態採用灰綠色**
+  Outcome: 已取代與已棄案共用退場色，並保留狀態、進度與資料契約。
+  Checks:
+    - [x] **明暗渲染與連結色傳遞**
+      - Action: 比較一般待處理及兩種退場標記，查看明暗截圖與 computed styles；執行 item-state、link-selection、card-reorder 定向模型測試。
+      - Expect: 退場有獨立語意 tone 與明暗配色；同源連結可帶入退場選取色；其餘狀態推導與換位規則不變。
+      - Observed: 修正前退場標記與一般待處理同色。
+      - Resolved: product-card-ui/2026-11-08T15-20-01-635Z 的明暗退場截圖與 styles 已檢視；定向 Node 測試 26/26 通過。另發現原有進度分母未排除退場項，交由 viewer-core 的 problem-retired-progress-count 處理。

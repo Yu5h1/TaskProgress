@@ -25,6 +25,8 @@ test("internal targets carry the source tone and preserve addressing", () => {
   assert.equal(url.hash, "#checks");
   assert.deepEqual(readLinkSelection(url.search), { tone: "danger", id: "5" });
   assert.deepEqual(readLinkSelection("?scope=ux&pin=card&link-tone=warning"), { tone: "warning", id: "card" });
+  const retired = linkSelectionHref('/?scope=ux&pin=old', 'retired', base);
+  assert.deepEqual(readLinkSelection(new URL(retired, base).search), { tone: 'retired', id: 'old' });
 });
 test("external, unrelated and invalid links keep their original destinations", () => {
   for (const href of ["https://example.com/?scope=ux", "/docs/?scope=ux", "/?pin=card", "mailto:a@example.com"])

@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-11-08T14:55:44.855923+00:00",
+  "updated_at": "2026-11-08T15:25:59.380679+00:00",
   "tasks": [
     {
       "id": "agent-workflow",
@@ -1914,6 +1914,25 @@
       "summary": "正式 Viewer 已具備可分享的唯讀進度報告、Developer overlay、主題系統與響應式介面。",
       "completed_items": [
         {
+          "id": "problem-retired-tone",
+          "title": "已取代／已棄案採灰綠色退場標記，與未開始及完成色區別",
+          "status": "done",
+          "activity": [
+            {
+              "event": "created",
+              "actor": "claude",
+              "at": "2026-11-08T14:53:41.700306+00:00",
+              "session_id": "d1605ccb-3524-48c7-8364-9edf9d260151"
+            },
+            {
+              "event": "done",
+              "actor": "codex",
+              "at": "2026-11-08T15:25:59.380679+00:00",
+              "session": "Card touch and retired tone"
+            }
+          ]
+        },
+        {
           "status": "done",
           "priority": 2,
           "title": "Next 以卡片與子項 ID 配對，修正跨卡同名子項的重複標記、提前與設定／取消",
@@ -2193,15 +2212,34 @@
           ]
         },
         {
-          "id": "problem-retired-tone",
-          "title": "問題：已取代／已棄案的子項和「未開始」同用 muted 色調（viewer/assets/item-state.js 的 ITEM_STATE_META），又留在未完成清單裡，使用者看起來以為還要處理；應有和待處理區分得出來的外觀（VCP 使用者 2026-11-08，live-feedback 卡）",
+          "document_ref": {
+            "task": "report-card-touch-retired",
+            "scope_id": "task-progress",
+            "kind": "checklist"
+          },
           "status": "planned",
+          "title": "卡片移除角落把手，觸控長按換位與退場配色回歸",
+          "id": "report-card-touch-retired",
           "activity": [
             {
               "event": "created",
-              "actor": "claude",
-              "at": "2026-11-08T14:53:41.700306+00:00",
-              "session_id": "d1605ccb-3524-48c7-8364-9edf9d260151"
+              "actor": "codex",
+              "at": "2026-11-08T15:25:59.380679+00:00",
+              "session": "Card touch and retired tone"
+            }
+          ]
+        },
+        {
+          "status": "planned",
+          "title": "問題：Viewer 進度分母仍計入退場子項；taskItemStatus 將 obsolete／discontinued 回落 planned，1 個待處理加 2 個退場顯示 0/3（card-ui fixture 已重現）",
+          "priority": 2,
+          "id": "problem-retired-progress-count",
+          "activity": [
+            {
+              "event": "created",
+              "actor": "codex",
+              "at": "2026-11-08T15:25:59.380679+00:00",
+              "session": "Card touch and retired tone"
             }
           ]
         }

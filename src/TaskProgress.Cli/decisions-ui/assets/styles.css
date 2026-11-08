@@ -38,6 +38,8 @@
   --theme-next-border: #e3c766;
   --theme-muted-status-text: #69716c;
   --theme-muted-status-bg: #ebeae5;
+  --theme-retired-text: #536f60;
+  --theme-retired-bg: #e4ebe6;
 
   --color-page-bg: var(--theme-page-bg);
   --color-panel-bg: var(--theme-panel-bg);
@@ -77,6 +79,8 @@
   --color-next-border: var(--theme-next-border);
   --color-muted-status-text: var(--theme-muted-status-text);
   --color-muted-status-bg: var(--theme-muted-status-bg);
+  --color-retired-text: var(--theme-retired-text);
+  --color-retired-bg: var(--theme-retired-bg);
 
   --ink: var(--color-heading);
   --ink-soft: var(--color-secondary-text);
@@ -138,6 +142,8 @@
     --theme-next-border: #7a6422;
     --theme-muted-status-text: #b1bbc8;
     --theme-muted-status-bg: #2b313b;
+    --theme-retired-text: #a1b8a9;
+    --theme-retired-bg: #2c3833;
     --shadow: 0 6px 18px rgba(0, 0, 0, 0.16);
   }
 }
@@ -181,6 +187,8 @@
   --theme-next-border: #e3c766;
   --theme-muted-status-text: #69716c;
   --theme-muted-status-bg: #ebeae5;
+  --theme-retired-text: #536f60;
+  --theme-retired-bg: #e4ebe6;
   --shadow: 0 4px 14px rgba(37, 47, 41, 0.04);
 }
 
@@ -223,6 +231,8 @@
   --theme-next-border: #7a6422;
   --theme-muted-status-text: #b1bbc8;
   --theme-muted-status-bg: #2b313b;
+  --theme-retired-text: #a1b8a9;
+  --theme-retired-bg: #2c3833;
   --shadow: 0 6px 18px rgba(0, 0, 0, 0.16);
 }
 
@@ -1418,6 +1428,7 @@ h1 {
 .item-status-capsule.status-success { color: var(--moss); background: var(--moss-soft); }
 .item-status-capsule.status-danger { color: var(--red); background: var(--red-soft); }
 .item-status-capsule.status-warning { color: var(--amber); background: var(--amber-soft); }
+.item-status-capsule.status-retired { color: var(--color-retired-text); background: var(--color-retired-bg); }
 
 /* 等待中 opens what the item waits on: a link for one target, a short list for several. */
 .item-status-capsule.is-link { cursor: pointer; text-decoration: none; }
@@ -3174,6 +3185,7 @@ footer {
 .arrangeable-card[data-link-tone="warning"] { --link-selection-color: var(--color-warning-text); }
 .arrangeable-card[data-link-tone="success"] { --link-selection-color: var(--color-success-text); }
 .arrangeable-card[data-link-tone="active"] { --link-selection-color: var(--color-active-text); }
+.arrangeable-card[data-link-tone="retired"] { --link-selection-color: var(--color-retired-text); }
 .arrangeable-card[data-link-tone="muted"],
 .arrangeable-card[data-link-tone="neutral"] { --link-selection-color: var(--color-muted-text); }
 .arrangeable-card.card-selected[data-link-tone] {

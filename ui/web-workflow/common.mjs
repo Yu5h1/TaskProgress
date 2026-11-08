@@ -108,11 +108,13 @@ export const reorderAction = enabledAction((node, options) => {
     syncPreview();
     observer.observe(node,{subtree:true,childList:true,attributes:true,attributeFilter:['data-reorder-over','data-reorder-dragging']});
   }
-  let armed;
-  const clearSurface = () => { if (armed) { armed.removeAttribute('data-reorder-handle'); armed.draggable = false; armed = null; } };
-  // The product permits mouse dragging from card whitespace, while text and
-  // controls keep native gestures. Web Reorder still owns the drag lifecycle.
+  let armed, touchId, touchHold, binding;
+  const clearSurface = () => { if (armed) { armed.removeAttribute('data-reorder-handle'); armed.draggable = false; armed = null; } touchId = null; };
+  // Mouse whitespace and passive touch surfaces replace the visible handle.
+  // Interactive controls and child rows keep their own gestures.
+  // Web LongPress gates touch/pen intent, and Web Reorder owns every move.
   const surface = event => {
+    touchHold?.cancel();
     clearSurface();
     if (!settings.surface) return;
     const row = [...node.children].find(child => child.contains(event.target));
@@ -120,13 +122,25 @@ export const reorderAction = enabledAction((node, options) => {
     const keyboard = event.type === 'keydown' && event.target === row && event.altKey && ['ArrowUp', 'ArrowDown'].includes(event.key);
     const excluded = settings.surface === 'item' ? 'a, button, input, select, textarea, label, [contenteditable], span, strong, code, svg' : 'button, a, input, textarea, select, label, [contenteditable], [role="button"], [role="checkbox"], h1, h2, h3, p, span, strong, code, dt, dd, li, svg';
     const mouse = event.type === 'pointerdown' && event.button === 0 && event.pointerType === 'mouse' && !event.target.closest(excluded);
-    if (keyboard || mouse) { armed = row; row.setAttribute('data-reorder-handle', ''); row.draggable = true; }
+    const touchExcluded = 'button, a, input, textarea, select, label, [contenteditable], [role="button"], [role="checkbox"], li, svg';
+    const touch = settings.surface === true && event.type === 'pointerdown' && event.button === 0 && event.isPrimary && ['touch', 'pen'].includes(event.pointerType) && !event.target.closest(touchExcluded);
+    if (keyboard || mouse || touch) { armed = row; row.setAttribute('data-reorder-handle', ''); row.draggable = true; if (touch) touchId = event.pointerId; }
   };
   node.addEventListener('pointerdown', surface, { capture: true, signal: abort.signal });
   node.addEventListener('keydown', surface, { capture: true, signal: abort.signal });
   node.ownerDocument.addEventListener('pointerup', clearSurface, { signal: abort.signal });
   node.ownerDocument.addEventListener('dragend', clearSurface, { signal: abort.signal });
-  const binding = bindReorder(node, request => {
+  touchHold = options.surface === true ? bindLongPress(node, {
+    capture:false,
+    onStart:event => { if (event.pointerId !== touchId) touchHold.cancel(); },
+    onTrigger:() => {},
+    onCancel:() => { if (touchId != null) { binding?.cancel(); clearSurface(); } },
+  }) : null;
+  // Keep a short swipe scrollable. Once the hold fires, prevent native panning
+  // from cancelling the pointer stream used by the shared reorder binding.
+  node.addEventListener('touchmove', event => { if (touchId != null && touchHold?.isHolding) event.preventDefault(); }, { passive:false, signal:abort.signal });
+  node.addEventListener('contextmenu', event => { if (touchId != null && touchHold?.isHolding) { event.preventDefault(); event.stopImmediatePropagation(); } }, { capture:true, signal:abort.signal });
+  binding = bindReorder(node, request => {
     const result=settings.onMove(request);
     if(settings.focusAfterMove)Promise.resolve(result).then(()=>queueMicrotask(()=>{if(disposed||!node.isConnected)return;[...node.children].find(row=>row.dataset.reorderId===request.id)?.focus();}));
   }, { axis: options.axis ?? 'horizontal' });
@@ -134,7 +148,7 @@ export const reorderAction = enabledAction((node, options) => {
     const previous = settings.previewClasses ?? {}, incoming = next.previewClasses ?? {};
     settings = next;
     if (styled.size || ['before', 'after', 'dragging'].some(key => previous[key] !== incoming[key])) syncPreview();
-  }, destroy() { disposed=true; clearSurface(); abort.abort(); binding.dispose(); observer.disconnect(); for(const [row,names] of styled)for(const name of names)row.classList.remove(name); styled.clear(); } };
+  }, destroy() { disposed=true; touchHold?.dispose(); clearSurface(); abort.abort(); binding.dispose(); observer.disconnect(); for(const [row,names] of styled)for(const name of names)row.classList.remove(name); styled.clear(); } };
 });
 export function capsuleStrip(items = [], options = {}) {
   return html`<div class="horizontal-capsule-strip ${options.className ?? ''}" role="toolbar" aria-label=${options.ariaLabel ?? '模組'}
@@ -256,11 +270,10 @@ export class Cards {
       ${choice(this.view, 'visibility', [{ id:'enabled',label:'啟用',icon:eye() },{ id:'closed',label:'全體關閉',icon:eye(true) },{ id:'disabled',label:'禁用',icon:eye(false,true) },{ id:'reset',label:'重置',kind:'action',icon:html`<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10a9 9 0 1 1 2 8M3 4v6h6" /></svg>` }], this.visibility, '可見性', id => { if (id === 'reset') { this.hidden = []; this.visibility = 'enabled'; } else this.visibility = id; this.persist(); }, 'picker')}${tools}
     </div></div><div class="arrangeable-cards" ${action(reorderAction, { axis: 'vertical', surface: true, previewClasses:{before:'card-drop-before',after:'card-drop-after'}, onMove: move })}>
     ${repeat(items, i => i.id, (i, index) => html`<div class="arrangeable-card ${this.selected === i.id ? 'card-selected' : ''}" role="group" tabindex="0" data-render-window data-card-id=${i.id} data-reorder-id=${i.id} data-reorder-sortable=${String(movable(i))} data-reorder-group=${sourceMode ? p.reorderGroups?.[i.id] ?? nothing : nothing}
-      aria-label=${`${i.title ?? i.question ?? ''}${this.selected === i.id ? '，已選取' : ''}`} data-link-tone=${this.selected === i.id ? linkTone ?? nothing : nothing} ?hidden=${!visible(i)}
+      aria-label=${`${i.title ?? i.question ?? ''}${this.selected === i.id ? '，已選取' : ''}`} aria-keyshortcuts=${movable(i) ? 'Alt+ArrowUp Alt+ArrowDown' : nothing} data-link-tone=${this.selected === i.id ? linkTone ?? nothing : nothing} ?hidden=${!visible(i)}
       @pointerdown=${e => { if (e.button === 0) this.select(i.id); }} @focusin=${() => this.select(i.id)} @keydown=${e => { if (e.target === e.currentTarget && ['Enter',' '].includes(e.key)) { e.preventDefault(); this.select(i.id); } }}>
       ${p.pinEnabled ? html`<button type="button" class="card-pin ${this.pins.includes(i.id) ? 'is-pinned' : ''} ${i.id === p.nextId ? 'is-next' : ''}" aria-label="${this.pins.includes(i.id) ? '取消釘選' : '釘選置頂'}：${i.title}" aria-pressed=${this.pins.includes(i.id)} @click=${() => { this.pins = this.pins.includes(i.id) ? this.pins.filter(id => id !== i.id) : promotePin(this.pins, i.id); this.persist(); }}><svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M8 3h8l-1 7 4 4v2H5v-2l4-4-1-7Zm4 13v6" fill=${this.pins.includes(i.id) ? 'currentColor' : 'none'} stroke="currentColor" stroke-width="1.6" /></svg></button>` : nothing}
       ${guard([this.view.contentVersion, i, i.id === leadId, this.isExpanded(i.id), this.visibility, this.hidden.includes(i.id)], () => itemTemplate(i, { lead: i.id === leadId, expanded: this.isExpanded(i.id), toggle: value => this.expand(i.id, value), visibilityEnabled: this.visibility === 'enabled', visible: !this.hidden.includes(i.id), onVisibleChange: value => { this.hidden = value ? this.hidden.filter(id => id !== i.id) : [...this.hidden, i.id]; this.persist(); } }))}
-      ${movable(i) ? html`<button type="button" class="replica-card-grip" data-reorder-handle draggable="true" aria-label="移動 ${i.title ?? i.question}" title=${sourceMode ? '調整原始順序；限同優先級' : '暫時換位，不改原始順序'}>⠿</button>` : nothing}
     </div>`)}</div>${p.hiddenCount > 0 ? html`<p class="card-list-hidden"><button type="button" class="card-list-hidden-link" @click=${p.onShowHidden}>…顯示隱藏項目(${p.hiddenCount})</button></p>` : nothing}`;
   }
 }

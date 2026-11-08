@@ -1,0 +1,45 @@
+// verify-web feature. Host: python tests/serve_card_reorder.py --card-ui
+export const url='http://127.0.0.1:8021/?scope=web-ui-pilot-test&dev=none';
+export const ready=`!!document.querySelector('#item-low--replaced')`;
+export async function run(page,evidence,{scheme}) {
+  const check=(name,ok)=>evidence.check(`${scheme}: ${name}`,ok);
+  const raw=()=>page.evaluate(`fetch('/reports/web-ui-pilot-test/report.json',{cache:'no-store'}).then(r=>r.text())`);
+  const pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+  await page.evaluate('window.cardUiReload=true');
+  await page.send('Page.reload',{ignoreCache:true}); await page.until(`!window.cardUiReload && document.readyState==='complete' && (${ready})`);
+  await page.evaluate(`document.querySelector('.card-toolbar-icon[aria-label="全部展開"]')?.click()`);
+  check('cards have no visible corner drag button',await page.evaluate(`!document.querySelector('.replica-card-grip')`));
+  await page.evaluate(`document.querySelector('[data-card-id="low"]').scrollIntoView({block:'center',behavior:'instant'})`);
+  check('both retirement states share a distinct semantic tone',await page.evaluate(`['replaced','dropped'].every(id=>document.querySelector('#item-low--'+id+' .item-status-capsule').classList.contains('status-retired'))`));
+  await evidence.styles(`${scheme}-retired-status`, '[data-card-id="low"] .item-status-capsule', ['color','background-color']);
+  await evidence.screenshot(`${scheme}-retired-status`);
+  await page.send('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:1,mobile:true});
+  await page.send('Emulation.setTouchEmulationEnabled',{enabled:true,maxTouchPoints:1});
+  const points=async()=>page.evaluate(`(() => {const a=document.querySelector('[data-card-id="a"]');a.scrollIntoView({block:'start',behavior:'instant'});const s=a.querySelector('h3').getBoundingClientRect(),t=document.querySelector('[data-card-id="b"]').getBoundingClientRect();return {x:s.left+s.width/2,y:s.top+s.height/2,tx:t.right-8,ty:t.top+t.height*.75};})()`);
+  const touch=(type,x,y)=>page.send('Input.dispatchTouchEvent',{type,touchPoints:['touchEnd','touchCancel'].includes(type)?[]:[{x,y,id:1,radiusX:2,radiusY:2,force:1}]});
+  const original=await raw();
+  let p=await points();
+  const beforeScroll=await page.evaluate('scrollY');
+  await touch('touchStart',p.x,p.y); for(const dy of [30,80,120]) { await touch('touchMove',p.x,p.y+dy); await pause(20); } await touch('touchEnd'); await pause(200);
+  check('short touch swipe scrolls without reordering',await raw()===original && await page.evaluate('scrollY')!==beforeScroll);
+  await page.evaluate(`document.querySelector('.card-toolbar-icon[aria-label="全部收合"]')?.click();['a','b'].forEach(id=>document.querySelector('[data-card-id="'+id+'"] .card-disclosure-toggle[aria-expanded="false"]')?.click());`);
+  p=await points(); await touch('touchStart',p.x,p.y); await pause(450);
+  await touch('touchMove',p.x,p.y+20); await touch('touchMove',p.tx,p.ty);
+  await page.until(`document.querySelector('[data-card-id="b"]').dataset.reorderOver==='after'`);
+  await touch('touchCancel');
+  check('cancelled held drag clears its preview without writing',await raw()===original && await page.evaluate(`!document.querySelector('[data-reorder-over], [data-reorder-dragging]')`));
+  p=await points(); await touch('touchStart',p.x,p.y); await pause(450);
+  await touch('touchMove',p.x,p.y+20); await touch('touchMove',p.tx,p.ty);
+  await page.until(`document.querySelector('[data-card-id="b"]').dataset.reorderOver==='after'`);
+  check('held touch drag shows a valid insertion preview',true);
+  await evidence.screenshot(`${scheme}-touch-insertion`);
+  await touch('touchEnd');
+  await page.until(`fetch('/reports/web-ui-pilot-test/report.json',{cache:'no-store'}).then(r=>r.json()).then(r=>r.tasks.findIndex(t=>t.id==='b')<r.tasks.findIndex(t=>t.id==='a'))`);
+  check('held touch drag writes the same-priority source move',true);
+  await page.send('Input.dispatchKeyEvent',{type:'keyDown',key:'z',code:'KeyZ',modifiers:2,windowsVirtualKeyCode:90});
+  await page.send('Input.dispatchKeyEvent',{type:'keyUp',key:'z',code:'KeyZ',modifiers:2,windowsVirtualKeyCode:90});
+  await page.until(`fetch('/reports/web-ui-pilot-test/report.json',{cache:'no-store'}).then(r=>r.json()).then(r=>r.tasks.findIndex(t=>t.id==='a')<r.tasks.findIndex(t=>t.id==='b'))`);
+  check('touch source move remains undoable',true);
+  await page.send('Emulation.setTouchEmulationEnabled',{enabled:false});
+  await page.send('Emulation.clearDeviceMetricsOverride');
+}

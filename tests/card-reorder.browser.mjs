@@ -8,15 +8,18 @@ export async function run(page, evidence, { scheme }) {
   const original = await raw();
   const check = (name, ok) => evidence.check(`${scheme}: ${name}`, ok);
   const drag = async (source, target, after = false) => {
+    await page.evaluate(`document.querySelector('[data-card-id="${source}"]').scrollIntoView({block:'center',behavior:'instant'})`);
+    await page.evaluate(`new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)))`);
     const points=await page.evaluate(`(() => {
-      const source=document.querySelector('[data-card-id="${source}"] .replica-card-grip');
+      const source=document.querySelector('[data-card-id="${source}"]');
       const target=document.querySelector('[data-card-id="${target}"]');
       if(!source||!target)throw new Error('Missing drag source or target');
-      source.scrollIntoView({block:'center',behavior:'instant'});
       const start=source.getBoundingClientRect(), end=target.getBoundingClientRect();
-      return {x:start.left+start.width/2,y:start.top+start.height/2,targetX:end.left+8,targetY:end.top+end.height*${after ? '.75' : '.25'}};
+      const x=start.right-2, y=start.top+start.height/2;
+      const hit=document.elementFromPoint(x,y);
+      if(!hit || !source.contains(hit) || hit.closest('button,a,input,textarea,select,label,[contenteditable],h1,h2,h3,p,span,strong,code,dt,dd,li,svg'))throw new Error('Drag origin must be card whitespace');
+      return {x,y,targetX:end.left+8,targetY:end.top+end.height*${after ? '.75' : '.25'}};
     })()`);
-    await new Promise(resolve=>setTimeout(resolve,30));
     await page.send('Input.dispatchMouseEvent',{type:'mouseMoved',x:points.x,y:points.y});
     await page.send('Input.dispatchMouseEvent',{type:'mousePressed',x:points.x,y:points.y,button:'left',clickCount:1});
     await page.send('Input.dispatchMouseEvent',{type:'mouseMoved',x:points.x-12,y:points.y,button:'left',buttons:1});
@@ -49,7 +52,7 @@ export async function run(page, evidence, { scheme }) {
   await page.until(ready);
   await page.evaluate(`document.querySelector('.card-toolbar-icon[aria-label="全部收合"]')?.click()`);
   check('same-priority cards with different child priorities retain source order',await page.evaluate(`(() => { const rows=[...document.querySelectorAll('[data-card-id]')].map(row=>row.dataset.cardId); return rows.indexOf('a')<rows.indexOf('b') && document.querySelector('[data-card-id="a"]').dataset.reorderGroup===document.querySelector('[data-card-id="b"]').dataset.reorderGroup; })()`));
-  check('forward dragging enabled while Next stays fixed', await page.evaluate(`!!document.querySelector('[data-card-id="b"] .replica-card-grip') && document.querySelector('[data-card-id="next"]').dataset.reorderSortable === 'false'`));
+  check('forward dragging enabled without corner grips while Next stays fixed', await page.evaluate(`document.querySelector('[data-card-id="b"]').dataset.reorderSortable === 'true' && !document.querySelector('.replica-card-grip') && document.querySelector('[data-card-id="next"]').dataset.reorderSortable === 'false'`));
   await page.click('[data-card-id="urgent"] .card-pin');
   check('pinned card cannot be dragged', await page.evaluate(`document.querySelector('[data-card-id="urgent"]').dataset.reorderSortable==='false' && !document.querySelector('[data-card-id="urgent"] .replica-card-grip')`));
   await page.click('[data-card-id="urgent"] .card-pin');
