@@ -383,6 +383,7 @@ test("editor core runtime works as a classic script for the file Demo", async ()
   );
   const context = vm.createContext({ structuredClone });
   context.globalThis = context;
+  vm.runInContext(await readFile(new URL('../viewer/assets/item-status-policy.js', import.meta.url), 'utf8'), context);
   vm.runInContext(await readFile(
     new URL("../viewer/assets/editor-transaction-runtime.js", import.meta.url), "utf8",
   ), context);

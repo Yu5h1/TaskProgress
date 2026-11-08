@@ -26,13 +26,8 @@ export function taskKind(task) {
   return task?.kind ?? DEFAULT_TASK_KIND;
 }
 
-export const STATUS_META = Object.freeze({
-  planned: { label: "待處理", tone: "neutral" },
-  in_progress: { label: "進行中", tone: "active" },
-  blocked: { label: "受阻", tone: "danger" },
-  done: { label: "已完成", tone: "success" },
-  archive: { label: "已封存", tone: "muted" },
-});
+export const STATUS_META = globalThis.TaskProgressItemStatusPolicy.tasks;
+export const ITEM_STATUS_META = globalThis.TaskProgressItemStatusPolicy.items;
 
 export const PRIORITY_POLICY = globalThis.TaskProgressPriorityPolicy;
 export const PRIORITY_META = Object.freeze(
@@ -283,16 +278,17 @@ export function taskItemPriority(item) {
  * Ranks unfinished cards by their own priority, retaining source order within each level.
  */
 export function stableSortTasksByPriority(tasks) {
-  // Preserve completion order in done-card slots while ranking unfinished cards.
+  // Completed cards form their own trailing section, in source completion order.
   const completed = (tasks ?? []).filter(task => task.status === "done");
-  let completedIndex = 0;
   return [...(tasks ?? [])]
+    .filter(task => task.status !== "done")
     .map((task, index) => ({ task, index }))
     .sort((left, right) => (
       taskPriority(left.task) - taskPriority(right.task)
       || left.index - right.index
     ))
-    .map(({ task }) => task.status === "done" ? completed[completedIndex++] : task);
+    .map(({ task }) => task)
+    .concat(completed);
 }
 
 export function stableSortTaskItemsByPriority(items) {

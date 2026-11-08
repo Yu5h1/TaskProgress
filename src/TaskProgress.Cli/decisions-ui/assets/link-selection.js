@@ -1,5 +1,5 @@
 // Navigation context lasts for the first selection, regardless of loading time.
-const TONES = new Set(["active", "success", "danger", "warning", "muted", "neutral", "retired"]);
+const TONES = new Set(["active", "success", "danger", "warning", "muted", "neutral", "retired", "obsolete", "discontinued"]);
 
 export function checklistReturnHref(href, taskId, itemId, base = globalThis.location?.href) {
   if (!href || !taskId || !itemId || !base) return href;

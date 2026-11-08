@@ -1,0 +1,42 @@
+# 完成卡片排序與單次取消釘選 Checklist
+
+Current round: `Documentation/CardPin.md#完成事件`.
+Paths: viewer/assets/card-order.js, viewer/assets/report-model.js, viewer/assets/document-binding.js, viewer/assets/next-marker.js, viewer/assets/app.js, ui/web-workflow/common.mjs, ui/web-workflow/viewer.mjs, tests/card-completion.browser.mjs, tests/serve_card_reorder.py
+
+本輪使用 `python tests/serve_card_reorder.py --completion` 的 8021 前景臨時資料；所有寫入均為副本。證據根目錄：`../Web/.verify/copy-id-delivery-b341bdcb/source/.verify/`。
+
+本輪正式 identity：`99a8ca79b3c30c6792d9e97f21b6c51e1aea637ff054b1784bf7bda3f34c09ea`；`Publish.cmd --nopause --restart` 最終 exit 0，8001 唯讀排序與失效 Next 核查 2/2，見 `completion-formal/2026-11-08T15-56-19-112Z`。獨立複查確認已提出的事件與初載競態皆已修正；8021 臨時站已正常停止。
+
+本輪經驗：較晚才納入指路卡的完成顯示，造成額外發布與複查。`Documentation/CardPin.md` 已明列一般卡與指路卡的完成觀察；後續同類變更應先驗證兩類卡及延遲初載，再統一發布。
+
+- [x] **1. 完成區保持獨立順序**
+  Outcome: 未釘選完成卡位於未完成卡之後，完成卡與子項均保留既有來源順序。
+  Checks:
+    - [x] **原畫面重現與修正**
+      - Action: 開啟不同優先級的完成及未完成卡，保存已釘選卡的完成狀態。
+      - Expect: 修正後完成卡不再因優先級穿插，保存完成會取消 pin。
+      - Observed: completion-baseline/2026-11-08T15-33-27-105Z 的 2 項檢查及截圖，重現完成卡穿插與保存後仍維持 pin。
+      - Resolved: product-card-completion/2026-11-08T15-54-44-283Z，明暗 38/38；順排、逆排、不排的完成區皆保持來源順序，已完成子項不依優先級重排，已完成目標的指路卡亦位於完成區及相同來源換位群組。
+
+- [x] **2. 完成事件只取消一次釘選**
+  Outcome: 可信的已保存未完成→完成轉換取消 pin；手動重釘、重繪、重載及文件讀取失敗不製造假事件。
+  Checks:
+    - [x] **草稿、保存、重開與再次完成**
+      - Action: 謹慎模式修改為完成並取消，再保存完成、手動釘回、重載、重新開啟並再次完成。
+      - Expect: 草稿及取消草稿保留 pin；保存完成才清除，手動重釘保留，下一次真實完成再清除。
+      - Observed: 首輪重載後測試在編輯按鈕尚未啟用時點擊，未進入編輯。
+      - Resolved: 等待實際編輯權限就緒後，本輪明暗往返全部通過，見 product-card-completion/2026-11-08T15-54-44-283Z。指路卡也驗證未完成歷史轉為目標完成會取消一次 pin，明確重釘後重載保留。
+    - [x] **未知文件狀態與首次 URL pin**
+      - Action: 僅在隔離瀏覽器延遲臨時 checklist 的讀取，再模擬該臨時 API 回覆 503，移除模擬後重載。
+      - Expect: URL 明確釘選在可信初載後生效；失敗讀取不把已完成歷史改成未完成，恢復同一份文件不再清除手動 pin。
+      - Observed: 獨立複查發現初版會把讀取失敗當作重新開啟，並在完成觀察之前消耗 URL pin。
+      - Resolved: 未知觀察保留上次可信歷史，待指定卡片本身首次可信觀察後才消耗 URL pin；文件及指路卡目標均以延遲初載驗證，上述延遲／503／恢復案例在明暗瀏覽器實際往返均通過，與正常完成事件合計 38/38。
+
+- [x] **3. 排序及 Next 模型不讓完成卡置頂**
+  Outcome: 舊 Next 不提昇已完成卡，排序、狀態分組及文件投影保留各自規則。
+  Checks:
+    - [x] **定向模型與獨立複核**
+      - Action: 執行 card-order、report-model、viewer-filter-axes、next-marker、report-document-binding-integration 測試，並交由獨立 context 核對事件邊界。
+      - Expect: 已完成卡不因 Next 或優先級置頂；未知觀察與真實重新開啟可區別；模型不修改來源資料。
+      - Observed: 初次獨立複查重現完成卡仍可被舊 Next 提昇。
+      - Resolved: Next 模型拒絕完成卡，顯示排序另有完成區保護；定向 Node 63/63 通過，未修改 Report schema。

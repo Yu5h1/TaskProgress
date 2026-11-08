@@ -1,6 +1,28 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { orderCards, moveVisibleCard, displayCards, promotePin, requestedCardPin } from "../viewer/assets/card-order.js";
+import { orderCards, moveVisibleCard, displayCards, promotePin, requestedCardPin, removeNewlyCompletedPins } from "../viewer/assets/card-order.js";
+
+test('a completion transition unpins once, preserving an explicit re-pin and initial baseline', () => {
+  const pins=['a','b','old','unknown'];
+  const current={a:true,b:false,old:true};
+  assert.deepEqual(removeNewlyCompletedPins(pins,null,current),pins);
+  assert.deepEqual(removeNewlyCompletedPins(pins,{a:false,b:false,old:true},current),['b','old','unknown']);
+  assert.deepEqual(removeNewlyCompletedPins(pins,current,current),pins);
+  assert.deepEqual(removeNewlyCompletedPins(['a'],{a:true},{a:false}),['a']);
+  assert.deepEqual(removeNewlyCompletedPins(['a'],{a:false},{a:true}),[]);
+});
+
+test('completed cards trail in their own order across modes; an explicit pin still wins', () => {
+  const items=['finished-low','work-a','work-b','finished-high'].map(id=>({id}));
+  const completed=['finished-low','finished-high'];
+  for(const mode of ['forward','reverse','free']) {
+    const result=displayCards(items,['finished-high','work-b','finished-low','work-a'],mode,[],null,completed).map(i=>i.id);
+    assert.deepEqual(result.slice(-2),completed);
+    assert.ok(result.slice(0,2).every(id=>id.startsWith('work')));
+    assert.equal(displayCards(items,null,mode,['finished-high'],null,completed)[0].id,'finished-high');
+    assert.deepEqual(displayCards(items,null,mode,[],'finished-high',completed).slice(-2).map(i=>i.id),completed);
+  }
+});
 
 test("explicit pin promotes an existing card without toggling or duplicating", () => {
   const saved = ["b", "a", "c"];

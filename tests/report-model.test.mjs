@@ -446,3 +446,9 @@ test("cards of the same priority retain source order regardless of child priorit
     ["important", "general-plain", "general-urgent-item", "general-archived-urgent", "general-empty", "general-plain-later"],
   );
 });
+
+test('completed cards retain source order below every unfinished priority', () => {
+  const tasks=[{id:'done-low',status:'done',priority:3},{id:'planned',status:'planned',priority:4},{id:'done-high',status:'done',priority:0},{id:'active',status:'in_progress',priority:2}];
+  assert.deepEqual(stableSortTasksByPriority(tasks).map(t=>t.id),['active','planned','done-low','done-high']);
+  assert.equal(tasks[0].id,'done-low');
+});

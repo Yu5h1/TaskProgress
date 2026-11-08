@@ -6,7 +6,7 @@ import { directive } from 'lit/directive.js';
 import { AsyncDirective } from 'lit/async-directive.js';
 import { expandableText } from '@taskprogress/expandable-text.js';
 import { inlineLinks } from '@taskprogress/inline-links.js';
-import { displayCards, promotePin, moveVisibleCard } from '@taskprogress/card-order.js';
+import { displayCards, promotePin, moveVisibleCard, removeNewlyCompletedPins } from '@taskprogress/card-order.js';
 import { loadDisclosure, saveDisclosure } from '@taskprogress/card-disclosure-state.js';
 import { DEFAULT_CAPSULE_ID } from '@taskprogress/filter-selection.js';
 import { createLinkSelection, readLinkSelection } from '@taskprogress/link-selection.js';
@@ -201,7 +201,7 @@ export class Cards {
   }
   select(id) { if (this.selected === id) return; this.selected = id; this.props?.onSelectionChange?.(id); this.view.draw(); }
   isExpanded(id) { return this.overrides[id] ?? this.expanded; }
-  orderedIds(items = this.props?.items ?? []) { return displayCards(items, this.order, this.mode, this.props?.pinEnabled ? this.pins : [], this.props?.nextId).map(item => item.id); }
+  orderedIds(items = this.props?.items ?? []) { return displayCards(items, this.order, this.mode, this.props?.pinEnabled ? this.pins : [], this.props?.nextId, this.props?.completedIds).map(item => item.id); }
   expand(id, value) { this.overrides[id] = value; saveDisclosure(this.disclosureKey, this.expanded, this.overrides); this.view.draw(); }
   all(value) { this.expanded = value; this.overrides = {}; saveDisclosure(this.disclosureKey, this.expanded, this.overrides); this.view.draw(); }
   // Only the order-mode control reuses body templates. Every data, selection,
@@ -214,21 +214,38 @@ export class Cards {
     this.props = p;
     const key = p.storageKey ?? null;
     if (this.key !== key) {
-      this.key = key; this.lastPin = null; this.order = []; this.pins = []; this.mode = 'forward'; this.hidden = []; this.visibility = 'disabled'; this.selected = null;
+      this.key = key; this.lastPin = null; this.order = []; this.pins = []; this.completionStates = {}; this.mode = 'forward'; this.hidden = []; this.visibility = 'disabled'; this.selected = null;
       if (key) try {
         const pins = JSON.parse(localStorage.getItem(`${key}:pins`)), visibility = JSON.parse(sessionStorage.getItem(`${key}:visibility`)), mode = localStorage.getItem(`${key}:mode`);
         this.pins = Array.isArray(pins) ? [...new Set(pins.filter(id => typeof id === 'string' || typeof id === 'number'))] : [];
+        const completion = JSON.parse(localStorage.getItem(`${key}:completion`));
+        this.completionStates = completion && !Array.isArray(completion) && typeof completion === 'object' ? Object.fromEntries(Object.entries(completion).filter(([,value]) => typeof value === 'boolean')) : {};
         this.mode = ['forward','reverse','free'].includes(mode) ? mode : 'forward';
         this.visibility = ['enabled','closed','disabled'].includes(visibility?.mode) ? visibility.mode : visibility?.enabled === true ? 'enabled' : 'disabled'; this.hidden = Array.isArray(visibility?.hiddenIds) ? visibility.hiddenIds : [];
       } catch {}
     }
     const disclosureKey = p.disclosureKey ?? `taskprogress.disclosure:${key ?? location.href}`;
     if (this.disclosureKey !== disclosureKey) { this.disclosureKey = disclosureKey; const d = loadDisclosure(disclosureKey); this.expanded = d.expanded; this.overrides = d.overrides; }
-    if (p.requestedPin && this.lastPin !== p.requestedPin && (p.allIds ?? p.items.map(i => i.id)).includes(p.requestedPin)) {
+    if (p.pinEnabled && p.completionStates) {
+      const states = Object.fromEntries(Object.entries(p.completionStates).flatMap(([id, done]) => {
+        const value = typeof done === 'boolean' ? done : this.completionStates?.[id];
+        return typeof value === 'boolean' ? [[id, value]] : [];
+      }));
+      const pins = removeNewlyCompletedPins(this.pins, this.completionStates, states);
+      const changed = pins.length !== this.pins.length;
+      const observed = JSON.stringify(states), previous = JSON.stringify(this.completionStates);
+      this.pins = pins; this.completionStates = states;
+      if (key) try {
+        if (changed) localStorage.setItem(`${key}:pins`, JSON.stringify(pins));
+        if (observed !== previous) localStorage.setItem(`${key}:completion`, observed);
+      } catch {}
+    }
+    // A new URL pin is an explicit user action after observing completion.
+    if (p.requestedPin && p.completionStates !== null && p.completionStates?.[p.requestedPin] !== null && this.lastPin !== p.requestedPin && (p.allIds ?? p.items.map(i => i.id)).includes(p.requestedPin)) {
       this.pins = promotePin(this.pins, p.requestedPin); this.overrides[p.requestedPin] = true; this.hidden = this.hidden.filter(id => id !== p.requestedPin); if (this.visibility === 'closed') this.visibility = 'enabled'; this.lastPin = p.requestedPin;
       try { if (key) localStorage.setItem(`${key}:pins`, JSON.stringify(this.pins)); } catch {}
     }
-    const items = displayCards(p.items, p.heldOrder ?? this.order, p.heldOrder ? 'free' : this.mode, p.pinEnabled ? this.pins : [], p.nextId);
+    const items = displayCards(p.items, p.heldOrder ?? this.order, p.heldOrder ? 'free' : this.mode, p.pinEnabled ? this.pins : [], p.nextId, p.completedIds);
     const linked = this.linkSelection.claim(items.map(i => i.id));
     if (linked) {
       this.selected = linked.id;

@@ -1,0 +1,36 @@
+# 子項完整狀態與退場編輯 Checklist
+
+Current round: `Documentation/GapScanPlan.md#子項狀態編輯`.
+Paths: viewer/assets/item-status-policy.js, viewer/assets/editor-core-runtime.js, viewer/assets/report-model.js, viewer/assets/item-state.js, viewer/assets/link-selection.js, viewer/assets/styles.css, viewer/assets/app.js, ui/web-workflow/viewer.mjs, ui/web-workflow/product.css, service/report_operations.py, service/taskprogress_host.py, experiments/time-reference/demo/index.html, tests/item-status*
+
+2026-11-09 使用者確認的修正及配色：已取代淡綠、已棄案灰紅，取代舊灰綠共用色；既有驗收輪次保留。Browser 以 `python tests/serve_card_reorder.py --card-ui --completion` 的 8021 前景臨時資料驗證，不寫正式 scope。證據根目錄 `../Web/.verify/copy-id-delivery-b341bdcb/source/.verify/`，最終明暗 32/32 見 `product-item-status/2026-11-08T17-21-56-431Z` 的 summary、截圖與 styles。定向 Node 68/68、Classic Demo loader 1/1；Python 共用驗證 5/5、Agent 退場 CLI 及 host token／stale 保存 3/3。
+
+正式 identity：`d2a5c403afc82dbde0ac9109e5f6ea1fc8f30ac65a19b503c271ba7787eb4637`，`Publish.cmd --nopause --restart` 最終 exit 0。正式 8001 的 UX scope 只開啟並退出編輯，沒有保存使用者資料；完整七種子項、五種卡片及分色來源核對 3/3，見 `item-status-formal/2026-11-08T17-26-10-130Z`。獨立複查沒有剩餘具體缺口，8021 臨時站已正常停止。
+
+- [x] **1. 選單與子項契約一致**
+  Outcome: 子項可選七種保存狀態，既有退場值正確顯示，卡片保留五種且推導狀態不混入。
+  Checks:
+    - [x] **畫面重現與修正**
+      - Action: 在已取代子項開啟編輯，核對子項與卡片選單；比對共用狀態定義與 Agent schema enum。
+      - Expect: 子項包含已取代與已棄案，選單、Core、schema 接受相同七種值。
+      - Observed: item-status-baseline/2026-11-08T17-06-57-553Z 重現子項選單只含卡片五種狀態，沒有兩種退場選項。
+      - Resolved: 最終 Browser 明暗 32/32，七種子項、五種卡片與既有退場選值皆正確；policy 單測核對 schema enum，Classic-script Core 同載入共用定義。
+
+- [x] **2. 退場資料可完整編輯並原子保存**
+  Outcome: 取代項目／文件、理由與狀態能一起保存及復原；取消與失敗不改來源。
+  Checks:
+    - [x] **一般與已完成綁定子項的往返**
+      - Action: 測試取消、謹慎模式暫存、Undo／Redo、取代項目與文件、補充理由載入及修改、空白棄案理由、恢復一般狀態及自動保存；編輯投影到完成清單的綁定子項。
+      - Expect: 狀態與退場資料是同一步，既有補充理由不遺失；離開退場時清理 metadata，保存定位到原始資料中的同 ID 子項。
+    - [x] **Agent 共用驗證及保存拒絕**
+      - Action: Browser 實際嘗試自我取代並核對來源不變；執行同 scope／缺失／已退場取代者、等待關係、文件存在性與跨平台絕對路徑測試；回歸既有 Agent CLI 與 host 保存。
+      - Expect: Web 與 Agent 使用同一退場檢查，無效操作不落盤；合法保存仍旋轉 session 並拒絕過期來源。
+      - Observed: Agent CLI 回歸首輪被沙箱 Temp 的原子 rename 拒絕，尚未完成該次交易驗證。
+      - Resolved: 相同定向命令在一般使用者環境執行成功；CLI 1/1 與 host 2/2，另共用驗證 5/5。Browser 自我取代收到拒絕且來源保持原樣。
+
+- [x] **3. 兩種退場色分開呈現**
+  Outcome: 已取代淡綠、已棄案灰紅，預覽、編輯目前值及同源連結選取色一致。
+  Checks:
+    - [x] **明暗渲染與導覽配色**
+      - Action: 檢視最終明暗編輯與預覽截圖及 computed styles，執行 link-selection 定向測試；獨立 context 核對 metadata、取消及保存路徑。
+      - Expect: 兩種狀態使用不同語意色；舊 retired 連結仍相容，新連結可攜帶各自 tone，獨立複查沒有剩餘具體缺口。

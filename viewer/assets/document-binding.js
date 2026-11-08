@@ -490,6 +490,19 @@ export function projectTasksWithBindings(tasks, evaluations = new Map()) {
   });
 }
 
+// Completion events require a trustworthy projection. A missing/unreadable
+// binding is unknown, rather than evidence that finished work reopened.
+export function observedCardCompletions(tasks, evaluations = new Map()) {
+  return Object.fromEntries(projectTasksWithBindings(tasks, evaluations).map(task => {
+    const uncertain = [...(task.completed_items ?? []), ...(task.pending_items ?? [])].some(item => {
+      if (!item || typeof item !== 'object' || item.status === 'archive' || isRetiredStatus(item.status)) return false;
+      const key = documentBindingKey(item.document_ref);
+      return key && evaluations.get(key)?.ok !== true;
+    });
+    return [task.id, uncertain ? null : task.status === 'done'];
+  }));
+}
+
 /**
  * Creates a coordinated document binding refresher with generation token
  * and active state checking to prevent stale or out-of-order responses from

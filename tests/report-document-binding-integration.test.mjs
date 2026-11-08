@@ -4,6 +4,7 @@ import test from "node:test";
 import {
   evaluateAllDocumentBindings,
   projectTasksWithBindings,
+  observedCardCompletions,
   documentBindingHref,
 } from "../viewer/assets/document-binding.js";
 import {
@@ -12,6 +13,15 @@ import {
   stableSortTasksByPriority,
   validateReport,
 } from "../viewer/assets/report-model.js";
+
+test('unreadable bindings are unknown completion observations, not reopened work', () => {
+  const tasks=[{id:'bound',status:'planned',pending_items:[{id:'item',document_ref:{kind:'checklist',scope_id:'scope',task:'checks'}}]}];
+  const key='checklist:scope:checks';
+  assert.deepEqual(observedCardCompletions(tasks,new Map([[key,{ok:true,completed:true}]])),{bound:true});
+  assert.deepEqual(observedCardCompletions(tasks,new Map([[key,{ok:false,completed:false}]])),{bound:null});
+  assert.deepEqual(observedCardCompletions(tasks,new Map()),{bound:null});
+  assert.deepEqual(observedCardCompletions(tasks,new Map([[key,{ok:true,completed:false}]])),{bound:false});
+});
 
 function sampleReport() {
   return {

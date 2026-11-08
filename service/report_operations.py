@@ -5,9 +5,12 @@ import json
 import os
 import re
 from copy import deepcopy
-from pathlib import Path
+from pathlib import Path, PureWindowsPath
 
-from .report_store import validate_documents
+if __package__:
+    from .report_store import validate_documents
+else:
+    from report_store import validate_documents
 
 
 class ReportError(ValueError):
@@ -149,8 +152,12 @@ def check_retirement(report, task_id, item, folder=None):
         target = retirement.get("replaced_by")
         if isinstance(target, dict) and set(target) == {"document"}:
             document = target["document"]
-            require(isinstance(document, str) and 0 < len(document) <= 300 and not document.startswith(("/", "\\"))
-                    and ".." not in Path(document.split("#", 1)[0]).parts,
+            require(isinstance(document, str) and 0 < len(document) <= 300
+                    and bool(document.split('#', 1)[0])
+                    and not Path(document.split('#', 1)[0]).is_absolute()
+                    and not PureWindowsPath(document.split('#', 1)[0]).drive
+                    and not PureWindowsPath(document.split('#', 1)[0]).root
+                    and '..' not in PureWindowsPath(document.split('#', 1)[0]).parts,
                     "retirement.replaced_by.document must be a path inside this scope, optionally with #section", "retirement.replaced_by")
             if folder is not None:
                 require((Path(folder) / document.split("#", 1)[0]).is_file(),
@@ -173,6 +180,22 @@ def check_retirement(report, task_id, item, folder=None):
                for w in waiter.get("waits_for", [])):
             raise ReportError("invalid_operation", "Items still wait on this one; repoint or remove their waits_for first: "
                               + scope + "/" + waiter.get("id", "?"), field="status")
+
+
+def validate_retirement_changes(before, after, folder=None):
+    """Share the Agent retirement rules with full-document editor saves."""
+    previous = {(task.get('id'), item.get('id')): item
+                for task in before.get('tasks', [])
+                for field in ('pending_items', 'completed_items')
+                for item in task.get(field, []) if isinstance(item, dict)}
+    for task in after.get('tasks', []):
+        for field in ('pending_items', 'completed_items'):
+            for item in task.get(field, []):
+                if not isinstance(item, dict):
+                    continue
+                old = previous.get((task.get('id'), item.get('id')), {})
+                if any(old.get(key) != item.get(key) for key in ('status', 'retirement')):
+                    check_retirement(after, task['id'], item, folder)
 
 
 def find_in_scope(report, key, folder=None):

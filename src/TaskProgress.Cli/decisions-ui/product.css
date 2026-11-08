@@ -56,6 +56,13 @@ body { background:var(--ui-page); color:var(--ui-text); }
 .horizontal-capsule-strip [data-reorder-handle] { touch-action:pan-y; }
 .arrangeable-card[data-reorder-handle] { user-select:none; -webkit-user-select:none; }
 .item-row-grip { touch-action:pan-x; }
+ui-dialog.item-retirement-dialog::part(surface) { width:min(560px,calc(100% - 32px)); max-height:calc(100vh - 32px); overflow:auto; }
+.retirement-form { display:grid; gap:12px; }
+.retirement-form p { margin:0; }
+.retirement-form label { display:grid; gap:5px; }
+.retirement-form input, .retirement-form textarea, .retirement-form select { box-sizing:border-box; width:100%; min-width:0; }
+.retirement-actions { display:flex; justify-content:flex-end; gap:8px; }
+.retirement-edit-button { padding:2px 4px; border:0; background:transparent; color:var(--color-secondary-text); font:inherit; cursor:pointer; }
 ui-dialog.replica-time-dialog::part(surface), ui-dialog.replica-cost-dialog::part(surface) { container-type:inline-size; padding:22px; color:var(--color-item-text); background:var(--color-panel-bg); border:1px solid var(--color-border); border-radius:var(--radius-lg); }
 ui-dialog.replica-time-dialog::part(surface) { width:min(680px,calc(100% - 32px)); max-height:min(820px,calc(100vh - 32px)); }
 ui-dialog.replica-cost-dialog::part(surface) { width:min(620px,calc(100% - 28px)); max-height:min(760px,calc(100vh - 32px)); }

@@ -1,5 +1,6 @@
 import { registerUiAdapter } from '@taskprogress/ui-host.js';
-import { stableSortTaskItemsByPriority, STATUS_META } from '@taskprogress/report-model.js';
+import { stableSortTaskItemsByPriority, STATUS_META, ITEM_STATUS_META } from '@taskprogress/report-model.js';
+import { parseReference } from '@taskprogress/task-search.js';
 import { liftNextItem } from '@taskprogress/next-marker.js';
 import { itemReference } from '@taskprogress/item-reference.js';
 import { formatActivity } from '@taskprogress/item-activity.js';
@@ -11,9 +12,46 @@ import { timeDialog, costDialog, deliveryConfirmation } from './assessment.mjs';
 
 registerUi();
 const statuses = Object.entries(STATUS_META).map(([value, meta]) => ({ value, ...meta }));
+const itemStatuses = Object.entries(ITEM_STATUS_META).map(([value, meta]) => ({ value, ...meta }));
 const status = value => STATUS_META[value] ?? { label: value, tone: 'muted' };
 const options = (entries, value, label, onChange, className = '') => html`<select class=${className} aria-label=${label} .value=${live(String(value))} @change=${e => onChange(e.currentTarget.value)}>${entries.map(e => html`<option .value=${String(e.value)} ?selected=${String(e.value) === String(value)}>${e.label}</option>`)}</select>`;
 const prioritySelect = (policy, value, label, onChange) => options(policy.levels.map(e => ({ value: e.value, label: policy.format(e.value) })), policy.normalize(value, policy.fallbackValue), label, v => onChange(Number(v)), 'inline-priority-select');
+
+function changeItemStatus(p, v, task, field, item, value) {
+  if (!globalThis.TaskProgressItemStatusPolicy.retired.includes(value)) return p.onCommand({ type:'set-item-status', taskId:task.id, field, itemId:item.id, status:value });
+  const replacement = item.retirement?.replaced_by;
+  v.state.retirement = { taskId:task.id, field, itemId:item.id, title:item.title, status:value,
+    kind:replacement?.document ? 'document' : 'item',
+    target:replacement?.document ?? (replacement ? [replacement.scope_id,replacement.task_id,replacement.item_id].join(' › ') : ''),
+    reason:item.retirement?.reason ?? '', error:'' };
+  v.draw();
+}
+
+function retirementDialog(p, v) {
+  const state=v.state.retirement;
+  const close=()=>{v.state.retirement=null;v.draw();};
+  if (!p.editing && state) v.state.retirement=null;
+  const active=p.editing ? state : null;
+  return dialog({id:'item-retirement-dialog',className:'item-retirement-dialog',open:!!active,title:active ? ITEM_STATUS_META[active.status].label : '',onClose:close}, active ? html`
+    <form class="retirement-form" @submit=${e=>{e.preventDefault();try {
+      let retirement;
+      if(active.status==='discontinued') retirement={reason:active.reason};
+      else if(active.kind==='document') retirement={replaced_by:{document:active.target}};
+      else {const ref=parseReference(active.target);retirement={replaced_by:ref ? {scope_id:ref.scopeId,task_id:ref.taskId,item_id:ref.itemId} : null};}
+      if(active.status==='obsolete' && active.reason.trim()) retirement.reason=active.reason;
+      const change=globalThis.TaskProgressItemStatusPolicy.prepare(active.status,retirement);
+      p.onCommand({type:'set-item-status',taskId:active.taskId,field:active.field,itemId:active.itemId,...change});
+      close();
+    } catch(error) {active.error=error.message;v.draw();}}}>
+      <p>${active.title}</p>
+      ${active.status==='discontinued' ? html`<label>棄案理由<textarea name="reason" required maxlength="300" rows="3" .value=${live(active.reason)} @input=${e=>{active.reason=e.currentTarget.value;}}></textarea></label>`
+      : html`<label>取代對象種類${options([{value:'item',label:'子項目'},{value:'document',label:'設計文件'}],active.kind,'取代對象種類',value=>{active.kind=value;active.target='';v.draw();})}</label>
+        <label>${active.kind==='item' ? '取代項目參照' : '取代文件路徑'}<input name="replacement" required maxlength="300" .value=${live(active.target)} placeholder=${active.kind==='item' ? 'scope › card › item' : 'Documentation/Plan.md#section'} @input=${e=>{active.target=e.currentTarget.value;}}></label>
+        <label>補充理由（選填）<textarea name="reason" maxlength="300" rows="2" .value=${live(active.reason)} @input=${e=>{active.reason=e.currentTarget.value;}}></textarea></label>`}
+      <p class="spike-field-error" role="alert">${active.error}</p>
+      <div class="retirement-actions"><button type="button" class="secondary-button" @click=${close}>取消</button><button type="submit" class="primary-button">套用</button></div>
+    </form>` : nothing);
+}
 
 function reorderItems(p, view, task) {
   return { enabled:!!(p.editing || p.reorderable), axis:'vertical', surface:p.editing ? false : 'item', previewClasses:p.editing ? {before:'item-drop-before',after:'item-drop-after',dragging:'item-row-dragging'} : {before:'item-gap-before',after:'item-gap-after',dragging:'item-row-dragging'}, onMove(request) {
@@ -82,7 +120,7 @@ function returnToItem(view) {
 
 function itemRow(p, v, task, field, item, lead) {
   const editing = p.editing, itemStatus = item.status ?? (field === 'completed_items' ? 'done' : 'planned');
-  const meta = item.derivedState && item.derivedState !== 'done' ? { label: item.derivedStateLabel, tone: item.derivedStateTone } : status(itemStatus);
+  const meta = item.derivedState && item.derivedState !== 'done' ? { label: item.derivedStateLabel, tone: item.derivedStateTone } : ITEM_STATUS_META[itemStatus] ?? status(itemStatus);
   const priority = p.policy.metadata(item.priority);
   const reference = editing ? null : itemReference({ scopeId: p.scopeId, taskId: task.id, item });
   const selected = reference && v.state.selection?.keys.has(reference);
@@ -114,7 +152,7 @@ function itemRow(p, v, task, field, item, lead) {
     <div class="item-row-description" data-reorder-content>${editing ? html`<input class="inline-edit-input" aria-label="編輯子項目：${item.title}" title=${item.title} maxlength="500" .value=${live(item.title)} @input=${e => cmd('set-item-field', { property: 'title', value: e.currentTarget.value })}>`
       : reference ? html`<ui-copy-id class="item-row-copy" .value=${reference} .label=${copyCount > 1 ? `已選取的 ${copyCount} 項參照` : item.title} .prepare=${prepareCopy}>${title}</ui-copy-id>` : title}</div>
     <span class="item-row-utility-panel"><span class="item-row-modules">${moduleStrip({ capsules: p.itemCapsules?.get(item.id) ?? [], moduleOrder: p.moduleOrder, onReorder: p.onModuleReorder, onActivate: id => p.onModuleActivate?.(id, { taskId: task.id, itemId: item.id, itemTitle: item.title }) })}</span>
-    <span class="item-row-status">${editing ? options(statuses, itemStatus, `設定「${item.title}」的狀態`, value => cmd('set-item-status', { status: value }), 'inline-status-select')
+    <span class="item-row-status">${editing ? html`${options(itemStatuses, itemStatus, `設定「${item.title}」的狀態`, value => changeItemStatus(p,v,task,field,item,value), `inline-status-select status-${meta.tone}`)}${globalThis.TaskProgressItemStatusPolicy.retired.includes(itemStatus) ? html`<button type="button" class="retirement-edit-button" title="編輯退場資訊" aria-label="編輯「${item.title}」的退場資訊" @click=${()=>changeItemStatus(p,v,task,field,item,itemStatus)}>✎</button>` : nothing}`
       : targets.length === 1 && linked.length === 1 ? html`<a class="item-status-capsule status-${meta.tone} is-link" href=${linked[0].href} title=${statusTooltip(item) ?? linked[0].label}>${meta.label}</a>`
       : linked.length ? html`<span class="wait-menu" @focusout=${e => { if (!e.currentTarget.contains(e.relatedTarget)) { v.state[`wait:${key}`] = false; v.draw(); } }} @keydown=${e => { if (e.key === 'Escape') { v.state[`wait:${key}`] = false; v.draw(); } }}><button type="button" class="item-status-capsule status-${meta.tone} is-link" aria-haspopup="true" aria-expanded=${!!v.state[`wait:${key}`]} @click=${e => { e.stopPropagation(); v.state[`wait:${key}`] = !v.state[`wait:${key}`]; v.draw(); }}>${meta.label}</button>${v.state[`wait:${key}`] ? html`<ul class="wait-menu-list">${targets.map(t => html`<li>${t.href ? html`<a href=${t.href} @click=${e => e.stopPropagation()}>${t.label}</a>` : html`<span>${t.label}（無法讀取）</span>`}</li>`)}</ul>` : nothing}</span>`
       : html`<span class="item-status-capsule status-${meta.tone}" title=${statusTooltip(item) ?? nothing}>${meta.label}</span>`}</span>
@@ -174,10 +212,10 @@ const templates = {
       }));
     }
     if (v.selectionSource !== p.selection) { v.unsubscribe?.(); v.selectionSource = p.selection; v.unsubscribe = p.selection?.subscribe(s => { v.state.selection = s; queueMicrotask(v.refresh); }); v.cleanups.push(() => v.unsubscribe?.()); }
-    return html`${v.cards.render({ items: p.tasks, allIds: p.allIds, storageKey: p.cardStorageKey, pinEnabled: true, requestedPin: p.requestedPin, nextId: p.nextTaskId, onSourceReorder: p.onCardReorder, reorderGroups: p.cardReorderGroups, hiddenCount: p.hiddenCount, onShowHidden: p.onShowHidden },
+    return html`${v.cards.render({ items: p.tasks, allIds: p.allIds, storageKey: p.cardStorageKey, pinEnabled: true, completionStates: p.completionStates, completedIds: p.completedIds, requestedPin: p.requestedPin, nextId: p.nextTaskId, onSourceReorder: p.onCardReorder, reorderGroups: p.cardReorderGroups, hiddenCount: p.hiddenCount, onShowHidden: p.onShowHidden },
       (task, card) => task.kind === 'report_pointer' ? pointer(p, task, card) : taskCard(p, v, task, card), p.filters ? filters(p.filters) : nothing,
       html`${p.onSearch ? html`<ui-search-field class="task-search" label="搜尋任務卡名稱、摘要與子項" placeholder="搜尋名稱、摘要、子項"
-        .query=${p.searchQuery ?? ''} @query-change=${e => p.onSearch(e.detail.query)}></ui-search-field>` : nothing}`)}${!p.tasks.length ? html`<p class="empty-state">${p.emptyLabel}</p>` : nothing}`;
+        .query=${p.searchQuery ?? ''} @query-change=${e => p.onSearch(e.detail.query)}></ui-search-field>` : nothing}`)}${!p.tasks.length ? html`<p class="empty-state">${p.emptyLabel}</p>` : nothing}${retirementDialog(p,v)}`;
   },
   'report-summary': p => p.editable ? html`<textarea class="report-summary-input" aria-label=${p.label ?? '報告摘要'} maxlength="1000" rows="2" placeholder=${p.placeholder ?? ''} .value=${live(p.value ?? '')} @input=${e => p.onCommit(e.currentTarget.value)}></textarea>` : html`<p class="hero-summary">${p.text}</p>`,
   'project-progress': p => html`<div class="project-progress-label"><strong id="project-progress-value">整體約 ${p.percentage}%</strong></div>${progressBar({ ...p, form: 'segmented', label: `整體進度 ${p.percentage}%，已完成 ${p.completed}，共 ${p.total}`, extraClass: 'project-progress-meter' })}`,

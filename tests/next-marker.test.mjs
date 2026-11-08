@@ -36,6 +36,12 @@ test("the marker resolves only to an unfinished item that waits on nobody", () =
   assert.equal(resolveNext({ task_id: "card", item_id: "low" }, list)?.itemId, "low", "an item in the user's hands is still the scope's Next");
 });
 
+test('a completed card cannot lead unfinished cards through a stale Next', () => {
+  const list=tasks(); list[1].status='done';
+  assert.equal(resolveNext({task_id:'card',item_id:'low'},list),null);
+  assert.equal(nextRefusal({tasks:list},{taskId:'card',itemId:'low'}),'已完成的任務卡不能設為 Next。');
+});
+
 test("the Next card and item lead, whatever their priority, and nothing else moves", () => {
   const list = tasks();
   assert.deepEqual(liftNextTask(list, "card").map((t) => t.id), ["card", "urgent", "pointer"]);

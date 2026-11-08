@@ -5,20 +5,30 @@ export function promotePin(pinnedIds, id) {
   return [id, ...pinnedIds.filter(key => key !== id)];
 }
 
+// Initial observation is a baseline. A later completion clears a pin once;
+// pinning an already completed card remains an explicit user choice.
+export function removeNewlyCompletedPins(pinnedIds, before, after) {
+  return pinnedIds.filter(id => !(before?.[id] === false && after?.[id] === true));
+}
+
 export function requestedCardPin(search, scope) {
   const query = new URLSearchParams(search);
   return query.get("scope") === scope ? (query.get("pin") || null) : null;
 }
 
 // The lead card (the scope's Next) outranks every pin and every sort mode.
-export function displayCards(items, order, mode, pinnedIds = [], leadId = null) {
-  const sorted = mode === "free" ? orderCards(items, order) : mode === "reverse" ? [...items].reverse() : items;
+export function displayCards(items, order, mode, pinnedIds = [], leadId = null, completedIds = null) {
+  let sorted = mode === "free" ? orderCards(items, order) : mode === "reverse" ? [...items].reverse() : items;
+  if (completedIds) {
+    const completed = new Set(completedIds);
+    sorted = sorted.filter(item => !completed.has(item.id)).concat(items.filter(item => completed.has(item.id)));
+  }
   const byId = new Map(items.map(item => [item.id, item]));
   const pinned = new Set(pinnedIds);
   const cards = pinnedIds.length
     ? [...pinned].filter(id => byId.has(id)).map(id => byId.get(id)).concat(sorted.filter(item => !pinned.has(item.id)))
     : sorted;
-  if (leadId === null || !byId.has(leadId)) return cards;
+  if (leadId === null || !byId.has(leadId) || completedIds?.includes(leadId)) return cards;
   return [byId.get(leadId), ...cards.filter(item => item.id !== leadId)];
 }
 

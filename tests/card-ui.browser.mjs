@@ -10,7 +10,7 @@ export async function run(page,evidence,{scheme}) {
   await page.evaluate(`document.querySelector('.card-toolbar-icon[aria-label="全部展開"]')?.click()`);
   check('cards have no visible corner drag button',await page.evaluate(`!document.querySelector('.replica-card-grip')`));
   await page.evaluate(`document.querySelector('[data-card-id="low"]').scrollIntoView({block:'center',behavior:'instant'})`);
-  check('both retirement states share a distinct semantic tone',await page.evaluate(`['replaced','dropped'].every(id=>document.querySelector('#item-low--'+id+' .item-status-capsule').classList.contains('status-retired'))`));
+  check('retirement states have separate semantic tones',await page.evaluate(`document.querySelector('#item-low--replaced .item-status-capsule').classList.contains('status-obsolete') && document.querySelector('#item-low--dropped .item-status-capsule').classList.contains('status-discontinued')`));
   await evidence.styles(`${scheme}-retired-status`, '[data-card-id="low"] .item-status-capsule', ['color','background-color']);
   await evidence.screenshot(`${scheme}-retired-status`);
   await page.send('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:1,mobile:true});

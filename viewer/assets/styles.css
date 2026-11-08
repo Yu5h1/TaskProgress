@@ -40,6 +40,10 @@
   --theme-muted-status-bg: #ebeae5;
   --theme-retired-text: #536f60;
   --theme-retired-bg: #e4ebe6;
+  --theme-obsolete-text: #4d7358;
+  --theme-obsolete-bg: #e6f1e6;
+  --theme-discontinued-text: #865d63;
+  --theme-discontinued-bg: #f1e7e8;
 
   --color-page-bg: var(--theme-page-bg);
   --color-panel-bg: var(--theme-panel-bg);
@@ -81,6 +85,10 @@
   --color-muted-status-bg: var(--theme-muted-status-bg);
   --color-retired-text: var(--theme-retired-text);
   --color-retired-bg: var(--theme-retired-bg);
+  --color-obsolete-text: var(--theme-obsolete-text);
+  --color-obsolete-bg: var(--theme-obsolete-bg);
+  --color-discontinued-text: var(--theme-discontinued-text);
+  --color-discontinued-bg: var(--theme-discontinued-bg);
 
   --ink: var(--color-heading);
   --ink-soft: var(--color-secondary-text);
@@ -144,6 +152,10 @@
     --theme-muted-status-bg: #2b313b;
     --theme-retired-text: #a1b8a9;
     --theme-retired-bg: #2c3833;
+    --theme-obsolete-text: #bdd7b7;
+    --theme-obsolete-bg: #303d32;
+    --theme-discontinued-text: #c59fa4;
+    --theme-discontinued-bg: #3d3035;
     --shadow: 0 6px 18px rgba(0, 0, 0, 0.16);
   }
 }
@@ -189,6 +201,10 @@
   --theme-muted-status-bg: #ebeae5;
   --theme-retired-text: #536f60;
   --theme-retired-bg: #e4ebe6;
+  --theme-obsolete-text: #4d7358;
+  --theme-obsolete-bg: #e6f1e6;
+  --theme-discontinued-text: #865d63;
+  --theme-discontinued-bg: #f1e7e8;
   --shadow: 0 4px 14px rgba(37, 47, 41, 0.04);
 }
 
@@ -233,6 +249,10 @@
   --theme-muted-status-bg: #2b313b;
   --theme-retired-text: #a1b8a9;
   --theme-retired-bg: #2c3833;
+  --theme-obsolete-text: #bdd7b7;
+  --theme-obsolete-bg: #303d32;
+  --theme-discontinued-text: #c59fa4;
+  --theme-discontinued-bg: #3d3035;
   --shadow: 0 6px 18px rgba(0, 0, 0, 0.16);
 }
 
@@ -1429,6 +1449,8 @@ h1 {
 .item-status-capsule.status-danger { color: var(--red); background: var(--red-soft); }
 .item-status-capsule.status-warning { color: var(--amber); background: var(--amber-soft); }
 .item-status-capsule.status-retired { color: var(--color-retired-text); background: var(--color-retired-bg); }
+.item-status-capsule.status-obsolete, .inline-status-select.status-obsolete { color:var(--color-obsolete-text); background:var(--color-obsolete-bg); }
+.item-status-capsule.status-discontinued, .inline-status-select.status-discontinued { color:var(--color-discontinued-text); background:var(--color-discontinued-bg); }
 
 /* 等待中 opens what the item waits on: a link for one target, a short list for several. */
 .item-status-capsule.is-link { cursor: pointer; text-decoration: none; }
@@ -3186,6 +3208,8 @@ footer {
 .arrangeable-card[data-link-tone="success"] { --link-selection-color: var(--color-success-text); }
 .arrangeable-card[data-link-tone="active"] { --link-selection-color: var(--color-active-text); }
 .arrangeable-card[data-link-tone="retired"] { --link-selection-color: var(--color-retired-text); }
+.arrangeable-card[data-link-tone="obsolete"] { --link-selection-color: var(--color-obsolete-text); }
+.arrangeable-card[data-link-tone="discontinued"] { --link-selection-color: var(--color-discontinued-text); }
 .arrangeable-card[data-link-tone="muted"],
 .arrangeable-card[data-link-tone="neutral"] { --link-selection-color: var(--color-muted-text); }
 .arrangeable-card.card-selected[data-link-tone] {

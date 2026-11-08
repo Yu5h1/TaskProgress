@@ -33,7 +33,7 @@ function unfinished(item) {
 export function resolveNext(next, tasks) {
   if (!isObject(next) || typeof next.task_id !== "string" || typeof next.item_id !== "string") return null;
   const task = (tasks ?? []).find((entry) => entry?.id === next.task_id);
-  if (!task || taskKind(task) === "report_pointer") return null;
+  if (!task || taskKind(task) === "report_pointer" || task.status === "done") return null;
   const item = (task.pending_items ?? []).find((entry) => isObject(entry) && entry.id === next.item_id);
   if (!item || !unfinished(item)) return null;
   return { taskId: task.id, itemId: item.id, task, item, derived: false };
@@ -62,6 +62,7 @@ export function liftNextItem(items, nextItemId) {
 export function nextRefusal(report, { taskId, itemId, derivedState = null }) {
   const task = report?.tasks?.find((entry) => entry?.id === taskId);
   if (!task) return `找不到任務「${taskId}」。`;
+  if (task.status === "done") return "已完成的任務卡不能設為 Next。";
   const item = [...(task.pending_items ?? []), ...(task.completed_items ?? [])]
     .find((entry) => isObject(entry) && entry.id === itemId);
   if (!item) return `找不到子項目「${itemId}」。`;

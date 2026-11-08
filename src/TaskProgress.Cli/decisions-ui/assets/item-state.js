@@ -4,6 +4,7 @@
  */
 
 import { parseInlineLinks } from "./inline-links.js";
+import './item-status-policy.js';
 
 export const ITEM_STATE_META = Object.freeze({
   done: { label: "完成", tone: "success" },
@@ -15,12 +16,12 @@ export const ITEM_STATE_META = Object.freeze({
   awaiting_acceptance: { label: "待他驗", tone: "active" },
   in_progress: { label: "執行中", tone: "active" },
   not_started: { label: "未開始", tone: "muted" },
-  obsolete: { label: "已取代", tone: "retired" },
-  discontinued: { label: "已棄案", tone: "retired" },
+  obsolete: globalThis.TaskProgressItemStatusPolicy.items.obsolete,
+  discontinued: globalThis.TaskProgressItemStatusPolicy.items.discontinued,
 });
 
 /** Stored item statuses that retire an item for good: replaced by another item, or dropped. */
-export const RETIRED_ITEM_STATUSES = Object.freeze(["obsolete", "discontinued"]);
+export const RETIRED_ITEM_STATUSES = globalThis.TaskProgressItemStatusPolicy.retired;
 
 export function isRetiredStatus(status) {
   return RETIRED_ITEM_STATUSES.includes(status);

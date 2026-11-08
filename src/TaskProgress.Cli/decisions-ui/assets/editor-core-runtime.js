@@ -19,7 +19,8 @@ const ITEM_FIELDS = Object.freeze(["completed_items", "pending_items"]);
 const REPORT_FIELDS = new Set(["summary"]);
 const TASK_FIELDS = new Set(["title", "summary", "status", "priority"]);
 const ITEM_PROPERTIES = new Set(["title", "priority", "status"]);
-const ITEM_STATUSES = new Set(["planned", "in_progress", "blocked", "done", "archive", "obsolete", "discontinued"]);
+const itemStatusPolicy = global.TaskProgressItemStatusPolicy;
+if (!itemStatusPolicy) throw new TypeError('Editor Core 需要共用的子項狀態定義。');
 
 /*
  * The array an item belongs in is a projection of its status, not a second
@@ -270,6 +271,7 @@ function createReportEditorSession(
       return [command.type, command.taskId, command.field].join(":");
     }
     if (command.type === "set-item-field") {
+      if (command.property === 'status') return null;
       return [
         command.type,
         command.taskId,
@@ -341,6 +343,7 @@ function createReportEditorSession(
         break;
       }
       case "set-item-field": {
+        if (command.property === 'status') { reduce(draft, { ...command, type:'set-item-status', status:command.value }); break; }
         if (!ITEM_PROPERTIES.has(command.property)) {
           throw new Error(`不支援的子項目欄位「${command.property}」。`);
         }
@@ -356,12 +359,13 @@ function createReportEditorSession(
        * between them — and undoable as two separate steps.
        */
       case "set-item-status": {
-        if (!ITEM_STATUSES.has(command.status)) {
-          throw new Error(`不支援的子項目狀態「${command.status}」。`);
-        }
         const task = findTask(draft, command.taskId);
         const item = findItem(task, command.field, command.itemId);
-        item.status = command.status;
+        const change = itemStatusPolicy.prepare(command.status, command.retirement ?? (item.status === command.status ? item.retirement : undefined));
+        item.status = change.status;
+        if (change.retirement) item.retirement = cloneValue(change.retirement);
+        else delete item.retirement;
+        if (change.status !== 'blocked') delete item.blocked_reason;
         const toField = fieldForItemStatus(command.status);
         if (toField !== command.field) {
           const source = task[command.field] ?? [];

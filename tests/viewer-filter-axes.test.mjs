@@ -162,8 +162,8 @@ test("task priority applies to the default group, explicit groups and remaining 
   ];
   const original = structuredClone(tasks);
   const order = groups => orderByCapsuleBoundary(tasks, groups, t => t.status, stableSortTasksByPriority).map(t => t.id);
-  assert.deepEqual(order([]), ["active-high", "done-low", "pending-high", "pending-tie", "pending-low", "done-high", "unspecified"]);
-  assert.deepEqual(order(["planned"]), ["pending-high", "pending-tie", "pending-low", "active-high", "done-low", "done-high", "unspecified"]);
+  assert.deepEqual(order([]), ["active-high", "pending-high", "pending-tie", "pending-low", "unspecified", "done-low", "done-high"]);
+  assert.deepEqual(order(["planned"]), ["pending-high", "pending-tie", "pending-low", "active-high", "unspecified", "done-low", "done-high"]);
   assert.deepEqual(order(["done", "planned"]), ["done-low", "done-high", "pending-high", "pending-tie", "pending-low", "active-high", "unspecified"]);
   assert.deepEqual(tasks, original);
 });

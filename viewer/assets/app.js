@@ -11,6 +11,7 @@ import {
   documentBindingLabel,
   evaluateAllDocumentBindings,
   projectTasksWithBindings,
+  observedCardCompletions,
 } from "./document-binding.js";
 import {
   PRIORITY_POLICY,
@@ -195,6 +196,7 @@ const state = {
   diagnostics: [],
   developerAvailable: false,
   documentEvaluations: new Map(),
+  documentEvaluationsReady: false,
   timeAnalysis: null,
   taskListView: null,
   taskAdderView: null,
@@ -924,6 +926,7 @@ const documentBindingRefresher = createDocumentBindingRefresher({
   project: projectTasksWithBindings,
   onApply: ({ evaluations, tasks }) => {
     state.documentEvaluations = evaluations;
+    state.documentEvaluationsReady = true;
     state.tasks = tasks;
     renderProjectProgress();
     renderFilters();
@@ -1048,6 +1051,12 @@ function taskListProps(tasks) {
     policy: PRIORITY_POLICY,
     emptyLabel: "沒有符合目前篩選的工作項目。",
     onCommand: (command) => {
+      if (command.type === 'set-item-status') {
+        // A completed binding may be projected into a different display list.
+        const task = state.report.tasks.find(task => task.id === command.taskId);
+        const field = ['pending_items','completed_items'].find(field => task?.[field]?.some(item => item?.id === command.itemId));
+        if (field) command = { ...command, field };
+      }
       if (["delete-task", "delete-item"].includes(command.type)
         && !globalThis.confirm("這會永久刪除所選項目。確定繼續？")) {
         return;
@@ -1131,6 +1140,20 @@ function renderTasks() {
     .filter(Boolean);
 
   const props = taskListProps(tasks);
+  // Observe committed, fully projected cards before filtering. Draft status
+  // changes and the initial unfinished binding load are not completion events.
+  props.completionStates = state.documentEvaluationsReady
+    ? observedCardCompletions(state.persistedReport.tasks, state.documentEvaluations) : null;
+  props.completedIds = orderedTasks.filter(task => task.status === 'done').map(task => task.id);
+  // Pointer cards display the target report's status, not a stored task status.
+  // Observe the same trustworthy view even when the source card is filtered.
+  for (const task of state.persistedReport.tasks.filter(task => taskKind(task) === 'report_pointer')) {
+    const view = pointerCardView(task.id);
+    const ready = view.status === 'ready' && view.card.scopeId === task.report_ref?.scope_id;
+    const completed = ready ? view.card.status === 'done' : null;
+    if (props.completionStates) props.completionStates[task.id] = completed;
+    if (completed) props.completedIds.push(task.id);
+  }
   props.requestedPin = requestedPin;
   props.nextTaskId = marked?.taskId ?? null;
   props.nextItemId = marked?.itemId ?? null;
@@ -1150,8 +1173,9 @@ function renderTasks() {
   // Use the complete, unfiltered cards: filtering child rows must not change a card's priority group.
   const sourceIds = new Set((state.editor.editing ? state.report : state.persistedReport).tasks.map(task => task.id));
   const explicitGroups = groupingOrder(state.statusOrder);
+  const completedCards = new Set(props.completedIds);
   props.cardReorderGroups = Object.fromEntries(orderedTasks.filter(task => sourceIds.has(task.id)).map(task => [
-    task.id, JSON.stringify([explicitGroups.includes(task.status) ? task.status : null, cardPriorityGroup(task)]),
+    task.id, JSON.stringify([completedCards.has(task.id) ? 'done' : explicitGroups.includes(task.status) ? task.status : null, cardPriorityGroup(task)]),
   ]));
   props.onCardReorder = state.editor.available ? async command => {
     try {
@@ -1671,6 +1695,7 @@ async function main() {
     state.developerAvailable = merged.developerAvailable;
     state.diagnostics.push(...merged.diagnostics);
     state.documentEvaluations = new Map();
+    state.documentEvaluationsReady = false;
     void refreshDocumentBindings();
     // Fire-and-forget: pointer cards paint as "loading" on first render and
     // repaint themselves through `renderTasks()` once each target resolves,

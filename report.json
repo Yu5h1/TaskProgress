@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-11-08T15:25:59.380679+00:00",
+  "updated_at": "2026-11-08T17:25:16.037355+00:00",
   "tasks": [
     {
       "id": "agent-workflow",
@@ -1914,8 +1914,28 @@
       "summary": "正式 Viewer 已具備可分享的唯讀進度報告、Developer overlay、主題系統與響應式介面。",
       "completed_items": [
         {
+          "priority": 2,
+          "id": "problem-item-status-edit-options",
+          "status": "done",
+          "title": "子項編輯提供完整7種狀態，退場可填取代對象或理由，與Agent共用驗證",
+          "activity": [
+            {
+              "event": "created",
+              "actor": "codex",
+              "at": "2026-11-08T15:48:45.694682+00:00",
+              "session": "Completed card ordering and unpin"
+            },
+            {
+              "event": "done",
+              "actor": "codex",
+              "at": "2026-11-08T17:25:16.037355+00:00",
+              "session": "Complete child status editing"
+            }
+          ]
+        },
+        {
           "id": "problem-retired-tone",
-          "title": "已取代／已棄案採灰綠色退場標記，與未開始及完成色區別",
+          "title": "已取代採淡綠色、已棄案採灰紅色，預覽與編輯使用各自語意色",
           "status": "done",
           "activity": [
             {
@@ -1929,6 +1949,12 @@
               "actor": "codex",
               "at": "2026-11-08T15:25:59.380679+00:00",
               "session": "Card touch and retired tone"
+            },
+            {
+              "event": "updated",
+              "actor": "codex",
+              "at": "2026-11-08T17:25:16.037355+00:00",
+              "session": "Complete child status editing"
             }
           ]
         },
@@ -2240,6 +2266,42 @@
               "actor": "codex",
               "at": "2026-11-08T15:25:59.380679+00:00",
               "session": "Card touch and retired tone"
+            }
+          ]
+        },
+        {
+          "document_ref": {
+            "kind": "checklist",
+            "task": "report-card-completion",
+            "scope_id": "task-progress"
+          },
+          "id": "report-card-completion",
+          "status": "planned",
+          "title": "完成卡片獨立排序，完成事件單次取消pin並保留手動重釘",
+          "activity": [
+            {
+              "event": "created",
+              "actor": "codex",
+              "at": "2026-11-08T15:48:45.694682+00:00",
+              "session": "Completed card ordering and unpin"
+            }
+          ]
+        },
+        {
+          "title": "完整子項狀態、退場資料編輯與分色的往返驗證",
+          "status": "planned",
+          "document_ref": {
+            "scope_id": "task-progress",
+            "kind": "checklist",
+            "task": "editor-item-retirement"
+          },
+          "id": "editor-item-retirement",
+          "activity": [
+            {
+              "event": "created",
+              "actor": "codex",
+              "at": "2026-11-08T17:25:16.037355+00:00",
+              "session": "Complete child status editing"
             }
           ]
         }
