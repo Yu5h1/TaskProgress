@@ -14,6 +14,8 @@
 <scope-id> › <task-id> › <item-id>
 ```
 
+任務卡標題的複製圖示使用兩段參照 `<scope-id> › <task-id>`，不附子項 ID 或標題；貼進搜尋可定位整張卡。標題旁的小字只顯示 `(task-id)`。
+
 - scope 與卡片 ID 一併帶上：子項 ID 只在同一張卡內唯一，report CLI 的 `item.update` 也需要 task 與 item 兩個 ID。
 - 只帶 ID，不帶標題內容：ID 已足以定位，使用者 2026-10-21 決定不再附標題前段。舊參照尾端的「…」仍可貼進搜尋，標題部分會被忽略。
 - 由 `viewer/assets/item-reference.js` 的 `itemReference` 產生。
@@ -26,7 +28,7 @@
 - 成功複製後圖示短暫變成綠色 ✓，失敗為 ✕；文字說明放在提示與無障礙標籤。
 - 子項被選取時，按選取中子項的圖示會複製全部選取，一行一個；鍵盤以子項本身聚焦並用 Ctrl＋C，圖示不再是 Tab 停點。見 [子項多選](ItemSelection.md)。
 - 按下後圖示短暫顯示「已複製」，失敗顯示「無法複製」。先用 Clipboard API，被拒絕時改用選取複製。
-- 編輯模式不顯示，避免蓋住輸入欄。任務卡標題左側有同樣的滑過／聚焦複製圖示，複製的是卡片 ID 本身（不含 scope）；卡片 ID 欄位 `.task-id` 在畫面上隱藏，這是取得 ID 的入口。Decision 卡片複製決策 ID。Checklist 卡片複製 `<scope-id> › <checklist 檔名（不含副檔名）> › <工作項目編號>`，讓貼上的內容能定位到該卡；桌面入口未提供 scope 時，複製 `<checklist 檔名（不含副檔名）> › <工作項目編號>`。
+- 編輯模式不顯示，避免蓋住輸入欄。任務卡標題左側有同樣的滑過／聚焦複製圖示，複製 `<scope-id> › <task-id>`；沒有 scope 的獨立宿主則只複製卡片 ID。Decision 卡片複製決策 ID。Checklist 卡片複製 `<scope-id> › <checklist 檔名（不含副檔名）> › <工作項目編號>`，讓貼上的內容能定位到該卡；桌面入口未提供 scope 時，複製 `<checklist 檔名（不含副檔名）> › <工作項目編號>`。
 - 舊式文字子項沒有 ID（Viewer 只為顯示產生 `legacy-…` 暫代 ID），不提供複製；需先遷移成具 ID 物件。
 
 ## 驗收

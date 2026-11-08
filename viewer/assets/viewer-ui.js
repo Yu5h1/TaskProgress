@@ -1701,7 +1701,7 @@ function En(e, t, n, r) {
 		id: `task-body-${n.id}`,
 		label: n.title
 	}, P`<header class="task-header"><div class="task-title-group">${e.editing ? P`<div class="time-task-status-line">${vn(gn, n.status, `${n.title} 狀態`, (e) => s("status", e), "inline-status-select")}${yn(e.policy, n.priority, `${n.title} 優先級`, (e) => s("priority", e))}</div>` : L}
-    <div class="time-task-title-line">${e.editing ? P`<input id="task-${n.id}-title" class="task-title-input" aria-label="任務名稱" maxlength="160" .value=${K(n.title)} @input=${(e) => s("title", e.currentTarget.value)}>${Ot(n.id)}` : P`<h3 id="task-${n.id}-title">${kt(n.id, n.title)}</h3>`}</div>
+    <div class="time-task-title-line">${e.editing ? P`<input id="task-${n.id}-title" class="task-title-input" aria-label="任務名稱" maxlength="160" .value=${K(n.title)} @input=${(e) => s("title", e.currentTarget.value)}>${Ot(n.id)}` : P`<h3 id="task-${n.id}-title">${kt([e.scopeId, n.id].filter(Boolean).join(" › "), n.title, n.id)}</h3>`}</div>
     ${e.moduleTotals?.[n.id]?.length ? P`<div class="task-module-totals">${e.moduleTotals[n.id].map((e) => P`<span class="task-module-total task-module-total-${e.id}">${e.label}</span>`)}</div>` : L}</div>
     <div class="task-header-meta"><strong class="task-fraction" aria-label="子項目完成 ${o.completed}，共 ${o.total}">${o.completed} / ${o.total}</strong><span class="status-badge status-${i.tone}">${i.label}</span><code class="task-id">${n.id}</code></div></header>`, P`${e.editing ? P`<textarea class="task-summary-input" aria-label="任務描述" maxlength="1000" rows="3" .value=${K(n.summary ?? "")} @input=${(e) => s("summary", e.currentTarget.value)}></textarea>` : P`<div class="task-summary">${Tt(n.summary, {
 		lines: 2,

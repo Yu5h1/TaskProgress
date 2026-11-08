@@ -56,7 +56,8 @@ await check('Shared child copy preserves selection order and count without trigg
     control.writeText=async text=>{copied.push(text);};
     await control.updateComplete;
     const button=control.shadowRoot.querySelector('button');
-    const pointer={bubbles:true,composed:true,cancelable:true,pointerId:1,isPrimary:true,button:0,clientX:-100,clientY:-100};
+    const bounds=button.getBoundingClientRect();
+    const pointer={bubbles:true,composed:true,cancelable:true,pointerId:1,pointerType:'mouse',isPrimary:true,button:0,clientX:bounds.left+bounds.width/2,clientY:bounds.top+bounds.height/2};
     button.dispatchEvent(new PointerEvent('pointerdown',pointer));
     document.dispatchEvent(new PointerEvent('pointerup',pointer));
     button.dispatchEvent(new PointerEvent('click',{...pointer,detail:1}));
@@ -72,6 +73,14 @@ await check('Shared child copy preserves selection order and count without trigg
     unselected.shadowRoot.querySelector('button').click();
     await wait(()=>copied.length===2);
     equal(copied[1],other,'copying an unselected row copies only that row');
+    const cardCopy=target.querySelector('.task-title-copy');
+    cardCopy.writeText=async text=>{copied.push(text);};
+    await cardCopy.updateComplete;
+    cardCopy.shadowRoot.querySelector('button').click();
+    await wait(()=>copied.length===3);
+    equal(copied[2],'scope › copy-card','card copy includes scope and card only');
+    equal(cardCopy.querySelector('.card-id').textContent,'(copy-card)','display stays local to the card');
+    equal(selection.references(),[first,second,third],'card copy preserves child selection');
   } finally {web.destroy(view);target.remove();}
 });
 await check('Scope directory preserves host links and label updates',async()=>{
