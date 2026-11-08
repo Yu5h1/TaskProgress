@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-11-07T12:11:34.333979+00:00",
+  "updated_at": "2026-11-08T09:26:53.154680+00:00",
   "tasks": [
     {
       "id": "agent-workflow",
@@ -124,6 +124,21 @@
               "actor": "claude",
               "at": "2026-10-31T13:31:46.270606+00:00",
               "session_id": "8f1fda5e-f37d-4ad0-8fdf-26ad0c1f98d1"
+            }
+          ]
+        },
+        {
+          "status": "planned",
+          "title": "問題：released 舊 passed acceptance 重驗丟 Observed/Resolved：帶 resolved 被拒「通過時只有重驗 [acceptance] 可以附帶 Resolved。」；合法 pass-only 刪兩欄。Web 原證據 0a67f2c、CLI 刪欄 diff f971a4d；[清單](/checklist/?scope=yu5h1lib-web&task=web-root-motion-intervals) 2/1。",
+          "id": "problem-released-pass-loses-resolution",
+          "priority": 2,
+          "activity": [
+            {
+              "event": "created",
+              "actor": "codex",
+              "at": "2026-11-08T09:26:53.154680+00:00",
+              "session": "Independent runtime acceptance",
+              "session_id": "4354a6f9-2555-4640-a42f-f5f421b3760e"
             }
           ]
         }
