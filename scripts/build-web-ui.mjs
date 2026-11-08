@@ -55,7 +55,7 @@ export async function buildCandidate({ production = false } = {}) {
   await put('demo/taskprogress/component-styles.css', await readFile(resolve(source, 'component-styles.css')));
   await put('demo/taskprogress/product.css', await readFile(resolve(source, 'product.css')));
   await put('demo/taskprogress/assets/theme-control.js', await readFile(resolve(source, 'theme-control.mjs')));
-  const entries = { 'demo.js': 'viewer-entry.mjs', 'checklist/checklist-ui.js': 'checklist.mjs', 'decisions/decisions-ui.js': 'decisions.mjs', 'theme-start.js': 'theme-start.js' };
+  const entries = { 'demo.js': 'viewer-entry.mjs', 'checklist/checklist-ui.js': 'checklist.mjs', 'decisions/decisions-ui.js': 'decisions.mjs', 'document/document-ui.js': 'document.mjs', 'theme-start.js': 'theme-start.js' };
   const graphs = {};
   async function compile(file, entry, destination, webRoot, assetRoot) {
     await build({ configFile: false, root, logLevel: 'error',
@@ -78,10 +78,10 @@ export async function buildCandidate({ production = false } = {}) {
     });
   }
   for (const [file, entry] of Object.entries(entries)) await compile(file, entry, resolve(output, file), '../'.repeat(file.split('/').length + 1), file.includes('/') ? '../assets/' : './assets/');
-  for (const page of ['', 'checklist/', 'decisions/']) {
+  for (const page of ['', 'checklist/', 'decisions/', 'document/']) {
     const depth = page ? '../../../' : '../../', local = page ? '../' : './';
     let html = await readFile(resolve(source, 'shells', (page ? page.slice(0, -1) : 'viewer') + '.html'), 'utf8');
-    html = html.replace(/\s*<script[^>]+src="(?:assets\/(?:theme-bootstrap|viewer-ui|app)\.js|\.\/(?:checklist|decisions)-ui\.js)"[^>]*><\/script>/g, '');
+    html = html.replace(/\s*<script[^>]+src="(?:assets\/(?:theme-bootstrap|viewer-ui|app)\.js|\.\/(?:checklist|decisions|document)-ui\.js)"[^>]*><\/script>/g, '');
     html = html.replace(/\s*<link[^>]+href="\.\/(?:checklist|decisions)-ui\.css"[^>]*>/g, '');
     html = html.replace('</head>', `<link rel="stylesheet" href="${depth}theme/theme.css">\n<link rel="stylesheet" href="${local}assets/styles.css">\n<link rel="stylesheet" href="${local}component-styles.css">\n<link rel="stylesheet" href="${local}product.css">\n<script src="${depth}theme/bootstrap.js"></script>\n<script src="${local}theme-start.js"></script>\n<script type="module" src="${page ? './' + page.slice(0, -1) + '-ui.js' : './demo.js'}"></script>\n</head>`);
     if (!production) html = html.replace('<body>', '<body><aside class="replica-notice" aria-label="TaskProgress 來源建置候選">TaskProgress 來源建置候選 · 獨立測試資料 · <a href="http://127.0.0.1:8001/?scope=task-progress">正式版</a></aside>');
@@ -93,7 +93,7 @@ export async function buildCandidate({ production = false } = {}) {
     const name = relative(output, path).replaceAll('\\', '/');
     if (name.startsWith('reference/') || /^(assets\/viewer-ui\.|(?:checklist|decisions)\/.*-ui\.css)/.test(name)) continue;
     let bytes = await readFile(path);
-    if (['index.html', 'checklist/index.html', 'decisions/index.html'].includes(name)) {
+    if (['index.html', 'checklist/index.html', 'decisions/index.html', 'document/index.html'].includes(name)) {
       const local = name.includes('/') ? '../' : './';
       bytes = bytes.toString('utf8').replace(/(?:\.\.\/){2,3}theme\//g, local + 'assets/web/theme/')
         .replace(/((?:\.\/|\.\.\/))(component-styles\.css|product\.css|theme-start\.js)/g, '$1assets/$2')

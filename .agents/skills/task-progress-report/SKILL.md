@@ -136,7 +136,7 @@ A card's goal is one section of a document inside the card's scope, bound by `go
 - The section states the card's problem and its observable goal: a plan document's 〈問題與目標〉, or a section of `plan.md` or `Documentation/**` (where each belongs: [AgentArtifactGuide § Scope ownership](../../../../.agents/AgentArtifactGuide.md#scope-ownership)). Write the section first: `task.add` and `task.update` (`set` or `unset` `goal_ref`) refuse a path outside the scope, a missing `#section` or a missing file. The CLI checks the file, not the heading, so confirm the heading yourself.
 - A card without `goal_ref` has no confirmed goal. When a goal is settled and bound: [task-progress § Settle the goal first](../task-progress/SKILL.md#settle-the-goal-first).
 - The summary states the card's current outcome and does not link the goal; an item's checklist states that item's own outcome, never the card's.
-- The Viewer shows it as plain text under the summary (「目標：<path> › <section>」), not a link: the local service has no route that opens a scope's Markdown documents. Agents read it through `report get`.
+- The Viewer shows it under the summary as 「目標：<path> › <section>」, linked to the local service's document page (`/document/?scope=<scope-id>&path=<path>#<section>`, [README § 文件頁](../../../README.md#文件頁)), which renders the Markdown and scrolls to the section. Like `document_ref`, the page exists only on the local service. Agents read the binding through `report get`.
 
 ## Keep a card's experience record
 

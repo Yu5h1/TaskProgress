@@ -251,6 +251,43 @@ class TaskProgressEditHostTests(unittest.TestCase):
             "actor": "human",
         }
 
+    def document(self, path: str, scope: str = "secure-test"):
+        return self.client.get(f"/__taskprogress/v1/documents/{scope}", params={"path": path})
+
+    def test_a_scope_document_opens_only_inside_its_registered_folder(self) -> None:
+        (self.root / "Documentation").mkdir()
+        (self.root / "Documentation" / "Plan.md").write_text("# 計畫\n", encoding="utf-8")
+        (self.root / "Documentation" / "notes.txt").write_text("x", encoding="utf-8")
+        (self.root / ".agents").mkdir()
+        (self.root / ".agents" / "Hidden.md").write_text("# h\n", encoding="utf-8")
+        (self.root.parent / "outside-scope.md").write_text("# o\n", encoding="utf-8")
+        self.addCleanup((self.root.parent / "outside-scope.md").unlink)
+        self.assertEqual(200, self.document("Documentation/Plan.md").status_code)
+        self.assertEqual(404, self.document("Documentation/Plan.md", scope="missing").status_code)
+        self.assertEqual(404, self.document("Documentation/Missing.md").status_code)
+        for path in ("", "../outside-scope.md", "Documentation/../../outside-scope.md", "/Documentation/Plan.md",
+                     "Documentation\\Plan.md", "C:/x.md", "Documentation/notes.txt", ".agents/Hidden.md",
+                     "Documentation//Plan.md", "./Documentation/Plan.md"):
+            self.assertEqual(400, self.document(path).status_code, path)
+
+    def test_a_scope_document_renders_safe_html_with_github_anchors_and_page_links(self) -> None:
+        (self.root / "Documentation").mkdir()
+        (self.root / "Documentation" / "Other.md").write_text("# 其他\n", encoding="utf-8")
+        (self.root / "Documentation" / "Plan.md").write_text(
+            "# 卡片計畫\n\n## 問題與目標\n\n## 目標 1：直接複製\n\n## 問題與目標\n\n"
+            "<script>alert(1)</script>\n\n| a | b |\n|---|---|\n| 1 | 2 |\n\n"
+            "[同資料夾](Other.md#其他) [原始碼](../src/a.cs) [外部](https://example.com) [本頁](#問題與目標)\n",
+            encoding="utf-8")
+        body = self.document("Documentation/Plan.md").json()
+        self.assertEqual(("secure-test", "Documentation/Plan.md", "卡片計畫"), (body["scope_id"], body["path"], body["title"]))
+        rendered = body["html"]
+        for expected in ('<h2 id="問題與目標">', '<h2 id="目標-1直接複製">', '<h2 id="問題與目標-1">', "<table>",
+                         'href="/document/?scope=secure-test&amp;path=Documentation%2FOther.md#%E5%85%B6%E4%BB%96"',
+                         '<span class="document-link-unavailable" title="../src/a.cs">原始碼</span>',
+                         'href="https://example.com"', 'href="#%E5%95%8F%E9%A1%8C%E8%88%87%E7%9B%AE%E6%A8%99"'):
+            self.assertIn(expected, rendered)
+        self.assertNotIn("<script>", rendered)
+
     def test_public_capability_is_read_only_until_exact_scope_exists(self) -> None:
         response = self.client.get("/__taskprogress/v1/capabilities/missing")
         self.assertEqual(404, response.status_code)

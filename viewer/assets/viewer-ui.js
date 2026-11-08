@@ -1651,9 +1651,15 @@ function Sn(e, t, n, r, i, a) {
     ${o ? P`<span class="item-row-action"><button class="inline-delete-button" type="button" aria-label="刪除子項目：${i.title}" @click=${() => v("delete-item", {})}>刪除</button></span>` : L}</span>
   </li>`;
 }
-function Cn(e) {
-	let t = typeof e?.document == "string" ? e.document : "", n = t.indexOf("#");
-	return n <= 0 || n === t.length - 1 ? L : P`<p class="task-goal" title=${t}><span class="task-goal-label">目標：</span><span class="task-goal-path">${t.slice(0, n)}</span><span class="task-goal-separator" aria-hidden="true"> › </span><span class="task-goal-section">${t.slice(n + 1)}</span></p>`;
+function Cn(e, t, n) {
+	let r = typeof e?.document == "string" ? e.document : "", i = r.indexOf("#");
+	if (i <= 0 || i === r.length - 1) return L;
+	let a = r.slice(0, i), o = r.slice(i + 1), s = P`<span class="task-goal-path">${a}</span><span class="task-goal-separator" aria-hidden="true"> › </span><span class="task-goal-section">${o}</span>`, c = t ? `/document/?${new URLSearchParams({
+		scope: t,
+		path: a,
+		card: n
+	})}#${encodeURIComponent(o)}` : null;
+	return P`<p class="task-goal" title=${r}><span class="task-goal-label">目標：</span>${c ? P`<a class="task-goal-link" href=${c}>${s}</a>` : s}</p>`;
 }
 function wn(e) {
 	if (!e) return L;
@@ -1700,7 +1706,7 @@ function Tn(e, t, n, r) {
     <div class="task-header-meta"><strong class="task-fraction" aria-label="子項目完成 ${o.completed}，共 ${o.total}">${o.completed} / ${o.total}</strong><span class="status-badge status-${i.tone}">${i.label}</span><code class="task-id">${n.id}</code></div></header>`, P`${e.editing ? P`<textarea class="task-summary-input" aria-label="任務描述" maxlength="1000" rows="3" .value=${q(n.summary ?? "")} @input=${(e) => s("summary", e.currentTarget.value)}></textarea>` : P`<div class="task-summary">${wt(n.summary, {
 		lines: 2,
 		emphasis: !0
-	})}</div>`}${Cn(n.goal_ref)}${wn(n.developer)}
+	})}</div>`}${Cn(n.goal_ref, e.scopeId, n.id)}${wn(n.developer)}
       <div class="work-columns">${c.map((i) => i.items.length || e.editing ? P`<section class="detail-section ${i.className}"><h4 class="detail-heading">${i.title}</h4><ul class="detail-list" id="task-${n.id}-${i.field}" ${Y(At, vn(e, t, n))}>${K(i.status === "done" && !t.state[`completed:${n.id}`] ? i.items.slice(0, 1) : i.items, (e) => e.id, (a, o) => Sn(e, t, n, i.field, a, r.lead && i.status !== "done" && o === 0 || a.id === e.nextItemId))}</ul>
       ${i.status === "done" && i.items.length > 1 ? P`<button type="button" class="completed-more" aria-expanded=${!!t.state[`completed:${n.id}`]} aria-controls="task-${n.id}-${i.field}" @click=${() => {
 		t.state[`completed:${n.id}`] = !t.state[`completed:${n.id}`], t.draw();

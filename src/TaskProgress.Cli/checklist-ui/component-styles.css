@@ -308,3 +308,25 @@ body {
   button[data-decision-control]{ margin:.4rem .4rem .4rem 0; color:var(--color-item-text); background:var(--color-panel-bg); border:1px solid var(--color-border); border-radius:6px; padding:6px 12px; }
   .decisions-shell .decision-content button{ justify-self:start; margin:0; }
   .decisions-shell{ max-width:1000px; margin:auto; padding:1rem; }
+
+.document-page { display: grid; align-content: start; gap: 12px; width: min(960px, calc(100% - 32px)); margin: 0 auto; padding: 16px 0 104px; }
+.document-path { margin: 4px 0 0; color: var(--muted); font-size: 0.8rem; overflow-wrap: anywhere; }
+.document-body { min-width: 0; padding: 20px 24px; color: var(--ink-soft); background: var(--surface); border: 1px solid var(--line); border-radius: 14px; line-height: 1.65; overflow-wrap: break-word; }
+.document-body > :first-child { margin-top: 0; }
+.document-body h1, .document-body h2, .document-body h3, .document-body h4 { color: var(--ink); line-height: 1.35; scroll-margin-top: 16px; }
+.document-body h1 { font-size: 1.5rem; }
+.document-body h2 { margin-top: 1.8em; padding-bottom: 4px; font-size: 1.2rem; border-bottom: 1px solid var(--line); }
+.document-body h3 { font-size: 1.05rem; }
+.document-body :target { background: var(--blue-soft); border-radius: 4px; }
+.document-body a { color: var(--blue); }
+.document-body code { padding: 1px 4px; font-size: 0.88em; background: var(--color-reference-bg); border-radius: 4px; }
+.document-body pre { padding: 12px 14px; overflow-x: auto; background: var(--color-reference-bg); border-radius: 8px; }
+.document-body pre code { padding: 0; background: none; }
+.document-body blockquote { margin: 0; padding: 2px 14px; color: var(--muted); border-left: 3px solid var(--line); }
+.document-body table { display: block; max-width: 100%; overflow-x: auto; border-collapse: collapse; }
+.document-body th, .document-body td { padding: 6px 10px; border: 1px solid var(--line); vertical-align: top; overflow-wrap: normal; }
+.document-body th { color: var(--ink); background: var(--color-reference-bg); }
+.document-link-unavailable { border-bottom: 1px dotted var(--muted); cursor: help; }
+.task-goal-link { color: inherit; text-decoration: underline; text-decoration-color: var(--line); text-underline-offset: 2px; }
+.task-goal-link:hover { color: var(--blue); text-decoration-color: currentColor; }
+@media (max-width: 640px) { .document-page { width: min(100% - 20px, 960px); padding-top: 24px; } .document-body { padding: 14px 14px; } }

@@ -44,6 +44,9 @@ if __package__:
         _json_schema_errors, validate_documents, read_overlay, auxiliary_revision, run_time_analysis,
     )
     from .report_lock import scope_lock, async_scope_lock
+    from .document_render import (
+        DocumentUnavailable, MAX_DOCUMENT_BYTES, render_document, resolve_scope_document,
+    )
 else:
     from report_store import (
         LocalFileTransaction, TransactionRollbackError, recover_pending_transaction,
@@ -51,6 +54,9 @@ else:
         _json_schema_errors, validate_documents, read_overlay, auxiliary_revision, run_time_analysis,
     )
     from report_lock import scope_lock, async_scope_lock
+    from document_render import (
+        DocumentUnavailable, MAX_DOCUMENT_BYTES, render_document, resolve_scope_document,
+    )
 
 API_PREFIX = "/__taskprogress/v1"
 API_VERSION = 1
@@ -638,6 +644,47 @@ def install_edit_api(
             "session_lifetime_seconds": SESSION_LIFETIME_SECONDS,
         }
         return JSONResponse(capability)
+
+    def registered_scope_roots() -> dict[str, Path]:
+        roots: dict[str, Path] = {}
+        for registration in registry.list():
+            match = re.fullmatch(r"/reports/([^/]+)/report\.json", registration.url_path)
+            if match and registration.file_path.is_file():
+                roots[match.group(1)] = registration.file_path.parent
+        return roots
+
+    @router.get("/documents/{scope}")
+    async def read_document(scope: str, path: str = "") -> Response:
+        """One Markdown document inside a registered scope, rendered for the document page.
+
+        The client names the scope and a scope-relative path; the folder comes from the
+        service's own registration, never from the request.
+        """
+        try:
+            safe_scope = _validate_scope(scope)
+        except ValueError as error:
+            return _problem(404, "scope_not_found", "Scope was not found", str(error))
+        report_path = registered_report(safe_scope)
+        if report_path is None:
+            return _problem(404, "scope_not_found", "Scope was not found")
+        try:
+            document, relative = resolve_scope_document(report_path.parent, path)
+        except ValueError as error:
+            return _problem(400, "invalid_document_path", "Document path is not allowed", str(error))
+        if not document.is_file():
+            return _problem(404, "document_not_found", "Document was not found", relative)
+        try:
+            if document.stat().st_size > MAX_DOCUMENT_BYTES:
+                return _problem(413, "document_too_large", "Document exceeds the size limit", relative)
+            text = document.read_text(encoding="utf-8-sig")
+        except (OSError, UnicodeDecodeError) as error:
+            return _problem(409, "document_unreadable", "Document cannot be read", str(error))
+        try:
+            rendered = render_document(text, file=document, scope_roots=registered_scope_roots())
+        except DocumentUnavailable as error:
+            return _problem(503, "document_renderer_unavailable", "Markdown renderer is not installed", str(error))
+        return JSONResponse({"scope_id": safe_scope, "path": relative, **rendered},
+                            headers={"Cache-Control": "no-store"})
 
     async def _execute_checklist_load(
         resolved_path: Path,

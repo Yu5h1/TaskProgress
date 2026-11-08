@@ -179,6 +179,22 @@ Launcher 整合測試會啟動真實 LocalWebService、註冊多個 scope 與選
 TaskProgress 以 [MIT License](LICENSE) 授權。
 
 Copyright (c) 2026 Yu5h1
+## 文件頁
+
+本機服務可以開啟已登記 scope 內的 Markdown 文件，排版成網頁並捲到指定段落；卡片的目標（`goal_ref`）就是用它開啟：
+
+```text
+/document/?scope=<scope-id>&path=Documentation/XxxPlan.md#問題與目標
+```
+
+頁面只送 scope ID 與 scope 內的相對路徑，由服務依自己登記的 scope 位置找出檔案（`GET /__taskprogress/v1/documents/<scope-id>?path=…`）。服務只接受 `.md`，拒絕 `..`、絕對路徑、隱藏資料夾，以及解析後落在 scope 之外的檔案；原始 HTML 不會執行。文件中指向其他已登記 scope 的 `.md` 相對連結會改成該 scope 的文件頁，其他無法開啟的相對連結顯示為純文字。公開網站沒有這個服務，因此不會有文件頁。
+
+服務的 Python 需要 markdown-it-py：
+
+```powershell
+python -m pip install markdown-it-py==4.2.0
+```
+
 ## 決策項目入口
 
 具名 `.decisions` 文件以 JSON 保存問題、選項、答案及歷史，與 Checklist 共用卡片介面。使用 `task-progress.exe decisions <file.decisions>` 開啟；本機 Browser／Report 整合及 Agent request 用法見 [決策項目使用方式](Documentation/DecisionItemsUsage.md)。
