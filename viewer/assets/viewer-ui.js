@@ -1652,6 +1652,10 @@ function Sn(e, t, n, r, i, a) {
   </li>`;
 }
 function Cn(e) {
+	let t = typeof e?.document == "string" ? e.document : "", n = t.indexOf("#");
+	return n <= 0 || n === t.length - 1 ? L : P`<p class="task-goal" title=${t}><span class="task-goal-label">目標：</span><span class="task-goal-path">${t.slice(0, n)}</span><span class="task-goal-separator" aria-hidden="true"> › </span><span class="task-goal-section">${t.slice(n + 1)}</span></p>`;
+}
+function wn(e) {
 	if (!e) return L;
 	let t = e.next_step ?? e.next_steps?.[0];
 	return !t && !e.next_steps?.length && !e.blockers?.length && !e.decisions?.length && !e.routes?.length && !e.claim ? L : P`<details class="developer-details"><summary class="developer-summary">${t ? P`<span class="developer-next-label">後續：</span><span class="developer-next-action">${t}</span>` : L}<span class="developer-expand-hint">展開作法與方向</span></summary><div class="developer-body"><h4 class="developer-body-title">作法與方向</h4>
@@ -1661,7 +1665,7 @@ function Cn(e) {
     ${e.claim ? P`<section class="detail-section claim-section"><h4>Claim</h4><p>Agent: ${e.claim.agent}</p><p>${e.claim.worktree ?? ""}</p>${e.claim.source_paths?.map((e) => P`<code class="reference">${e}</code>`)}</section>` : L}
   </div></details>`;
 }
-function wn(e, t, n, r) {
+function Tn(e, t, n, r) {
 	let i = hn(n.status), a = e.policy.metadata(n.priority), o = e.progress[n.id], s = (t, r) => e.onCommand({
 		type: "set-task-field",
 		taskId: n.id,
@@ -1696,7 +1700,7 @@ function wn(e, t, n, r) {
     <div class="task-header-meta"><strong class="task-fraction" aria-label="子項目完成 ${o.completed}，共 ${o.total}">${o.completed} / ${o.total}</strong><span class="status-badge status-${i.tone}">${i.label}</span><code class="task-id">${n.id}</code></div></header>`, P`${e.editing ? P`<textarea class="task-summary-input" aria-label="任務描述" maxlength="1000" rows="3" .value=${q(n.summary ?? "")} @input=${(e) => s("summary", e.currentTarget.value)}></textarea>` : P`<div class="task-summary">${wt(n.summary, {
 		lines: 2,
 		emphasis: !0
-	})}</div>`}${Cn(n.developer)}
+	})}</div>`}${Cn(n.goal_ref)}${wn(n.developer)}
       <div class="work-columns">${c.map((i) => i.items.length || e.editing ? P`<section class="detail-section ${i.className}"><h4 class="detail-heading">${i.title}</h4><ul class="detail-list" id="task-${n.id}-${i.field}" ${Y(At, vn(e, t, n))}>${K(i.status === "done" && !t.state[`completed:${n.id}`] ? i.items.slice(0, 1) : i.items, (e) => e.id, (a, o) => Sn(e, t, n, i.field, a, r.lead && i.status !== "done" && o === 0 || a.id === e.nextItemId))}</ul>
       ${i.status === "done" && i.items.length > 1 ? P`<button type="button" class="completed-more" aria-expanded=${!!t.state[`completed:${n.id}`]} aria-controls="task-${n.id}-${i.field}" @click=${() => {
 		t.state[`completed:${n.id}`] = !t.state[`completed:${n.id}`], t.draw();
@@ -1712,7 +1716,7 @@ function wn(e, t, n, r) {
 	}}>＋</button>`}</div>` : L}</section></div>`)}
   </article>`;
 }
-var Tn = {
+var En = {
 	"task-list": (e, t) => {
 		if (t.cards || (t.cards = new Lt(t), bn(t), t.on(window, "hashchange", () => {
 			bn(t), t.lastItemHash = null, t.refresh();
@@ -1740,7 +1744,7 @@ var Tn = {
 			nextId: e.nextTaskId,
 			hiddenCount: e.hiddenCount,
 			onShowHidden: e.onShowHidden
-		}, (n, r) => n.kind === "report_pointer" ? En(e, n, r) : wn(e, t, n, r), e.filters ? Mt(e.filters) : L, P`${e.onSearch ? P`<ui-search-field class="task-search" label="搜尋任務卡名稱、摘要與子項" placeholder="搜尋名稱、摘要、子項"
+		}, (n, r) => n.kind === "report_pointer" ? Dn(e, n, r) : Tn(e, t, n, r), e.filters ? Mt(e.filters) : L, P`${e.onSearch ? P`<ui-search-field class="task-search" label="搜尋任務卡名稱、摘要與子項" placeholder="搜尋名稱、摘要、子項"
         .query=${e.searchQuery ?? ""} @query-change=${(t) => e.onSearch(t.detail.query)}></ui-search-field>` : L}`)}${e.tasks.length ? L : P`<p class="empty-state">${e.emptyLabel}</p>`}`;
 	},
 	"report-summary": (e) => e.editable ? P`<textarea class="report-summary-input" aria-label=${e.label ?? "報告摘要"} maxlength="1000" rows="2" placeholder=${e.placeholder ?? ""} .value=${q(e.value ?? "")} @input=${(t) => e.onCommit(t.currentTarget.value)}></textarea>` : P`<p class="hero-summary">${e.text}</p>`,
@@ -1774,7 +1778,7 @@ var Tn = {
 	"time-dialog": on,
 	"cost-dialog": sn
 };
-function En(e, t, n) {
+function Dn(e, t, n) {
 	let r = e.pointerCards?.[t.id] ?? { status: "loading" }, i = r.status === "ready" ? r.card : null, a = (e) => e ? l[e] ?? {
 		label: e,
 		tone: "muted"
@@ -1788,11 +1792,11 @@ function En(e, t, n) {
 		label: t.title
 	}, P`<header class="task-header"><div class="task-title-group"><div class="time-task-title-line"><h3 id=${`task-${t.id}-title`}>${r.openHref ? P`<a class="pointer-card-title-link" href=${r.openHref}>${t.title}</a>` : t.title}</h3></div>${r.openHref ? P`<a class="pointer-card-badge" href=${r.openHref}>開啟專案報告 →</a>` : L}</div><div class="task-header-meta">${i ? P`<strong class="task-fraction">${i.progress.completed} / ${i.progress.total}</strong><span class="status-badge status-${a(i.status).tone}">${a(i.status).label}</span>` : L}${r.status === "error" ? P`<span class="pointer-card-error" role="alert">${r.message}</span>` : r.status === "loading" ? P`<span role="status">讀取目標報告中…</span>` : L}</div></header>`, i ? P`<div class="task-summary">${wt(i.summary, { emphasis: !0 })}</div><p class="pointer-card-progress" aria-label=${`子任務完成 ${i.progress.completed}，共 ${i.progress.total}`}>${i.progress.completed} / ${i.progress.total}（${i.progress.percentage}%）</p><ul class="pointer-card-rows">${i.rows.map((e) => P`<li class="pointer-card-row"><span class="pointer-card-row-title">${e.title}</span><span class="status-badge status-${a(e.status).tone}">${a(e.status).label}</span></li>`)}</ul>` : L)}</article>`;
 }
-var Dn = {
+var On = {
 	id: "yu5h1-web-ui-workflow",
-	regions: Object.keys(Tn),
+	regions: Object.keys(En),
 	mount(e, t, n) {
-		let r = new kt(t, n, Tn[e]);
+		let r = new kt(t, n, En[e]);
 		return r.draw(), r;
 	},
 	update(e, t) {
@@ -1802,5 +1806,5 @@ var Dn = {
 		e.destroy();
 	}
 };
-c(Dn), await oe("viewer"), await import("./app.js");
+c(On), await oe("viewer"), await import("./app.js");
 //#endregion
