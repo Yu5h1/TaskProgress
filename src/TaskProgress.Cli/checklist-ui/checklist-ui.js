@@ -892,10 +892,10 @@ var Nt = jt(), X = W(class extends At {
 		failed: "!"
 	}[e] ?? "?";
 	return n ? P`<button type="button" class="marker-box marker-${e} ${r ? "marker-stale" : ""} marker-box-button" aria-label="${i}，點擊切換下一個結果" @click=${n}><span aria-hidden="true">${a}</span></button>` : P`<span class="marker-box marker-${e} ${r ? "marker-stale" : ""}" role="img" aria-label=${i}><span aria-hidden="true">${a}</span></span>`;
-}, Lt = (e, t) => P`<ui-copy-id class="task-title-copy" .value=${String(e)} .label=${t}>${t}</ui-copy-id>`, Rt = ({ cells: e = [], form: t = "segmented", ratio: n = 0, label: r = "", extraClass: i = "" } = {}) => t === "segmented" ? P`<div class="progress-bar progress-bar-segmented ${i}" role="img" aria-label=${r}>${e.map((e) => P`<i class="progress-cell progress-tone-${e}"></i>`)}</div>` : P`<progress class="progress-meter ${i}" max="100" .value=${Math.max(0, Math.min(100, n * 100))} aria-label=${r}></progress>`, zt = ({ bar: e, caption: t, note: n = "" }) => P`<section class="progress-summary" aria-label="進度摘要">${Rt({
+}, Lt = (e) => P`<small class="card-id">(${e})</small>`, Rt = (e, t, n = e) => P`<ui-copy-id class="task-title-copy" .value=${String(e)} .label=${t}>${t}${Lt(n)}</ui-copy-id>`, zt = ({ cells: e = [], form: t = "segmented", ratio: n = 0, label: r = "", extraClass: i = "" } = {}) => t === "segmented" ? P`<div class="progress-bar progress-bar-segmented ${i}" role="img" aria-label=${r}>${e.map((e) => P`<i class="progress-cell progress-tone-${e}"></i>`)}</div>` : P`<progress class="progress-meter ${i}" max="100" .value=${Math.max(0, Math.min(100, n * 100))} aria-label=${r}></progress>`, Bt = ({ bar: e, caption: t, note: n = "" }) => P`<section class="progress-summary" aria-label="進度摘要">${zt({
 	...e,
 	label: t
-})}<p class="progress-caption"><span>${t}</span>${n ? P`<span class="progress-note">${n}</span>` : L}</p></section>`, Bt = class {
+})}<p class="progress-caption"><span>${t}</span>${n ? P`<span class="progress-note">${n}</span>` : L}</p></section>`, Vt = class {
 	constructor(e, t = {}, n) {
 		this.target = e, this.props = { ...t }, this.state = {}, this.renderer = n, this.abort = new AbortController(), this.cleanups = [], this.disposed = !1;
 		let r = /* @__PURE__ */ new Set();
@@ -931,7 +931,7 @@ var Nt = jt(), X = W(class extends At {
 	destroy() {
 		this.disposed || (this.disposed = !0, this.abort.abort(), this.cleanups.forEach((e) => typeof e == "function" ? e() : e?.dispose?.()), ut(L, this.target));
 	}
-}, Vt = Mt((e, n) => {
+}, Ht = Mt((e, n) => {
 	let r = n, i = !1, a = new AbortController(), o = /* @__PURE__ */ new Map(), s = () => {
 		let t = r.previewClasses ?? {};
 		for (let n of /* @__PURE__ */ new Set([...o.keys(), ...e.children])) {
@@ -992,9 +992,9 @@ var Nt = jt(), X = W(class extends At {
 		}
 	};
 });
-function Ht(e = [], t = {}) {
+function Ut(e = [], t = {}) {
 	return P`<div class="horizontal-capsule-strip ${t.className ?? ""}" role="toolbar" aria-label=${t.ariaLabel ?? "模組"}
-    ${X(Vt, {
+    ${X(Ht, {
 		axis: "horizontal",
 		focusAfterMove: !0,
 		previewClasses: {
@@ -1010,9 +1010,9 @@ function Ht(e = [], t = {}) {
       @click=${() => t.onActivate?.(e.id)}><span>${e.label}</span>${e.showDot ? P`<span class="time-risk-dot ${e.dotClass ?? ""}"></span>` : L}${e.showChevron ? P`<span class="time-chevron">›</span>` : L}</button>`)}
   </div>`;
 }
-function Ut(e = {}) {
+function Wt(e = {}) {
 	let t = new Map((e.categories ?? []).map((e) => [e.id, e])), n = e.order?.length ? e.order : [p, ...t.keys()], r = n.find((e) => !t.has(e)), i = e.defaultLabel ?? "預設";
-	return Ht(n.map((n) => n === r ? {
+	return Ut(n.map((n) => n === r ? {
 		id: n,
 		label: i,
 		ariaLabel: `${i}，${e.defaultLit ? "已全選" : "選取全部"}`,
@@ -1034,22 +1034,22 @@ function Ut(e = {}) {
 		onActivate: (t) => t === r ? e.onSelectDefault?.() : e.onSelect?.(t)
 	});
 }
-var Wt = Object.freeze({
+var Gt = Object.freeze({
 	icon: !0,
 	label: !1,
 	appearance: "ghost"
 });
-function Gt(e, t, n, r, i, a, o = "both") {
+function Kt(e, t, n, r, i, a, o = "both") {
 	return P`<ui-option-picker class="icon-choice" aria-label=${i} .label=${i} .options=${n}
     .value=${r} .interaction=${o} .delay=${300} orientation="vertical"
-    .triggerDisplay=${Wt} .optionDisplay=${Wt}
+    .triggerDisplay=${Gt} .optionDisplay=${Gt}
     @choice-request=${(e) => a(e.detail.id)}></ui-option-picker>`;
 }
-function Kt({ id: e, label: t, expanded: n = !0, toggle: r, visibilityEnabled: i = !1, visible: a = !0, onVisibleChange: o }, s, c) {
+function qt({ id: e, label: t, expanded: n = !0, toggle: r, visibilityEnabled: i = !1, visible: a = !0, onVisibleChange: o }, s, c) {
 	return P`<div class="card-disclosure-heading ${n ? "" : "card-disclosure-collapsed"}"><button type="button" class="card-disclosure-toggle" aria-expanded=${n} aria-controls=${e} aria-label="${n ? "收合" : "展開"} ${t}" @click=${() => r(!n)}><span aria-hidden="true">${n ? "▼" : "▶"}</span></button>
   ${i ? P`<button type="button" class="card-visibility-toggle card-toolbar-icon" aria-pressed=${a} aria-label="${a ? "隱藏" : "顯示"} ${t}" @click=${() => o(!a)}>${Z(!a)}</button>` : L}${s}</div><div id=${e} class="card-disclosure-body" ?hidden=${!n}>${c}</div>`;
 }
-var qt = class {
+var Jt = class {
 	constructor(e) {
 		this.view = e, this.order = [], this.pins = [], this.mode = "forward", this.visibility = "disabled", this.hidden = [], this.selected = null, this.expanded = !0, this.overrides = {}, this.key = null, this.linkSelection = ae(se(location.search));
 		let t = (t) => {
@@ -1123,7 +1123,7 @@ var qt = class {
 		}, h = o.find(p)?.id;
 		return P`<div class="card-list-controls"><div class="card-list-heading"><p class="section-kicker">工作項目</p>${n}</div><div class="card-list-tools">
       <button type="button" class="card-toolbar-icon" aria-label=${this.expanded ? "全部收合" : "全部展開"} @click=${() => this.all(!this.expanded)}><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d=${this.expanded ? "M5 15l7-7 7 7" : "M5 9l7 7 7-7"} fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" /></svg></button>
-      ${Gt(this.view, "order", [
+      ${Kt(this.view, "order", [
 			"forward",
 			"reverse",
 			"free"
@@ -1138,7 +1138,7 @@ var qt = class {
 		})), this.mode, "排序", (e) => {
 			this.mode = e, this.persist(!0);
 		})}
-      ${Gt(this.view, "visibility", [
+      ${Kt(this.view, "visibility", [
 			{
 				id: "enabled",
 				label: "啟用",
@@ -1163,7 +1163,7 @@ var qt = class {
 		], this.visibility, "可見性", (e) => {
 			e === "reset" ? (this.hidden = [], this.visibility = "enabled") : this.visibility = e, this.persist();
 		}, "picker")}${r}
-    </div></div><div class="arrangeable-cards" ${X(Vt, {
+    </div></div><div class="arrangeable-cards" ${X(Ht, {
 			axis: "vertical",
 			surface: !0,
 			previewClasses: {
@@ -1203,7 +1203,7 @@ var qt = class {
     </div>`)}</div>${e.hiddenCount > 0 ? P`<p class="card-list-hidden"><button type="button" class="card-list-hidden-link" @click=${e.onShowHidden}>…顯示隱藏項目(${e.hiddenCount})</button></p>` : L}`;
 	}
 };
-function Jt(e) {
+function Yt(e) {
 	n();
 	let t = {
 		canClear: !1,
@@ -1221,7 +1221,7 @@ function Jt(e) {
   ${e.onToggleCautious ? P`<button type="button" class="secondary-button edit-mode-button" aria-pressed=${!!e.cautious} ?disabled=${e.saving} @click=${() => e.onToggleCautious(!e.cautious)}>謹慎模式</button>` : L}
   ${e.cautious ? P`<button type="button" class="secondary-button edit-discard-button" ?disabled=${e.saving} @click=${e.onDiscard}>放棄</button><button type="button" class="primary-button edit-save-button" ?disabled=${!e.dirty || e.saving} @click=${e.onSave}>${e.saving ? "正在儲存…" : "儲存"}</button>` : L}`;
 }
-var Yt = (e, t) => {
+var Xt = (e, t) => {
 	let n = t, r = () => n.onClose?.();
 	e.addEventListener("ui-close", r);
 	let i = (t) => {
@@ -1233,12 +1233,12 @@ var Yt = (e, t) => {
 			e.removeEventListener("ui-close", r), e.close();
 		}
 	};
-}, Xt = (e, t) => (n(), P`<ui-dialog id=${e.id ?? L} class=${e.className ?? ""} .heading=${e.title ?? ""} .kicker=${e.kicker ?? ""} .closeLabel=${e.closeLabel ?? ""} .dismissDisabled=${!!e.busy} .dismissOnBackdrop=${e.dismissOnBackdrop ?? !0} ${X(Yt, e)}>${e.open ? t : L}</ui-dialog>`), Zt = (e) => {
+}, Zt = (e, t) => (n(), P`<ui-dialog id=${e.id ?? L} class=${e.className ?? ""} .heading=${e.title ?? ""} .kicker=${e.kicker ?? ""} .closeLabel=${e.closeLabel ?? ""} .dismissDisabled=${!!e.busy} .dismissOnBackdrop=${e.dismissOnBackdrop ?? !0} ${X(Xt, e)}>${e.open ? t : L}</ui-dialog>`), Qt = (e) => {
 	let t = globalThis.taskprogressTheme.control;
 	return e.append(t), { destroy() {
 		t.parentNode === e && t.remove();
 	} };
-}, Qt = () => P`<span class="replica-theme" ${X(Zt, null)}></span>`, $t = (e, t) => {
+}, $t = () => P`<span class="replica-theme" ${X(Qt, null)}></span>`, en = (e, t) => {
 	let n = Se(t);
 	return e.append(n), {
 		update(e) {
@@ -1249,27 +1249,27 @@ var Yt = (e, t) => {
 		},
 		destroy: () => n.remove()
 	};
-}, en = (e) => !e || globalThis.chrome?.webview ? L : P`<span class="replica-back" ${X($t, e)}></span>`, tn = await Ce("checklist"), nn = new URLSearchParams(location.search), rn;
+}, tn = (e) => !e || globalThis.chrome?.webview ? L : P`<span class="replica-back" ${X(en, e)}></span>`, nn = await Ce("checklist"), rn = new URLSearchParams(location.search), an;
 try {
-	rn = _e("checklist", { params: nn });
+	an = _e("checklist", { params: rn });
 } catch (e) {
-	rn = { load: () => Promise.reject(e) };
+	an = { load: () => Promise.reject(e) };
 }
 var Q = [
 	"pending",
 	"passed",
 	"failed"
-], an = {
+], on = {
 	pending: "未執行",
 	passed: "通過",
 	failed: "失敗"
-}, on = {
+}, sn = {
 	no_recorder: "需重驗：沒有記錄者",
 	fingerprint: "需重驗：內容已變更",
 	released: "需重驗：之後重新執行過"
-}, $ = new class extends Bt {
+}, $ = new class extends Vt {
 	constructor(e, t = {}) {
-		super(e, {}, (e, t) => t.template()), this.transport = t.transport ?? rn, this.editable = t.editable ?? tn.editable, this.params = t.params ?? nn, this.storage = t.storage, this.loadGeneration = 0, this.cards = new qt(this), this.message = "正在載入 Checklist…", this.loading = !0, this.operable = !1, this.selection = m(Q), this.orderController = ge({ supportedIds: [p, ...Q] }), this.order = this.orderController.order, this.linkRequest = se(location.search), this.linked = this.linkRequest?.id ?? null, this.held = null, this.activeCard = null, this.resetOpen = !1, this.resetBusy = !1, this.resetTargets = [], this.cleanups.push(ye()), this.cleanups.push(ve({
+		super(e, {}, (e, t) => t.template()), this.transport = t.transport ?? an, this.editable = t.editable ?? nn.editable, this.params = t.params ?? rn, this.storage = t.storage, this.loadGeneration = 0, this.cards = new Jt(this), this.message = "正在載入 Checklist…", this.loading = !0, this.operable = !1, this.selection = m(Q), this.orderController = ge({ supportedIds: [p, ...Q] }), this.order = this.orderController.order, this.linkRequest = se(location.search), this.linked = this.linkRequest?.id ?? null, this.held = null, this.activeCard = null, this.resetOpen = !1, this.resetBusy = !1, this.resetTargets = [], this.cleanups.push(ye()), this.cleanups.push(ve({
 			canRefresh: () => this.canRefresh(),
 			reload: () => this.refreshSource()
 		})), this.on(window, "beforeunload", (e) => {
@@ -1421,7 +1421,7 @@ var Q = [
       ${t.reason ? P`<div><dt>Reason</dt><dd>${t.reason}</dd></div>` : L}
       ${t.observed && !(_(t) && t.status === "failed") ? P`<div><dt>Observed</dt><dd>${t.observed}</dd></div>` : L}
       ${t.resolved ? P`<div><dt>Resolved</dt><dd>${t.resolved}</dd></div>` : L}
-      ${t.validity && t.validity !== "valid" ? P`<div><dt>狀態</dt><dd class="checklist-void">${on[t.validity]}</dd></div>` : t.recorder ? P`<div><dt>記錄</dt><dd>${t.recorder === "user" ? "使用者" : t.recorder}</dd></div>` : L}</dl>
+      ${t.validity && t.validity !== "valid" ? P`<div><dt>狀態</dt><dd class="checklist-void">${sn[t.validity]}</dd></div>` : t.recorder ? P`<div><dt>記錄</dt><dd>${t.recorder === "user" ? "使用者" : t.recorder}</dd></div>` : L}</dl>
       ${t.isAcceptance && t.status === "failed" ? P`<label class="checklist-observed"><span>不通過的原因</span><select ?disabled=${this.resetBusy || !this.editable} .value=${Tt(t.rejectReason ?? "implementation")} @change=${(n) => this.apply({
 			type: "set-reason",
 			workItemId: e.id,
@@ -1438,9 +1438,9 @@ var Q = [
 	}
 	template() {
 		let e = this.data, t = this.visible();
-		return P`<main class="checklist-page"><header class="checklist-header"><div><div class="replica-title-row">${en(ie(this.owner, location.search))}<h1>${e?.document.fileName ?? "TaskProgress Checklist"}</h1></div>${e ? P`<p class="checklist-round">${e.document.roundIdentity}</p>` : L}</div>${Qt()}</header>
+		return P`<main class="checklist-page"><header class="checklist-header"><div><div class="replica-title-row">${tn(ie(this.owner, location.search))}<h1>${e?.document.fileName ?? "TaskProgress Checklist"}</h1></div>${e ? P`<p class="checklist-round">${e.document.roundIdentity}</p>` : L}</div>${$t()}</header>
       ${this.loading ? P`<p class="checklist-notice" role="status">${this.message}</p>` : e ? P`
-      ${zt({
+      ${Bt({
 			bar: {
 				form: "segmented",
 				cells: e.summary.cells
@@ -1461,19 +1461,19 @@ var Q = [
 			}
 		}, (t, n) => {
 			let r = e.document.items.find((e) => e.id === t.id);
-			return P`<article class="checklist-item checklist-${t.status}">${Kt({
+			return P`<article class="checklist-item checklist-${t.status}">${qt({
 				...n,
 				id: `checklist-body-${t.id}`,
 				label: t.title
-			}, P`<header class="checklist-item-header">${It(t.status, `工作項目 ${t.id}`)}<div><h2>${Lt([
+			}, P`<header class="checklist-item-header">${It(t.status, `工作項目 ${t.id}`)}<div><h2>${Rt([
 				this.params.get("scope"),
 				this.params.get("task") || e.document.fileName?.replace(/\.checklist$/i, ""),
 				t.id
-			].filter((e) => e != null && e !== "").join(" › "), `${t.id}. ${t.title}`)}</h2></div><span class="checklist-status" aria-label="通過 ${r.progress.passed}，共 ${r.progress.total}">${r.progress.passed}/${r.progress.total}</span></header>`, P`<div class="checklist-checks"><p class="checklist-outcome">${Pt(t.outcome)}</p>${t.dependsOn.length ? P`<p class="checklist-chips"><span class="checklist-chip">Depends on ${t.dependsOn.join(", ")}</span></p>` : L}${St(t.checks, (e) => e.index, (e) => this.check(t, e))}</div>`)}</article>`;
-		}, Ut({
+			].filter((e) => e != null && e !== "").join(" › "), t.title, t.id)}</h2></div><span class="checklist-status" aria-label="通過 ${r.progress.passed}，共 ${r.progress.total}">${r.progress.passed}/${r.progress.total}</span></header>`, P`<div class="checklist-checks"><p class="checklist-outcome">${Pt(t.outcome)}</p>${t.dependsOn.length ? P`<p class="checklist-chips"><span class="checklist-chip">Depends on ${t.dependsOn.join(", ")}</span></p>` : L}${St(t.checks, (e) => e.index, (e) => this.check(t, e))}</div>`)}</article>`;
+		}, Wt({
 			categories: [...ce(e.document).map((e) => ({
 				...e,
-				label: an[e.id]
+				label: on[e.id]
 			})), {
 				id: "agent",
 				label: "Agent",
@@ -1503,7 +1503,7 @@ var Q = [
 			"error",
 			"mode_blocked"
 		].includes(e.status) ? "error" : e.saving ? "saving" : "clean"} aria-live="polite" aria-busy=${e.saving || this.resetBusy}>
-        ${Jt({
+        ${Yt({
 			...e,
 			saving: e.saving || this.resetBusy,
 			canUndo: e.history.canUndo,
@@ -1524,7 +1524,7 @@ var Q = [
         <button type="button" class="secondary-button checklist-reset-button" ?disabled=${!this.canReset()} @click=${() => {
 			this.resetTargets = this.manualTargets().map((e) => ({ ...e })), this.resetOpen = !0, this.draw();
 		}}>清空結果</button></footer>` : P`<p class="checklist-notice checklist-error" role="alert">${this.failure}</p>`}</main>
-      ${Xt({
+      ${Zt({
 			open: this.resetOpen,
 			title: "清空結果？",
 			onClose: () => {
@@ -1538,7 +1538,7 @@ var Q = [
 $.draw(), await $.load(), globalThis.taskprogressWebUi = {
 	kind: "checklist",
 	app: $,
-	editable: tn.editable
+	editable: nn.editable
 }, addEventListener("pagehide", (e) => {
 	e.persisted || $.destroy();
 });

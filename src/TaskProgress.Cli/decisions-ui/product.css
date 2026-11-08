@@ -4,6 +4,7 @@
 body { background:var(--ui-page); color:var(--ui-text); }
 .task-title-copy, .item-row-copy { position:static; }
 .task-title-copy::part(title) { white-space:normal; overflow:visible; }
+.card-id { margin-inline-start:.5em; color:var(--ui-muted); font-size:.72em; font-weight:400; overflow-wrap:anywhere; }
 .item-row-copy { display:flex; flex:1; }
 .item-row-copy::part(title) { width:100%; overflow:visible; }
 /* Anchor the copy control in existing leading padding, outside the title flow. */

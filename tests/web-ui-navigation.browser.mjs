@@ -88,7 +88,7 @@ await check('Pointer states discard stale projections and preserve accessible na
       await update({pointerCards:{[task.id]:state}});
       for(const selector of ['.pointer-card [role="status"]','.pointer-card [role="alert"]','.pointer-card .status-badge','.pointer-card-progress'])equal([...current.querySelectorAll(selector)].map(n=>n.textContent),[...old.querySelectorAll(selector)].map(n=>n.textContent),selector);
       equal(links(current),links(old),'navigation');
-      const article=current.querySelector('.pointer-card');assert(current.querySelector('#'+article.getAttribute('aria-labelledby'))?.textContent===task.title,'accessible card name');
+      const article=current.querySelector('.pointer-card'),heading=current.querySelector('#'+article.getAttribute('aria-labelledby'));assert(heading?.textContent.startsWith(task.title)&&heading.querySelector('.card-id')?.textContent===`(${task.id})`,'accessible card name and stable ID');
       if(state.status==='ready')equal(current.querySelector('.pointer-card-progress').getAttribute('aria-label'),old.querySelector('.pointer-card-progress').getAttribute('aria-label'),'accessible progress');
       assert(!current.querySelector('textarea,input,select,.spike-add-button'),'pointer remains read-only');
     }

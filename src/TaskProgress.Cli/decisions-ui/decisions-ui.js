@@ -879,7 +879,7 @@ var Ct = xt(), Z = G(class extends bt {
 }), wt = (e) => {
 	let t = String(e ?? "");
 	return t.includes("[") ? M`<span ${Z(s, { text: t })}></span>` : t;
-}, Q = (e = !1, t = !1) => N`<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${e ? N`<path d="M3 9c4 7 14 7 18 0M5 12l-2 3m6-1-1 3m7-3 1 3m3-5 2 3" />` : N`<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z" /><circle cx="12" cy="12" r="3" />`}${t ? N`<path d="M3 3l18 18" />` : F}</svg>`, Tt = (e) => N`<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true">${e === "free" ? N`<path d="M4 5h15M4 10h8M4 15h17M4 20h11" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" />` : N`<path d=${e === "forward" ? "M5 3v18m-3-3 3 3 3-3" : "M5 21V3m-3 3 3-3 3 3"} fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /><path d=${e === "forward" ? "M11 4h10M11 9h8M11 14h6M11 19h3" : "M11 4h3M11 9h6M11 14h8M11 19h10"} fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" />`}</svg>`, Et = (e, t) => M`<ui-copy-id class="task-title-copy" .value=${String(e)} .label=${t}>${t}</ui-copy-id>`, Dt = class {
+}, Q = (e = !1, t = !1) => N`<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${e ? N`<path d="M3 9c4 7 14 7 18 0M5 12l-2 3m6-1-1 3m7-3 1 3m3-5 2 3" />` : N`<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z" /><circle cx="12" cy="12" r="3" />`}${t ? N`<path d="M3 3l18 18" />` : F}</svg>`, Tt = (e) => N`<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true">${e === "free" ? N`<path d="M4 5h15M4 10h8M4 15h17M4 20h11" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" />` : N`<path d=${e === "forward" ? "M5 3v18m-3-3 3 3 3-3" : "M5 21V3m-3 3 3-3 3 3"} fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /><path d=${e === "forward" ? "M11 4h10M11 9h8M11 14h6M11 19h3" : "M11 4h3M11 9h6M11 14h8M11 19h10"} fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" />`}</svg>`, Et = (e) => M`<small class="card-id">(${e})</small>`, Dt = (e, t, n = e) => M`<ui-copy-id class="task-title-copy" .value=${String(e)} .label=${t}>${t}${Et(n)}</ui-copy-id>`, Ot = class {
 	constructor(e, t = {}, n) {
 		this.target = e, this.props = { ...t }, this.state = {}, this.renderer = n, this.abort = new AbortController(), this.cleanups = [], this.disposed = !1;
 		let r = /* @__PURE__ */ new Set();
@@ -915,7 +915,7 @@ var Ct = xt(), Z = G(class extends bt {
 	destroy() {
 		this.disposed || (this.disposed = !0, this.abort.abort(), this.cleanups.forEach((e) => typeof e == "function" ? e() : e?.dispose?.()), V(F, this.target));
 	}
-}, Ot = St((e, n) => {
+}, kt = St((e, n) => {
 	let r = n, i = !1, a = new AbortController(), o = /* @__PURE__ */ new Map(), s = () => {
 		let t = r.previewClasses ?? {};
 		for (let n of /* @__PURE__ */ new Set([...o.keys(), ...e.children])) {
@@ -976,9 +976,9 @@ var Ct = xt(), Z = G(class extends bt {
 		}
 	};
 });
-function kt(e = [], t = {}) {
+function At(e = [], t = {}) {
 	return M`<div class="horizontal-capsule-strip ${t.className ?? ""}" role="toolbar" aria-label=${t.ariaLabel ?? "模組"}
-    ${Z(Ot, {
+    ${Z(kt, {
 		axis: "horizontal",
 		focusAfterMove: !0,
 		previewClasses: {
@@ -994,9 +994,9 @@ function kt(e = [], t = {}) {
       @click=${() => t.onActivate?.(e.id)}><span>${e.label}</span>${e.showDot ? M`<span class="time-risk-dot ${e.dotClass ?? ""}"></span>` : F}${e.showChevron ? M`<span class="time-chevron">›</span>` : F}</button>`)}
   </div>`;
 }
-function At(e = {}) {
+function jt(e = {}) {
 	let t = new Map((e.categories ?? []).map((e) => [e.id, e])), n = e.order?.length ? e.order : [p, ...t.keys()], r = n.find((e) => !t.has(e)), i = e.defaultLabel ?? "預設";
-	return kt(n.map((n) => n === r ? {
+	return At(n.map((n) => n === r ? {
 		id: n,
 		label: i,
 		ariaLabel: `${i}，${e.defaultLit ? "已全選" : "選取全部"}`,
@@ -1018,22 +1018,22 @@ function At(e = {}) {
 		onActivate: (t) => t === r ? e.onSelectDefault?.() : e.onSelect?.(t)
 	});
 }
-var jt = Object.freeze({
+var Mt = Object.freeze({
 	icon: !0,
 	label: !1,
 	appearance: "ghost"
 });
-function Mt(e, t, n, r, i, a, o = "both") {
+function Nt(e, t, n, r, i, a, o = "both") {
 	return M`<ui-option-picker class="icon-choice" aria-label=${i} .label=${i} .options=${n}
     .value=${r} .interaction=${o} .delay=${300} orientation="vertical"
-    .triggerDisplay=${jt} .optionDisplay=${jt}
+    .triggerDisplay=${Mt} .optionDisplay=${Mt}
     @choice-request=${(e) => a(e.detail.id)}></ui-option-picker>`;
 }
-function Nt({ id: e, label: t, expanded: n = !0, toggle: r, visibilityEnabled: i = !1, visible: a = !0, onVisibleChange: o }, s, c) {
+function Pt({ id: e, label: t, expanded: n = !0, toggle: r, visibilityEnabled: i = !1, visible: a = !0, onVisibleChange: o }, s, c) {
 	return M`<div class="card-disclosure-heading ${n ? "" : "card-disclosure-collapsed"}"><button type="button" class="card-disclosure-toggle" aria-expanded=${n} aria-controls=${e} aria-label="${n ? "收合" : "展開"} ${t}" @click=${() => r(!n)}><span aria-hidden="true">${n ? "▼" : "▶"}</span></button>
   ${i ? M`<button type="button" class="card-visibility-toggle card-toolbar-icon" aria-pressed=${a} aria-label="${a ? "隱藏" : "顯示"} ${t}" @click=${() => o(!a)}>${Q(!a)}</button>` : F}${s}</div><div id=${e} class="card-disclosure-body" ?hidden=${!n}>${c}</div>`;
 }
-var Pt = class {
+var Ft = class {
 	constructor(e) {
 		this.view = e, this.order = [], this.pins = [], this.mode = "forward", this.visibility = "disabled", this.hidden = [], this.selected = null, this.expanded = !0, this.overrides = {}, this.key = null, this.linkSelection = ne(ie(location.search));
 		let t = (t) => {
@@ -1107,7 +1107,7 @@ var Pt = class {
 		}, h = o.find(p)?.id;
 		return M`<div class="card-list-controls"><div class="card-list-heading"><p class="section-kicker">工作項目</p>${n}</div><div class="card-list-tools">
       <button type="button" class="card-toolbar-icon" aria-label=${this.expanded ? "全部收合" : "全部展開"} @click=${() => this.all(!this.expanded)}><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d=${this.expanded ? "M5 15l7-7 7 7" : "M5 9l7 7 7-7"} fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" /></svg></button>
-      ${Mt(this.view, "order", [
+      ${Nt(this.view, "order", [
 			"forward",
 			"reverse",
 			"free"
@@ -1122,7 +1122,7 @@ var Pt = class {
 		})), this.mode, "排序", (e) => {
 			this.mode = e, this.persist(!0);
 		})}
-      ${Mt(this.view, "visibility", [
+      ${Nt(this.view, "visibility", [
 			{
 				id: "enabled",
 				label: "啟用",
@@ -1147,7 +1147,7 @@ var Pt = class {
 		], this.visibility, "可見性", (e) => {
 			e === "reset" ? (this.hidden = [], this.visibility = "enabled") : this.visibility = e, this.persist();
 		}, "picker")}${r}
-    </div></div><div class="arrangeable-cards" ${Z(Ot, {
+    </div></div><div class="arrangeable-cards" ${Z(kt, {
 			axis: "vertical",
 			surface: !0,
 			previewClasses: {
@@ -1186,7 +1186,7 @@ var Pt = class {
       ${this.mode === "free" ? M`<button type="button" class="replica-card-grip" data-reorder-handle draggable="true" aria-label="移動 ${n.title ?? n.question}">⠿</button>` : F}
     </div>`)}</div>${e.hiddenCount > 0 ? M`<p class="card-list-hidden"><button type="button" class="card-list-hidden-link" @click=${e.onShowHidden}>…顯示隱藏項目(${e.hiddenCount})</button></p>` : F}`;
 	}
-}, Ft = (e, t) => {
+}, It = (e, t) => {
 	let n = t, r = () => n.onClose?.();
 	e.addEventListener("ui-close", r);
 	let i = (t) => {
@@ -1198,12 +1198,12 @@ var Pt = class {
 			e.removeEventListener("ui-close", r), e.close();
 		}
 	};
-}, It = (e, t) => (n(), M`<ui-dialog id=${e.id ?? F} class=${e.className ?? ""} .heading=${e.title ?? ""} .kicker=${e.kicker ?? ""} .closeLabel=${e.closeLabel ?? ""} .dismissDisabled=${!!e.busy} .dismissOnBackdrop=${e.dismissOnBackdrop ?? !0} ${Z(Ft, e)}>${e.open ? t : F}</ui-dialog>`), Lt = (e) => {
+}, Lt = (e, t) => (n(), M`<ui-dialog id=${e.id ?? F} class=${e.className ?? ""} .heading=${e.title ?? ""} .kicker=${e.kicker ?? ""} .closeLabel=${e.closeLabel ?? ""} .dismissDisabled=${!!e.busy} .dismissOnBackdrop=${e.dismissOnBackdrop ?? !0} ${Z(It, e)}>${e.open ? t : F}</ui-dialog>`), Rt = (e) => {
 	let t = globalThis.taskprogressTheme.control;
 	return e.append(t), { destroy() {
 		t.parentNode === e && t.remove();
 	} };
-}, Rt = () => M`<span class="replica-theme" ${Z(Lt, null)}></span>`, zt = (e, t) => {
+}, zt = () => M`<span class="replica-theme" ${Z(Rt, null)}></span>`, Bt = (e, t) => {
 	let n = pe(t);
 	return e.append(n), {
 		update(e) {
@@ -1214,7 +1214,7 @@ var Pt = class {
 		},
 		destroy: () => n.remove()
 	};
-}, Bt = (e) => !e || globalThis.chrome?.webview ? F : M`<span class="replica-back" ${Z(zt, e)}></span>`, Vt = (e, t) => {
+}, Vt = (e) => !e || globalThis.chrome?.webview ? F : M`<span class="replica-back" ${Z(Bt, e)}></span>`, Ht = (e, t) => {
 	let n = t;
 	return {
 		update: (e) => {
@@ -1223,25 +1223,25 @@ var Pt = class {
 		destroy: () => n.onOpenChange?.(!1)
 	};
 };
-function Ht(e) {
+function Ut(e) {
 	return n(), M`<ui-edit-history .history=${e.history} .disabled=${!!e.disabled} .targetId=${e.targetId ?? e.id ?? ""}
     .retentionLabel=${"紀錄只保留在目前頁面，重新整理或離開後會清除。復原與重做仍依編輯器的保存方式處理。"}
     @history-request=${(t) => {
 		e.disabled || (t.detail.action === "undo" && e.history.canUndo ? e.onUndo?.() : t.detail.action === "redo" && e.history.canRedo ? e.onRedo?.() : t.detail.action === "clearHistory" && e.history.canClear && e.onClear?.());
 	}} @history-open-change=${(t) => e.onOpenChange?.(t.detail.open)}
-    ${Z(Vt, e)}></ui-edit-history>`;
+    ${Z(Ht, e)}></ui-edit-history>`;
 }
 //#endregion
 //#region ui/web-workflow/decisions.mjs
-var Ut = await me("decisions"), Wt = new URLSearchParams(location.search), Gt;
+var Wt = await me("decisions"), Gt = new URLSearchParams(location.search), Kt;
 try {
-	Gt = se("decisions", { params: Wt });
+	Kt = se("decisions", { params: Gt });
 } catch (e) {
-	Gt = { load: () => Promise.reject(e) };
+	Kt = { load: () => Promise.reject(e) };
 }
-var $ = new class extends Dt {
+var $ = new class extends Ot {
 	constructor(e, t = {}) {
-		super(e, {}, (e, t) => t.template()), this.transport = t.transport ?? Gt, this.editable = t.editable ?? Ut.editable, this.loadGeneration = 0, this.cards = new Pt(this), this.message = "載入中…", this.queued = /* @__PURE__ */ new Set(), this.failed = /* @__PURE__ */ new Set(), this.sourceOverrides = {}, this.sourceRequest = 0, this.selection = g(null, ["pending", "decided"], void 0, ["pending"]), this.linkRequest = ie(location.search), this.linked = this.linkRequest?.id ?? null, this.cleanups.push(ue()), this.cleanups.push(le({
+		super(e, {}, (e, t) => t.template()), this.transport = t.transport ?? Kt, this.editable = t.editable ?? Wt.editable, this.loadGeneration = 0, this.cards = new Ft(this), this.message = "載入中…", this.queued = /* @__PURE__ */ new Set(), this.failed = /* @__PURE__ */ new Set(), this.sourceOverrides = {}, this.sourceRequest = 0, this.selection = g(null, ["pending", "decided"], void 0, ["pending"]), this.linkRequest = ie(location.search), this.linked = this.linkRequest?.id ?? null, this.cleanups.push(ue()), this.cleanups.push(le({
 			canRefresh: () => this.canRefresh(),
 			reload: () => this.refreshSource()
 		})), this.on(window, "beforeunload", (e) => {
@@ -1394,11 +1394,11 @@ var $ = new class extends Dt {
 	}
 	card(e, t) {
 		let n = this.data, r = Object.hasOwn(n.drafts, e.id) ? n.drafts[e.id] : null, i = r ? r.choice : e.answer?.kind === "other" ? "__other" : e.answer?.option_id ?? "", a = !this.editable || this.refreshing || n.pending?.operation === "clear_all" || !!n.pending && !n.busy || r?.conflict, o = this.sourceOverrides[e.id] ?? n.snapshot.sources?.[e.id];
-		return M`<article class="checklist-item decision-card ${t.visibilityEnabled ? "decision-has-visibility" : ""}">${Nt({
+		return M`<article class="checklist-item decision-card ${t.visibilityEnabled ? "decision-has-visibility" : ""}">${Pt({
 			...t,
 			id: `body-${e.id}`,
 			label: e.question
-		}, M`<header class="checklist-item-header"><h2 id="decision-${e.id}" tabindex="-1">${Et(e.id, e.question)}</h2><span class="checklist-status">${e.status === "pending" ? "待決策" : "已決策"}</span></header>`, M`<div class="decision-content">${e.source_ref ? M`<div class="decision-source">${o?.status === "available" ? M`<button data-decision-control type="button" class="source-link" @click=${() => this.openSource(e.id)}>來源：${e.source_ref}</button>` : M`<span>${o?.message ?? "來源尚未檢查，請更新並重啟服務"}</span><small>${e.source_ref}</small>${o ? M`<button data-decision-control type="button" class="source-link" @click=${() => this.openSource(e.id)}>重新檢查來源</button>` : F}`}</div>` : F}
+		}, M`<header class="checklist-item-header"><h2 id="decision-${e.id}" tabindex="-1">${Dt(e.id, e.question)}</h2><span class="checklist-status">${e.status === "pending" ? "待決策" : "已決策"}</span></header>`, M`<div class="decision-content">${e.source_ref ? M`<div class="decision-source">${o?.status === "available" ? M`<button data-decision-control type="button" class="source-link" @click=${() => this.openSource(e.id)}>來源：${e.source_ref}</button>` : M`<span>${o?.message ?? "來源尚未檢查，請更新並重啟服務"}</span><small>${e.source_ref}</small>${o ? M`<button data-decision-control type="button" class="source-link" @click=${() => this.openSource(e.id)}>重新檢查來源</button>` : F}`}</div>` : F}
       ${e.context || e.recommendation ? M`<div class="decision-description">${e.context ? M`<p class="decision-text">${wt(e.context)}</p>` : F}${e.recommendation ? M`<p>建議：${e.options.find((t) => t.id === e.recommendation.option_id)?.label} — ${wt(e.recommendation.reason)}</p>` : F}</div>` : F}
       <fieldset ?disabled=${a}><legend class="decision-visually-hidden">${e.question}</legend>${ft(e.options, (e) => e.id, (t, n) => M`<label class="decision-option"><input type="radio" name="answer-${e.id}" .checked=${ht(i === t.id)} @click=${() => this.choose(e.id, t.id)}><span>${String.fromCharCode(65 + n)}　${t.label}${t.id === e.recommendation?.option_id ? "（建議）" : ""}${t.description ? M` <small>${wt(t.description)}</small>` : F}</span></label>`)}
       ${e.allow_other ? M`<label class="decision-option"><input type="radio" name="answer-${e.id}" .checked=${ht(i === "__other")} @click=${() => {
@@ -1415,11 +1415,11 @@ var $ = new class extends Dt {
 	}
 	template() {
 		let e = this.data, t = this.decisions(), n = this.visible();
-		return M`<main class="checklist-shell decisions-shell"><header class="checklist-header"><div><div class="replica-title-row">${Bt(this.owner)}<h1>決策項目</h1></div></div>${Rt()}</header>
+		return M`<main class="checklist-shell decisions-shell"><header class="checklist-header"><div><div class="replica-title-row">${Vt(this.owner)}<h1>決策項目</h1></div></div>${zt()}</header>
       ${this.message ? M`<p role="status">${this.message}</p>` : F}
       ${this.summary ? M`<p>待決策 ${this.summary.pending}${this.summary.incomplete ? "（統計不完整）" : ""}</p>${this.summary.files.map((e) => M`<article class="checklist-item"><a href="?scope=${this.summary.scope_id}&task=${e.task_id}">${e.task_id}</a><p>${e.error ?? `待決策 ${e.pending}／全部 ${e.total}`}</p></article>`)}${this.summary.files.length ? F : M`<p>尚未建立決策文件。</p>`}` : e ? M`
       <div class="decision-overview"><p>待決策 ${t.filter((e) => e.status === "pending").length}／全部 ${t.length}</p><p>選項可隨時修改；選取「其他」後，文字更動會自動保存，空白則為待決策。未選取時可點擊文字欄編輯本頁草稿。保存失敗會保留修改供重試。</p></div>
-      <div class="decision-controls">${Ht({
+      <div class="decision-controls">${Ut({
 			id: "decision-history",
 			targetId: e.snapshot.document_key,
 			history: e.history,
@@ -1449,7 +1449,7 @@ var $ = new class extends Dt {
 			onSelectionChange: (e) => this.selectCard(e),
 			hiddenCount: t.length - n.length,
 			onShowHidden: () => this.select(m(["pending", "decided"]))
-		}, (e, t) => this.card(e, t), At({
+		}, (e, t) => this.card(e, t), jt({
 			categories: [{
 				id: "pending",
 				label: "待決策"
@@ -1471,14 +1471,14 @@ var $ = new class extends Dt {
       ${Object.entries(e.drafts).filter(([e]) => !t.some((t) => t.id === e)).map(([e, t]) => M`<p role="alert">已移除題目 ${e} 的原草稿：${t.choice} ${t.other}</p><button data-decision-control @click=${() => {
 			this.session.discard(e), this.sync();
 		}}>關閉已移除題目提示</button>`)}` : F}</main>
-      ${It({
+      ${Lt({
 			open: !!this.sourceOpen,
 			title: "決策來源",
 			onClose: () => {
 				this.sourceOpen = !1, this.sourceRequest++, this.draw();
 			}
 		}, M`${this.sourcePreview ? M`<p class="decision-text">${this.sourcePreview.reference}</p>` : F}${this.sourceMessage ? M`<p role="status">${this.sourceMessage}</p>` : F}${this.sourcePreview?.status === "available" ? M`<pre class="source-content" aria-label="來源文件內容">${this.sourcePreview.content.replace(/\r\n/g, "\n").split("\n").map((e, t) => M`<span id="source-line-${t + 1}" class=${t + 1 === this.sourcePreview.line ? "source-target" : ""}>${e || " "}${"\n"}</span>`)}</pre>` : F}`)}
-      ${It({
+      ${Lt({
 			open: !!this.clearOpen,
 			title: "清除全部決策答案？",
 			onClose: () => {
@@ -1494,7 +1494,7 @@ var $ = new class extends Dt {
 $.draw(), await $.load(), globalThis.taskprogressWebUi = {
 	kind: "decisions",
 	app: $,
-	editable: Ut.editable
+	editable: Wt.editable
 }, addEventListener("pagehide", (e) => {
 	e.persisted || $.destroy();
 });
