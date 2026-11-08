@@ -14,7 +14,6 @@ import {
   resolveDeveloperReportSource,
   resolveReportRequest,
   stableSortTasksByPriority,
-  taskLeadItemPriority,
   stableSortTaskItemsByPriority,
   taskPriority,
   taskItemPriority,
@@ -433,7 +432,7 @@ test("scope catalog rejects duplicate or unsafe IDs", () => {
   assert.throws(() => buildScopeHref("safe", "unknown"), /顯示模式無效/);
 });
 
-test("cards of the same priority rank by their highest unfinished item priority", () => {
+test("cards of the same priority retain source order regardless of child priority", () => {
   const tasks = [
     { id: "general-plain", priority: 2, pending_items: [{ id: "a", priority: 2 }] },
     { id: "important", priority: 1, pending_items: [{ id: "b" }] },
@@ -442,10 +441,8 @@ test("cards of the same priority rank by their highest unfinished item priority"
     { id: "general-empty", priority: 2, pending_items: [] },
     { id: "general-plain-later", priority: 2, pending_items: [{ id: "f", priority: 2 }] },
   ];
-  assert.equal(taskLeadItemPriority(tasks[2]), 0);
-  assert.equal(taskLeadItemPriority(tasks[3]), 4);
   assert.deepEqual(
     stableSortTasksByPriority(tasks).map((task) => task.id),
-    ["important", "general-urgent-item", "general-plain", "general-plain-later", "general-archived-urgent", "general-empty"],
+    ["important", "general-plain", "general-urgent-item", "general-archived-urgent", "general-empty", "general-plain-later"],
   );
 });

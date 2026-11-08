@@ -17,10 +17,14 @@ test('forward source move preserves hidden and other-priority slots, card conten
   assert.deepEqual(stableSortTasksByPriority(moved.tasks).map(task=>task.id), ['urgent','c','hidden','a','b']);
 });
 
-test('source moves cannot override either card priority or the leading unfinished-item priority', () => {
+test('source moves respect card priority but ignore differences in child priority', () => {
   const original=report(); original.tasks.push(card('urgent-child',2,0));
-  for (const target of ['urgent','urgent-child']) assert.throws(()=>moveReportCard(original,{taskId:'a',position:{before:target}}), /相同優先級/);
-  assert.notEqual(cardPriorityGroup(card('a')),cardPriorityGroup(card('a',2,0)));
+  assert.throws(()=>moveReportCard(original,{taskId:'a',position:{before:'urgent'}}), /相同優先級/);
+  assert.equal(cardPriorityGroup(card('a')),cardPriorityGroup(card('a',2,0)));
+  const moved=moveReportCard(original,{taskId:'urgent-child',position:{before:'a'}});
+  assert.equal(stableSortTasksByPriority(moved.tasks).findIndex(task=>task.id==='urgent-child'),1);
+  assert.equal(moved.tasks.find(task=>task.id==='urgent-child').pending_items[0].priority,0);
+  assert.deepEqual(original.tasks.at(-1),card('urgent-child',2,0));
   assert.equal(cardPriorityGroup({id:'legacy'}),cardPriorityGroup(card('explicit',4,4)));
 });
 

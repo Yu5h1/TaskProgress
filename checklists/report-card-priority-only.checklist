@@ -1,0 +1,29 @@
+# 卡片僅依自身優先級換位 Checklist
+
+Current round: `Documentation/CardDisclosurePlan.md#卡片同級判定`.
+Paths: viewer/assets/report-model.js, viewer/assets/card-reorder.js, tests/card-reorder*, tests/report-model.test.mjs, tests/serve_card_reorder.py
+
+本輪為使用者確認「只看卡片優先級」後的規則修訂，取代舊輪次的子項優先級次排序。定向 Node 46/46 通過。候選 `98ca6cc4db4e7dbf56400c48d12c75335fc9189efd9b250e3aecd1835a7db348` 在同卡片級別、不同子項級別的 fixture 上，以原生 CDP 滑鼠產生 HTML 拖曳，明暗 34/34 見 `../Web/.verify/copy-id-delivery-b341bdcb/source/.verify/product-card-order/2026-11-08T14-30-17-321Z/summary.json`。右側狀態編輯明暗窄版 10/10 見同 evidence root 的 `product-card-status/2026-11-08T14-31-20-534Z/`。正式 8001 的 time-reference／local-task-editing 原生拖曳預覽 3/3 見 `product-card-native-baseline/2026-11-08T14-32-29-009Z/`，以 Escape 取消，原始 report bytes 相同。8021 前景測試已正常停止並釋放暫存資料。獨立複核未見具體問題；正式生成 identity 為 `e493043c636afc080444149f182f75e37ea5f8847bab4fa17e1058c3423d0254`。
+
+- [x] **1. 同級排序與來源模型**
+  Outcome: 子項優先級不會分割卡片同級群組，也不阻止來源換位。
+  Checks:
+    - [x] **優先級模型回歸**
+      - Action: 執行 Report 模型、卡片換位、狀態分組與文件投影的定向測試。
+      - Expect: 卡片只按自身優先級與來源順序排列；同級可換位，跨卡片優先級拒絕，子項內容與優先級原樣保留。
+
+- [x] **2. 原生拖曳與來源往返**
+  Outcome: 同狀態、同卡片優先級且子項優先級不同的卡片，可見有效落點並保存順序。
+  Checks:
+    - [x] **明暗模式原生手勢**
+      - Action: 以 8021 拋棄式資料，使用瀏覽器原生滑鼠拖曳測試不同子項級別的同級卡片，核對水平預覽線、原始檔、重載、復原重做、不排及新卡草稿；確認右側狀態選單仍通過。
+      - Expect: 有效落點顯示水平線並寫回來源；子項不變，跨級不寫；不排只暫時換位；謹慎模式可取消與保存。明暗與窄版狀態選單操作正常。
+      - Observed: 首輪原生手勢共 34 項中，新建草稿卡的 light 預覽在固定取樣時讀到空值，但實際重排與取消已成功，dark 同案例通過；其餘同級預覽線、寫入、歷史與不排回歸通過。證據 product-card-order/2026-11-08T14-28-36-801Z。
+      - Resolved: 測試改為持續送出原生滑鼠移動並等待實際有效落點，再取樣與放開，未修改產品來配合計時；明暗 34/34 通過，新卡預覽、換位與取消均有證據。狀態選單回歸 10/10，正式頁原生預覽及資料不變核查 3/3。
+
+- [x] **3. 正式交付與複核**
+  Outcome: 正式 Browser／Desktop 產物採用相同卡片級別規則。
+  Checks:
+    - [x] **建置與獨立複核**
+      - Action: 重建正式產物，由獨立 context 核對排序與換位模型、文件及測試對應。
+      - Expect: 產物與來源一致，沒有繼續用子項級別擋住卡片落點的路徑；保持既有儲存、狀態分組、釘選與 Next 行為。

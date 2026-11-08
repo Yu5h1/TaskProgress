@@ -1,9 +1,9 @@
-import { taskPriority, taskLeadItemPriority } from './report-model.js';
+import { taskPriority } from './report-model.js';
 import { moveVisibleCard } from './card-order.js';
 
-// Both priority keys participate in the product's stable card sort.
+// Card movement and display share the card's own priority key.
 export function cardPriorityGroup(task) {
-  return JSON.stringify([taskPriority(task), taskLeadItemPriority(task)]);
+  return String(taskPriority(task));
 }
 
 /** Reorders only the participating source slots; priority and all card contents stay unchanged. */

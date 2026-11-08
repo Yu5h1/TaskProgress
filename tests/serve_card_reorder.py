@@ -13,12 +13,12 @@ spec.loader.exec_module(pilot)
 
 
 def fixture():
-    def card(key, priority=2):
-        return dict(id=key, title=key, summary='Source order acceptance', status='planned', priority=priority,
-                    completed_items=[], pending_items=[dict(id='work', title='Work', priority=2)])
+    def card(key, priority=2, child_priority=2, status='planned'):
+        return dict(id=key, title=key, summary='Source order acceptance', status=status, priority=priority,
+                    completed_items=[], pending_items=[dict(id='work', title='Work', priority=child_priority)])
     return dict(schema_version='1.0', scope_id='web-ui-pilot-test', report_id='card-reorder',
                 title='Card reorder acceptance', updated_at='2026-11-08T00:00:00Z',
-                tasks=[card('urgent', 0), card('a'), card('hidden'), card('b'), card('next'), card('low', 3)],
+                tasks=[card('urgent', 0), card('a', child_priority=0, status='in_progress'), card('hidden', child_priority=1), card('b', child_priority=3, status='in_progress'), card('next'), card('low', 3)],
                 next=dict(task_id='next', item_id='work'))
 
 

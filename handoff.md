@@ -118,7 +118,7 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
   - 已驗證：Debug build 0 warning；`--tray-launcher-only`（新增 open 轉送、完整路徑、輸出、取消）、`--open-pin-only`、`--worker-only`、`--document-open-only` 通過。未啟動真實 Tray／服務。
   - 未部署：正式 `Build/win-x64/task-progress.exe` 仍是舊版，`open` 仍不經 Tray。Publish 需先由使用者 Exit 舊 Tray，並處理目前無 Tray 的 python 服務（PID 29084）。實機核查：Tray 未啟動時 `open --scope` 會帶起 Tray 並開該 scope；Tray Exit 後無殘留程序。
 
-- **任務卡同級依子項優先級排序（2026-10-22）。** `stableSortTasksByPriority` 在卡片 priority 相同時，先比未完成且非 archive 子項中最高的 priority（`taskLeadItemPriority`，無此類子項視為 4），再比原順序。子項優先級不會讓卡片跨級。規則見 `plan.md` 任務卡排序段。
+- **Card priority and source order:** [the card-level contract](Documentation/CardDisclosurePlan.md#卡片同級判定) owns same-level ranking and drag eligibility. `stableSortTasksByPriority` and `cardPriorityGroup` use only the card's priority; child priority cannot split a card group. [The round](checklists/report-card-priority-only.checklist) covers differing child priorities and native drop-line feedback. Child ordering keeps its separate priority rule.
 
 - **子項多選與批次複製參照（2026-10-21）。** 規格 `Documentation/ItemSelection.md`。預覽模式點選／Ctrl 加選／Shift 範圍（跨卡片）、鍵盤 ↑↓／Shift＋↑↓／Space／Ctrl+A／Ctrl+C／Esc；複製為一行一個參照。分三層（selection-model／selection-input／item-selection），之後由 Web 共用 Selection 取代前兩層（Web `NativeUIAndDataUpdatePlan.md` TP-9；UX `plan.md` 候選 Selection）。觸控長按與手把未實作。改動了 ItemRow／TaskCard／TaskList，Web 的 TaskProgress 來源重盤點（雜湊）會看到漂移。
 

@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-11-08T14:06:07.457838+00:00",
+  "updated_at": "2026-11-08T14:28:12.650030+00:00",
   "tasks": [
     {
       "id": "agent-workflow",
@@ -2164,6 +2164,25 @@
               "actor": "codex",
               "at": "2026-11-08T14:06:07.457838+00:00",
               "session": "Report forward source reorder"
+            }
+          ]
+        },
+        {
+          "priority": 1,
+          "title": "卡片同級只看自身優先級，補驗原生拖曳落點",
+          "document_ref": {
+            "kind": "checklist",
+            "scope_id": "task-progress",
+            "task": "report-card-priority-only"
+          },
+          "status": "planned",
+          "id": "report-card-priority-only",
+          "activity": [
+            {
+              "event": "created",
+              "actor": "codex",
+              "at": "2026-11-08T14:28:12.650030+00:00",
+              "session": "Card priority only"
             }
           ]
         }

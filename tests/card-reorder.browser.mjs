@@ -7,19 +7,36 @@ export async function run(page, evidence, { scheme }) {
   const ids = data => data.tasks.map(task => task.id);
   const original = await raw();
   const check = (name, ok) => evidence.check(`${scheme}: ${name}`, ok);
-  const drag = async (source, target, after = false) => page.evaluate(`(() => {
-    const source=document.querySelector('[data-card-id="${source}"] .replica-card-grip');
-    const target=document.querySelector('[data-card-id="${target}"]');
-    if(!source||!target)throw new Error('Missing drag source or target');
-    const rect=target.getBoundingClientRect(), transfer=new DataTransfer();
-    const options={bubbles:true,cancelable:true,dataTransfer:transfer,clientX:rect.left+rect.width/2,clientY:rect.top+rect.height*${after ? '.75' : '.25'}};
-    source.dispatchEvent(new DragEvent('dragstart',options));
-    target.dispatchEvent(new DragEvent('dragover',options));
-    const preview=target.getAttribute('data-reorder-over');
-    target.dispatchEvent(new DragEvent('drop',options));
-    document.dispatchEvent(new DragEvent('dragend',{bubbles:true}));
+  const drag = async (source, target, after = false) => {
+    const points=await page.evaluate(`(() => {
+      const source=document.querySelector('[data-card-id="${source}"] .replica-card-grip');
+      const target=document.querySelector('[data-card-id="${target}"]');
+      if(!source||!target)throw new Error('Missing drag source or target');
+      source.scrollIntoView({block:'center',behavior:'instant'});
+      const start=source.getBoundingClientRect(), end=target.getBoundingClientRect();
+      return {x:start.left+start.width/2,y:start.top+start.height/2,targetX:end.left+8,targetY:end.top+end.height*${after ? '.75' : '.25'}};
+    })()`);
+    await new Promise(resolve=>setTimeout(resolve,30));
+    await page.send('Input.dispatchMouseEvent',{type:'mouseMoved',x:points.x,y:points.y});
+    await page.send('Input.dispatchMouseEvent',{type:'mousePressed',x:points.x,y:points.y,button:'left',clickCount:1});
+    await page.send('Input.dispatchMouseEvent',{type:'mouseMoved',x:points.x-12,y:points.y,button:'left',buttons:1});
+    await page.send('Input.dispatchMouseEvent',{type:'mouseMoved',x:points.x-24,y:points.y,button:'left',buttons:1});
+    for(const step of [0,1,2]) await page.send('Input.dispatchMouseEvent',{type:'mouseMoved',x:points.targetX+step,y:points.targetY+step,button:'left',buttons:1});
+    const compatible=await page.evaluate(`document.querySelector('[data-card-id="${source}"]').getAttribute('data-reorder-group')===document.querySelector('[data-card-id="${target}"]').getAttribute('data-reorder-group')`);
+    let preview=null;
+    for(let attempt=0;attempt<10;attempt++) {
+      await page.send('Input.dispatchMouseEvent',{type:'mouseMoved',x:points.targetX+2,y:points.targetY+2+(attempt%2),button:'left',buttons:1});
+      await new Promise(resolve=>setTimeout(resolve,40));
+      preview=await page.evaluate(`document.querySelector('[data-card-id="${target}"]').getAttribute('data-reorder-over')`);
+      if(preview||!compatible)break;
+    }
+    if(source==='b'&&target==='a') {
+      evidence.check(`${scheme}: native drop preview draws the horizontal line`,await page.evaluate(`(() => { const row=document.querySelector('[data-card-id="a"]'), line=getComputedStyle(row,'::before'); return row.classList.contains('card-drop-before')&&parseFloat(line.height)===3&&line.content!=='none'&&line.backgroundColor!=='rgba(0, 0, 0, 0)'; })()`));
+      await evidence.screenshot(`${scheme}-native-drop-preview`);
+    }
+    await page.send('Input.dispatchMouseEvent',{type:'mouseReleased',x:points.targetX+2,y:points.targetY+2,button:'left',clickCount:1});
     return preview;
-  })()`);
+  };
   const waitOrder = order => page.until(`fetch('/reports/web-ui-pilot-test/report.json',{cache:'no-store'}).then(r=>r.json()).then(r=>JSON.stringify(r.tasks.map(t=>t.id))===${JSON.stringify(JSON.stringify(order))})`);
   const mode = value => page.evaluate(`document.querySelector('.icon-choice[aria-label="排序"]').dispatchEvent(new CustomEvent('choice-request',{detail:{id:${JSON.stringify(value)}}}))`);
   const history = key => page.evaluate(`document.dispatchEvent(new KeyboardEvent('keydown',{key:${JSON.stringify(key)},ctrlKey:true,bubbles:true,cancelable:true}))`);
@@ -30,6 +47,8 @@ export async function run(page, evidence, { scheme }) {
   // A new browser page has forward mode and no view-only order. Use real public UI events.
   await mode('forward');
   await page.until(ready);
+  await page.evaluate(`document.querySelector('.card-toolbar-icon[aria-label="全部收合"]')?.click()`);
+  check('same-priority cards with different child priorities retain source order',await page.evaluate(`(() => { const rows=[...document.querySelectorAll('[data-card-id]')].map(row=>row.dataset.cardId); return rows.indexOf('a')<rows.indexOf('b') && document.querySelector('[data-card-id="a"]').dataset.reorderGroup===document.querySelector('[data-card-id="b"]').dataset.reorderGroup; })()`));
   check('forward dragging enabled while Next stays fixed', await page.evaluate(`!!document.querySelector('[data-card-id="b"] .replica-card-grip') && document.querySelector('[data-card-id="next"]').dataset.reorderSortable === 'false'`));
   await page.click('[data-card-id="urgent"] .card-pin');
   check('pinned card cannot be dragged', await page.evaluate(`document.querySelector('[data-card-id="urgent"]').dataset.reorderSortable==='false' && !document.querySelector('[data-card-id="urgent"] .replica-card-grip')`));

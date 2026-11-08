@@ -280,26 +280,16 @@ export function taskItemPriority(item) {
 }
 
 /**
- * The highest priority among a card's unfinished, non-archived items; a card without such items counts as unspecified.
- */
-export function taskLeadItemPriority(task) {
-  return (task?.pending_items ?? [])
-    .filter(item => item === null || typeof item !== "object" || (item.status !== "archive" && item.status !== "done" && !isRetiredStatus(item.status)))
-    .reduce((lead, item) => Math.min(lead, taskItemPriority(item)), DEFAULT_PRIORITY);
-}
-
-/**
- * Ranks unfinished cards by their own priority, then by their highest unfinished item priority, then by source order.
+ * Ranks unfinished cards by their own priority, retaining source order within each level.
  */
 export function stableSortTasksByPriority(tasks) {
   // Preserve completion order in done-card slots while ranking unfinished cards.
   const completed = (tasks ?? []).filter(task => task.status === "done");
   let completedIndex = 0;
   return [...(tasks ?? [])]
-    .map((task, index) => ({ task, index, lead: taskLeadItemPriority(task) }))
+    .map((task, index) => ({ task, index }))
     .sort((left, right) => (
       taskPriority(left.task) - taskPriority(right.task)
-      || left.lead - right.lead
       || left.index - right.index
     ))
     .map(({ task }) => task.status === "done" ? completed[completedIndex++] : task);
