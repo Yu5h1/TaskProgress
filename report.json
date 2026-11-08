@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-11-08T14:28:12.650030+00:00",
+  "updated_at": "2026-11-08T14:53:41.700306+00:00",
   "tasks": [
     {
       "id": "agent-workflow",
@@ -2183,6 +2183,19 @@
               "actor": "codex",
               "at": "2026-11-08T14:28:12.650030+00:00",
               "session": "Card priority only"
+            }
+          ]
+        },
+        {
+          "id": "problem-retired-tone",
+          "title": "問題：已取代／已棄案的子項和「未開始」同用 muted 色調（viewer/assets/item-state.js 的 ITEM_STATE_META），又留在未完成清單裡，使用者看起來以為還要處理；應有和待處理區分得出來的外觀（VCP 使用者 2026-11-08，live-feedback 卡）",
+          "status": "planned",
+          "activity": [
+            {
+              "event": "created",
+              "actor": "claude",
+              "at": "2026-11-08T14:53:41.700306+00:00",
+              "session_id": "d1605ccb-3524-48c7-8364-9edf9d260151"
             }
           ]
         }
