@@ -1,0 +1,30 @@
+export const url='http://127.0.0.1:8021/?scope=web-ui-pilot-test&dev=none';
+export const ready=`!!document.querySelector('.view-mode-toggle:not([disabled])')`;
+export async function run(page,evidence,{scheme}) {
+  const check=(name,ok)=>evidence.check(`${scheme}: ${name}`,ok);
+  const raw=()=>page.evaluate(`fetch('/reports/web-ui-pilot-test/report.json',{cache:'no-store'}).then(r=>r.json())`);
+  const before=await raw();
+  await page.click('.view-mode-toggle');
+  await page.until(`!!document.querySelector('[data-card-id="a"] .task-title-input')`);
+  await page.evaluate(`(() => { const toggle=document.querySelector('button.edit-mode-button[aria-pressed]'); if(toggle.getAttribute('aria-pressed')!=='true')toggle.click(); })()`);
+  check('editing shows one status dropdown at the right-hand position',await page.evaluate(`[...document.querySelectorAll('.editor-task-card')].every(card=>card.querySelectorAll('select[aria-label$=" 狀態"]').length===1 && card.querySelector('.task-header-meta select[aria-label$=" 狀態"]') && !card.querySelector('.task-header-meta .status-badge') && !card.querySelector('.time-task-status-line select[aria-label$=" 狀態"]'))`));
+  const select='[data-card-id="a"] .task-header-meta select';
+  await page.change(select,'in_progress');
+  await page.until(`document.querySelector(${JSON.stringify(select)}).value==='in_progress'`);
+  check('right dropdown edits a draft without writing in cautious mode',JSON.stringify(await raw())===JSON.stringify(before));
+  await page.click('.edit-save-button');
+  await page.until(`fetch('/reports/web-ui-pilot-test/report.json',{cache:'no-store'}).then(r=>r.json()).then(r=>r.tasks.find(t=>t.id==='a').status==='in_progress')`);
+  check('right dropdown saves the selected status',true);
+  await page.evaluate(`document.querySelector('[data-card-id="a"]').scrollIntoView({block:'center'})`);
+  await evidence.screenshot(`${scheme}-right-status-dropdown`);
+  await page.send('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:1,mobile:false});
+  check('narrow header keeps the dropdown beside progress without page overflow',await page.evaluate(`(() => { const meta=document.querySelector('[data-card-id="a"] .task-header-meta'), value=meta.querySelector('strong').getBoundingClientRect(), select=meta.querySelector('select').getBoundingClientRect(); return select.left>=value.right-1 && Math.abs(select.top+select.height/2-value.top-value.height/2)<5 && document.documentElement.scrollWidth<=innerWidth+1; })()`));
+  await evidence.screenshot(`${scheme}-right-status-dropdown-narrow`);
+  await page.send('Emulation.clearDeviceMetricsOverride');
+  await page.change(select,'planned');
+  await page.click('.edit-save-button');
+  await page.until(`fetch('/reports/web-ui-pilot-test/report.json',{cache:'no-store'}).then(r=>r.json()).then(r=>r.tasks.find(t=>t.id==='a').status==='planned')`);
+  await page.click('.view-mode-toggle');
+  await page.until(`!document.querySelector('.task-title-input')`);
+  check('preview returns to one status badge and no status dropdown',await page.evaluate(`[...document.querySelectorAll('.editor-task-card')].every(card=>card.querySelectorAll('.task-header-meta .status-badge').length===1 && !card.querySelector('select[aria-label$=" 狀態"]'))`));
+}
