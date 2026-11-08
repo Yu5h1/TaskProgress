@@ -22,7 +22,7 @@ TaskProgress Report
 使用者可以同時表達工作的重要程度與同級工作的先後順序。全部未指定優先級時，只需安排陣列位置，不必為了移動位置提高 priority。
 
 - [priority policy](../viewer/assets/priority-policy.js) 定義 0 立即、1 優先、2 一般、3 次要、4 未指定；缺省為 4，預覽隱藏未指定標籤。
-- [report model](../viewer/assets/report-model.js) 擁有 `stableSortTaskItemsByPriority`；[TaskCard](../experiments/editor-svelte-spike/src/TaskCard.svelte) 共用此排序。
+- [report model](../viewer/assets/report-model.js) 擁有 `stableSortTaskItemsByPriority`；正式 [TaskCard](../ui/web-workflow/viewer.mjs) 共用此排序。
 - [Report operations](../service/report_operations.py) 擁有新增、狀態更新與位置操作；省略位置時未完成新增至尾端，完成新增或轉入時置頂。
 - 子項目 status 與 priority 由既有 schema 驗證；[report skill](../.agents/skills/task-progress-report/SKILL.md) 提供子項目生命週期與順序指引。
 
@@ -33,8 +33,23 @@ UX session 曾否寫入 priority 5 及其實際錯誤畫面尚未重現，不作
 1. 未完成項目先按 priority 由 0 到 4 排序；同級維持來源陣列順序。缺省與明示 4 同級。
 2. 例如來源 A(4)、B(1)、C(4)，顯示為 B、A、C；把 C 移到 A 前方後顯示為 B、C、A。全部為 4 時，顯示順序完全等於陣列順序。
 3. 不按 planned／in_progress／blocked／archive 再分組；status 表達工作狀態，priority 與陣列位置表達排序。
-4. 已完成項目維持完成堆疊，不按 priority 排序；新完成、重新完成、直接新增 done 置頂，重複設為 done 不移位。
+4. 已完成、已取代、已棄案依[結束子項堆疊](#結束子項堆疊)收在未完成項目之後，不按 priority 排序。
 5. 預覽與編輯使用同一排序投影，修改 priority 後更新顯示；保留 stable ID，避免用顯示索引定位編輯目標。Undo／Redo 還原資料後重新投影。
+
+## 結束子項堆疊
+
+`done`、`obsolete`、`discontinued` 合併在同一卡片的下方，最後進入結束狀態的項目排在這個堆疊最上面。
+未結束項目仍按優先級、原始資料順序排列；狀態標籤順序不把結束區移到未結束項目之前。已取代保留淡綠色，已棄案保留灰紅色。
+
+- 只投影顯示：`done` 仍存 `completed_items`，已取代／已棄案仍存 `pending_items`；每列保留原始欄位及穩定 ID，編輯與刪除依此定位。
+- 結束時間由[活動紀錄](ItemActivityLog.md#結束狀態轉換)提供。改標題、優先級、取代資訊或棄案理由不改結束順序；恢復未結束狀態後回到未結束區，再結束會取得新位置。
+- 既有資料缺少結束事件時不補造時間：有時間者在前，沒有時間者維持 `completed_items` 原順序、再接原 `pending_items` 中的退場順序。相同時間保持此來源順序。文件綁定的衍生完成不寫入活動紀錄。
+- 預覽沿用完成區的收合方式，只顯示最新一列，其餘由「顯示更多」展開；含退場項時區名為「已結束」。編輯模式顯示全部結束項目。連結指向收合中的項目時展開，保留定位與提示。
+- 結束子項不參與未完成子項拖曳。整張卡片的狀態、計數與釘選規則不在本輪修改範圍。
+
+Volume: 修改既有活動紀錄、Editor Core 接線、正式任務卡投影及測試，新增一個約 20 行的顯示投影。
+Precedent: 沿用既有活動紀錄、交易歷史與完成堆疊；不新增報告欄位。
+Proof: 定向 Node／Python 測試、明暗模式 Browser 往返、正式服務唯讀檢查。驗證結果見[本輪清單](../checklists/item-terminal-stack.checklist)。
 
 ## CLI 位置操作設計
 

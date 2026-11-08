@@ -8,6 +8,7 @@ export async function run(page,evidence,{scheme}) {
   await page.evaluate('window.cardUiReload=true');
   await page.send('Page.reload',{ignoreCache:true}); await page.until(`!window.cardUiReload && document.readyState==='complete' && (${ready})`);
   await page.evaluate(`document.querySelector('.card-toolbar-icon[aria-label="全部展開"]')?.click()`);
+  await page.evaluate(`document.querySelector('[data-card-id="low"] .completed-more[aria-expanded="false"]')?.click()`);
   check('cards have no visible corner drag button',await page.evaluate(`!document.querySelector('.replica-card-grip')`));
   await page.evaluate(`document.querySelector('[data-card-id="low"]').scrollIntoView({block:'center',behavior:'instant'})`);
   check('retirement states have separate semantic tones',await page.evaluate(`document.querySelector('#item-low--replaced .item-status-capsule').classList.contains('status-obsolete') && document.querySelector('#item-low--dropped .item-status-capsule').classList.contains('status-discontinued')`));

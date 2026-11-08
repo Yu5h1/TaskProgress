@@ -50,6 +50,17 @@ export async function run(page,evidence,{scheme}) {
   check('a scope-local replacement document can be saved',work(await raw()).retirement.replaced_by.document==='Documentation/Retirement.md#replacement');
   await page.change(select,'planned');await save('planned');
   const bound='[data-item-row="bound/check"] .inline-status-select';
+  const boundTitle='[data-item-row="bound/check"] .inline-edit-input';
+  await page.until(`!!document.querySelector(${JSON.stringify(boundTitle)})`);
+  await page.evaluate(`(()=>{const n=document.querySelector(${JSON.stringify(boundTitle)});n.value='Renamed bound completion ${scheme}';n.dispatchEvent(new Event('input',{bubbles:true}))})()`);
+  await page.change('[data-item-row="bound/check"] .inline-priority-select','1');
+  await page.click('.edit-save-button');
+  await page.until(`fetch('/reports/web-ui-pilot-test/report.json',{cache:'no-store'}).then(r=>r.json()).then(r=>r.tasks.find(t=>t.id==='bound').pending_items.find(i=>i.id==='check')?.title==='Renamed bound completion ${scheme}')`);
+  check('title and priority edits on a derived completed row reach its pending source',(await raw()).tasks.find(t=>t.id==='bound').pending_items.find(i=>i.id==='check').priority===1);
+  await page.evaluate(`(()=>{const original=globalThis.confirm;globalThis.confirm=()=>true;try{document.querySelector('[data-item-row="bound/check"] .inline-delete-button').click()}finally{globalThis.confirm=original}})()`);
+  check('delete resolves a derived completed row to its source',await page.evaluate(`!document.querySelector('[data-item-row="bound/check"]')`));
+  await page.evaluate(`document.dispatchEvent(new KeyboardEvent('keydown',{key:'z',ctrlKey:true,bubbles:true,cancelable:true}))`);
+  check('Undo restores the derived completed row',await page.evaluate(`!!document.querySelector('[data-item-row="bound/check"]')`));
   await page.until(`!!document.querySelector(${JSON.stringify(bound)})`);await page.change(bound,'discontinued');await page.until(`!!document.querySelector('.retirement-form')`);
   await input('reason','已由其他工作取代的完成清單');await apply();await waitClosed();await page.click('.edit-save-button');
   await page.until(`fetch('/reports/web-ui-pilot-test/report.json',{cache:'no-store'}).then(r=>r.json()).then(r=>r.tasks.find(t=>t.id==='bound').pending_items.find(i=>i.id==='check')?.status==='discontinued')`);
@@ -63,6 +74,7 @@ export async function run(page,evidence,{scheme}) {
   await page.change(select,'planned');
   await page.until(`fetch('/reports/web-ui-pilot-test/report.json',{cache:'no-store'}).then(r=>r.json()).then(r=>r.tasks.find(t=>t.id==='low').pending_items.find(i=>i.id==='work')?.status==='planned')`);
   await page.click('.view-mode-toggle');
+  await page.evaluate(`document.querySelector('[data-card-id="low"] .completed-more[aria-expanded="false"]')?.click()`);
   await page.until(`!!document.querySelector('#item-low--replaced .item-status-capsule')`);
   check('replacement and drop badges use different semantic tones',await page.evaluate(`document.querySelector('#item-low--replaced .item-status-capsule').classList.contains('status-obsolete') && document.querySelector('#item-low--dropped .item-status-capsule').classList.contains('status-discontinued')`));
   await page.evaluate(`document.querySelector('[data-card-id="low"]').scrollIntoView({block:'center',behavior:'instant'})`);

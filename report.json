@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-11-08T17:25:16.037355+00:00",
+  "updated_at": "2026-11-08T17:57:55.975958+00:00",
   "tasks": [
     {
       "id": "agent-workflow",
@@ -2302,6 +2302,25 @@
               "actor": "codex",
               "at": "2026-11-08T17:25:16.037355+00:00",
               "session": "Complete child status editing"
+            }
+          ]
+        },
+        {
+          "id": "item-terminal-stack",
+          "title": "子項結束堆疊：已完成、已取代、已棄案合併沉底並保留結束先後",
+          "status": "planned",
+          "priority": 1,
+          "document_ref": {
+            "kind": "checklist",
+            "scope_id": "task-progress",
+            "task": "item-terminal-stack"
+          },
+          "activity": [
+            {
+              "event": "created",
+              "actor": "codex",
+              "at": "2026-11-08T17:57:55.975958+00:00",
+              "session": "子項結束狀態堆疊"
             }
           ]
         }

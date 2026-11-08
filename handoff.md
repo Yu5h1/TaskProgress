@@ -6,6 +6,8 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
 
 ## Current state (2026-09-29)
 
+- **Terminal child stacking:** continue from [ReportItemOrderingPlan](Documentation/ReportItemOrderingPlan.md#結束子項堆疊), the [activity contract](Documentation/ItemActivityLog.md#結束狀態轉換), and [this round](checklists/item-terminal-stack.checklist). `item-stack.js` owns display grouping; Editor Core injects `recordTerminalTransitions` from the activity owner. Raw array membership remains status-based; preserve the field-derived status fallback and host command remapping when working on bound rows.
+
 - **Report card source ordering:** [CardDisclosurePlan](Documentation/CardDisclosurePlan.md#順排寫回原始順序) and [the round](checklists/report-card-source-reorder.checklist) own forward-mode same-priority dragging, preview writes/history and draft ordering. `card-reorder.js` is the one source-array move model. Free mode is page-local; legacy browser order is ignored, while mode/pins/visibility preferences remain. Checklist/Decision still offer only temporary free ordering, not source-document moves.
 
 - **TrayHost 清單位置與 icon（2026-10-28）。** 唯一來源與啟動入口在專案根目錄 `taskprogress.trayapp`，CLI 回找根目錄；詳見 [TrayWorkerPlan〈Manifest〉](Documentation/TrayWorkerPlan.md#manifest)。清單採 schema 2，明確引用簽入的 `light.ico`／`dark.ico`（文字 `TP`），避免首次啟動前落到 TrayHost 預設 icon。`Publish.cmd` 會關閉根目錄及舊 `Build/win-x64/taskprogress.trayapp.json` identity，再發布並移除舊清單。現有 EXE 尚未重新發布，執行中的舊 Host 需依發布程序退出／重啟後才會顯示新 icon。

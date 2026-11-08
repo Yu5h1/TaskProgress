@@ -1,5 +1,6 @@
 import { createEditorTransaction } from "./editor-transaction.js";
 import { moveReportCard } from "./card-reorder.js";
+import { recordTerminalTransitions } from './item-activity.js';
 import "./editor-core-runtime.js";
 import {
   calculateProjectProgress,
@@ -10,6 +11,7 @@ import {
 const core = globalThis.TaskProgressEditorCoreRuntime.createEditorCore({
   createEditorTransaction,
   moveReportCard,
+  recordTerminalTransitions,
   calculateProjectProgress,
   calculateTaskProgress,
   validateReport,

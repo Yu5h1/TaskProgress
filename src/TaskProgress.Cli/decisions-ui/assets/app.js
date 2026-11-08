@@ -1051,7 +1051,7 @@ function taskListProps(tasks) {
     policy: PRIORITY_POLICY,
     emptyLabel: "沒有符合目前篩選的工作項目。",
     onCommand: (command) => {
-      if (command.type === 'set-item-status') {
+      if (command.itemId && command.field) {
         // A completed binding may be projected into a different display list.
         const task = state.report.tasks.find(task => task.id === command.taskId);
         const field = ['pending_items','completed_items'].find(field => task?.[field]?.some(item => item?.id === command.itemId));

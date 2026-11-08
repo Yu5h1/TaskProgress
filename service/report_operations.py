@@ -4,6 +4,7 @@ from __future__ import annotations
 import json
 import os
 import re
+from datetime import datetime, timedelta, timezone
 from copy import deepcopy
 from pathlib import Path, PureWindowsPath
 
@@ -80,11 +81,33 @@ def append_activity(item, entry):
     entries = [*item.get("activity", []), entry]
     created = next((i for i, e in enumerate(entries) if e["event"] == "created"), None)
     latest = {e["event"]: i for i, e in enumerate(entries) if e["event"] in LATEST_EVENTS}
+    latest.update({"terminal": i for i, e in enumerate(entries) if terminal_activity(e)})
     others = [i for i, e in enumerate(entries)
               if e["event"] not in PERMANENT_EVENTS | LATEST_EVENTS | {"created"}][-ACTIVITY_RECENT_LIMIT:]
     keep = {i for i, e in enumerate(entries) if e["event"] in PERMANENT_EVENTS}
     keep |= set(latest.values()) | set(others) | ({created} if created is not None else set())
     item["activity"] = [e for i, e in enumerate(entries) if i in keep]
+
+
+def terminal_activity(entry):
+    return entry["event"] == "done" or (entry["event"] == "updated" and entry.get("note") in {"status:obsolete", "status:discontinued"})
+
+
+def transition_entry(report, previous_status, item, actor, at, fallback_status="planned"):
+    status = item.get("status", fallback_status)
+    entry = activity_entry(status_event(previous_status, status) or "updated", actor, at)
+    if status == previous_status or status not in {"done", "obsolete", "discontinued"}:
+        return entry
+    if status != "done":
+        entry["note"] = "status:" + status
+    latest = max((datetime.fromisoformat(e["at"].replace("Z", "+00:00"))
+                  for task in report.get("tasks", []) for field in ("pending_items", "completed_items")
+                  for row in task.get(field, []) if isinstance(row, dict)
+                  for e in row.get("activity", []) if terminal_activity(e)), default=None)
+    current = datetime.fromisoformat(at.replace("Z", "+00:00"))
+    if latest is not None and current <= latest:
+        entry["at"] = (latest + timedelta(milliseconds=1)).astimezone(timezone.utc).isoformat(timespec="milliseconds").replace("+00:00", "Z")
+    return entry
 
 
 def activity_entry(event, actor, at, note=None):
@@ -415,11 +438,11 @@ def check_claim(item, operation, actor, at):
         append_activity(item, activity_entry("takeover", actor, at))
 
 
-def stamp_new_item(item, actor, at):
+def stamp_new_item(item, actor, at, report=None, field="pending_items"):
     append_activity(item, activity_entry("created", actor, at))
-    event = status_event(None, item.get("status"))
-    if event:
-        append_activity(item, activity_entry(event, actor, at))
+    effective = item.get("status", "done" if field == "completed_items" else "planned")
+    if effective in {"in_progress", "done", "obsolete", "discontinued"}:
+        append_activity(item, transition_entry(report or {}, None, item, actor, at, effective))
 
 
 def without_activity(item):
@@ -481,14 +504,14 @@ def apply_operations(report, overlay, operations, actor=None, at=None, folder=No
                 require(value.get("kind") != "report_pointer", "Only ordinary tasks may be added", "value.kind")
                 require(not any(t["id"] == value.get("id") for t in report["tasks"]), "Task ID already exists", "value.id")
                 value = deepcopy(value)
+                report["tasks"].insert(0 if value.get("status") == "done" else len(report["tasks"]), value)
                 for key in ("pending_items", "completed_items"):
                     for item in value.get(key) if isinstance(value.get(key), list) else []:
                         if isinstance(item, dict):
                             require("activity" not in item, "activity is written by the CLI, not supplied", "value." + key)
-                            stamp_new_item(item, actor, at)
+                            stamp_new_item(item, actor, at, report, key)
                 check_card_document(report, value, folder)
                 check_card_goal(value, folder)
-                report["tasks"].insert(0 if value.get("status") == "done" else len(report["tasks"]), value)
                 task_id = value.get("id")
             else:
                 task = find_task(report, task_id)
@@ -522,7 +545,7 @@ def apply_operations(report, overlay, operations, actor=None, at=None, folder=No
                     require(value.get("blocked_reason") is None or value["status"] == "blocked",
                             "blocked_reason belongs only to a blocked item", "value.blocked_reason")
                     check_blocked_reason(value)
-                    stamp_new_item(value, actor, at)
+                    stamp_new_item(value, actor, at, report)
                     key = "completed_items" if value["status"] == "done" else "pending_items"
                     if "position" in operation:
                         require(key == "pending_items", "Completed items cannot specify a position", "position")
@@ -569,8 +592,8 @@ def apply_operations(report, overlay, operations, actor=None, at=None, folder=No
                                 "blocked_reason belongs only to a blocked item", "blocked_reason")
                         check_blocked_reason(item)
                         if without_activity(item) != before_item:
-                            event = status_event(before_item.get("status"), item.get("status")) or "updated"
-                            append_activity(item, activity_entry(event, actor, at))
+                            fallback = "done" if previous == "completed_items" else "planned"
+                            append_activity(item, transition_entry(report, before_item.get("status", fallback), item, actor, at, fallback))
                         effective = item.get("status", "done" if previous == "completed_items" else "planned")
                         destination = "completed_items" if effective == "done" else "pending_items"
                         if destination != previous:

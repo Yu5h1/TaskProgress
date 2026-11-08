@@ -2,6 +2,7 @@
 function createEditorCore({
   createEditorTransaction = global.TaskProgressEditorTransactionRuntime?.createEditorTransaction,
   moveReportCard,
+  recordTerminalTransitions = (_before, after) => after,
   calculateProjectProgress,
   calculateTaskProgress,
   validateReport,
@@ -287,7 +288,13 @@ function createReportEditorSession(
     if (!command || typeof command !== "object") {
       throw new TypeError("Editor command 必須是物件。");
     }
-    return transaction.apply(command, reduce, commandMergeKey(command));
+    const terminalChange = ['set-item-status', 'move-item', 'add-item'].includes(command.type)
+      || (command.type === 'set-item-field' && command.property === 'status');
+    return transaction.apply(command, (draft, change) => {
+      const before = terminalChange ? cloneValue(draft) : null;
+      const after = reduce(draft, change);
+      return before ? recordTerminalTransitions(before, after) : after;
+    }, commandMergeKey(command));
   }
 
   function reduce(draft, command) {

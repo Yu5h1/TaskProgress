@@ -439,7 +439,7 @@
           }
         },
         "activity": {
-          "$comment": "Written by the Report CLI and the Viewer, never by hand. The created entry and every started and takeover entry are kept forever, so the executors stay known; the latest released and disputed entries are kept; only the most recent 3 other entries are kept.",
+          "$comment": "Written by the Report CLI and the Viewer, never by hand. Keep the first created, every started and takeover, the latest released and disputed, and the latest terminal transition (done, or updated with reserved note status:obsolete/status:discontinued); keep the most recent 3 other entries too.",
           "type": "array",
           "maxItems": 64,
           "items": {

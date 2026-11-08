@@ -1,0 +1,30 @@
+# 子項結束狀態堆疊 Checklist
+
+Current round: `Documentation/ReportItemOrderingPlan.md#結束子項堆疊`.
+
+基準版本：`5c1cb7d`。既有完成、卡片與退場狀態驗證保持原輪紀錄，本輪只處理三種結束子項的排序與編輯接線。
+
+驗證版本：正式 Web UI `1b1d519f20f5d63483d50f801a43ec742d003b74a0fb33ad2c71a0cce402ff07`，`Publish.cmd --nopause --restart` 成功。
+證據根目錄：`../Web/.verify/copy-id-delivery-b341bdcb/source/.verify/`。
+Node 49 項、Python 7 項；Browser `item-stack/2026-11-08T17-58-46-956Z` 34/34、`product-item-status/2026-11-08T17-59-34-031Z` 38/38。
+正式唯讀 `item-stack-formal/2026-11-08T18-01-22-007Z`（winform）與 `item-stack-formal/2026-11-08T18-02-03-132Z`（data-driven）各 4/4；後者含 14 個退場項目，來源位元組不變。
+獨立複核：retirement_review 依規格與 diff 確認所有條件符合；同毫秒重入、隱含 done、衍生完成欄位定位三項發現均修正並補驗。
+Browser 刪除檢查只在暫存頁面確認欄位定位，限定代答既有原生確認框；本輪不重新驗收確認框本身。
+
+- [x] **1. 結束子項合併沉底並保留操作先後**
+  Outcome: 已完成、已取代、已棄案共同堆疊在未結束項目下方，資料欄位及編輯目標正確。
+  Checks:
+    - [x] **重現並修正退場項穿插**
+      - Action: 在 8021 暫存資料測試站觀察同卡待處理、已取代、已棄案與已完成項目，重建後用同樣頁面核對。
+      - Expect: 退場項不出現在待處理區，三種結束項共同位於下方且不參與優先級排序。
+      - Observed: 基準版本 low/work、low/replaced、low/dropped 均在 pending 清單；證據 retired-stack-baseline/2026-11-08T17-36-45-439Z。
+      - Resolved: item-stack 最終 34/34，混合狀態的待處理區僅保留未結束項目；結束區由新到舊，保留原始資料欄位。
+    - [x] **活動與交易順序**
+      - Action: 執行 item-stack、item-activity、editor-core 的定向 Node 測試及 Python 結束活動與既有 CLI 案例。
+      - Expect: 同時戳與批次排序、草稿先後、Undo／Redo、重新開啟、一般修改與活動裁剪均符合規則。
+    - [x] **瀏覽器保存往返與原始欄位定位**
+      - Action: 執行 item-stack 及既有 item-status Browser 案例，明暗模式核對草稿、保存、重載、退場資訊與收合連結定位。
+      - Expect: 結束順序保持；改標題、優先級、理由不改結束時間，編輯與刪除命中原始欄位，兩種退場分色保留。
+    - [x] **獨立複核及正式頁面**
+      - Action: 由未實作的 context 依規格與 diff 複核，重建發布後唯讀核對正式頁面。
+      - Expect: 規格條件與正式顯示一致；不新增整張卡片狀態，不修改既有使用者項目的內容。

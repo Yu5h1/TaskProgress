@@ -24,7 +24,7 @@
 | `at` | ISO 時間 |
 | `note` | 選填。`disputed` 必填，寫明不同意的理由（最多 300 字） |
 
-- 保留規則：第一筆 `created` 與每一筆 `started`、`takeover` 永久保留，執行過的 session 才不會被擠掉；`released`、`disputed` 各保留最近一筆；其他事件只留最近 3 筆（常數，暫不提供設定）。schema 的 `maxItems` 為 64。JS（`viewer/assets/item-activity.js`）、Python（`service/report_operations.py`）與 schema 一致，由測試核對。
+- 保留規則：第一筆 `created` 與每一筆 `started`、`takeover` 永久保留，執行過的 session 才不會被擠掉；`released`、`disputed` 各保留最近一筆；另保留最近一筆[結束狀態轉換](#結束狀態轉換)，其他事件只留最近 3 筆（常數，暫不提供設定）。schema 的 `maxItems` 為 64。JS（`viewer/assets/item-activity.js`）、Python（`service/report_operations.py`）與 schema 一致，由測試核對。
 - 紀錄由寫入端自動產生，不能在 `item.add`／`task.add` 的值裡自行提供。既有子項不回填。
 - 2026-10-21 起 `session` 改為名稱、ID 移到 `session_id`；當時 TaskProgress 與 UX report 裡以 `session` 存 ID 的舊紀錄已一次遷移，名稱取自各 session 的標題。
 - 只有實際改變內容或位置的寫入才記一筆；no-op 仍是 no-op。
@@ -33,6 +33,15 @@
 
 - **Report CLI**：`report apply` 的請求必須帶 `actor`，`session`（名稱）與 `session_id` 可省略，知道就填。新增記 `created`（新增時狀態為 `in_progress`／`done` 再記 `started`／`done`）；`item.update` 改成 `in_progress` 記 `started`、改成 `done` 記 `done`，其他改變記 `updated`；`item.move` 實際換位記 `updated`。格式見 [Report CLI 修改](ReportCliUsage.md#身分與認領)。
 - **Viewer**：編輯模式存檔與預覽拖曳換位，對新增、改變或換位的子項各記一筆 `user`。只因別項移動而位置平移的子項不記。紀錄一律接在已存檔的版本後面，舊草稿不會蓋掉別人寫的紀錄。使用者寫入不受認領檢查阻擋。
+
+## 結束狀態轉換
+
+完成沿用 `event: done`。改為已取代／已棄案時，以既有 `updated` 事件及保留字 `note: status:obsolete`／`status:discontinued` 記下轉換。
+這兩個精確字串由寫入端產生；一般修改或自然語言理由不能代替轉換標記。最新結束事件不會被後續修改擠出最近三筆紀錄。
+
+Viewer 在同一個編輯交易內產生標記，Undo／Redo 一起還原；存檔接續已保存的活動，同時保留草稿中有效的轉換時間。
+CLI 每個操作也使用同一規則。同一時間刻度的連續轉換至少遞增一毫秒，保留草稿與批次的操作先後。
+既有資料不回填，純顯示及文件綁定的衍生完成不產生紀錄；堆疊的缺少時間回退規則由[子項排序](ReportItemOrderingPlan.md#結束子項堆疊)擁有。
 
 ## 認領
 

@@ -1,5 +1,6 @@
 """Foreground source-order acceptance host; temporary data, no production registration."""
 import argparse
+import copy
 import importlib.util
 import json
 import tempfile
@@ -13,7 +14,7 @@ pilot = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(pilot)
 
 
-def fixture(next_marker=False, card_ui=False, completion=False):
+def fixture(next_marker=False, card_ui=False, completion=False, terminal_stack=False):
     def card(key, priority=2, child_priority=2, status='planned'):
         items = [dict(id='work', title='Work', priority=child_priority)]
         if next_marker:
@@ -46,6 +47,22 @@ def fixture(next_marker=False, card_ui=False, completion=False):
         report['schema_version'] = '1.1'
         report['tasks'].append(dict(id='pointer-finished', kind='report_pointer', title='Completed target',
                                     report_ref=dict(scope_id='example')))
+    if terminal_stack:
+        low = next(task for task in report['tasks'] if task['id'] == 'low')
+        low['pending_items'][0]['priority'] = 3
+        for key, status, second in [('replaced', 'obsolete', 2), ('dropped', 'discontinued', 3)]:
+            row = next(row for row in low['pending_items'] if row['id'] == key)
+            row['priority'] = 0
+            row['activity'] = [dict(event='updated', actor='codex', at=f'2026-11-08T00:00:0{second}Z', note='status:' + status)]
+        low['completed_items'] = [dict(id='done-new', title='Newest done', status='done', priority=3,
+            activity=[dict(event='done', actor='codex', at='2026-11-08T00:00:04Z')]),
+            dict(id='done-old', title='Old done', status='done', priority=0,
+            activity=[dict(event='done', actor='codex', at='2026-11-08T00:00:01Z')])]
+        for scheme in ['light', 'dark']:
+            stack = copy.deepcopy(low)
+            stack['id'] = 'stack-' + scheme
+            stack['title'] = 'Terminal stack ' + scheme
+            report['tasks'].append(stack)
     return report
 
 
@@ -54,12 +71,13 @@ if __name__ == '__main__':
     parser.add_argument('--next-marker', action='store_true', help='Use long, repeated child IDs for Next regression')
     parser.add_argument('--card-ui', action='store_true', help='Include retired states for card UI regression')
     parser.add_argument('--completion', action='store_true', help='Include completed cards and child ordering')
+    parser.add_argument('--terminal-stack', action='store_true', help='Include dated mixed terminal child rows (requires --card-ui)')
     args = parser.parse_args()
     with tempfile.TemporaryDirectory(prefix='taskprogress-card-order-') as temporary:
         data = Path(temporary) / 'data'
         pilot.data_directories(data)
         report = data / 'web-ui-pilot-test/report.json'
-        report.write_text(json.dumps(fixture(args.next_marker, args.card_ui, args.completion), ensure_ascii=False), encoding='utf-8')
+        report.write_text(json.dumps(fixture(args.next_marker, args.card_ui, args.completion, args.terminal_stack), ensure_ascii=False), encoding='utf-8')
         if args.card_ui:
             document = data / 'web-ui-pilot-test/Documentation/Retirement.md'
             document.parent.mkdir(exist_ok=True)

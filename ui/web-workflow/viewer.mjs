@@ -4,7 +4,8 @@ import { parseReference } from '@taskprogress/task-search.js';
 import { liftNextItem } from '@taskprogress/next-marker.js';
 import { itemReference } from '@taskprogress/item-reference.js';
 import { formatActivity } from '@taskprogress/item-activity.js';
-import { statusLinks, statusTooltip } from '@taskprogress/item-state.js';
+import { isRetiredStatus, statusLinks, statusTooltip } from '@taskprogress/item-state.js';
+import { taskItemStack } from '@taskprogress/item-stack.js';
 import { checklistReturnHref, linkSelectionHref } from '@taskprogress/link-selection.js';
 import { html, nothing, repeat, live, View, Cards, text, inline, action, holdAction, reorderAction, disclosure, copyButton, cardId, filters, progressBar, moduleStrip, saveBar, dialog, productTheme } from './common.mjs';
 import { registerUi } from '@web/ui';
@@ -57,7 +58,7 @@ function reorderItems(p, view, task) {
   return { enabled:!!(p.editing || p.reorderable), axis:'vertical', surface:p.editing ? false : 'item', previewClasses:p.editing ? {before:'item-drop-before',after:'item-drop-after',dragging:'item-row-dragging'} : {before:'item-gap-before',after:'item-gap-after',dragging:'item-row-dragging'}, onMove(request) {
     if (!(p.editing || p.reorderable)) return;
     const items=task.pending_items ?? [], item=items.find(i=>i.id===request.id), target=items.find(i=>i.id===request.targetId);
-    if (!item || !target || item.legacy || target.legacy || p.policy.normalize(item.priority,p.policy.fallbackValue)!==p.policy.normalize(target.priority,p.policy.fallbackValue)) return;
+    if (!item || !target || isRetiredStatus(item.status) || isRetiredStatus(target.status) || item.legacy || target.legacy || p.policy.normalize(item.priority,p.policy.fallbackValue)!==p.policy.normalize(target.priority,p.policy.fallbackValue)) return;
     const before=items.map(i=>i.id), after=before.filter(id=>id!==item.id);
     after.splice(after.indexOf(target.id)+(request.placement==='after'?1:0),0,item.id);
     if (before.every((id,index)=>id===after[index])) return;
@@ -131,7 +132,7 @@ function itemRow(p, v, task, field, item, lead) {
   const linked = targets.filter(t => t.href);
   const key = `${task.id}/${item.id}`;
   if (!linked.length) v.state[`wait:${key}`] = false;
-  const canReorder=(editing || p.reorderable) && field==='pending_items' && item.id && !item.legacy;
+  const canReorder=(editing || p.reorderable) && field==='pending_items' && !isRetiredStatus(itemStatus) && item.id && !item.legacy;
   const copyCount = selected ? v.state.selection.keys.size : 1;
   const title = html`<div class="item-row-text">${isNext ? html`<span class="item-next-capsule">Next</span>` : nothing}${selected ? html`<span class="item-row-selected-label">已選取</span>` : nothing}
       ${item.sourceRef ? item.sourceRef.available ? html`<a class="document-source-link" href=${checklistReturnHref(linkSelectionHref(item.sourceRef.href, meta.tone), task.id, item.id)} title=${item.sourceRef.title}><span class="source-icon" aria-hidden="true">${item.sourceRef.kind === 'decision' ? '⚖' : item.sourceRef.manual ? '📋' : '🤖'}</span><span class="source-label">${item.sourceRef.label}</span></a>` : html`<span class="document-source-link source-unavailable" title=${item.sourceRef.error ?? '來源無法讀取'}>⚠️ 來源不可用</span>` : nothing}
@@ -148,7 +149,7 @@ function itemRow(p, v, task, field, item, lead) {
     @keydown=${e => { if (!editing && e.shiftKey && e.key === 'Enter' && p.onSetNext && reference && e.target === e.currentTarget) { e.preventDefault(); setNext(); return; } if (reference) p.selection?.rowKeydown(reference, e); }}>
     ${!editing && v.itemReturnUrl && v.activeItemHash === `#item-${task.id}--${item.id}` ? html`<span class="item-return-anchor"><button type="button" class="item-return" aria-label="返回來源項目" title="返回來源項目" @pointerdown=${e => e.stopPropagation()} @click=${e => { e.stopPropagation(); returnToItem(v); }}>⮪</button></span>` : nothing}
     ${editing && canReorder ? html`<button type="button" class="item-row-grip" data-item-ref=${key} data-reorder-handle draggable="true" aria-label="移動「${item.title}」（Alt+↑／↓，限同優先級）">⠿</button>` : html`<span class="item-row-marker item-row-marker-${itemStatus}" aria-hidden="true">${itemStatus === 'done' ? '✓' : '○'}</span>`}
-    ${editing || (itemStatus !== 'done' && priority && (!priority.hidden || !p.policy.labelsValid)) ? html`<span class="item-row-priority">${editing ? prioritySelect(p.policy, item.priority, `設定「${item.title}」的優先級`, value => cmd('set-item-field', { property: 'priority', value })) : html`<span class="priority-badge priority-${priority.tone}">${p.policy.format(item.priority)}</span>`}</span>` : nothing}
+    ${editing || (itemStatus !== 'done' && !isRetiredStatus(itemStatus) && priority && (!priority.hidden || !p.policy.labelsValid)) ? html`<span class="item-row-priority">${editing ? prioritySelect(p.policy, item.priority, `設定「${item.title}」的優先級`, value => cmd('set-item-field', { property: 'priority', value })) : html`<span class="priority-badge priority-${priority.tone}">${p.policy.format(item.priority)}</span>`}</span>` : nothing}
     <div class="item-row-description" data-reorder-content>${editing ? html`<input class="inline-edit-input" aria-label="編輯子項目：${item.title}" title=${item.title} maxlength="500" .value=${live(item.title)} @input=${e => cmd('set-item-field', { property: 'title', value: e.currentTarget.value })}>`
       : reference ? html`<ui-copy-id class="item-row-copy" .value=${reference} .label=${copyCount > 1 ? `已選取的 ${copyCount} 項參照` : item.title} .prepare=${prepareCopy}>${title}</ui-copy-id>` : title}</div>
     <span class="item-row-utility-panel"><span class="item-row-modules">${moduleStrip({ capsules: p.itemCapsules?.get(item.id) ?? [], moduleOrder: p.moduleOrder, onReorder: p.onModuleReorder, onActivate: id => p.onModuleActivate?.(id, { taskId: task.id, itemId: item.id, itemTitle: item.title }) })}</span>
@@ -185,17 +186,23 @@ function taskCard(p, v, task, card) {
   p = { ...p, nextItemId: task.id === p.nextTaskId ? p.nextItemId : null };
   const meta = status(task.status), priority = p.policy.metadata(task.priority), progress = p.progress[task.id];
   const command = (field, value) => p.onCommand({ type: 'set-task-field', taskId: task.id, field, value });
-  const groups = [{ status: 'done', title: '已完成', className: 'completed-work', field: 'completed_items', items: task.completed_items ?? [] },
-    { status: 'planned', title: '待處理', className: 'pending-work', field: 'pending_items', items: liftNextItem(stableSortTaskItemsByPriority(task.pending_items), p.nextItemId) }];
-  groups.sort((a, b) => { const rank = id => { const i = p.statusOrder?.indexOf(id) ?? -1; return i < 0 ? 99 : i; }; return rank(a.status) - rank(b.status); });
+  const stack = taskItemStack(task);
+  if (v.closedTargetHash !== location.hash && stack.closed.some(({item}) => location.hash === `#item-${task.id}--${item.id}`)) {
+    v.state[`completed:${task.id}`] = true;
+    v.closedTargetHash = location.hash;
+  }
+  const groups = [
+    { status: 'planned', title: '待處理', className: 'pending-work', field: 'pending_items', items: liftNextItem(stableSortTaskItemsByPriority(stack.pending), p.nextItemId).map(item => ({item, field:'pending_items'})) },
+    { status: 'done', title: stack.closed.some(row => isRetiredStatus(row.item.status)) ? '已結束' : '已完成', className: 'completed-work', field: 'completed_items', items: stack.closed },
+  ];
   return html`<article class="task-card editor-task-card priority-${priority?.tone ?? 'unspecified'}" aria-labelledby="task-${task.id}-title">${disclosure({ ...card, id: `task-body-${task.id}`, label: task.title },
     html`<header class="task-header"><div class="task-title-group">${p.editing ? html`<div class="time-task-status-line">${prioritySelect(p.policy, task.priority, `${task.title} 優先級`, value => command('priority', value))}</div>` : nothing}
     <div class="time-task-title-line">${p.editing ? html`<input id="task-${task.id}-title" class="task-title-input" aria-label="任務名稱" maxlength="160" .value=${live(task.title)} @input=${e => command('title', e.currentTarget.value)}>${cardId(task.id)}` : html`<h3 id="task-${task.id}-title">${copyButton([p.scopeId, task.id].filter(Boolean).join(' › '), task.title, task.id)}</h3>`}</div>
     ${p.moduleTotals?.[task.id]?.length ? html`<div class="task-module-totals">${p.moduleTotals[task.id].map(t => html`<span class="task-module-total task-module-total-${t.id}">${t.label}</span>`)}</div>` : nothing}</div>
     <div class="task-header-meta"><strong class="task-fraction" aria-label="子項目完成 ${progress.completed}，共 ${progress.total}">${progress.completed} / ${progress.total}</strong>${p.editing ? options(statuses, task.status, `${task.title} 狀態`, v => command('status', v), 'inline-status-select') : html`<span class="status-badge status-${meta.tone}">${meta.label}</span>`}<code class="task-id">${task.id}</code></div></header>`,
     html`${p.editing ? html`<textarea class="task-summary-input" aria-label="任務描述" maxlength="1000" rows="3" .value=${live(task.summary ?? '')} @input=${e => command('summary', e.currentTarget.value)}></textarea>` : html`<div class="task-summary">${text(task.summary, { lines: 2, emphasis: true })}</div>`}${goal(task.goal_ref, p.scopeId, task.id)}${developer(task.developer)}
-      <div class="work-columns">${groups.map(g => g.items.length || p.editing ? html`<section class="detail-section ${g.className}"><h4 class="detail-heading">${g.title}</h4><ul class="detail-list" id="task-${task.id}-${g.field}" ${action(reorderAction,reorderItems(p,v,task))}>${repeat(g.status === 'done' && !v.state[`completed:${task.id}`] ? g.items.slice(0, 1) : g.items, i => i.id, (item, index) => itemRow(p, v, task, g.field, item, (card.lead && g.status !== 'done' && index === 0) || item.id === p.nextItemId))}</ul>
-      ${g.status === 'done' && g.items.length > 1 ? html`<button type="button" class="completed-more" aria-expanded=${!!v.state[`completed:${task.id}`]} aria-controls="task-${task.id}-${g.field}" @click=${() => { v.state[`completed:${task.id}`] = !v.state[`completed:${task.id}`]; v.draw(); }}><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d=${v.state[`completed:${task.id}`] ? 'M3 10l5-5 5 5' : 'M3 6l5 5 5-5'} fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" /></svg>${v.state[`completed:${task.id}`] ? '收合' : `顯示更多（${g.items.length - 1}項）`}</button>` : nothing}</section>` : nothing)}
+      <div class="work-columns">${groups.map(g => g.items.length || p.editing ? html`<section class="detail-section ${g.className}"><h4 class="detail-heading">${g.title}</h4><ul class="detail-list" id="task-${task.id}-${g.field}" ${action(reorderAction,reorderItems(p,v,task))}>${repeat(g.status === 'done' && !p.editing && !v.state[`completed:${task.id}`] ? g.items.slice(0, 1) : g.items, row => row.item.id, ({item,field}, index) => itemRow(p, v, task, field, item, (card.lead && g.status !== 'done' && index === 0) || item.id === p.nextItemId))}</ul>
+      ${g.status === 'done' && !p.editing && g.items.length > 1 ? html`<button type="button" class="completed-more" aria-expanded=${!!v.state[`completed:${task.id}`]} aria-controls="task-${task.id}-${g.field}" @click=${() => { v.state[`completed:${task.id}`] = !v.state[`completed:${task.id}`]; v.draw(); }}><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d=${v.state[`completed:${task.id}`] ? 'M3 10l5-5 5 5' : 'M3 6l5 5 5-5'} fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" /></svg>${v.state[`completed:${task.id}`] ? '收合' : `顯示更多（${g.items.length - 1}項）`}</button>` : nothing}</section>` : nothing)}
       <section class="task-adder-section">${p.editing ? html`<div class="spike-add-shell">${v.state[`add:${task.id}`] ? html`<form class="spike-add-form" @submit=${e => { e.preventDefault(); const data = new FormData(e.currentTarget); const result = p.onAddItem(task.id, data.get('title'), Number(data.get('priority'))); v.state[`error:${task.id}`] = result?.error; if (!result?.error) v.state[`add:${task.id}`] = false; v.draw(); }}><input name="title" aria-label="新增子項目描述" placeholder="新增待處理項目" maxlength="500"><select name="priority" aria-label="新增子項目優先級">${p.policy.levels.map(level => html`<option value=${level.value} ?selected=${level.value === p.policy.creationDefaultValue}>${p.policy.format(level.value)}</option>`)}</select><button type="submit">新增</button><button type="button" @click=${() => { v.state[`add:${task.id}`] = false; v.draw(); }}>取消</button><p class="spike-field-error" role="alert">${v.state[`error:${task.id}`] ?? ''}</p></form>` : html`<button class="spike-add-button" type="button" aria-label="在「${task.title}」新增子項目" @click=${() => { v.state[`add:${task.id}`] = true; v.draw(); }}>＋</button>`}</div>` : nothing}</section></div>`)}
   </article>`;
 }

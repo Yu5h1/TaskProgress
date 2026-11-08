@@ -9,6 +9,44 @@ const ACTOR_PATTERN = /^[a-z][a-z0-9-]{0,31}$/u;
 const ITEM_FIELDS = ["pending_items", "completed_items"];
 const LABELS = { created: "建立", started: "開始", updated: "修改", done: "完成", takeover: "接手", released: "釋放", disputed: "爭議" };
 
+// Reserved notes distinguish terminal transitions from ordinary edits without changing the event model.
+export function terminalActivityStatus(entry) {
+  if (entry.event === 'done') return 'done';
+  if (entry.event === 'updated' && ['status:obsolete', 'status:discontinued'].includes(entry.note)) return entry.note.slice(7);
+  return null;
+}
+
+export function terminalActivityTime(item) {
+  const status = item?.status ?? 'done';
+  const entry = item?.activity?.findLast(entry => terminalActivityStatus(entry) === status);
+  return entry ? Date.parse(entry.at) || 0 : 0;
+}
+
+export function latestTerminalActivityTime(item) {
+  return Math.max(0, ...(item?.activity ?? []).filter(terminalActivityStatus).map(entry => Date.parse(entry.at) || 0));
+}
+
+function terminalEntry(before, item, at) {
+  if (!['done', 'obsolete', 'discontinued'].includes(item.status) || item.status === before?.status) return null;
+  return { event: item.status === 'done' ? 'done' : 'updated', actor: 'user', at,
+    ...(item.status === 'done' ? {} : { note: `status:${item.status}` }) };
+}
+
+/** One logical millisecond resolves same-clock transitions, including several changes in one draft. */
+export function recordTerminalTransitions(before, after, at = new Date().toISOString()) {
+  const next = structuredClone(after);
+  const previous = new Map((before.tasks ?? []).flatMap(task => objectItemEntries(task).map(({item,status}) => [`${task.id}/${item.id}`, {...item,status}])));
+  let last = Math.max(0, ...(before.tasks ?? []).flatMap(task => objectItems(task).map(latestTerminalActivityTime)));
+  for (const task of next.tasks ?? []) for (const {item,status} of objectItemEntries(task)) {
+    const entry = terminalEntry(previous.get(`${task.id}/${item.id}`), {...item,status}, at);
+    if (!entry) continue;
+    last = Math.max(Date.parse(at), last + 1);
+    entry.at = new Date(last).toISOString();
+    item.activity = appendActivity(item.activity, entry);
+  }
+  return next;
+}
+
 /**
  * Appends an entry, keeping the first created entry and every start or takeover so the executors stay
  * known, the latest release and dispute, and only the most recent other entries.
@@ -18,6 +56,7 @@ export function appendActivity(activity, entry) {
   const created = list.findIndex(item => item.event === "created");
   const latest = new Map();
   list.forEach((item, index) => { if (LATEST_EVENTS.has(item.event)) latest.set(item.event, index); });
+  list.forEach((item, index) => { if (terminalActivityStatus(item)) latest.set('terminal', index); });
   const others = list.map((item, index) => index)
     .filter(index => list[index].event !== "created" && !PERMANENT_EVENTS.has(list[index].event) && !LATEST_EVENTS.has(list[index].event))
     .slice(-ACTIVITY_RECENT_LIMIT);
@@ -42,7 +81,12 @@ function content(item) {
 }
 
 function objectItems(task) {
-  return ITEM_FIELDS.flatMap(field => (task?.[field] ?? []).filter(item => item && typeof item === "object" && !Array.isArray(item)));
+  return objectItemEntries(task).map(({item})=>item);
+}
+
+function objectItemEntries(task) {
+  return ITEM_FIELDS.flatMap(field => (task?.[field] ?? []).filter(item => item && typeof item === "object" && !Array.isArray(item))
+    .map(item => ({item,status:item.status ?? (field === 'completed_items' ? 'done' : 'planned')})));
 }
 
 /** IDs of pending items whose relative order changed: everything outside one longest kept order. */
@@ -76,18 +120,31 @@ function movedIds(beforeTask, afterTask) {
  */
 export function recordUserActivity(before, after, at = new Date().toISOString()) {
   const next = structuredClone(after);
+  let last = Math.max(0, ...(before?.tasks ?? []).flatMap(task => objectItems(task).map(latestTerminalActivityTime)));
   const beforeTasks = new Map((before?.tasks ?? []).map(task => [task.id, task]));
   for (const task of next.tasks ?? []) {
     if (task.kind === "report_pointer") continue;
     const previousTask = beforeTasks.get(task.id);
-    const previousItems = new Map(objectItems(previousTask).map(item => [item.id, item]));
+    const previousItems = new Map(objectItemEntries(previousTask).map(entry => [entry.item.id, entry]));
     const moved = movedIds(previousTask, task);
-    for (const item of objectItems(task)) {
-      const previous = previousItems.get(item.id) ?? null;
-      const changed = !previous || content(previous) !== content(item) || moved.has(item.id);
+    for (const {item,status} of objectItemEntries(task)) {
+      const previousEntry = previousItems.get(item.id);
+      const previous = previousEntry?.item ?? null;
+      const effectiveBefore = previous ? {...previous,status:previousEntry.status} : null;
+      const effectiveAfter = {...item,status};
+      const staged = item.activity?.findLast(entry => terminalActivityStatus(entry) === status);
+      const newTerminal = staged && terminalActivityTime(item) > latestTerminalActivityTime(previous);
+      const changed = !previous || content(previous) !== content(item) || moved.has(item.id) || newTerminal;
       const activity = previous?.activity;
       if (changed) {
-        item.activity = appendActivity(activity, { event: activityEvent(previous, item), actor: "user", at });
+        const entry = newTerminal ? { ...staged, actor: 'user' }
+          : terminalEntry(effectiveBefore, effectiveAfter, at) ?? { event: activityEvent(effectiveBefore, effectiveAfter), actor: "user", at };
+        if (terminalActivityStatus(entry)) {
+          if (!newTerminal) entry.at = new Date(Math.max(Date.parse(at), last + 1)).toISOString();
+          last = Math.max(last, Date.parse(entry.at));
+        }
+        const history = !previous && terminalActivityStatus(entry) ? appendActivity(activity, { event:'created', actor:'user', at:entry.at }) : activity;
+        item.activity = appendActivity(history, entry);
       } else if (activity) {
         item.activity = structuredClone(activity);
       } else {

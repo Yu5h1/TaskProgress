@@ -6,15 +6,16 @@ import { parseReference as f } from "./task-search.js";
 import { liftNextItem as p } from "./next-marker.js";
 import { itemReference as m } from "./item-reference.js";
 import { formatActivity as h } from "./item-activity.js";
-import { statusLinks as g, statusTooltip as _ } from "./item-state.js";
-import { checklistReturnHref as ee, createLinkSelection as te, linkSelectionHref as ne, readLinkSelection as re } from "./link-selection.js";
-import { expandableText as ie } from "./expandable-text.js";
+import { isRetiredStatus as g, statusLinks as ee, statusTooltip as te } from "./item-state.js";
+import { taskItemStack as ne } from "./item-stack.js";
+import { checklistReturnHref as re, createLinkSelection as ie, linkSelectionHref as ae, readLinkSelection as oe } from "./link-selection.js";
+import { expandableText as _ } from "./expandable-text.js";
 import "./inline-links.js";
-import { displayCards as v, moveVisibleCard as y, promotePin as b, removeNewlyCompletedPins as ae } from "./card-order.js";
-import { loadDisclosure as oe, saveDisclosure as se } from "./card-disclosure-state.js";
-import { DEFAULT_CAPSULE_ID as ce } from "./filter-selection.js";
+import { displayCards as v, moveVisibleCard as y, promotePin as b, removeNewlyCompletedPins as se } from "./card-order.js";
+import { loadDisclosure as ce, saveDisclosure as le } from "./card-disclosure-state.js";
+import { DEFAULT_CAPSULE_ID as ue } from "./filter-selection.js";
 //#region viewer/assets/theme-model.js
-var le = "task-progress.theme.v1";
+var de = "task-progress.theme.v1";
 Object.freeze({
 	light: Object.freeze({
 		pageBackground: "#f5f3ec",
@@ -42,10 +43,10 @@ Object.freeze({
 });
 //#endregion
 //#region ui/web-workflow/theme-options.mjs
-var ue = Object.freeze({ defaultMode: "system" });
+var fe = Object.freeze({ defaultMode: "system" });
 //#endregion
 //#region ui/web-workflow/bootstrap.mjs
-function de(t = null) {
+function pe(t = null) {
 	let n = document.createElement("a");
 	n.className = "demo-back-link", n.href = t?.href ?? "/", n.setAttribute("aria-label", t ? `回到 ${t.title}` : "回到 Scopes 入口"), n.title = t ? `回到 ${t.title}` : "回到 Scopes 入口";
 	let r = document.createElementNS("http://www.w3.org/2000/svg", "svg");
@@ -69,15 +70,15 @@ function de(t = null) {
 		iconElement: r
 	}), n.style.setProperty("--button-foreground", "var(--blue)"), n;
 }
-async function fe(e) {
+async function me(e) {
 	r(), document.documentElement.dataset.taskprogressUi = "web-ui-workflow";
-	let t = ue, n = globalThis.taskprogressThemeBoot, c = n?.preference ?? a(() => localStorage, "task-progress.theme.v1", t);
+	let t = fe, n = globalThis.taskprogressThemeBoot, c = n?.preference ?? a(() => localStorage, "task-progress.theme.v1", t);
 	n?.controller.dispose(), delete globalThis.taskprogressThemeBoot;
 	let l = document.createElement("ui-theme-control"), u = matchMedia("(prefers-color-scheme: dark)"), d, f = () => {
 		l.preference = c, l.systemScheme = u.matches ? "dark" : "light", document.documentElement.dataset.theme = c.mode, c.mode === "custom" ? document.documentElement.dataset.themeBase = c.custom.base : delete document.documentElement.dataset.themeBase;
 	}, p = () => {
-		d || (c = a(() => localStorage, le, t), d = i(document.documentElement, c, t), u.addEventListener("change", f), f());
-	}, m = (e) => (c = s(() => localStorage, le, e, t), d?.update(c), f(), c);
+		d || (c = a(() => localStorage, de, t), d = i(document.documentElement, c, t), u.addEventListener("change", f), f());
+	}, m = (e) => (c = s(() => localStorage, de, e, t), d?.update(c), f(), c);
 	if (p(), l.addEventListener("theme-change", (e) => m(e.detail.preference)), globalThis.taskprogressTheme = {
 		control: l,
 		get mode() {
@@ -106,52 +107,52 @@ async function fe(e) {
 		let e = document.querySelector("#report-title");
 		if (e) {
 			let t = document.createElement("div");
-			t.className = "replica-title-row", e.before(t), t.append(de(), e);
+			t.className = "replica-title-row", e.before(t), t.append(pe(), e);
 		}
 	}
-	let h = new URLSearchParams(location.search).get("scope"), g = e !== "viewer" && typeof globalThis.chrome?.webview?.postMessage == "function", _ = g;
+	let h = new URLSearchParams(location.search).get("scope"), g = e !== "viewer" && typeof globalThis.chrome?.webview?.postMessage == "function", ee = g;
 	if (!g && h) try {
 		let e = await fetch("/__taskprogress/v1/capabilities/" + encodeURIComponent(h));
-		_ = e.ok && (await e.json()).editable;
+		ee = e.ok && (await e.json()).editable;
 	} catch {}
 	return {
-		editable: _,
+		editable: ee,
 		desktop: g
 	};
 }
 //#endregion
 //#region node_modules/@lit/reactive-element/css-tag.js
-var pe = globalThis, me = pe.ShadowRoot && (pe.ShadyCSS === void 0 || pe.ShadyCSS.nativeShadow) && "adoptedStyleSheets" in Document.prototype && "replace" in CSSStyleSheet.prototype, he = Symbol(), ge = /* @__PURE__ */ new WeakMap(), _e = class {
+var he = globalThis, ge = he.ShadowRoot && (he.ShadyCSS === void 0 || he.ShadyCSS.nativeShadow) && "adoptedStyleSheets" in Document.prototype && "replace" in CSSStyleSheet.prototype, _e = Symbol(), ve = /* @__PURE__ */ new WeakMap(), ye = class {
 	constructor(e, t, n) {
-		if (this._$cssResult$ = !0, n !== he) throw Error("CSSResult is not constructable. Use `unsafeCSS` or `css` instead.");
+		if (this._$cssResult$ = !0, n !== _e) throw Error("CSSResult is not constructable. Use `unsafeCSS` or `css` instead.");
 		this.cssText = e, this.t = t;
 	}
 	get styleSheet() {
 		let e = this.o, t = this.t;
-		if (me && e === void 0) {
+		if (ge && e === void 0) {
 			let n = t !== void 0 && t.length === 1;
-			n && (e = ge.get(t)), e === void 0 && ((this.o = e = new CSSStyleSheet()).replaceSync(this.cssText), n && ge.set(t, e));
+			n && (e = ve.get(t)), e === void 0 && ((this.o = e = new CSSStyleSheet()).replaceSync(this.cssText), n && ve.set(t, e));
 		}
 		return e;
 	}
 	toString() {
 		return this.cssText;
 	}
-}, ve = (e) => new _e(typeof e == "string" ? e : e + "", void 0, he), ye = (e, t) => {
-	if (me) e.adoptedStyleSheets = t.map((e) => e instanceof CSSStyleSheet ? e : e.styleSheet);
+}, be = (e) => new ye(typeof e == "string" ? e : e + "", void 0, _e), xe = (e, t) => {
+	if (ge) e.adoptedStyleSheets = t.map((e) => e instanceof CSSStyleSheet ? e : e.styleSheet);
 	else for (let n of t) {
-		let t = document.createElement("style"), r = pe.litNonce;
+		let t = document.createElement("style"), r = he.litNonce;
 		r !== void 0 && t.setAttribute("nonce", r), t.textContent = n.cssText, e.appendChild(t);
 	}
-}, be = me ? (e) => e : (e) => e instanceof CSSStyleSheet ? ((e) => {
+}, Se = ge ? (e) => e : (e) => e instanceof CSSStyleSheet ? ((e) => {
 	let t = "";
 	for (let n of e.cssRules) t += n.cssText;
-	return ve(t);
-})(e) : e, { is: xe, defineProperty: Se, getOwnPropertyDescriptor: Ce, getOwnPropertyNames: we, getOwnPropertySymbols: Te, getPrototypeOf: Ee } = Object, x = globalThis, De = x.trustedTypes, Oe = De ? De.emptyScript : "", ke = x.reactiveElementPolyfillSupport, S = (e, t) => e, Ae = {
+	return be(t);
+})(e) : e, { is: Ce, defineProperty: we, getOwnPropertyDescriptor: Te, getOwnPropertyNames: Ee, getOwnPropertySymbols: De, getPrototypeOf: Oe } = Object, x = globalThis, ke = x.trustedTypes, Ae = ke ? ke.emptyScript : "", je = x.reactiveElementPolyfillSupport, S = (e, t) => e, Me = {
 	toAttribute(e, t) {
 		switch (t) {
 			case Boolean:
-				e = e ? Oe : null;
+				e = e ? Ae : null;
 				break;
 			case Object:
 			case Array: e = e == null ? e : JSON.stringify(e);
@@ -176,13 +177,13 @@ var pe = globalThis, me = pe.ShadowRoot && (pe.ShadyCSS === void 0 || pe.ShadyCS
 		}
 		return n;
 	}
-}, je = (e, t) => !xe(e, t), Me = {
+}, Ne = (e, t) => !Ce(e, t), Pe = {
 	attribute: !0,
 	type: String,
-	converter: Ae,
+	converter: Me,
 	reflect: !1,
 	useDefault: !1,
-	hasChanged: je
+	hasChanged: Ne
 };
 Symbol.metadata ??= Symbol("metadata"), x.litPropertyMetadata ??= /* @__PURE__ */ new WeakMap();
 var C = class extends HTMLElement {
@@ -192,14 +193,14 @@ var C = class extends HTMLElement {
 	static get observedAttributes() {
 		return this.finalize(), this._$Eh && [...this._$Eh.keys()];
 	}
-	static createProperty(e, t = Me) {
+	static createProperty(e, t = Pe) {
 		if (t.state && (t.attribute = !1), this._$Ei(), this.prototype.hasOwnProperty(e) && ((t = Object.create(t)).wrapped = !0), this.elementProperties.set(e, t), !t.noAccessor) {
 			let n = Symbol(), r = this.getPropertyDescriptor(e, n, t);
-			r !== void 0 && Se(this.prototype, e, r);
+			r !== void 0 && we(this.prototype, e, r);
 		}
 	}
 	static getPropertyDescriptor(e, t, n) {
-		let { get: r, set: i } = Ce(this.prototype, e) ?? {
+		let { get: r, set: i } = Te(this.prototype, e) ?? {
 			get() {
 				return this[t];
 			},
@@ -218,17 +219,17 @@ var C = class extends HTMLElement {
 		};
 	}
 	static getPropertyOptions(e) {
-		return this.elementProperties.get(e) ?? Me;
+		return this.elementProperties.get(e) ?? Pe;
 	}
 	static _$Ei() {
 		if (this.hasOwnProperty(S("elementProperties"))) return;
-		let e = Ee(this);
+		let e = Oe(this);
 		e.finalize(), e.l !== void 0 && (this.l = [...e.l]), this.elementProperties = new Map(e.elementProperties);
 	}
 	static finalize() {
 		if (this.hasOwnProperty(S("finalized"))) return;
 		if (this.finalized = !0, this._$Ei(), this.hasOwnProperty(S("properties"))) {
-			let e = this.properties, t = [...we(e), ...Te(e)];
+			let e = this.properties, t = [...Ee(e), ...De(e)];
 			for (let n of t) this.createProperty(n, e[n]);
 		}
 		let e = this[Symbol.metadata];
@@ -247,8 +248,8 @@ var C = class extends HTMLElement {
 		let t = [];
 		if (Array.isArray(e)) {
 			let n = new Set(e.flat(Infinity).reverse());
-			for (let e of n) t.unshift(be(e));
-		} else e !== void 0 && t.push(be(e));
+			for (let e of n) t.unshift(Se(e));
+		} else e !== void 0 && t.push(Se(e));
 		return t;
 	}
 	static _$Eu(e, t) {
@@ -274,7 +275,7 @@ var C = class extends HTMLElement {
 	}
 	createRenderRoot() {
 		let e = this.shadowRoot ?? this.attachShadow(this.constructor.shadowRootOptions);
-		return ye(e, this.constructor.elementStyles), e;
+		return xe(e, this.constructor.elementStyles), e;
 	}
 	connectedCallback() {
 		this.renderRoot ??= this.createRenderRoot(), this.enableUpdating(!0), this._$EO?.forEach((e) => e.hostConnected?.());
@@ -289,14 +290,14 @@ var C = class extends HTMLElement {
 	_$ET(e, t) {
 		let n = this.constructor.elementProperties.get(e), r = this.constructor._$Eu(e, n);
 		if (r !== void 0 && !0 === n.reflect) {
-			let i = (n.converter?.toAttribute === void 0 ? Ae : n.converter).toAttribute(t, n.type);
+			let i = (n.converter?.toAttribute === void 0 ? Me : n.converter).toAttribute(t, n.type);
 			this._$Em = e, i == null ? this.removeAttribute(r) : this.setAttribute(r, i), this._$Em = null;
 		}
 	}
 	_$AK(e, t) {
 		let n = this.constructor, r = n._$Eh.get(e);
 		if (r !== void 0 && this._$Em !== r) {
-			let e = n.getPropertyOptions(r), i = typeof e.converter == "function" ? { fromAttribute: e.converter } : e.converter?.fromAttribute === void 0 ? Ae : e.converter;
+			let e = n.getPropertyOptions(r), i = typeof e.converter == "function" ? { fromAttribute: e.converter } : e.converter?.fromAttribute === void 0 ? Me : e.converter;
 			this._$Em = r;
 			let a = i.fromAttribute(t, e.type);
 			this[r] = a ?? this._$Ej?.get(r) ?? a, this._$Em = null;
@@ -305,7 +306,7 @@ var C = class extends HTMLElement {
 	requestUpdate(e, t, n, r = !1, i) {
 		if (e !== void 0) {
 			let a = this.constructor;
-			if (!1 === r && (i = this[e]), n ??= a.getPropertyOptions(e), !((n.hasChanged ?? je)(i, t) || n.useDefault && n.reflect && i === this._$Ej?.get(e) && !this.hasAttribute(a._$Eu(e, n)))) return;
+			if (!1 === r && (i = this[e]), n ??= a.getPropertyOptions(e), !((n.hasChanged ?? Ne)(i, t) || n.useDefault && n.reflect && i === this._$Ej?.get(e) && !this.hasAttribute(a._$Eu(e, n)))) return;
 			this.C(e, t, n);
 		}
 		!1 === this.isUpdatePending && (this._$ES = this._$EP());
@@ -369,87 +370,87 @@ var C = class extends HTMLElement {
 	updated(e) {}
 	firstUpdated(e) {}
 };
-C.elementStyles = [], C.shadowRootOptions = { mode: "open" }, C[S("elementProperties")] = /* @__PURE__ */ new Map(), C[S("finalized")] = /* @__PURE__ */ new Map(), ke?.({ ReactiveElement: C }), (x.reactiveElementVersions ??= []).push("2.1.2");
+C.elementStyles = [], C.shadowRootOptions = { mode: "open" }, C[S("elementProperties")] = /* @__PURE__ */ new Map(), C[S("finalized")] = /* @__PURE__ */ new Map(), je?.({ ReactiveElement: C }), (x.reactiveElementVersions ??= []).push("2.1.2");
 //#endregion
 //#region node_modules/lit-html/lit-html.js
-var Ne = globalThis, Pe = (e) => e, w = Ne.trustedTypes, Fe = w ? w.createPolicy("lit-html", { createHTML: (e) => e }) : void 0, Ie = "$lit$", T = `lit$${Math.random().toFixed(9).slice(2)}$`, Le = "?" + T, Re = `<${Le}>`, E = document, D = () => E.createComment(""), O = (e) => e === null || typeof e != "object" && typeof e != "function", ze = Array.isArray, Be = (e) => ze(e) || typeof e?.[Symbol.iterator] == "function", Ve = "[ 	\n\f\r]", k = /<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g, He = /-->/g, Ue = />/g, A = RegExp(`>|${Ve}(?:([^\\s"'>=/]+)(${Ve}*=${Ve}*(?:[^ \t\n\f\r"'\`<>=]|("|')|))|$)`, "g"), We = /'/g, Ge = /"/g, Ke = /^(?:script|style|textarea|title)$/i, qe = (e) => (t, ...n) => ({
+var Fe = globalThis, Ie = (e) => e, Le = Fe.trustedTypes, Re = Le ? Le.createPolicy("lit-html", { createHTML: (e) => e }) : void 0, ze = "$lit$", w = `lit$${Math.random().toFixed(9).slice(2)}$`, Be = "?" + w, Ve = `<${Be}>`, T = document, E = () => T.createComment(""), D = (e) => e === null || typeof e != "object" && typeof e != "function", He = Array.isArray, Ue = (e) => He(e) || typeof e?.[Symbol.iterator] == "function", We = "[ 	\n\f\r]", O = /<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g, Ge = /-->/g, Ke = />/g, k = RegExp(`>|${We}(?:([^\\s"'>=/]+)(${We}*=${We}*(?:[^ \t\n\f\r"'\`<>=]|("|')|))|$)`, "g"), qe = /'/g, Je = /"/g, Ye = /^(?:script|style|textarea|title)$/i, Xe = (e) => (t, ...n) => ({
 	_$litType$: e,
 	strings: t,
 	values: n
-}), j = qe(1), M = qe(2), N = Symbol.for("lit-noChange"), P = Symbol.for("lit-nothing"), Je = /* @__PURE__ */ new WeakMap(), F = E.createTreeWalker(E, 129);
-function Ye(e, t) {
-	if (!ze(e) || !e.hasOwnProperty("raw")) throw Error("invalid template strings array");
-	return Fe === void 0 ? t : Fe.createHTML(t);
+}), A = Xe(1), j = Xe(2), M = Symbol.for("lit-noChange"), N = Symbol.for("lit-nothing"), Ze = /* @__PURE__ */ new WeakMap(), P = T.createTreeWalker(T, 129);
+function Qe(e, t) {
+	if (!He(e) || !e.hasOwnProperty("raw")) throw Error("invalid template strings array");
+	return Re === void 0 ? t : Re.createHTML(t);
 }
-var Xe = (e, t) => {
-	let n = e.length - 1, r = [], i, a = t === 2 ? "<svg>" : t === 3 ? "<math>" : "", o = k;
+var $e = (e, t) => {
+	let n = e.length - 1, r = [], i, a = t === 2 ? "<svg>" : t === 3 ? "<math>" : "", o = O;
 	for (let t = 0; t < n; t++) {
 		let n = e[t], s, c, l = -1, u = 0;
-		for (; u < n.length && (o.lastIndex = u, c = o.exec(n), c !== null);) u = o.lastIndex, o === k ? c[1] === "!--" ? o = He : c[1] === void 0 ? c[2] === void 0 ? c[3] !== void 0 && (o = A) : (Ke.test(c[2]) && (i = RegExp("</" + c[2], "g")), o = A) : o = Ue : o === A ? c[0] === ">" ? (o = i ?? k, l = -1) : c[1] === void 0 ? l = -2 : (l = o.lastIndex - c[2].length, s = c[1], o = c[3] === void 0 ? A : c[3] === "\"" ? Ge : We) : o === Ge || o === We ? o = A : o === He || o === Ue ? o = k : (o = A, i = void 0);
-		let d = o === A && e[t + 1].startsWith("/>") ? " " : "";
-		a += o === k ? n + Re : l >= 0 ? (r.push(s), n.slice(0, l) + Ie + n.slice(l) + T + d) : n + T + (l === -2 ? t : d);
+		for (; u < n.length && (o.lastIndex = u, c = o.exec(n), c !== null);) u = o.lastIndex, o === O ? c[1] === "!--" ? o = Ge : c[1] === void 0 ? c[2] === void 0 ? c[3] !== void 0 && (o = k) : (Ye.test(c[2]) && (i = RegExp("</" + c[2], "g")), o = k) : o = Ke : o === k ? c[0] === ">" ? (o = i ?? O, l = -1) : c[1] === void 0 ? l = -2 : (l = o.lastIndex - c[2].length, s = c[1], o = c[3] === void 0 ? k : c[3] === "\"" ? Je : qe) : o === Je || o === qe ? o = k : o === Ge || o === Ke ? o = O : (o = k, i = void 0);
+		let d = o === k && e[t + 1].startsWith("/>") ? " " : "";
+		a += o === O ? n + Ve : l >= 0 ? (r.push(s), n.slice(0, l) + ze + n.slice(l) + w + d) : n + w + (l === -2 ? t : d);
 	}
-	return [Ye(e, a + (e[n] || "<?>") + (t === 2 ? "</svg>" : t === 3 ? "</math>" : "")), r];
-}, Ze = class e {
+	return [Qe(e, a + (e[n] || "<?>") + (t === 2 ? "</svg>" : t === 3 ? "</math>" : "")), r];
+}, et = class e {
 	constructor({ strings: t, _$litType$: n }, r) {
 		let i;
 		this.parts = [];
-		let a = 0, o = 0, s = t.length - 1, c = this.parts, [l, u] = Xe(t, n);
-		if (this.el = e.createElement(l, r), F.currentNode = this.el.content, n === 2 || n === 3) {
+		let a = 0, o = 0, s = t.length - 1, c = this.parts, [l, u] = $e(t, n);
+		if (this.el = e.createElement(l, r), P.currentNode = this.el.content, n === 2 || n === 3) {
 			let e = this.el.content.firstChild;
 			e.replaceWith(...e.childNodes);
 		}
-		for (; (i = F.nextNode()) !== null && c.length < s;) {
+		for (; (i = P.nextNode()) !== null && c.length < s;) {
 			if (i.nodeType === 1) {
-				if (i.hasAttributes()) for (let e of i.getAttributeNames()) if (e.endsWith(Ie)) {
-					let t = u[o++], n = i.getAttribute(e).split(T), r = /([.?@])?(.*)/.exec(t);
+				if (i.hasAttributes()) for (let e of i.getAttributeNames()) if (e.endsWith(ze)) {
+					let t = u[o++], n = i.getAttribute(e).split(w), r = /([.?@])?(.*)/.exec(t);
 					c.push({
 						type: 1,
 						index: a,
 						name: r[2],
 						strings: n,
-						ctor: r[1] === "." ? $e : r[1] === "?" ? et : r[1] === "@" ? tt : R
+						ctor: r[1] === "." ? nt : r[1] === "?" ? rt : r[1] === "@" ? it : L
 					}), i.removeAttribute(e);
-				} else e.startsWith(T) && (c.push({
+				} else e.startsWith(w) && (c.push({
 					type: 6,
 					index: a
 				}), i.removeAttribute(e));
-				if (Ke.test(i.tagName)) {
-					let e = i.textContent.split(T), t = e.length - 1;
+				if (Ye.test(i.tagName)) {
+					let e = i.textContent.split(w), t = e.length - 1;
 					if (t > 0) {
-						i.textContent = w ? w.emptyScript : "";
-						for (let n = 0; n < t; n++) i.append(e[n], D()), F.nextNode(), c.push({
+						i.textContent = Le ? Le.emptyScript : "";
+						for (let n = 0; n < t; n++) i.append(e[n], E()), P.nextNode(), c.push({
 							type: 2,
 							index: ++a
 						});
-						i.append(e[t], D());
+						i.append(e[t], E());
 					}
 				}
-			} else if (i.nodeType === 8) if (i.data === Le) c.push({
+			} else if (i.nodeType === 8) if (i.data === Be) c.push({
 				type: 2,
 				index: a
 			});
 			else {
 				let e = -1;
-				for (; (e = i.data.indexOf(T, e + 1)) !== -1;) c.push({
+				for (; (e = i.data.indexOf(w, e + 1)) !== -1;) c.push({
 					type: 7,
 					index: a
-				}), e += T.length - 1;
+				}), e += w.length - 1;
 			}
 			a++;
 		}
 	}
 	static createElement(e, t) {
-		let n = E.createElement("template");
+		let n = T.createElement("template");
 		return n.innerHTML = e, n;
 	}
 };
-function I(e, t, n = e, r) {
-	if (t === N) return t;
-	let i = r === void 0 ? n._$Cl : n._$Co?.[r], a = O(t) ? void 0 : t._$litDirective$;
-	return i?.constructor !== a && (i?._$AO?.(!1), a === void 0 ? i = void 0 : (i = new a(e), i._$AT(e, n, r)), r === void 0 ? n._$Cl = i : (n._$Co ??= [])[r] = i), i !== void 0 && (t = I(e, i._$AS(e, t.values), i, r)), t;
+function F(e, t, n = e, r) {
+	if (t === M) return t;
+	let i = r === void 0 ? n._$Cl : n._$Co?.[r], a = D(t) ? void 0 : t._$litDirective$;
+	return i?.constructor !== a && (i?._$AO?.(!1), a === void 0 ? i = void 0 : (i = new a(e), i._$AT(e, n, r)), r === void 0 ? n._$Cl = i : (n._$Co ??= [])[r] = i), i !== void 0 && (t = F(e, i._$AS(e, t.values), i, r)), t;
 }
-var Qe = class {
+var tt = class {
 	constructor(e, t) {
 		this._$AV = [], this._$AN = void 0, this._$AD = e, this._$AM = t;
 	}
@@ -460,28 +461,28 @@ var Qe = class {
 		return this._$AM._$AU;
 	}
 	u(e) {
-		let { el: { content: t }, parts: n } = this._$AD, r = (e?.creationScope ?? E).importNode(t, !0);
-		F.currentNode = r;
-		let i = F.nextNode(), a = 0, o = 0, s = n[0];
+		let { el: { content: t }, parts: n } = this._$AD, r = (e?.creationScope ?? T).importNode(t, !0);
+		P.currentNode = r;
+		let i = P.nextNode(), a = 0, o = 0, s = n[0];
 		for (; s !== void 0;) {
 			if (a === s.index) {
 				let t;
-				s.type === 2 ? t = new L(i, i.nextSibling, this, e) : s.type === 1 ? t = new s.ctor(i, s.name, s.strings, this, e) : s.type === 6 && (t = new nt(i, this, e)), this._$AV.push(t), s = n[++o];
+				s.type === 2 ? t = new I(i, i.nextSibling, this, e) : s.type === 1 ? t = new s.ctor(i, s.name, s.strings, this, e) : s.type === 6 && (t = new at(i, this, e)), this._$AV.push(t), s = n[++o];
 			}
-			a !== s?.index && (i = F.nextNode(), a++);
+			a !== s?.index && (i = P.nextNode(), a++);
 		}
-		return F.currentNode = E, r;
+		return P.currentNode = T, r;
 	}
 	p(e) {
 		let t = 0;
 		for (let n of this._$AV) n !== void 0 && (n.strings === void 0 ? n._$AI(e[t]) : (n._$AI(e, n, t), t += n.strings.length - 2)), t++;
 	}
-}, L = class e {
+}, I = class e {
 	get _$AU() {
 		return this._$AM?._$AU ?? this._$Cv;
 	}
 	constructor(e, t, n, r) {
-		this.type = 2, this._$AH = P, this._$AN = void 0, this._$AA = e, this._$AB = t, this._$AM = n, this.options = r, this._$Cv = r?.isConnected ?? !0;
+		this.type = 2, this._$AH = N, this._$AN = void 0, this._$AA = e, this._$AB = t, this._$AM = n, this.options = r, this._$Cv = r?.isConnected ?? !0;
 	}
 	get parentNode() {
 		let e = this._$AA.parentNode, t = this._$AM;
@@ -494,7 +495,7 @@ var Qe = class {
 		return this._$AB;
 	}
 	_$AI(e, t = this) {
-		e = I(this, e, t), O(e) ? e === P || e == null || e === "" ? (this._$AH !== P && this._$AR(), this._$AH = P) : e !== this._$AH && e !== N && this._(e) : e._$litType$ === void 0 ? e.nodeType === void 0 ? Be(e) ? this.k(e) : this._(e) : this.T(e) : this.$(e);
+		e = F(this, e, t), D(e) ? e === N || e == null || e === "" ? (this._$AH !== N && this._$AR(), this._$AH = N) : e !== this._$AH && e !== M && this._(e) : e._$litType$ === void 0 ? e.nodeType === void 0 ? Ue(e) ? this.k(e) : this._(e) : this.T(e) : this.$(e);
 	}
 	O(e) {
 		return this._$AA.parentNode.insertBefore(e, this._$AB);
@@ -503,36 +504,36 @@ var Qe = class {
 		this._$AH !== e && (this._$AR(), this._$AH = this.O(e));
 	}
 	_(e) {
-		this._$AH !== P && O(this._$AH) ? this._$AA.nextSibling.data = e : this.T(E.createTextNode(e)), this._$AH = e;
+		this._$AH !== N && D(this._$AH) ? this._$AA.nextSibling.data = e : this.T(T.createTextNode(e)), this._$AH = e;
 	}
 	$(e) {
-		let { values: t, _$litType$: n } = e, r = typeof n == "number" ? this._$AC(e) : (n.el === void 0 && (n.el = Ze.createElement(Ye(n.h, n.h[0]), this.options)), n);
+		let { values: t, _$litType$: n } = e, r = typeof n == "number" ? this._$AC(e) : (n.el === void 0 && (n.el = et.createElement(Qe(n.h, n.h[0]), this.options)), n);
 		if (this._$AH?._$AD === r) this._$AH.p(t);
 		else {
-			let e = new Qe(r, this), n = e.u(this.options);
+			let e = new tt(r, this), n = e.u(this.options);
 			e.p(t), this.T(n), this._$AH = e;
 		}
 	}
 	_$AC(e) {
-		let t = Je.get(e.strings);
-		return t === void 0 && Je.set(e.strings, t = new Ze(e)), t;
+		let t = Ze.get(e.strings);
+		return t === void 0 && Ze.set(e.strings, t = new et(e)), t;
 	}
 	k(t) {
-		ze(this._$AH) || (this._$AH = [], this._$AR());
+		He(this._$AH) || (this._$AH = [], this._$AR());
 		let n = this._$AH, r, i = 0;
-		for (let a of t) i === n.length ? n.push(r = new e(this.O(D()), this.O(D()), this, this.options)) : r = n[i], r._$AI(a), i++;
+		for (let a of t) i === n.length ? n.push(r = new e(this.O(E()), this.O(E()), this, this.options)) : r = n[i], r._$AI(a), i++;
 		i < n.length && (this._$AR(r && r._$AB.nextSibling, i), n.length = i);
 	}
 	_$AR(e = this._$AA.nextSibling, t) {
 		for (this._$AP?.(!1, !0, t); e !== this._$AB;) {
-			let t = Pe(e).nextSibling;
-			Pe(e).remove(), e = t;
+			let t = Ie(e).nextSibling;
+			Ie(e).remove(), e = t;
 		}
 	}
 	setConnected(e) {
 		this._$AM === void 0 && (this._$Cv = e, this._$AP?.(e));
 	}
-}, R = class {
+}, L = class {
 	get tagName() {
 		return this.element.tagName;
 	}
@@ -540,47 +541,47 @@ var Qe = class {
 		return this._$AM._$AU;
 	}
 	constructor(e, t, n, r, i) {
-		this.type = 1, this._$AH = P, this._$AN = void 0, this.element = e, this.name = t, this._$AM = r, this.options = i, n.length > 2 || n[0] !== "" || n[1] !== "" ? (this._$AH = Array(n.length - 1).fill(/* @__PURE__ */ new String()), this.strings = n) : this._$AH = P;
+		this.type = 1, this._$AH = N, this._$AN = void 0, this.element = e, this.name = t, this._$AM = r, this.options = i, n.length > 2 || n[0] !== "" || n[1] !== "" ? (this._$AH = Array(n.length - 1).fill(/* @__PURE__ */ new String()), this.strings = n) : this._$AH = N;
 	}
 	_$AI(e, t = this, n, r) {
 		let i = this.strings, a = !1;
-		if (i === void 0) e = I(this, e, t, 0), a = !O(e) || e !== this._$AH && e !== N, a && (this._$AH = e);
+		if (i === void 0) e = F(this, e, t, 0), a = !D(e) || e !== this._$AH && e !== M, a && (this._$AH = e);
 		else {
 			let r = e, o, s;
-			for (e = i[0], o = 0; o < i.length - 1; o++) s = I(this, r[n + o], t, o), s === N && (s = this._$AH[o]), a ||= !O(s) || s !== this._$AH[o], s === P ? e = P : e !== P && (e += (s ?? "") + i[o + 1]), this._$AH[o] = s;
+			for (e = i[0], o = 0; o < i.length - 1; o++) s = F(this, r[n + o], t, o), s === M && (s = this._$AH[o]), a ||= !D(s) || s !== this._$AH[o], s === N ? e = N : e !== N && (e += (s ?? "") + i[o + 1]), this._$AH[o] = s;
 		}
 		a && !r && this.j(e);
 	}
 	j(e) {
-		e === P ? this.element.removeAttribute(this.name) : this.element.setAttribute(this.name, e ?? "");
+		e === N ? this.element.removeAttribute(this.name) : this.element.setAttribute(this.name, e ?? "");
 	}
-}, $e = class extends R {
+}, nt = class extends L {
 	constructor() {
 		super(...arguments), this.type = 3;
 	}
 	j(e) {
-		this.element[this.name] = e === P ? void 0 : e;
+		this.element[this.name] = e === N ? void 0 : e;
 	}
-}, et = class extends R {
+}, rt = class extends L {
 	constructor() {
 		super(...arguments), this.type = 4;
 	}
 	j(e) {
-		this.element.toggleAttribute(this.name, !!e && e !== P);
+		this.element.toggleAttribute(this.name, !!e && e !== N);
 	}
-}, tt = class extends R {
+}, it = class extends L {
 	constructor(e, t, n, r, i) {
 		super(e, t, n, r, i), this.type = 5;
 	}
 	_$AI(e, t = this) {
-		if ((e = I(this, e, t, 0) ?? P) === N) return;
-		let n = this._$AH, r = e === P && n !== P || e.capture !== n.capture || e.once !== n.once || e.passive !== n.passive, i = e !== P && (n === P || r);
+		if ((e = F(this, e, t, 0) ?? N) === M) return;
+		let n = this._$AH, r = e === N && n !== N || e.capture !== n.capture || e.once !== n.once || e.passive !== n.passive, i = e !== N && (n === N || r);
 		r && this.element.removeEventListener(this.name, this, n), i && this.element.addEventListener(this.name, this, e), this._$AH = e;
 	}
 	handleEvent(e) {
 		typeof this._$AH == "function" ? this._$AH.call(this.options?.host ?? this.element, e) : this._$AH.handleEvent(e);
 	}
-}, nt = class {
+}, at = class {
 	constructor(e, t, n) {
 		this.element = e, this.type = 6, this._$AN = void 0, this._$AM = t, this.options = n;
 	}
@@ -588,33 +589,33 @@ var Qe = class {
 		return this._$AM._$AU;
 	}
 	_$AI(e) {
-		I(this, e);
+		F(this, e);
 	}
-}, rt = {
-	M: Ie,
-	P: T,
-	A: Le,
+}, ot = {
+	M: ze,
+	P: w,
+	A: Be,
 	C: 1,
-	L: Xe,
-	R: Qe,
-	D: Be,
-	V: I,
-	I: L,
-	H: R,
-	N: et,
-	U: tt,
-	B: $e,
-	F: nt
-}, it = Ne.litHtmlPolyfillSupport;
-it?.(Ze, L), (Ne.litHtmlVersions ??= []).push("3.3.3");
-var at = (e, t, n) => {
+	L: $e,
+	R: tt,
+	D: Ue,
+	V: F,
+	I,
+	H: L,
+	N: rt,
+	U: it,
+	B: nt,
+	F: at
+}, st = Fe.litHtmlPolyfillSupport;
+st?.(et, I), (Fe.litHtmlVersions ??= []).push("3.3.3");
+var ct = (e, t, n) => {
 	let r = n?.renderBefore ?? t, i = r._$litPart$;
 	if (i === void 0) {
 		let e = n?.renderBefore ?? null;
-		r._$litPart$ = i = new L(t.insertBefore(D(), e), e, void 0, n ?? {});
+		r._$litPart$ = i = new I(t.insertBefore(E(), e), e, void 0, n ?? {});
 	}
 	return i._$AI(e), i;
-}, ot = globalThis, z = class extends C {
+}, lt = globalThis, R = class extends C {
 	constructor() {
 		super(...arguments), this.renderOptions = { host: this }, this._$Do = void 0;
 	}
@@ -624,7 +625,7 @@ var at = (e, t, n) => {
 	}
 	update(e) {
 		let t = this.render();
-		this.hasUpdated || (this.renderOptions.isConnected = this.isConnected), super.update(e), this._$Do = at(t, this.renderRoot, this.renderOptions);
+		this.hasUpdated || (this.renderOptions.isConnected = this.isConnected), super.update(e), this._$Do = ct(t, this.renderRoot, this.renderOptions);
 	}
 	connectedCallback() {
 		super.connectedCallback(), this._$Do?.setConnected(!0);
@@ -633,25 +634,25 @@ var at = (e, t, n) => {
 		super.disconnectedCallback(), this._$Do?.setConnected(!1);
 	}
 	render() {
-		return N;
+		return M;
 	}
 };
-z._$litElement$ = !0, z.finalized = !0, ot.litElementHydrateSupport?.({ LitElement: z });
-var st = ot.litElementPolyfillSupport;
-st?.({ LitElement: z }), (ot.litElementVersions ??= []).push("4.2.2");
+R._$litElement$ = !0, R.finalized = !0, lt.litElementHydrateSupport?.({ LitElement: R });
+var ut = lt.litElementPolyfillSupport;
+ut?.({ LitElement: R }), (lt.litElementVersions ??= []).push("4.2.2");
 //#endregion
 //#region node_modules/lit-html/directive.js
-var B = {
+var z = {
 	ATTRIBUTE: 1,
 	CHILD: 2,
 	PROPERTY: 3,
 	BOOLEAN_ATTRIBUTE: 4,
 	EVENT: 5,
 	ELEMENT: 6
-}, ct = (e) => (...t) => ({
+}, B = (e) => (...t) => ({
 	_$litDirective$: e,
 	values: t
-}), lt = class {
+}), V = class {
 	constructor(e) {}
 	get _$AU() {
 		return this._$AM._$AU;
@@ -665,9 +666,9 @@ var B = {
 	update(e, t) {
 		return this.render(...t);
 	}
-}, { I: ut } = rt, dt = (e) => e, ft = (e) => e.strings === void 0, pt = () => document.createComment(""), V = (e, t, n) => {
+}, { I: dt } = ot, ft = (e) => e, pt = (e) => e.strings === void 0, mt = () => document.createComment(""), H = (e, t, n) => {
 	let r = e._$AA.parentNode, i = t === void 0 ? e._$AB : t._$AA;
-	if (n === void 0) n = new ut(r.insertBefore(pt(), i), r.insertBefore(pt(), i), e, e.options);
+	if (n === void 0) n = new dt(r.insertBefore(mt(), i), r.insertBefore(mt(), i), e, e.options);
 	else {
 		let t = n._$AB.nextSibling, a = n._$AM, o = a !== e;
 		if (o) {
@@ -677,21 +678,21 @@ var B = {
 		if (t !== i || o) {
 			let e = n._$AA;
 			for (; e !== t;) {
-				let t = dt(e).nextSibling;
-				dt(r).insertBefore(e, i), e = t;
+				let t = ft(e).nextSibling;
+				ft(r).insertBefore(e, i), e = t;
 			}
 		}
 	}
 	return n;
-}, H = (e, t, n = e) => (e._$AI(t, n), e), mt = {}, ht = (e, t = mt) => e._$AH = t, gt = (e) => e._$AH, _t = (e) => {
+}, U = (e, t, n = e) => (e._$AI(t, n), e), ht = {}, gt = (e, t = ht) => e._$AH = t, _t = (e) => e._$AH, vt = (e) => {
 	e._$AR(), e._$AA.remove();
-}, vt = (e, t, n) => {
+}, yt = (e, t, n) => {
 	let r = /* @__PURE__ */ new Map();
 	for (let i = t; i <= n; i++) r.set(e[i], i);
 	return r;
-}, U = ct(class extends lt {
+}, W = B(class extends V {
 	constructor(e) {
-		if (super(e), e.type !== B.CHILD) throw Error("repeat() can only be used in text expressions");
+		if (super(e), e.type !== z.CHILD) throw Error("repeat() can only be used in text expressions");
 	}
 	dt(e, t, n) {
 		let r;
@@ -707,107 +708,107 @@ var B = {
 		return this.dt(e, t, n).values;
 	}
 	update(e, [t, n, r]) {
-		let i = gt(e), { values: a, keys: o } = this.dt(t, n, r);
+		let i = _t(e), { values: a, keys: o } = this.dt(t, n, r);
 		if (!Array.isArray(i)) return this.ut = o, a;
 		let s = this.ut ??= [], c = [], l, u, d = 0, f = i.length - 1, p = 0, m = a.length - 1;
 		for (; d <= f && p <= m;) if (i[d] === null) d++;
 		else if (i[f] === null) f--;
-		else if (s[d] === o[p]) c[p] = H(i[d], a[p]), d++, p++;
-		else if (s[f] === o[m]) c[m] = H(i[f], a[m]), f--, m--;
-		else if (s[d] === o[m]) c[m] = H(i[d], a[m]), V(e, c[m + 1], i[d]), d++, m--;
-		else if (s[f] === o[p]) c[p] = H(i[f], a[p]), V(e, i[d], i[f]), f--, p++;
-		else if (l === void 0 && (l = vt(o, p, m), u = vt(s, d, f)), l.has(s[d])) if (l.has(s[f])) {
+		else if (s[d] === o[p]) c[p] = U(i[d], a[p]), d++, p++;
+		else if (s[f] === o[m]) c[m] = U(i[f], a[m]), f--, m--;
+		else if (s[d] === o[m]) c[m] = U(i[d], a[m]), H(e, c[m + 1], i[d]), d++, m--;
+		else if (s[f] === o[p]) c[p] = U(i[f], a[p]), H(e, i[d], i[f]), f--, p++;
+		else if (l === void 0 && (l = yt(o, p, m), u = yt(s, d, f)), l.has(s[d])) if (l.has(s[f])) {
 			let t = u.get(o[p]), n = t === void 0 ? null : i[t];
 			if (n === null) {
-				let t = V(e, i[d]);
-				H(t, a[p]), c[p] = t;
-			} else c[p] = H(n, a[p]), V(e, i[d], n), i[t] = null;
+				let t = H(e, i[d]);
+				U(t, a[p]), c[p] = t;
+			} else c[p] = U(n, a[p]), H(e, i[d], n), i[t] = null;
 			p++;
-		} else _t(i[f]), f--;
-		else _t(i[d]), d++;
+		} else vt(i[f]), f--;
+		else vt(i[d]), d++;
 		for (; p <= m;) {
-			let t = V(e, c[m + 1]);
-			H(t, a[p]), c[p++] = t;
+			let t = H(e, c[m + 1]);
+			U(t, a[p]), c[p++] = t;
 		}
 		for (; d <= f;) {
 			let e = i[d++];
-			e !== null && _t(e);
+			e !== null && vt(e);
 		}
-		return this.ut = o, ht(e, c), N;
+		return this.ut = o, gt(e, c), M;
 	}
-}), yt = {}, bt = ct(class extends lt {
+}), bt = {}, xt = B(class extends V {
 	constructor() {
-		super(...arguments), this.ot = yt;
+		super(...arguments), this.ot = bt;
 	}
 	render(e, t) {
 		return t();
 	}
 	update(e, [t, n]) {
 		if (Array.isArray(t)) {
-			if (Array.isArray(this.ot) && this.ot.length === t.length && t.every((e, t) => e === this.ot[t])) return N;
-		} else if (this.ot === t) return N;
+			if (Array.isArray(this.ot) && this.ot.length === t.length && t.every((e, t) => e === this.ot[t])) return M;
+		} else if (this.ot === t) return M;
 		return this.ot = Array.isArray(t) ? Array.from(t) : t, this.render(t, n);
 	}
-}), W = ct(class extends lt {
+}), G = B(class extends V {
 	constructor(e) {
-		if (super(e), e.type !== B.PROPERTY && e.type !== B.ATTRIBUTE && e.type !== B.BOOLEAN_ATTRIBUTE) throw Error("The `live` directive is not allowed on child or event bindings");
-		if (!ft(e)) throw Error("`live` bindings can only contain a single expression");
+		if (super(e), e.type !== z.PROPERTY && e.type !== z.ATTRIBUTE && e.type !== z.BOOLEAN_ATTRIBUTE) throw Error("The `live` directive is not allowed on child or event bindings");
+		if (!pt(e)) throw Error("`live` bindings can only contain a single expression");
 	}
 	render(e) {
 		return e;
 	}
 	update(e, [t]) {
-		if (t === N || t === P) return t;
+		if (t === M || t === N) return t;
 		let n = e.element, r = e.name;
-		if (e.type === B.PROPERTY) {
-			if (t === n[r]) return N;
-		} else if (e.type === B.BOOLEAN_ATTRIBUTE) {
-			if (!!t === n.hasAttribute(r)) return N;
-		} else if (e.type === B.ATTRIBUTE && n.getAttribute(r) === t + "") return N;
-		return ht(e), t;
+		if (e.type === z.PROPERTY) {
+			if (t === n[r]) return M;
+		} else if (e.type === z.BOOLEAN_ATTRIBUTE) {
+			if (!!t === n.hasAttribute(r)) return M;
+		} else if (e.type === z.ATTRIBUTE && n.getAttribute(r) === t + "") return M;
+		return gt(e), t;
 	}
-}), G = (e, t) => {
+}), K = (e, t) => {
 	let n = e._$AN;
 	if (n === void 0) return !1;
-	for (let e of n) e._$AO?.(t, !1), G(e, t);
+	for (let e of n) e._$AO?.(t, !1), K(e, t);
 	return !0;
-}, K = (e) => {
+}, q = (e) => {
 	let t, n;
 	do {
 		if ((t = e._$AM) === void 0) break;
 		n = t._$AN, n.delete(e), e = t;
 	} while (n?.size === 0);
-}, xt = (e) => {
+}, St = (e) => {
 	for (let t; t = e._$AM; e = t) {
 		let n = t._$AN;
 		if (n === void 0) t._$AN = n = /* @__PURE__ */ new Set();
 		else if (n.has(e)) break;
-		n.add(e), wt(t);
+		n.add(e), Tt(t);
 	}
 };
-function St(e) {
-	this._$AN === void 0 ? this._$AM = e : (K(this), this._$AM = e, xt(this));
+function Ct(e) {
+	this._$AN === void 0 ? this._$AM = e : (q(this), this._$AM = e, St(this));
 }
-function Ct(e, t = !1, n = 0) {
+function wt(e, t = !1, n = 0) {
 	let r = this._$AH, i = this._$AN;
-	if (i !== void 0 && i.size !== 0) if (t) if (Array.isArray(r)) for (let e = n; e < r.length; e++) G(r[e], !1), K(r[e]);
-	else r != null && (G(r, !1), K(r));
-	else G(this, e);
+	if (i !== void 0 && i.size !== 0) if (t) if (Array.isArray(r)) for (let e = n; e < r.length; e++) K(r[e], !1), q(r[e]);
+	else r != null && (K(r, !1), q(r));
+	else K(this, e);
 }
-var wt = (e) => {
-	e.type == B.CHILD && (e._$AP ??= Ct, e._$AQ ??= St);
-}, Tt = class extends lt {
+var Tt = (e) => {
+	e.type == z.CHILD && (e._$AP ??= wt, e._$AQ ??= Ct);
+}, Et = class extends V {
 	constructor() {
 		super(...arguments), this._$AN = void 0;
 	}
 	_$AT(e, t, n) {
-		super._$AT(e, t, n), xt(this), this.isConnected = e._$AU;
+		super._$AT(e, t, n), St(this), this.isConnected = e._$AU;
 	}
 	_$AO(e, t = !0) {
-		e !== this.isConnected && (this.isConnected = e, e ? this.reconnected?.() : this.disconnected?.()), t && (G(this, e), K(this));
+		e !== this.isConnected && (this.isConnected = e, e ? this.reconnected?.() : this.disconnected?.()), t && (K(this, e), q(this));
 	}
 	setValue(e) {
-		if (ft(this._$Ct)) this._$Ct._$AI(e, this);
+		if (pt(this._$Ct)) this._$Ct._$AI(e, this);
 		else {
 			let t = [...this._$Ct._$AH];
 			t[this._$Ci] = e, this._$Ct._$AI(t, this, 0);
@@ -818,7 +819,7 @@ var wt = (e) => {
 };
 //#endregion
 //#region ui/web-workflow/action-queue.mjs
-function Et(e = queueMicrotask) {
+function Dt(e = queueMicrotask) {
 	let t = /* @__PURE__ */ new Set(), n = !1, r = () => {
 		n = !1;
 		let r = [...t];
@@ -841,7 +842,7 @@ function Et(e = queueMicrotask) {
 }
 //#endregion
 //#region ui/web-workflow/enabled-action.mjs
-function Dt(e, t = (e) => e.enabled !== !1) {
+function Ot(e, t = (e) => e.enabled !== !1) {
 	return (n, r) => {
 		let i, a = (r) => {
 			t(r) ? i ? i.update?.(r) : i = e(n, r) : (i?.destroy(), i = void 0);
@@ -856,21 +857,21 @@ function Dt(e, t = (e) => e.enabled !== !1) {
 }
 //#endregion
 //#region ui/web-workflow/common.mjs
-var Ot = Et(), q = ct(class extends Tt {
+var kt = Dt(), J = B(class extends Et {
 	render() {
-		return P;
+		return N;
 	}
 	update(e, [t, n]) {
-		return this.node = e.element, this.factory !== t && (this.clear(), this.factory = t), this.value = n, this.schedule(), P;
+		return this.node = e.element, this.factory !== t && (this.clear(), this.factory = t), this.value = n, this.schedule(), N;
 	}
 	schedule() {
-		Ot.add(this);
+		kt.add(this);
 	}
 	flush() {
 		!this.isConnected || !this.node.isConnected || (this.binding ? this.binding.update?.(this.value) : this.binding = this.factory(this.node, this.value));
 	}
 	clear() {
-		Ot.delete(this), this.binding?.destroy?.(), this.binding?.dispose?.(), this.binding = null;
+		kt.delete(this), this.binding?.destroy?.(), this.binding?.dispose?.(), this.binding = null;
 	}
 	disconnected() {
 		this.clear();
@@ -878,10 +879,10 @@ var Ot = Et(), q = ct(class extends Tt {
 	reconnected() {
 		this.factory && this.schedule();
 	}
-}), kt = (e, t = {}) => j`<div ${q(ie, {
+}), At = (e, t = {}) => A`<div ${J(_, {
 	text: e ?? "",
 	...t
-})}></div>`, J = (e = !1, t = !1) => M`<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${e ? M`<path d="M3 9c4 7 14 7 18 0M5 12l-2 3m6-1-1 3m7-3 1 3m3-5 2 3" />` : M`<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z" /><circle cx="12" cy="12" r="3" />`}${t ? M`<path d="M3 3l18 18" />` : P}</svg>`, At = (e) => M`<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true">${e === "free" ? M`<path d="M4 5h15M4 10h8M4 15h17M4 20h11" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" />` : M`<path d=${e === "forward" ? "M5 3v18m-3-3 3 3 3-3" : "M5 21V3m-3 3 3-3 3 3"} fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /><path d=${e === "forward" ? "M11 4h10M11 9h8M11 14h6M11 19h3" : "M11 4h3M11 9h6M11 14h8M11 19h10"} fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" />`}</svg>`, jt = (e) => j`<small class="card-id">(${e})</small>`, Mt = (e, t, n = e) => j`<ui-copy-id class="task-title-copy" .value=${String(e)} .label=${t}>${t}${jt(n)}</ui-copy-id>`, Nt = ({ cells: e = [], form: t = "segmented", ratio: n = 0, label: r = "", extraClass: i = "" } = {}) => t === "segmented" ? j`<div class="progress-bar progress-bar-segmented ${i}" role="img" aria-label=${r}>${e.map((e) => j`<i class="progress-cell progress-tone-${e}"></i>`)}</div>` : j`<progress class="progress-meter ${i}" max="100" .value=${Math.max(0, Math.min(100, n * 100))} aria-label=${r}></progress>`, Pt = class {
+})}></div>`, jt = (e = !1, t = !1) => j`<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${e ? j`<path d="M3 9c4 7 14 7 18 0M5 12l-2 3m6-1-1 3m7-3 1 3m3-5 2 3" />` : j`<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z" /><circle cx="12" cy="12" r="3" />`}${t ? j`<path d="M3 3l18 18" />` : N}</svg>`, Mt = (e) => j`<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true">${e === "free" ? j`<path d="M4 5h15M4 10h8M4 15h17M4 20h11" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" />` : j`<path d=${e === "forward" ? "M5 3v18m-3-3 3 3 3-3" : "M5 21V3m-3 3 3-3 3 3"} fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /><path d=${e === "forward" ? "M11 4h10M11 9h8M11 14h6M11 19h3" : "M11 4h3M11 9h6M11 14h8M11 19h10"} fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" />`}</svg>`, Nt = (e) => A`<small class="card-id">(${e})</small>`, Pt = (e, t, n = e) => A`<ui-copy-id class="task-title-copy" .value=${String(e)} .label=${t}>${t}${Nt(n)}</ui-copy-id>`, Ft = ({ cells: e = [], form: t = "segmented", ratio: n = 0, label: r = "", extraClass: i = "" } = {}) => t === "segmented" ? A`<div class="progress-bar progress-bar-segmented ${i}" role="img" aria-label=${r}>${e.map((e) => A`<i class="progress-cell progress-tone-${e}"></i>`)}</div>` : A`<progress class="progress-meter ${i}" max="100" .value=${Math.max(0, Math.min(100, n * 100))} aria-label=${r}></progress>`, It = class {
 	constructor(e, t = {}, n) {
 		this.target = e, this.props = { ...t }, this.state = {}, this.renderer = n, this.abort = new AbortController(), this.cleanups = [], this.disposed = !1;
 		let r = /* @__PURE__ */ new Set();
@@ -905,7 +906,7 @@ var Ot = Et(), q = ct(class extends Tt {
 		return Object.assign(this.props, e), this.draw(), this;
 	}
 	draw({ reuseCardContent: e = !1 } = {}) {
-		this.disposed || (e || (this.contentVersion = (this.contentVersion ?? 0) + 1), at(this.renderer(this.props, this), this.target));
+		this.disposed || (e || (this.contentVersion = (this.contentVersion ?? 0) + 1), ct(this.renderer(this.props, this), this.target));
 	}
 	refresh = () => this.draw();
 	on(e, t, n, r = {}) {
@@ -915,9 +916,9 @@ var Ot = Et(), q = ct(class extends Tt {
 		});
 	}
 	destroy() {
-		this.disposed || (this.disposed = !0, this.abort.abort(), this.cleanups.forEach((e) => typeof e == "function" ? e() : e?.dispose?.()), at(P, this.target));
+		this.disposed || (this.disposed = !0, this.abort.abort(), this.cleanups.forEach((e) => typeof e == "function" ? e() : e?.dispose?.()), ct(N, this.target));
 	}
-}, Ft = Dt((e, r) => {
+}, Lt = Ot((e, r) => {
 	let i = r, a = !1, o = new AbortController(), s = /* @__PURE__ */ new Map(), c = () => {
 		let t = i.previewClasses ?? {};
 		for (let n of /* @__PURE__ */ new Set([...s.keys(), ...e.children])) {
@@ -995,9 +996,9 @@ var Ot = Et(), q = ct(class extends Tt {
 		}
 	};
 });
-function It(e = [], t = {}) {
-	return j`<div class="horizontal-capsule-strip ${t.className ?? ""}" role="toolbar" aria-label=${t.ariaLabel ?? "模組"}
-    ${q(Ft, {
+function Rt(e = [], t = {}) {
+	return A`<div class="horizontal-capsule-strip ${t.className ?? ""}" role="toolbar" aria-label=${t.ariaLabel ?? "模組"}
+    ${J(Lt, {
 		axis: "horizontal",
 		focusAfterMove: !0,
 		previewClasses: {
@@ -1007,15 +1008,15 @@ function It(e = [], t = {}) {
 		},
 		onMove: (e) => t.onReorder?.(e.id, e.targetId, e.placement === "after")
 	})}>
-    ${U(e, (e) => e.id, (e) => j`<button type="button" data-capsule-id=${e.id} data-reorder-capsule=${String(e.sortable !== !1)} data-reorder-id=${e.id} data-reorder-handle data-reorder-sortable=${String(e.sortable !== !1)}
-      class="capsule-button ${e.className ?? ""} ${e.sortable === !1 ? "" : "capsule-sortable"}" aria-pressed=${e.pressed ?? P}
-      aria-label=${e.ariaLabel ?? e.label} aria-keyshortcuts=${e.sortable === !1 ? P : "Alt+ArrowLeft Alt+ArrowRight"} title=${e.title ?? P} ?disabled=${e.disabled} draggable=${e.sortable !== !1}
-      @click=${() => t.onActivate?.(e.id)}><span>${e.label}</span>${e.showDot ? j`<span class="time-risk-dot ${e.dotClass ?? ""}"></span>` : P}${e.showChevron ? j`<span class="time-chevron">›</span>` : P}</button>`)}
+    ${W(e, (e) => e.id, (e) => A`<button type="button" data-capsule-id=${e.id} data-reorder-capsule=${String(e.sortable !== !1)} data-reorder-id=${e.id} data-reorder-handle data-reorder-sortable=${String(e.sortable !== !1)}
+      class="capsule-button ${e.className ?? ""} ${e.sortable === !1 ? "" : "capsule-sortable"}" aria-pressed=${e.pressed ?? N}
+      aria-label=${e.ariaLabel ?? e.label} aria-keyshortcuts=${e.sortable === !1 ? N : "Alt+ArrowLeft Alt+ArrowRight"} title=${e.title ?? N} ?disabled=${e.disabled} draggable=${e.sortable !== !1}
+      @click=${() => t.onActivate?.(e.id)}><span>${e.label}</span>${e.showDot ? A`<span class="time-risk-dot ${e.dotClass ?? ""}"></span>` : N}${e.showChevron ? A`<span class="time-chevron">›</span>` : N}</button>`)}
   </div>`;
 }
-function Lt(e = {}) {
-	let t = new Map((e.categories ?? []).map((e) => [e.id, e])), n = e.order?.length ? e.order : [ce, ...t.keys()], r = n.find((e) => !t.has(e)), i = e.defaultLabel ?? "預設";
-	return It(n.map((n) => n === r ? {
+function zt(e = {}) {
+	let t = new Map((e.categories ?? []).map((e) => [e.id, e])), n = e.order?.length ? e.order : [ue, ...t.keys()], r = n.find((e) => !t.has(e)), i = e.defaultLabel ?? "預設";
+	return Rt(n.map((n) => n === r ? {
 		id: n,
 		label: i,
 		ariaLabel: `${i}，${e.defaultLit ? "已全選" : "選取全部"}`,
@@ -1037,32 +1038,32 @@ function Lt(e = {}) {
 		onActivate: (t) => t === r ? e.onSelectDefault?.() : e.onSelect?.(t)
 	});
 }
-var Rt = (e = {}) => {
+var Bt = (e = {}) => {
 	let t = new Map((e.moduleOrder ?? []).map((e, t) => [e, t])), n = e.moduleOrder?.length ?? 0, r = [...e.capsules ?? []].sort((e, r) => (t.get(e.id) ?? n) - (t.get(r.id) ?? n));
-	return r.length ? It(r, {
+	return r.length ? Rt(r, {
 		...e,
 		ariaLabel: e.ariaLabel ?? "子項目模組",
 		className: e.className ?? "item-module-strip",
 		onActivate: e.onActivate
-	}) : P;
-}, zt = Object.freeze({
+	}) : N;
+}, Vt = Object.freeze({
 	icon: !0,
 	label: !1,
 	appearance: "ghost"
 });
-function Bt(e, t, n, r, i, a, o = "both") {
-	return j`<ui-option-picker class="icon-choice" aria-label=${i} .label=${i} .options=${n}
+function Ht(e, t, n, r, i, a, o = "both") {
+	return A`<ui-option-picker class="icon-choice" aria-label=${i} .label=${i} .options=${n}
     .value=${r} .interaction=${o} .delay=${300} orientation="vertical"
-    .triggerDisplay=${zt} .optionDisplay=${zt}
+    .triggerDisplay=${Vt} .optionDisplay=${Vt}
     @choice-request=${(e) => a(e.detail.id)}></ui-option-picker>`;
 }
-function Vt({ id: e, label: t, expanded: n = !0, toggle: r, visibilityEnabled: i = !1, visible: a = !0, onVisibleChange: o }, s, c) {
-	return j`<div class="card-disclosure-heading ${n ? "" : "card-disclosure-collapsed"}"><button type="button" class="card-disclosure-toggle" aria-expanded=${n} aria-controls=${e} aria-label="${n ? "收合" : "展開"} ${t}" @click=${() => r(!n)}><span aria-hidden="true">${n ? "▼" : "▶"}</span></button>
-  ${i ? j`<button type="button" class="card-visibility-toggle card-toolbar-icon" aria-pressed=${a} aria-label="${a ? "隱藏" : "顯示"} ${t}" @click=${() => o(!a)}>${J(!a)}</button>` : P}${s}</div><div id=${e} class="card-disclosure-body" ?hidden=${!n}>${c}</div>`;
+function Ut({ id: e, label: t, expanded: n = !0, toggle: r, visibilityEnabled: i = !1, visible: a = !0, onVisibleChange: o }, s, c) {
+	return A`<div class="card-disclosure-heading ${n ? "" : "card-disclosure-collapsed"}"><button type="button" class="card-disclosure-toggle" aria-expanded=${n} aria-controls=${e} aria-label="${n ? "收合" : "展開"} ${t}" @click=${() => r(!n)}><span aria-hidden="true">${n ? "▼" : "▶"}</span></button>
+  ${i ? A`<button type="button" class="card-visibility-toggle card-toolbar-icon" aria-pressed=${a} aria-label="${a ? "隱藏" : "顯示"} ${t}" @click=${() => o(!a)}>${jt(!a)}</button>` : N}${s}</div><div id=${e} class="card-disclosure-body" ?hidden=${!n}>${c}</div>`;
 }
-var Ht = class {
+var Wt = class {
 	constructor(e) {
-		this.view = e, this.order = [], this.pins = [], this.mode = "forward", this.visibility = "disabled", this.hidden = [], this.selected = null, this.expanded = !0, this.overrides = {}, this.key = null, this.linkSelection = te(re(location.search));
+		this.view = e, this.order = [], this.pins = [], this.mode = "forward", this.visibility = "disabled", this.hidden = [], this.selected = null, this.expanded = !0, this.overrides = {}, this.key = null, this.linkSelection = ie(oe(location.search));
 		let t = (t) => {
 			let n = t.target.closest(".arrangeable-card");
 			(!n || !e.target.contains(n)) && this.select(null);
@@ -1081,10 +1082,10 @@ var Ht = class {
 		return v(e, this.order, this.mode, this.props?.pinEnabled ? this.pins : [], this.props?.nextId, this.props?.completedIds).map((e) => e.id);
 	}
 	expand(e, t) {
-		this.overrides[e] = t, se(this.disclosureKey, this.expanded, this.overrides), this.view.draw();
+		this.overrides[e] = t, le(this.disclosureKey, this.expanded, this.overrides), this.view.draw();
 	}
 	all(e) {
-		this.expanded = e, this.overrides = {}, se(this.disclosureKey, this.expanded, this.overrides), this.view.draw();
+		this.expanded = e, this.overrides = {}, le(this.disclosureKey, this.expanded, this.overrides), this.view.draw();
 	}
 	persist(e = !1) {
 		try {
@@ -1095,7 +1096,7 @@ var Ht = class {
 		} catch {}
 		this.view.draw({ reuseCardContent: e });
 	}
-	render(e, t, n = P, r = P) {
+	render(e, t, n = N, r = N) {
 		this.props = e;
 		let i = e.storageKey ?? null;
 		if (this.key !== i && (this.key = i, this.lastPin = null, this.order = [], this.pins = [], this.completionStates = {}, this.mode = "forward", this.hidden = [], this.visibility = "disabled", this.selected = null, i)) try {
@@ -1115,14 +1116,14 @@ var Ht = class {
 		let a = e.disclosureKey ?? `taskprogress.disclosure:${i ?? location.href}`;
 		if (this.disclosureKey !== a) {
 			this.disclosureKey = a;
-			let e = oe(a);
+			let e = ce(a);
 			this.expanded = e.expanded, this.overrides = e.overrides;
 		}
 		if (e.pinEnabled && e.completionStates) {
 			let t = Object.fromEntries(Object.entries(e.completionStates).flatMap(([e, t]) => {
 				let n = typeof t == "boolean" ? t : this.completionStates?.[e];
 				return typeof n == "boolean" ? [[e, n]] : [];
-			})), n = ae(this.pins, this.completionStates, t), r = n.length !== this.pins.length, a = JSON.stringify(t), o = JSON.stringify(this.completionStates);
+			})), n = se(this.pins, this.completionStates, t), r = n.length !== this.pins.length, a = JSON.stringify(t), o = JSON.stringify(this.completionStates);
 			if (this.pins = n, this.completionStates = t, i) try {
 				r && localStorage.setItem(`${i}:pins`, JSON.stringify(n)), a !== o && localStorage.setItem(`${i}:completion`, a);
 			} catch {}
@@ -1162,9 +1163,9 @@ var Ht = class {
 				});
 			}
 		}, p = o.find(l)?.id;
-		return j`<div class="card-list-controls"><div class="card-list-heading"><p class="section-kicker">工作項目</p>${n}</div><div class="card-list-tools">
+		return A`<div class="card-list-controls"><div class="card-list-heading"><p class="section-kicker">工作項目</p>${n}</div><div class="card-list-tools">
       <button type="button" class="card-toolbar-icon" aria-label=${this.expanded ? "全部收合" : "全部展開"} @click=${() => this.all(!this.expanded)}><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d=${this.expanded ? "M5 15l7-7 7 7" : "M5 9l7 7 7-7"} fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" /></svg></button>
-      ${Bt(this.view, "order", [
+      ${Ht(this.view, "order", [
 			"forward",
 			"reverse",
 			"free"
@@ -1175,36 +1176,36 @@ var Ht = class {
 				reverse: "逆排",
 				free: "不排（暫時換位）"
 			}[e],
-			icon: At(e)
+			icon: Mt(e)
 		})), this.mode, "排序", (e) => {
 			this.mode = e, this.persist(!0);
 		})}
-      ${Bt(this.view, "visibility", [
+      ${Ht(this.view, "visibility", [
 			{
 				id: "enabled",
 				label: "啟用",
-				icon: J()
+				icon: jt()
 			},
 			{
 				id: "closed",
 				label: "全體關閉",
-				icon: J(!0)
+				icon: jt(!0)
 			},
 			{
 				id: "disabled",
 				label: "禁用",
-				icon: J(!1, !0)
+				icon: jt(!1, !0)
 			},
 			{
 				id: "reset",
 				label: "重置",
 				kind: "action",
-				icon: j`<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10a9 9 0 1 1 2 8M3 4v6h6" /></svg>`
+				icon: A`<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10a9 9 0 1 1 2 8M3 4v6h6" /></svg>`
 			}
 		], this.visibility, "可見性", (e) => {
 			e === "reset" ? (this.hidden = [], this.visibility = "enabled") : this.visibility = e, this.persist();
 		}, "picker")}${r}
-    </div></div><div class="arrangeable-cards" ${q(Ft, {
+    </div></div><div class="arrangeable-cards" ${J(Lt, {
 			axis: "vertical",
 			surface: !0,
 			previewClasses: {
@@ -1213,17 +1214,17 @@ var Ht = class {
 			},
 			onMove: f
 		})}>
-    ${U(o, (e) => e.id, (n, r) => j`<div class="arrangeable-card ${this.selected === n.id ? "card-selected" : ""}" role="group" tabindex="0" data-render-window data-card-id=${n.id} data-reorder-id=${n.id} data-reorder-sortable=${String(d(n))} data-reorder-group=${u ? e.reorderGroups?.[n.id] ?? P : P}
-      aria-label=${`${n.title ?? n.question ?? ""}${this.selected === n.id ? "，已選取" : ""}`} aria-keyshortcuts=${d(n) ? "Alt+ArrowUp Alt+ArrowDown" : P} data-link-tone=${this.selected === n.id ? c ?? P : P} ?hidden=${!l(n)}
+    ${W(o, (e) => e.id, (n, r) => A`<div class="arrangeable-card ${this.selected === n.id ? "card-selected" : ""}" role="group" tabindex="0" data-render-window data-card-id=${n.id} data-reorder-id=${n.id} data-reorder-sortable=${String(d(n))} data-reorder-group=${u ? e.reorderGroups?.[n.id] ?? N : N}
+      aria-label=${`${n.title ?? n.question ?? ""}${this.selected === n.id ? "，已選取" : ""}`} aria-keyshortcuts=${d(n) ? "Alt+ArrowUp Alt+ArrowDown" : N} data-link-tone=${this.selected === n.id ? c ?? N : N} ?hidden=${!l(n)}
       @pointerdown=${(e) => {
 			e.button === 0 && this.select(n.id);
 		}} @focusin=${() => this.select(n.id)} @keydown=${(e) => {
 			e.target === e.currentTarget && ["Enter", " "].includes(e.key) && (e.preventDefault(), this.select(n.id));
 		}}>
-      ${e.pinEnabled ? j`<button type="button" class="card-pin ${this.pins.includes(n.id) ? "is-pinned" : ""} ${n.id === e.nextId ? "is-next" : ""}" aria-label="${this.pins.includes(n.id) ? "取消釘選" : "釘選置頂"}：${n.title}" aria-pressed=${this.pins.includes(n.id)} @click=${() => {
+      ${e.pinEnabled ? A`<button type="button" class="card-pin ${this.pins.includes(n.id) ? "is-pinned" : ""} ${n.id === e.nextId ? "is-next" : ""}" aria-label="${this.pins.includes(n.id) ? "取消釘選" : "釘選置頂"}：${n.title}" aria-pressed=${this.pins.includes(n.id)} @click=${() => {
 			this.pins = this.pins.includes(n.id) ? this.pins.filter((e) => e !== n.id) : b(this.pins, n.id), this.persist();
-		}}><svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M8 3h8l-1 7 4 4v2H5v-2l4-4-1-7Zm4 13v6" fill=${this.pins.includes(n.id) ? "currentColor" : "none"} stroke="currentColor" stroke-width="1.6" /></svg></button>` : P}
-      ${bt([
+		}}><svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M8 3h8l-1 7 4 4v2H5v-2l4-4-1-7Zm4 13v6" fill=${this.pins.includes(n.id) ? "currentColor" : "none"} stroke="currentColor" stroke-width="1.6" /></svg></button>` : N}
+      ${xt([
 			this.view.contentVersion,
 			n,
 			n.id === p,
@@ -1240,10 +1241,10 @@ var Ht = class {
 				this.hidden = e ? this.hidden.filter((e) => e !== n.id) : [...this.hidden, n.id], this.persist();
 			}
 		}))}
-    </div>`)}</div>${e.hiddenCount > 0 ? j`<p class="card-list-hidden"><button type="button" class="card-list-hidden-link" @click=${e.onShowHidden}>…顯示隱藏項目(${e.hiddenCount})</button></p>` : P}`;
+    </div>`)}</div>${e.hiddenCount > 0 ? A`<p class="card-list-hidden"><button type="button" class="card-list-hidden-link" @click=${e.onShowHidden}>…顯示隱藏項目(${e.hiddenCount})</button></p>` : N}`;
 	}
 };
-function Ut(e) {
+function Gt(e) {
 	r();
 	let t = {
 		canClear: !1,
@@ -1254,14 +1255,14 @@ function Ut(e) {
 		canUndo: !!e.canUndo,
 		canRedo: !!e.canRedo
 	};
-	return j`<span class="edit-save-status" id="edit-save-status" role="status">${e.message ?? ""}</span><ui-edit-history .history=${t} .panelAvailable=${!1} .disabled=${!!e.saving}
+	return A`<span class="edit-save-status" id="edit-save-status" role="status">${e.message ?? ""}</span><ui-edit-history .history=${t} .panelAvailable=${!1} .disabled=${!!e.saving}
     @history-request=${(t) => {
 		e.saving || (t.detail.action === "undo" && e.canUndo ? e.onUndo?.() : t.detail.action === "redo" && e.canRedo && e.onRedo?.());
 	}}></ui-edit-history>
-  ${e.onToggleCautious ? j`<button type="button" class="secondary-button edit-mode-button" aria-pressed=${!!e.cautious} ?disabled=${e.saving} @click=${() => e.onToggleCautious(!e.cautious)}>謹慎模式</button>` : P}
-  ${e.cautious ? j`<button type="button" class="secondary-button edit-discard-button" ?disabled=${e.saving} @click=${e.onDiscard}>放棄</button><button type="button" class="primary-button edit-save-button" ?disabled=${!e.dirty || e.saving} @click=${e.onSave}>${e.saving ? "正在儲存…" : "儲存"}</button>` : P}`;
+  ${e.onToggleCautious ? A`<button type="button" class="secondary-button edit-mode-button" aria-pressed=${!!e.cautious} ?disabled=${e.saving} @click=${() => e.onToggleCautious(!e.cautious)}>謹慎模式</button>` : N}
+  ${e.cautious ? A`<button type="button" class="secondary-button edit-discard-button" ?disabled=${e.saving} @click=${e.onDiscard}>放棄</button><button type="button" class="primary-button edit-save-button" ?disabled=${!e.dirty || e.saving} @click=${e.onSave}>${e.saving ? "正在儲存…" : "儲存"}</button>` : N}`;
 }
-var Wt = (e, t) => {
+var Kt = (e, t) => {
 	let n = t, r = () => n.onClose?.();
 	e.addEventListener("ui-close", r);
 	let i = (t) => {
@@ -1273,7 +1274,7 @@ var Wt = (e, t) => {
 			e.removeEventListener("ui-close", r), e.close();
 		}
 	};
-}, Y = (e, t) => (r(), j`<ui-dialog id=${e.id ?? P} class=${e.className ?? ""} .heading=${e.title ?? ""} .kicker=${e.kicker ?? ""} .closeLabel=${e.closeLabel ?? ""} .dismissDisabled=${!!e.busy} .dismissOnBackdrop=${e.dismissOnBackdrop ?? !0} ${q(Wt, e)}>${e.open ? t : P}</ui-dialog>`), Gt = Dt((e, n) => {
+}, Y = (e, t) => (r(), A`<ui-dialog id=${e.id ?? N} class=${e.className ?? ""} .heading=${e.title ?? ""} .kicker=${e.kicker ?? ""} .closeLabel=${e.closeLabel ?? ""} .dismissDisabled=${!!e.busy} .dismissOnBackdrop=${e.dismissOnBackdrop ?? !0} ${J(Kt, e)}>${e.open ? t : N}</ui-dialog>`), qt = Ot((e, n) => {
 	let r = n, i = t(e, {
 		capture: !1,
 		accept: (e) => !!r.enabled && !e.target.closest("a,button,input,textarea,select,label,[contenteditable]"),
@@ -1285,19 +1286,19 @@ var Wt = (e, t) => {
 		},
 		destroy: () => i.dispose()
 	};
-}, (e) => !!e.enabled), Kt = (e) => {
+}, (e) => !!e.enabled), Jt = (e) => {
 	let t = globalThis.taskprogressTheme.control;
 	return e.append(t), { destroy() {
 		t.parentNode === e && t.remove();
 	} };
-}, qt = () => j`<span class="replica-theme" ${q(Kt, null)}></span>`;
+}, Yt = () => A`<span class="replica-theme" ${J(Jt, null)}></span>`;
 //#endregion
 //#region ui/web-workflow/time-settings-offset.mjs
-function Jt() {
+function Xt() {
 	let e = -(/* @__PURE__ */ new Date()).getTimezoneOffset(), t = e >= 0 ? "+" : "-", n = Math.abs(e);
 	return `${t}${String(Math.floor(n / 60)).padStart(2, "0")}:${String(n % 60).padStart(2, "0")}`;
 }
-function Yt(e, t) {
+function Zt(e, t) {
 	try {
 		let [n, r] = e.split("T"), [i, a, o] = n.split("-").map(Number), [s, c] = r.split(":").map(Number), l = Date.UTC(i, a - 1, o, s, c), u = new Intl.DateTimeFormat("en-CA", {
 			timeZone: t,
@@ -1315,12 +1316,12 @@ function Yt(e, t) {
 		let p = f >= 0 ? "+" : "-", m = Math.abs(f);
 		return `${p}${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`;
 	} catch {
-		return Jt();
+		return Xt();
 	}
 }
 //#endregion
 //#region ui/web-workflow/time-settings.mjs
-function Xt(e) {
+function Qt(e) {
 	let t = e.standard_allocation;
 	return {
 		initialDelivery: e.project?.delivery_at ?? "",
@@ -1341,10 +1342,10 @@ function Xt(e) {
 		error: ""
 	};
 }
-function Zt(e, t) {
+function $t(e, t) {
 	let n = e.initialDelivery.match(/(Z|[+-]\d{2}:\d{2})$/)?.[1];
 	return {
-		deliveryAt: e.delivery ? `${e.delivery}:00${n ?? Yt(e.delivery, t.timezone)}` : "",
+		deliveryAt: e.delivery ? `${e.delivery}:00${n ?? Zt(e.delivery, t.timezone)}` : "",
 		deliveryReason: e.reason,
 		capacity: {
 			sleepMinutes: Math.round(Number(e.sleep) * 60),
@@ -1360,7 +1361,7 @@ function Zt(e, t) {
 		}
 	};
 }
-var Qt = [
+var en = [
 	"一",
 	"二",
 	"三",
@@ -1369,15 +1370,15 @@ var Qt = [
 	"六",
 	"日"
 ];
-function $t(e, t) {
-	let n = t.state.settings ??= Xt(e.config), r = () => {
+function tn(e, t) {
+	let n = t.state.settings ??= Qt(e.config), r = () => {
 		n.error = "", e.onPendingChange(!0), t.draw();
 	}, i = (e, t) => {
 		n[e] = t, r();
-	}, a = (e, t) => j`<label><span>${t}</span><input type="number" min="0" max="24" step="0.5" .value=${W(String(n[e] ?? ""))} @input=${(t) => i(e, t.currentTarget.value === "" ? void 0 : t.currentTarget.valueAsNumber)}></label>`, o = 24 - Number(n.sleep) - Number(n.life) - Number(n.other);
-	return j`<section class="spike-time-editor" aria-labelledby="time-settings-title"><div class="spike-time-editor-heading"><p class="spike-editor-kicker">時間設定</p><h2 id="time-settings-title">工作容量與交付日</h2><p>所有欄位先保存在記憶體草稿；重新計算只預覽，全域儲存才寫入。</p><p class="spike-timezone">時區：${e.config.timezone}</p></div>
-    <div class="spike-time-settings-fields"><section class="spike-delivery-settings" aria-labelledby="delivery-settings-title"><h3 id="delivery-settings-title">交付日</h3><div class="spike-delivery-controls"><label><span>排他截止時間</span><input type="datetime-local" .value=${W(n.delivery)} @input=${(e) => i("delivery", e.currentTarget.value)}></label><label class="spike-delivery-reason"><span>修改原因（不填敏感原文）</span><input maxlength="500" .value=${W(n.reason)} @input=${(e) => i("reason", e.currentTarget.value)} placeholder="例如：配合里程碑調整"></label><button class="spike-subtle-button" type="button" @click=${() => i("delivery", "")}>設為未指定</button></div></section>
-    <section class="spike-capacity-settings" aria-labelledby="capacity-settings-title"><div class="spike-setting-heading"><h3 id="capacity-settings-title">每日分配</h3><strong class=${o > 0 ? "" : "invalid"}>工作 ${Number.isFinite(o) ? o : "—"} hr</strong></div><div class="spike-allocation-fields">${a("sleep", "睡眠（hr）")}${a("life", "生活（hr）")}${a("other", "其他不可工作（hr）")}</div><fieldset class="spike-weekdays"><legend>工作日</legend>${Qt.map((e, t) => j`<label><input type="checkbox" .checked=${n.weekdays.includes(t + 1)} @change=${(e) => {
+	}, a = (e, t) => A`<label><span>${t}</span><input type="number" min="0" max="24" step="0.5" .value=${G(String(n[e] ?? ""))} @input=${(t) => i(e, t.currentTarget.value === "" ? void 0 : t.currentTarget.valueAsNumber)}></label>`, o = 24 - Number(n.sleep) - Number(n.life) - Number(n.other);
+	return A`<section class="spike-time-editor" aria-labelledby="time-settings-title"><div class="spike-time-editor-heading"><p class="spike-editor-kicker">時間設定</p><h2 id="time-settings-title">工作容量與交付日</h2><p>所有欄位先保存在記憶體草稿；重新計算只預覽，全域儲存才寫入。</p><p class="spike-timezone">時區：${e.config.timezone}</p></div>
+    <div class="spike-time-settings-fields"><section class="spike-delivery-settings" aria-labelledby="delivery-settings-title"><h3 id="delivery-settings-title">交付日</h3><div class="spike-delivery-controls"><label><span>排他截止時間</span><input type="datetime-local" .value=${G(n.delivery)} @input=${(e) => i("delivery", e.currentTarget.value)}></label><label class="spike-delivery-reason"><span>修改原因（不填敏感原文）</span><input maxlength="500" .value=${G(n.reason)} @input=${(e) => i("reason", e.currentTarget.value)} placeholder="例如：配合里程碑調整"></label><button class="spike-subtle-button" type="button" @click=${() => i("delivery", "")}>設為未指定</button></div></section>
+    <section class="spike-capacity-settings" aria-labelledby="capacity-settings-title"><div class="spike-setting-heading"><h3 id="capacity-settings-title">每日分配</h3><strong class=${o > 0 ? "" : "invalid"}>工作 ${Number.isFinite(o) ? o : "—"} hr</strong></div><div class="spike-allocation-fields">${a("sleep", "睡眠（hr）")}${a("life", "生活（hr）")}${a("other", "其他不可工作（hr）")}</div><fieldset class="spike-weekdays"><legend>工作日</legend>${en.map((e, t) => A`<label><input type="checkbox" .checked=${n.weekdays.includes(t + 1)} @change=${(e) => {
 		n.weekdays = e.currentTarget.checked ? [.../* @__PURE__ */ new Set([...n.weekdays, t + 1])].sort((e, t) => e - t) : n.weekdays.filter((e) => e !== t + 1), r();
 	}}><span>週${e}</span></label>`)}</fieldset></section>
     <section class="spike-exception-settings" aria-labelledby="exception-settings-title"><div class="spike-setting-heading"><div><h3 id="exception-settings-title">休假與容量例外</h3><p>請假／例外說明可能公開；請勿填私人細節。既有私人理由會保留但不在此顯示或修改。</p></div><button class="spike-subtle-button" type="button" @click=${() => {
@@ -1389,27 +1390,27 @@ function $t(e, t) {
 			publicLabel: ""
 		}), r();
 	}}>＋ 新增例外</button></div>
-    ${n.exceptions.length ? j`<div class="spike-exception-list">${U(n.exceptions, (e) => e.key, (e) => j`<div class="spike-exception-row"><label><span>日期</span><input type="date" .value=${W(e.date)} @input=${(t) => {
+    ${n.exceptions.length ? A`<div class="spike-exception-list">${W(n.exceptions, (e) => e.key, (e) => A`<div class="spike-exception-row"><label><span>日期</span><input type="date" .value=${G(e.date)} @input=${(t) => {
 		e.date = t.currentTarget.value, r();
-	}}></label><label><span>可工作（hr）</span><input type="number" min="0" max="24" step="0.5" .value=${W(String(e.availableHours ?? ""))} @input=${(t) => {
+	}}></label><label><span>可工作（hr）</span><input type="number" min="0" max="24" step="0.5" .value=${G(String(e.availableHours ?? ""))} @input=${(t) => {
 		e.availableHours = t.currentTarget.value, r();
-	}}></label><label><span>請假／例外說明</span><input maxlength="500" .value=${W(e.publicLabel)} placeholder="例如：不可工作" @input=${(t) => {
+	}}></label><label><span>請假／例外說明</span><input maxlength="500" .value=${G(e.publicLabel)} placeholder="例如：不可工作" @input=${(t) => {
 		e.publicLabel = t.currentTarget.value, r();
 	}}></label><button class="spike-delete-exception" type="button" @click=${() => {
 		n.exceptions = n.exceptions.filter((t) => t.key !== e.key), r();
-	}}>刪除</button></div>`)}</div>` : j`<p class="spike-empty-setting">目前沒有休假或容量例外。</p>`}</section>
+	}}>刪除</button></div>`)}</div>` : A`<p class="spike-empty-setting">目前沒有休假或容量例外。</p>`}</section>
     <div class="spike-time-settings-actions"><button type="button" @click=${async () => {
-		let r = e.onApply(Zt(n, e.config));
+		let r = e.onApply($t(n, e.config));
 		n.error = r?.error ?? "", t.draw(), !n.error && (e.onPendingChange(!1), await e.onPreview());
-	}}>重新計算預覽</button>${n.error ? j`<p class="spike-field-error" role="alert">${n.error}</p>` : P}</div></div></section>`;
+	}}>重新計算預覽</button>${n.error ? A`<p class="spike-field-error" role="alert">${n.error}</p>` : N}</div></div></section>`;
 }
 //#endregion
 //#region ui/web-workflow/assessment.mjs
-var X = (e = []) => j`<div class="assessment-metric-grid">${e.map((e) => j`<div class="assessment-metric"><span>${e.label}</span><strong>${e.tone ? j`<span class="assessment-tone-dot assessment-tone-${e.tone}" aria-hidden="true"></span>` : P}${e.value}</strong></div>`)}</div>`, Z = (e, t, n) => j`<section class="assessment-note"><h3>${n ? j`<span class="assessment-tone-dot assessment-tone-${n}" aria-hidden="true"></span>` : P}${e}</h3>${t}</section>`, en = (e) => (e ?? []).map((e) => j`<span class="assessment-source-badge source-${e.kind}">${e.label}</span>`), tn = (e, t, n) => j`<section class="assessment-readout"><span class="assessment-readout-label">${e}</span><span class="assessment-readout-badges">${n}</span><strong class="assessment-readout-value">${t}</strong></section>`, nn = (e) => j`<div class="time-source-list">${(e ?? []).map((e) => j`<div class="time-source-row"><div><strong>${e.label}</strong><p>${e.note}</p></div><span>${e.value}</span></div>`)}</div>`, rn = (e) => j`<section class="time-composition"><h3>估算組成</h3>${nn(e)}</section>`, Q = (e, t = "") => j`<div class="time-evaluation-node ${t}"><span>${e.label}</span><strong>${e.value}</strong><small>${e.note}</small></div>`, an = (e, t) => j`<section class="time-tab-panel time-flow-panel" id="time-flow-panel" role="tabpanel" aria-labelledby="time-flow-tab" ?hidden=${!t}><p class="time-flow-intro">${e.intro}</p><div class="time-flow-lanes">
+var X = (e = []) => A`<div class="assessment-metric-grid">${e.map((e) => A`<div class="assessment-metric"><span>${e.label}</span><strong>${e.tone ? A`<span class="assessment-tone-dot assessment-tone-${e.tone}" aria-hidden="true"></span>` : N}${e.value}</strong></div>`)}</div>`, Z = (e, t, n) => A`<section class="assessment-note"><h3>${n ? A`<span class="assessment-tone-dot assessment-tone-${n}" aria-hidden="true"></span>` : N}${e}</h3>${t}</section>`, nn = (e) => (e ?? []).map((e) => A`<span class="assessment-source-badge source-${e.kind}">${e.label}</span>`), rn = (e, t, n) => A`<section class="assessment-readout"><span class="assessment-readout-label">${e}</span><span class="assessment-readout-badges">${n}</span><strong class="assessment-readout-value">${t}</strong></section>`, an = (e) => A`<div class="time-source-list">${(e ?? []).map((e) => A`<div class="time-source-row"><div><strong>${e.label}</strong><p>${e.note}</p></div><span>${e.value}</span></div>`)}</div>`, on = (e) => A`<section class="time-composition"><h3>估算組成</h3>${an(e)}</section>`, Q = (e, t = "") => A`<div class="time-evaluation-node ${t}"><span>${e.label}</span><strong>${e.value}</strong><small>${e.note}</small></div>`, sn = (e, t) => A`<section class="time-tab-panel time-flow-panel" id="time-flow-panel" role="tabpanel" aria-labelledby="time-flow-tab" ?hidden=${!t}><p class="time-flow-intro">${e.intro}</p><div class="time-flow-lanes">
   <section class="time-flow-lane" aria-label="工程估算路徑">${Q(e.engineeringLane.source)}<span class="time-flow-arrow">→</span>${Q(e.engineeringLane.result, "time-evaluation-result")}</section>
   <section class="time-flow-lane" aria-label="工作容量路徑">${Q(e.capacityLane.source)}<span class="time-flow-arrow">→</span>${Q(e.capacityLane.result, "time-evaluation-result")}</section></div>
-  <div class="time-flow-merge"><span class="time-flow-arrow">↓</span>${Q(e.merge, e.merge.className)}</div><div class="time-flow-lane time-flow-risk">${Q(e.risk.trend)}<span class="time-flow-arrow">→</span>${Q(e.risk.result, e.risk.result.className)}</div><p class="time-flow-note">${e.note}</p></section>`, on = (e, t) => j`<section class="time-tab-panel" id="time-engineering-panel" role="tabpanel" aria-labelledby="time-engineering-tab" ?hidden=${!t}>${X(e.metrics)}${Z("風險評估公式", j`<p>${e.explanation.text}</p><code class="time-formula">${e.explanation.formula}</code>`, e.explanation.className)}${Z("執行校準", j`<p>${e.calibrationText}</p>`)}${rn(e.composition)}</section>`, sn = (e, t) => j`<section class="time-tab-panel" id="time-capacity-panel" role="tabpanel" aria-labelledby="time-capacity-tab" ?hidden=${!t}><div class="time-capacity-toolbar"><p>工作容量由每日分配、工作日及休假例外共同產生。</p></div>${X(e.metrics)}${Z("每日容量公式", j`<p>固定不可工作時間只在產生容量時間線時扣除一次；週末依工作日設定排除。</p><code class="time-formula">${e.formulaCode}</code>`)}<section class="time-composition"><h3>${e.exceptionsHeading}</h3>${e.exceptions ? nn(e.exceptions) : j`<div class="time-source-list"><p class="time-empty-note">目前沒有休假或其他容量例外。</p></div>`}</section></section>`, cn = (e) => j`<section class="time-tab-panel time-estimate-only-panel"><p class="time-flow-intro">${e.intro}</p>${X(e.metrics)}${Z("執行校準", j`<p>${e.calibrationText}</p>`)}${rn(e.composition)}</section>`;
-function ln(e, t) {
+  <div class="time-flow-merge"><span class="time-flow-arrow">↓</span>${Q(e.merge, e.merge.className)}</div><div class="time-flow-lane time-flow-risk">${Q(e.risk.trend)}<span class="time-flow-arrow">→</span>${Q(e.risk.result, e.risk.result.className)}</div><p class="time-flow-note">${e.note}</p></section>`, cn = (e, t) => A`<section class="time-tab-panel" id="time-engineering-panel" role="tabpanel" aria-labelledby="time-engineering-tab" ?hidden=${!t}>${X(e.metrics)}${Z("風險評估公式", A`<p>${e.explanation.text}</p><code class="time-formula">${e.explanation.formula}</code>`, e.explanation.className)}${Z("執行校準", A`<p>${e.calibrationText}</p>`)}${on(e.composition)}</section>`, ln = (e, t) => A`<section class="time-tab-panel" id="time-capacity-panel" role="tabpanel" aria-labelledby="time-capacity-tab" ?hidden=${!t}><div class="time-capacity-toolbar"><p>工作容量由每日分配、工作日及休假例外共同產生。</p></div>${X(e.metrics)}${Z("每日容量公式", A`<p>固定不可工作時間只在產生容量時間線時扣除一次；週末依工作日設定排除。</p><code class="time-formula">${e.formulaCode}</code>`)}<section class="time-composition"><h3>${e.exceptionsHeading}</h3>${e.exceptions ? an(e.exceptions) : A`<div class="time-source-list"><p class="time-empty-note">目前沒有休假或其他容量例外。</p></div>`}</section></section>`, un = (e) => A`<section class="time-tab-panel time-estimate-only-panel"><p class="time-flow-intro">${e.intro}</p>${X(e.metrics)}${Z("執行校準", A`<p>${e.calibrationText}</p>`)}${on(e.composition)}</section>`;
+function dn(e, t) {
 	let n = e.item, r = e.activeEstimate, i = `${n.itemId}:${r?.estimate_id ?? "analysis"}`;
 	t.state.manualKey !== i && (t.state.manualKey = i, t.state.manual = {
 		hours: r?.likely_minutes ? String(r.likely_minutes / 60) : n.unset ? "" : String(n.likelyMinutes / 60),
@@ -1418,7 +1419,7 @@ function ln(e, t) {
 		error: ""
 	});
 	let a = t.state.manual, o = e.title;
-	return j`<form class="spike-estimate-form" @submit=${(r) => {
+	return A`<form class="spike-estimate-form" @submit=${(r) => {
 		r.preventDefault();
 		let i = Number(a.hours);
 		!Number.isFinite(i) || i <= 0 ? a.error = "工時必須大於 0。" : a.error = e.onManualEstimate({
@@ -1429,49 +1430,49 @@ function ln(e, t) {
 			humanConfirmed: a.confirmed
 		})?.error ?? "", t.draw();
 	}}>
-    <section class="spike-estimate-row"><div class="spike-estimate-badges"><span>預估工時</span>${en(n.sourceBadges)}</div><label class="spike-estimate-hours"><span>人工工時（hr）</span><input type="number" min="0.02" step="0.25" aria-label="「${o}」人工工時（hr）" .value=${W(String(a.hours ?? ""))} @input=${(e) => {
+    <section class="spike-estimate-row"><div class="spike-estimate-badges"><span>預估工時</span>${nn(n.sourceBadges)}</div><label class="spike-estimate-hours"><span>人工工時（hr）</span><input type="number" min="0.02" step="0.25" aria-label="「${o}」人工工時（hr）" .value=${G(String(a.hours ?? ""))} @input=${(e) => {
 		a.hours = e.currentTarget.value === "" ? void 0 : e.currentTarget.valueAsNumber;
 	}}></label></section>
-    <div class="time-item-rationale">${Z("估算依據", j`<label class="spike-estimate-note"><span>人工依據</span><input maxlength="1000" aria-label="「${o}」人工依據" .value=${W(a.note)} @input=${(e) => {
+    <div class="time-item-rationale">${Z("估算依據", A`<label class="spike-estimate-note"><span>人工依據</span><input maxlength="1000" aria-label="「${o}」人工依據" .value=${G(a.note)} @input=${(e) => {
 		a.note = e.currentTarget.value;
 	}} placeholder="例如：已拆解三個步驟"></label>`)}</div>
     <label class="spike-estimate-confirmation"><input type="checkbox" aria-label="確認「${o}」的人工估算" .checked=${a.confirmed} @change=${(e) => {
 		a.confirmed = e.currentTarget.checked;
-	}}><span>人工確認此工時</span></label><p class="spike-estimate-contract">未勾選仍可儲存人工工時與依據；確認只表示你接受目前估算結果。</p><div class="spike-estimate-actions"><button type="submit" aria-label="套用「${o}」人工估算草稿">套用工時草稿</button></div>${a.error ? j`<p class="spike-field-error" role="alert">${a.error}</p>` : P}</form>`;
+	}}><span>人工確認此工時</span></label><p class="spike-estimate-contract">未勾選仍可儲存人工工時與依據；確認只表示你接受目前估算結果。</p><div class="spike-estimate-actions"><button type="submit" aria-label="套用「${o}」人工估算草稿">套用工時草稿</button></div>${a.error ? A`<p class="spike-field-error" role="alert">${a.error}</p>` : N}</form>`;
 }
-function un(e, t) {
+function fn(e, t) {
 	if (!e.open) return delete t.state.manualKey, delete t.state.settings, Y({
 		...e,
 		id: "time-dialog",
 		className: "replica-time-dialog"
-	}, P);
+	}, N);
 	(e.kind !== "item" || !e.editing) && delete t.state.manualKey, (e.kind !== "project" || !e.editing || !e.timeSettings?.hasConfig) && delete t.state.settings;
-	let n = e.item, r = e.project, i = e.kind === "item" && n ? j`<div><div class="time-detail-toolbar"><span class=${n.confidenceClass}>${n.confidenceLabel}</span><button class="time-small-button" type="button" @click=${e.onToggleDetails}>${n.toggleLabel}</button></div>
-    ${e.editing && e.onManualEstimate ? ln(e, t) : j`${tn("預估工時", n.likelyHoursLabel, en(n.sourceBadges))}<div class="time-item-rationale">${Z("估算依據", j`<p>${n.rationale}</p>`)}</div>`}
-    <section class="time-item-technical" ?hidden=${!n.detailsExpanded}>${X(n.technical.metrics)}${n.technical.analysisMethod ? j`<div class="time-source-row"><div><strong>${n.technical.analysisMethod.name}</strong><p>${n.technical.analysisMethod.note}</p></div><span>${n.technical.analysisMethod.version}</span></div>` : P}${n.technical.formula ? Z("固定公式", j`<code class="time-formula">${n.technical.formula}</code>`) : P}${n.technical.reference ? j`<code class="time-reference">${n.technical.reference}</code>` : P}</section></div>` : e.kind === "project" && r ? j`<div><div class="time-detail-toolbar"><span class="time-report-caption">${r.captionLabel}</span><button class="time-small-button" type="button" aria-expanded=${r.detailsExpanded} @click=${e.onToggleDetails}>${r.toggleLabel}</button></div>
-    <section class="time-report-overview"><div class="time-report-grid">${r.overview.map((e) => j`<div class="time-report-field"><span>${e.label}</span><strong>${e.urgencyClassName ? j`<span class="time-risk-dot ${e.urgencyClassName}" aria-hidden="true"></span>` : P}${e.value}</strong></div>`)}</div><p class="time-report-updated">${r.updatedLabel}</p></section>
-    <section class="time-project-details" ?hidden=${!r.detailsExpanded}>${e.editing && e.timeSettings ? e.timeSettings.hasConfig ? j`${$t(e.timeSettings, t)}${e.deliveryPreview ? gn(e.deliveryPreview) : P}` : j`<section class="time-missing-config" aria-labelledby="time-missing-config-title"><h3 id="time-missing-config-title">尚未建立工作容量設定</h3><p>建立後採單人、平日 09:00–17:00、睡眠 8h／生活 8h／工作 8h；只是草稿，仍由全域儲存決定是否寫入。</p><button type="button" @click=${e.timeSettings.onInitializeConfig}>建立 8/8/8 預設設定</button></section>` : r.hasDeadline ? j`<div class="time-tab-list" role="tablist" aria-label="進度報告詳細資訊">${U(r.tabs, (e) => e.name, (n, i) => j`<button class="time-tab" id="time-${n.name}-tab" type="button" role="tab" aria-controls="time-${n.name}-panel" aria-selected=${r.activeTab === n.name} tabindex=${r.activeTab === n.name ? 0 : -1} @click=${() => e.onSetTab(n.name)} @keydown=${(n) => {
+	let n = e.item, r = e.project, i = e.kind === "item" && n ? A`<div><div class="time-detail-toolbar"><span class=${n.confidenceClass}>${n.confidenceLabel}</span><button class="time-small-button" type="button" @click=${e.onToggleDetails}>${n.toggleLabel}</button></div>
+    ${e.editing && e.onManualEstimate ? dn(e, t) : A`${rn("預估工時", n.likelyHoursLabel, nn(n.sourceBadges))}<div class="time-item-rationale">${Z("估算依據", A`<p>${n.rationale}</p>`)}</div>`}
+    <section class="time-item-technical" ?hidden=${!n.detailsExpanded}>${X(n.technical.metrics)}${n.technical.analysisMethod ? A`<div class="time-source-row"><div><strong>${n.technical.analysisMethod.name}</strong><p>${n.technical.analysisMethod.note}</p></div><span>${n.technical.analysisMethod.version}</span></div>` : N}${n.technical.formula ? Z("固定公式", A`<code class="time-formula">${n.technical.formula}</code>`) : N}${n.technical.reference ? A`<code class="time-reference">${n.technical.reference}</code>` : N}</section></div>` : e.kind === "project" && r ? A`<div><div class="time-detail-toolbar"><span class="time-report-caption">${r.captionLabel}</span><button class="time-small-button" type="button" aria-expanded=${r.detailsExpanded} @click=${e.onToggleDetails}>${r.toggleLabel}</button></div>
+    <section class="time-report-overview"><div class="time-report-grid">${r.overview.map((e) => A`<div class="time-report-field"><span>${e.label}</span><strong>${e.urgencyClassName ? A`<span class="time-risk-dot ${e.urgencyClassName}" aria-hidden="true"></span>` : N}${e.value}</strong></div>`)}</div><p class="time-report-updated">${r.updatedLabel}</p></section>
+    <section class="time-project-details" ?hidden=${!r.detailsExpanded}>${e.editing && e.timeSettings ? e.timeSettings.hasConfig ? A`${tn(e.timeSettings, t)}${e.deliveryPreview ? vn(e.deliveryPreview) : N}` : A`<section class="time-missing-config" aria-labelledby="time-missing-config-title"><h3 id="time-missing-config-title">尚未建立工作容量設定</h3><p>建立後採單人、平日 09:00–17:00、睡眠 8h／生活 8h／工作 8h；只是草稿，仍由全域儲存決定是否寫入。</p><button type="button" @click=${e.timeSettings.onInitializeConfig}>建立 8/8/8 預設設定</button></section>` : r.hasDeadline ? A`<div class="time-tab-list" role="tablist" aria-label="進度報告詳細資訊">${W(r.tabs, (e) => e.name, (n, i) => A`<button class="time-tab" id="time-${n.name}-tab" type="button" role="tab" aria-controls="time-${n.name}-panel" aria-selected=${r.activeTab === n.name} tabindex=${r.activeTab === n.name ? 0 : -1} @click=${() => e.onSetTab(n.name)} @keydown=${(n) => {
 		if (!["ArrowLeft", "ArrowRight"].includes(n.key)) return;
 		n.preventDefault();
 		let a = r.tabs[(i + (n.key === "ArrowRight" ? 1 : -1) + r.tabs.length) % r.tabs.length];
 		e.onSetTab(a.name), queueMicrotask(() => t.target.querySelector(`#time-${a.name}-tab`)?.focus());
-	}}>${n.label}</button>`)}</div>${an(r.flow, r.activeTab === "flow")}${on(r.engineering, r.activeTab === "engineering")}${sn(r.capacity, r.activeTab === "capacity")}` : cn(r.estimateOnly)}</section></div>` : P;
+	}}>${n.label}</button>`)}</div>${sn(r.flow, r.activeTab === "flow")}${cn(r.engineering, r.activeTab === "engineering")}${ln(r.capacity, r.activeTab === "capacity")}` : un(r.estimateOnly)}</section></div>` : N;
 	return Y({
 		...e,
 		id: "time-dialog",
 		className: "replica-time-dialog",
 		closeLabel: `關閉${e.kicker}`
-	}, j`<div class="time-dialog-content">${i}</div>`);
+	}, A`<div class="time-dialog-content">${i}</div>`);
 }
-function dn(e) {
+function pn(e) {
 	let t = e.item, n = e.total;
 	return Y({
 		...e,
 		id: "cost-dialog",
 		className: "replica-cost-dialog",
 		closeLabel: `關閉${e.kicker}`
-	}, j`<div class="cost-dialog-content">${e.kind === "item" && t ? j`
-    ${tn("估算成本", t.exact, en(t.contributors))}${X([
+	}, A`<div class="cost-dialog-content">${e.kind === "item" && t ? A`
+    ${rn("估算成本", t.exact, nn(t.contributors))}${X([
 		...t.confidenceLabel ? [{
 			label: "信心",
 			value: t.confidenceLabel
@@ -1485,7 +1486,7 @@ function dn(e) {
 			value: t.done ? "已完成" : "未完成"
 		}
 	])}
-    ${t.humanConfirmed ? P : Z("尚未由人確認", j`<p>這筆金額還沒有人接受為最終結果。有人填過參數或工具提出過建議，都不等於已確認。</p>`)}` : n ? j`${tn("估算總額", n.exact, j`<span class="cost-coverage cost-coverage-${n.coverage}">${n.coverageLabel}</span>`)}${X([{
+    ${t.humanConfirmed ? N : Z("尚未由人確認", A`<p>這筆金額還沒有人接受為最終結果。有人填過參數或工具提出過建議，都不等於已確認。</p>`)}` : n ? A`${rn("估算總額", n.exact, A`<span class="cost-coverage cost-coverage-${n.coverage}">${n.coverageLabel}</span>`)}${X([{
 		label: "未完成成本",
 		value: n.remaining
 	}, ...n.available ? [{
@@ -1496,10 +1497,10 @@ function dn(e) {
 		value: n.balance,
 		tone: n.tone
 	}] : []])}
-      ${n.coverage === "full" ? P : Z("為什麼沒有資源判斷", j`<p>尚有子項未估算，總額只涵蓋已估算的部分。未設置的值不計為零，也不代入預設值，因此在涵蓋率完整之前不宣稱預算充足與否。</p>`)}` : P}</div>`);
+      ${n.coverage === "full" ? N : Z("為什麼沒有資源判斷", A`<p>尚有子項未估算，總額只涵蓋已估算的部分。未設置的值不計為零，也不代入預設值，因此在涵蓋率完整之前不宣稱預算充足與否。</p>`)}` : N}</div>`);
 }
-var fn = new Intl.NumberFormat("zh-TW", { maximumFractionDigits: 1 }), pn = (e) => e == null ? "—" : `${fn.format(e / 60)} hr`, mn = (e) => e == null ? "無法比較" : `${e > 0 ? "+" : ""}${fn.format(e / 60)} hr`;
-function hn(e) {
+var mn = new Intl.NumberFormat("zh-TW", { maximumFractionDigits: 1 }), hn = (e) => e == null ? "—" : `${mn.format(e / 60)} hr`, gn = (e) => e == null ? "無法比較" : `${e > 0 ? "+" : ""}${mn.format(e / 60)} hr`;
+function _n(e) {
 	if (!e?.present) return "未指定";
 	let t = new Date(e.value);
 	return Number.isNaN(t.getTime()) ? e.value : new Intl.DateTimeFormat("zh-TW", {
@@ -1508,13 +1509,13 @@ function hn(e) {
 		hour12: !1
 	}).format(t);
 }
-function gn(e, t = "交付日草稿預覽") {
-	return j`<section class="spike-risk-preview" aria-labelledby="delivery-risk-preview-title"><div class="spike-risk-preview-heading"><div><p class="spike-editor-kicker">尚未寫入</p><h3 id="delivery-risk-preview-title">${t}</h3></div><span class="spike-preview-badge">預覽</span></div>
-    ${e.deliveryChanged ? j`<dl class="spike-delivery-diff"><div><dt>原交付日</dt><dd>${hn(e.before)}</dd></div><div><dt>草稿交付日</dt><dd>${hn(e.after)}</dd></div></dl>` : e.capacityChanged ? j`<p class="spike-capacity-preview-note">交付日未變更；以下比較只反映工作容量草稿。</p>` : P}
-    <div class="spike-risk-comparison"><article><span>目前分析</span><strong>${e.current.label}</strong><small>剩餘容量 ${pn(e.current.remainingCapacityMinutes)}</small></article><span class="spike-risk-arrow" aria-hidden="true">→</span><article class="risk-${e.next.urgency ?? "none"}"><span>草稿分析</span><strong>${e.next.label}</strong><small>剩餘容量 ${pn(e.next.remainingCapacityMinutes)}</small></article></div>
-    <dl class="spike-risk-deltas"><div><dt>容量變化</dt><dd>${mn(e.capacityDelta)}</dd></div><div><dt>餘裕／缺口變化</dt><dd>${mn(e.balanceDelta)}</dd></div></dl>${e.reason ? j`<p class="spike-preview-reason"><strong>修改原因：</strong>${e.reason}</p>` : P}</section>`;
+function vn(e, t = "交付日草稿預覽") {
+	return A`<section class="spike-risk-preview" aria-labelledby="delivery-risk-preview-title"><div class="spike-risk-preview-heading"><div><p class="spike-editor-kicker">尚未寫入</p><h3 id="delivery-risk-preview-title">${t}</h3></div><span class="spike-preview-badge">預覽</span></div>
+    ${e.deliveryChanged ? A`<dl class="spike-delivery-diff"><div><dt>原交付日</dt><dd>${_n(e.before)}</dd></div><div><dt>草稿交付日</dt><dd>${_n(e.after)}</dd></div></dl>` : e.capacityChanged ? A`<p class="spike-capacity-preview-note">交付日未變更；以下比較只反映工作容量草稿。</p>` : N}
+    <div class="spike-risk-comparison"><article><span>目前分析</span><strong>${e.current.label}</strong><small>剩餘容量 ${hn(e.current.remainingCapacityMinutes)}</small></article><span class="spike-risk-arrow" aria-hidden="true">→</span><article class="risk-${e.next.urgency ?? "none"}"><span>草稿分析</span><strong>${e.next.label}</strong><small>剩餘容量 ${hn(e.next.remainingCapacityMinutes)}</small></article></div>
+    <dl class="spike-risk-deltas"><div><dt>容量變化</dt><dd>${gn(e.capacityDelta)}</dd></div><div><dt>餘裕／缺口變化</dt><dd>${gn(e.balanceDelta)}</dd></div></dl>${e.reason ? A`<p class="spike-preview-reason"><strong>修改原因：</strong>${e.reason}</p>` : N}</section>`;
 }
-var _n = (e) => Y({
+var yn = (e) => Y({
 	open: !0,
 	title: "確認儲存交付日變更？",
 	kicker: "敏感資料確認",
@@ -1525,24 +1526,24 @@ var _n = (e) => Y({
 	onClose: () => {
 		e.busy || e.onBack();
 	}
-}, j`<div class="spike-confirm-copy"><p>確認後才會重新驗證並寫入設定、分析與本機遮蔽歷史；預覽本身沒有修改檔案。</p></div>${gn(e.preview, "儲存影響確認")}<div class="spike-confirm-actions"><button data-return-button type="button" ?disabled=${e.busy} @click=${e.onBack}>返回修改</button><button class="spike-save-button" type="button" ?disabled=${e.busy} @click=${e.onConfirm}>${e.busy ? "正在儲存…" : "確認儲存"}</button></div>`);
+}, A`<div class="spike-confirm-copy"><p>確認後才會重新驗證並寫入設定、分析與本機遮蔽歷史；預覽本身沒有修改檔案。</p></div>${vn(e.preview, "儲存影響確認")}<div class="spike-confirm-actions"><button data-return-button type="button" ?disabled=${e.busy} @click=${e.onBack}>返回修改</button><button class="spike-save-button" type="button" ?disabled=${e.busy} @click=${e.onConfirm}>${e.busy ? "正在儲存…" : "確認儲存"}</button></div>`);
 //#endregion
 //#region ui/web-workflow/viewer.mjs
 r();
-var vn = Object.entries(u).map(([e, t]) => ({
+var bn = Object.entries(u).map(([e, t]) => ({
 	value: e,
 	...t
-})), yn = Object.entries(l).map(([e, t]) => ({
+})), xn = Object.entries(l).map(([e, t]) => ({
 	value: e,
 	...t
-})), bn = (e) => u[e] ?? {
+})), Sn = (e) => u[e] ?? {
 	label: e,
 	tone: "muted"
-}, xn = (e, t, n, r, i = "") => j`<select class=${i} aria-label=${n} .value=${W(String(t))} @change=${(e) => r(e.currentTarget.value)}>${e.map((e) => j`<option .value=${String(e.value)} ?selected=${String(e.value) === String(t)}>${e.label}</option>`)}</select>`, Sn = (e, t, n, r) => xn(e.levels.map((t) => ({
+}, Cn = (e, t, n, r, i = "") => A`<select class=${i} aria-label=${n} .value=${G(String(t))} @change=${(e) => r(e.currentTarget.value)}>${e.map((e) => A`<option .value=${String(e.value)} ?selected=${String(e.value) === String(t)}>${e.label}</option>`)}</select>`, wn = (e, t, n, r) => Cn(e.levels.map((t) => ({
 	value: t.value,
 	label: e.format(t.value)
 })), e.normalize(t, e.fallbackValue), n, (e) => r(Number(e)), "inline-priority-select");
-function Cn(e, t, n, r, i, a) {
+function Tn(e, t, n, r, i, a) {
 	if (!globalThis.TaskProgressItemStatusPolicy.retired.includes(a)) return e.onCommand({
 		type: "set-item-status",
 		taskId: n.id,
@@ -1567,7 +1568,7 @@ function Cn(e, t, n, r, i, a) {
 		error: ""
 	}, t.draw();
 }
-function wn(e, t) {
+function En(e, t) {
 	let n = t.state.retirement, r = () => {
 		t.state.retirement = null, t.draw();
 	};
@@ -1579,7 +1580,7 @@ function wn(e, t) {
 		open: !!i,
 		title: i ? l[i.status].label : "",
 		onClose: r
-	}, i ? j`
+	}, i ? A`
     <form class="retirement-form" @submit=${(n) => {
 		n.preventDefault();
 		try {
@@ -1608,9 +1609,9 @@ function wn(e, t) {
 		}
 	}}>
       <p>${i.title}</p>
-      ${i.status === "discontinued" ? j`<label>棄案理由<textarea name="reason" required maxlength="300" rows="3" .value=${W(i.reason)} @input=${(e) => {
+      ${i.status === "discontinued" ? A`<label>棄案理由<textarea name="reason" required maxlength="300" rows="3" .value=${G(i.reason)} @input=${(e) => {
 		i.reason = e.currentTarget.value;
-	}}></textarea></label>` : j`<label>取代對象種類${xn([{
+	}}></textarea></label>` : A`<label>取代對象種類${Cn([{
 		value: "item",
 		label: "子項目"
 	}, {
@@ -1619,17 +1620,17 @@ function wn(e, t) {
 	}], i.kind, "取代對象種類", (e) => {
 		i.kind = e, i.target = "", t.draw();
 	})}</label>
-        <label>${i.kind === "item" ? "取代項目參照" : "取代文件路徑"}<input name="replacement" required maxlength="300" .value=${W(i.target)} placeholder=${i.kind === "item" ? "scope › card › item" : "Documentation/Plan.md#section"} @input=${(e) => {
+        <label>${i.kind === "item" ? "取代項目參照" : "取代文件路徑"}<input name="replacement" required maxlength="300" .value=${G(i.target)} placeholder=${i.kind === "item" ? "scope › card › item" : "Documentation/Plan.md#section"} @input=${(e) => {
 		i.target = e.currentTarget.value;
 	}}></label>
-        <label>補充理由（選填）<textarea name="reason" maxlength="300" rows="2" .value=${W(i.reason)} @input=${(e) => {
+        <label>補充理由（選填）<textarea name="reason" maxlength="300" rows="2" .value=${G(i.reason)} @input=${(e) => {
 		i.reason = e.currentTarget.value;
 	}}></textarea></label>`}
       <p class="spike-field-error" role="alert">${i.error}</p>
       <div class="retirement-actions"><button type="button" class="secondary-button" @click=${r}>取消</button><button type="submit" class="primary-button">套用</button></div>
-    </form>` : P);
+    </form>` : N);
 }
-function Tn(e, t, n) {
+function Dn(e, t, n) {
 	return {
 		enabled: !!(e.editing || e.reorderable),
 		axis: "vertical",
@@ -1646,7 +1647,7 @@ function Tn(e, t, n) {
 		onMove(r) {
 			if (!(e.editing || e.reorderable)) return;
 			let i = n.pending_items ?? [], a = i.find((e) => e.id === r.id), o = i.find((e) => e.id === r.targetId);
-			if (!a || !o || a.legacy || o.legacy || e.policy.normalize(a.priority, e.policy.fallbackValue) !== e.policy.normalize(o.priority, e.policy.fallbackValue)) return;
+			if (!a || !o || g(a.status) || g(o.status) || a.legacy || o.legacy || e.policy.normalize(a.priority, e.policy.fallbackValue) !== e.policy.normalize(o.priority, e.policy.fallbackValue)) return;
 			let s = i.map((e) => e.id), c = s.filter((e) => e !== a.id);
 			if (c.splice(c.indexOf(o.id) + +(r.placement === "after"), 0, a.id), s.every((e, t) => e === c[t])) return;
 			let l = {
@@ -1665,8 +1666,8 @@ function Tn(e, t, n) {
 		}
 	};
 }
-var En = (e) => [...e.searchParams].filter(([e]) => e !== "pin" && e !== "link-tone").sort().map((e) => e.join("=")).join("&");
-function Dn(e, t) {
+var On = (e) => [...e.searchParams].filter(([e]) => e !== "pin" && e !== "link-tone").sort().map((e) => e.join("=")).join("&");
+function kn(e, t) {
 	if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return !1;
 	let n = e.target.closest("a[href]");
 	if (!n || n.hasAttribute("download") || n.target && n.target !== "_self") return !1;
@@ -1676,7 +1677,7 @@ function Dn(e, t) {
 	if (a.hash = e.currentTarget.id, sessionStorage.setItem("taskprogress-item-arrival", JSON.stringify({
 		destination: r.href,
 		source: a.href
-	})), En(r) !== En(i)) return !1;
+	})), On(r) !== On(i)) return !1;
 	let o = [...t.target.querySelectorAll("[data-item-row]")].find((e) => `#${e.id}` === r.hash && e.getClientRects().length);
 	return !o || o.closest("[data-card-id]") !== e.currentTarget.closest("[data-card-id]") ? !1 : (e.preventDefault(), history.pushState(null, "", r.href), $(t, !0), t.lastItemHash = null, t.itemTargetPulse = (t.itemTargetPulse ?? 0) + 1, t.refresh(), !0);
 }
@@ -1694,81 +1695,81 @@ function $(e, t = !1) {
 		itemTargetShown: n
 	}, "");
 }
-function On(e) {
+function An(e) {
 	if (!e.itemReturnUrl) return;
 	let t = new URL(e.itemReturnUrl), n = new URL(location.href);
-	if (t.origin !== n.origin || t.pathname !== n.pathname || En(t) !== En(n)) {
+	if (t.origin !== n.origin || t.pathname !== n.pathname || On(t) !== On(n)) {
 		location.assign(t.href);
 		return;
 	}
 	history.pushState(null, "", t.href), $(e, !0), e.lastItemHash = null, e.itemTargetPulse = (e.itemTargetPulse ?? 0) + 1, e.refresh();
 }
-function kn(e, t, n, r, i, a) {
+function jn(e, t, n, r, i, a) {
 	let o = e.editing, s = i.status ?? (r === "completed_items" ? "done" : "planned"), c = i.derivedState && i.derivedState !== "done" ? {
 		label: i.derivedStateLabel,
 		tone: i.derivedStateTone
-	} : l[s] ?? bn(s), u = e.policy.metadata(i.priority), d = o ? null : m({
+	} : l[s] ?? Sn(s), u = e.policy.metadata(i.priority), d = o ? null : m({
 		scopeId: e.scopeId,
 		taskId: n.id,
 		item: i
-	}), f = d && t.state.selection?.keys.has(d), p = i.id === e.nextItemId, te = () => e.onSetNext?.({
+	}), f = d && t.state.selection?.keys.has(d), p = i.id === e.nextItemId, ne = () => e.onSetNext?.({
 		taskId: n.id,
 		itemId: i.id,
 		clear: p
-	}), re = (t, a) => e.onCommand({
+	}), ie = (t, a) => e.onCommand({
 		type: t,
 		taskId: n.id,
 		field: r,
 		itemId: i.id,
 		...a
-	}), ie = o ? [] : g(i).map((e) => ({
+	}), oe = o ? [] : ee(i).map((e) => ({
 		...e,
-		href: e.href ? ee(ne(e.href, c.tone), n.id, i.id) : null
-	})), v = ie.filter((e) => e.href), y = `${n.id}/${i.id}`;
-	v.length || (t.state[`wait:${y}`] = !1);
-	let b = (o || e.reorderable) && r === "pending_items" && i.id && !i.legacy, ae = f ? t.state.selection.keys.size : 1, oe = j`<div class="item-row-text">${p ? j`<span class="item-next-capsule">Next</span>` : P}${f ? j`<span class="item-row-selected-label">已選取</span>` : P}
-      ${i.sourceRef ? i.sourceRef.available ? j`<a class="document-source-link" href=${ee(ne(i.sourceRef.href, c.tone), n.id, i.id)} title=${i.sourceRef.title}><span class="source-icon" aria-hidden="true">${i.sourceRef.kind === "decision" ? "⚖" : i.sourceRef.manual ? "📋" : "🤖"}</span><span class="source-label">${i.sourceRef.label}</span></a>` : j`<span class="document-source-link source-unavailable" title=${i.sourceRef.error ?? "來源無法讀取"}>⚠️ 來源不可用</span>` : P}
-      ${kt(i.displayTitle ?? i.title, {
+		href: e.href ? re(ae(e.href, c.tone), n.id, i.id) : null
+	})), _ = oe.filter((e) => e.href), v = `${n.id}/${i.id}`;
+	_.length || (t.state[`wait:${v}`] = !1);
+	let y = (o || e.reorderable) && r === "pending_items" && !g(s) && i.id && !i.legacy, b = f ? t.state.selection.keys.size : 1, se = A`<div class="item-row-text">${p ? A`<span class="item-next-capsule">Next</span>` : N}${f ? A`<span class="item-row-selected-label">已選取</span>` : N}
+      ${i.sourceRef ? i.sourceRef.available ? A`<a class="document-source-link" href=${re(ae(i.sourceRef.href, c.tone), n.id, i.id)} title=${i.sourceRef.title}><span class="source-icon" aria-hidden="true">${i.sourceRef.kind === "decision" ? "⚖" : i.sourceRef.manual ? "📋" : "🤖"}</span><span class="source-label">${i.sourceRef.label}</span></a>` : A`<span class="document-source-link source-unavailable" title=${i.sourceRef.error ?? "來源無法讀取"}>⚠️ 來源不可用</span>` : N}
+      ${At(i.displayTitle ?? i.title, {
 		lines: 1,
 		expanded: a,
 		linkTone: c.tone
 	})}</div>`;
-	return j`<li id=${!o && d ? `item-${n.id}--${i.id}` : P} ?data-item-target=${!!d && t.activeItemHash === `#item-${n.id}--${i.id}`} data-item-pulse=${d && t.activeItemHash === `#item-${n.id}--${i.id}` ? (t.itemTargetPulse ?? 0) % 2 : P} class="editor-item-row ${o ? "editable-work-item" : b ? "item-row-reorderable" : ""} ${f ? "is-selected" : ""} ${p ? "is-next" : ""}" data-select-key=${d && e.selection ? d : P}
-    data-item-row=${y} data-reorder-id=${i.id} data-reorder-sortable=${String(!!b)} data-reorder-group=${String(e.policy.normalize(i.priority, e.policy.fallbackValue))}
-    tabindex=${d && e.selection ? 0 : P} title=${o ? P : h(i.activity)}
-    ${q(Gt, {
+	return A`<li id=${!o && d ? `item-${n.id}--${i.id}` : N} ?data-item-target=${!!d && t.activeItemHash === `#item-${n.id}--${i.id}`} data-item-pulse=${d && t.activeItemHash === `#item-${n.id}--${i.id}` ? (t.itemTargetPulse ?? 0) % 2 : N} class="editor-item-row ${o ? "editable-work-item" : y ? "item-row-reorderable" : ""} ${f ? "is-selected" : ""} ${p ? "is-next" : ""}" data-select-key=${d && e.selection ? d : N}
+    data-item-row=${v} data-reorder-id=${i.id} data-reorder-sortable=${String(!!y)} data-reorder-group=${String(e.policy.normalize(i.priority, e.policy.fallbackValue))}
+    tabindex=${d && e.selection ? 0 : N} title=${o ? N : h(i.activity)}
+    ${J(qt, {
 		enabled: !!(e.onSetNext && d && !o),
-		onTrigger: te
+		onTrigger: ne
 	})}
     @click=${(n) => {
-		!Dn(n, t) && d && e.selection?.rowClick(d, n);
+		!kn(n, t) && d && e.selection?.rowClick(d, n);
 	}} @focus=${() => d && e.selection?.rowFocus(d)}
     @keydown=${(t) => {
 		if (!o && t.shiftKey && t.key === "Enter" && e.onSetNext && d && t.target === t.currentTarget) {
-			t.preventDefault(), te();
+			t.preventDefault(), ne();
 			return;
 		}
 		d && e.selection?.rowKeydown(d, t);
 	}}>
-    ${!o && t.itemReturnUrl && t.activeItemHash === `#item-${n.id}--${i.id}` ? j`<span class="item-return-anchor"><button type="button" class="item-return" aria-label="返回來源項目" title="返回來源項目" @pointerdown=${(e) => e.stopPropagation()} @click=${(e) => {
-		e.stopPropagation(), On(t);
-	}}>⮪</button></span>` : P}
-    ${o && b ? j`<button type="button" class="item-row-grip" data-item-ref=${y} data-reorder-handle draggable="true" aria-label="移動「${i.title}」（Alt+↑／↓，限同優先級）">⠿</button>` : j`<span class="item-row-marker item-row-marker-${s}" aria-hidden="true">${s === "done" ? "✓" : "○"}</span>`}
-    ${o || s !== "done" && u && (!u.hidden || !e.policy.labelsValid) ? j`<span class="item-row-priority">${o ? Sn(e.policy, i.priority, `設定「${i.title}」的優先級`, (e) => re("set-item-field", {
+    ${!o && t.itemReturnUrl && t.activeItemHash === `#item-${n.id}--${i.id}` ? A`<span class="item-return-anchor"><button type="button" class="item-return" aria-label="返回來源項目" title="返回來源項目" @pointerdown=${(e) => e.stopPropagation()} @click=${(e) => {
+		e.stopPropagation(), An(t);
+	}}>⮪</button></span>` : N}
+    ${o && y ? A`<button type="button" class="item-row-grip" data-item-ref=${v} data-reorder-handle draggable="true" aria-label="移動「${i.title}」（Alt+↑／↓，限同優先級）">⠿</button>` : A`<span class="item-row-marker item-row-marker-${s}" aria-hidden="true">${s === "done" ? "✓" : "○"}</span>`}
+    ${o || s !== "done" && !g(s) && u && (!u.hidden || !e.policy.labelsValid) ? A`<span class="item-row-priority">${o ? wn(e.policy, i.priority, `設定「${i.title}」的優先級`, (e) => ie("set-item-field", {
 		property: "priority",
 		value: e
-	})) : j`<span class="priority-badge priority-${u.tone}">${e.policy.format(i.priority)}</span>`}</span>` : P}
-    <div class="item-row-description" data-reorder-content>${o ? j`<input class="inline-edit-input" aria-label="編輯子項目：${i.title}" title=${i.title} maxlength="500" .value=${W(i.title)} @input=${(e) => re("set-item-field", {
+	})) : A`<span class="priority-badge priority-${u.tone}">${e.policy.format(i.priority)}</span>`}</span>` : N}
+    <div class="item-row-description" data-reorder-content>${o ? A`<input class="inline-edit-input" aria-label="編輯子項目：${i.title}" title=${i.title} maxlength="500" .value=${G(i.title)} @input=${(e) => ie("set-item-field", {
 		property: "title",
 		value: e.currentTarget.value
-	})}>` : d ? j`<ui-copy-id class="item-row-copy" .value=${d} .label=${ae > 1 ? `已選取的 ${ae} 項參照` : i.title} .prepare=${(t) => {
+	})}>` : d ? A`<ui-copy-id class="item-row-copy" .value=${d} .label=${b > 1 ? `已選取的 ${b} 項參照` : i.title} .prepare=${(t) => {
 		let n = e.selection?.references(t) ?? [t];
 		return {
 			text: n.join("\n"),
 			successMessage: n.length > 1 ? `複製 ${n.length} 項` : void 0
 		};
-	}}>${oe}</ui-copy-id>` : oe}</div>
-    <span class="item-row-utility-panel"><span class="item-row-modules">${Rt({
+	}}>${se}</ui-copy-id>` : se}</div>
+    <span class="item-row-utility-panel"><span class="item-row-modules">${Bt({
 		capsules: e.itemCapsules?.get(i.id) ?? [],
 		moduleOrder: e.moduleOrder,
 		onReorder: e.onModuleReorder,
@@ -1778,94 +1779,93 @@ function kn(e, t, n, r, i, a) {
 			itemTitle: i.title
 		})
 	})}</span>
-    <span class="item-row-status">${o ? j`${xn(yn, s, `設定「${i.title}」的狀態`, (a) => Cn(e, t, n, r, i, a), `inline-status-select status-${c.tone}`)}${globalThis.TaskProgressItemStatusPolicy.retired.includes(s) ? j`<button type="button" class="retirement-edit-button" title="編輯退場資訊" aria-label="編輯「${i.title}」的退場資訊" @click=${() => Cn(e, t, n, r, i, s)}>✎</button>` : P}` : ie.length === 1 && v.length === 1 ? j`<a class="item-status-capsule status-${c.tone} is-link" href=${v[0].href} title=${_(i) ?? v[0].label}>${c.label}</a>` : v.length ? j`<span class="wait-menu" @focusout=${(e) => {
-		e.currentTarget.contains(e.relatedTarget) || (t.state[`wait:${y}`] = !1, t.draw());
+    <span class="item-row-status">${o ? A`${Cn(xn, s, `設定「${i.title}」的狀態`, (a) => Tn(e, t, n, r, i, a), `inline-status-select status-${c.tone}`)}${globalThis.TaskProgressItemStatusPolicy.retired.includes(s) ? A`<button type="button" class="retirement-edit-button" title="編輯退場資訊" aria-label="編輯「${i.title}」的退場資訊" @click=${() => Tn(e, t, n, r, i, s)}>✎</button>` : N}` : oe.length === 1 && _.length === 1 ? A`<a class="item-status-capsule status-${c.tone} is-link" href=${_[0].href} title=${te(i) ?? _[0].label}>${c.label}</a>` : _.length ? A`<span class="wait-menu" @focusout=${(e) => {
+		e.currentTarget.contains(e.relatedTarget) || (t.state[`wait:${v}`] = !1, t.draw());
 	}} @keydown=${(e) => {
-		e.key === "Escape" && (t.state[`wait:${y}`] = !1, t.draw());
-	}}><button type="button" class="item-status-capsule status-${c.tone} is-link" aria-haspopup="true" aria-expanded=${!!t.state[`wait:${y}`]} @click=${(e) => {
-		e.stopPropagation(), t.state[`wait:${y}`] = !t.state[`wait:${y}`], t.draw();
-	}}>${c.label}</button>${t.state[`wait:${y}`] ? j`<ul class="wait-menu-list">${ie.map((e) => j`<li>${e.href ? j`<a href=${e.href} @click=${(e) => e.stopPropagation()}>${e.label}</a>` : j`<span>${e.label}（無法讀取）</span>`}</li>`)}</ul>` : P}</span>` : j`<span class="item-status-capsule status-${c.tone}" title=${_(i) ?? P}>${c.label}</span>`}</span>
-    ${o ? j`<span class="item-row-action"><button class="inline-delete-button" type="button" aria-label="刪除子項目：${i.title}" @click=${() => re("delete-item", {})}>刪除</button></span>` : P}</span>
+		e.key === "Escape" && (t.state[`wait:${v}`] = !1, t.draw());
+	}}><button type="button" class="item-status-capsule status-${c.tone} is-link" aria-haspopup="true" aria-expanded=${!!t.state[`wait:${v}`]} @click=${(e) => {
+		e.stopPropagation(), t.state[`wait:${v}`] = !t.state[`wait:${v}`], t.draw();
+	}}>${c.label}</button>${t.state[`wait:${v}`] ? A`<ul class="wait-menu-list">${oe.map((e) => A`<li>${e.href ? A`<a href=${e.href} @click=${(e) => e.stopPropagation()}>${e.label}</a>` : A`<span>${e.label}（無法讀取）</span>`}</li>`)}</ul>` : N}</span>` : A`<span class="item-status-capsule status-${c.tone}" title=${te(i) ?? N}>${c.label}</span>`}</span>
+    ${o ? A`<span class="item-row-action"><button class="inline-delete-button" type="button" aria-label="刪除子項目：${i.title}" @click=${() => ie("delete-item", {})}>刪除</button></span>` : N}</span>
   </li>`;
 }
-function An(e, t, n) {
+function Mn(e, t, n) {
 	let r = typeof e?.document == "string" ? e.document : "", i = r.indexOf("#");
-	if (i <= 0 || i === r.length - 1) return P;
-	let a = r.slice(0, i), o = r.slice(i + 1), s = j`<span class="task-goal-path">${a}</span><span class="task-goal-separator" aria-hidden="true"> › </span><span class="task-goal-section">${o}</span>`, c = t ? `/document/?${new URLSearchParams({
+	if (i <= 0 || i === r.length - 1) return N;
+	let a = r.slice(0, i), o = r.slice(i + 1), s = A`<span class="task-goal-path">${a}</span><span class="task-goal-separator" aria-hidden="true"> › </span><span class="task-goal-section">${o}</span>`, c = t ? `/document/?${new URLSearchParams({
 		scope: t,
 		path: a,
 		card: n
 	})}#${encodeURIComponent(o)}` : null;
-	return j`<p class="task-goal" title=${r}><span class="task-goal-label">目標：</span>${c ? j`<a class="task-goal-link" href=${c}>${s}</a>` : s}</p>`;
+	return A`<p class="task-goal" title=${r}><span class="task-goal-label">目標：</span>${c ? A`<a class="task-goal-link" href=${c}>${s}</a>` : s}</p>`;
 }
-function jn(e) {
-	if (!e) return P;
+function Nn(e) {
+	if (!e) return N;
 	let t = e.next_step ?? e.next_steps?.[0];
-	return !t && !e.next_steps?.length && !e.blockers?.length && !e.decisions?.length && !e.routes?.length && !e.claim ? P : j`<details class="developer-details"><summary class="developer-summary">${t ? j`<span class="developer-next-label">後續：</span><span class="developer-next-action">${t}</span>` : P}<span class="developer-expand-hint">展開作法與方向</span></summary><div class="developer-body"><h4 class="developer-body-title">作法與方向</h4>
-    ${[["後續", e.next_step ? e.next_steps : e.next_steps?.slice(1)], ["Blockers", e.blockers]].map(([e, t]) => t?.length ? j`<section class="detail-section"><h4 class="detail-heading">${e}</h4><ul class="detail-list">${t.map((e) => j`<li>${e}</li>`)}</ul></section>` : P)}
-    ${e.decisions?.map((e) => j`<article class="decision-item"><p>${e.summary}</p><code>${e.reference ?? ""}</code></article>`)}
-    ${e.routes?.map((e) => j`<article class="route-item"><div class="route-heading"><strong>${e.title}</strong><span class="route-state route-${e.state}">${e.state}</span></div><p>${e.reason ?? ""}</p></article>`)}
-    ${e.claim ? j`<section class="detail-section claim-section"><h4>Claim</h4><p>Agent: ${e.claim.agent}</p><p>${e.claim.worktree ?? ""}</p>${e.claim.source_paths?.map((e) => j`<code class="reference">${e}</code>`)}</section>` : P}
+	return !t && !e.next_steps?.length && !e.blockers?.length && !e.decisions?.length && !e.routes?.length && !e.claim ? N : A`<details class="developer-details"><summary class="developer-summary">${t ? A`<span class="developer-next-label">後續：</span><span class="developer-next-action">${t}</span>` : N}<span class="developer-expand-hint">展開作法與方向</span></summary><div class="developer-body"><h4 class="developer-body-title">作法與方向</h4>
+    ${[["後續", e.next_step ? e.next_steps : e.next_steps?.slice(1)], ["Blockers", e.blockers]].map(([e, t]) => t?.length ? A`<section class="detail-section"><h4 class="detail-heading">${e}</h4><ul class="detail-list">${t.map((e) => A`<li>${e}</li>`)}</ul></section>` : N)}
+    ${e.decisions?.map((e) => A`<article class="decision-item"><p>${e.summary}</p><code>${e.reference ?? ""}</code></article>`)}
+    ${e.routes?.map((e) => A`<article class="route-item"><div class="route-heading"><strong>${e.title}</strong><span class="route-state route-${e.state}">${e.state}</span></div><p>${e.reason ?? ""}</p></article>`)}
+    ${e.claim ? A`<section class="detail-section claim-section"><h4>Claim</h4><p>Agent: ${e.claim.agent}</p><p>${e.claim.worktree ?? ""}</p>${e.claim.source_paths?.map((e) => A`<code class="reference">${e}</code>`)}</section>` : N}
   </div></details>`;
 }
-function Mn(e, t, n, r) {
+function Pn(e, t, n, r) {
 	e = {
 		...e,
 		nextItemId: n.id === e.nextTaskId ? e.nextItemId : null
 	};
-	let i = bn(n.status), a = e.policy.metadata(n.priority), o = e.progress[n.id], s = (t, r) => e.onCommand({
+	let i = Sn(n.status), a = e.policy.metadata(n.priority), o = e.progress[n.id], s = (t, r) => e.onCommand({
 		type: "set-task-field",
 		taskId: n.id,
 		field: t,
 		value: r
-	}), c = [{
-		status: "done",
-		title: "已完成",
-		className: "completed-work",
-		field: "completed_items",
-		items: n.completed_items ?? []
-	}, {
+	}), c = ne(n);
+	t.closedTargetHash !== location.hash && c.closed.some(({ item: e }) => location.hash === `#item-${n.id}--${e.id}`) && (t.state[`completed:${n.id}`] = !0, t.closedTargetHash = location.hash);
+	let l = [{
 		status: "planned",
 		title: "待處理",
 		className: "pending-work",
 		field: "pending_items",
-		items: p(d(n.pending_items), e.nextItemId)
+		items: p(d(c.pending), e.nextItemId).map((e) => ({
+			item: e,
+			field: "pending_items"
+		}))
+	}, {
+		status: "done",
+		title: c.closed.some((e) => g(e.item.status)) ? "已結束" : "已完成",
+		className: "completed-work",
+		field: "completed_items",
+		items: c.closed
 	}];
-	return c.sort((t, n) => {
-		let r = (t) => {
-			let n = e.statusOrder?.indexOf(t) ?? -1;
-			return n < 0 ? 99 : n;
-		};
-		return r(t.status) - r(n.status);
-	}), j`<article class="task-card editor-task-card priority-${a?.tone ?? "unspecified"}" aria-labelledby="task-${n.id}-title">${Vt({
+	return A`<article class="task-card editor-task-card priority-${a?.tone ?? "unspecified"}" aria-labelledby="task-${n.id}-title">${Ut({
 		...r,
 		id: `task-body-${n.id}`,
 		label: n.title
-	}, j`<header class="task-header"><div class="task-title-group">${e.editing ? j`<div class="time-task-status-line">${Sn(e.policy, n.priority, `${n.title} 優先級`, (e) => s("priority", e))}</div>` : P}
-    <div class="time-task-title-line">${e.editing ? j`<input id="task-${n.id}-title" class="task-title-input" aria-label="任務名稱" maxlength="160" .value=${W(n.title)} @input=${(e) => s("title", e.currentTarget.value)}>${jt(n.id)}` : j`<h3 id="task-${n.id}-title">${Mt([e.scopeId, n.id].filter(Boolean).join(" › "), n.title, n.id)}</h3>`}</div>
-    ${e.moduleTotals?.[n.id]?.length ? j`<div class="task-module-totals">${e.moduleTotals[n.id].map((e) => j`<span class="task-module-total task-module-total-${e.id}">${e.label}</span>`)}</div>` : P}</div>
-    <div class="task-header-meta"><strong class="task-fraction" aria-label="子項目完成 ${o.completed}，共 ${o.total}">${o.completed} / ${o.total}</strong>${e.editing ? xn(vn, n.status, `${n.title} 狀態`, (e) => s("status", e), "inline-status-select") : j`<span class="status-badge status-${i.tone}">${i.label}</span>`}<code class="task-id">${n.id}</code></div></header>`, j`${e.editing ? j`<textarea class="task-summary-input" aria-label="任務描述" maxlength="1000" rows="3" .value=${W(n.summary ?? "")} @input=${(e) => s("summary", e.currentTarget.value)}></textarea>` : j`<div class="task-summary">${kt(n.summary, {
+	}, A`<header class="task-header"><div class="task-title-group">${e.editing ? A`<div class="time-task-status-line">${wn(e.policy, n.priority, `${n.title} 優先級`, (e) => s("priority", e))}</div>` : N}
+    <div class="time-task-title-line">${e.editing ? A`<input id="task-${n.id}-title" class="task-title-input" aria-label="任務名稱" maxlength="160" .value=${G(n.title)} @input=${(e) => s("title", e.currentTarget.value)}>${Nt(n.id)}` : A`<h3 id="task-${n.id}-title">${Pt([e.scopeId, n.id].filter(Boolean).join(" › "), n.title, n.id)}</h3>`}</div>
+    ${e.moduleTotals?.[n.id]?.length ? A`<div class="task-module-totals">${e.moduleTotals[n.id].map((e) => A`<span class="task-module-total task-module-total-${e.id}">${e.label}</span>`)}</div>` : N}</div>
+    <div class="task-header-meta"><strong class="task-fraction" aria-label="子項目完成 ${o.completed}，共 ${o.total}">${o.completed} / ${o.total}</strong>${e.editing ? Cn(bn, n.status, `${n.title} 狀態`, (e) => s("status", e), "inline-status-select") : A`<span class="status-badge status-${i.tone}">${i.label}</span>`}<code class="task-id">${n.id}</code></div></header>`, A`${e.editing ? A`<textarea class="task-summary-input" aria-label="任務描述" maxlength="1000" rows="3" .value=${G(n.summary ?? "")} @input=${(e) => s("summary", e.currentTarget.value)}></textarea>` : A`<div class="task-summary">${At(n.summary, {
 		lines: 2,
 		emphasis: !0
-	})}</div>`}${An(n.goal_ref, e.scopeId, n.id)}${jn(n.developer)}
-      <div class="work-columns">${c.map((i) => i.items.length || e.editing ? j`<section class="detail-section ${i.className}"><h4 class="detail-heading">${i.title}</h4><ul class="detail-list" id="task-${n.id}-${i.field}" ${q(Ft, Tn(e, t, n))}>${U(i.status === "done" && !t.state[`completed:${n.id}`] ? i.items.slice(0, 1) : i.items, (e) => e.id, (a, o) => kn(e, t, n, i.field, a, r.lead && i.status !== "done" && o === 0 || a.id === e.nextItemId))}</ul>
-      ${i.status === "done" && i.items.length > 1 ? j`<button type="button" class="completed-more" aria-expanded=${!!t.state[`completed:${n.id}`]} aria-controls="task-${n.id}-${i.field}" @click=${() => {
+	})}</div>`}${Mn(n.goal_ref, e.scopeId, n.id)}${Nn(n.developer)}
+      <div class="work-columns">${l.map((i) => i.items.length || e.editing ? A`<section class="detail-section ${i.className}"><h4 class="detail-heading">${i.title}</h4><ul class="detail-list" id="task-${n.id}-${i.field}" ${J(Lt, Dn(e, t, n))}>${W(i.status === "done" && !e.editing && !t.state[`completed:${n.id}`] ? i.items.slice(0, 1) : i.items, (e) => e.item.id, ({ item: a, field: o }, s) => jn(e, t, n, o, a, r.lead && i.status !== "done" && s === 0 || a.id === e.nextItemId))}</ul>
+      ${i.status === "done" && !e.editing && i.items.length > 1 ? A`<button type="button" class="completed-more" aria-expanded=${!!t.state[`completed:${n.id}`]} aria-controls="task-${n.id}-${i.field}" @click=${() => {
 		t.state[`completed:${n.id}`] = !t.state[`completed:${n.id}`], t.draw();
-	}}><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d=${t.state[`completed:${n.id}`] ? "M3 10l5-5 5 5" : "M3 6l5 5 5-5"} fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" /></svg>${t.state[`completed:${n.id}`] ? "收合" : `顯示更多（${i.items.length - 1}項）`}</button>` : P}</section>` : P)}
-      <section class="task-adder-section">${e.editing ? j`<div class="spike-add-shell">${t.state[`add:${n.id}`] ? j`<form class="spike-add-form" @submit=${(r) => {
+	}}><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d=${t.state[`completed:${n.id}`] ? "M3 10l5-5 5 5" : "M3 6l5 5 5-5"} fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" /></svg>${t.state[`completed:${n.id}`] ? "收合" : `顯示更多（${i.items.length - 1}項）`}</button>` : N}</section>` : N)}
+      <section class="task-adder-section">${e.editing ? A`<div class="spike-add-shell">${t.state[`add:${n.id}`] ? A`<form class="spike-add-form" @submit=${(r) => {
 		r.preventDefault();
 		let i = new FormData(r.currentTarget), a = e.onAddItem(n.id, i.get("title"), Number(i.get("priority")));
 		t.state[`error:${n.id}`] = a?.error, a?.error || (t.state[`add:${n.id}`] = !1), t.draw();
-	}}><input name="title" aria-label="新增子項目描述" placeholder="新增待處理項目" maxlength="500"><select name="priority" aria-label="新增子項目優先級">${e.policy.levels.map((t) => j`<option value=${t.value} ?selected=${t.value === e.policy.creationDefaultValue}>${e.policy.format(t.value)}</option>`)}</select><button type="submit">新增</button><button type="button" @click=${() => {
+	}}><input name="title" aria-label="新增子項目描述" placeholder="新增待處理項目" maxlength="500"><select name="priority" aria-label="新增子項目優先級">${e.policy.levels.map((t) => A`<option value=${t.value} ?selected=${t.value === e.policy.creationDefaultValue}>${e.policy.format(t.value)}</option>`)}</select><button type="submit">新增</button><button type="button" @click=${() => {
 		t.state[`add:${n.id}`] = !1, t.draw();
-	}}>取消</button><p class="spike-field-error" role="alert">${t.state[`error:${n.id}`] ?? ""}</p></form>` : j`<button class="spike-add-button" type="button" aria-label="在「${n.title}」新增子項目" @click=${() => {
+	}}>取消</button><p class="spike-field-error" role="alert">${t.state[`error:${n.id}`] ?? ""}</p></form>` : A`<button class="spike-add-button" type="button" aria-label="在「${n.title}」新增子項目" @click=${() => {
 		t.state[`add:${n.id}`] = !0, t.draw();
-	}}>＋</button>`}</div>` : P}</section></div>`)}
+	}}>＋</button>`}</div>` : N}</section></div>`)}
   </article>`;
 }
-var Nn = {
+var Fn = {
 	"task-list": (e, t) => {
-		if (t.cards || (t.cards = new Ht(t), $(t), t.on(window, "hashchange", () => {
+		if (t.cards || (t.cards = new Wt(t), $(t), t.on(window, "hashchange", () => {
 			$(t), t.lastItemHash = null, t.refresh();
 		}), t.on(window, "popstate", () => {
 			t.activeItemHash = null, t.itemReturnUrl = null, t.refresh();
@@ -1882,7 +1882,7 @@ var Nn = {
 		}
 		return t.selectionSource !== e.selection && (t.unsubscribe?.(), t.selectionSource = e.selection, t.unsubscribe = e.selection?.subscribe((e) => {
 			t.state.selection = e, queueMicrotask(t.refresh);
-		}), t.cleanups.push(() => t.unsubscribe?.())), j`${t.cards.render({
+		}), t.cleanups.push(() => t.unsubscribe?.())), A`${t.cards.render({
 			items: e.tasks,
 			allIds: e.allIds,
 			storageKey: e.cardStorageKey,
@@ -1895,21 +1895,21 @@ var Nn = {
 			reorderGroups: e.cardReorderGroups,
 			hiddenCount: e.hiddenCount,
 			onShowHidden: e.onShowHidden
-		}, (n, r) => n.kind === "report_pointer" ? Pn(e, n, r) : Mn(e, t, n, r), e.filters ? Lt(e.filters) : P, j`${e.onSearch ? j`<ui-search-field class="task-search" label="搜尋任務卡名稱、摘要與子項" placeholder="搜尋名稱、摘要、子項"
-        .query=${e.searchQuery ?? ""} @query-change=${(t) => e.onSearch(t.detail.query)}></ui-search-field>` : P}`)}${e.tasks.length ? P : j`<p class="empty-state">${e.emptyLabel}</p>`}${wn(e, t)}`;
+		}, (n, r) => n.kind === "report_pointer" ? In(e, n, r) : Pn(e, t, n, r), e.filters ? zt(e.filters) : N, A`${e.onSearch ? A`<ui-search-field class="task-search" label="搜尋任務卡名稱、摘要與子項" placeholder="搜尋名稱、摘要、子項"
+        .query=${e.searchQuery ?? ""} @query-change=${(t) => e.onSearch(t.detail.query)}></ui-search-field>` : N}`)}${e.tasks.length ? N : A`<p class="empty-state">${e.emptyLabel}</p>`}${En(e, t)}`;
 	},
-	"report-summary": (e) => e.editable ? j`<textarea class="report-summary-input" aria-label=${e.label ?? "報告摘要"} maxlength="1000" rows="2" placeholder=${e.placeholder ?? ""} .value=${W(e.value ?? "")} @input=${(t) => e.onCommit(t.currentTarget.value)}></textarea>` : j`<p class="hero-summary">${e.text}</p>`,
-	"project-progress": (e) => j`<div class="project-progress-label"><strong id="project-progress-value">整體約 ${e.percentage}%</strong></div>${Nt({
+	"report-summary": (e) => e.editable ? A`<textarea class="report-summary-input" aria-label=${e.label ?? "報告摘要"} maxlength="1000" rows="2" placeholder=${e.placeholder ?? ""} .value=${G(e.value ?? "")} @input=${(t) => e.onCommit(t.currentTarget.value)}></textarea>` : A`<p class="hero-summary">${e.text}</p>`,
+	"project-progress": (e) => A`<div class="project-progress-label"><strong id="project-progress-value">整體約 ${e.percentage}%</strong></div>${Ft({
 		...e,
 		form: "segmented",
 		label: `整體進度 ${e.percentage}%，已完成 ${e.completed}，共 ${e.total}`,
 		extraClass: "project-progress-meter"
 	})}`,
-	"status-filters": Lt,
-	"status-overview": (e) => (e.statusOrder ?? []).filter((e) => e !== "planned" && u[e]).map((t) => j`<article class="overview-card overview-${bn(t).tone}" data-status=${t}><span class="overview-value">${e.counts[t] ?? 0}</span><span class="overview-label">${t === "in_progress" ? "目前進行" : bn(t).label}</span></article>`),
-	"mode-toggle": (e) => j`<button class="view-mode-toggle editor-mode-dock ${e.mode === "edit" ? "is-editing" : ""}" type="button" ?disabled=${e.disabled || !e.available} ?hidden=${e.hideWhenUnavailable && !e.available} title=${e.available ? "" : e.unavailableTitle} aria-label="切換到${e.mode === "edit" ? "預覽" : "編輯"}模式" @click=${() => e.onToggle(e.mode === "edit" ? "preview" : "edit")}>${e.mode === "edit" ? "預覽" : "編輯"}模式</button>`,
-	"save-bar": Ut,
-	"add-control": (e, t) => e.expanded ? j`<form class=${e.kind === "task" ? "task-add-form" : "inline-add-form"} @keydown=${(t) => {
+	"status-filters": zt,
+	"status-overview": (e) => (e.statusOrder ?? []).filter((e) => e !== "planned" && u[e]).map((t) => A`<article class="overview-card overview-${Sn(t).tone}" data-status=${t}><span class="overview-value">${e.counts[t] ?? 0}</span><span class="overview-label">${t === "in_progress" ? "目前進行" : Sn(t).label}</span></article>`),
+	"mode-toggle": (e) => A`<button class="view-mode-toggle editor-mode-dock ${e.mode === "edit" ? "is-editing" : ""}" type="button" ?disabled=${e.disabled || !e.available} ?hidden=${e.hideWhenUnavailable && !e.available} title=${e.available ? "" : e.unavailableTitle} aria-label="切換到${e.mode === "edit" ? "預覽" : "編輯"}模式" @click=${() => e.onToggle(e.mode === "edit" ? "preview" : "edit")}>${e.mode === "edit" ? "預覽" : "編輯"}模式</button>`,
+	"save-bar": Gt,
+	"add-control": (e, t) => e.expanded ? A`<form class=${e.kind === "task" ? "task-add-form" : "inline-add-form"} @keydown=${(t) => {
 		t.key === "Escape" && (t.preventDefault(), e.onCancel());
 	}} @submit=${(t) => {
 		t.preventDefault();
@@ -1919,17 +1919,17 @@ var Nn = {
 			summary: n.get("summary") ?? "",
 			priority: Number(n.get("priority"))
 		});
-	}}><input name="title" class="inline-edit-input" maxlength="160" aria-label=${e.titleAriaLabel || "新任務名稱"} placeholder=${e.titlePlaceholder || "任務名稱"}>${e.kind === "task" ? j`<textarea name="summary" class="task-summary-input" rows="2" maxlength="1000" aria-label=${e.summaryAriaLabel || "新任務描述"} placeholder=${e.summaryPlaceholder || "任務描述（必填）"}></textarea>` : P}<select class="inline-priority-select" name="priority" aria-label="新任務優先級">${e.policy.levels.map((t) => j`<option value=${t.value} ?selected=${t.value === e.policy.creationDefaultValue}>${e.policy.format(t.value)}</option>`)}</select><span class="task-add-contract">${e.contractText ?? ""}</span><span class="inline-add-error" role="alert" ?hidden=${!e.errorMessage}>${e.errorMessage}</span><div class="inline-add-actions"><button type="button" class="secondary-button inline-add-cancel" @click=${e.onCancel}>${e.cancelLabel || "取消"}</button><button type="submit" class="secondary-button">${e.submitLabel || "加入任務"}</button></div></form>` : j`<button class=${e.kind === "task" ? "task-add-trigger" : "inline-add-trigger"} type="button" aria-label=${e.triggerAriaLabel || "增加工作項目"} @click=${e.onOpen}>＋</button>`,
-	diagnostics: (e) => (e.diagnostics ?? []).map((e) => j`<div class="diagnostic diagnostic-${e.level ?? "error"}"><strong>${e.level === "warning" ? "注意" : "無法載入部分資料"}</strong><p>${e.message}</p></div>`),
-	"scope-directory": (e) => e.scopes.map((t) => j`<article class="scope-entry"><a class="scope-link" href=${t.href}>${t.id}</a>${t.baseOnlyHref ? j`<a class="scope-developer-link" href=${t.baseOnlyHref}>${e.baseOnlyLabel ?? "基本報告"}</a>` : P}</article>`),
-	"theme-control": qt,
-	"project-module-strip": Rt,
-	"time-summary-button": (e) => j`<button class=${e.className ?? "time-summary-button"} type="button" ?hidden=${e.hidden} ?disabled=${e.disabled} aria-label=${e.ariaLabel ?? ""} @click=${e.onClick}><span>${e.label}</span>${e.showDot ? j`<span class="time-risk-dot"></span>` : P}${e.showChevron ? j`<span class="time-chevron">›</span>` : P}</button>`,
-	"delivery-save-confirmation": _n,
-	"time-dialog": un,
-	"cost-dialog": dn
+	}}><input name="title" class="inline-edit-input" maxlength="160" aria-label=${e.titleAriaLabel || "新任務名稱"} placeholder=${e.titlePlaceholder || "任務名稱"}>${e.kind === "task" ? A`<textarea name="summary" class="task-summary-input" rows="2" maxlength="1000" aria-label=${e.summaryAriaLabel || "新任務描述"} placeholder=${e.summaryPlaceholder || "任務描述（必填）"}></textarea>` : N}<select class="inline-priority-select" name="priority" aria-label="新任務優先級">${e.policy.levels.map((t) => A`<option value=${t.value} ?selected=${t.value === e.policy.creationDefaultValue}>${e.policy.format(t.value)}</option>`)}</select><span class="task-add-contract">${e.contractText ?? ""}</span><span class="inline-add-error" role="alert" ?hidden=${!e.errorMessage}>${e.errorMessage}</span><div class="inline-add-actions"><button type="button" class="secondary-button inline-add-cancel" @click=${e.onCancel}>${e.cancelLabel || "取消"}</button><button type="submit" class="secondary-button">${e.submitLabel || "加入任務"}</button></div></form>` : A`<button class=${e.kind === "task" ? "task-add-trigger" : "inline-add-trigger"} type="button" aria-label=${e.triggerAriaLabel || "增加工作項目"} @click=${e.onOpen}>＋</button>`,
+	diagnostics: (e) => (e.diagnostics ?? []).map((e) => A`<div class="diagnostic diagnostic-${e.level ?? "error"}"><strong>${e.level === "warning" ? "注意" : "無法載入部分資料"}</strong><p>${e.message}</p></div>`),
+	"scope-directory": (e) => e.scopes.map((t) => A`<article class="scope-entry"><a class="scope-link" href=${t.href}>${t.id}</a>${t.baseOnlyHref ? A`<a class="scope-developer-link" href=${t.baseOnlyHref}>${e.baseOnlyLabel ?? "基本報告"}</a>` : N}</article>`),
+	"theme-control": Yt,
+	"project-module-strip": Bt,
+	"time-summary-button": (e) => A`<button class=${e.className ?? "time-summary-button"} type="button" ?hidden=${e.hidden} ?disabled=${e.disabled} aria-label=${e.ariaLabel ?? ""} @click=${e.onClick}><span>${e.label}</span>${e.showDot ? A`<span class="time-risk-dot"></span>` : N}${e.showChevron ? A`<span class="time-chevron">›</span>` : N}</button>`,
+	"delivery-save-confirmation": yn,
+	"time-dialog": fn,
+	"cost-dialog": pn
 };
-function Pn(e, t, n) {
+function In(e, t, n) {
 	let r = e.pointerCards?.[t.id] ?? { status: "loading" }, i = r.status === "ready" ? r.card : null, a = (e) => e ? u[e] ?? {
 		label: e,
 		tone: "muted"
@@ -1937,17 +1937,17 @@ function Pn(e, t, n) {
 		label: "指路",
 		tone: "muted"
 	};
-	return j`<article class="task-card pointer-card ${i ? `status-${a(i.status).tone}` : ""}" aria-labelledby=${`task-${t.id}-title`}>${Vt({
+	return A`<article class="task-card pointer-card ${i ? `status-${a(i.status).tone}` : ""}" aria-labelledby=${`task-${t.id}-title`}>${Ut({
 		...n,
 		id: `task-body-${t.id}`,
 		label: t.title
-	}, j`<header class="task-header"><div class="task-title-group"><div class="time-task-title-line"><h3 id=${`task-${t.id}-title`}>${r.openHref ? j`<a class="pointer-card-title-link" href=${r.openHref}>${t.title}</a>` : t.title}${jt(t.id)}</h3></div>${r.openHref ? j`<a class="pointer-card-badge" href=${r.openHref}>開啟專案報告 →</a>` : P}</div><div class="task-header-meta">${i ? j`<strong class="task-fraction">${i.progress.completed} / ${i.progress.total}</strong><span class="status-badge status-${a(i.status).tone}">${a(i.status).label}</span>` : P}${r.status === "error" ? j`<span class="pointer-card-error" role="alert">${r.message}</span>` : r.status === "loading" ? j`<span role="status">讀取目標報告中…</span>` : P}</div></header>`, i ? j`<div class="task-summary">${kt(i.summary, { emphasis: !0 })}</div><p class="pointer-card-progress" aria-label=${`子任務完成 ${i.progress.completed}，共 ${i.progress.total}`}>${i.progress.completed} / ${i.progress.total}（${i.progress.percentage}%）</p><ul class="pointer-card-rows">${i.rows.map((e) => j`<li class="pointer-card-row"><span class="pointer-card-row-title">${e.title}</span><span class="status-badge status-${a(e.status).tone}">${a(e.status).label}</span></li>`)}</ul>` : P)}</article>`;
+	}, A`<header class="task-header"><div class="task-title-group"><div class="time-task-title-line"><h3 id=${`task-${t.id}-title`}>${r.openHref ? A`<a class="pointer-card-title-link" href=${r.openHref}>${t.title}</a>` : t.title}${Nt(t.id)}</h3></div>${r.openHref ? A`<a class="pointer-card-badge" href=${r.openHref}>開啟專案報告 →</a>` : N}</div><div class="task-header-meta">${i ? A`<strong class="task-fraction">${i.progress.completed} / ${i.progress.total}</strong><span class="status-badge status-${a(i.status).tone}">${a(i.status).label}</span>` : N}${r.status === "error" ? A`<span class="pointer-card-error" role="alert">${r.message}</span>` : r.status === "loading" ? A`<span role="status">讀取目標報告中…</span>` : N}</div></header>`, i ? A`<div class="task-summary">${At(i.summary, { emphasis: !0 })}</div><p class="pointer-card-progress" aria-label=${`子任務完成 ${i.progress.completed}，共 ${i.progress.total}`}>${i.progress.completed} / ${i.progress.total}（${i.progress.percentage}%）</p><ul class="pointer-card-rows">${i.rows.map((e) => A`<li class="pointer-card-row"><span class="pointer-card-row-title">${e.title}</span><span class="status-badge status-${a(e.status).tone}">${a(e.status).label}</span></li>`)}</ul>` : N)}</article>`;
 }
-var Fn = {
+var Ln = {
 	id: "yu5h1-web-ui-workflow",
-	regions: Object.keys(Nn),
+	regions: Object.keys(Fn),
 	mount(e, t, n) {
-		let r = new Pt(t, n, Nn[e]);
+		let r = new It(t, n, Fn[e]);
 		return r.draw(), r;
 	},
 	update(e, t) {
@@ -1957,5 +1957,5 @@ var Fn = {
 		e.destroy();
 	}
 };
-c(Fn), await fe("viewer"), await import("./app.js");
+c(Ln), await me("viewer"), await import("./app.js");
 //#endregion
