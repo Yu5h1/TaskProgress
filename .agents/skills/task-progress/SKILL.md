@@ -60,9 +60,10 @@ ones.
 ### Settle the goal first
 
 Before creating any card or item, the range needs a goal the user confirmed: the project goal
-(`plan.md`) for a scope; for a card, the 〈問題與目標〉 section of its plan document, linked from the
-card summary, or the opening prose of the item's checklist when the card has no plan document. When
-it exists, cite it and do not ask again.
+(`plan.md`) for a scope; for a card, the document section its `goal_ref` binds
+([task-progress-report § Bind a card's goal](../task-progress-report/SKILL.md#bind-a-cards-goal-goal_ref)).
+A card without `goal_ref` has no confirmed goal; an item checklist's opening prose is that item's
+outcome, never the card's goal. When the goal exists, cite it and do not ask again.
 
 When it is missing or unconfirmed, settle it with the user before creating work. A wrong goal wastes
 every step after it, so clarify:
@@ -77,11 +78,19 @@ every step after it, so clarify:
 
 Look up what the repository, report or tools can tell you instead of asking it. Ask one question at
 a time with your recommended answer and wait for the reply; walk the questions in dependency order.
-Write the confirmed goal to its place, then create the work.
+Write the confirmed goal to its place, then create the work. A card's place is a section in the plan
+document its work belongs to, or a new document under the scope's `Documentation/` when none fits;
+create the card with `goal_ref` bound to that section, before any of its items.
+
+A card found with its goal only in a summary link or in an item checklist's prose is migrated when
+its range is planned: bind `goal_ref` to the linked section and drop the link from the summary, or
+move the goal from the checklist prose into a document section and bind that.
 
 Light path: when the instruction already states an observable result in one step, skip the goal
 questions and the breakdown, and say in the report which steps you skipped and why; the user may ask
-for the full flow.
+for the full flow. That instruction is the item's confirmed outcome, written in its checklist; the
+card needs no `goal_ref` for it, and a card created this way stays without one until its range is
+planned.
 
 ### Plan against the goal
 

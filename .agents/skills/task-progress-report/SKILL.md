@@ -72,7 +72,7 @@ For task, item, and developer-field updates, use the `report` command instead of
   - `obsolete`: another item or design already meets its goal; `"retirement": {"replaced_by": …}` names it — an existing, unretired item as `{"scope_id", "task_id", "item_id"}`, or a design document in this scope as `{"document": "<path>#<section>"}`, which must exist.
   - `discontinued`: its premise failed, its design was overturned, or the work is dropped; `"retirement": {"reason": "<why>"}`.
   The CLI refuses either while an unfinished item still waits on it (repoint or remove that wait first), refuses a new wait on a retired item, and refuses `retirement` on any other status. Cards do not retire this way.
-- Write `summary` as the current outcome or state, not a work diary. When the card has a plan document, link its 〈問題與目標〉 section from the summary: that section is the card's goal.
+- Write `summary` as the current outcome or state, not a work diary. The card's goal is bound by `goal_ref` (§ Bind a card's goal); the summary does not route to it.
 - Add `completed_items` and `pending_items` only for concrete, useful facts.
 - Preserve legacy string items when no stable identity is needed. When time analysis must align an item, use `{ "id": "<stable-id>", "title": "<display text>" }`; keep the ID stable when wording or estimates change.
 - Add `progress` only when both numbers are factual. Never estimate a percentage or denominator.
@@ -121,9 +121,22 @@ Bind a `.checklist` or `.decisions` file when finishing that document is what fi
 ```
 
 - `kind` is `checklist` (→ `<scope-root>/checklists/<stem>.checklist`) or `decision`, singular (→ `<scope-root>/decisions/<stem>.decisions`); `scope_id` is the registered scope that owns the file; `task` is the file stem (`stem` is an accepted alias). A checklist's stem need not equal a Report task ID; a decisions file is named after the card it serves, and its `task_id` equals that card ID, or the local service refuses to load it ([DecisionItemsUsage](../../../Documentation/DecisionItemsUsage.md)). Questions for a card that already has a decisions file go into that file.
-- Only object items carry a checklist or decision binding; tasks aggregate from their items; a legacy string item first becomes an object item. A card carries only its experience record (§ Keep a card's experience record).
+- Only object items carry a checklist or decision binding; tasks aggregate from their items; a legacy string item first becomes an object item. A card's `document_ref` carries only its experience record (§ Keep a card's experience record); its goal is `goal_ref` (§ Bind a card's goal).
 - `item.add` accepts it inside `value`; the `report` command cannot add, change or remove it on an existing entry, so hand-edit `report.json` for that and run `report validate`.
 - Projection (display-only, never written back): a checklist is complete when every check is `[x]`, a decisions file when every decision is answered; a complete document shows the item done, an incomplete or unreadable one shows its stored unfinished state, and a card with bound items aggregates them. The bound routes exist only on the local service, so keep `document_ref` out of a report published elsewhere.
+
+## Bind a card's goal (goal_ref)
+
+A card's goal is one section of a document inside the card's scope, bound by `goal_ref`:
+
+```json
+"goal_ref": { "document": "Documentation/<Name>Plan.md#問題與目標" }
+```
+
+- The section states the card's problem and its observable goal: a plan document's 〈問題與目標〉, or a section of `plan.md` or `Documentation/**` (where each belongs: [AgentArtifactGuide § Scope ownership](../../../../.agents/AgentArtifactGuide.md#scope-ownership)). Write the section first: `task.add` and `task.update` (`set` or `unset` `goal_ref`) refuse a path outside the scope, a missing `#section` or a missing file. The CLI checks the file, not the heading, so confirm the heading yourself.
+- A card without `goal_ref` has no confirmed goal. When a goal is settled and bound: [task-progress § Settle the goal first](../task-progress/SKILL.md#settle-the-goal-first).
+- The summary states the card's current outcome and does not link the goal; an item's checklist states that item's own outcome, never the card's.
+- No Viewer UI shows it yet; agents read it through `report get`.
 
 ## Keep a card's experience record
 
@@ -177,7 +190,7 @@ per line:
 1. Run `& "<task-progress-exe>" report validate "<project-root>" | Out-String` (or `--scope <scope-id>`) and require `ok: true` with exit code 0. It checks `report.json` against its schema and, when present, `report.dev.json` against its schema plus matching `schema_version`/`report_id` and known, unduplicated overlay task IDs. When the EXE is unavailable, perform those checks by hand: parse both files and validate allowed values, ID patterns, required fields, lengths, and `additionalProperties: false`.
 2. Confirm task IDs are unique.
 3. If `time.analysis.json` exists, confirm it satisfies Draft 0.2 with the same `scope_id`, every analyzed task/item resolves to a stable base-report ID, totals and derived risk values reproduce for the same clock per [references/time-estimation.md](references/time-estimation.md), and only `public_label` is projected for capacity exceptions.
-4. For every `document_ref`, confirm `scope_id` is a registered scope (`scope list`) and its `checklists/<stem>.checklist` or `decisions/<stem>.decisions` exists. Schema validation checks neither.
+4. For every `document_ref`, confirm `scope_id` is a registered scope (`scope list`) and its `checklists/<stem>.checklist` or `decisions/<stem>.decisions` exists. For every `goal_ref`, confirm its file and section heading exist. Schema validation checks none of these.
 5. Confirm factual consistency with the source task documents and current repository/test state.
 6. When `<task-progress-exe>` exists, follow [the shared service-readiness procedure](../taskprogress-capabilities/SKILL.md#ensure-the-checklist-service), whose `open` call for this report is:
 

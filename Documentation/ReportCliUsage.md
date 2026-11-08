@@ -75,6 +75,13 @@ task-progress.exe report apply "C:\Project" --input changes.json
   "set": { "document_ref": { "kind": "experience", "scope_id": "<scope>", "task": "feature-a" } } }
 ```
 
+卡片的目標以 `goal_ref` 綁定 scope 內某份文件的一節（路徑須在 scope 內、須帶 `#段落`、檔案須已存在）；可在 `task.add` 一併寫入，或以 `task.update` 設定、解除。規則見 [Report 技能〈Bind a card's goal〉](../.agents/skills/task-progress-report/SKILL.md#bind-a-cards-goal-goal_ref)：
+
+```json
+{ "op": "task.update", "task_id": "feature-a",
+  "set": { "goal_ref": { "document": "Documentation/FeatureAPlan.md#問題與目標" } } }
+```
+
 使用者確認退場的子項，以 `obsolete`（附取代者：子項，或 scope 內的設計文件 `{"document": "路徑#段落"}`）或 `discontinued`（附理由）寫入；規則見 [Report 技能〈Maintain child items〉](../.agents/skills/task-progress-report/SKILL.md#maintain-child-items)：
 
 ```json

@@ -183,6 +183,23 @@ class ReportCliTests(unittest.TestCase):
         execute(self.root, "apply", self.request([{"op": "task.update", "task_id": "one", "unset": ["document_ref"]}]))
         self.assertNotIn("document_ref", execute(self.root, "get", task="one")["task"])
 
+    def test_a_card_goal_is_an_existing_document_section_in_its_scope(self):
+        update = lambda value: self.request([{"op": "task.update", "task_id": "one", "set": {"goal_ref": value}}])
+        (self.root / "Documentation").mkdir()
+        (self.root / "Documentation" / "One.md").write_text("# 一\n\n## 問題與目標\n", encoding="utf-8")
+        for value in ({"document": "Documentation/Missing.md#問題與目標"}, {"document": "Documentation/One.md"},
+                      {"document": "Documentation/One.md#"}, {"document": "../One.md#a"}, {"document": "/One.md#a"},
+                      {"document": "C:/One.md#a"}, {"document": "Documentation/One.md#a", "kind": "plan"}, "Documentation/One.md#a"):
+            with self.assertRaises(ReportError):
+                execute(self.root, "apply", update(value))
+        execute(self.root, "apply", update({"document": "Documentation/One.md#問題與目標"}))
+        self.assertEqual(execute(self.root, "get", task="one")["task"]["goal_ref"], {"document": "Documentation/One.md#問題與目標"})
+        with self.assertRaises(ReportError):
+            execute(self.root, "apply", self.request([{"op": "task.add", "value": {
+                "id": "three", "title": "三", "status": "planned", "summary": "新卡", "goal_ref": {"document": "plan.md#目標"}}}]))
+        execute(self.root, "apply", self.request([{"op": "task.update", "task_id": "one", "unset": ["goal_ref"]}]))
+        self.assertNotIn("goal_ref", execute(self.root, "get", task="one")["task"])
+
     def test_waits_on_a_checklist_work_item_need_the_file_and_the_work_item(self):
         (self.root / "checklists").mkdir()
         (self.root / "checklists" / "manual.checklist").write_text(

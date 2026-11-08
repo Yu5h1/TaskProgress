@@ -19,7 +19,8 @@ class ReportError(ValueError):
 
 FIELDS = {
     "report.update": ({"title", "summary"}, {"summary"}),
-    "task.update": ({"title", "summary", "status", "priority", "progress", "document_ref"}, {"priority", "progress", "document_ref"}),
+    "task.update": ({"title", "summary", "status", "priority", "progress", "document_ref", "goal_ref"},
+                    {"priority", "progress", "document_ref", "goal_ref"}),
     "item.update": ({"title", "status", "priority", "waits_for", "retirement", "blocked_reason"},
                     {"priority", "waits_for", "retirement", "blocked_reason"}),
     "dev.update": ({"next_step", "blockers", "decisions", "routes"}, {"next_step", "blockers", "decisions", "routes"}),
@@ -217,6 +218,21 @@ def check_card_document(report, task, folder=None):
     if folder is not None:
         path = Path(folder) / "experience" / (reference["task"] + ".md")
         require(path.is_file(), "Experience document was not found: experience/" + reference["task"] + ".md", "document_ref.task")
+
+
+def check_card_goal(task, folder=None):
+    """A card's goal is one section of a document inside its scope: goal_ref {"document": "<path>#<section>"}, whose file must exist."""
+    reference = task.get("goal_ref")
+    if reference is None:
+        return
+    require(isinstance(reference, dict) and set(reference) == {"document"}, "goal_ref needs exactly a document", "goal_ref")
+    document = reference["document"]
+    path, _, section = document.partition("#") if isinstance(document, str) else ("", "", "")
+    require(isinstance(document, str) and 0 < len(document) <= 300 and path and section.strip()
+            and not path.startswith(("/", "\\")) and not Path(path).drive and ".." not in Path(path).parts,
+            "goal_ref.document must be a path inside this scope with a #section", "goal_ref.document")
+    if folder is not None:
+        require((Path(folder) / path).is_file(), "Goal document was not found: " + path, "goal_ref.document")
 
 
 def check_waits(report, task_id, item, folder=None):
@@ -448,6 +464,7 @@ def apply_operations(report, overlay, operations, actor=None, at=None, folder=No
                             require("activity" not in item, "activity is written by the CLI, not supplied", "value." + key)
                             stamp_new_item(item, actor, at)
                 check_card_document(report, value, folder)
+                check_card_goal(value, folder)
                 report["tasks"].insert(0 if value.get("status") == "done" else len(report["tasks"]), value)
                 task_id = value.get("id")
             else:
@@ -456,6 +473,7 @@ def apply_operations(report, overlay, operations, actor=None, at=None, folder=No
                     previous_status = task.get("status")
                     update(task, operation, name)
                     check_card_document(report, task, folder)
+                    check_card_goal(task, folder)
                     if previous_status != "done" and task.get("status") == "done":
                         report["tasks"].remove(task)
                         report["tasks"].insert(0, task)

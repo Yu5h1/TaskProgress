@@ -152,6 +152,22 @@
         }
       }
     },
+    "cardGoalRef": {
+      "$comment": "The card's goal: one section of a document inside the card's scope (a plan document's 〈問題與目標〉, or a section of plan.md or Documentation/**). The summary does not route to it.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "document"
+      ],
+      "properties": {
+        "document": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 300,
+          "pattern": "^[^/\\\\#][^#]*#.+$"
+        }
+      }
+    },
     "reportPointerTask": {
       "type": "object",
       "additionalProperties": false,
@@ -226,6 +242,9 @@
         },
         "document_ref": {
           "$ref": "#/$defs/cardDocumentRef"
+        },
+        "goal_ref": {
+          "$ref": "#/$defs/cardGoalRef"
         },
         "progress": {
           "type": "object",
