@@ -59,6 +59,10 @@ ones.
 
 ### Settle the goal first
 
+For a request to create a card, first follow
+[task-progress-report § Check for an existing card before creating](../task-progress-report/SKILL.md#check-for-an-existing-card-before-creating).
+Only a new task continues to goal settlement below.
+
 Before creating any card or item, the range needs a goal the user confirmed: the project goal
 (`plan.md`) for a scope; for a card, the document section its `goal_ref` binds
 ([task-progress-report § Bind a card's goal](../task-progress-report/SKILL.md#bind-a-cards-goal-goal_ref)).

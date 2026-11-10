@@ -29,6 +29,18 @@ description: Generate, update, validate, roll up, register, and locally deploy T
 4. Prefer verified repository state over stale prose. Do not invent completion, blockers, totals, decisions, or claims.
 5. Preserve stable `report_id`, `scope_id`, and task IDs when updating an existing report.
 
+## Check for an existing card before creating
+
+Before creating a card, read the target scope's existing Report through `report get` when it exists.
+Compare task IDs, goals (`goal_ref` and its source when present), and covered work across all card
+statuses. Different wording or a new ID does not make the same task new; a shared title alone does
+not establish that two tasks are the same.
+
+When the user asks to create a card for a task already covered by an existing card, reply
+「該卡片已經存在，不需要建立。」 and identify the existing card by scope and ID. End that creation
+request without creating another card or supporting items/checklists. A creation-only request
+does not authorize modifying or executing the existing card.
+
 ## Resolve scope level and roll-up coverage
 
 - Every report directory is an independent scope; the same schema describes a workspace, a project, or a component, and the Viewer renders one scope without inferring hierarchy.
