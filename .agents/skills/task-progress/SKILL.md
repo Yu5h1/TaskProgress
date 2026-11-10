@@ -40,7 +40,7 @@ card or child item of the scope, resolved as § Resolve the target says.
 | `plan [target]` | Plan the range against its goal (§ Plan against the goal): the scope yields cards, a card yields items; list direct work and settle Next; run nothing. An item: report its `derived_state` and the command that acts on it, or settle an unclear item with a decision question or in the conversation; change nothing else |
 | `plan all` | A shallow pass over every registered scope (§ Plan all scopes); the only form that crosses scopes |
 | `<target>` | Same as `auto <target>`: a card narrows all of it to that card, an item skips evaluation and executes then accepts that item |
-| `<instruction>` | Write that one instruction as an item, then execute it in this session |
+| `<instruction>` | Check for existing work (§ Settle the goal first); write and execute only a new instruction as an item |
 | `run [target]` | Execution queue; a card narrows it to that card's items, an item to that item |
 | `accept [target]` | Acceptance queue, narrowed the same way |
 | `auto [target]` | Evaluate, do the direct work, execute and accept; a card narrows all of it to that card, an item skips evaluation and executes then accepts that item |
@@ -59,9 +59,9 @@ ones.
 
 ### Settle the goal first
 
-For a request to create a card, first follow
-[task-progress-report § Check for an existing card before creating](../task-progress-report/SKILL.md#check-for-an-existing-card-before-creating).
-Only a new task continues to goal settlement below.
+For a request to create a card or child item, first follow
+[task-progress-report § Check for existing cards and items before creating](../task-progress-report/SKILL.md#check-for-existing-cards-and-items-before-creating).
+Only new work continues to goal settlement below.
 
 Before creating any card or item, the range needs a goal the user confirmed: the project goal
 (`plan.md`) for a scope; for a card, the document section its `goal_ref` binds

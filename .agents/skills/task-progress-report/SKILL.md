@@ -29,17 +29,21 @@ description: Generate, update, validate, roll up, register, and locally deploy T
 4. Prefer verified repository state over stale prose. Do not invent completion, blockers, totals, decisions, or claims.
 5. Preserve stable `report_id`, `scope_id`, and task IDs when updating an existing report.
 
-## Check for an existing card before creating
+## Check for existing cards and items before creating
 
-Before creating a card, read the target scope's existing Report through `report get` when it exists.
-Compare task IDs, goals (`goal_ref` and its source when present), and covered work across all card
-statuses. Different wording or a new ID does not make the same task new; a shared title alone does
-not establish that two tasks are the same.
+Before creating a card or child item, read the target scope's existing Report through `report get`
+when it exists. Compare scoped identities, goals/outcomes (`goal_ref` and its source for cards;
+instructions and bound checks for items when needed), and covered work across all statuses and
+both pending/completed item collections, including items on other cards in the scope. Different
+wording or a new ID does not make the same task new; a shared title alone does not establish that
+two tasks are the same. Child IDs are local to their card: compare the full
+`scope-id › task-id › item-id` reference, never a bare child ID across cards.
 
-When the user asks to create a card for a task already covered by an existing card, reply
-「該卡片已經存在，不需要建立。」 and identify the existing card by scope and ID. End that creation
-request without creating another card or supporting items/checklists. A creation-only request
-does not authorize modifying or executing the existing card.
+When requested work already exists at the requested level, reply 「該卡片已經存在，不需要建立。」
+or 「該子項已經存在，不需要重複建立。」 as appropriate, and identify the existing card by scope
+and ID or the item by its full reference. End that creation request without creating a duplicate
+card, item or supporting checklist. A creation-only request does not authorize modifying or
+executing the existing work.
 
 ## Resolve scope level and roll-up coverage
 
@@ -57,6 +61,8 @@ To open the card being worked on, follow [the shared service-readiness procedure
 For task, item, and developer-field updates, use the `report` command instead of hand-editing JSON; [Report CLI usage](../../../Documentation/ReportCliUsage.md) owns request shapes and runtime requirements. Run `report get` (optionally `--task`) for the current revision, then `report apply --input <file> --dry-run` with ID-addressed operations, then the same without `--dry-run`. Never invent a revision or overwrite a conflict without rereading. Check both the JSON `ok` value and the exit code. Build each request with exactly the top-level fields that [update cards and items](../../../Documentation/ReportCliUsage.md#更新卡片及子項) requires; the CLI refuses a request missing one. Its `actor` names the writing tool, such as `claude` or `codex`, and feeds the child-item activity log. Concurrency is the CLI's own job (its process lock and revision check); the agent's part is a current `expected_revision` and rereading on a conflict. The command does not cover legacy string items, pointer mutations, deletions, cross-card moves, new report creation, or changing `document_ref` on an existing entry (see [binding](#bind-checklist-and-decision-documents-document_ref)). Hand-edit `report.json` only for one of those operations the CLI lacks; then append to each changed item's `activity` the entry the CLI would have written (`event` per [ItemActivityLog](../../../Documentation/ItemActivityLog.md): `updated` for a content change, `done` when it completes; your `actor`, your `session` ID when you know it, ISO `at`), run `report validate` on the folder, and say in the commit message what was hand-edited and why. A hand-edit without the activity entry leaves the item with no record of who changed it, which the log exists to prevent. Any change the CLI can make goes through `report apply`. It needs no running server.
 
 ## Maintain child items
+
+Before adding an item, apply the [creation check](#check-for-existing-cards-and-items-before-creating).
 
 - Tasks and child items have independent optional integer priority: `0` 立即, `1` 優先, `2` 一般, `3` 次要, `4` 未指定. Missing values also mean `4`; Preview hides the unspecified label. Choose priority from actual work importance, not to force an item into a particular position. Never use values outside 0–4.
 - Viewer sorts unfinished children by priority, preserving source-array order within each level. When all are unspecified, array order is the display order. Use CLI position operations to insert or move an item relative to a same-level stable ID when order matters without a priority change; see [positions and status](../../../Documentation/ReportCliUsage.md#子項目位置與狀態) for syntax and version requirements. Completed children retain completion order, newest first.
