@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-11-08T17:57:55.975958+00:00",
+  "updated_at": "2026-11-10T12:20:35.871336+00:00",
   "tasks": [
     {
       "id": "agent-workflow",
@@ -139,6 +139,20 @@
               "at": "2026-11-08T09:26:53.154680+00:00",
               "session": "Independent runtime acceptance",
               "session_id": "4354a6f9-2555-4640-a42f-f5f421b3760e"
+            }
+          ]
+        },
+        {
+          "priority": 2,
+          "status": "planned",
+          "title": "問題：checklist-round 指南與 CLI 對通過檢查的證據欄位不一致：指南示範 [x] + Observed，checklist validate 卻要求同時包含 Resolved（Web direction-field 本輪第15行重現）；應對齊指南與 ChecklistDocument.cs。",
+          "id": "problem-checklist-passed-observed-pair",
+          "activity": [
+            {
+              "event": "created",
+              "actor": "codex",
+              "at": "2026-11-10T12:20:35.871336+00:00",
+              "session": "Direction 欄位驗收"
             }
           ]
         }
