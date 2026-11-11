@@ -3,8 +3,944 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-11-11T12:56:03.993350+00:00",
+  "updated_at": "2026-11-11T13:34:15.571252+00:00",
   "tasks": [
+    {
+      "id": "gemini-workflow-trial",
+      "title": "共用任務 skill 與 Gemini (Antigravity) 驗證試跑",
+      "priority": 1,
+      "status": "done",
+      "summary": "Antigravity 使用者層入口與六個驗證情境均已試跑通過，包含人工與獨立驗收（d8e6635）。",
+      "pending_items": [
+        {
+          "id": "gemini-trial-self",
+          "title": "Gemini 自驗試跑",
+          "priority": 1,
+          "status": "planned",
+          "document_ref": {
+            "kind": "checklist",
+            "scope_id": "task-progress",
+            "task": "gemini-trial-self"
+          },
+          "activity": [
+            {
+              "event": "created",
+              "actor": "antigravity",
+              "at": "2026-10-22T16:13:53.887271+00:00",
+              "session": "Gemini 驗證流程試跑",
+              "session_id": "7392a1e9-7abc-4e1a-9c7a-d4dc573fffa8"
+            },
+            {
+              "event": "started",
+              "actor": "antigravity",
+              "at": "2026-10-22T16:14:12.798399+00:00",
+              "session": "Gemini 驗證流程試跑",
+              "session_id": "7392a1e9-7abc-4e1a-9c7a-d4dc573fffa8"
+            },
+            {
+              "event": "released",
+              "actor": "antigravity",
+              "at": "2026-10-22T16:14:39.599056+00:00",
+              "session": "Gemini 驗證流程試跑",
+              "session_id": "7392a1e9-7abc-4e1a-9c7a-d4dc573fffa8"
+            }
+          ]
+        },
+        {
+          "id": "gemini-trial-manual",
+          "title": "Gemini 人工試跑",
+          "priority": 1,
+          "status": "planned",
+          "document_ref": {
+            "kind": "checklist",
+            "scope_id": "task-progress",
+            "task": "gemini-trial-manual"
+          },
+          "activity": [
+            {
+              "event": "created",
+              "actor": "antigravity",
+              "at": "2026-10-22T16:13:53.887271+00:00",
+              "session": "Gemini 驗證流程試跑",
+              "session_id": "7392a1e9-7abc-4e1a-9c7a-d4dc573fffa8"
+            },
+            {
+              "event": "started",
+              "actor": "antigravity",
+              "at": "2026-10-22T16:14:56.553108+00:00",
+              "session": "Gemini 驗證流程試跑",
+              "session_id": "7392a1e9-7abc-4e1a-9c7a-d4dc573fffa8"
+            },
+            {
+              "event": "released",
+              "actor": "antigravity",
+              "at": "2026-10-22T16:15:32.915029+00:00",
+              "session": "Gemini 驗證流程試跑",
+              "session_id": "7392a1e9-7abc-4e1a-9c7a-d4dc573fffa8"
+            }
+          ]
+        },
+        {
+          "id": "gemini-trial-cross",
+          "title": "Gemini 他驗試跑",
+          "priority": 1,
+          "status": "planned",
+          "document_ref": {
+            "kind": "checklist",
+            "scope_id": "task-progress",
+            "task": "gemini-trial-cross"
+          },
+          "activity": [
+            {
+              "event": "created",
+              "actor": "antigravity",
+              "at": "2026-10-22T16:13:53.887271+00:00",
+              "session": "Gemini 驗證流程試跑",
+              "session_id": "7392a1e9-7abc-4e1a-9c7a-d4dc573fffa8"
+            },
+            {
+              "event": "started",
+              "actor": "antigravity",
+              "at": "2026-10-22T16:15:49.207599+00:00",
+              "session": "Gemini 驗證流程試跑",
+              "session_id": "7392a1e9-7abc-4e1a-9c7a-d4dc573fffa8"
+            },
+            {
+              "event": "released",
+              "actor": "antigravity",
+              "at": "2026-10-22T16:16:18.029622+00:00",
+              "session": "Gemini 驗證流程試跑",
+              "session_id": "7392a1e9-7abc-4e1a-9c7a-d4dc573fffa8"
+            }
+          ]
+        },
+        {
+          "id": "gemini-trial-cross-manual",
+          "title": "Gemini 他驗加人工試跑",
+          "priority": 1,
+          "status": "planned",
+          "document_ref": {
+            "kind": "checklist",
+            "scope_id": "task-progress",
+            "task": "gemini-trial-cross-manual"
+          },
+          "activity": [
+            {
+              "event": "created",
+              "actor": "antigravity",
+              "at": "2026-10-22T16:13:53.887271+00:00",
+              "session": "Gemini 驗證流程試跑",
+              "session_id": "7392a1e9-7abc-4e1a-9c7a-d4dc573fffa8"
+            },
+            {
+              "event": "started",
+              "actor": "antigravity",
+              "at": "2026-10-22T16:16:40.910769+00:00",
+              "session": "Gemini 驗證流程試跑",
+              "session_id": "7392a1e9-7abc-4e1a-9c7a-d4dc573fffa8"
+            },
+            {
+              "event": "released",
+              "actor": "antigravity",
+              "at": "2026-10-22T16:17:17.567170+00:00",
+              "session": "Gemini 驗證流程試跑",
+              "session_id": "7392a1e9-7abc-4e1a-9c7a-d4dc573fffa8"
+            }
+          ]
+        },
+        {
+          "id": "gemini-trial-condition",
+          "title": "Gemini 條件不符試跑",
+          "priority": 1,
+          "status": "planned",
+          "document_ref": {
+            "kind": "checklist",
+            "scope_id": "task-progress",
+            "task": "gemini-trial-condition"
+          },
+          "activity": [
+            {
+              "event": "created",
+              "actor": "antigravity",
+              "at": "2026-10-22T16:13:53.887271+00:00",
+              "session": "Gemini 驗證流程試跑",
+              "session_id": "7392a1e9-7abc-4e1a-9c7a-d4dc573fffa8"
+            },
+            {
+              "event": "started",
+              "actor": "antigravity",
+              "at": "2026-10-22T16:17:23.378118+00:00",
+              "session": "Gemini 驗證流程試跑",
+              "session_id": "7392a1e9-7abc-4e1a-9c7a-d4dc573fffa8"
+            },
+            {
+              "event": "released",
+              "actor": "antigravity",
+              "at": "2026-10-22T16:17:46.912897+00:00",
+              "session": "Gemini 驗證流程試跑",
+              "session_id": "7392a1e9-7abc-4e1a-9c7a-d4dc573fffa8"
+            }
+          ]
+        },
+        {
+          "id": "gemini-trial-waits",
+          "title": "Gemini 等待試跑",
+          "priority": 1,
+          "status": "planned",
+          "document_ref": {
+            "kind": "checklist",
+            "scope_id": "task-progress",
+            "task": "gemini-trial-waits"
+          },
+          "waits_for": [
+            {
+              "scope_id": "task-progress",
+              "task_id": "gemini-workflow-trial",
+              "item_id": "gemini-trial-cross"
+            }
+          ],
+          "activity": [
+            {
+              "event": "created",
+              "actor": "antigravity",
+              "at": "2026-10-22T16:13:53.887271+00:00",
+              "session": "Gemini 驗證流程試跑",
+              "session_id": "7392a1e9-7abc-4e1a-9c7a-d4dc573fffa8"
+            },
+            {
+              "event": "started",
+              "actor": "antigravity",
+              "at": "2026-10-22T16:19:06.649133+00:00",
+              "session": "Gemini 驗證流程試跑",
+              "session_id": "7392a1e9-7abc-4e1a-9c7a-d4dc573fffa8"
+            },
+            {
+              "event": "released",
+              "actor": "antigravity",
+              "at": "2026-10-22T16:19:28.893202+00:00",
+              "session": "Gemini 驗證流程試跑",
+              "session_id": "7392a1e9-7abc-4e1a-9c7a-d4dc573fffa8"
+            }
+          ]
+        }
+      ],
+      "completed_items": []
+    },
+    {
+      "id": "acceptance-trial",
+      "title": "驗證流程試跑",
+      "status": "done",
+      "summary": "六個基礎驗證情境及三個人工等待情境均通過（dd0efc9、269c8ea、7036721）。試跑結果及產物保留供查閱。",
+      "pending_items": [
+        {
+          "id": "trial-self",
+          "title": "自驗試跑：建立 self.txt",
+          "status": "planned",
+          "document_ref": {
+            "kind": "checklist",
+            "scope_id": "task-progress",
+            "task": "trial-self"
+          },
+          "activity": [
+            {
+              "event": "created",
+              "actor": "claude",
+              "at": "2026-10-22T11:49:09.671297+00:00",
+              "session": "TaskProgress 維護開發",
+              "session_id": "583fa969-9dcf-4def-98dd-196efef59cea"
+            },
+            {
+              "event": "started",
+              "actor": "claude",
+              "at": "2026-10-22T12:37:43.527237+00:00",
+              "session": "Taskprogress 維護開發",
+              "session_id": "583fa969-9dcf-4def-98dd-196efef59cea"
+            },
+            {
+              "event": "released",
+              "actor": "claude",
+              "at": "2026-10-22T12:37:52.771317+00:00",
+              "session": "Taskprogress 維護開發",
+              "session_id": "583fa969-9dcf-4def-98dd-196efef59cea"
+            }
+          ]
+        },
+        {
+          "id": "trial-manual",
+          "title": "人工試跑：建立 manual.txt，使用者在 Report 確認狀態",
+          "status": "planned",
+          "document_ref": {
+            "kind": "checklist",
+            "scope_id": "task-progress",
+            "task": "trial-manual"
+          },
+          "activity": [
+            {
+              "event": "created",
+              "actor": "claude",
+              "at": "2026-10-22T11:49:09.671297+00:00",
+              "session": "TaskProgress 維護開發",
+              "session_id": "583fa969-9dcf-4def-98dd-196efef59cea"
+            },
+            {
+              "event": "started",
+              "actor": "claude",
+              "at": "2026-10-22T12:38:19.618862+00:00",
+              "session": "Taskprogress 維護開發",
+              "session_id": "583fa969-9dcf-4def-98dd-196efef59cea"
+            },
+            {
+              "event": "released",
+              "actor": "claude",
+              "at": "2026-10-22T12:38:22.140194+00:00",
+              "session": "Taskprogress 維護開發",
+              "session_id": "583fa969-9dcf-4def-98dd-196efef59cea"
+            }
+          ]
+        },
+        {
+          "id": "trial-cross",
+          "title": "他驗試跑：建立 cross.json，另一個 session 依規格驗收",
+          "status": "planned",
+          "document_ref": {
+            "kind": "checklist",
+            "scope_id": "task-progress",
+            "task": "trial-cross"
+          },
+          "activity": [
+            {
+              "event": "created",
+              "actor": "claude",
+              "at": "2026-10-22T11:49:09.671297+00:00",
+              "session": "TaskProgress 維護開發",
+              "session_id": "583fa969-9dcf-4def-98dd-196efef59cea"
+            },
+            {
+              "event": "started",
+              "actor": "claude",
+              "at": "2026-10-22T12:38:23.510435+00:00",
+              "session": "Taskprogress 維護開發",
+              "session_id": "583fa969-9dcf-4def-98dd-196efef59cea"
+            },
+            {
+              "event": "released",
+              "actor": "claude",
+              "at": "2026-10-22T12:38:24.978853+00:00",
+              "session": "Taskprogress 維護開發",
+              "session_id": "583fa969-9dcf-4def-98dd-196efef59cea"
+            }
+          ]
+        },
+        {
+          "id": "trial-cross-manual",
+          "title": "他驗＋人工試跑：建立 cross-manual.txt，他驗通過後使用者確認面板",
+          "status": "planned",
+          "document_ref": {
+            "kind": "checklist",
+            "scope_id": "task-progress",
+            "task": "trial-cross-manual"
+          },
+          "activity": [
+            {
+              "event": "created",
+              "actor": "claude",
+              "at": "2026-10-22T11:49:09.671297+00:00",
+              "session": "TaskProgress 維護開發",
+              "session_id": "583fa969-9dcf-4def-98dd-196efef59cea"
+            },
+            {
+              "event": "started",
+              "actor": "claude",
+              "at": "2026-10-22T12:38:26.271668+00:00",
+              "session": "Taskprogress 維護開發",
+              "session_id": "583fa969-9dcf-4def-98dd-196efef59cea"
+            },
+            {
+              "event": "started",
+              "actor": "claude",
+              "at": "2026-10-22T12:42:54.557495+00:00",
+              "session": "Taskprogress 維護開發",
+              "session_id": "583fa969-9dcf-4def-98dd-196efef59cea"
+            },
+            {
+              "event": "released",
+              "actor": "claude",
+              "at": "2026-10-22T12:42:56.406740+00:00",
+              "session": "Taskprogress 維護開發",
+              "session_id": "583fa969-9dcf-4def-98dd-196efef59cea"
+            }
+          ]
+        },
+        {
+          "id": "trial-condition",
+          "title": "條件不符試跑：驗收條件故意寫錯，試跑驗收者標「條件不符」與建立者修改條件",
+          "status": "planned",
+          "document_ref": {
+            "kind": "checklist",
+            "scope_id": "task-progress",
+            "task": "trial-condition"
+          },
+          "activity": [
+            {
+              "event": "created",
+              "actor": "claude",
+              "at": "2026-10-22T11:49:09.671297+00:00",
+              "session": "TaskProgress 維護開發",
+              "session_id": "583fa969-9dcf-4def-98dd-196efef59cea"
+            },
+            {
+              "event": "started",
+              "actor": "claude",
+              "at": "2026-10-22T12:38:29.186621+00:00",
+              "session": "Taskprogress 維護開發",
+              "session_id": "583fa969-9dcf-4def-98dd-196efef59cea"
+            },
+            {
+              "event": "released",
+              "actor": "claude",
+              "at": "2026-10-22T12:38:30.635328+00:00",
+              "session": "Taskprogress 維護開發",
+              "session_id": "583fa969-9dcf-4def-98dd-196efef59cea"
+            }
+          ]
+        },
+        {
+          "id": "trial-waits",
+          "title": "等待試跑：等「他驗試跑」完成後建立 waits.txt",
+          "status": "planned",
+          "document_ref": {
+            "kind": "checklist",
+            "scope_id": "task-progress",
+            "task": "trial-waits"
+          },
+          "waits_for": [
+            {
+              "scope_id": "task-progress",
+              "task_id": "acceptance-trial",
+              "item_id": "trial-cross"
+            }
+          ],
+          "activity": [
+            {
+              "event": "created",
+              "actor": "claude",
+              "at": "2026-10-22T11:49:09.671297+00:00",
+              "session": "TaskProgress 維護開發",
+              "session_id": "583fa969-9dcf-4def-98dd-196efef59cea"
+            },
+            {
+              "event": "started",
+              "actor": "claude",
+              "at": "2026-10-22T12:42:57.897789+00:00",
+              "session": "Taskprogress 維護開發",
+              "session_id": "583fa969-9dcf-4def-98dd-196efef59cea"
+            },
+            {
+              "event": "released",
+              "actor": "claude",
+              "at": "2026-10-22T12:42:59.375424+00:00",
+              "session": "Taskprogress 維護開發",
+              "session_id": "583fa969-9dcf-4def-98dd-196efef59cea"
+            },
+            {
+              "event": "updated",
+              "actor": "claude",
+              "at": "2026-10-23T05:35:50.773509+00:00",
+              "session_id": "990bddf5-22fd-4ca7-a93a-669fa2af3f7d"
+            }
+          ]
+        },
+        {
+          "id": "trial-manual-wait",
+          "title": "人工等待試跑（W）：建立 manual-wait.txt，使用者先判不通過再判通過",
+          "document_ref": {
+            "kind": "checklist",
+            "scope_id": "task-progress",
+            "task": "trial-manual-wait"
+          },
+          "status": "planned",
+          "activity": [
+            {
+              "event": "created",
+              "actor": "claude",
+              "at": "2026-10-24T18:02:38.789232+00:00",
+              "session": "Taskprogess",
+              "session_id": "016492fa-7464-498b-9444-0e6296cd1267"
+            },
+            {
+              "event": "started",
+              "actor": "claude",
+              "at": "2026-10-24T18:02:58.318956+00:00",
+              "session": "Taskprogess",
+              "session_id": "016492fa-7464-498b-9444-0e6296cd1267"
+            },
+            {
+              "event": "started",
+              "actor": "claude",
+              "at": "2026-10-24T18:37:12.373819+00:00",
+              "session": "Taskprogess",
+              "session_id": "016492fa-7464-498b-9444-0e6296cd1267"
+            },
+            {
+              "event": "released",
+              "actor": "claude",
+              "at": "2026-10-24T18:37:13.744056+00:00",
+              "session": "Taskprogess",
+              "session_id": "016492fa-7464-498b-9444-0e6296cd1267"
+            }
+          ]
+        }
+      ],
+      "completed_items": [
+        {
+          "id": "trial-wait-strict",
+          "title": "人工等待試跑（S）：W 完成後才建立 wait-strict.txt",
+          "waits_for": [
+            {
+              "scope_id": "task-progress",
+              "task_id": "acceptance-trial",
+              "item_id": "trial-manual-wait",
+              "strict": true
+            }
+          ],
+          "status": "done",
+          "activity": [
+            {
+              "event": "created",
+              "actor": "claude",
+              "at": "2026-10-24T18:02:38.789232+00:00",
+              "session": "Taskprogess",
+              "session_id": "016492fa-7464-498b-9444-0e6296cd1267"
+            },
+            {
+              "event": "started",
+              "actor": "claude",
+              "at": "2026-10-24T18:39:56.750671+00:00",
+              "session": "Taskprogess",
+              "session_id": "016492fa-7464-498b-9444-0e6296cd1267"
+            },
+            {
+              "event": "done",
+              "actor": "claude",
+              "at": "2026-10-24T18:39:58.129973+00:00",
+              "session": "Taskprogess",
+              "session_id": "016492fa-7464-498b-9444-0e6296cd1267"
+            }
+          ]
+        },
+        {
+          "id": "trial-wait-lifted",
+          "title": "人工等待試跑（L）：W 只差使用者驗收時就建立 wait-lifted.txt",
+          "waits_for": [
+            {
+              "scope_id": "task-progress",
+              "task_id": "acceptance-trial",
+              "item_id": "trial-manual-wait"
+            }
+          ],
+          "status": "done",
+          "activity": [
+            {
+              "event": "created",
+              "actor": "claude",
+              "at": "2026-10-24T18:02:38.789232+00:00",
+              "session": "Taskprogess",
+              "session_id": "016492fa-7464-498b-9444-0e6296cd1267"
+            },
+            {
+              "event": "started",
+              "actor": "claude",
+              "at": "2026-10-24T18:03:20.535870+00:00",
+              "session": "Taskprogess",
+              "session_id": "016492fa-7464-498b-9444-0e6296cd1267"
+            },
+            {
+              "event": "done",
+              "actor": "claude",
+              "at": "2026-10-24T18:03:21.878948+00:00",
+              "session": "Taskprogess",
+              "session_id": "016492fa-7464-498b-9444-0e6296cd1267"
+            },
+            {
+              "event": "started",
+              "actor": "claude",
+              "at": "2026-10-24T18:37:25.185786+00:00",
+              "session": "Taskprogess",
+              "session_id": "016492fa-7464-498b-9444-0e6296cd1267"
+            },
+            {
+              "event": "done",
+              "actor": "claude",
+              "at": "2026-10-24T18:37:26.529905+00:00",
+              "session": "Taskprogess",
+              "session_id": "016492fa-7464-498b-9444-0e6296cd1267"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "status": "done",
+      "pending_items": [
+        {
+          "status": "planned",
+          "id": "pin-user-review",
+          "title": "使用者已核查圖釘保存及 CLI 開啟操作（feb859b）",
+          "document_ref": {
+            "kind": "checklist",
+            "scope_id": "task-progress",
+            "task": "card-pin"
+          },
+          "activity": [
+            {
+              "event": "updated",
+              "actor": "codex",
+              "at": "2026-11-11T05:54:15.530425+00:00",
+              "session": "整理 report"
+            }
+          ]
+        }
+      ],
+      "title": "任務卡釘選與 CLI 定位",
+      "completed_items": [
+        {
+          "title": "正式 EXE 已更新重啟，Browser 已核對置頂／重複開啟／取消與收合",
+          "id": "pin-deploy",
+          "status": "done"
+        },
+        {
+          "title": "共用卡片圖釘與本機釘選排序",
+          "id": "pin-view"
+        },
+        {
+          "title": "CLI 參數、卡片 ID 驗證、URL 開啟與 Viewer 一次性釘選",
+          "id": "pin-cli"
+        },
+        {
+          "title": "8 項排序測試、CLI 純測試及 Viewer／SDK 9 建置通過",
+          "id": "pin-tests"
+        }
+      ],
+      "id": "card-pin",
+      "summary": "任務卡圖釘與 CLI 定位已發布，CLI 定位實作見 a9c3002。圖釘保存、重複開啟及釘選操作的人工核查均通過（feb859b）。[驗收清單](/checklist/?scope=task-progress&task=card-pin)"
+    },
+    {
+      "id": "third-party-checklist-write",
+      "title": "第三方 Checklist 單項寫入",
+      "status": "done",
+      "priority": 0,
+      "summary": "第三方 Checklist 單項寫入已交付。授權與端點探索獨立驗收通過（7415bc4、b398c45），使用者通過外部寫入往返與清空確認框驗收（3e4a7c4、6e0e7dd），入口表已補齊（b298c92）。[主要用途](/document/?scope=task-progress&path=Documentation%2FThirdPartyChecklistWritePlan.md#主要用途ux-demo-的動作觸發標記)",
+      "completed_items": [
+        {
+          "status": "done",
+          "priority": 0,
+          "id": "item-link-highlight-cross-scope",
+          "title": "跨頁提示測試：[前往 Yu5h1Lib 測試目標](/?scope=yu5h1lib&pin=link-highlight-cross-scope-demo#item-link-highlight-cross-scope-demo--link-highlight-cross-scope-target)",
+          "activity": [
+            {
+              "event": "created",
+              "actor": "codex",
+              "at": "2026-10-29T13:45:15.489442+00:00",
+              "session": "跨頁目標視覺提示試驗"
+            },
+            {
+              "event": "done",
+              "actor": "user",
+              "at": "2026-10-29T15:46:09.590Z"
+            }
+          ]
+        },
+        {
+          "priority": 0,
+          "title": "同卡項目提示測試：[前往外部寫入往返](/?scope=task-progress&pin=third-party-checklist-write#item-third-party-checklist-write--item-third-party-checklist-write-roundtrip)",
+          "status": "done",
+          "id": "item-link-highlight-demo",
+          "activity": [
+            {
+              "event": "created",
+              "actor": "codex",
+              "at": "2026-10-29T12:16:10.860979+00:00",
+              "session": "目標視覺提示試驗"
+            },
+            {
+              "event": "updated",
+              "actor": "codex",
+              "at": "2026-10-29T13:51:26.941079+00:00",
+              "session": "目標視覺提示試驗"
+            },
+            {
+              "event": "done",
+              "actor": "user",
+              "at": "2026-10-29T15:46:06.499Z"
+            }
+          ]
+        },
+        {
+          "id": "item-third-party-checklist-write-done-1",
+          "title": "讀碼核對三條來源需求的 Evidence，並確認寫入規則可直接沿用 ApplyManualResults",
+          "priority": 3
+        },
+        {
+          "id": "item-third-party-checklist-write-done-2",
+          "title": "完成設計定案：set／reset 兩個 bridge 訊息、bearer token 授權、endpoints 端點探索、頁面清空按鈕的確認保險",
+          "priority": 3
+        },
+        {
+          "id": "item-third-party-checklist-write-contract",
+          "title": "階段 0：修訂 checklist-round/SKILL.md 的記錄者條款與呼叫端宣告義務（純文件）",
+          "priority": 2
+        },
+        {
+          "id": "item-third-party-checklist-write-bridge",
+          "title": "階段 1：ChecklistBridge 新增 set 與 reset；reset 只清 manual 結果，agent 結果不得被改動",
+          "priority": 2
+        }
+      ],
+      "pending_items": [
+        {
+          "id": "item-third-party-checklist-write-auth",
+          "title": "第 2 階段：Checklist 路由的 bearer token 授權，他驗確認其他編輯路由與 LocalWebService 控制 API 的邊界不變",
+          "priority": 0,
+          "status": "planned",
+          "document_ref": {
+            "kind": "checklist",
+            "scope_id": "task-progress",
+            "task": "item-third-party-checklist-write-auth"
+          },
+          "activity": [
+            {
+              "event": "updated",
+              "actor": "claude",
+              "session": "Taskprogess",
+              "session_id": "016492fa-7464-498b-9444-0e6296cd1267",
+              "at": "2026-10-25T05:56:11.948776+00:00"
+            }
+          ]
+        },
+        {
+          "id": "item-third-party-checklist-write-endpoints",
+          "title": "第 3 階段：端點探索檔與私人端點目錄，他驗確認生命週期、判活與權限",
+          "priority": 0,
+          "status": "planned",
+          "document_ref": {
+            "kind": "checklist",
+            "scope_id": "task-progress",
+            "task": "item-third-party-checklist-write-endpoints"
+          },
+          "activity": [
+            {
+              "event": "updated",
+              "actor": "claude",
+              "session": "Taskprogess",
+              "session_id": "016492fa-7464-498b-9444-0e6296cd1267",
+              "at": "2026-10-25T05:56:11.948776+00:00"
+            }
+          ]
+        },
+        {
+          "id": "item-third-party-checklist-write-roundtrip",
+          "priority": 0,
+          "title": "人工驗收外部寫入往返：外部工具經端點探索與 token 寫入，使用者能在瀏覽器改回，服務停止時寫入失敗且檔案不變",
+          "document_ref": {
+            "kind": "checklist",
+            "scope_id": "task-progress",
+            "task": "item-third-party-checklist-write-roundtrip"
+          },
+          "waits_for": [
+            {
+              "scope_id": "task-progress",
+              "task_id": "third-party-checklist-write",
+              "item_id": "item-third-party-checklist-write-auth"
+            },
+            {
+              "scope_id": "task-progress",
+              "task_id": "third-party-checklist-write",
+              "item_id": "item-third-party-checklist-write-endpoints"
+            }
+          ],
+          "status": "planned",
+          "activity": [
+            {
+              "event": "created",
+              "actor": "claude",
+              "at": "2026-10-25T05:56:25.578565+00:00",
+              "session": "Taskprogess",
+              "session_id": "016492fa-7464-498b-9444-0e6296cd1267"
+            }
+          ]
+        },
+        {
+          "id": "item-third-party-checklist-write-route",
+          "title": "第 4 階段：taskprogress-capabilities 入口表補一列，指向計畫第 6 節",
+          "priority": 0,
+          "document_ref": {
+            "kind": "checklist",
+            "scope_id": "task-progress",
+            "task": "item-third-party-checklist-write-route"
+          },
+          "status": "planned",
+          "activity": [
+            {
+              "event": "updated",
+              "actor": "claude",
+              "session": "Taskprogess",
+              "session_id": "016492fa-7464-498b-9444-0e6296cd1267",
+              "at": "2026-10-25T05:56:11.948776+00:00"
+            },
+            {
+              "event": "updated",
+              "actor": "claude",
+              "at": "2026-10-25T05:56:25.578565+00:00",
+              "session": "Taskprogess",
+              "session_id": "016492fa-7464-498b-9444-0e6296cd1267"
+            }
+          ],
+          "waits_for": [
+            {
+              "scope_id": "task-progress",
+              "task_id": "third-party-checklist-write",
+              "item_id": "item-third-party-checklist-write-auth"
+            },
+            {
+              "scope_id": "task-progress",
+              "task_id": "third-party-checklist-write",
+              "item_id": "item-third-party-checklist-write-endpoints"
+            }
+          ]
+        },
+        {
+          "id": "item-third-party-checklist-write-reset-ui",
+          "title": "人工驗收瀏覽器清空確認框：只重設人工結果、取消不發請求",
+          "priority": 0,
+          "status": "planned",
+          "document_ref": {
+            "kind": "checklist",
+            "scope_id": "task-progress",
+            "task": "item-third-party-checklist-write-reset-ui"
+          },
+          "activity": [
+            {
+              "event": "updated",
+              "actor": "claude",
+              "session": "Taskprogess",
+              "session_id": "016492fa-7464-498b-9444-0e6296cd1267",
+              "at": "2026-10-25T05:56:11.948776+00:00"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "decision-example",
+      "title": "決策項目操作範例",
+      "status": "done",
+      "summary": "Browser／Desktop 決策操作範例已交付（e95a114），範例題目均已作答。正式 EXE 的 stdin BOM 與中文往返也已驗證（082f64b）。",
+      "pending_items": [
+        {
+          "id": "item-decision-example-todo-1",
+          "title": "完成決策畫面操作驗收",
+          "priority": 4,
+          "document_ref": {
+            "kind": "decision",
+            "scope_id": "task-progress",
+            "task": "decision-example"
+          }
+        }
+      ],
+      "completed_items": [
+        {
+          "id": "problem-decisions-stdin-bom",
+          "title": "問題：decisions stdin 的前導 UTF-8 BOM 已修正；正式 EXE 的 BOM／中文往返、拒絕無效 JSON 與檔案保留驗證通過。證據見 Documentation/DecisionItemsUsage.md〈stdin BOM 修正驗證〉。",
+          "status": "done",
+          "priority": 2,
+          "activity": [
+            {
+              "event": "created",
+              "actor": "claude",
+              "at": "2026-10-23T17:01:47.716453+00:00",
+              "session": "worktree-report 目標對齊",
+              "session_id": "8db3d9df-8d4e-461e-96c2-37ca30b33c56"
+            },
+            {
+              "event": "started",
+              "actor": "codex",
+              "at": "2026-11-07T09:14:54.657729+00:00",
+              "session": "dispatch:document-continuation-trial",
+              "session_id": "01a1b422-9a30-77c1-81e3-e6b4104ccaab"
+            },
+            {
+              "event": "updated",
+              "actor": "codex",
+              "at": "2026-11-07T09:32:55.891614+00:00",
+              "session": "dispatch:document-continuation-trial",
+              "session_id": "01a1b422-9a30-77c1-81e3-e6b4104ccaab"
+            },
+            {
+              "event": "done",
+              "actor": "codex",
+              "at": "2026-11-07T09:47:21.095738+00:00",
+              "session": "dispatch:document-continuation-trial",
+              "session_id": "01a1b422-9a30-77c1-81e3-e6b4104ccaab"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "document-refresh-optimization",
+      "title": "文件讀取與前景刷新效能優化",
+      "status": "done",
+      "priority": 1,
+      "summary": "前景刷新、讀取快取、並行限制及局部更新已完成。定向回歸與使用者實機回焦核查皆通過（feb859b）。[驗收清單](/checklist/?scope=task-progress&task=document-refresh-optimization)",
+      "pending_items": [
+        {
+          "id": "item-doc-refresh-verification-checklist",
+          "title": "文件讀取與前景刷新效能優化回歸驗收與實機核查通過（feb859b）",
+          "priority": 1,
+          "status": "planned",
+          "document_ref": {
+            "kind": "checklist",
+            "scope_id": "task-progress",
+            "task": "document-refresh-optimization"
+          },
+          "activity": [
+            {
+              "event": "updated",
+              "actor": "codex",
+              "at": "2026-11-11T05:54:15.530425+00:00",
+              "session": "整理 report"
+            }
+          ]
+        }
+      ],
+      "completed_items": [
+        {
+          "id": "item-doc-refresh-lifecycle",
+          "title": "修正前景刷新生命週期：支援非同步 reload、finally 安全恢復可刷新狀態與同次回焦去重",
+          "priority": 1
+        },
+        {
+          "id": "item-doc-refresh-backend-concurrency",
+          "title": "後端解除阻塞與 CLI 並行限制：Checklist CLI 改為 asyncio.to_thread 執行，加入全域 Semaphore 限制子程序並行數",
+          "priority": 1
+        },
+        {
+          "id": "item-doc-refresh-backend-cache",
+          "title": "實作有界 load 快取與 Singleflight 聚合：以 (path, mtime, size) 快取成功讀取，隔離請求 id 並在寫入/外部變更時精準失效",
+          "priority": 1
+        },
+        {
+          "id": "item-doc-refresh-browser-local",
+          "title": "Checklist 與 Decision 互動頁面局部刷新：以 revision 比對取代整頁 reload，保留未變更來源的 DOM、歷史與頁面狀態",
+          "priority": 1
+        },
+        {
+          "id": "item-doc-refresh-report-concurrency",
+          "title": "Report 綁定讀取並行限制與端到端效能量測：加入前端並行上限，量測首次/命中/單檔變更耗時與 CLI 啟動次數",
+          "priority": 2
+        }
+      ]
+    },
     {
       "id": "agent-workflow",
       "title": "優化 agent workflow",
@@ -884,7 +1820,7 @@
           "id": "gap-scan-decisions",
           "status": "planned",
           "priority": 1,
-          "title": "[缺口與退場盤點計畫](https://github.com/Yu5h1/TaskProgress/blob/main/Documentation/GapScanPlan.md) 七題已答：盤點併入每一層 plan、UX 盤點方法留在 UX 技能、退場新增 obsolete 與 discontinued — 待落實到 skill 與程式",
+          "title": "[缺口與退場盤點計畫](/document/?scope=task-progress&path=Documentation%2FGapScanPlan.md#已決定)七題已答。盤點已併入各層 plan，子項退場狀態已落實並驗收（2414b4e）",
           "document_ref": {
             "kind": "decision",
             "scope_id": "task-progress",
@@ -901,12 +1837,6 @@
             {
               "event": "updated",
               "actor": "claude",
-              "at": "2026-10-24T14:29:49.912660+00:00",
-              "session": "Taskprogess"
-            },
-            {
-              "event": "updated",
-              "actor": "claude",
               "at": "2026-10-24T15:35:09.614959+00:00",
               "session": "Taskprogess"
             },
@@ -915,6 +1845,12 @@
               "actor": "claude",
               "at": "2026-10-24T15:55:38.950956+00:00",
               "session": "Taskprogess"
+            },
+            {
+              "event": "updated",
+              "actor": "codex",
+              "at": "2026-11-11T05:54:15.530425+00:00",
+              "session": "整理 report"
             }
           ]
         },
@@ -1584,9 +2520,37 @@
     {
       "id": "item-activity-log",
       "title": "子項活動紀錄",
-      "status": "done",
-      "summary": "每個子項記錄誰在何時建立、開始、修改、完成，用來追查變更來源，並在其他 session 執行中時讓 agent 停下。紀錄由寫入者自行填寫身分：工具名稱必填，session ID 有就填。",
-      "pending_items": [],
+      "status": "in_progress",
+      "summary": "每個子項記錄誰在何時建立、開始、修改、完成，用來追查變更來源，並在其他 session 執行中時讓 agent 停下。紀錄由寫入者自行填寫身分：工具名稱必填，session ID 有就填。剩認領衝突提示要附子項最近一次活動時間（從 viewer-core 移來，因為認領規則由本卡的 ItemActivityLog 擁有）。",
+      "pending_items": [
+        {
+          "id": "problem-claim-conflict-context",
+          "status": "planned",
+          "priority": 2,
+          "title": "修正 Report CLI 認領衝突提示：claim_conflict 同時列出認領者、認領開始時間及該子項最近一次已記錄活動時間。驗收涵蓋更新、換位與釋放遭拒，兩個時間不同時應各自正確，並維持[接手及代為釋放的授權規則](/document/?scope=task-progress&path=Documentation%2FItemActivityLog.md#認領)。",
+          "activity": [
+            {
+              "event": "created",
+              "actor": "claude",
+              "at": "2026-11-11T05:32:19.096722+00:00",
+              "session_id": "95101c81-3257-4d44-90a2-b1e494306ba0"
+            },
+            {
+              "event": "updated",
+              "actor": "codex",
+              "at": "2026-11-11T05:57:35.695250+00:00",
+              "session": "Viewer Core 問題評估"
+            },
+            {
+              "event": "updated",
+              "actor": "claude",
+              "at": "2026-11-11T13:34:13.932991+00:00",
+              "session": "VCP report 整理",
+              "session_id": "95101c81-3257-4d44-90a2-b1e494306ba0"
+            }
+          ]
+        }
+      ],
       "completed_items": [
         {
           "id": "skill-docs",
@@ -1818,109 +2782,6 @@
       ]
     },
     {
-      "id": "document-refresh-optimization",
-      "title": "文件讀取與前景刷新效能優化",
-      "status": "in_progress",
-      "priority": 1,
-      "summary": "解決前景回焦與大量綁定文件讀取時的高成本 CLI 程序啟動、事件迴圈阻塞與白屏重載；實作後端有界 mtime 快取、CLI 並行限制與前端非同步局部刷新。",
-      "pending_items": [
-        {
-          "id": "item-doc-refresh-verification-checklist",
-          "title": "文件讀取與前景刷新效能優化回歸驗收與實機核查",
-          "priority": 1,
-          "status": "planned",
-          "document_ref": {
-            "kind": "checklist",
-            "scope_id": "task-progress",
-            "task": "document-refresh-optimization"
-          }
-        }
-      ],
-      "completed_items": [
-        {
-          "id": "item-doc-refresh-lifecycle",
-          "title": "修正前景刷新生命週期：支援非同步 reload、finally 安全恢復可刷新狀態與同次回焦去重",
-          "priority": 1
-        },
-        {
-          "id": "item-doc-refresh-backend-concurrency",
-          "title": "後端解除阻塞與 CLI 並行限制：Checklist CLI 改為 asyncio.to_thread 執行，加入全域 Semaphore 限制子程序並行數",
-          "priority": 1
-        },
-        {
-          "id": "item-doc-refresh-backend-cache",
-          "title": "實作有界 load 快取與 Singleflight 聚合：以 (path, mtime, size) 快取成功讀取，隔離請求 id 並在寫入/外部變更時精準失效",
-          "priority": 1
-        },
-        {
-          "id": "item-doc-refresh-browser-local",
-          "title": "Checklist 與 Decision 互動頁面局部刷新：以 revision 比對取代整頁 reload，保留未變更來源的 DOM、歷史與頁面狀態",
-          "priority": 1
-        },
-        {
-          "id": "item-doc-refresh-report-concurrency",
-          "title": "Report 綁定讀取並行限制與端到端效能量測：加入前端並行上限，量測首次/命中/單檔變更耗時與 CLI 啟動次數",
-          "priority": 2
-        }
-      ]
-    },
-    {
-      "id": "decision-example",
-      "title": "決策項目操作範例",
-      "status": "in_progress",
-      "summary": "供 Browser／Desktop 測試選項、其他文字、確認與重新開啟；範例答案不作為正式設計決策。",
-      "pending_items": [
-        {
-          "id": "item-decision-example-todo-1",
-          "title": "完成決策畫面操作驗收",
-          "priority": 4,
-          "document_ref": {
-            "kind": "decision",
-            "scope_id": "task-progress",
-            "task": "decision-example"
-          }
-        }
-      ],
-      "completed_items": [
-        {
-          "id": "problem-decisions-stdin-bom",
-          "title": "問題：decisions stdin 的前導 UTF-8 BOM 已修正；正式 EXE 的 BOM／中文往返、拒絕無效 JSON 與檔案保留驗證通過。證據見 Documentation/DecisionItemsUsage.md〈stdin BOM 修正驗證〉。",
-          "status": "done",
-          "priority": 2,
-          "activity": [
-            {
-              "event": "created",
-              "actor": "claude",
-              "at": "2026-10-23T17:01:47.716453+00:00",
-              "session": "worktree-report 目標對齊",
-              "session_id": "8db3d9df-8d4e-461e-96c2-37ca30b33c56"
-            },
-            {
-              "event": "started",
-              "actor": "codex",
-              "at": "2026-11-07T09:14:54.657729+00:00",
-              "session": "dispatch:document-continuation-trial",
-              "session_id": "01a1b422-9a30-77c1-81e3-e6b4104ccaab"
-            },
-            {
-              "event": "updated",
-              "actor": "codex",
-              "at": "2026-11-07T09:32:55.891614+00:00",
-              "session": "dispatch:document-continuation-trial",
-              "session_id": "01a1b422-9a30-77c1-81e3-e6b4104ccaab"
-            },
-            {
-              "event": "done",
-              "actor": "codex",
-              "at": "2026-11-07T09:47:21.095738+00:00",
-              "session": "dispatch:document-continuation-trial",
-              "session_id": "01a1b422-9a30-77c1-81e3-e6b4104ccaab"
-            }
-          ]
-        }
-      ]
-    },
-    {
       "id": "viewer-core",
       "title": "TaskProgress Viewer",
       "status": "in_progress",
@@ -1976,6 +2837,47 @@
               "actor": "codex",
               "at": "2026-11-11T12:56:03.993350+00:00",
               "session": "卡片參照發布整理"
+            }
+          ]
+        },
+        {
+          "id": "problem-handoff-pointer-stale",
+          "status": "done",
+          "priority": 2,
+          "title": "指路卡的交接文件已對齊正式實作與既有驗證（eb5fe61）。受保護的 report_ref 編輯路由仍獨立追蹤。",
+          "activity": [
+            {
+              "event": "created",
+              "actor": "claude",
+              "at": "2026-11-11T05:32:19.096722+00:00",
+              "session_id": "95101c81-3257-4d44-90a2-b1e494306ba0"
+            },
+            {
+              "event": "done",
+              "actor": "codex",
+              "at": "2026-11-11T05:54:15.531Z",
+              "session": "整理 report"
+            }
+          ]
+        },
+        {
+          "id": "problem-relative-doc-links",
+          "title": "Report 的文件連結已有 scope 內的 [文件頁入口](/document/?scope=task-progress&path=Documentation%2FNextMarkerPlan.md#已決定)，Next 卡的舊相對連結也已換成有效連結（1ea07c2、82e7063）。",
+          "status": "done",
+          "priority": 2,
+          "activity": [
+            {
+              "event": "created",
+              "actor": "claude",
+              "at": "2026-10-23T14:48:31.505789+00:00",
+              "session": "Report 讀取 worktree 計畫",
+              "session_id": "8db3d9df-8d4e-461e-96c2-37ca30b33c56"
+            },
+            {
+              "event": "done",
+              "actor": "codex",
+              "at": "2026-11-11T05:54:15.530425+00:00",
+              "session": "整理 report"
             }
           ]
         },
@@ -2139,63 +3041,22 @@
       ],
       "pending_items": [
         {
-          "id": "decide-card-presentation",
-          "title": "決定 Report 卡片分類的呈現，以及卡片與子項的視覺層級",
-          "status": "planned",
-          "priority": 2,
-          "document_ref": {
-            "kind": "decision",
-            "scope_id": "task-progress",
-            "task": "viewer-core"
-          },
-          "activity": [
-            {
-              "event": "created",
-              "actor": "codex",
-              "at": "2026-11-11T06:02:59.942445+00:00",
-              "session": "Report 三項設計"
-            }
-          ]
-        },
-        {
-          "id": "item-card-kind-sections",
-          "status": "discontinued",
-          "priority": 2,
-          "title": "為 Report 普通卡加入分類與所選的呈現方式，沿用既有排序及完成區規則。[卡片分區設計](/document/?scope=task-progress&path=Documentation%2FCardDisclosurePlan.md#report-卡片分區)",
-          "activity": [
-            {
-              "event": "created",
-              "actor": "claude",
-              "at": "2026-11-11T05:32:19.096722+00:00",
-              "session_id": "95101c81-3257-4d44-90a2-b1e494306ba0"
-            },
-            {
-              "event": "updated",
-              "actor": "codex",
-              "at": "2026-11-11T06:02:59.942445+00:00",
-              "session": "Report 三項設計"
-            },
-            {
-              "event": "updated",
-              "actor": "codex",
-              "at": "2026-11-11T12:14:27.499438+00:00",
-              "session": "卡片參照與 Viewer 決策定案",
-              "note": "status:discontinued"
-            }
-          ],
-          "retirement": {
-            "reason": "使用者於 Viewer Core 決策確認，維護和後續需求使用任務卡，依優先級安排先後。"
-          }
-        },
-        {
           "id": "item-viewer-core-foreground-refresh",
-          "title": "Browser Report／Checklist 已完成離開後回到前景時的整頁刷新、同次 focus／visibility 去重，以及 dirty／saving／pending 保護；待 Preview Panel 實機確認乾淨狀態刷新與未提交草稿保留",
+          "title": "Browser Report／Checklist 前景刷新與 Preview Panel 的乾淨刷新及草稿保護核查通過（feb859b）",
           "priority": 2,
           "document_ref": {
             "kind": "checklist",
             "scope_id": "task-progress",
             "task": "foreground-source-refresh"
-          }
+          },
+          "activity": [
+            {
+              "event": "updated",
+              "actor": "codex",
+              "at": "2026-11-11T05:54:15.530425+00:00",
+              "session": "整理 report"
+            }
+          ]
         },
         {
           "id": "item-viewer-core-pointer-ref-route",
@@ -2232,21 +3093,6 @@
               "actor": "claude",
               "at": "2026-10-23T18:20:48.216443+00:00",
               "session": "derived-state-array-fallback 執行",
-              "session_id": "8db3d9df-8d4e-461e-96c2-37ca30b33c56"
-            }
-          ]
-        },
-        {
-          "id": "problem-relative-doc-links",
-          "title": "問題：report 摘要裡的 Documentation/*.md 相對連結在 Viewer 開啟是 404（服務不提供 repo 文件），例如 next-marker 卡的設計連結",
-          "status": "planned",
-          "priority": 2,
-          "activity": [
-            {
-              "event": "created",
-              "actor": "claude",
-              "at": "2026-10-23T14:48:31.505789+00:00",
-              "session": "Report 讀取 worktree 計畫",
               "session_id": "8db3d9df-8d4e-461e-96c2-37ca30b33c56"
             }
           ]
@@ -2426,32 +3272,53 @@
           ]
         },
         {
-          "id": "problem-claim-conflict-context",
+          "id": "decide-card-presentation",
+          "title": "決定 Report 卡片分類的呈現，以及卡片與子項的視覺層級",
           "status": "planned",
           "priority": 2,
-          "title": "問題：report apply 回 claim_conflict 時只附認領的 session 與開始時間，沒有那個子項最後一次活動的時間；要判斷那個 session 是否還在做、能不能接手，得另外讀 activity（2026-11-11 在 VCP 碰到兩次）",
+          "document_ref": {
+            "kind": "decision",
+            "scope_id": "task-progress",
+            "task": "viewer-core"
+          },
           "activity": [
             {
               "event": "created",
-              "actor": "claude",
-              "at": "2026-11-11T05:32:19.096722+00:00",
-              "session_id": "95101c81-3257-4d44-90a2-b1e494306ba0"
+              "actor": "codex",
+              "at": "2026-11-11T06:02:59.942445+00:00",
+              "session": "Report 三項設計"
             }
           ]
         },
         {
-          "id": "problem-handoff-pointer-stale",
-          "status": "planned",
+          "id": "item-card-kind-sections",
+          "status": "discontinued",
           "priority": 2,
-          "title": "問題：handoff〈Report/workspace model〉仍寫指路卡「nothing implements yet」，和〈Open decisions〉之後那段說指路卡已完成並驗證互相矛盾",
+          "title": "為 Report 普通卡加入分類與所選的呈現方式，沿用既有排序及完成區規則。[卡片分區設計](/document/?scope=task-progress&path=Documentation%2FCardDisclosurePlan.md#report-卡片分區)",
           "activity": [
             {
               "event": "created",
               "actor": "claude",
               "at": "2026-11-11T05:32:19.096722+00:00",
               "session_id": "95101c81-3257-4d44-90a2-b1e494306ba0"
+            },
+            {
+              "event": "updated",
+              "actor": "codex",
+              "at": "2026-11-11T06:02:59.942445+00:00",
+              "session": "Report 三項設計"
+            },
+            {
+              "event": "updated",
+              "actor": "codex",
+              "at": "2026-11-11T12:14:27.499438+00:00",
+              "session": "卡片參照與 Viewer 決策定案",
+              "note": "status:discontinued"
             }
-          ]
+          ],
+          "retirement": {
+            "reason": "使用者於 Viewer Core 決策確認，維護和後續需求使用任務卡，依優先級安排先後。"
+          }
         }
       ]
     },
@@ -3031,255 +3898,33 @@
       "pending_items": []
     },
     {
-      "id": "third-party-checklist-write",
-      "title": "第三方 Checklist 單項寫入",
-      "status": "in_progress",
-      "priority": 0,
-      "summary": "階段 0／1 已完成；階段 2／3 與瀏覽器清空 UI 已實作，2026-10-25 起取消延後、交給 agent 驗收：授權與端點探索各自他驗，外部寫入往返與清空確認框由使用者人工驗收，入口表等前兩項完成後補上。主要用途是 UX demo 由使用者操作觸發標記 [manual]，見 [計畫〈主要用途〉](https://github.com/Yu5h1/TaskProgress/blob/main/Documentation/ThirdPartyChecklistWritePlan.md#主要用途ux-demo-的動作觸發標記)。",
-      "completed_items": [
-        {
-          "status": "done",
-          "priority": 0,
-          "id": "item-link-highlight-cross-scope",
-          "title": "跨頁提示測試：[前往 Yu5h1Lib 測試目標](/?scope=yu5h1lib&pin=link-highlight-cross-scope-demo#item-link-highlight-cross-scope-demo--link-highlight-cross-scope-target)",
-          "activity": [
-            {
-              "event": "created",
-              "actor": "codex",
-              "at": "2026-10-29T13:45:15.489442+00:00",
-              "session": "跨頁目標視覺提示試驗"
-            },
-            {
-              "event": "done",
-              "actor": "user",
-              "at": "2026-10-29T15:46:09.590Z"
-            }
-          ]
-        },
-        {
-          "priority": 0,
-          "title": "同卡項目提示測試：[前往外部寫入往返](/?scope=task-progress&pin=third-party-checklist-write#item-third-party-checklist-write--item-third-party-checklist-write-roundtrip)",
-          "status": "done",
-          "id": "item-link-highlight-demo",
-          "activity": [
-            {
-              "event": "created",
-              "actor": "codex",
-              "at": "2026-10-29T12:16:10.860979+00:00",
-              "session": "目標視覺提示試驗"
-            },
-            {
-              "event": "updated",
-              "actor": "codex",
-              "at": "2026-10-29T13:51:26.941079+00:00",
-              "session": "目標視覺提示試驗"
-            },
-            {
-              "event": "done",
-              "actor": "user",
-              "at": "2026-10-29T15:46:06.499Z"
-            }
-          ]
-        },
-        {
-          "id": "item-third-party-checklist-write-done-1",
-          "title": "讀碼核對三條來源需求的 Evidence，並確認寫入規則可直接沿用 ApplyManualResults",
-          "priority": 3
-        },
-        {
-          "id": "item-third-party-checklist-write-done-2",
-          "title": "完成設計定案：set／reset 兩個 bridge 訊息、bearer token 授權、endpoints 端點探索、頁面清空按鈕的確認保險",
-          "priority": 3
-        },
-        {
-          "id": "item-third-party-checklist-write-contract",
-          "title": "階段 0：修訂 checklist-round/SKILL.md 的記錄者條款與呼叫端宣告義務（純文件）",
-          "priority": 2
-        },
-        {
-          "id": "item-third-party-checklist-write-bridge",
-          "title": "階段 1：ChecklistBridge 新增 set 與 reset；reset 只清 manual 結果，agent 結果不得被改動",
-          "priority": 2
-        }
-      ],
-      "pending_items": [
-        {
-          "id": "item-third-party-checklist-write-auth",
-          "title": "第 2 階段：Checklist 路由的 bearer token 授權，他驗確認其他編輯路由與 LocalWebService 控制 API 的邊界不變",
-          "priority": 0,
-          "status": "planned",
-          "document_ref": {
-            "kind": "checklist",
-            "scope_id": "task-progress",
-            "task": "item-third-party-checklist-write-auth"
-          },
-          "activity": [
-            {
-              "event": "updated",
-              "actor": "claude",
-              "session": "Taskprogess",
-              "session_id": "016492fa-7464-498b-9444-0e6296cd1267",
-              "at": "2026-10-25T05:56:11.948776+00:00"
-            }
-          ]
-        },
-        {
-          "id": "item-third-party-checklist-write-endpoints",
-          "title": "第 3 階段：端點探索檔與私人端點目錄，他驗確認生命週期、判活與權限",
-          "priority": 0,
-          "status": "planned",
-          "document_ref": {
-            "kind": "checklist",
-            "scope_id": "task-progress",
-            "task": "item-third-party-checklist-write-endpoints"
-          },
-          "activity": [
-            {
-              "event": "updated",
-              "actor": "claude",
-              "session": "Taskprogess",
-              "session_id": "016492fa-7464-498b-9444-0e6296cd1267",
-              "at": "2026-10-25T05:56:11.948776+00:00"
-            }
-          ]
-        },
-        {
-          "id": "item-third-party-checklist-write-roundtrip",
-          "priority": 0,
-          "title": "人工驗收外部寫入往返：外部工具經端點探索與 token 寫入，使用者能在瀏覽器改回，服務停止時寫入失敗且檔案不變",
-          "document_ref": {
-            "kind": "checklist",
-            "scope_id": "task-progress",
-            "task": "item-third-party-checklist-write-roundtrip"
-          },
-          "waits_for": [
-            {
-              "scope_id": "task-progress",
-              "task_id": "third-party-checklist-write",
-              "item_id": "item-third-party-checklist-write-auth"
-            },
-            {
-              "scope_id": "task-progress",
-              "task_id": "third-party-checklist-write",
-              "item_id": "item-third-party-checklist-write-endpoints"
-            }
-          ],
-          "status": "planned",
-          "activity": [
-            {
-              "event": "created",
-              "actor": "claude",
-              "at": "2026-10-25T05:56:25.578565+00:00",
-              "session": "Taskprogess",
-              "session_id": "016492fa-7464-498b-9444-0e6296cd1267"
-            }
-          ]
-        },
-        {
-          "id": "item-third-party-checklist-write-route",
-          "title": "第 4 階段：taskprogress-capabilities 入口表補一列，指向計畫第 6 節",
-          "priority": 0,
-          "document_ref": {
-            "kind": "checklist",
-            "scope_id": "task-progress",
-            "task": "item-third-party-checklist-write-route"
-          },
-          "status": "planned",
-          "activity": [
-            {
-              "event": "updated",
-              "actor": "claude",
-              "session": "Taskprogess",
-              "session_id": "016492fa-7464-498b-9444-0e6296cd1267",
-              "at": "2026-10-25T05:56:11.948776+00:00"
-            },
-            {
-              "event": "updated",
-              "actor": "claude",
-              "at": "2026-10-25T05:56:25.578565+00:00",
-              "session": "Taskprogess",
-              "session_id": "016492fa-7464-498b-9444-0e6296cd1267"
-            }
-          ],
-          "waits_for": [
-            {
-              "scope_id": "task-progress",
-              "task_id": "third-party-checklist-write",
-              "item_id": "item-third-party-checklist-write-auth"
-            },
-            {
-              "scope_id": "task-progress",
-              "task_id": "third-party-checklist-write",
-              "item_id": "item-third-party-checklist-write-endpoints"
-            }
-          ]
-        },
-        {
-          "id": "item-third-party-checklist-write-reset-ui",
-          "title": "人工驗收瀏覽器清空確認框：只重設人工結果、取消不發請求",
-          "priority": 0,
-          "status": "planned",
-          "document_ref": {
-            "kind": "checklist",
-            "scope_id": "task-progress",
-            "task": "item-third-party-checklist-write-reset-ui"
-          },
-          "activity": [
-            {
-              "event": "updated",
-              "actor": "claude",
-              "session": "Taskprogess",
-              "session_id": "016492fa-7464-498b-9444-0e6296cd1267",
-              "at": "2026-10-25T05:56:11.948776+00:00"
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "status": "in_progress",
-      "pending_items": [
-        {
-          "status": "planned",
-          "id": "pin-user-review",
-          "title": "使用者確認圖釘及 CLI 開啟操作體感，見 card-pin.checklist",
-          "document_ref": {
-            "kind": "checklist",
-            "scope_id": "task-progress",
-            "task": "card-pin"
-          }
-        }
-      ],
-      "title": "任務卡釘選與 CLI 定位",
-      "completed_items": [
-        {
-          "title": "正式 EXE 已更新重啟，Browser 已核對置頂／重複開啟／取消與收合",
-          "id": "pin-deploy",
-          "status": "done"
-        },
-        {
-          "title": "共用卡片圖釘與本機釘選排序",
-          "id": "pin-view"
-        },
-        {
-          "title": "CLI 參數、卡片 ID 驗證、URL 開啟與 Viewer 一次性釘選",
-          "id": "pin-cli"
-        },
-        {
-          "title": "8 項排序測試、CLI 純測試及 Viewer／SDK 9 建置通過",
-          "id": "pin-tests"
-        }
-      ],
-      "id": "card-pin",
-      "summary": "圖釘與 open --pin 已完成並更新正式 EXE。最新觸發優先、重複呼叫不取消；真實 Browser 已確認置頂、重載再置頂及取消／收合保留。保留使用者核查項目。"
-    },
-    {
       "id": "document-binding",
       "title": "Checklist／Decision 與 Report 項目完成狀態連動",
       "status": "in_progress",
       "priority": 1,
-      "summary": "僅子項目綁定 Checklist／Decision；任務卡文件徽章與待決策入口已移除。來源重開與未綁定卡片保護已驗證，42 項定向測試通過；實作完成，待瀏覽器人工驗收。",
+      "summary": "Checklist／Decision 子項綁定與瀏覽器人工驗收已完成（feb859b）。CLI 完成狀態推算已修正，跨 scope 清單驗收寫入與外部交付條件仍待處理。[驗收清單](/checklist/?scope=task-progress&task=document-binding)",
       "completed_items": [
+        {
+          "status": "done",
+          "id": "problem-cli-completed-state-projection",
+          "priority": 2,
+          "title": "CLI 已正確推算舊完成子項的陣列狀態與已作答的決策（02aa410、3333c6b）。正式 CLI 已核對 [UX 舊完成項](/?scope=ux&pin=ux-foundation) 與 [已作答決策](/decisions/?scope=ux&task=async-operation) 均為完成。",
+          "activity": [
+            {
+              "event": "created",
+              "actor": "codex",
+              "at": "2026-10-23T12:46:51.106933+00:00",
+              "session": "UX foundation 評估",
+              "session_id": "f62c91dd-fddb-4a19-8799-5bb541945dfc"
+            },
+            {
+              "event": "done",
+              "actor": "codex",
+              "at": "2026-11-11T05:54:15.532Z",
+              "session": "整理 report"
+            }
+          ]
+        },
         {
           "id": "waiting-capsule-link",
           "title": "「等待中」膠囊可按下，連到等待對象：等子項時開那張卡片，等 checklist 工作項目時開那份 checklist；等多個對象時列出全部",
@@ -3362,21 +4007,6 @@
             "scope_id": "task-progress",
             "task": "document-binding"
           }
-        },
-        {
-          "status": "planned",
-          "id": "problem-cli-completed-state-projection",
-          "priority": 2,
-          "title": "問題：report get --scope ux 將 ux-foundation 的 completed_items 中 19 個無 status 舊項目推導為 not_started；async-operation-decisions 的 8 題全 decided 也推導 not_started。應依完成陣列與決策結果回傳 done，避免執行佇列重跑歷史工作或錯設 Next。證據：[UX](/?scope=ux&pin=ux-foundation)、[決策](/decisions/?scope=ux&task=async-operation)。",
-          "activity": [
-            {
-              "event": "created",
-              "actor": "codex",
-              "at": "2026-10-23T12:46:51.106933+00:00",
-              "session": "UX foundation 評估",
-              "session_id": "f62c91dd-fddb-4a19-8799-5bb541945dfc"
-            }
-          ]
         },
         {
           "priority": 2,
@@ -3601,585 +4231,11 @@
       ]
     },
     {
-      "id": "acceptance-trial",
-      "title": "驗證流程試跑",
-      "status": "in_progress",
-      "summary": "用六個無害的小項目試跑 /task-progress：每項產物都寫在 experiments/acceptance-trial/，依 spec.md 驗收，試跑結束後可整張封存並刪除該資料夾。",
-      "pending_items": [
-        {
-          "id": "trial-self",
-          "title": "自驗試跑：建立 self.txt",
-          "status": "planned",
-          "document_ref": {
-            "kind": "checklist",
-            "scope_id": "task-progress",
-            "task": "trial-self"
-          },
-          "activity": [
-            {
-              "event": "created",
-              "actor": "claude",
-              "at": "2026-10-22T11:49:09.671297+00:00",
-              "session": "TaskProgress 維護開發",
-              "session_id": "583fa969-9dcf-4def-98dd-196efef59cea"
-            },
-            {
-              "event": "started",
-              "actor": "claude",
-              "at": "2026-10-22T12:37:43.527237+00:00",
-              "session": "Taskprogress 維護開發",
-              "session_id": "583fa969-9dcf-4def-98dd-196efef59cea"
-            },
-            {
-              "event": "released",
-              "actor": "claude",
-              "at": "2026-10-22T12:37:52.771317+00:00",
-              "session": "Taskprogress 維護開發",
-              "session_id": "583fa969-9dcf-4def-98dd-196efef59cea"
-            }
-          ]
-        },
-        {
-          "id": "trial-manual",
-          "title": "人工試跑：建立 manual.txt，使用者在 Report 確認狀態",
-          "status": "planned",
-          "document_ref": {
-            "kind": "checklist",
-            "scope_id": "task-progress",
-            "task": "trial-manual"
-          },
-          "activity": [
-            {
-              "event": "created",
-              "actor": "claude",
-              "at": "2026-10-22T11:49:09.671297+00:00",
-              "session": "TaskProgress 維護開發",
-              "session_id": "583fa969-9dcf-4def-98dd-196efef59cea"
-            },
-            {
-              "event": "started",
-              "actor": "claude",
-              "at": "2026-10-22T12:38:19.618862+00:00",
-              "session": "Taskprogress 維護開發",
-              "session_id": "583fa969-9dcf-4def-98dd-196efef59cea"
-            },
-            {
-              "event": "released",
-              "actor": "claude",
-              "at": "2026-10-22T12:38:22.140194+00:00",
-              "session": "Taskprogress 維護開發",
-              "session_id": "583fa969-9dcf-4def-98dd-196efef59cea"
-            }
-          ]
-        },
-        {
-          "id": "trial-cross",
-          "title": "他驗試跑：建立 cross.json，另一個 session 依規格驗收",
-          "status": "planned",
-          "document_ref": {
-            "kind": "checklist",
-            "scope_id": "task-progress",
-            "task": "trial-cross"
-          },
-          "activity": [
-            {
-              "event": "created",
-              "actor": "claude",
-              "at": "2026-10-22T11:49:09.671297+00:00",
-              "session": "TaskProgress 維護開發",
-              "session_id": "583fa969-9dcf-4def-98dd-196efef59cea"
-            },
-            {
-              "event": "started",
-              "actor": "claude",
-              "at": "2026-10-22T12:38:23.510435+00:00",
-              "session": "Taskprogress 維護開發",
-              "session_id": "583fa969-9dcf-4def-98dd-196efef59cea"
-            },
-            {
-              "event": "released",
-              "actor": "claude",
-              "at": "2026-10-22T12:38:24.978853+00:00",
-              "session": "Taskprogress 維護開發",
-              "session_id": "583fa969-9dcf-4def-98dd-196efef59cea"
-            }
-          ]
-        },
-        {
-          "id": "trial-cross-manual",
-          "title": "他驗＋人工試跑：建立 cross-manual.txt，他驗通過後使用者確認面板",
-          "status": "planned",
-          "document_ref": {
-            "kind": "checklist",
-            "scope_id": "task-progress",
-            "task": "trial-cross-manual"
-          },
-          "activity": [
-            {
-              "event": "created",
-              "actor": "claude",
-              "at": "2026-10-22T11:49:09.671297+00:00",
-              "session": "TaskProgress 維護開發",
-              "session_id": "583fa969-9dcf-4def-98dd-196efef59cea"
-            },
-            {
-              "event": "started",
-              "actor": "claude",
-              "at": "2026-10-22T12:38:26.271668+00:00",
-              "session": "Taskprogress 維護開發",
-              "session_id": "583fa969-9dcf-4def-98dd-196efef59cea"
-            },
-            {
-              "event": "started",
-              "actor": "claude",
-              "at": "2026-10-22T12:42:54.557495+00:00",
-              "session": "Taskprogress 維護開發",
-              "session_id": "583fa969-9dcf-4def-98dd-196efef59cea"
-            },
-            {
-              "event": "released",
-              "actor": "claude",
-              "at": "2026-10-22T12:42:56.406740+00:00",
-              "session": "Taskprogress 維護開發",
-              "session_id": "583fa969-9dcf-4def-98dd-196efef59cea"
-            }
-          ]
-        },
-        {
-          "id": "trial-condition",
-          "title": "條件不符試跑：驗收條件故意寫錯，試跑驗收者標「條件不符」與建立者修改條件",
-          "status": "planned",
-          "document_ref": {
-            "kind": "checklist",
-            "scope_id": "task-progress",
-            "task": "trial-condition"
-          },
-          "activity": [
-            {
-              "event": "created",
-              "actor": "claude",
-              "at": "2026-10-22T11:49:09.671297+00:00",
-              "session": "TaskProgress 維護開發",
-              "session_id": "583fa969-9dcf-4def-98dd-196efef59cea"
-            },
-            {
-              "event": "started",
-              "actor": "claude",
-              "at": "2026-10-22T12:38:29.186621+00:00",
-              "session": "Taskprogress 維護開發",
-              "session_id": "583fa969-9dcf-4def-98dd-196efef59cea"
-            },
-            {
-              "event": "released",
-              "actor": "claude",
-              "at": "2026-10-22T12:38:30.635328+00:00",
-              "session": "Taskprogress 維護開發",
-              "session_id": "583fa969-9dcf-4def-98dd-196efef59cea"
-            }
-          ]
-        },
-        {
-          "id": "trial-waits",
-          "title": "等待試跑：等「他驗試跑」完成後建立 waits.txt",
-          "status": "planned",
-          "document_ref": {
-            "kind": "checklist",
-            "scope_id": "task-progress",
-            "task": "trial-waits"
-          },
-          "waits_for": [
-            {
-              "scope_id": "task-progress",
-              "task_id": "acceptance-trial",
-              "item_id": "trial-cross"
-            }
-          ],
-          "activity": [
-            {
-              "event": "created",
-              "actor": "claude",
-              "at": "2026-10-22T11:49:09.671297+00:00",
-              "session": "TaskProgress 維護開發",
-              "session_id": "583fa969-9dcf-4def-98dd-196efef59cea"
-            },
-            {
-              "event": "started",
-              "actor": "claude",
-              "at": "2026-10-22T12:42:57.897789+00:00",
-              "session": "Taskprogress 維護開發",
-              "session_id": "583fa969-9dcf-4def-98dd-196efef59cea"
-            },
-            {
-              "event": "released",
-              "actor": "claude",
-              "at": "2026-10-22T12:42:59.375424+00:00",
-              "session": "Taskprogress 維護開發",
-              "session_id": "583fa969-9dcf-4def-98dd-196efef59cea"
-            },
-            {
-              "event": "updated",
-              "actor": "claude",
-              "at": "2026-10-23T05:35:50.773509+00:00",
-              "session_id": "990bddf5-22fd-4ca7-a93a-669fa2af3f7d"
-            }
-          ]
-        },
-        {
-          "id": "trial-manual-wait",
-          "title": "人工等待試跑（W）：建立 manual-wait.txt，使用者先判不通過再判通過",
-          "document_ref": {
-            "kind": "checklist",
-            "scope_id": "task-progress",
-            "task": "trial-manual-wait"
-          },
-          "status": "planned",
-          "activity": [
-            {
-              "event": "created",
-              "actor": "claude",
-              "at": "2026-10-24T18:02:38.789232+00:00",
-              "session": "Taskprogess",
-              "session_id": "016492fa-7464-498b-9444-0e6296cd1267"
-            },
-            {
-              "event": "started",
-              "actor": "claude",
-              "at": "2026-10-24T18:02:58.318956+00:00",
-              "session": "Taskprogess",
-              "session_id": "016492fa-7464-498b-9444-0e6296cd1267"
-            },
-            {
-              "event": "started",
-              "actor": "claude",
-              "at": "2026-10-24T18:37:12.373819+00:00",
-              "session": "Taskprogess",
-              "session_id": "016492fa-7464-498b-9444-0e6296cd1267"
-            },
-            {
-              "event": "released",
-              "actor": "claude",
-              "at": "2026-10-24T18:37:13.744056+00:00",
-              "session": "Taskprogess",
-              "session_id": "016492fa-7464-498b-9444-0e6296cd1267"
-            }
-          ]
-        }
-      ],
-      "completed_items": [
-        {
-          "id": "trial-wait-strict",
-          "title": "人工等待試跑（S）：W 完成後才建立 wait-strict.txt",
-          "waits_for": [
-            {
-              "scope_id": "task-progress",
-              "task_id": "acceptance-trial",
-              "item_id": "trial-manual-wait",
-              "strict": true
-            }
-          ],
-          "status": "done",
-          "activity": [
-            {
-              "event": "created",
-              "actor": "claude",
-              "at": "2026-10-24T18:02:38.789232+00:00",
-              "session": "Taskprogess",
-              "session_id": "016492fa-7464-498b-9444-0e6296cd1267"
-            },
-            {
-              "event": "started",
-              "actor": "claude",
-              "at": "2026-10-24T18:39:56.750671+00:00",
-              "session": "Taskprogess",
-              "session_id": "016492fa-7464-498b-9444-0e6296cd1267"
-            },
-            {
-              "event": "done",
-              "actor": "claude",
-              "at": "2026-10-24T18:39:58.129973+00:00",
-              "session": "Taskprogess",
-              "session_id": "016492fa-7464-498b-9444-0e6296cd1267"
-            }
-          ]
-        },
-        {
-          "id": "trial-wait-lifted",
-          "title": "人工等待試跑（L）：W 只差使用者驗收時就建立 wait-lifted.txt",
-          "waits_for": [
-            {
-              "scope_id": "task-progress",
-              "task_id": "acceptance-trial",
-              "item_id": "trial-manual-wait"
-            }
-          ],
-          "status": "done",
-          "activity": [
-            {
-              "event": "created",
-              "actor": "claude",
-              "at": "2026-10-24T18:02:38.789232+00:00",
-              "session": "Taskprogess",
-              "session_id": "016492fa-7464-498b-9444-0e6296cd1267"
-            },
-            {
-              "event": "started",
-              "actor": "claude",
-              "at": "2026-10-24T18:03:20.535870+00:00",
-              "session": "Taskprogess",
-              "session_id": "016492fa-7464-498b-9444-0e6296cd1267"
-            },
-            {
-              "event": "done",
-              "actor": "claude",
-              "at": "2026-10-24T18:03:21.878948+00:00",
-              "session": "Taskprogess",
-              "session_id": "016492fa-7464-498b-9444-0e6296cd1267"
-            },
-            {
-              "event": "started",
-              "actor": "claude",
-              "at": "2026-10-24T18:37:25.185786+00:00",
-              "session": "Taskprogess",
-              "session_id": "016492fa-7464-498b-9444-0e6296cd1267"
-            },
-            {
-              "event": "done",
-              "actor": "claude",
-              "at": "2026-10-24T18:37:26.529905+00:00",
-              "session": "Taskprogess",
-              "session_id": "016492fa-7464-498b-9444-0e6296cd1267"
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "id": "gemini-workflow-trial",
-      "title": "共用任務 skill 與 Gemini (Antigravity) 驗證試跑",
-      "priority": 1,
-      "status": "planned",
-      "summary": "Antigravity 使用者層入口已建立於 ~/.gemini/config/skills/；本卡以六情境規格試跑驗證流程。",
-      "pending_items": [
-        {
-          "id": "gemini-trial-self",
-          "title": "Gemini 自驗試跑",
-          "priority": 1,
-          "status": "planned",
-          "document_ref": {
-            "kind": "checklist",
-            "scope_id": "task-progress",
-            "task": "gemini-trial-self"
-          },
-          "activity": [
-            {
-              "event": "created",
-              "actor": "antigravity",
-              "at": "2026-10-22T16:13:53.887271+00:00",
-              "session": "Gemini 驗證流程試跑",
-              "session_id": "7392a1e9-7abc-4e1a-9c7a-d4dc573fffa8"
-            },
-            {
-              "event": "started",
-              "actor": "antigravity",
-              "at": "2026-10-22T16:14:12.798399+00:00",
-              "session": "Gemini 驗證流程試跑",
-              "session_id": "7392a1e9-7abc-4e1a-9c7a-d4dc573fffa8"
-            },
-            {
-              "event": "released",
-              "actor": "antigravity",
-              "at": "2026-10-22T16:14:39.599056+00:00",
-              "session": "Gemini 驗證流程試跑",
-              "session_id": "7392a1e9-7abc-4e1a-9c7a-d4dc573fffa8"
-            }
-          ]
-        },
-        {
-          "id": "gemini-trial-manual",
-          "title": "Gemini 人工試跑",
-          "priority": 1,
-          "status": "planned",
-          "document_ref": {
-            "kind": "checklist",
-            "scope_id": "task-progress",
-            "task": "gemini-trial-manual"
-          },
-          "activity": [
-            {
-              "event": "created",
-              "actor": "antigravity",
-              "at": "2026-10-22T16:13:53.887271+00:00",
-              "session": "Gemini 驗證流程試跑",
-              "session_id": "7392a1e9-7abc-4e1a-9c7a-d4dc573fffa8"
-            },
-            {
-              "event": "started",
-              "actor": "antigravity",
-              "at": "2026-10-22T16:14:56.553108+00:00",
-              "session": "Gemini 驗證流程試跑",
-              "session_id": "7392a1e9-7abc-4e1a-9c7a-d4dc573fffa8"
-            },
-            {
-              "event": "released",
-              "actor": "antigravity",
-              "at": "2026-10-22T16:15:32.915029+00:00",
-              "session": "Gemini 驗證流程試跑",
-              "session_id": "7392a1e9-7abc-4e1a-9c7a-d4dc573fffa8"
-            }
-          ]
-        },
-        {
-          "id": "gemini-trial-cross",
-          "title": "Gemini 他驗試跑",
-          "priority": 1,
-          "status": "planned",
-          "document_ref": {
-            "kind": "checklist",
-            "scope_id": "task-progress",
-            "task": "gemini-trial-cross"
-          },
-          "activity": [
-            {
-              "event": "created",
-              "actor": "antigravity",
-              "at": "2026-10-22T16:13:53.887271+00:00",
-              "session": "Gemini 驗證流程試跑",
-              "session_id": "7392a1e9-7abc-4e1a-9c7a-d4dc573fffa8"
-            },
-            {
-              "event": "started",
-              "actor": "antigravity",
-              "at": "2026-10-22T16:15:49.207599+00:00",
-              "session": "Gemini 驗證流程試跑",
-              "session_id": "7392a1e9-7abc-4e1a-9c7a-d4dc573fffa8"
-            },
-            {
-              "event": "released",
-              "actor": "antigravity",
-              "at": "2026-10-22T16:16:18.029622+00:00",
-              "session": "Gemini 驗證流程試跑",
-              "session_id": "7392a1e9-7abc-4e1a-9c7a-d4dc573fffa8"
-            }
-          ]
-        },
-        {
-          "id": "gemini-trial-cross-manual",
-          "title": "Gemini 他驗加人工試跑",
-          "priority": 1,
-          "status": "planned",
-          "document_ref": {
-            "kind": "checklist",
-            "scope_id": "task-progress",
-            "task": "gemini-trial-cross-manual"
-          },
-          "activity": [
-            {
-              "event": "created",
-              "actor": "antigravity",
-              "at": "2026-10-22T16:13:53.887271+00:00",
-              "session": "Gemini 驗證流程試跑",
-              "session_id": "7392a1e9-7abc-4e1a-9c7a-d4dc573fffa8"
-            },
-            {
-              "event": "started",
-              "actor": "antigravity",
-              "at": "2026-10-22T16:16:40.910769+00:00",
-              "session": "Gemini 驗證流程試跑",
-              "session_id": "7392a1e9-7abc-4e1a-9c7a-d4dc573fffa8"
-            },
-            {
-              "event": "released",
-              "actor": "antigravity",
-              "at": "2026-10-22T16:17:17.567170+00:00",
-              "session": "Gemini 驗證流程試跑",
-              "session_id": "7392a1e9-7abc-4e1a-9c7a-d4dc573fffa8"
-            }
-          ]
-        },
-        {
-          "id": "gemini-trial-condition",
-          "title": "Gemini 條件不符試跑",
-          "priority": 1,
-          "status": "planned",
-          "document_ref": {
-            "kind": "checklist",
-            "scope_id": "task-progress",
-            "task": "gemini-trial-condition"
-          },
-          "activity": [
-            {
-              "event": "created",
-              "actor": "antigravity",
-              "at": "2026-10-22T16:13:53.887271+00:00",
-              "session": "Gemini 驗證流程試跑",
-              "session_id": "7392a1e9-7abc-4e1a-9c7a-d4dc573fffa8"
-            },
-            {
-              "event": "started",
-              "actor": "antigravity",
-              "at": "2026-10-22T16:17:23.378118+00:00",
-              "session": "Gemini 驗證流程試跑",
-              "session_id": "7392a1e9-7abc-4e1a-9c7a-d4dc573fffa8"
-            },
-            {
-              "event": "released",
-              "actor": "antigravity",
-              "at": "2026-10-22T16:17:46.912897+00:00",
-              "session": "Gemini 驗證流程試跑",
-              "session_id": "7392a1e9-7abc-4e1a-9c7a-d4dc573fffa8"
-            }
-          ]
-        },
-        {
-          "id": "gemini-trial-waits",
-          "title": "Gemini 等待試跑",
-          "priority": 1,
-          "status": "planned",
-          "document_ref": {
-            "kind": "checklist",
-            "scope_id": "task-progress",
-            "task": "gemini-trial-waits"
-          },
-          "waits_for": [
-            {
-              "scope_id": "task-progress",
-              "task_id": "gemini-workflow-trial",
-              "item_id": "gemini-trial-cross"
-            }
-          ],
-          "activity": [
-            {
-              "event": "created",
-              "actor": "antigravity",
-              "at": "2026-10-22T16:13:53.887271+00:00",
-              "session": "Gemini 驗證流程試跑",
-              "session_id": "7392a1e9-7abc-4e1a-9c7a-d4dc573fffa8"
-            },
-            {
-              "event": "started",
-              "actor": "antigravity",
-              "at": "2026-10-22T16:19:06.649133+00:00",
-              "session": "Gemini 驗證流程試跑",
-              "session_id": "7392a1e9-7abc-4e1a-9c7a-d4dc573fffa8"
-            },
-            {
-              "event": "released",
-              "actor": "antigravity",
-              "at": "2026-10-22T16:19:28.893202+00:00",
-              "session": "Gemini 驗證流程試跑",
-              "session_id": "7392a1e9-7abc-4e1a-9c7a-d4dc573fffa8"
-            }
-          ]
-        }
-      ],
-      "completed_items": []
-    },
-    {
       "id": "worktree-report",
       "title": "同一 repo 的多 agent 平行執行",
       "status": "in_progress",
       "priority": 1,
-      "summary": "方向已定案，第 1 階段（平行執行）實作中：11 題都已決定（第 11 題 2026-11-02：Needs: 宣告共用資源、同組依序）。第 1 階段先改規則：TaskProgress 的三份 skill 在本卡，agents scope 的 agent-executable-items〈One writer per scope〉與 agent-work-route 另在該 scope 建項目，兩個 agent 實際平行一次的完成標準由 Web 試點證明。見 [計畫](https://github.com/Yu5h1/TaskProgress/blob/main/Documentation/WorktreeReportPlan.md)。",
+      "summary": "平行執行規則及其驗收已完成（602918b）。文件接續與兩項主線分區試行已有結果（36b7a85），實際 worktree 合併與跨平台喚醒仍待驗證。[平行執行計畫](/document/?scope=task-progress&path=Documentation%2FWorktreeReportPlan.md#已決定)",
       "pending_items": [
         {
           "id": "worktree-report-decisions",
@@ -4383,12 +4439,12 @@
       "title": "Web UI Workflow 採用準備與試點",
       "status": "in_progress",
       "priority": 2,
-      "summary": "本卡追蹤 Web 開始條件與消費端隔離試點。正式建置、全入口接管及 Svelte 退役由 [退役任務卡](http://127.0.0.1:8001/?scope=task-progress&pin=svelte-retirement) 統一追蹤，保留正式 Svelte／8001 到各階段驗收通過。",
+      "summary": "Web UI 已正式接管並完成 Windows 補驗（3e37a54）。遷移條件仍待補 Safari、實體觸控及手寫筆證據，效能由 [獨立卡片](/?scope=task-progress&pin=web-ui-performance) 追蹤。[Windows 補驗](/checklist/?scope=task-progress&task=web-ui-product-evidence)",
       "pending_items": [
         {
           "id": "web-migration-readiness",
           "priority": 1,
-          "title": "核對 Web 的現行功能、更新互動、交付與必要實機證據；效能預算另案追蹤",
+          "title": "正式產品與 Windows 補驗已核對（3e37a54）。待 Safari、實體觸控與手寫筆的實機證據。[遷移驗收依據](/document/?scope=task-progress&path=Documentation%2FWebUiReplacementPlan.md#正式產品驗收證據補核)",
           "document_ref": {
             "kind": "checklist",
             "scope_id": "yu5h1lib-web",
@@ -4409,6 +4465,12 @@
               "at": "2026-10-27T06:41:40.208993+00:00",
               "session": "TaskProgress retirement conditions",
               "session_id": "01a0d3c0-178f-7463-a65b-21c8bbe2676f"
+            },
+            {
+              "event": "updated",
+              "actor": "codex",
+              "at": "2026-11-11T05:54:15.530425+00:00",
+              "session": "整理 report"
             }
           ]
         },

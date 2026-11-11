@@ -35,7 +35,7 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
 
 - **子項狀態膠囊可連到相關對象（2026-10-25，`status-target-links` 已合入主線）。** `viewer/assets/item-state.js` 的 `statusLinks`：等待中連到被等的卡片或 checklist；其他狀態連到綁定的 Checklist／Decision，並保留未完成的相依對象；等待已解除但仍需重做時，以 `document-binding.js` 的 `redoTargets`（沿用 `mustRedo`）連到觸發重做的對象。單一對象直接連結，多個對象展開選單（`ItemRow.svelte`）。狀態推導規則不變；合併後在主線重建 Viewer bundle，item-state、document-binding、waiting-capsule 等 49 項測試通過。
 
-- **第三方 checklist 寫入的主要用途已釐清，計畫已更新、未實作（2026-10-25，使用者）。** [ThirdPartyChecklistWritePlan〈主要用途〉](Documentation/ThirdPartyChecklistWritePlan.md#主要用途ux-demo-的動作觸發標記)：UX demo 在使用者操作驗收對象時，由事件以 `set` 記錄 `[manual]` 那一格；只記 demo 能完整見證的格子，外觀與手感仍由使用者勾。「TaskProgress 主動讀檔案狀態」與「為外部交付寫編輯器 hook」都暫不做；等外部交付的子項改由 agent 在 plan／run 時確認（AcceptanceChainPlan〈執行與驗收〉）。第 2、3 階段的驗收與第 4 階段的入口表仍在 third-party-checklist-write 卡上。
+- **第三方 Checklist 單項寫入。** 主要用途、寫入界線及第三方入口見 [ThirdPartyChecklistWritePlan〈主要用途〉](Documentation/ThirdPartyChecklistWritePlan.md#主要用途ux-demo-的動作觸發標記) 與 [taskprogress-capabilities〈The entrances〉](.agents/skills/taskprogress-capabilities/SKILL.md#the-entrances)。交付與驗收見 [Report 的 third-party-checklist-write 卡片](/?scope=task-progress&pin=third-party-checklist-write)。
 
 - **缺口與退場盤點已落實（2026-10-25）。** [GapScanPlan](Documentation/GapScanPlan.md)：盤點併入每一層的 plan，不新增動詞，UX 的盤點方法留在 cross-platform-module-spec；子項退場用 `obsolete`（`retirement.replaced_by` 指向取代的子項或設計文件）與 `discontinued`（`retirement.reason`），寫法見 task-progress-report〈Maintain child items〉。gap-scan 卡已完成。子項層級的 `archive` 仍會被時間分析計入剩餘工作，這是原本就有的行為，這次沒有改。
 
@@ -592,12 +592,8 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
 - **Single-writer artifacts and shared resources in this project (2026-08-22).** The general rule is in `../.agents/skills/agent-work-route/SKILL.md`; these are the instances here. One writer at a time: `viewer/assets/viewer-ui.js` (a 155 kB build product under version control, so two agents rebuilding it after separate `.svelte` edits produce a conflict no merge can resolve — and `verify-bundle` fails on the result), `src/TaskProgress.Cli/packages.lock.json` (see the `dotnet run` gotcha below), each individual `checklists/<task-id>.checklist`, and `handoff.md`／`plan.md`／`report.json`／`report.dev.json`. Different Checklist files may have different owners, but that does not grant source-file ownership. Not partitioned by worktree: the edit host on `127.0.0.1:8001` is a single process that `LocalWebServiceClient.EnsureAsync` reuses rather than duplicates, so restarting it invalidates every other session's token, and `src/TaskProgress.Cli/bin/Release/**` is one output directory. Because `.svelte` sources produce the committed bundle, an agent editing any of them holds the bundle too.
 - Active claim: none.
 - **Next steps:**
-  - **先修正既有項目的狀態推算，再執行整個 scope 的佇列。** `report get` 將無 `status` 的 `completed_items` 推算為 `not_started`；入口為 viewer-core 的 `derived-state-array-fallback` 與 `checklists/derived-state-array-fallback.checklist`。本次僅建項，未實作；既有歷史項目不得因此重做。
-  - **同步 CLI help。** 使用者退出既有 worker 後，將 `bin/Validation/ReportItemOrdering/Publish/task-progress.exe` 同步至 `Build/win-x64/task-progress.exe`，核對 SHA256 與 `--help` 的 item.move／position 說明。功能與驗收已完成，不需重跑整輪。
-  - **Foreground Source Refresh：完成 Preview Panel 人工驗收。** 分別開啟 Browser Report 與 Browser Checklist：乾淨狀態下離開面板、由外部修改來源、返回時應各只刷新一次並顯示新資料；再以未提交／儲存中狀態返回，確認不刷新、不丟草稿。通過後勾選 `checklists/foreground-source-refresh.checklist` 的 `[manual]` check，並把 `item-viewer-core-foreground-refresh` 移至 completed。
   - **Tray 顯示服務狀態等四項已轉為需求，不是本專案的工作**，見 `Documentation/TrayWorkerPlan.md#對-winform-的需求`。
-  - **第三方 Checklist 單項寫入：階段 2／3 已實作、完整驗收依使用者指示後排。** 待驗收項目見 `checklists/third-party-checklist-write.checklist`。Browser 清空按鈕與確認框亦已實作、待驗收；階段 4 入口表待入口驗收／部署狀態明確後補上，避免把未運行的能力當成已可用。
-    - **本設計不實作 HEALTHAI-TASKPROGRESS-2 要求的寫入前提。** 該需求的 Evidence（Unity `OnEnable` 重複觸發）於 2026-09-05 由使用者收回為不精確的例子；重跑是執行者刻意發動的，真正存在的問題是陳舊，改由 `reset`（清空後重跑）處理。這裡只記錄設計事實與理由；`Requirements.TaskProgress.md` 由提出方擁有，本專案不寫它。
+  - 第三方寫入對 HEALTHAI-TASKPROGRESS-2 的設計界線見 [ThirdPartyChecklistWritePlan〈決策理由與替代方案〉](Documentation/ThirdPartyChecklistWritePlan.md#決策理由與替代方案)。
   - **評估模組剩餘工作。** 優先原則仍是系統耦合 > bug > 新功能設計。`ModuleDependencyGraph.Plan`、循環隔離與 CLI 診斷已於 2026-08-31 接入 `TryAutoGenerate`／`Analyze`；共用 `#module-detail-dock` 同日完成。尚未實作的是 `Documentation/ExtensionModuleArchitecturePlan.md#模組依賴與重算2026-08-28-使用者決策` 的 envelope `content_revision`／`input_modules`、啟動時比對與 dirty 重算，以及使用者可見的「未計入」提示；目前尚無真正跨模組依賴。材料／人工／Cost 新邊界與 assessment record 的後續設計見各自計畫的未決事項。
   - **膠囊列剩餘驗收與擴充。** 主面板遷移已完成，使用者視覺簽核仍待確認；overflow 的展開能力尚未實作，入口為 `HorizontalCapsuleStrip`，須由共用元件供兩個 slot 使用，等第二個模組確實擠滿該列再排入。
   - **材料／人工／Cost 後續設計。** Cost v1 已完成；2026-08-28 修訂的材料與人工獨立模組、Cost 合成邊界仍待實作。從 `Documentation/CostEstimationModulePlan.md#尚未決定` 與 `Documentation/AssessmentModuleArchitecturePlan.md#尚未決定` 接續，不再把已完成的 Time 遷移或 provider 接線當成前置阻塞。
@@ -610,9 +606,7 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
 
 ## Open decisions
 
-- [任務進程的圖形化節點監控／尚未決定](Documentation/NodeProgressViewPlan.md#尚未決定)：目標 2026-10-26 由使用者確認（節點圖看全面進程與阻塞點，Report 卡片看細節），參考畫面與可走路線整條高亮已記入計畫；8 題待答：顯示範圍、節點深度、阻塞點呈現、入口、是否需要關係 sidecar、第二階段是否改成遞迴節點、葉節點旁的數字、其餘推算狀態的歸類。決定前不實作。
-
-- [NextMarkerPlan／尚未決定](Documentation/NextMarkerPlan.md#尚未決定)：設定 Next 的控制項形狀（三個候選），實作前要定。
+- [任務進程的圖形化節點監控／尚未決定](Documentation/NodeProgressViewPlan.md#尚未決定)。
 
 - Web UI 的環境、預算與依賴交付已固定，見 [決策與界線](Documentation/WebUiReplacementPlan.md#已固定的決策與後續界線)；效能追蹤依使用者指示暫停，不是未答的設計問題。
 
@@ -637,6 +631,7 @@ Each needs the user's answer before the work it blocks can be specced. Nothing h
 
 ## Ruled-out directions
 
+- Report 卡片依「一般／長期／未來方向」分類的提案已排除。使用者選擇依優先級安排任務需求。 [卡片分類決策](/decisions/?scope=task-progress&task=viewer-core)
 - `task-progress.exe <檔案>.checklist --localserver` 與隨之而來的不透明 handle 機制，2026-09-02 提出當日即由使用者否決。它為 checklist 另外發明一套授權（「命令列上指名的那個檔」），但 `start` 註冊的 scope 早就是同一問題的既有答案，且與 `report.json` 的編輯共用同一個信任來源；兩個入口做同一件事沒有理由並存。該旗標也永遠不可能從雙擊來（Windows 預設 App 啟動只傳檔案路徑），所以它只服務命令列這條很少走的路。handle 隨之消失：改以 scope ＋ task ID 定址後，URL 帶的是識別碼而非路徑，任意路徑同樣無法跨越邊界。
 - Artifact-hosted Checklist was removed by user decision on 2026-08-22. A sandbox snapshot／export page would be a third host that cannot directly read or write the canonical `.checklist`, while the product needs only Browser／HTTP and Desktop／WebView2 entrances. Do not reintroduce an Artifact transport or fake `chrome.webview` shim; a future shareable read-only page would be a separate publishing requirement, not an editing host. 設計快照不受此限：重建外觀供決策、不連任何資料來源的一次性頁面（2026-08-15 的 `cda82b48`、2026-08-27 的 Cost 預覽）是可接受的；被禁止的是可編輯的 transport。
 - The time-reference Demo (`experiments/time-reference/demo/`) is **retired, not frozen** (2026-08-05 user decision). It throws on load because `createModeController`/`createSaveBar`/`createAddControl` no longer exist in `editor-surface-runtime.js`. Do not repair it by restoring those functions — keeping a parallel vanilla implementation alive just to keep the Demo running is exactly what the one-UI-source rule forbids. If a `file://` demo is ever needed again, rebuild it on the shared components (it can no longer be opened without a build). Source and tests are kept for reference only.
@@ -690,7 +685,7 @@ Each needs the user's answer before the work it blocks can be specced. Nothing h
 
 - The same report schema can describe a multi-project workspace, a project, or a narrower component. Viewer/Launcher render one selected scope and do not infer hierarchy; report-generation resolves hierarchy from the target scope, its `tasks.md`, canonical routes, and child reports/handoffs.
 - A workspace report is a curated portfolio view — it may mix direct tasks, whole child scopes, and selected child deliverables, but must not recursively scan directories or treat unrelated child items as equal-weight. A workspace scope may validly have no handoff of its own.
-- Cross-scope drill-down now has an approved design that nothing implements yet: `plan.md#report-指路任務卡與單層-scope-導航` (approved 2026-08-18). A pointer card stores only `id`, `title` and `report_ref.scope_id`; everything shown is derived from the target report at read time, one level deep. Deterministic aggregation beyond that one level, and stale-roll-up detection, remain unprovided by the Viewer, Launcher and schemas.
+- Report pointer cards implement [one-level scope navigation](plan.md#report-指路任務卡與單層-scope-導航), verified with live cross-project data (eb5fe61). A pointer card stores only `id`, `title` and `report_ref.scope_id` and reads the target report for display. The protected route to create or change `report_ref` is tracked in [Viewer Core](/?scope=task-progress&pin=viewer-core#item-viewer-core--item-viewer-core-pointer-ref-route).
 - Routing/fallback rule detail: `plan.md#任務入口與報告更新規則`. Local editing design detail: `plan.md#本機任務編輯-draft-01`, `#editor-框架化與大改-draft-01`, `#交付日編輯與敏感修改歷史-draft-01`.
 
 ## Launcher / local hosting (current shape)
