@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-11-10T12:20:35.871336+00:00",
+  "updated_at": "2026-11-11T05:32:19.096722+00:00",
   "tasks": [
     {
       "id": "agent-workflow",
@@ -2337,6 +2337,62 @@
               "session": "子項結束狀態堆疊"
             }
           ]
+        },
+        {
+          "id": "item-card-kind-sections",
+          "status": "planned",
+          "priority": 2,
+          "title": "卡片分類：卡片加種類或分區欄位（例如一般、長期、未來方向），Viewer 依此分區顯示；現在只有 standard／report_pointer 與狀態分組，分類只能寫在標題（「長期：」「未來方向：」）（使用者 2026-11-11 在 VCP 提出）",
+          "activity": [
+            {
+              "event": "created",
+              "actor": "claude",
+              "at": "2026-11-11T05:32:19.096722+00:00",
+              "session_id": "95101c81-3257-4d44-90a2-b1e494306ba0"
+            }
+          ]
+        },
+        {
+          "id": "item-card-item-visual-level",
+          "status": "planned",
+          "priority": 2,
+          "title": "卡片與子項在畫面上要明顯分層：使用者 2026-11-11 反映兩者看起來在同一層。甘特圖的 task／item 列層級是另一個還沒定的問題，見 handoff〈Open decisions〉",
+          "activity": [
+            {
+              "event": "created",
+              "actor": "claude",
+              "at": "2026-11-11T05:32:19.096722+00:00",
+              "session_id": "95101c81-3257-4d44-90a2-b1e494306ba0"
+            }
+          ]
+        },
+        {
+          "id": "problem-claim-conflict-context",
+          "status": "planned",
+          "priority": 2,
+          "title": "問題：report apply 回 claim_conflict 時只附認領的 session 與開始時間，沒有那個子項最後一次活動的時間；要判斷那個 session 是否還在做、能不能接手，得另外讀 activity（2026-11-11 在 VCP 碰到兩次）",
+          "activity": [
+            {
+              "event": "created",
+              "actor": "claude",
+              "at": "2026-11-11T05:32:19.096722+00:00",
+              "session_id": "95101c81-3257-4d44-90a2-b1e494306ba0"
+            }
+          ]
+        },
+        {
+          "id": "problem-handoff-pointer-stale",
+          "status": "planned",
+          "priority": 2,
+          "title": "問題：handoff〈Report/workspace model〉仍寫指路卡「nothing implements yet」，和〈Open decisions〉之後那段說指路卡已完成並驗證互相矛盾",
+          "activity": [
+            {
+              "event": "created",
+              "actor": "claude",
+              "at": "2026-11-11T05:32:19.096722+00:00",
+              "session_id": "95101c81-3257-4d44-90a2-b1e494306ba0"
+            }
+          ]
         }
       ]
     },
@@ -4425,7 +4481,36 @@
       "priority": 2,
       "summary": "目標：每個任務以圖形化節點表示，從節點圖直接看出阻塞點，Report 卡片保留作細節說明；資料結構先不改，遞迴節點要先估成本、測可行才替換。見 [問題與目標](https://github.com/Yu5h1/TaskProgress/blob/main/Documentation/NodeProgressViewPlan.md#問題與目標)。",
       "completed_items": [],
-      "pending_items": []
+      "pending_items": [
+        {
+          "id": "item-card-ref-rollup",
+          "status": "planned",
+          "priority": 2,
+          "title": "子項可以指向同一 scope 的另一張卡，並匯總那張卡的狀態與進度，讓長期大項不必手動補完成的子項。現在只能用 waits_for 等那張卡的某個子項加卡片連結替代，進度不會匯總（例：VCP 的 load-speed-ux，使用者 2026-11-11）；若決定改成遞迴節點，這是第一階段",
+          "activity": [
+            {
+              "event": "created",
+              "actor": "claude",
+              "at": "2026-11-11T05:32:19.096722+00:00",
+              "session_id": "95101c81-3257-4d44-90a2-b1e494306ba0"
+            }
+          ]
+        },
+        {
+          "id": "item-decide-node-depth",
+          "status": "planned",
+          "priority": 2,
+          "title": "決定節點深度與第二階段是否改成遞迴節點：[NodeProgressViewPlan § 尚未決定](/document/?scope=task-progress&path=Documentation%2FNodeProgressViewPlan.md#尚未決定) 第 2、6 題",
+          "activity": [
+            {
+              "event": "created",
+              "actor": "claude",
+              "at": "2026-11-11T05:32:19.096722+00:00",
+              "session_id": "95101c81-3257-4d44-90a2-b1e494306ba0"
+            }
+          ]
+        }
+      ]
     },
     {
       "id": "web-ui-performance",
