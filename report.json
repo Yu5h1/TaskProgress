@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-11-11T14:05:29.468239+00:00",
+  "updated_at": "2026-11-11T14:15:16.988616+00:00",
   "tasks": [
     {
       "id": "gemini-workflow-trial",
@@ -3332,6 +3332,20 @@
               "at": "2026-11-11T14:05:29.468239+00:00",
               "session": "VCP report 整理",
               "session_id": "95101c81-3257-4d44-90a2-b1e494306ba0"
+            },
+            {
+              "event": "updated",
+              "actor": "claude",
+              "at": "2026-11-11T14:15:16.988616+00:00",
+              "session": "VCP report 整理",
+              "session_id": "95101c81-3257-4d44-90a2-b1e494306ba0"
+            }
+          ],
+          "waits_for": [
+            {
+              "scope_id": "task-progress",
+              "task_id": "node-progress-view",
+              "item_id": "item-card-ref-chain"
             }
           ]
         },
@@ -3347,6 +3361,20 @@
               "at": "2026-11-11T14:05:29.468239+00:00",
               "session": "VCP report 整理",
               "session_id": "95101c81-3257-4d44-90a2-b1e494306ba0"
+            },
+            {
+              "event": "updated",
+              "actor": "claude",
+              "at": "2026-11-11T14:15:16.988616+00:00",
+              "session": "VCP report 整理",
+              "session_id": "95101c81-3257-4d44-90a2-b1e494306ba0"
+            }
+          ],
+          "waits_for": [
+            {
+              "scope_id": "task-progress",
+              "task_id": "node-progress-view",
+              "item_id": "item-card-ref-chain"
             }
           ]
         },
@@ -4755,6 +4783,20 @@
               "at": "2026-11-11T14:05:29.468239+00:00",
               "session": "VCP report 整理",
               "session_id": "95101c81-3257-4d44-90a2-b1e494306ba0"
+            },
+            {
+              "event": "updated",
+              "actor": "claude",
+              "at": "2026-11-11T14:15:16.988616+00:00",
+              "session": "VCP report 整理",
+              "session_id": "95101c81-3257-4d44-90a2-b1e494306ba0"
+            }
+          ],
+          "waits_for": [
+            {
+              "scope_id": "task-progress",
+              "task_id": "node-progress-view",
+              "item_id": "item-card-ref-chain"
             }
           ]
         }
