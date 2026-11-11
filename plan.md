@@ -1674,6 +1674,7 @@ ItemRow 是每張任務卡內的一筆子項目。這份矩陣已於 2026-08-02 
 - 沒有對應 report 時，plan 或 handoff 必須完整記錄 task／Developer 狀態。report 建立並由 canonical entry 接受為目標後，原處改成指路；若 report 移除或失效，canonical entry 必須恢復足以交接的完整內容。
 - 若 report 與 repository／測試事實不一致，以可驗證的 repository reality 為準並修正 report；不能用在 plan／handoff 再寫一份不同內容來迴避衝突。
 - 不建立額外 `task.json`。只有未來 Viewer／外部工具需要直接建立及修改 canonical 任務，而且 Markdown 已無法可靠交換時，才另行設計具版本、穩定 ID、衝突與 Schema 驗證的 task entry 格式。
+- 卡片也不拆成每張一個 `.card` 檔（使用者 2026-11-11）。拆檔是儲存方式，和巢狀無關；任務深度由同一份 report 內的 [參照鏈](Documentation/NodeProgressViewPlan.md#參照鏈與子項升級) 提供。拆檔會讓參照、等待與搬卡變成跨檔寫入，而 revision 衝突檢查以單檔為單位。多個 agent 同時修改同一份 `report.json` 造成的提交衝突記為 viewer-core 的問題項目，衝突變多或檔案過大時再評估拆檔。
 - 當人類提供足以確認 scope、Task ID、目標、目前狀態與已驗證事實的描述時，Agent 更新 canonical entry 指向的資料，並維持指路有效，不做跨檔同步複製。只有提供或維護時間輸入，或明確要求估算／期限風險時，才執行分析器更新 `time.analysis.json`；不能只因任務文字改變就猜測工時或期限。
 
 ### 編輯互動與資料操作
