@@ -293,12 +293,20 @@ function taskCard(p, v, task, card) {
 }
 
 function cardPageNavigation(page) {
+  const pathIds = new Set(page.breadcrumbs.map(entry => entry.id));
+  const parents = page.parents.filter(entry => !pathIds.has(entry.id));
+  const parentLabel = parents.length < page.parents.length ? '其他上層卡片' : '上層卡片';
   const link = entry => html`<a href=${entry.href} @click=${event => {
     if (plainClick(event)) rememberCardTrail(entry.href, entry.trail);
   }}>${entry.title}</a>`;
-  return html`<nav class="report-card-path" aria-label="卡片路徑">
-    <ol><li><a href=${page.reportHref}>${page.reportTitle}</a></li>${page.breadcrumbs.map((entry, index) => html`<li><span aria-hidden="true">›</span>${index === page.breadcrumbs.length - 1 ? html`<span aria-current="page">${entry.title}</span>` : link(entry)}</li>`)}</ol>
-  </nav>${page.parents.length ? html`<nav class="report-card-parents" aria-label="引用這張卡片的上層卡"><span>上層卡片</span><ul>${page.parents.map(entry => html`<li>${link(entry)}</li>`)}</ul></nav>` : nothing}`;
+  return html`<div class="report-card-navigation">
+    <nav class="report-card-path" aria-label="卡片路徑">
+      <ol><li><a href=${page.reportHref}>${page.reportTitle}</a></li>${page.breadcrumbs.map((entry, index) => html`<li><span aria-hidden="true">›</span>${index === page.breadcrumbs.length - 1 ? html`<span aria-current="page">${entry.title}</span>` : link(entry)}</li>`)}</ol>
+    </nav>
+    ${parents.length ? html`<nav class="report-card-parents" aria-label=${parentLabel}>
+      <span>${parentLabel}</span><ul>${parents.map(entry => html`<li>${link(entry)}</li>`)}</ul>
+    </nav>` : nothing}
+  </div>`;
 }
 
 const templates = {

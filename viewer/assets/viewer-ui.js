@@ -1922,12 +1922,17 @@ function Un(e, t, n, r) {
   </article>`;
 }
 function Wn(e) {
-	let t = (e) => j`<a href=${e.href} @click=${(t) => {
+	let t = new Set(e.breadcrumbs.map((e) => e.id)), n = e.parents.filter((e) => !t.has(e.id)), r = n.length < e.parents.length ? "其他上層卡片" : "上層卡片", i = (e) => j`<a href=${e.href} @click=${(t) => {
 		Pn(t) && m(e.href, e.trail);
 	}}>${e.title}</a>`;
-	return j`<nav class="report-card-path" aria-label="卡片路徑">
-    <ol><li><a href=${e.reportHref}>${e.reportTitle}</a></li>${e.breadcrumbs.map((n, r) => j`<li><span aria-hidden="true">›</span>${r === e.breadcrumbs.length - 1 ? j`<span aria-current="page">${n.title}</span>` : t(n)}</li>`)}</ol>
-  </nav>${e.parents.length ? j`<nav class="report-card-parents" aria-label="引用這張卡片的上層卡"><span>上層卡片</span><ul>${e.parents.map((e) => j`<li>${t(e)}</li>`)}</ul></nav>` : P}`;
+	return j`<div class="report-card-navigation">
+    <nav class="report-card-path" aria-label="卡片路徑">
+      <ol><li><a href=${e.reportHref}>${e.reportTitle}</a></li>${e.breadcrumbs.map((t, n) => j`<li><span aria-hidden="true">›</span>${n === e.breadcrumbs.length - 1 ? j`<span aria-current="page">${t.title}</span>` : i(t)}</li>`)}</ol>
+    </nav>
+    ${n.length ? j`<nav class="report-card-parents" aria-label=${r}>
+      <span>${r}</span><ul>${n.map((e) => j`<li>${i(e)}</li>`)}</ul>
+    </nav>` : P}
+  </div>`;
 }
 var Gn = {
 	"task-list": (e, t) => {
