@@ -47,7 +47,7 @@ FIELDS = {
 
 
 ACTIVITY_RECENT_LIMIT = 3
-PERMANENT_EVENTS = {"started", "takeover"}
+PERMANENT_EVENTS = {"started", "takeover", "promoted"}
 LATEST_EVENTS = {"released", "disputed"}
 ITEM_EVENTS = LATEST_EVENTS
 ACTOR_PATTERN = re.compile(r"^[a-z][a-z0-9-]{0,31}$")
@@ -453,6 +453,57 @@ def check_claim(item, operation, actor, at):
         append_activity(item, activity_entry("takeover", actor, at))
 
 
+def promote_item(report, source, field, item, operation, actor, at, folder):
+    """Moves one stable item and its local references without replacing the item."""
+    value = operation.get("value")
+    require(isinstance(value, dict) and {"id", "title", "summary"} <= set(value) <= {"id", "title", "summary", "priority"},
+            "Promotion needs a new card's id, title and summary; priority is optional", "value")
+    require(isinstance(value["id"], str) and bool(DOCUMENT_STEM.fullmatch(value["id"])),
+            "New card ID is invalid", "value.id")
+    require(not any(task["id"] == value["id"] for task in report["tasks"]), "Task ID already exists", "value.id")
+    status = item.get("status", "done" if field == "completed_items" else "planned")
+    require(source["status"] != "archive" and status not in {"archive", *RETIRED_STATUSES},
+            "Archived and retired work cannot be promoted", "item_id")
+    require(operation.get("claim") in (None, "own"), "Promotion preserves the existing claim", "claim")
+    check_claim(item, operation, actor, at)
+
+    original = {"scope_id": report["scope_id"], "task_id": source["id"], "item_id": item["id"]}
+    new_task_id = value["id"]
+
+    def matches(target):
+        return isinstance(target, dict) and all(target.get(key) == identity for key, identity in original.items())
+
+    for scope, waiter in waiting_items(report, folder):
+        if scope != original["scope_id"] and any(matches(wait) for wait in waiter["waits_for"]):
+            raise ReportError("cross_scope_wait", "A registered scope still waits on this item: " + scope, field="item_id")
+
+    source[field].remove(item)
+    if not source.get("pending_items") and not source.get("completed_items"):
+        source.pop("progress", None)
+    source.setdefault("card_refs", []).append({"id": item["id"], "task_id": new_task_id})
+    item["activity"] = [*item.get("activity", []), activity_entry("promoted", actor, at, source["id"])]
+    card = {**value, "status": status, field: [item]}
+    if "priority" in item:
+        card.setdefault("priority", item["priority"])
+    report["tasks"].insert(0 if status == "done" else report["tasks"].index(source) + 1, card)
+
+    for task in report["tasks"]:
+        for key in ("pending_items", "completed_items"):
+            for row in task.get(key, []):
+                if not isinstance(row, dict):
+                    continue
+                for wait in row.get("waits_for", []):
+                    if matches(wait):
+                        wait["task_id"] = new_task_id
+                replacement = row.get("retirement", {}).get("replaced_by")
+                if matches(replacement):
+                    replacement["task_id"] = new_task_id
+    marker = report.get("next")
+    if marker == {"task_id": source["id"], "item_id": item["id"]}:
+        marker["task_id"] = new_task_id
+    return new_task_id
+
+
 def stamp_new_item(item, actor, at, report=None, field="pending_items"):
     append_activity(item, activity_entry("created", actor, at))
     effective = item.get("status", "done" if field == "completed_items" else "planned")
@@ -492,7 +543,7 @@ def apply_operations(report, overlay, operations, actor=None, at=None, folder=No
         try:
             require(isinstance(operation, dict), "Operation must be an object")
             name = operation.get("op")
-            require(isinstance(name, str) and name in {*FIELDS, "task.add", "item.add", "item.move", "item.event", *NEXT_OPERATIONS},
+            require(isinstance(name, str) and name in {*FIELDS, "task.add", "item.add", "item.move", "item.promote", "item.event", *NEXT_OPERATIONS},
                     "Unknown operation", "op")
             if name in NEXT_OPERATIONS:
                 summaries.append(apply_next(report, operation, name, actor, at))
@@ -507,6 +558,8 @@ def apply_operations(report, overlay, operations, actor=None, at=None, folder=No
                 keys = {"op", "task_id", "value", "position"} if name == "item.add" else {"op", "value"}
             if name == "item.move":
                 keys = {"op", "task_id", "item_id", "position", "claim"}
+            if name == "item.promote":
+                keys = {"op", "task_id", "item_id", "value", "claim"}
             if name == "item.event":
                 keys = {"op", "task_id", "item_id", "event", "note", "claim"}
             require(set(operation) <= keys, "Unknown operation property")
@@ -573,6 +626,12 @@ def apply_operations(report, overlay, operations, actor=None, at=None, folder=No
                     found = [(key, item) for key in ("completed_items", "pending_items") for item in task.get(key, []) if isinstance(item, dict) and item.get("id") == item_id]
                     require(len(found) == 1, "Item ID was not found; legacy string items require migration", "item_id")
                     previous, item = found[0]
+                    if name == "item.promote":
+                        new_task_id = promote_item(report, task, previous, item, operation, actor, at, folder)
+                        validate_documents(report, overlay)
+                        summaries.append({"op": name, "task_id": task_id, "item_id": item_id,
+                                          "new_task_id": new_task_id, "fields": ["activity", "card_refs"]})
+                        continue
                     if name == "item.event":
                         event, note = operation.get("event"), operation.get("note")
                         require(event in ITEM_EVENTS, "event must be released or disputed", "event")

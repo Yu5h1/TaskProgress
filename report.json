@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-11-11T14:38:00.578859+00:00",
+  "updated_at": "2026-11-11T14:44:31.523345+00:00",
   "tasks": [
     {
       "id": "gemini-workflow-trial",
@@ -4704,6 +4704,49 @@
       "summary": "目標：每個任務以圖形化節點表示，從節點圖直接看出阻塞點，Report 卡片保留作細節說明；資料結構先不改，遞迴節點要先估成本、測可行才替換。見 [問題與目標](https://github.com/Yu5h1/TaskProgress/blob/main/Documentation/NodeProgressViewPlan.md#問題與目標)。",
       "completed_items": [
         {
+          "id": "item-promote-item-to-card",
+          "status": "done",
+          "priority": 2,
+          "title": "Report CLI 子項升級成卡：原子項連同 ID、活動紀錄、認領與綁定搬進新卡，原卡加上參照，waits_for 自動改指。[升級設計](/document/?scope=task-progress&path=Documentation%2FNodeProgressViewPlan.md#參照鏈與子項升級)",
+          "activity": [
+            {
+              "event": "created",
+              "actor": "claude",
+              "at": "2026-11-11T14:05:29.468239+00:00",
+              "session": "VCP report 整理",
+              "session_id": "95101c81-3257-4d44-90a2-b1e494306ba0"
+            },
+            {
+              "event": "updated",
+              "actor": "claude",
+              "at": "2026-11-11T14:15:16.988616+00:00",
+              "session": "VCP report 整理",
+              "session_id": "95101c81-3257-4d44-90a2-b1e494306ba0"
+            },
+            {
+              "event": "started",
+              "actor": "codex",
+              "at": "2026-11-11T14:38:56.571967+00:00",
+              "session": "參照鏈與等待佇列",
+              "session_id": "01a1873a-2fef-74c2-a673-a41bb27657dd"
+            },
+            {
+              "event": "done",
+              "actor": "codex",
+              "at": "2026-11-11T14:44:31.523345+00:00",
+              "session": "參照鏈與等待佇列",
+              "session_id": "01a1873a-2fef-74c2-a673-a41bb27657dd"
+            }
+          ],
+          "waits_for": [
+            {
+              "scope_id": "task-progress",
+              "task_id": "node-progress-view",
+              "item_id": "item-card-ref-chain"
+            }
+          ]
+        },
+        {
           "id": "item-card-ref-chain",
           "status": "done",
           "priority": 2,
@@ -4810,35 +4853,6 @@
               "at": "2026-11-11T14:05:29.468239+00:00",
               "session": "VCP report 整理",
               "session_id": "95101c81-3257-4d44-90a2-b1e494306ba0"
-            }
-          ]
-        },
-        {
-          "id": "item-promote-item-to-card",
-          "status": "planned",
-          "priority": 2,
-          "title": "Report CLI 子項升級成卡：原子項連同 ID、活動紀錄、認領與綁定搬進新卡，原卡加上參照，waits_for 自動改指。[升級設計](/document/?scope=task-progress&path=Documentation%2FNodeProgressViewPlan.md#參照鏈與子項升級)",
-          "activity": [
-            {
-              "event": "created",
-              "actor": "claude",
-              "at": "2026-11-11T14:05:29.468239+00:00",
-              "session": "VCP report 整理",
-              "session_id": "95101c81-3257-4d44-90a2-b1e494306ba0"
-            },
-            {
-              "event": "updated",
-              "actor": "claude",
-              "at": "2026-11-11T14:15:16.988616+00:00",
-              "session": "VCP report 整理",
-              "session_id": "95101c81-3257-4d44-90a2-b1e494306ba0"
-            }
-          ],
-          "waits_for": [
-            {
-              "scope_id": "task-progress",
-              "task_id": "node-progress-view",
-              "item_id": "item-card-ref-chain"
             }
           ]
         }

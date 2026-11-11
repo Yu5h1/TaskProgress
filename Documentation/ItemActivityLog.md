@@ -17,14 +17,14 @@
 
 | 欄位 | 內容 |
 |---|---|
-| `event` | `created`、`started`、`updated`、`done`、`takeover`、`released`、`disputed` |
+| `event` | `created`、`started`、`updated`、`done`、`takeover`、`released`、`promoted`、`disputed` |
 | `actor` | 寫入的工具，小寫英文，例如 `claude`、`codex`、`antigravity`；Viewer 寫入為 `user` |
 | `session` | 選填。寫入 session 的名稱（工具畫面上顯示的標題），給人看；Viewer tooltip 顯示它 |
 | `session_id` | 選填。寫入 session 的 ID，給認領比對與追查紀錄用；Viewer 不顯示 |
 | `at` | ISO 時間 |
-| `note` | 選填。`disputed` 必填，寫明不同意的理由（最多 300 字） |
+| `note` | 選填，最多 300 字。`disputed` 記錄不同意的理由，`promoted` 記錄原卡 ID |
 
-- 保留規則：第一筆 `created` 與每一筆 `started`、`takeover` 永久保留，執行過的 session 才不會被擠掉；`released`、`disputed` 各保留最近一筆；另保留最近一筆[結束狀態轉換](#結束狀態轉換)，其他事件只留最近 3 筆（常數，暫不提供設定）。schema 的 `maxItems` 為 64。JS（`viewer/assets/item-activity.js`）、Python（`service/report_operations.py`）與 schema 一致，由測試核對。
+- 永久保留第一筆 `created` 與每一筆 `started`、`takeover`、`promoted`，供追溯執行者與子項來源。`released`、`disputed` 與[結束狀態轉換](#結束狀態轉換)各保留最近一筆，其他事件保留最近 3 筆。schema 的 `maxItems` 為 64。JS（`viewer/assets/item-activity.js`）、Python（`service/report_operations.py`）與 schema 一致，由測試核對。
 - 紀錄由寫入端自動產生，不能在 `item.add`／`task.add` 的值裡自行提供。既有子項不回填。
 - 2026-10-21 起 `session` 改為名稱、ID 移到 `session_id`；當時 TaskProgress 與 UX report 裡以 `session` 存 ID 的舊紀錄已一次遷移，名稱取自各 session 的標題。
 - 只有實際改變內容或位置的寫入才記一筆；no-op 仍是 no-op。

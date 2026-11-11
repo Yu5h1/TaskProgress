@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
-import { ACTIVITY_MAX_ITEMS, ACTIVITY_RECENT_LIMIT, appendActivity, formatActivity, recordUserActivity, validateActivity } from "../viewer/assets/item-activity.js";
+import { ACTIVITY_EVENTS, ACTIVITY_MAX_ITEMS, ACTIVITY_RECENT_LIMIT, appendActivity, formatActivity, recordUserActivity, validateActivity } from "../viewer/assets/item-activity.js";
 import { validateReport } from "../viewer/assets/report-model.js";
 
 const at = "2026-10-21T08:00:00.000Z";
@@ -70,9 +70,8 @@ test("JS, Python and the schema keep the same retention", async () => {
   const python = await readFile(new URL("../service/report_operations.py", import.meta.url), "utf8");
   const schema = JSON.parse(await readFile(new URL("../schemas/report.schema.json", import.meta.url), "utf8"));
   assert.match(python, new RegExp(`^ACTIVITY_RECENT_LIMIT = ${ACTIVITY_RECENT_LIMIT}$`, "mu"));
-  assert.match(python, /^PERMANENT_EVENTS = \{"started", "takeover"\}$/mu);
+  assert.match(python, /^PERMANENT_EVENTS = \{"started", "takeover", "promoted"\}$/mu);
   assert.match(python, /^LATEST_EVENTS = \{"released", "disputed"\}$/mu);
   assert.equal(schema.$defs.item.properties.activity.maxItems, ACTIVITY_MAX_ITEMS);
-  assert.deepEqual(schema.$defs.activityEntry.properties.event.enum,
-    ["created", "started", "updated", "done", "takeover", "released", "disputed"]);
+  assert.deepEqual(schema.$defs.activityEntry.properties.event.enum, ACTIVITY_EVENTS);
 });

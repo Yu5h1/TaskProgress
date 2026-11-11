@@ -172,6 +172,23 @@ task-progress.exe report apply "C:\Project" --input changes.json
 
 位置操作由專案的 `service/report_operations.py` 提供；CLI `--help` 列出 item.move／position 的版本包含相應說明。部署須配套同版 service 與 schemas；可用 `python service/report_cli.py --help` 確認實際後端入口，並用 dry-run 驗證請求。舊後端不支援時先更新，不以手改 JSON 繞過。
 
+## 子項升級成卡
+
+在 `report apply` 的 `operations` 中使用 `item.promote`。`task_id` 和 `item_id` 指向原子項，`value` 指定新卡的 ID、標題和摘要，可選填優先級。
+
+```json
+{
+  "op": "item.promote",
+  "task_id": "feature-b",
+  "item_id": "implementation",
+  "value": { "id": "feature-implementation", "title": "實作計畫", "summary": "追蹤實作與驗證工作" }
+}
+```
+
+先用 `--dry-run` 預覽，`changes[].new_task_id` 會指出新卡。原子項保留 ID、狀態、認領、活動紀錄及文件綁定，並新增一筆記下原卡 ID 的 `promoted`。原卡留下指向新卡的參照，同一份 Report 的等待、取代連結和 Next 隨原子項移動。若其他已註冊的 scope 有尚未完成的等待指向原位置，操作會拒絕並回報該 scope。
+
+子項的工時、工時事件與成本估算會一起改指。原卡轉為純參照卡時，卡片級估算移到唯一的升級目標；若一次升級多個子項，先拆分卡片級估算。時間分析隨交易更新。成本估算若有變更，使用 `task-progress.exe analyze <folder> --module cost` 更新成本投影。
+
 ## Next 標記
 
 每個 scope 一個 `next`，指向一個未完成的子項（設計：[NextMarkerPlan](NextMarkerPlan.md)）。設新的就取代舊的；指向不存在、已完成或舊字串子項時拒絕。設定時在該子項記一筆 `updated`。清除不帶 `task_id`。

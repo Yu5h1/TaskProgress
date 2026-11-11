@@ -2,12 +2,12 @@
 
 export const ACTIVITY_RECENT_LIMIT = 3;
 export const ACTIVITY_MAX_ITEMS = 64;
-export const ACTIVITY_EVENTS = Object.freeze(["created", "started", "updated", "done", "takeover", "released", "disputed"]);
-const PERMANENT_EVENTS = new Set(["started", "takeover"]);
+export const ACTIVITY_EVENTS = Object.freeze(["created", "started", "updated", "done", "takeover", "released", "promoted", "disputed"]);
+const PERMANENT_EVENTS = new Set(["started", "takeover", "promoted"]);
 const LATEST_EVENTS = new Set(["released", "disputed"]);
 const ACTOR_PATTERN = /^[a-z][a-z0-9-]{0,31}$/u;
 const ITEM_FIELDS = ["pending_items", "completed_items"];
-const LABELS = { created: "建立", started: "開始", updated: "修改", done: "完成", takeover: "接手", released: "釋放", disputed: "爭議" };
+const LABELS = { created: "建立", started: "開始", updated: "修改", done: "完成", takeover: "接手", released: "釋放", promoted: "升級成卡", disputed: "爭議" };
 
 // Reserved notes distinguish terminal transitions from ordinary edits without changing the event model.
 export function terminalActivityStatus(entry) {

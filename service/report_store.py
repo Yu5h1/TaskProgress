@@ -25,7 +25,9 @@ TRANSACTION_FILES = frozenset(
         "report.dev.json",
         "time.config.json",
         "time.estimates.json",
+        "time.events.json",
         "time.analysis.json",
+        "cost.estimates.json",
         "taskprogress.local.json",
     }
 )

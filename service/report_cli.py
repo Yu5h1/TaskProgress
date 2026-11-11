@@ -7,6 +7,7 @@ import json
 import os
 import subprocess
 import sys
+from collections import Counter
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -21,7 +22,8 @@ from service.report_store import (
 )
 
 SOURCE_FILES = ("report.json", "report.dev.json", "time.config.json", "time.estimates.json",
-                "time.events.json", "time.analysis.json", "taskprogress.local.json")
+                "time.events.json", "time.analysis.json", "taskprogress.local.json", "cost.estimates.json")
+PROMOTION_INPUTS = {"time.estimates.json": "estimates", "time.events.json": "events", "cost.estimates.json": "estimates"}
 
 
 def read_sources(folder):
@@ -69,6 +71,37 @@ def run_analysis(folder, command):
         raise ReportError("analysis_failed", detail, 4)
 
 
+def promoted_inputs(sources, candidate, promotions, stamp):
+    if not promotions:
+        return {}
+    tasks = {task["id"]: task for task in candidate["tasks"]}
+    move_counts = Counter(move["task_id"] for move in promotions)
+    staged = {}
+    for name, field in PROMOTION_INPUTS.items():
+        if sources[name] is None:
+            continue
+        payload = strict_json(sources[name])
+        require(isinstance(payload, dict) and isinstance(payload.get(field), list), name + " must contain " + field)
+        changed = False
+        for move in promotions:
+            source = tasks[move["task_id"]]
+            reference_only = not source.get("pending_items") and not source.get("completed_items") and not source.get("progress")
+            for row in payload[field]:
+                if not isinstance(row, dict) or row.get("task_id") != source["id"]:
+                    continue
+                if row.get("item_id") is None and field == "estimates" and reference_only:
+                    require(move_counts[source["id"]] == 1, "Split the card-level estimate before promoting multiple items", name)
+                elif row.get("item_id") != move["item_id"]:
+                    continue
+                row["task_id"] = move["new_task_id"]
+                changed = True
+        if changed:
+            payload["updated_at"] = stamp
+            staged[name] = (json.dumps(payload, ensure_ascii=False, indent=2) + "\n").encode("utf-8")
+            require(len(staged[name]) <= 4 * MAX_REPORT_BYTES, name + " exceeds the 4 MiB edit limit")
+    return staged
+
+
 def execute(folder, action, request=None, *, task=None, dry_run=False, analyzer=(), analyze=run_analysis):
     folder = Path(folder).resolve(strict=True)
     with scope_lock(folder):
@@ -104,7 +137,7 @@ def execute(folder, action, request=None, *, task=None, dry_run=False, analyzer=
         changed = changed_report or changed_overlay
         analysis = changed_report and needs_analysis(sources)
         result = {"ok": True, "source_revision": before, "revision": before, "changed": changed,
-                  "dry_run": dry_run, "task_ids": sorted({s["task_id"] for s in summaries if s["task_id"] is not None}),
+                  "dry_run": dry_run, "task_ids": sorted({s[key] for s in summaries for key in ("task_id", "new_task_id") if s.get(key) is not None}),
                   "changes": summaries if changed else [], "analysis": "planned" if analysis else "not_required"}
         if not changed:
             return result
@@ -116,6 +149,7 @@ def execute(folder, action, request=None, *, task=None, dry_run=False, analyzer=
                 require(len(staged[name]) <= MAX_REPORT_BYTES, name + " exceeds the 1 MiB edit limit")
         validate_documents(candidate, next_overlay)
         validate_card_reference_changes(report, candidate)
+        staged.update(promoted_inputs(sources, candidate, [s for s in summaries if s["op"] == "item.promote"], stamp))
         if dry_run:
             return result
         transaction = LocalFileTransaction(folder)
@@ -155,7 +189,7 @@ class JsonParser(argparse.ArgumentParser):
 
 def main(argv=None):
     try:
-        parser = JsonParser(description="Report operations: task.add/update, item.add/update/move/event, report.update, dev.update, "
+        parser = JsonParser(description="Report operations: task.add/update, item.add/update/move/promote/event, report.update, dev.update, "
                             "next.set (task_id, item_id of an unfinished item) and next.clear. "
                             "item.add accepts position; item.move requires position with before or after a pending item ID.")
         parser.add_argument("action", choices=("get", "validate", "apply"))

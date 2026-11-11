@@ -451,7 +451,7 @@
           }
         },
         "activity": {
-          "$comment": "Written by the Report CLI and the Viewer, never by hand. Keep the first created, every started and takeover, the latest released and disputed, and the latest terminal transition (done, or updated with reserved note status:obsolete/status:discontinued); keep the most recent 3 other entries too.",
+          "$comment": "Written by the Report CLI and the Viewer, never by hand. Keep the first created, every started, takeover and promoted, the latest released and disputed, and the latest terminal transition (done, or updated with reserved note status:obsolete/status:discontinued); keep the most recent 3 other entries too.",
           "type": "array",
           "maxItems": 64,
           "items": {
@@ -477,6 +477,7 @@
             "done",
             "takeover",
             "released",
+            "promoted",
             "disputed"
           ]
         },

@@ -67,6 +67,55 @@ class ReportCliTests(unittest.TestCase):
             execute(self.root, "apply", self.request([link("three", "one")]))
         self.assertEqual((self.root / "report.json").read_bytes(), before)
 
+    def test_promotion_preserves_claim_binding_and_waits_and_moves_analysis_inputs_atomically(self):
+        source, waiter = self.report["tasks"]
+        item = source["pending_items"][1]
+        source["pending_items"] = [item]
+        source["progress"] = {"completed": 1, "total": 5}
+        item.update(status="in_progress", priority=1,
+                    document_ref={"kind": "checklist", "scope_id": "sample", "task": "demo"},
+                    activity=[{"event": "started", "actor": "codex", "session_id": "owner", "at": self.report["updated_at"]}])
+        wait = {"scope_id": "sample", "task_id": "one", "item_id": "item", "strict": True}
+        waiter["pending_items"] = [{"id": "waiter", "title": "Waits", "waits_for": [wait]}]
+        self.report["next"] = {"task_id": "one", "item_id": "item"}
+        self.write("report.json", self.report)
+        for name, field in [("time.estimates.json", "estimates"), ("time.events.json", "events"), ("cost.estimates.json", "estimates")]:
+            self.write(name, {field: [{"task_id": "one", "item_id": "item"}, {"task_id": "two", "item_id": "item"}]})
+        op = {"op": "item.promote", "task_id": "one", "item_id": "item",
+              "value": {"id": "new-card", "title": "New", "summary": "Separate scope of work"}}
+        request = self.request([op], session="owner")
+        paths = tuple(self.root.glob("*.json"))
+        before = {path.name: path.read_bytes() for path in paths}
+        with self.assertRaises(ReportError) as caught:
+            execute(self.root, "apply", self.request([op], session="other"))
+        self.assertEqual(caught.exception.code, "claim_conflict")
+        preview = execute(self.root, "apply", request, dry_run=True)
+        self.assertEqual(preview["changes"][0]["new_task_id"], "new-card")
+        self.assertEqual({path.name: path.read_bytes() for path in paths}, before)
+
+        def fail_analysis(*args):
+            raise ReportError("analysis_failed", "test rollback")
+
+        with self.assertRaisesRegex(ReportError, "test rollback"):
+            execute(self.root, "apply", request, analyze=fail_analysis)
+        self.assertEqual({path.name: path.read_bytes() for path in paths}, before)
+
+        execute(self.root, "apply", request, analyze=lambda *_: None)
+        saved = execute(self.root, "get")["report"]
+        original, moved, dependent = saved["tasks"]
+        self.assertEqual(original["card_refs"], [{"id": "item", "task_id": "new-card"}])
+        self.assertEqual(original["pending_items"], [])
+        self.assertNotIn("progress", original)
+        relocated = moved["pending_items"][0]
+        self.assertEqual({**relocated, "activity": relocated["activity"][:-1]}, item)
+        self.assertEqual((relocated["activity"][-1]["event"], relocated["activity"][-1]["note"]), ("promoted", "one"))
+        self.assertEqual(dependent["pending_items"][0]["waits_for"], [{**wait, "task_id": "new-card"}])
+        self.assertEqual(saved["next"], {"task_id": "new-card", "item_id": "item"})
+        self.assertEqual(moved["priority"], 1)
+        for name, field in [("time.estimates.json", "estimates"), ("time.events.json", "events"), ("cost.estimates.json", "estimates")]:
+            rows = json.loads((self.root / name).read_text(encoding="utf-8"))[field]
+            self.assertEqual([row["task_id"] for row in rows], ["new-card", "two"])
+
     def test_release_frees_the_claim_and_dispute_needs_a_note(self):
         op = lambda **kw: {"op": "item.event", "task_id": "one", "item_id": "item", **kw}
         execute(self.root, "apply", self.request([{"op": "item.update", "task_id": "one", "item_id": "item", "set": {"status": "in_progress"}}], session="s1"))
