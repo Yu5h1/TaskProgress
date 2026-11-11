@@ -1047,7 +1047,7 @@ function It(e, t, n, r, i, a, o = "both") {
     @choice-request=${(e) => a(e.detail.id)}></ui-option-picker>`;
 }
 function Lt({ id: e, label: t, expanded: n = !0, toggle: r, visibilityEnabled: i = !1, visible: a = !0, onVisibleChange: o }, s, c) {
-	return P`<div class="card-disclosure-heading ${n ? "" : "card-disclosure-collapsed"}"><button type="button" class="card-disclosure-toggle" aria-expanded=${n} aria-controls=${e} aria-label="${n ? "收合" : "展開"} ${t}" @click=${() => r(!n)}><span aria-hidden="true">${n ? "▼" : "▶"}</span></button>
+	return P`<div class="card-disclosure-heading ${n ? "" : "card-disclosure-collapsed"}">${r ? P`<button type="button" class="card-disclosure-toggle" aria-expanded=${n} aria-controls=${e} aria-label="${n ? "收合" : "展開"} ${t}" @click=${() => r(!n)}><span aria-hidden="true">${n ? "▼" : "▶"}</span></button>` : L}
   ${i ? P`<button type="button" class="card-visibility-toggle card-toolbar-icon" aria-pressed=${a} aria-label="${a ? "隱藏" : "顯示"} ${t}" @click=${() => o(!a)}>${Q(!a)}</button>` : L}${s}</div><div id=${e} class="card-disclosure-body" ?hidden=${!n}>${c}</div>`;
 }
 var Rt = class {

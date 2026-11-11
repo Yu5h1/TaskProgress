@@ -185,7 +185,7 @@ export function choice(view, key, items, value, label, choose, interaction = 'bo
     @choice-request=${event => choose(event.detail.id)}></ui-option-picker>`;
 }
 export function disclosure({ id, label, expanded = true, toggle, visibilityEnabled = false, visible = true, onVisibleChange }, header, body) {
-  return html`<div class="card-disclosure-heading ${expanded ? '' : 'card-disclosure-collapsed'}"><button type="button" class="card-disclosure-toggle" aria-expanded=${expanded} aria-controls=${id} aria-label="${expanded ? '收合' : '展開'} ${label}" @click=${() => toggle(!expanded)}><span aria-hidden="true">${expanded ? '▼' : '▶'}</span></button>
+  return html`<div class="card-disclosure-heading ${expanded ? '' : 'card-disclosure-collapsed'}">${toggle ? html`<button type="button" class="card-disclosure-toggle" aria-expanded=${expanded} aria-controls=${id} aria-label="${expanded ? '收合' : '展開'} ${label}" @click=${() => toggle(!expanded)}><span aria-hidden="true">${expanded ? '▼' : '▶'}</span></button>` : nothing}
   ${visibilityEnabled ? html`<button type="button" class="card-visibility-toggle card-toolbar-icon" aria-pressed=${visible} aria-label="${visible ? '隱藏' : '顯示'} ${label}" @click=${() => onVisibleChange(!visible)}>${eye(!visible)}</button>` : nothing}${header}</div><div id=${id} class="card-disclosure-body" ?hidden=${!expanded}>${body}</div>`;
 }
 

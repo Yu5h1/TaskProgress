@@ -32,3 +32,11 @@ test('the five production scenes are banner-free and deploy byte-identical bundl
   const rootHtml = await readFile(resolve(root, 'viewer/index.html'), 'utf8');
   for (const match of rootHtml.matchAll(/<(?:script|link)\b[^>]*(?:src|href)="([^"]+)"/g)) assert.match(match[1], /^(?:\.\/)?assets\//);
 });
+
+test('the standalone card route uses the same deployed Viewer assets', async () => {
+  const deployed = resolve(root, 'viewer/card');
+  const html = await readFile(resolve(deployed, 'index.html'), 'utf8');
+  assert.equal(html, await readFile(resolve(site, 'release/viewer/card/index.html'), 'utf8'));
+  assert.match(html, /src="\.\.\/assets\/viewer-ui\.js"/);
+  for (const match of html.matchAll(/<(?:script|link)\b[^>]*(?:src|href)="([^"]+)"/g)) await access(resolve(deployed, match[1]));
+});

@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-11-11T14:31:55.950723+00:00",
+  "updated_at": "2026-11-11T14:38:00.578859+00:00",
   "tasks": [
     {
       "id": "gemini-workflow-trial",
@@ -2789,6 +2789,49 @@
       "summary": "正式 Viewer 已具備可分享的唯讀進度報告、Developer overlay、主題系統與響應式介面。",
       "completed_items": [
         {
+          "id": "item-card-page",
+          "status": "done",
+          "priority": 2,
+          "title": "卡片頁 /card/?scope=&task=：一次顯示一張卡，頂端是麵包屑路徑與引用它的上層卡，沿用 Report 卡片元件與編輯模式。[卡片頁設計](/document/?scope=task-progress&path=Documentation%2FCardDisclosurePlan.md#根卡清單與卡片頁)",
+          "activity": [
+            {
+              "event": "created",
+              "actor": "claude",
+              "at": "2026-11-11T14:05:29.468239+00:00",
+              "session": "VCP report 整理",
+              "session_id": "95101c81-3257-4d44-90a2-b1e494306ba0"
+            },
+            {
+              "event": "updated",
+              "actor": "claude",
+              "at": "2026-11-11T14:15:16.988616+00:00",
+              "session": "VCP report 整理",
+              "session_id": "95101c81-3257-4d44-90a2-b1e494306ba0"
+            },
+            {
+              "event": "started",
+              "actor": "codex",
+              "at": "2026-11-11T14:32:15.114538+00:00",
+              "session": "參照鏈與等待佇列",
+              "session_id": "01a1873a-2fef-74c2-a673-a41bb27657dd"
+            },
+            {
+              "event": "done",
+              "actor": "codex",
+              "at": "2026-11-11T14:38:00.578859+00:00",
+              "session": "參照鏈與等待佇列",
+              "session_id": "01a1873a-2fef-74c2-a673-a41bb27657dd"
+            }
+          ],
+          "waits_for": [
+            {
+              "scope_id": "task-progress",
+              "task_id": "node-progress-view",
+              "item_id": "item-card-ref-chain"
+            }
+          ]
+        },
+        {
           "id": "item-root-card-list",
           "status": "done",
           "priority": 2,
@@ -3362,35 +3405,6 @@
           "retirement": {
             "reason": "使用者於 Viewer Core 決策確認，維護和後續需求使用任務卡，依優先級安排先後。"
           }
-        },
-        {
-          "id": "item-card-page",
-          "status": "planned",
-          "priority": 2,
-          "title": "卡片頁 /card/?scope=&task=：一次顯示一張卡，頂端是麵包屑路徑與引用它的上層卡，沿用 Report 卡片元件與編輯模式。[卡片頁設計](/document/?scope=task-progress&path=Documentation%2FCardDisclosurePlan.md#根卡清單與卡片頁)",
-          "activity": [
-            {
-              "event": "created",
-              "actor": "claude",
-              "at": "2026-11-11T14:05:29.468239+00:00",
-              "session": "VCP report 整理",
-              "session_id": "95101c81-3257-4d44-90a2-b1e494306ba0"
-            },
-            {
-              "event": "updated",
-              "actor": "claude",
-              "at": "2026-11-11T14:15:16.988616+00:00",
-              "session": "VCP report 整理",
-              "session_id": "95101c81-3257-4d44-90a2-b1e494306ba0"
-            }
-          ],
-          "waits_for": [
-            {
-              "scope_id": "task-progress",
-              "task_id": "node-progress-view",
-              "item_id": "item-card-ref-chain"
-            }
-          ]
         },
         {
           "id": "problem-report-json-contention",

@@ -86,6 +86,8 @@ export async function buildCandidate({ production = false } = {}) {
     html = html.replace('</head>', `<link rel="stylesheet" href="${depth}theme/theme.css">\n<link rel="stylesheet" href="${local}assets/styles.css">\n<link rel="stylesheet" href="${local}component-styles.css">\n<link rel="stylesheet" href="${local}product.css">\n<script src="${depth}theme/bootstrap.js"></script>\n<script src="${local}theme-start.js"></script>\n<script type="module" src="${page ? './' + page.slice(0, -1) + '-ui.js' : './demo.js'}"></script>\n</head>`);
     if (!production) html = html.replace('<body>', '<body><aside class="replica-notice" aria-label="TaskProgress 來源建置候選">TaskProgress 來源建置候選 · 獨立測試資料 · <a href="http://127.0.0.1:8001/?scope=task-progress">正式版</a></aside>');
     await put('demo/taskprogress/' + page + 'index.html', html);
+    if (!page) await put('demo/taskprogress/card/index.html', html.replace(/\b(src|href)="(?![#/]|\w+:)([^"]+)"/g,
+      (_, attr, path) => `${attr}="../${path.replace(/^\.\//, '')}"`));
   }
   // Stage the exact production layout separately; activation belongs to release acceptance.
   const release = 'release/viewer/';
@@ -93,11 +95,11 @@ export async function buildCandidate({ production = false } = {}) {
     const name = relative(output, path).replaceAll('\\', '/');
     if (name.startsWith('reference/') || /^(assets\/viewer-ui\.|(?:checklist|decisions)\/.*-ui\.css)/.test(name)) continue;
     let bytes = await readFile(path);
-    if (['index.html', 'checklist/index.html', 'decisions/index.html', 'document/index.html'].includes(name)) {
+    if (['index.html', 'card/index.html', 'checklist/index.html', 'decisions/index.html', 'document/index.html'].includes(name)) {
       const local = name.includes('/') ? '../' : './';
       bytes = bytes.toString('utf8').replace(/(?:\.\.\/){2,3}theme\//g, local + 'assets/web/theme/')
         .replace(/((?:\.\/|\.\.\/))(component-styles\.css|product\.css|theme-start\.js)/g, '$1assets/$2')
-        .replace('./demo.js', './assets/viewer-ui.js');
+        .replace(/(\.\.\/|\.\/)demo\.js/g, '$1assets/viewer-ui.js');
     }
     const target = name === 'demo.js' ? 'assets/viewer-ui.js' : ['theme-start.js', 'component-styles.css', 'product.css'].includes(name) ? 'assets/' + name : name;
     await put(release + target, bytes);

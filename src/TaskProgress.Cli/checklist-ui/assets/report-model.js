@@ -271,7 +271,7 @@ function cardReferenceOrder(tasks) {
 export function cardReferenceAncestors(parents, taskId) {
   const ancestors = new Set([taskId]);
   for (const id of ancestors) {
-    for (const parent of parents.get(id) ?? []) ancestors.add(parent);
+    for (const parent of parents?.get(id) ?? []) ancestors.add(parent);
   }
   return ancestors;
 }

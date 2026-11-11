@@ -6,6 +6,7 @@ import { clearNextMarker, liftNextTask, nextRefusal, resolveNext, setNextMarker 
 import { SELECT_KEY_ATTRIBUTE, createItemSelection } from "./item-selection.js";
 import { isSelectionIgnoredTarget } from "./selection-input.js";
 import { parseReference, referenceTask, searchTask, searchTerms } from "./task-search.js";
+import { cardPageUrl, cardTrail, reportPageUrl, restoreCardTrail } from "./card-navigation.js";
 import {
   createDocumentBindingRefresher,
   documentBindingLabel,
@@ -150,8 +151,13 @@ function attachedModule(type) {
   return state.attachedModules.find((entry) => entry.type === type)?.instance ?? null;
 }
 
+const cardPageTask = new URLSearchParams(location.search).get("task");
+const reportPage = reportPageUrl(location.href);
+const enteredCardTrail = cardPageTask ? restoreCardTrail() : [];
+
 const elements = {
   title: document.querySelector("#report-title"),
+  hero: document.querySelector(".hero"),
   summary: document.querySelector("#report-summary"),
   meta: document.querySelector("#report-meta"),
   updatedAt: document.querySelector("#updated-at"),
@@ -679,7 +685,7 @@ function addTaskItem(taskId, draftTitle, priority) {
 function safeReportUrl(value, label) {
   let url;
   try {
-    url = new URL(value, document.baseURI);
+    url = new URL(value, reportPage);
   } catch {
     throw new Error(`${label} 不是有效的 URL。`);
   }
@@ -707,7 +713,7 @@ async function fetchJson(value, label) {
  */
 async function loadCostAnalysis(reportSource, scopeId) {
   try {
-    const url = new URL("cost.analysis.json", new URL(reportSource, document.baseURI));
+    const url = new URL("cost.analysis.json", new URL(reportSource, reportPage));
     const raw = await fetchOptionalJson(url, "cost.analysis.json");
     if (!raw) return null;
     const status = inspectCostAnalysis(raw, scopeId);
@@ -943,8 +949,8 @@ async function refreshDocumentBindings() {
 // Top-level task adder. The control is shared; the host keeps Unicode
 // validation and stable ID generation because both belong to Editor Core.
 function renderTaskAdder({ expanded = false, error = "" } = {}) {
-  elements.taskAddShell.hidden = !state.editor.editing;
-  if (!state.editor.editing) {
+  elements.taskAddShell.hidden = !state.editor.editing || Boolean(cardPageTask);
+  if (elements.taskAddShell.hidden) {
     state.taskAdderView?.destroy();
     state.taskAdderView = null;
     elements.taskAddShell.replaceChildren();
@@ -1010,7 +1016,7 @@ function taskListProps(tasks) {
       const scopeId = task.report_ref?.scope_id ?? null;
       pointerCards[task.id] = {
         ...pointerCardView(task.id),
-        openHref: scopeId ? buildScopeHref(scopeId) : null,
+        openHref: scopeId ? new URL(buildScopeHref(scopeId), reportPage).href : null,
       };
       return;
     }
@@ -1134,7 +1140,7 @@ function renderTasks() {
   const search = (task) => (reference
     ? reference.scopeId === state.report.scope_id ? referenceTask(task, reference) : null
     : searchTask(task, terms, { ids: SEARCH_MATCHES_IDS, itemTexts: (item) => [documentBindingLabel(item.document_ref)] }));
-  const tasks = orderedTasks
+  const tasks = cardPageTask ? orderedTasks.filter(task => task.id === cardPageTask) : orderedTasks
     .filter((task) => task.id === requestedPin || taskKind(task) === "report_pointer"
       || taskMatchesSelection(task, selected)
       || taskHasSelectedItem(task, selected))
@@ -1150,6 +1156,22 @@ function renderTasks() {
     .filter(Boolean);
 
   const props = taskListProps(tasks);
+  const references = indexCardReferences(orderedTasks);
+  if (cardPageTask) {
+    const trail = cardTrail(enteredCardTrail, cardPageTask, references.targetsById);
+    const link = id => ({
+      id, title: references.byId.get(id).title, href: cardPageUrl(location.href, state.report.scope_id, id).href,
+      trail: trail.includes(id) ? trail.slice(0, trail.indexOf(id) + 1) : [id],
+    });
+    props.cardPage = {
+      trail,
+      breadcrumbs: trail.filter(id => references.byId.has(id)).map(link),
+      parents: (references.parents.get(cardPageTask) ?? []).map(link),
+      reportHref: reportPage.href,
+      reportTitle: state.report.title,
+    };
+    props.emptyLabel = "找不到這張任務卡。";
+  }
   // Observe committed, fully projected cards before filtering. Draft status
   // changes and the initial unfinished binding load are not completion events.
   props.completionStates = state.documentEvaluationsReady
@@ -1171,7 +1193,7 @@ function renderTasks() {
   props.hiddenCount = (visibleIds) => hiddenEntryCount(
     visibleIds ? orderedTasks.filter(task => visibleIds.has(task.id)) : orderedTasks, tasks,
   );
-  props.referenceParents = indexCardReferences(orderedTasks).parents;
+  props.referenceParents = references.parents;
   props.onShowHidden = showHiddenEntries;
   props.scopeId = state.report.scope_id;
   props.reorderable = state.editor.available && !state.editor.editing;
@@ -1210,7 +1232,10 @@ function renderTasks() {
 
 function renderReport() {
   const { report } = state;
-  document.title = `${report.title} — TaskProgress`;
+  const card = cardPageTask && report.tasks.find(task => task.id === cardPageTask);
+  document.title = `${card?.title ?? report.title} — TaskProgress`;
+  elements.hero.hidden = Boolean(cardPageTask);
+  if (cardPageTask) elements.title.href = reportPage.href;
   setReportTitle(report.title);
   renderReportSummary({
     text: reportSummaryText(report),
@@ -1669,7 +1694,7 @@ async function main() {
     const devSource = resolveDeveloperReportSource(
       params,
       request,
-      document.baseURI,
+      reportPage,
     );
     if (devSource) {
       try {
@@ -1697,7 +1722,7 @@ async function main() {
 
     const merged = mergeReports(report, developerReport);
     state.report = report;
-    const filterKey = `taskprogress.filters.report.v1:${new URL(request.reportSource, location.href).href}:${report.scope_id}:${report.report_id}`;
+    const filterKey = `taskprogress.filters.report.v1:${new URL(request.reportSource, reportPage).href}:${report.scope_id}:${report.report_id}`;
     if (state.filterStorageKey !== filterKey) {
       state.selection = loadFilterSelection(filterKey, supportedStatuses, statusOrderStorage);
       state.filterStorageKey = filterKey;
@@ -1743,7 +1768,7 @@ async function main() {
       const manifestResult = await loadManifestTimeAnalysis({
         report,
         reportSource: request.reportSource,
-        baseUrl: document.baseURI,
+        baseUrl: reportPage,
         fetchJson: (url) => fetchOptionalJson(url, "report.modules.json"),
       });
       if (manifestResult.handled) timeResult = manifestResult;
@@ -1752,7 +1777,7 @@ async function main() {
     if (!timeResult) {
       timeResult = await loadLegacyTimeAnalysis({
         reportSource: request.reportSource,
-        baseUrl: document.baseURI,
+        baseUrl: reportPage,
         explicitTimeSource,
         scopeId: report.scope_id,
         fetchJson: fetchTimeJson,
@@ -1912,7 +1937,7 @@ async function refreshForegroundSilently() {
     if (errors.length) return;
 
     let developerReport = null;
-    const devSource = resolveDeveloperReportSource(params, request, document.baseURI);
+    const devSource = resolveDeveloperReportSource(params, request, reportPage);
     if (devSource) {
       try {
         const isAutomatic = !params.get("dev");

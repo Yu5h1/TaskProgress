@@ -3216,6 +3216,9 @@ footer {
 .card-disclosure-heading .time-task-title-line .status-badge { white-space: nowrap; }
 .card-disclosure-heading .task-header-meta { grid-column: 2; grid-row: 1; flex-direction: row; align-items: center; padding-top: 0; }
 .card-disclosure-heading .task-fraction { white-space: nowrap; }
+.report-card-path ol, .report-card-parents ul { display: flex; flex-wrap: wrap; gap: .4em .7em; margin: 0; padding: 0; list-style: none; }
+.report-card-path li { display: inline-flex; align-items: baseline; gap: .7em; overflow-wrap: anywhere; }
+.report-card-parents { display: flex; flex-wrap: wrap; gap: .4em .8em; color: var(--ink-soft); }
 .checklist-outcome { margin: 0; }
 
 .card-list-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; grid-column: 1 / -1; color: var(--ink-soft); font-size: .8rem; }

@@ -1,5 +1,6 @@
 import { registerUiAdapter } from '@taskprogress/ui-host.js';
 import { cardReferenceAncestors, stableSortTaskItemsByPriority, STATUS_META, ITEM_STATUS_META } from '@taskprogress/report-model.js';
+import { cardPageUrl, rememberCardTrail } from '@taskprogress/card-navigation.js';
 import { parseReference } from '@taskprogress/task-search.js';
 import { liftNextItem } from '@taskprogress/next-marker.js';
 import { itemReference } from '@taskprogress/item-reference.js';
@@ -73,9 +74,11 @@ function reorderItems(p, view, task) {
 }
 
 const itemContext = url => [...url.searchParams].filter(([key]) => key !== 'pin' && key !== 'link-tone').sort().map(pair => pair.join('=')).join('&');
+const plainClick = event => !event.defaultPrevented && event.button === 0
+  && !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey;
 
 function navigateVisibleItem(event, view) {
-  if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return false;
+  if (!plainClick(event)) return false;
   const link = event.target.closest('a[href]');
   if (!link || link.hasAttribute('download') || (link.target && link.target !== '_self')) return false;
   const destination = new URL(link.href, location.href), current = new URL(location.href);
@@ -102,6 +105,7 @@ function activateItemTarget(view, force = false) {
   try { arrival = JSON.parse(sessionStorage.getItem('taskprogress-item-arrival')); } catch { arrival = null; }
   const currentArrival = arrival?.destination === location.href ? arrival : null;
   view.activeCardArrival = currentArrival?.cardId ?? null;
+  view.cardSourceTrail = currentArrival?.sourceTrail;
   view.itemReturnUrl = view.activeItemHash || view.activeCardArrival ? currentArrival?.source ?? null : null;
   sessionStorage.removeItem('taskprogress-item-arrival');
   if (view.activeItemHash) history.replaceState({ ...history.state, itemTargetShown: hash }, '');
@@ -111,6 +115,7 @@ function returnToItem(view) {
   if (!view.itemReturnUrl) return;
   const destination = new URL(view.itemReturnUrl), current = new URL(location.href);
   if (view.activeCardArrival || destination.origin !== current.origin || destination.pathname !== current.pathname || itemContext(destination) !== itemContext(current)) {
+    if (view.cardSourceTrail) rememberCardTrail(destination.href, view.cardSourceTrail);
     location.assign(destination.href);
     return;
   }
@@ -121,17 +126,19 @@ function returnToItem(view) {
   view.refresh();
 }
 
-function rememberCardArrival(event, task, reference) {
-  if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+function rememberCardArrival(event, task, reference, sourceTrail) {
+  if (!plainClick(event)) return;
   const source = new URL(location.href);
   const scope = new URL(event.currentTarget.href).searchParams.get('scope');
   if (scope) source.searchParams.set('scope', scope);
-  source.searchParams.set('pin', task.id);
+  if (!sourceTrail) source.searchParams.set('pin', task.id);
   source.hash = `#item-${task.id}--${reference.id}`;
+  rememberCardTrail(event.currentTarget.href, [...(sourceTrail ?? [task.id]), reference.task_id]);
   sessionStorage.setItem('taskprogress-item-arrival', JSON.stringify({
     destination: event.currentTarget.href,
     source: source.href,
     cardId: reference.task_id,
+    sourceTrail,
   }));
 }
 
@@ -154,10 +161,7 @@ function cardReferenceList(p, v, task, command) {
     <h4 class="detail-heading">參照卡片${fraction && p.progress[task.id]?.total ? ` · ${fraction.completed} / ${fraction.total} 張完成` : ''}</h4>
     ${references.length ? html`<ul class="detail-list">${repeat(references, ref => ref.id, ref => {
       const meta = status(ref.status);
-      const href = new URL(location.href);
-      href.searchParams.set('scope', p.scopeId);
-      href.searchParams.set('pin', ref.task_id);
-      href.hash = '';
+      const href = cardPageUrl(location.href, p.scopeId, ref.task_id);
       const id = `item-${task.id}--${ref.id}`;
       return html`<li id=${id} data-item-row class="report-reference-row" ?data-item-target=${v.activeItemHash === `#${id}`}>
         ${p.editing ? html`<select aria-label=${`編輯「${ref.title}」的參照`} .value=${live(ref.task_id)} @change=${e => changeReference(ref.id, e.currentTarget.value)}>
@@ -165,7 +169,7 @@ function cardReferenceList(p, v, task, command) {
           ${choices(ref.task_id).map(target => html`<option value=${target.id}>${target.title}</option>`)}</select>
           <button type="button" class="inline-delete-button" @click=${() => changeReference(ref.id, null)}>移除參照</button>`
         : ref.error ? html`<span>${ref.title} · ${ref.error}</span>`
-        : html`<a href=${href.href} @click=${event => rememberCardArrival(event, task, ref)}>${ref.title} ⮩</a>
+        : html`<a href=${href.href} @click=${event => rememberCardArrival(event, task, ref, p.cardPage?.trail)}>${ref.title} ⮩</a>
           <span class="report-reference-meta"><span class="status-badge status-${meta.tone}">${meta.label}</span>
             <span>${ref.progress.completed} / ${ref.progress.total}</span></span>`}
       </li>`;
@@ -264,15 +268,24 @@ function taskCard(p, v, task, card) {
     ${p.moduleTotals?.[task.id]?.length ? html`<div class="task-module-totals">${p.moduleTotals[task.id].map(t => html`<span class="task-module-total task-module-total-${t.id}">${t.label}</span>`)}</div>` : nothing}</div>
     <div class="task-header-meta"><strong class="task-fraction" aria-label="${progressUnit}完成 ${progress.completed}，共 ${progress.total}">${progress.completed} / ${progress.total}</strong>${p.editing && !referenceOnly ? options(statuses, task.status, `${task.title} 狀態`, v => command('status', v), 'inline-status-select') : html`<span class="status-badge status-${meta.tone}">${meta.label}</span>`}<code class="task-id">${task.id}</code></div></header>`,
     html`${p.editing ? html`<textarea class="task-summary-input" aria-label="任務描述" maxlength="1000" rows="3" .value=${live(task.summary ?? '')} @input=${e => command('summary', e.currentTarget.value)}></textarea>` : html`<div class="task-summary">${text(task.summary, { lines: 2, emphasis: true })}</div>`}${goal(task.goal_ref, p.scopeId, task.id)}${developer(task.developer)}
-      <div class="work-columns">${cardReferenceList(p, v, task, command)}${groups.map(g => g.items.length || p.editing ? html`<section class="detail-section ${g.className}"><h4 class="detail-heading">${g.title}</h4><ul class="detail-list" id="task-${task.id}-${g.field}" ${action(reorderAction,reorderItems(p,v,task))}>${repeat(g.status === 'done' && !p.editing && !v.state[`completed:${task.id}`] ? g.items.slice(0, 1) : g.items, row => row.item.id, ({item,field}, index) => itemRow(p, v, task, field, item, (card.lead && g.status !== 'done' && index === 0) || item.id === p.nextItemId))}</ul>
-      ${g.status === 'done' && !p.editing && g.items.length > 1 ? html`<button type="button" class="completed-more" aria-expanded=${!!v.state[`completed:${task.id}`]} aria-controls="task-${task.id}-${g.field}" @click=${() => { v.state[`completed:${task.id}`] = !v.state[`completed:${task.id}`]; v.draw(); }}><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d=${v.state[`completed:${task.id}`] ? 'M3 10l5-5 5 5' : 'M3 6l5 5 5-5'} fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" /></svg>${v.state[`completed:${task.id}`] ? '收合' : `顯示更多（${g.items.length - 1}項）`}</button>` : nothing}</section>` : nothing)}
+      <div class="work-columns">${cardReferenceList(p, v, task, command)}${groups.map(g => g.items.length || p.editing ? html`<section class="detail-section ${g.className}"><h4 class="detail-heading">${g.title}</h4><ul class="detail-list" id="task-${task.id}-${g.field}" ${action(reorderAction,reorderItems(p,v,task))}>${repeat(g.status === 'done' && !p.editing && !p.cardPage && !v.state[`completed:${task.id}`] ? g.items.slice(0, 1) : g.items, row => row.item.id, ({item,field}, index) => itemRow(p, v, task, field, item, (card.lead && g.status !== 'done' && index === 0) || item.id === p.nextItemId))}</ul>
+      ${g.status === 'done' && !p.editing && !p.cardPage && g.items.length > 1 ? html`<button type="button" class="completed-more" aria-expanded=${!!v.state[`completed:${task.id}`]} aria-controls="task-${task.id}-${g.field}" @click=${() => { v.state[`completed:${task.id}`] = !v.state[`completed:${task.id}`]; v.draw(); }}><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d=${v.state[`completed:${task.id}`] ? 'M3 10l5-5 5 5' : 'M3 6l5 5 5-5'} fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" /></svg>${v.state[`completed:${task.id}`] ? '收合' : `顯示更多（${g.items.length - 1}項）`}</button>` : nothing}</section>` : nothing)}
       <section class="task-adder-section">${p.editing ? html`<div class="spike-add-shell">${v.state[`add:${task.id}`] ? html`<form class="spike-add-form" @submit=${e => { e.preventDefault(); const data = new FormData(e.currentTarget); const result = p.onAddItem(task.id, data.get('title'), Number(data.get('priority'))); v.state[`error:${task.id}`] = result?.error; if (!result?.error) v.state[`add:${task.id}`] = false; v.draw(); }}><input name="title" aria-label="新增子項目描述" placeholder="新增待處理項目" maxlength="500"><select name="priority" aria-label="新增子項目優先級">${p.policy.levels.map(level => html`<option value=${level.value} ?selected=${level.value === p.policy.creationDefaultValue}>${p.policy.format(level.value)}</option>`)}</select><button type="submit">新增</button><button type="button" @click=${() => { v.state[`add:${task.id}`] = false; v.draw(); }}>取消</button><p class="spike-field-error" role="alert">${v.state[`error:${task.id}`] ?? ''}</p></form>` : html`<button class="spike-add-button" type="button" aria-label="在「${task.title}」新增子項目" @click=${() => { v.state[`add:${task.id}`] = true; v.draw(); }}>＋</button>`}</div>` : nothing}</section></div>`)}
   </article>`;
 }
 
+function cardPageNavigation(page) {
+  const link = entry => html`<a href=${entry.href} @click=${event => {
+    if (plainClick(event)) rememberCardTrail(entry.href, entry.trail);
+  }}>${entry.title}</a>`;
+  return html`<nav class="report-card-path" aria-label="卡片路徑">
+    <ol><li><a href=${page.reportHref}>${page.reportTitle}</a></li>${page.breadcrumbs.map((entry, index) => html`<li><span aria-hidden="true">›</span>${index === page.breadcrumbs.length - 1 ? html`<span aria-current="page">${entry.title}</span>` : link(entry)}</li>`)}</ol>
+  </nav>${page.parents.length ? html`<nav class="report-card-parents" aria-label="引用這張卡片的上層卡"><span>上層卡片</span><ul>${page.parents.map(entry => html`<li>${link(entry)}</li>`)}</ul></nav>` : nothing}`;
+}
+
 const templates = {
   'task-list': (p, v) => {
-    if (!v.cards) { v.cards = new Cards(v); activateItemTarget(v); v.on(window, 'hashchange', () => { activateItemTarget(v); v.lastItemHash = null; v.refresh(); }); v.on(window, 'popstate', () => { v.activeItemHash = null; v.activeCardArrival = null; v.itemReturnUrl = null; v.refresh(); }); }
+    if (!v.navigationReady) { v.navigationReady = true; activateItemTarget(v); v.on(window, 'hashchange', () => { activateItemTarget(v); v.lastItemHash = null; v.refresh(); }); v.on(window, 'popstate', () => { v.activeItemHash = null; v.activeCardArrival = null; v.itemReturnUrl = null; v.refresh(); }); }
     if (v.activeItemHash && v.lastItemHash !== v.activeItemHash) {
       const hash = v.activeItemHash;
       queueMicrotask(() => queueMicrotask(() => {
@@ -282,8 +295,14 @@ const templates = {
       }));
     }
     if (v.selectionSource !== p.selection) { v.unsubscribe?.(); v.selectionSource = p.selection; v.unsubscribe = p.selection?.subscribe(s => { v.state.selection = s; queueMicrotask(v.refresh); }); v.cleanups.push(() => v.unsubscribe?.()); }
+    const renderCard = (task, card) => task.kind === 'report_pointer' ? pointer(p, task, card) : taskCard(p, v, task, card);
+    if (p.cardPage) {
+      const [task] = p.tasks;
+      return html`${cardPageNavigation(p.cardPage)}${task ? html`<div data-card-id=${task.id}>${renderCard(task, { lead: true })}</div>` : html`<p class="empty-state">${p.emptyLabel}</p>`}${retirementDialog(p,v)}`;
+    }
+    v.cards ??= new Cards(v);
     return html`${v.cards.render({ items: p.tasks, allIds: p.allIds, storageKey: p.cardStorageKey, pinEnabled: true, completionStates: p.completionStates, completedIds: p.completedIds, requestedPin: p.requestedPin, nextId: p.nextTaskId, onSourceReorder: p.onCardReorder, reorderGroups: p.cardReorderGroups, hiddenCount: p.hiddenCount, onShowHidden: p.onShowHidden, referenceParents: p.referenceParents, searching: Boolean(p.searchQuery?.trim()) },
-      (task, card) => task.kind === 'report_pointer' ? pointer(p, task, card) : taskCard(p, v, task, card), p.filters ? filters(p.filters) : nothing,
+      renderCard, p.filters ? filters(p.filters) : nothing,
       html`${p.onSearch ? html`<ui-search-field class="task-search" label="搜尋任務卡名稱、摘要與子項" placeholder="搜尋名稱、摘要、子項"
         .query=${p.searchQuery ?? ''} @query-change=${e => p.onSearch(e.detail.query)}></ui-search-field>` : nothing}`)}${!p.tasks.length ? html`<p class="empty-state">${p.emptyLabel}</p>` : nothing}${retirementDialog(p,v)}`;
   },
