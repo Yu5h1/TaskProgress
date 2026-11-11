@@ -1,6 +1,6 @@
 ---
 name: task-progress-report
-description: Generate, update, validate, roll up, register, and locally deploy TaskProgress report.json, optional report.dev.json, and optional time.analysis.json for Yu5h1Lib scopes. Use when an agent is asked to create or refresh project or multi-project workspace progress, synthesize a portfolio report from routed child scopes or deliverables, bind checklists or decisions to report items, estimate task or item time, publish deadline risk, onboard another workspace, prepare or register a scope, synchronize the shared all-scope localhost Viewer, or verify TaskProgress report data locally.
+description: Generate, update, validate, roll up, register, and locally deploy TaskProgress report.json, optional report.dev.json, and optional time.analysis.json for Yu5h1Lib scopes. Use when an agent is asked to create or refresh project or multi-project workspace progress, synthesize a portfolio report from routed child scopes or deliverables, bind checklists or decisions to report items, refresh stale card and item statuses against repository history, estimate task or item time, publish deadline risk, onboard another workspace, prepare or register a scope, synchronize the shared all-scope localhost Viewer, or verify TaskProgress report data locally.
 ---
 
 # TaskProgress report workflow
@@ -75,6 +75,25 @@ Before adding an item, apply the [creation check](#check-for-existing-cards-and-
 - The user may paste an item reference copied from the Viewer: `<scope-id> › <task-id> › <item-id>`. Resolve it by IDs with `report get --scope <scope-id> --task <task-id>` and address the item by `<item-id>`. Older pastes may end with a 「title head」; ignore it beyond a sanity check. When the IDs do not resolve, say so instead of guessing ([format](../../../Documentation/ItemReference.md)).
 - Every `report apply` request carries `"actor"` (your tool in lowercase: `claude`, `codex`, `antigravity`) plus `"session"` (your session's name, the title shown in your tool) and `"session_id"` when you know them; the CLI records item activity from them. The Viewer shows the name; claims compare only `session_id`. Setting an item `in_progress` claims it. A dispatcher running groups in worktrees ([task-progress § Queues and sessions](../task-progress/SKILL.md#queues-and-sessions)) claims every item of a group before starting it, with `session` set to `dispatch:<group>` and its own `session_id`; the worktree session does not claim again, and the dispatcher releases the items when it merges the group. When the CLI answers `claim_unverified`, retry that operation with `"claim": "own"` only if you started the item yourself; on `claim_conflict`, or when you do not recognize the work, stop and ask the user, then retry with `"claim": "takeover"` once they agree. A `released` event frees only your own claim; releasing another session's committed but unreleased work takes the user's yes and `"claim": "recover"`, which records no takeover ([activity and claims](../../../Documentation/ItemActivityLog.md#認領)).
 - A missing child status falls back to array membership: completed_items means done, pending_items means planned. The parent card's status does not make its children in_progress. Legacy strings need a separate supported migration before ID-addressed editing; do not target them by label or array index.
+
+## Refresh stale statuses
+
+Use when the user asks to tidy a scope's Report or bring its statuses up to date (「整理 report」／「更新過時狀態」), in any scope. Writes follow § Update existing Report through CLI; claims, waits, bound items and retirement follow § Maintain child items.
+
+1. Run `report get` on the scope. List every card and unfinished item with its stored status, `derived_state`, and last `activity` entry (time and session).
+2. Read the repository history after each item's last activity (`git log`), plus the handoff and the documents it routes to.
+3. Check every card and item for these signals:
+   - The card's status disagrees with its items: items in progress or done under a `planned` card, or every item finished under an unfinished card.
+   - The work is finished but the item is not: its commit is on the main line, or its title already says the work is done and only a remainder the user declined is left.
+   - An `in_progress` claim whose session has shown no activity for days.
+   - A summary or title still states a condition that has since resolved, such as "not started" or "awaiting the user's check".
+   - Other cards have already met this card's goal, typically a future-direction card. Record each finished part as a done item that links to the card that did it (§ Inline links). Make each remaining part an item with `waits_for` on that card's key item. Then mark the card long-running in its title (the schema has no card kind), or archive it once nothing remains.
+   - Documents disagree: the handoff, plan or design records say different things about the same work, or contradict the Report.
+4. Sort what you found:
+   - **Change directly** what has evidence: a commit, a recorded acceptance, or the user's confirmation in this conversation. Name the evidence in the item title, as a commit hash or 「使用者 <date> 確認」.
+   - **Ask the user, in one message,** about the rest: an item with no evidence, a `[manual]` acceptance (only the user marks it), a claim takeover, or merging or archiving a card.
+   - **Document conflicts:** fix one in this scope. For one in another scope, record a 「問題：…」 item there (`AgentsRule.md` § Core contract).
+5. Apply the changes in one `report apply` batch and run `report validate`. If the working tree already carries another agent's change to `report.json`, stage only the cards you changed (`AgentsRule.md` task flow step 7). Report each change with its evidence, and each signal you left alone with the reason.
 
 ## Generate `report.json`
 
