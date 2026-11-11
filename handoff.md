@@ -6,6 +6,8 @@ Reorganized 2026-08-06 to match `AgentsRule.md`'s handoff role (current state, a
 
 ## Current state (2026-09-29)
 
+- **同一 Report 的卡片參照與卡頭層級（`822cb0c`）。** [參照設計](Documentation/NodeProgressViewPlan.md#同一-scope-的卡片參照匯總)、[Report CLI](Documentation/ReportCliUsage.md#同一-report-的卡片參照)及 [卡頭層級](Documentation/CardDisclosurePlan.md#report-卡片與子項的視覺層級)分別擁有契約。發布前在隔離報告驗證兩個來源的 ⮪、390px 亮暗色、編輯 API 儲存與重讀，以及無效目標拒絕。2026-11-11 正式 Windows x64 發布後，CLI 從隔離報告讀出 1／2，8001 Viewer 顯示編輯入口，原有 16 個 scope 全數恢復。節點圖的後續選擇見 [尚未決定](Documentation/NodeProgressViewPlan.md#尚未決定)。
+
 - **Terminal child stacking:** continue from [ReportItemOrderingPlan](Documentation/ReportItemOrderingPlan.md#結束子項堆疊), the [activity contract](Documentation/ItemActivityLog.md#結束狀態轉換), and [this round](checklists/item-terminal-stack.checklist). `item-stack.js` owns display grouping; Editor Core injects `recordTerminalTransitions` from the activity owner. Raw array membership remains status-based; preserve the field-derived status fallback and host command remapping when working on bound rows.
 
 - **Report card source ordering:** [CardDisclosurePlan](Documentation/CardDisclosurePlan.md#順排寫回原始順序) and [the round](checklists/report-card-source-reorder.checklist) own forward-mode same-priority dragging, preview writes/history and draft ordering. `card-reorder.js` is the one source-array move model. Free mode is page-local; legacy browser order is ignored, while mode/pins/visibility preferences remain. Checklist/Decision still offer only temporary free ordering, not source-document moves.

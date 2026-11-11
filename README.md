@@ -26,6 +26,10 @@ Launcher 會自動讀取資料夾內的 `report.json`，並在存在時一併載
 
 本機 Viewer 在確認目前 scope 是由 Launcher 精確註冊後，頁首才會出現「預覽模式／編輯模式」。編輯預設採自動儲存：離散操作立即排程，文字輸入短暫 debounce；可切換「謹慎模式」保留明確的儲存與放棄。兩種模式共用同一個 persistence controller、Undo／Redo、草稿驗證與衝突處理；交付日變更仍先顯示風險預覽並要求確認，永久刪除也必須先確認。服務以短效 scope session、來源 revision、完整 Schema 驗證、重複 ID 檢查與同目錄原子取代保護來源；另一分頁或 Agent 已修改檔案時會拒絕覆寫。公開網站沒有編輯 API，因此不會顯示編輯選項。本機 Web UI Workflow Editor 可修改交付日，以及每個穩定子項目的人工工時、人工依據與獨立人工確認；人工估算會在 `time.estimates.json` 建立新版本並 supersede 舊 active version，儲存後由既有分析器重新產生 `time.analysis.json`。
 
+### 引用同一份 Report 的卡片
+
+切到「編輯模式」 → 在來源卡用「新增卡片參照」選目標卡 → 確認儲存 → 重新整理。參照列會顯示目標卡的狀態及進度。點卡名定位目標卡，再按卡頭的 ⮪ 回到原參照列。編輯模式也能更換目標或移除參照。 [卡片參照設計](Documentation/NodeProgressViewPlan.md#同一-scope-的卡片參照匯總)
+
 檢查或停止服務：
 
 ```cmd

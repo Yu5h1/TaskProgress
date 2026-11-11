@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-11-11T12:28:38.120489+00:00",
+  "updated_at": "2026-11-11T12:56:03.993350+00:00",
   "tasks": [
     {
       "id": "agent-workflow",
@@ -1951,7 +1951,7 @@
           "id": "item-card-item-visual-level",
           "status": "done",
           "priority": 2,
-          "title": "強化 Report 卡頭與卡內子項的視覺層級，驗收暗色、亮色、窄版與既有操作。[視覺層級設計](/document/?scope=task-progress&path=Documentation%2FCardDisclosurePlan.md#report-卡片與子項的視覺層級)",
+          "title": "卡頭字重與留白已加強，子項已縮排（822cb0c）。瀏覽器核對 390px 亮暗主題。[卡片呈現設計](/document/?scope=task-progress&path=Documentation%2FCardDisclosurePlan.md#report-卡片與子項的視覺層級)",
           "activity": [
             {
               "event": "created",
@@ -1970,6 +1970,12 @@
               "actor": "codex",
               "at": "2026-11-11T12:28:38.121Z",
               "session": "實作卡片參照與視覺層級"
+            },
+            {
+              "event": "updated",
+              "actor": "codex",
+              "at": "2026-11-11T12:56:03.993350+00:00",
+              "session": "卡片參照發布整理"
             }
           ]
         },
@@ -4538,7 +4544,7 @@
           "id": "item-card-ref-rollup",
           "status": "done",
           "priority": 2,
-          "title": "支援同一 scope 卡片參照，呈現目標卡的狀態、進度及導航，scope 總進度只計原工作。[卡片參照設計](/document/?scope=task-progress&path=Documentation%2FNodeProgressViewPlan.md#同一-scope-的卡片參照匯總)",
+          "title": "同一份 Report 的卡片參照已實作（822cb0c）。目標狀態與進度、自動返回、編輯 API 儲存及重讀均已驗證。[參照設計](/document/?scope=task-progress&path=Documentation%2FNodeProgressViewPlan.md#同一-scope-的卡片參照匯總)",
           "activity": [
             {
               "event": "created",
@@ -4557,6 +4563,12 @@
               "actor": "codex",
               "at": "2026-11-11T12:28:38.120489+00:00",
               "session": "實作卡片參照與視覺層級"
+            },
+            {
+              "event": "updated",
+              "actor": "codex",
+              "at": "2026-11-11T12:56:03.993350+00:00",
+              "session": "卡片參照發布整理"
             }
           ],
           "waits_for": [
