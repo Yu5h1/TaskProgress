@@ -18,7 +18,7 @@ if (
 
 const ITEM_FIELDS = Object.freeze(["completed_items", "pending_items"]);
 const REPORT_FIELDS = new Set(["summary"]);
-const TASK_FIELDS = new Set(["title", "summary", "status", "priority"]);
+const TASK_FIELDS = new Set(["title", "summary", "status", "priority", "card_refs"]);
 const ITEM_PROPERTIES = new Set(["title", "priority", "status"]);
 const itemStatusPolicy = global.TaskProgressItemStatusPolicy;
 if (!itemStatusPolicy) throw new TypeError('Editor Core 需要共用的子項狀態定義。');
@@ -60,7 +60,7 @@ function nextStableId(prefix, existingIds) {
 
 function allItemIds(task) {
   return new Set(
-    ITEM_FIELDS.flatMap((field) => task[field] ?? [])
+    [...ITEM_FIELDS, "card_refs"].flatMap((field) => task[field] ?? [])
       .filter((item) => item && typeof item === "object" && !Array.isArray(item))
       .map((item) => item.id),
   );
@@ -268,7 +268,7 @@ function createReportEditorSession(
       return [command.type, command.field].join(":");
     }
     if (command.type === "set-task-field") {
-      if (command.field === "status") return null;
+      if (command.field === "status" || command.field === "card_refs") return null;
       return [command.type, command.taskId, command.field].join(":");
     }
     if (command.type === "set-item-field") {
@@ -320,7 +320,8 @@ function createReportEditorSession(
         }
         const task = findTask(draft, command.taskId);
         const newlyCompleted = command.field === "status" && command.value === "done" && task.status !== "done";
-        task[command.field] = command.value;
+        if (command.field === "card_refs" && !command.value.length) delete task.card_refs;
+        else task[command.field] = cloneValue(command.value);
         if (newlyCompleted) {
           draft.tasks.splice(draft.tasks.indexOf(task), 1);
           draft.tasks.unshift(task);

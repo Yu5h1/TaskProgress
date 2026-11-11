@@ -10,6 +10,7 @@ import {
   calculateProjectProgress,
   calculateTaskProgress,
   mergeReports,
+  projectCardReferences,
   reportPathForScope,
   resolveDeveloperReportSource,
   resolveReportRequest,
@@ -31,6 +32,28 @@ async function readJson(relativePath) {
 test("the public example scope report satisfies the runtime contract", async () => {
   const report = await readJson("reports/example/report.json");
   assert.deepEqual(validateReport(report), []);
+});
+
+test("shared targets project by card for each source without inflating scope work", () => {
+  const tasks = [
+    { id: "work-a", status: "done", title: "A", progress: { completed: 5, total: 5 } },
+    { id: "work-b", status: "in_progress", title: "B", completed_items: ["Finished"],
+      pending_items: ["One", "Two", "Three", { id: "retired", title: "Dropped", status: "discontinued" }] },
+    { id: "parent-a", status: "planned", card_refs: [{ id: "a", task_id: "work-a" }, { id: "b", task_id: "work-b" }] },
+    { id: "parent-b", status: "planned", card_refs: [{ id: "a", task_id: "work-a" }] },
+  ];
+  const [, , first, second] = projectCardReferences(tasks);
+  assert.deepEqual(first.referenceProgress, { completed: 1, total: 2 });
+  assert.deepEqual(first.cardReferences[1].progress, { completed: 1, total: 4 });
+  assert.equal(first.status, "in_progress");
+  assert.equal(second.status, "done");
+  assert.equal(tasks[3].status, "planned");
+  assert.deepEqual(calculateProjectProgress([tasks[0], tasks[1], first, second]), { completed: 6, total: 9, percentage: 67 });
+  tasks[0].status = "archive";
+  const [, , , unavailable] = projectCardReferences(tasks);
+  assert.equal(unavailable.status, "blocked");
+  assert.equal(unavailable.cardReferences[0].error, "目標卡片已封存");
+  assert.equal(unavailable.cardReferences[0].progress, null);
 });
 
 test("developer reports accept a one-line next step action", () => {

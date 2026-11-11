@@ -1,7 +1,7 @@
 import { createChecklistHttpTransport } from "./checklist-http-transport.js";
 import { createDecisionHttpTransport } from "./decision-transport.js";
 import { deriveItemState, isRetiredStatus, ITEM_STATE_META, mustRedo, stateFromChecklist, waitedChecklistFacts, waitMet, waitsText } from "./item-state.js";
-import { mergeReports, reportPathForScope } from "./report-model.js";
+import { mergeReports, projectCardReferences, reportPathForScope } from "./report-model.js";
 
 /**
  * Normalizes a document_ref object into a standard shape.
@@ -399,7 +399,7 @@ function withDerivedState(item, evaluation, evaluations) {
  * This is a read-only projection; the raw persisted report is not mutated.
  */
 export function projectTasksWithBindings(tasks, evaluations = new Map()) {
-  return (tasks ?? []).map((task) => {
+  return projectCardReferences((tasks ?? []).map((task) => {
     const completedItems = [];
     const promotedItems = [];
     const pendingItems = [];
@@ -487,7 +487,7 @@ export function projectTasksWithBindings(tasks, evaluations = new Map()) {
     };
     delete projectedTask.sourceRef;
     return projectedTask;
-  });
+  }));
 }
 
 // Completion events require a trustworthy projection. A missing/unreadable

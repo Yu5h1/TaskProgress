@@ -21,10 +21,25 @@ class ReportError(ValueError):
         self.operation_index, self.field = operation_index, field
 
 
+def validate_card_reference_changes(before, after):
+    previous = {
+        (task["id"], ref["id"], ref["task_id"])
+        for task in before["tasks"] for ref in task.get("card_refs", [])
+    }
+    targets = {task["id"]: task for task in after["tasks"]}
+    for task in after["tasks"]:
+        for ref in task.get("card_refs", []):
+            if (task["id"], ref["id"], ref["task_id"]) in previous:
+                continue
+            target = targets.get(ref["task_id"])
+            if target is None or target.get("status") == "archive":
+                raise ReportError("invalid_card_reference", "New references require an existing, unarchived card", field="card_refs")
+
+
 FIELDS = {
     "report.update": ({"title", "summary"}, {"summary"}),
-    "task.update": ({"title", "summary", "status", "priority", "progress", "document_ref", "goal_ref"},
-                    {"priority", "progress", "document_ref", "goal_ref"}),
+    "task.update": ({"title", "summary", "status", "priority", "progress", "document_ref", "goal_ref", "card_refs"},
+                    {"priority", "progress", "document_ref", "goal_ref", "card_refs"}),
     "item.update": ({"title", "status", "priority", "waits_for", "retirement", "blocked_reason"},
                     {"priority", "waits_for", "retirement", "blocked_reason"}),
     "dev.update": ({"next_step", "blockers", "decisions", "routes"}, {"next_step", "blockers", "decisions", "routes"}),

@@ -48,3 +48,22 @@ test("invalid source pointer fields remain rejected instead of being silently dr
   const session = createReportEditorAdapter(report);
   assert.ok(session.prepareSave().errors.some(error => error.code === "unexpected_pointer_field"));
 });
+
+test("the Report editor saves a reference by ID and undo removes it", async () => {
+  const report = fixture();
+  report.tasks.push({ id: "target", title: "Target", summary: "Work card", status: "planned" });
+  const session = createReportEditorAdapter(report);
+  const saved = [];
+  const controller = createPersistenceController({ session, storage: null, save: async payload => {
+    saved.push(structuredClone(payload.report));
+    return { report: payload.report };
+  } });
+  const references = [{ id: "ref", task_id: "target" }];
+  await controller.dispatch({ type: "set-task-field", taskId: "workflow", field: "card_refs", value: references });
+  await controller.flush();
+  assert.deepEqual(saved[0].tasks[0].card_refs, references);
+  assert.equal(saved[0].tasks[0].cardReferences, undefined);
+  await controller.undo();
+  await controller.flush();
+  assert.equal(saved.at(-1).tasks[0].card_refs, undefined);
+});

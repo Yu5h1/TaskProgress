@@ -266,6 +266,7 @@ internal static class ReportCommand
                     item["derived_state"] = resolver.StateOf(scope, item, completed: list == "completed_items");
             }
         }
+        ReportCardReferences.Project(scope, report, tasks, resolver);
         root["next_effective"] = NextMarker.Effective(report, scope, resolver);
         return root.ToJsonString();
     }

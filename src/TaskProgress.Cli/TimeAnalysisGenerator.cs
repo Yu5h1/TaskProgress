@@ -490,6 +490,7 @@ internal static class TimeAnalysisGenerator
             var id = RequiredString(task, "id", "report task");
             ScopeId.Validate(id);
             if (!taskIds.Add(id)) throw new CliException($"report.json task id 重複：{id}");
+            if (ReportCardReferences.IsReferenceOnly(task)) continue;
             var status = RequiredString(task, "status", "report task");
             var items = new List<ReportItem>();
             var itemIds = new HashSet<string>(StringComparer.Ordinal);

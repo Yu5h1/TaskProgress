@@ -100,6 +100,18 @@ task-progress.exe report apply "C:\Project" --input changes.json
 
 確認：`ok` 為 true；`changed` 表示是否實際修改。重複設定相同內容為 no-op。來源已改變時會回 revision_conflict，重新讀取並核對後再產生請求。
 
+## 同一 Report 的卡片參照
+
+普通任務卡的 `card_refs` 可用 `task.update` 設定。每筆參照保存自己在來源卡上的穩定 `id`，以及同一 Report 的目標 `task_id`。陣列順序就是參照列的顯示順序。解除全部參照可 `unset` 此欄位。
+
+```json
+{ "op": "task.update", "task_id": "release", "set": {
+  "card_refs": [{ "id": "verify-ref", "task_id": "verification" }]
+} }
+```
+
+`report get` 為有參照的卡片提供 `card_references` 與 `reference_progress`。純參照卡另外提供 `derived_status`。引用卡按完成張數計算，個別列使用目標卡的狀態及進度。目標移除或封存時，原參照列會帶出原因供修復。寫入用 `card_refs` 即可。 [卡片參照設計](NodeProgressViewPlan.md#同一-scope-的卡片參照匯總)
+
 ## 新增卡片或子項
 
 在 operations 中使用：

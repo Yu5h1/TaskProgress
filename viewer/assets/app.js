@@ -21,6 +21,7 @@ import {
   calculateProjectProgress,
   projectProgressCells,
   calculateTaskProgress,
+  projectCardReferences,
   isSupportedSchemaVersion,
   mergeReports,
   projectPointerCard,
@@ -905,7 +906,7 @@ function rebuildMergedTasks() {
   const merged = mergeReports(state.report, state.developerReport);
   state.tasks = state.documentEvaluations?.size
     ? projectTasksWithBindings(merged.tasks, state.documentEvaluations)
-    : merged.tasks;
+    : projectCardReferences(merged.tasks);
   state.developerAvailable = merged.developerAvailable;
 }
 
@@ -1045,6 +1046,13 @@ function taskListProps(tasks) {
     moduleTotals,
     itemCapsules,
     pointerCards,
+    cardReferenceTargets: state.editor.editing ? state.report.tasks : [],
+    onAddCardReference(taskId, targetId) {
+      const task = state.report.tasks.find(candidate => candidate.id === taskId);
+      const id = state.editor.session.createItemId(taskId, 'card-ref');
+      applyEditorCommand({ type: 'set-task-field', taskId, field: 'card_refs',
+        value: [...(task.card_refs ?? []), { id, task_id: targetId }] }, undefined, { render: true });
+    },
     editing: state.editor.editing,
     statusOrder: state.statusOrder,
     moduleOrder: state.moduleOrder,
@@ -1691,7 +1699,7 @@ async function main() {
     }
     state.persistedReport = structuredClone(report);
     state.developerReport = developerReport;
-    state.tasks = merged.tasks;
+    state.tasks = projectCardReferences(merged.tasks);
     state.developerAvailable = merged.developerAvailable;
     state.diagnostics.push(...merged.diagnostics);
     state.documentEvaluations = new Map();

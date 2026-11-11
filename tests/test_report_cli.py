@@ -40,6 +40,19 @@ class ReportCliTests(unittest.TestCase):
         return next(i for key in ("pending_items", "completed_items") for i in task.get(key, [])
                     if isinstance(i, dict) and i["id"] == identity)
 
+    def test_card_references_require_existing_targets_but_can_be_repaired_after_archiving(self):
+        link = {"op": "task.update", "task_id": "one", "set": {"card_refs": [{"id": "ref", "task_id": "two"}]}}
+        execute(self.root, "apply", self.request([link]))
+        archive = {"op": "task.update", "task_id": "two", "set": {"status": "archive"}}
+        execute(self.root, "apply", self.request([archive]))
+        self.assertEqual(execute(self.root, "get", task="one")["task"]["card_refs"], [{"id": "ref", "task_id": "two"}])
+        with self.assertRaises(ReportError) as caught:
+            execute(self.root, "apply", self.request([{"op": "task.update", "task_id": "one",
+                "set": {"card_refs": [{"id": "ref", "task_id": "missing"}]}}]))
+        self.assertEqual(caught.exception.code, "invalid_card_reference")
+        execute(self.root, "apply", self.request([{"op": "task.update", "task_id": "one", "unset": ["card_refs"]}]))
+        self.assertNotIn("card_refs", execute(self.root, "get", task="one")["task"])
+
     def test_release_frees_the_claim_and_dispute_needs_a_note(self):
         op = lambda **kw: {"op": "item.event", "task_id": "one", "item_id": "item", **kw}
         execute(self.root, "apply", self.request([{"op": "item.update", "task_id": "one", "item_id": "item", "set": {"status": "in_progress"}}], session="s1"))

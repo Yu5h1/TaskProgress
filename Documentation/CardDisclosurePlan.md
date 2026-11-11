@@ -3,6 +3,7 @@
 ```text
 TaskProgress
 ├─ Report TaskList → TaskCard／ReportPointerCard
+│  └─ Report 卡片分區與卡內子項呈現
 ├─ ChecklistApp → 工作項目卡 → checks
 └─ 共用 CardDisclosure → 標題區、切換按鈕、可隱藏內容區
 ```
@@ -83,3 +84,13 @@ Report、Checklist 與決策頁共用 CardList 的標題及工具列容器。上
 ## 已完成子項目預覽
 
 每張 Report 任務卡的已完成區預設只顯示陣列前 1 項（最新完成在上）。超過 1 項才顯示置中、帶向下箭頭的「顯示更多（N項）」，N 為未顯示的剩餘項數；展開後顯示全部並改成向上箭頭「收合」。各卡獨立控制，唯讀與編輯模式一致，不改變資料、排序、篩選或進度統計；重新載入回到 1 項預覽。
+
+## Report 卡片分區
+
+維護與後續需求都使用任務卡，以優先級安排先後，標題直接描述工作。 [卡片分類決策](/decisions/?scope=task-progress&task=viewer-core)
+
+## Report 卡片與子項的視覺層級
+
+以卡頭字重與垂直留白強化標題，子項內容起點略縮入。窄版縮小縮排，讓長標題、狀態與操作維持可讀和可點。 [卡片視覺層級決策](/decisions/?scope=task-progress&task=viewer-core)
+
+以暗色、亮色與約 360–400px 寬度的預覽及編輯模式驗收。卡頭的標題、狀態及進度應先被辨識，子項能看出隸屬關係。鍵盤焦點與各操作的點擊範圍維持可用，長標題能照常展開。預估小型，約 2–4 個 Report 樣式或模板檔。以實際畫面核對，不把選色或間距鎖死在程式斷言。

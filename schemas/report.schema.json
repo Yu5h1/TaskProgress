@@ -240,6 +240,18 @@
         "pending_items": {
           "$ref": "#/$defs/itemList"
         },
+        "card_refs": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "task_id"],
+            "properties": {
+              "id": { "$ref": "#/$defs/id" },
+              "task_id": { "$ref": "#/$defs/id" }
+            }
+          }
+        },
         "document_ref": {
           "$ref": "#/$defs/cardDocumentRef"
         },

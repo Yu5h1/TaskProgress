@@ -80,6 +80,19 @@ internal sealed class ItemStateResolver
     public bool IsDone(string scope, string taskId, string itemId, int depth) =>
         Target(scope, taskId, itemId, depth).Done;
 
+    /// <summary>Projects the status used when counting a card's completed work.</summary>
+    public string ProjectStatus(string scope, JsonObject item, bool completed)
+    {
+        var stored = item["status"]?.GetValue<string>() ?? (completed ? ItemStates.Done : "planned");
+        if (stored == ItemStates.Archived || ItemStates.IsRetired(stored)) return stored;
+        if (MustRedo(item, 0)) return ItemStates.InProgress;
+        var checklist = BoundChecklist(scope, item, out var bound);
+        if (bound && checklist is not null && IsDone(checklist, LatestAt(item, "released"))) return ItemStates.Done;
+        if (DecisionsAnswered(item)) return ItemStates.Done;
+        var decision = item["document_ref"]?["kind"]?.GetValue<string>() == "decision";
+        return (bound || decision) && stored == ItemStates.Done ? ItemStates.InProgress : stored;
+    }
+
     /// <summary>
     ///   A waited item: done, lacking only the user's <c>[manual]</c> acceptance (read from its
     ///   checklist alone: every other check passed and the user failed none), and when the user last

@@ -54,6 +54,7 @@ def _cross_validate_report(report: dict[str, Any]) -> list[str]:
     tasks = report.get("tasks", [])
     if not isinstance(tasks, list):
         return errors
+    by_id = {task["id"]: task for task in tasks if isinstance(task, dict) and isinstance(task.get("id"), str)}
     for task_index, task in enumerate(tasks):
         if not isinstance(task, dict):
             continue
@@ -84,6 +85,19 @@ def _cross_validate_report(report: dict[str, Any]) -> list[str]:
                         f"tasks[{task_index}].{field}[{item_index}].id is duplicated"
                     )
                 item_ids.add(item_id)
+        targets = set()
+        for ref_index, ref in enumerate(task.get("card_refs", [])):
+            path = f"tasks[{task_index}].card_refs[{ref_index}]"
+            target_id = ref["task_id"]
+            target = by_id.get(target_id)
+            if ref["id"] in item_ids:
+                errors.append(f"{path}.id is duplicated")
+            if target_id == task_id or target_id in targets:
+                errors.append(f"{path}.task_id is a self-reference or duplicate target")
+            if target and (target.get("kind") == "report_pointer" or target.get("card_refs")):
+                errors.append(f"{path}.task_id must name a work card without references")
+            item_ids.add(ref["id"])
+            targets.add(target_id)
     return errors
 
 

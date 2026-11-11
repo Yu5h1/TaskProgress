@@ -100,7 +100,9 @@ function activateItemTarget(view, force = false) {
   view.activeItemHash = hash && (force || history.state?.itemTargetShown !== hash) ? hash : null;
   let arrival;
   try { arrival = JSON.parse(sessionStorage.getItem('taskprogress-item-arrival')); } catch { arrival = null; }
-  view.itemReturnUrl = view.activeItemHash && arrival?.destination === location.href ? arrival.source : null;
+  const currentArrival = arrival?.destination === location.href ? arrival : null;
+  view.activeCardArrival = currentArrival?.cardId ?? null;
+  view.itemReturnUrl = view.activeItemHash || view.activeCardArrival ? currentArrival?.source ?? null : null;
   sessionStorage.removeItem('taskprogress-item-arrival');
   if (view.activeItemHash) history.replaceState({ ...history.state, itemTargetShown: hash }, '');
 }
@@ -108,7 +110,7 @@ function activateItemTarget(view, force = false) {
 function returnToItem(view) {
   if (!view.itemReturnUrl) return;
   const destination = new URL(view.itemReturnUrl), current = new URL(location.href);
-  if (destination.origin !== current.origin || destination.pathname !== current.pathname || itemContext(destination) !== itemContext(current)) {
+  if (view.activeCardArrival || destination.origin !== current.origin || destination.pathname !== current.pathname || itemContext(destination) !== itemContext(current)) {
     location.assign(destination.href);
     return;
   }
@@ -117,6 +119,62 @@ function returnToItem(view) {
   view.lastItemHash = null;
   view.itemTargetPulse = (view.itemTargetPulse ?? 0) + 1;
   view.refresh();
+}
+
+function rememberCardArrival(event, task, reference) {
+  if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+  const source = new URL(location.href);
+  const scope = new URL(event.currentTarget.href).searchParams.get('scope');
+  if (scope) source.searchParams.set('scope', scope);
+  source.searchParams.set('pin', task.id);
+  source.hash = `#item-${task.id}--${reference.id}`;
+  sessionStorage.setItem('taskprogress-item-arrival', JSON.stringify({
+    destination: event.currentTarget.href,
+    source: source.href,
+    cardId: reference.task_id,
+  }));
+}
+
+function cardReferenceList(p, v, task, command) {
+  const references = task.cardReferences ?? [];
+  if (!p.editing && !references.length) return nothing;
+  const cards = p.cardReferenceTargets ?? [];
+  const incoming = cards.some(candidate => candidate.card_refs?.some(ref => ref.task_id === task.id));
+  const targets = cards.filter(candidate => !incoming && candidate.id !== task.id
+    && candidate.kind !== 'report_pointer' && candidate.status !== 'archive' && !candidate.card_refs?.length);
+  const choices = currentId => targets.filter(candidate => candidate.id === currentId || !references.some(ref => ref.task_id === candidate.id));
+  const availableTargets = choices();
+  if (!references.length && !availableTargets.length) return nothing;
+  const changeReference = (referenceId, targetId) => command('card_refs', task.card_refs.flatMap(reference => {
+    if (reference.id !== referenceId) return [reference];
+    return targetId ? [{ ...reference, task_id: targetId }] : [];
+  }));
+  const fraction = task.referenceProgress;
+  return html`<section class="detail-section report-card-references">
+    <h4 class="detail-heading">參照卡片${fraction && p.progress[task.id]?.total ? ` · ${fraction.completed} / ${fraction.total} 張完成` : ''}</h4>
+    ${references.length ? html`<ul class="detail-list">${repeat(references, ref => ref.id, ref => {
+      const meta = status(ref.status);
+      const href = new URL(location.href);
+      href.searchParams.set('scope', p.scopeId);
+      href.searchParams.set('pin', ref.task_id);
+      href.hash = '';
+      const id = `item-${task.id}--${ref.id}`;
+      return html`<li id=${id} data-item-row class="report-reference-row" ?data-item-target=${v.activeItemHash === `#${id}`}>
+        ${p.editing ? html`<select aria-label=${`編輯「${ref.title}」的參照`} .value=${live(ref.task_id)} @change=${e => changeReference(ref.id, e.currentTarget.value)}>
+          ${ref.error ? html`<option value=${ref.task_id}>${ref.title}（${ref.error}）</option>` : nothing}
+          ${choices(ref.task_id).map(target => html`<option value=${target.id}>${target.title}</option>`)}</select>
+          <button type="button" class="inline-delete-button" @click=${() => changeReference(ref.id, null)}>移除參照</button>`
+        : ref.error ? html`<span>${ref.title} · ${ref.error}</span>`
+        : html`<a href=${href.href} @click=${event => rememberCardArrival(event, task, ref)}>${ref.title} ⮩</a>
+          <span class="report-reference-meta"><span class="status-badge status-${meta.tone}">${meta.label}</span>
+            <span>${ref.progress.completed} / ${ref.progress.total}</span></span>`}
+      </li>`;
+    })}</ul>` : nothing}
+    ${p.editing && availableTargets.length ? html`<select aria-label="新增卡片參照" .value=${live('')} @change=${event => {
+      const targetId = event.currentTarget.value;
+      if (targetId) p.onAddCardReference(task.id, targetId);
+    }}><option value="">新增卡片參照</option>${availableTargets.map(target => html`<option value=${target.id}>${target.title}</option>`)}</select>` : nothing}
+  </section>`;
 }
 
 function itemRow(p, v, task, field, item, lead) {
@@ -184,24 +242,29 @@ function developer(d) {
 function taskCard(p, v, task, card) {
   // Child IDs are local to a card; scope every row's Next behavior to its owner.
   p = { ...p, nextItemId: task.id === p.nextTaskId ? p.nextItemId : null };
-  const meta = status(task.status), priority = p.policy.metadata(task.priority), progress = p.progress[task.id];
+  const meta = status(task.status), priority = p.policy.metadata(task.priority), ownProgress = p.progress[task.id];
+  const referenceOnly = task.referenceProgress && ownProgress.total === 0;
+  const progress = referenceOnly ? task.referenceProgress : ownProgress;
+  const progressUnit = referenceOnly ? '引用卡片' : '子項目';
+  const arrived = !p.editing && v.activeCardArrival === task.id;
   const command = (field, value) => p.onCommand({ type: 'set-task-field', taskId: task.id, field, value });
   const stack = taskItemStack(task);
-  if (v.closedTargetHash !== location.hash && stack.closed.some(({item}) => location.hash === `#item-${task.id}--${item.id}`)) {
+  const hash = globalThis.location?.hash;
+  if (hash && v.closedTargetHash !== hash && stack.closed.some(({item}) => hash === `#item-${task.id}--${item.id}`)) {
     v.state[`completed:${task.id}`] = true;
-    v.closedTargetHash = location.hash;
+    v.closedTargetHash = hash;
   }
   const groups = [
     { status: 'planned', title: '待處理', className: 'pending-work', field: 'pending_items', items: liftNextItem(stableSortTaskItemsByPriority(stack.pending), p.nextItemId).map(item => ({item, field:'pending_items'})) },
     { status: 'done', title: stack.closed.some(row => isRetiredStatus(row.item.status)) ? '已結束' : '已完成', className: 'completed-work', field: 'completed_items', items: stack.closed },
   ];
   return html`<article class="task-card editor-task-card priority-${priority?.tone ?? 'unspecified'}" aria-labelledby="task-${task.id}-title">${disclosure({ ...card, id: `task-body-${task.id}`, label: task.title },
-    html`<header class="task-header"><div class="task-title-group">${p.editing ? html`<div class="time-task-status-line">${prioritySelect(p.policy, task.priority, `${task.title} 優先級`, value => command('priority', value))}</div>` : nothing}
+    html`<header class="task-header ${arrived ? 'report-card-arrival' : ''}">${arrived && v.itemReturnUrl ? html`<button type="button" class="report-card-return" aria-label="返回來源子項" title="返回來源子項" @pointerdown=${e => e.stopPropagation()} @click=${e => { e.stopPropagation(); returnToItem(v); }}>⮪</button>` : nothing}<div class="task-title-group">${p.editing ? html`<div class="time-task-status-line">${prioritySelect(p.policy, task.priority, `${task.title} 優先級`, value => command('priority', value))}</div>` : nothing}
     <div class="time-task-title-line">${p.editing ? html`<input id="task-${task.id}-title" class="task-title-input" aria-label="任務名稱" maxlength="160" .value=${live(task.title)} @input=${e => command('title', e.currentTarget.value)}>${cardId(task.id)}` : html`<h3 id="task-${task.id}-title">${copyButton([p.scopeId, task.id].filter(Boolean).join(' › '), task.title, task.id)}</h3>`}</div>
     ${p.moduleTotals?.[task.id]?.length ? html`<div class="task-module-totals">${p.moduleTotals[task.id].map(t => html`<span class="task-module-total task-module-total-${t.id}">${t.label}</span>`)}</div>` : nothing}</div>
-    <div class="task-header-meta"><strong class="task-fraction" aria-label="子項目完成 ${progress.completed}，共 ${progress.total}">${progress.completed} / ${progress.total}</strong>${p.editing ? options(statuses, task.status, `${task.title} 狀態`, v => command('status', v), 'inline-status-select') : html`<span class="status-badge status-${meta.tone}">${meta.label}</span>`}<code class="task-id">${task.id}</code></div></header>`,
+    <div class="task-header-meta"><strong class="task-fraction" aria-label="${progressUnit}完成 ${progress.completed}，共 ${progress.total}">${progress.completed} / ${progress.total}</strong>${p.editing && !referenceOnly ? options(statuses, task.status, `${task.title} 狀態`, v => command('status', v), 'inline-status-select') : html`<span class="status-badge status-${meta.tone}">${meta.label}</span>`}<code class="task-id">${task.id}</code></div></header>`,
     html`${p.editing ? html`<textarea class="task-summary-input" aria-label="任務描述" maxlength="1000" rows="3" .value=${live(task.summary ?? '')} @input=${e => command('summary', e.currentTarget.value)}></textarea>` : html`<div class="task-summary">${text(task.summary, { lines: 2, emphasis: true })}</div>`}${goal(task.goal_ref, p.scopeId, task.id)}${developer(task.developer)}
-      <div class="work-columns">${groups.map(g => g.items.length || p.editing ? html`<section class="detail-section ${g.className}"><h4 class="detail-heading">${g.title}</h4><ul class="detail-list" id="task-${task.id}-${g.field}" ${action(reorderAction,reorderItems(p,v,task))}>${repeat(g.status === 'done' && !p.editing && !v.state[`completed:${task.id}`] ? g.items.slice(0, 1) : g.items, row => row.item.id, ({item,field}, index) => itemRow(p, v, task, field, item, (card.lead && g.status !== 'done' && index === 0) || item.id === p.nextItemId))}</ul>
+      <div class="work-columns">${cardReferenceList(p, v, task, command)}${groups.map(g => g.items.length || p.editing ? html`<section class="detail-section ${g.className}"><h4 class="detail-heading">${g.title}</h4><ul class="detail-list" id="task-${task.id}-${g.field}" ${action(reorderAction,reorderItems(p,v,task))}>${repeat(g.status === 'done' && !p.editing && !v.state[`completed:${task.id}`] ? g.items.slice(0, 1) : g.items, row => row.item.id, ({item,field}, index) => itemRow(p, v, task, field, item, (card.lead && g.status !== 'done' && index === 0) || item.id === p.nextItemId))}</ul>
       ${g.status === 'done' && !p.editing && g.items.length > 1 ? html`<button type="button" class="completed-more" aria-expanded=${!!v.state[`completed:${task.id}`]} aria-controls="task-${task.id}-${g.field}" @click=${() => { v.state[`completed:${task.id}`] = !v.state[`completed:${task.id}`]; v.draw(); }}><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d=${v.state[`completed:${task.id}`] ? 'M3 10l5-5 5 5' : 'M3 6l5 5 5-5'} fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" /></svg>${v.state[`completed:${task.id}`] ? '收合' : `顯示更多（${g.items.length - 1}項）`}</button>` : nothing}</section>` : nothing)}
       <section class="task-adder-section">${p.editing ? html`<div class="spike-add-shell">${v.state[`add:${task.id}`] ? html`<form class="spike-add-form" @submit=${e => { e.preventDefault(); const data = new FormData(e.currentTarget); const result = p.onAddItem(task.id, data.get('title'), Number(data.get('priority'))); v.state[`error:${task.id}`] = result?.error; if (!result?.error) v.state[`add:${task.id}`] = false; v.draw(); }}><input name="title" aria-label="新增子項目描述" placeholder="新增待處理項目" maxlength="500"><select name="priority" aria-label="新增子項目優先級">${p.policy.levels.map(level => html`<option value=${level.value} ?selected=${level.value === p.policy.creationDefaultValue}>${p.policy.format(level.value)}</option>`)}</select><button type="submit">新增</button><button type="button" @click=${() => { v.state[`add:${task.id}`] = false; v.draw(); }}>取消</button><p class="spike-field-error" role="alert">${v.state[`error:${task.id}`] ?? ''}</p></form>` : html`<button class="spike-add-button" type="button" aria-label="在「${task.title}」新增子項目" @click=${() => { v.state[`add:${task.id}`] = true; v.draw(); }}>＋</button>`}</div>` : nothing}</section></div>`)}
   </article>`;
@@ -209,7 +272,7 @@ function taskCard(p, v, task, card) {
 
 const templates = {
   'task-list': (p, v) => {
-    if (!v.cards) { v.cards = new Cards(v); activateItemTarget(v); v.on(window, 'hashchange', () => { activateItemTarget(v); v.lastItemHash = null; v.refresh(); }); v.on(window, 'popstate', () => { v.activeItemHash = null; v.itemReturnUrl = null; v.refresh(); }); }
+    if (!v.cards) { v.cards = new Cards(v); activateItemTarget(v); v.on(window, 'hashchange', () => { activateItemTarget(v); v.lastItemHash = null; v.refresh(); }); v.on(window, 'popstate', () => { v.activeItemHash = null; v.activeCardArrival = null; v.itemReturnUrl = null; v.refresh(); }); }
     if (v.activeItemHash && v.lastItemHash !== v.activeItemHash) {
       const hash = v.activeItemHash;
       queueMicrotask(() => queueMicrotask(() => {

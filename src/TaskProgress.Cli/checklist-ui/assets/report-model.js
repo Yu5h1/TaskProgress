@@ -141,7 +141,7 @@ export function resolveDeveloperReportSource(params, request, baseUrl) {
  * status rather than a second source that could contradict it.
  */
 export function taskItemStatus(item, field) {
-  if (item !== null && typeof item === "object" && Object.hasOwn(STATUS_META, item?.status)) {
+  if (item !== null && typeof item === "object" && Object.hasOwn(ITEM_STATUS_META, item?.status)) {
     return item.status;
   }
   return field === "completed_items" ? "done" : "planned";
@@ -154,6 +154,7 @@ export function taskItemStatus(item, field) {
  * `in_progress` are unfinished work and count exactly like `planned` did.
  */
 export function calculateTaskProgress(task) {
+  if (isReferenceOnlyCard(task)) return { completed: 0, total: 0 };
   const counted = [
     ...(task.completed_items ?? []).map((item) => taskItemStatus(item, "completed_items")),
     ...(task.pending_items ?? []).map((item) => taskItemStatus(item, "pending_items")),
@@ -176,7 +177,7 @@ export function calculateTaskProgress(task) {
 
 export function projectProgressCells(tasks) {
   const tones = { in_progress: "active", blocked: "failed", done: "passed", planned: "pending" };
-  return tasks.filter(task => taskKind(task) !== "report_pointer" && task.status !== "archive")
+  return tasks.filter(task => taskKind(task) !== "report_pointer" && task.status !== "archive" && !isReferenceOnlyCard(task))
     .map(task => tones[task.status] ?? "pending");
 }
 
@@ -218,7 +219,7 @@ export function reportSummaryText(report) {
  * holding one never reports `done` on its behalf.
  */
 export function deriveReportStatus(tasks) {
-  const considered = (tasks ?? []).filter((task) => task?.status !== "archive");
+  const considered = (tasks ?? []).filter((task) => task?.status !== "archive" && !isReferenceOnlyCard(task));
   if (considered.length === 0) return (tasks ?? []).length > 0 ? "archive" : "planned";
 
   const outstanding = considered.filter((task) => task.status !== "done");
@@ -226,6 +227,36 @@ export function deriveReportStatus(tasks) {
   if (outstanding.some((task) => task.status === "in_progress")) return "in_progress";
   if (outstanding.every((task) => task.status === "blocked")) return "blocked";
   return "planned";
+}
+
+export function isReferenceOnlyCard(task) {
+  return Boolean(task?.card_refs?.length && !task.progress
+    && !task.pending_items?.length && !task.completed_items?.length);
+}
+
+export function projectCardReferences(tasks) {
+  const byId = new Map(tasks.map(task => [task.id, task]));
+  return tasks.map(task => {
+    if (!task.card_refs?.length) return task;
+    const cardReferences = task.card_refs.map(reference => {
+      const target = byId.get(reference.task_id);
+      const available = target && target.status !== "archive";
+      return {
+        ...reference,
+        title: target?.title ?? reference.task_id,
+        status: available ? target.status : "blocked",
+        progress: available ? calculateTaskProgress(target) : null,
+        error: available ? null : target ? "目標卡片已封存" : "找不到目標卡片",
+      };
+    });
+    const referenceProgress = {
+      completed: cardReferences.filter(reference => reference.status === "done").length,
+      total: cardReferences.length,
+    };
+    const status = isReferenceOnlyCard(task) && task.status !== "archive"
+      ? deriveReportStatus(cardReferences) : task.status;
+    return { ...task, status, cardReferences, referenceProgress };
+  });
 }
 
 /*
@@ -476,6 +507,7 @@ const POINTER_FORBIDDEN_FIELDS = Object.freeze([
   "pending_items",
   "progress",
   "priority",
+  "card_refs",
 ]);
 
 function validatePriority(value, path, errors) {
@@ -505,6 +537,27 @@ function validateStandardTask(task, path, errors) {
   const itemIds = new Set();
   validateTaskItemList(task.completed_items, `${path}.completed_items`, errors, itemIds);
   validateTaskItemList(task.pending_items, `${path}.pending_items`, errors, itemIds);
+  if (task.card_refs !== undefined) {
+    if (!Array.isArray(task.card_refs)) {
+      errors.push(issue("invalid_card_ref", `${path}.card_refs`, "卡片參照必須是陣列。"));
+    } else {
+      const targets = new Set();
+      task.card_refs.forEach((ref, index) => {
+        const refPath = `${path}.card_refs[${index}]`;
+        if (!isObject(ref) || Object.keys(ref).some(key => !["id", "task_id"].includes(key))) {
+          errors.push(issue("invalid_card_ref", refPath, "卡片參照只保存參照 ID 與目標卡片 ID。"));
+          return;
+        }
+        requireString(ref.id, `${refPath}.id`, errors, { id: true });
+        requireString(ref.task_id, `${refPath}.task_id`, errors, { id: true });
+        if (itemIds.has(ref.id) || ref.task_id === task.id || targets.has(ref.task_id)) {
+          errors.push(issue("invalid_card_ref", refPath, "卡片參照不能指向自身，也不能重複。"));
+        }
+        itemIds.add(ref.id);
+        targets.add(ref.task_id);
+      });
+    }
+  }
 
   if (task.progress !== undefined) {
     if (!isObject(task.progress)) {
@@ -588,6 +641,7 @@ export function validateReport(report) {
   }
 
   const ids = new Set();
+  const tasksById = new Map(report.tasks.filter(isObject).map(task => [task.id, task]));
   report.tasks.forEach((task, index) => {
     const path = `tasks[${index}]`;
     if (!isObject(task)) {
@@ -617,6 +671,13 @@ export function validateReport(report) {
       return;
     }
     validateStandardTask(task, path, errors);
+    if (Array.isArray(task.card_refs)) task.card_refs.forEach((ref, refIndex) => {
+      const target = tasksById.get(ref?.task_id);
+      if (target && (taskKind(target) === "report_pointer" || target.card_refs?.length)) {
+        const refPath = `${path}.card_refs[${refIndex}].task_id`;
+        errors.push(issue("invalid_card_ref", refPath, "目標必須是未引用其他卡片的普通任務卡。"));
+      }
+    });
   });
 
   return errors;

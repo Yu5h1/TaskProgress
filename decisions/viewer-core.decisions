@@ -1,0 +1,80 @@
+{
+  "schema_version": "1.1",
+  "task_id": "viewer-core",
+  "updated_at": "2026-11-11T12:11:58.5442189\u002B00:00",
+  "decisions": [
+    {
+      "id": "card-section-mode",
+      "version": 1,
+      "question": "\u4E00\u822C\u3001\u9577\u671F\u3001\u672A\u4F86\u65B9\u5411\u8981\u5982\u4F55\u5448\u73FE\u5728 Report\uFF1F",
+      "context": "\u4F60\u5728 VCP \u76EE\u524D\u4EE5\u300C\u9577\u671F\uFF1A\u300D\u300C\u672A\u4F86\u65B9\u5411\uFF1A\u300D\u5BEB\u5728\u5361\u7247\u6A19\u984C\u3002Report \u4F9D\u72C0\u614B\u3001\u512A\u5148\u7D1A\u53CA\u539F\u59CB\u9806\u5E8F\u986F\u793A\u5361\u7247\u3002\u4E09\u500B\u9078\u9805\u90FD\u4FDD\u7559 Next\u3001\u91D8\u9078\u53CA\u5B8C\u6210\u5340\u3002",
+      "source_ref": "../Documentation/CardDisclosurePlan.md#report-\u5361\u7247\u5206\u5340",
+      "options": [
+        {
+          "id": "fixed-sections",
+          "label": "\u56FA\u5B9A\u4E09\u500B\u5206\u5340",
+          "description": "\u9806\u6392\u6642\u5728\u540C\u4E00\u72C0\u614B\u7D44\u5167\u986F\u793A\u4E00\u822C\u3001\u9577\u671F\u8207\u672A\u4F86\u65B9\u5411\u3002\u672A\u5206\u985E\u7684\u820A\u5361\u986F\u793A\u5728\u4E00\u822C\u3002"
+        },
+        {
+          "id": "category-filter",
+          "label": "\u53EA\u52A0\u5206\u985E\u7BE9\u9078",
+          "description": "\u7DAD\u6301\u73FE\u884C\u6E05\u55AE\u9806\u5E8F\u3002\u9700\u8981\u6642\u7528\u5DE5\u5177\u5217\u6A19\u7C64\u53EA\u770B\u67D0\u500B\u5206\u985E\u3002"
+        },
+        {
+          "id": "custom-sections",
+          "label": "\u6BCF\u500B\u5C08\u6848\u53EF\u81EA\u8A02\u5206\u5340",
+          "description": "\u6BCF\u500B\u5C08\u6848\u53EF\u65B0\u589E\u3001\u547D\u540D\u53CA\u8ABF\u6574\u5206\u5340\u9806\u5E8F\uFF0C\u4E26\u5728\u9806\u6392\u6642\u986F\u793A\u5206\u5340\u3002\u9700\u8981\u7BA1\u7406\u5206\u5340\u7684\u5165\u53E3\u3002"
+        }
+      ],
+      "recommendation": {
+        "option_id": "fixed-sections",
+        "reason": "\u80FD\u76F4\u63A5\u6383\u5230\u9577\u671F\u5DE5\u4F5C\u8207\u672A\u4F86\u65B9\u5411\uFF0C\u5404\u5C08\u6848\u4E5F\u7121\u9808\u5148\u8A2D\u5B9A\u5206\u985E\u3002"
+      },
+      "allow_other": true,
+      "status": "decided",
+      "answer": {
+        "kind": "other",
+        "text": "\u4E0D\u5C0D \u6211\u8A8D\u70BA \u4E0D\u61C9\u8A72\u6709 \u4E00\u822C \u9577\u671F \u672A\u4F86\n\n\u5C31\u662F \u7DAD\u8B77 , \u672A\u4F86\u5C31\u662F\u4E00\u500B \u4EFB\u52D9\u9700\u6C42 , \u5361\u7247 , \u7528 \u512A\u5148\u7D1A\u8868\u793A\u5C31\u597D , \u4E0D\u9700\u8981 \u5728 title \u6253 \u9577\u671F \u672A\u4F86 \u9084\u662F\u4E00\u822C",
+        "confirmed_at": "2026-11-11T11:26:26.8855785\u002B00:00"
+      },
+      "last_request": {
+        "request_id": "ef0c84a4-637a-4aa3-9946-541eda92d367",
+        "fingerprint": "d9524286f2ffcaf716560a27b39293269ee173f4bd0639e40ccf127cf7223aa4"
+      }
+    },
+    {
+      "id": "card-item-hierarchy",
+      "version": 1,
+      "question": "\u5361\u982D\u548C\u5B50\u9805\u9700\u8981\u591A\u660E\u986F\u7684\u5340\u9694\uFF1F",
+      "context": "\u76EE\u524D\u5C55\u958B\u5361\u7247\u5F8C\uFF0C\u5361\u982D\u8207\u5B50\u9805\u90FD\u5728\u540C\u4E00\u5F35\u5361\u5167\u3002\u5169\u500B\u65B9\u6848\u90FD\u4FDD\u7559\u73FE\u6709\u6587\u5B57\u3001\u6536\u5C55\u8207\u64CD\u4F5C\uFF0C\u4E5F\u6703\u6AA2\u67E5\u7A84\u7248\u3002",
+      "source_ref": "../Documentation/CardDisclosurePlan.md#report-\u5361\u7247\u8207\u5B50\u9805\u7684\u8996\u89BA\u5C64\u7D1A",
+      "options": [
+        {
+          "id": "header-and-indent",
+          "label": "\u5361\u982D\u52A0\u5F37\uFF0C\u5B50\u9805\u7565\u7E2E\u6392",
+          "description": "\u5361\u982D\u7684\u5B57\u91CD\u8207\u7559\u767D\u66F4\u660E\u986F\uFF0C\u5B50\u9805\u5167\u5BB9\u7684\u8D77\u9EDE\u5F80\u5167\u79FB\u3002"
+        },
+        {
+          "id": "inset-panel",
+          "label": "\u52A0\u4E00\u584A\u5B50\u9805\u6DE1\u5E95",
+          "description": "\u63A1\u7528\u540C\u6A23\u7684\u5361\u982D\u53CA\u7E2E\u6392\uFF0C\u518D\u66FF\u6574\u500B\u5B50\u9805\u6E05\u55AE\u52A0\u4F4E\u5C0D\u6BD4\u5E95\u8272\uFF0C\u8B93\u5169\u500B\u5340\u57DF\u66F4\u5BB9\u6613\u5206\u8FA8\u3002"
+        }
+      ],
+      "recommendation": {
+        "option_id": "header-and-indent",
+        "reason": "\u7528\u4F4D\u7F6E\u8207\u5B57\u91CD\u5C31\u80FD\u8868\u9054\u5F9E\u5C6C\u95DC\u4FC2\uFF0C\u5728\u7A84\u7248\u548C\u5BC6\u96C6\u6E05\u55AE\u88E1\u4E5F\u8F03\u5BB9\u6613\u6383\u8B80\u3002"
+      },
+      "allow_other": true,
+      "status": "decided",
+      "answer": {
+        "kind": "option",
+        "option_id": "header-and-indent",
+        "confirmed_at": "2026-11-11T12:11:58.5442189\u002B00:00"
+      },
+      "last_request": {
+        "request_id": "c0cc73ed-b0d3-4262-97be-ce3a06c329fa",
+        "fingerprint": "e4354a56e6082a62ce413e4f2677aeff44b8fe01e9ef231c21d8b3d203eed271"
+      }
+    }
+  ]
+}

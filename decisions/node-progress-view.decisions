@@ -1,0 +1,41 @@
+{
+  "schema_version": "1.1",
+  "task_id": "node-progress-view",
+  "updated_at": "2026-11-11T11:24:51.0034309\u002B00:00",
+  "decisions": [
+    {
+      "id": "card-ref-progress-unit",
+      "version": 1,
+      "question": "\u9577\u671F\u5361\u5F15\u7528\u5176\u4ED6\u5361\u7247\u6642\uFF0C\u5361\u982D\u8981\u986F\u793A\u5B8C\u6210\u5E7E\u5F35\u5361\uFF0C\u9084\u662F\u5B8C\u6210\u5E7E\u500B\u5DE5\u4F5C\u9805\uFF1F",
+      "context": "\u4EE5 VCP \u7684\u8F09\u5165\u901F\u5EA6\u9577\u671F\u5361\u70BA\u4F8B\u3002\u5047\u8A2D\u300C\u8F09\u5165\u756B\u9762\u300D\u5DF2\u5B8C\u6210 2\uFF0F2\uFF0C\u300C\u8CC7\u6E90\u9810\u8F09\u300D\u505A\u5230 1\uFF0F5\u3002\u5169\u7A2E\u65B9\u6848\u90FD\u5728\u6BCF\u500B\u53C3\u7167\u5217\u986F\u793A\u539F\u5361\u9032\u5EA6\uFF0C\u9EDE\u4E00\u4E0B\u5C31\u80FD\u56DE\u5230\u539F\u5361\u3002",
+      "source_ref": "../Documentation/NodeProgressViewPlan.md#\u540C\u4E00-scope-\u7684\u5361\u7247\u53C3\u7167\u532F\u7E3D",
+      "options": [
+        {
+          "id": "target-cards",
+          "label": "\u4F9D\u5F15\u7528\u5361\u8A08\u6578",
+          "description": "\u5361\u982D\u986F\u793A 1\uFF0F2 \u5F35\u5361\u5DF2\u5B8C\u6210\u3002\u6BCF\u5F35\u5361\u662F\u9577\u671F\u76EE\u6A19\u7684\u4E00\u500B\u4EA4\u4ED8\u3002"
+        },
+        {
+          "id": "target-work",
+          "label": "\u4F9D\u539F\u5361\u5DE5\u4F5C\u9805\u8A08\u6578",
+          "description": "\u5361\u982D\u986F\u793A 3\uFF0F7 \u500B\u5DE5\u4F5C\u9805\u5DF2\u5B8C\u6210\u3002\u5B50\u9805\u8F03\u591A\u7684\u5361\u5C0D\u6574\u9AD4\u9032\u5EA6\u5F71\u97FF\u8F03\u5927\u3002"
+        }
+      ],
+      "recommendation": {
+        "option_id": "target-cards",
+        "reason": "\u9577\u671F\u5361\u901A\u5E38\u7528\u4F86\u770B\u5E7E\u500B\u4EA4\u4ED8\u5B8C\u6210\u4E86\u3002\u539F\u5361\u7D30\u7BC0\u4ECD\u4FDD\u7559\u5728\u53C3\u7167\u5217\uFF0C\u6E05\u695A\u770B\u5F97\u51FA\u54EA\u5F35\u5361\u63A5\u8FD1\u5B8C\u6210\u3002"
+      },
+      "allow_other": true,
+      "status": "decided",
+      "answer": {
+        "kind": "option",
+        "option_id": "target-cards",
+        "confirmed_at": "2026-11-11T11:24:51.0034309\u002B00:00"
+      },
+      "last_request": {
+        "request_id": "b2e2c50b-e06f-4934-adb3-06b2f076b29b",
+        "fingerprint": "dc217e4717917af4d07c941c0151477db33a2f9c279674252f6ad245ae84d089"
+      }
+    }
+  ]
+}

@@ -14,7 +14,7 @@ if not __package__:
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from service.report_lock import scope_lock
-from service.report_operations import ReportError, apply_operations, require
+from service.report_operations import ReportError, apply_operations, require, validate_card_reference_changes
 from service.report_store import (
     LocalFileTransaction, TransactionRollbackError, TRANSACTION_JOURNAL,
     MAX_REPORT_BYTES, strict_json, validate_documents, recover_pending_transaction, run_time_analysis,
@@ -115,6 +115,7 @@ def execute(folder, action, request=None, *, task=None, dry_run=False, analyzer=
                 staged[name] = (json.dumps(payload, ensure_ascii=False, indent=2) + "\n").encode("utf-8")
                 require(len(staged[name]) <= MAX_REPORT_BYTES, name + " exceeds the 1 MiB edit limit")
         validate_documents(candidate, next_overlay)
+        validate_card_reference_changes(report, candidate)
         if dry_run:
             return result
         transaction = LocalFileTransaction(folder)

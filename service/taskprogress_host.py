@@ -38,7 +38,7 @@ from starlette.routing import Mount
 
 
 if __package__:
-    from .report_operations import ReportError, validate_retirement_changes
+    from .report_operations import ReportError, validate_card_reference_changes, validate_retirement_changes
     from .report_store import (
         LocalFileTransaction, TransactionRollbackError, recover_pending_transaction,
         _atomic_replace, _revision, _read_report, _SchemaSource, _schema_errors,
@@ -49,7 +49,7 @@ if __package__:
         DocumentUnavailable, MAX_DOCUMENT_BYTES, render_document, resolve_scope_document,
     )
 else:
-    from report_operations import ReportError, validate_retirement_changes
+    from report_operations import ReportError, validate_card_reference_changes, validate_retirement_changes
     from report_store import (
         LocalFileTransaction, TransactionRollbackError, recover_pending_transaction,
         _atomic_replace, _revision, _read_report, _SchemaSource, _schema_errors,
@@ -1331,6 +1331,7 @@ def install_edit_api(
                 validate_documents(current_report, current_overlay, schema_source.validator())
                 validate_documents(report, current_overlay, schema_source.validator())
                 validate_retirement_changes(current_report, report, path.parent)
+                validate_card_reference_changes(current_report, report)
                 current_inputs, current_inputs_revision = _read_time_inputs(
                     path.parent,
                     scope,
@@ -1415,6 +1416,7 @@ def install_edit_api(
                 validate_documents(current_report, current_overlay, schema_source.validator())
                 validate_documents(report, current_overlay, schema_source.validator())
                 validate_retirement_changes(current_report, report, path.parent)
+                validate_card_reference_changes(current_report, report)
                 current_inputs, current_inputs_revision = _read_time_inputs(
                     path.parent,
                     scope,

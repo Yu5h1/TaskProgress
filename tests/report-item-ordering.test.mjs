@@ -44,8 +44,10 @@ test("TaskCard sorts pending only, preserves same-priority source order and comp
   const original = structuredClone(task);
   const html = card(task);
   assertOrder(html, ["PendingBeta", "PendingAlpha", "PendingGamma"]);
-  assert.ok(html.includes("CompletedNewest"));
-  assert.ok(!html.includes("CompletedOldest"));
+  assertOrder(html, ["CompletedNewest", "CompletedOldest"]);
+  const preview = card(task, false);
+  assert.ok(preview.includes("CompletedNewest"));
+  assert.ok(!preview.includes("CompletedOldest"));
   assert.deepEqual(task, original);
   task.pending_items[1].priority = 4;
   assertOrder(card(task), ["PendingAlpha", "PendingBeta", "PendingGamma"]);

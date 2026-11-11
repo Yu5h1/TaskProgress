@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-11-11T05:32:19.096722+00:00",
+  "updated_at": "2026-11-11T12:28:38.120489+00:00",
   "tasks": [
     {
       "id": "agent-workflow",
@@ -1928,6 +1928,52 @@
       "summary": "正式 Viewer 已具備可分享的唯讀進度報告、Developer overlay、主題系統與響應式介面。",
       "completed_items": [
         {
+          "status": "done",
+          "title": "Viewer 的進度排除已取代與已棄案子項，並和 CLI 參照卡片的進度一致。",
+          "priority": 2,
+          "id": "problem-retired-progress-count",
+          "activity": [
+            {
+              "event": "created",
+              "actor": "codex",
+              "at": "2026-11-08T15:25:59.380679+00:00",
+              "session": "Card touch and retired tone"
+            },
+            {
+              "event": "done",
+              "actor": "codex",
+              "at": "2026-11-11T12:28:38.122Z",
+              "session": "實作卡片參照與視覺層級"
+            }
+          ]
+        },
+        {
+          "id": "item-card-item-visual-level",
+          "status": "done",
+          "priority": 2,
+          "title": "強化 Report 卡頭與卡內子項的視覺層級，驗收暗色、亮色、窄版與既有操作。[視覺層級設計](/document/?scope=task-progress&path=Documentation%2FCardDisclosurePlan.md#report-卡片與子項的視覺層級)",
+          "activity": [
+            {
+              "event": "created",
+              "actor": "claude",
+              "at": "2026-11-11T05:32:19.096722+00:00",
+              "session_id": "95101c81-3257-4d44-90a2-b1e494306ba0"
+            },
+            {
+              "event": "updated",
+              "actor": "codex",
+              "at": "2026-11-11T06:02:59.942445+00:00",
+              "session": "Report 三項設計"
+            },
+            {
+              "event": "done",
+              "actor": "codex",
+              "at": "2026-11-11T12:28:38.121Z",
+              "session": "實作卡片參照與視覺層級"
+            }
+          ]
+        },
+        {
           "priority": 2,
           "id": "problem-item-status-edit-options",
           "status": "done",
@@ -2086,6 +2132,55 @@
         }
       ],
       "pending_items": [
+        {
+          "id": "decide-card-presentation",
+          "title": "決定 Report 卡片分類的呈現，以及卡片與子項的視覺層級",
+          "status": "planned",
+          "priority": 2,
+          "document_ref": {
+            "kind": "decision",
+            "scope_id": "task-progress",
+            "task": "viewer-core"
+          },
+          "activity": [
+            {
+              "event": "created",
+              "actor": "codex",
+              "at": "2026-11-11T06:02:59.942445+00:00",
+              "session": "Report 三項設計"
+            }
+          ]
+        },
+        {
+          "id": "item-card-kind-sections",
+          "status": "discontinued",
+          "priority": 2,
+          "title": "為 Report 普通卡加入分類與所選的呈現方式，沿用既有排序及完成區規則。[卡片分區設計](/document/?scope=task-progress&path=Documentation%2FCardDisclosurePlan.md#report-卡片分區)",
+          "activity": [
+            {
+              "event": "created",
+              "actor": "claude",
+              "at": "2026-11-11T05:32:19.096722+00:00",
+              "session_id": "95101c81-3257-4d44-90a2-b1e494306ba0"
+            },
+            {
+              "event": "updated",
+              "actor": "codex",
+              "at": "2026-11-11T06:02:59.942445+00:00",
+              "session": "Report 三項設計"
+            },
+            {
+              "event": "updated",
+              "actor": "codex",
+              "at": "2026-11-11T12:14:27.499438+00:00",
+              "session": "卡片參照與 Viewer 決策定案",
+              "note": "status:discontinued"
+            }
+          ],
+          "retirement": {
+            "reason": "使用者於 Viewer Core 決策確認，維護和後續需求使用任務卡，依優先級安排先後。"
+          }
+        },
         {
           "id": "item-viewer-core-foreground-refresh",
           "title": "Browser Report／Checklist 已完成離開後回到前景時的整頁刷新、同次 focus／visibility 去重，以及 dirty／saving／pending 保護；待 Preview Panel 實機確認乾淨狀態刷新與未提交草稿保留",
@@ -2270,20 +2365,6 @@
           ]
         },
         {
-          "status": "planned",
-          "title": "問題：Viewer 進度分母仍計入退場子項；taskItemStatus 將 obsolete／discontinued 回落 planned，1 個待處理加 2 個退場顯示 0/3（card-ui fixture 已重現）",
-          "priority": 2,
-          "id": "problem-retired-progress-count",
-          "activity": [
-            {
-              "event": "created",
-              "actor": "codex",
-              "at": "2026-11-08T15:25:59.380679+00:00",
-              "session": "Card touch and retired tone"
-            }
-          ]
-        },
-        {
           "document_ref": {
             "kind": "checklist",
             "task": "report-card-completion",
@@ -2335,34 +2416,6 @@
               "actor": "codex",
               "at": "2026-11-08T17:57:55.975958+00:00",
               "session": "子項結束狀態堆疊"
-            }
-          ]
-        },
-        {
-          "id": "item-card-kind-sections",
-          "status": "planned",
-          "priority": 2,
-          "title": "卡片分類：卡片加種類或分區欄位（例如一般、長期、未來方向），Viewer 依此分區顯示；現在只有 standard／report_pointer 與狀態分組，分類只能寫在標題（「長期：」「未來方向：」）（使用者 2026-11-11 在 VCP 提出）",
-          "activity": [
-            {
-              "event": "created",
-              "actor": "claude",
-              "at": "2026-11-11T05:32:19.096722+00:00",
-              "session_id": "95101c81-3257-4d44-90a2-b1e494306ba0"
-            }
-          ]
-        },
-        {
-          "id": "item-card-item-visual-level",
-          "status": "planned",
-          "priority": 2,
-          "title": "卡片與子項在畫面上要明顯分層：使用者 2026-11-11 反映兩者看起來在同一層。甘特圖的 task／item 列層級是另一個還沒定的問題，見 handoff〈Open decisions〉",
-          "activity": [
-            {
-              "event": "created",
-              "actor": "claude",
-              "at": "2026-11-11T05:32:19.096722+00:00",
-              "session_id": "95101c81-3257-4d44-90a2-b1e494306ba0"
             }
           ]
         },
@@ -4480,19 +4533,58 @@
       "status": "planned",
       "priority": 2,
       "summary": "目標：每個任務以圖形化節點表示，從節點圖直接看出阻塞點，Report 卡片保留作細節說明；資料結構先不改，遞迴節點要先估成本、測可行才替換。見 [問題與目標](https://github.com/Yu5h1/TaskProgress/blob/main/Documentation/NodeProgressViewPlan.md#問題與目標)。",
-      "completed_items": [],
-      "pending_items": [
+      "completed_items": [
         {
           "id": "item-card-ref-rollup",
-          "status": "planned",
+          "status": "done",
           "priority": 2,
-          "title": "子項可以指向同一 scope 的另一張卡，並匯總那張卡的狀態與進度，讓長期大項不必手動補完成的子項。現在只能用 waits_for 等那張卡的某個子項加卡片連結替代，進度不會匯總（例：VCP 的 load-speed-ux，使用者 2026-11-11）；若決定改成遞迴節點，這是第一階段",
+          "title": "支援同一 scope 卡片參照，呈現目標卡的狀態、進度及導航，scope 總進度只計原工作。[卡片參照設計](/document/?scope=task-progress&path=Documentation%2FNodeProgressViewPlan.md#同一-scope-的卡片參照匯總)",
           "activity": [
             {
               "event": "created",
               "actor": "claude",
               "at": "2026-11-11T05:32:19.096722+00:00",
               "session_id": "95101c81-3257-4d44-90a2-b1e494306ba0"
+            },
+            {
+              "event": "updated",
+              "actor": "codex",
+              "at": "2026-11-11T06:02:59.942445+00:00",
+              "session": "Report 三項設計"
+            },
+            {
+              "event": "done",
+              "actor": "codex",
+              "at": "2026-11-11T12:28:38.120489+00:00",
+              "session": "實作卡片參照與視覺層級"
+            }
+          ],
+          "waits_for": [
+            {
+              "scope_id": "task-progress",
+              "task_id": "node-progress-view",
+              "item_id": "decide-card-ref-progress-unit"
+            }
+          ]
+        }
+      ],
+      "pending_items": [
+        {
+          "id": "decide-card-ref-progress-unit",
+          "title": "決定長期卡引用其他卡片時，卡頭進度依引用卡或依原卡工作項計數",
+          "status": "planned",
+          "priority": 2,
+          "document_ref": {
+            "kind": "decision",
+            "scope_id": "task-progress",
+            "task": "node-progress-view"
+          },
+          "activity": [
+            {
+              "event": "created",
+              "actor": "codex",
+              "at": "2026-11-11T06:02:59.942445+00:00",
+              "session": "Report 三項設計"
             }
           ]
         },
