@@ -1,6 +1,13 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { orderCards, moveVisibleCard, displayCards, promotePin, requestedCardPin, removeNewlyCompletedPins } from "../viewer/assets/card-order.js";
+import { orderCards, moveVisibleCard, displayCards, promotePin, requestedCardPin, removeNewlyCompletedPins, visibleRootCards } from "../viewer/assets/card-order.js";
+
+test("root cards keep referenced pins, explicit destinations, and the Next card", () => {
+  const cards = ["root", "pinned", "next", "destination", "child"].map(id => ({ id }));
+  const parents = new Map(cards.slice(1).map(({ id }) => [id, ["root"]]));
+  assert.deepEqual(visibleRootCards(cards, parents, [], null, null), [cards[0]]);
+  assert.deepEqual(visibleRootCards(cards, parents, ["pinned"], "next", "destination"), cards.slice(0, 4));
+});
 
 test('a completion transition unpins once, preserving an explicit re-pin and initial baseline', () => {
   const pins=['a','b','old','unknown'];

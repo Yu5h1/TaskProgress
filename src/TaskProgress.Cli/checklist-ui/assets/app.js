@@ -1168,7 +1168,10 @@ function renderTasks() {
   props.nextTaskId = marked?.taskId ?? null;
   props.nextItemId = marked?.itemId ?? null;
   props.onSetNext = state.editor.available && !state.editor.editing ? setNextInPreview : null;
-  props.hiddenCount = hiddenEntryCount(orderedTasks, tasks);
+  props.hiddenCount = (visibleIds) => hiddenEntryCount(
+    visibleIds ? orderedTasks.filter(task => visibleIds.has(task.id)) : orderedTasks, tasks,
+  );
+  props.referenceParents = indexCardReferences(orderedTasks).parents;
   props.onShowHidden = showHiddenEntries;
   props.scopeId = state.report.scope_id;
   props.reorderable = state.editor.available && !state.editor.editing;

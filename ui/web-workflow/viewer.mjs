@@ -282,7 +282,7 @@ const templates = {
       }));
     }
     if (v.selectionSource !== p.selection) { v.unsubscribe?.(); v.selectionSource = p.selection; v.unsubscribe = p.selection?.subscribe(s => { v.state.selection = s; queueMicrotask(v.refresh); }); v.cleanups.push(() => v.unsubscribe?.()); }
-    return html`${v.cards.render({ items: p.tasks, allIds: p.allIds, storageKey: p.cardStorageKey, pinEnabled: true, completionStates: p.completionStates, completedIds: p.completedIds, requestedPin: p.requestedPin, nextId: p.nextTaskId, onSourceReorder: p.onCardReorder, reorderGroups: p.cardReorderGroups, hiddenCount: p.hiddenCount, onShowHidden: p.onShowHidden },
+    return html`${v.cards.render({ items: p.tasks, allIds: p.allIds, storageKey: p.cardStorageKey, pinEnabled: true, completionStates: p.completionStates, completedIds: p.completedIds, requestedPin: p.requestedPin, nextId: p.nextTaskId, onSourceReorder: p.onCardReorder, reorderGroups: p.cardReorderGroups, hiddenCount: p.hiddenCount, onShowHidden: p.onShowHidden, referenceParents: p.referenceParents, searching: Boolean(p.searchQuery?.trim()) },
       (task, card) => task.kind === 'report_pointer' ? pointer(p, task, card) : taskCard(p, v, task, card), p.filters ? filters(p.filters) : nothing,
       html`${p.onSearch ? html`<ui-search-field class="task-search" label="搜尋任務卡名稱、摘要與子項" placeholder="搜尋名稱、摘要、子項"
         .query=${p.searchQuery ?? ''} @query-change=${e => p.onSearch(e.detail.query)}></ui-search-field>` : nothing}`)}${!p.tasks.length ? html`<p class="empty-state">${p.emptyLabel}</p>` : nothing}${retirementDialog(p,v)}`;

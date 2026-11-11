@@ -16,6 +16,11 @@ export function requestedCardPin(search, scope) {
   return query.get("scope") === scope ? (query.get("pin") || null) : null;
 }
 
+export function visibleRootCards(cards, parents, pinnedIds, nextId, requestedPin) {
+  const keep = new Set([...pinnedIds, nextId, requestedPin]);
+  return cards.filter(card => !parents.has(card.id) || keep.has(card.id));
+}
+
 // The lead card (the scope's Next) outranks every pin and every sort mode.
 export function displayCards(items, order, mode, pinnedIds = [], leadId = null, completedIds = null) {
   let sorted = mode === "free" ? orderCards(items, order) : mode === "reverse" ? [...items].reverse() : items;

@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-11-11T14:29:45.444228+00:00",
+  "updated_at": "2026-11-11T14:31:55.950723+00:00",
   "tasks": [
     {
       "id": "gemini-workflow-trial",
@@ -2789,6 +2789,49 @@
       "summary": "正式 Viewer 已具備可分享的唯讀進度報告、Developer overlay、主題系統與響應式介面。",
       "completed_items": [
         {
+          "id": "item-root-card-list",
+          "status": "done",
+          "priority": 2,
+          "title": "Report 頂層預設只列根卡，工具列切換顯示全部；搜尋與釘選照常找得到被引用的卡。[根卡清單設計](/document/?scope=task-progress&path=Documentation%2FCardDisclosurePlan.md#根卡清單與卡片頁)",
+          "activity": [
+            {
+              "event": "created",
+              "actor": "claude",
+              "at": "2026-11-11T14:05:29.468239+00:00",
+              "session": "VCP report 整理",
+              "session_id": "95101c81-3257-4d44-90a2-b1e494306ba0"
+            },
+            {
+              "event": "updated",
+              "actor": "claude",
+              "at": "2026-11-11T14:15:16.988616+00:00",
+              "session": "VCP report 整理",
+              "session_id": "95101c81-3257-4d44-90a2-b1e494306ba0"
+            },
+            {
+              "event": "started",
+              "actor": "codex",
+              "at": "2026-11-11T14:30:11.837985+00:00",
+              "session": "參照鏈與等待佇列",
+              "session_id": "01a1873a-2fef-74c2-a673-a41bb27657dd"
+            },
+            {
+              "event": "done",
+              "actor": "codex",
+              "at": "2026-11-11T14:31:55.950723+00:00",
+              "session": "參照鏈與等待佇列",
+              "session_id": "01a1873a-2fef-74c2-a673-a41bb27657dd"
+            }
+          ],
+          "waits_for": [
+            {
+              "scope_id": "task-progress",
+              "task_id": "node-progress-view",
+              "item_id": "item-card-ref-chain"
+            }
+          ]
+        },
+        {
           "status": "done",
           "title": "Viewer 的進度排除已取代與已棄案子項，並和 CLI 參照卡片的進度一致。",
           "priority": 2,
@@ -3319,35 +3362,6 @@
           "retirement": {
             "reason": "使用者於 Viewer Core 決策確認，維護和後續需求使用任務卡，依優先級安排先後。"
           }
-        },
-        {
-          "id": "item-root-card-list",
-          "status": "planned",
-          "priority": 2,
-          "title": "Report 頂層預設只列根卡，工具列切換顯示全部；搜尋與釘選照常找得到被引用的卡。[根卡清單設計](/document/?scope=task-progress&path=Documentation%2FCardDisclosurePlan.md#根卡清單與卡片頁)",
-          "activity": [
-            {
-              "event": "created",
-              "actor": "claude",
-              "at": "2026-11-11T14:05:29.468239+00:00",
-              "session": "VCP report 整理",
-              "session_id": "95101c81-3257-4d44-90a2-b1e494306ba0"
-            },
-            {
-              "event": "updated",
-              "actor": "claude",
-              "at": "2026-11-11T14:15:16.988616+00:00",
-              "session": "VCP report 整理",
-              "session_id": "95101c81-3257-4d44-90a2-b1e494306ba0"
-            }
-          ],
-          "waits_for": [
-            {
-              "scope_id": "task-progress",
-              "task_id": "node-progress-view",
-              "item_id": "item-card-ref-chain"
-            }
-          ]
         },
         {
           "id": "item-card-page",

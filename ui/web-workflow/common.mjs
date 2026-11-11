@@ -6,7 +6,7 @@ import { directive } from 'lit/directive.js';
 import { AsyncDirective } from 'lit/async-directive.js';
 import { expandableText } from '@taskprogress/expandable-text.js';
 import { inlineLinks } from '@taskprogress/inline-links.js';
-import { displayCards, promotePin, moveVisibleCard, removeNewlyCompletedPins } from '@taskprogress/card-order.js';
+import { displayCards, promotePin, moveVisibleCard, removeNewlyCompletedPins, visibleRootCards } from '@taskprogress/card-order.js';
 import { loadDisclosure, saveDisclosure } from '@taskprogress/card-disclosure-state.js';
 import { DEFAULT_CAPSULE_ID } from '@taskprogress/filter-selection.js';
 import { createLinkSelection, readLinkSelection } from '@taskprogress/link-selection.js';
@@ -215,6 +215,7 @@ export class Cards {
     const key = p.storageKey ?? null;
     if (this.key !== key) {
       this.key = key; this.lastPin = null; this.order = []; this.pins = []; this.completionStates = {}; this.mode = 'forward'; this.hidden = []; this.visibility = 'disabled'; this.selected = null;
+      this.showAllCards = false;
       if (key) try {
         const pins = JSON.parse(localStorage.getItem(`${key}:pins`)), visibility = JSON.parse(sessionStorage.getItem(`${key}:visibility`)), mode = localStorage.getItem(`${key}:mode`);
         this.pins = Array.isArray(pins) ? [...new Set(pins.filter(id => typeof id === 'string' || typeof id === 'number'))] : [];
@@ -245,7 +246,12 @@ export class Cards {
       this.pins = promotePin(this.pins, p.requestedPin); this.overrides[p.requestedPin] = true; this.hidden = this.hidden.filter(id => id !== p.requestedPin); if (this.visibility === 'closed') this.visibility = 'enabled'; this.lastPin = p.requestedPin;
       try { if (key) localStorage.setItem(`${key}:pins`, JSON.stringify(this.pins)); } catch {}
     }
-    const items = displayCards(p.items, p.heldOrder ?? this.order, p.heldOrder ? 'free' : this.mode, p.pinEnabled ? this.pins : [], p.nextId, p.completedIds);
+    const rootOnly = p.referenceParents?.size && !this.showAllCards && !p.searching;
+    const rootCards = cards => visibleRootCards(cards, p.referenceParents, this.pins, p.nextId, p.requestedPin);
+    const shown = rootOnly ? rootCards(p.items) : p.items;
+    const includedIds = rootOnly ? new Set(rootCards((p.allIds ?? []).map(id => ({ id }))).map(card => card.id)) : null;
+    const hiddenCount = typeof p.hiddenCount === 'function' ? p.hiddenCount(includedIds) : p.hiddenCount;
+    const items = displayCards(shown, p.heldOrder ?? this.order, p.heldOrder ? 'free' : this.mode, p.pinEnabled ? this.pins : [], p.nextId, p.completedIds);
     const linked = this.linkSelection.claim(items.map(i => i.id));
     if (linked) {
       this.selected = linked.id;
@@ -282,6 +288,7 @@ export class Cards {
     };
     const leadId = items.find(visible)?.id;
     return html`<div class="card-list-controls"><div class="card-list-heading"><p class="section-kicker">工作項目</p>${filter}</div><div class="card-list-tools">
+      ${p.referenceParents?.size ? html`<button type="button" class="secondary-button" aria-pressed=${!!this.showAllCards} @click=${() => { this.showAllCards = !this.showAllCards; this.view.draw(); }}>顯示全部卡片</button>` : nothing}
       <button type="button" class="card-toolbar-icon" aria-label=${this.expanded ? '全部收合' : '全部展開'} @click=${() => this.all(!this.expanded)}><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d=${this.expanded ? "M5 15l7-7 7 7" : "M5 9l7 7 7-7"} fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" /></svg></button>
       ${choice(this.view, 'order', ['forward','reverse','free'].map(id => ({ id, label: ({forward:'順排',reverse:'逆排',free:'不排（暫時換位）'})[id], icon:orderIcon(id) })), this.mode, '排序', id => { this.mode = id; this.persist(true); })}
       ${choice(this.view, 'visibility', [{ id:'enabled',label:'啟用',icon:eye() },{ id:'closed',label:'全體關閉',icon:eye(true) },{ id:'disabled',label:'禁用',icon:eye(false,true) },{ id:'reset',label:'重置',kind:'action',icon:html`<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10a9 9 0 1 1 2 8M3 4v6h6" /></svg>` }], this.visibility, '可見性', id => { if (id === 'reset') { this.hidden = []; this.visibility = 'enabled'; } else this.visibility = id; this.persist(); }, 'picker')}${tools}
@@ -291,7 +298,7 @@ export class Cards {
       @pointerdown=${e => { if (e.button === 0) this.select(i.id); }} @focusin=${() => this.select(i.id)} @keydown=${e => { if (e.target === e.currentTarget && ['Enter',' '].includes(e.key)) { e.preventDefault(); this.select(i.id); } }}>
       ${p.pinEnabled ? html`<button type="button" class="card-pin ${this.pins.includes(i.id) ? 'is-pinned' : ''} ${i.id === p.nextId ? 'is-next' : ''}" aria-label="${this.pins.includes(i.id) ? '取消釘選' : '釘選置頂'}：${i.title}" aria-pressed=${this.pins.includes(i.id)} @click=${() => { this.pins = this.pins.includes(i.id) ? this.pins.filter(id => id !== i.id) : promotePin(this.pins, i.id); this.persist(); }}><svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M8 3h8l-1 7 4 4v2H5v-2l4-4-1-7Zm4 13v6" fill=${this.pins.includes(i.id) ? 'currentColor' : 'none'} stroke="currentColor" stroke-width="1.6" /></svg></button>` : nothing}
       ${guard([this.view.contentVersion, i, i.id === leadId, this.isExpanded(i.id), this.visibility, this.hidden.includes(i.id)], () => itemTemplate(i, { lead: i.id === leadId, expanded: this.isExpanded(i.id), toggle: value => this.expand(i.id, value), visibilityEnabled: this.visibility === 'enabled', visible: !this.hidden.includes(i.id), onVisibleChange: value => { this.hidden = value ? this.hidden.filter(id => id !== i.id) : [...this.hidden, i.id]; this.persist(); } }))}
-    </div>`)}</div>${p.hiddenCount > 0 ? html`<p class="card-list-hidden"><button type="button" class="card-list-hidden-link" @click=${p.onShowHidden}>…顯示隱藏項目(${p.hiddenCount})</button></p>` : nothing}`;
+    </div>`)}</div>${hiddenCount > 0 ? html`<p class="card-list-hidden"><button type="button" class="card-list-hidden-link" @click=${p.onShowHidden}>…顯示隱藏項目(${hiddenCount})</button></p>` : nothing}`;
   }
 }
 export function saveBar(p) {
