@@ -9,14 +9,14 @@ import { itemReference as _ } from "./item-reference.js";
 import { formatActivity as ee } from "./item-activity.js";
 import { isRetiredStatus as v, statusLinks as te, statusTooltip as ne } from "./item-state.js";
 import { taskItemStack as y } from "./item-stack.js";
-import { checklistReturnHref as re, createLinkSelection as b, linkSelectionHref as ie, readLinkSelection as x } from "./link-selection.js";
-import { expandableText as ae } from "./expandable-text.js";
+import { checklistReturnHref as re, createLinkSelection as b, linkSelectionHref as ie, readLinkSelection as ae } from "./link-selection.js";
+import { expandableText as oe } from "./expandable-text.js";
 import "./inline-links.js";
-import { displayCards as oe, moveVisibleCard as se, promotePin as ce, removeNewlyCompletedPins as le, visibleRootCards as ue } from "./card-order.js";
-import { loadDisclosure as de, saveDisclosure as fe } from "./card-disclosure-state.js";
-import { DEFAULT_CAPSULE_ID as pe } from "./filter-selection.js";
+import { displayCards as se, moveVisibleCard as ce, promotePin as le, removeNewlyCompletedPins as ue, visibleRootCards as de } from "./card-order.js";
+import { loadDisclosure as fe, saveDisclosure as pe } from "./card-disclosure-state.js";
+import { DEFAULT_CAPSULE_ID as me } from "./filter-selection.js";
 //#region viewer/assets/theme-model.js
-var me = "task-progress.theme.v1";
+var he = "task-progress.theme.v1";
 Object.freeze({
 	light: Object.freeze({
 		pageBackground: "#f5f3ec",
@@ -44,10 +44,10 @@ Object.freeze({
 });
 //#endregion
 //#region ui/web-workflow/theme-options.mjs
-var he = Object.freeze({ defaultMode: "system" });
+var ge = Object.freeze({ defaultMode: "system" });
 //#endregion
 //#region ui/web-workflow/bootstrap.mjs
-function ge(t = null) {
+function _e(t = null) {
 	let n = document.createElement("a");
 	n.className = "demo-back-link", n.href = t?.href ?? "/", n.setAttribute("aria-label", t ? `回到 ${t.title}` : "回到 Scopes 入口"), n.title = t ? `回到 ${t.title}` : "回到 Scopes 入口";
 	let r = document.createElementNS("http://www.w3.org/2000/svg", "svg");
@@ -71,15 +71,15 @@ function ge(t = null) {
 		iconElement: r
 	}), n.style.setProperty("--button-foreground", "var(--blue)"), n;
 }
-async function _e(e) {
+async function ve(e) {
 	r(), document.documentElement.dataset.taskprogressUi = "web-ui-workflow";
-	let t = he, n = globalThis.taskprogressThemeBoot, c = n?.preference ?? a(() => localStorage, "task-progress.theme.v1", t);
+	let t = ge, n = globalThis.taskprogressThemeBoot, c = n?.preference ?? a(() => localStorage, "task-progress.theme.v1", t);
 	n?.controller.dispose(), delete globalThis.taskprogressThemeBoot;
 	let l = document.createElement("ui-theme-control"), u = matchMedia("(prefers-color-scheme: dark)"), d, f = () => {
 		l.preference = c, l.systemScheme = u.matches ? "dark" : "light", document.documentElement.dataset.theme = c.mode, c.mode === "custom" ? document.documentElement.dataset.themeBase = c.custom.base : delete document.documentElement.dataset.themeBase;
 	}, p = () => {
-		d || (c = a(() => localStorage, me, t), d = i(document.documentElement, c, t), u.addEventListener("change", f), f());
-	}, m = (e) => (c = s(() => localStorage, me, e, t), d?.update(c), f(), c);
+		d || (c = a(() => localStorage, he, t), d = i(document.documentElement, c, t), u.addEventListener("change", f), f());
+	}, m = (e) => (c = s(() => localStorage, he, e, t), d?.update(c), f(), c);
 	if (p(), l.addEventListener("theme-change", (e) => m(e.detail.preference)), globalThis.taskprogressTheme = {
 		control: l,
 		get mode() {
@@ -108,7 +108,7 @@ async function _e(e) {
 		let e = document.querySelector("#report-title");
 		if (e) {
 			let t = document.createElement("div");
-			t.className = "replica-title-row", e.before(t), t.append(ge(), e);
+			t.className = "replica-title-row", e.before(t), t.append(_e(), e);
 		}
 	}
 	let h = new URLSearchParams(location.search).get("scope"), g = e !== "viewer" && typeof globalThis.chrome?.webview?.postMessage == "function", _ = g;
@@ -123,7 +123,7 @@ async function _e(e) {
 }
 //#endregion
 //#region node_modules/@lit/reactive-element/css-tag.js
-var ve = globalThis, ye = ve.ShadowRoot && (ve.ShadyCSS === void 0 || ve.ShadyCSS.nativeShadow) && "adoptedStyleSheets" in Document.prototype && "replace" in CSSStyleSheet.prototype, be = Symbol(), xe = /* @__PURE__ */ new WeakMap(), Se = class {
+var x = globalThis, ye = x.ShadowRoot && (x.ShadyCSS === void 0 || x.ShadyCSS.nativeShadow) && "adoptedStyleSheets" in Document.prototype && "replace" in CSSStyleSheet.prototype, be = Symbol(), xe = /* @__PURE__ */ new WeakMap(), Se = class {
 	constructor(e, t, n) {
 		if (this._$cssResult$ = !0, n !== be) throw Error("CSSResult is not constructable. Use `unsafeCSS` or `css` instead.");
 		this.cssText = e, this.t = t;
@@ -142,7 +142,7 @@ var ve = globalThis, ye = ve.ShadowRoot && (ve.ShadyCSS === void 0 || ve.ShadyCS
 }, Ce = (e) => new Se(typeof e == "string" ? e : e + "", void 0, be), we = (e, t) => {
 	if (ye) e.adoptedStyleSheets = t.map((e) => e instanceof CSSStyleSheet ? e : e.styleSheet);
 	else for (let n of t) {
-		let t = document.createElement("style"), r = ve.litNonce;
+		let t = document.createElement("style"), r = x.litNonce;
 		r !== void 0 && t.setAttribute("nonce", r), t.textContent = n.cssText, e.appendChild(t);
 	}
 }, Te = ye ? (e) => e : (e) => e instanceof CSSStyleSheet ? ((e) => {
@@ -410,7 +410,7 @@ var nt = (e, t) => {
 						index: a,
 						name: r[2],
 						strings: n,
-						ctor: r[1] === "." ? at : r[1] === "?" ? ot : r[1] === "@" ? st : R
+						ctor: r[1] === "." ? ot : r[1] === "?" ? st : r[1] === "@" ? ct : L
 					}), i.removeAttribute(e);
 				} else e.startsWith(T) && (c.push({
 					type: 6,
@@ -468,7 +468,7 @@ var it = class {
 		for (; s !== void 0;) {
 			if (a === s.index) {
 				let t;
-				s.type === 2 ? t = new L(i, i.nextSibling, this, e) : s.type === 1 ? t = new s.ctor(i, s.name, s.strings, this, e) : s.type === 6 && (t = new ct(i, this, e)), this._$AV.push(t), s = n[++o];
+				s.type === 2 ? t = new at(i, i.nextSibling, this, e) : s.type === 1 ? t = new s.ctor(i, s.name, s.strings, this, e) : s.type === 6 && (t = new lt(i, this, e)), this._$AV.push(t), s = n[++o];
 			}
 			a !== s?.index && (i = F.nextNode(), a++);
 		}
@@ -478,7 +478,7 @@ var it = class {
 		let t = 0;
 		for (let n of this._$AV) n !== void 0 && (n.strings === void 0 ? n._$AI(e[t]) : (n._$AI(e, n, t), t += n.strings.length - 2)), t++;
 	}
-}, L = class e {
+}, at = class e {
 	get _$AU() {
 		return this._$AM?._$AU ?? this._$Cv;
 	}
@@ -534,7 +534,7 @@ var it = class {
 	setConnected(e) {
 		this._$AM === void 0 && (this._$Cv = e, this._$AP?.(e));
 	}
-}, R = class {
+}, L = class {
 	get tagName() {
 		return this.element.tagName;
 	}
@@ -556,21 +556,21 @@ var it = class {
 	j(e) {
 		e === P ? this.element.removeAttribute(this.name) : this.element.setAttribute(this.name, e ?? "");
 	}
-}, at = class extends R {
+}, ot = class extends L {
 	constructor() {
 		super(...arguments), this.type = 3;
 	}
 	j(e) {
 		this.element[this.name] = e === P ? void 0 : e;
 	}
-}, ot = class extends R {
+}, st = class extends L {
 	constructor() {
 		super(...arguments), this.type = 4;
 	}
 	j(e) {
 		this.element.toggleAttribute(this.name, !!e && e !== P);
 	}
-}, st = class extends R {
+}, ct = class extends L {
 	constructor(e, t, n, r, i) {
 		super(e, t, n, r, i), this.type = 5;
 	}
@@ -582,7 +582,7 @@ var it = class {
 	handleEvent(e) {
 		typeof this._$AH == "function" ? this._$AH.call(this.options?.host ?? this.element, e) : this._$AH.handleEvent(e);
 	}
-}, ct = class {
+}, lt = class {
 	constructor(e, t, n) {
 		this.element = e, this.type = 6, this._$AN = void 0, this._$AM = t, this.options = n;
 	}
@@ -592,7 +592,7 @@ var it = class {
 	_$AI(e) {
 		I(this, e);
 	}
-}, lt = {
+}, ut = {
 	M: He,
 	P: T,
 	A: Ue,
@@ -601,22 +601,22 @@ var it = class {
 	R: it,
 	D: Ke,
 	V: I,
-	I: L,
-	H: R,
-	N: ot,
-	U: st,
-	B: at,
-	F: ct
-}, ut = Re.litHtmlPolyfillSupport;
-ut?.(rt, L), (Re.litHtmlVersions ??= []).push("3.3.3");
-var dt = (e, t, n) => {
+	I: at,
+	H: L,
+	N: st,
+	U: ct,
+	B: ot,
+	F: lt
+}, dt = Re.litHtmlPolyfillSupport;
+dt?.(rt, at), (Re.litHtmlVersions ??= []).push("3.3.3");
+var ft = (e, t, n) => {
 	let r = n?.renderBefore ?? t, i = r._$litPart$;
 	if (i === void 0) {
 		let e = n?.renderBefore ?? null;
-		r._$litPart$ = i = new L(t.insertBefore(D(), e), e, void 0, n ?? {});
+		r._$litPart$ = i = new at(t.insertBefore(D(), e), e, void 0, n ?? {});
 	}
 	return i._$AI(e), i;
-}, ft = globalThis, z = class extends w {
+}, pt = globalThis, R = class extends w {
 	constructor() {
 		super(...arguments), this.renderOptions = { host: this }, this._$Do = void 0;
 	}
@@ -626,7 +626,7 @@ var dt = (e, t, n) => {
 	}
 	update(e) {
 		let t = this.render();
-		this.hasUpdated || (this.renderOptions.isConnected = this.isConnected), super.update(e), this._$Do = dt(t, this.renderRoot, this.renderOptions);
+		this.hasUpdated || (this.renderOptions.isConnected = this.isConnected), super.update(e), this._$Do = ft(t, this.renderRoot, this.renderOptions);
 	}
 	connectedCallback() {
 		super.connectedCallback(), this._$Do?.setConnected(!0);
@@ -638,22 +638,22 @@ var dt = (e, t, n) => {
 		return N;
 	}
 };
-z._$litElement$ = !0, z.finalized = !0, ft.litElementHydrateSupport?.({ LitElement: z });
-var pt = ft.litElementPolyfillSupport;
-pt?.({ LitElement: z }), (ft.litElementVersions ??= []).push("4.2.2");
+R._$litElement$ = !0, R.finalized = !0, pt.litElementHydrateSupport?.({ LitElement: R });
+var mt = pt.litElementPolyfillSupport;
+mt?.({ LitElement: R }), (pt.litElementVersions ??= []).push("4.2.2");
 //#endregion
 //#region node_modules/lit-html/directive.js
-var B = {
+var z = {
 	ATTRIBUTE: 1,
 	CHILD: 2,
 	PROPERTY: 3,
 	BOOLEAN_ATTRIBUTE: 4,
 	EVENT: 5,
 	ELEMENT: 6
-}, V = (e) => (...t) => ({
+}, B = (e) => (...t) => ({
 	_$litDirective$: e,
 	values: t
-}), H = class {
+}), ht = class {
 	constructor(e) {}
 	get _$AU() {
 		return this._$AM._$AU;
@@ -667,9 +667,9 @@ var B = {
 	update(e, t) {
 		return this.render(...t);
 	}
-}, { I: mt } = lt, ht = (e) => e, gt = (e) => e.strings === void 0, _t = () => document.createComment(""), U = (e, t, n) => {
+}, { I: gt } = ut, _t = (e) => e, vt = (e) => e.strings === void 0, yt = () => document.createComment(""), V = (e, t, n) => {
 	let r = e._$AA.parentNode, i = t === void 0 ? e._$AB : t._$AA;
-	if (n === void 0) n = new mt(r.insertBefore(_t(), i), r.insertBefore(_t(), i), e, e.options);
+	if (n === void 0) n = new gt(r.insertBefore(yt(), i), r.insertBefore(yt(), i), e, e.options);
 	else {
 		let t = n._$AB.nextSibling, a = n._$AM, o = a !== e;
 		if (o) {
@@ -679,21 +679,21 @@ var B = {
 		if (t !== i || o) {
 			let e = n._$AA;
 			for (; e !== t;) {
-				let t = ht(e).nextSibling;
-				ht(r).insertBefore(e, i), e = t;
+				let t = _t(e).nextSibling;
+				_t(r).insertBefore(e, i), e = t;
 			}
 		}
 	}
 	return n;
-}, W = (e, t, n = e) => (e._$AI(t, n), e), vt = {}, yt = (e, t = vt) => e._$AH = t, bt = (e) => e._$AH, xt = (e) => {
+}, H = (e, t, n = e) => (e._$AI(t, n), e), bt = {}, xt = (e, t = bt) => e._$AH = t, St = (e) => e._$AH, Ct = (e) => {
 	e._$AR(), e._$AA.remove();
-}, St = (e, t, n) => {
+}, wt = (e, t, n) => {
 	let r = /* @__PURE__ */ new Map();
 	for (let i = t; i <= n; i++) r.set(e[i], i);
 	return r;
-}, G = V(class extends H {
+}, U = B(class extends ht {
 	constructor(e) {
-		if (super(e), e.type !== B.CHILD) throw Error("repeat() can only be used in text expressions");
+		if (super(e), e.type !== z.CHILD) throw Error("repeat() can only be used in text expressions");
 	}
 	dt(e, t, n) {
 		let r;
@@ -709,37 +709,37 @@ var B = {
 		return this.dt(e, t, n).values;
 	}
 	update(e, [t, n, r]) {
-		let i = bt(e), { values: a, keys: o } = this.dt(t, n, r);
+		let i = St(e), { values: a, keys: o } = this.dt(t, n, r);
 		if (!Array.isArray(i)) return this.ut = o, a;
 		let s = this.ut ??= [], c = [], l, u, d = 0, f = i.length - 1, p = 0, m = a.length - 1;
 		for (; d <= f && p <= m;) if (i[d] === null) d++;
 		else if (i[f] === null) f--;
-		else if (s[d] === o[p]) c[p] = W(i[d], a[p]), d++, p++;
-		else if (s[f] === o[m]) c[m] = W(i[f], a[m]), f--, m--;
-		else if (s[d] === o[m]) c[m] = W(i[d], a[m]), U(e, c[m + 1], i[d]), d++, m--;
-		else if (s[f] === o[p]) c[p] = W(i[f], a[p]), U(e, i[d], i[f]), f--, p++;
-		else if (l === void 0 && (l = St(o, p, m), u = St(s, d, f)), l.has(s[d])) if (l.has(s[f])) {
+		else if (s[d] === o[p]) c[p] = H(i[d], a[p]), d++, p++;
+		else if (s[f] === o[m]) c[m] = H(i[f], a[m]), f--, m--;
+		else if (s[d] === o[m]) c[m] = H(i[d], a[m]), V(e, c[m + 1], i[d]), d++, m--;
+		else if (s[f] === o[p]) c[p] = H(i[f], a[p]), V(e, i[d], i[f]), f--, p++;
+		else if (l === void 0 && (l = wt(o, p, m), u = wt(s, d, f)), l.has(s[d])) if (l.has(s[f])) {
 			let t = u.get(o[p]), n = t === void 0 ? null : i[t];
 			if (n === null) {
-				let t = U(e, i[d]);
-				W(t, a[p]), c[p] = t;
-			} else c[p] = W(n, a[p]), U(e, i[d], n), i[t] = null;
+				let t = V(e, i[d]);
+				H(t, a[p]), c[p] = t;
+			} else c[p] = H(n, a[p]), V(e, i[d], n), i[t] = null;
 			p++;
-		} else xt(i[f]), f--;
-		else xt(i[d]), d++;
+		} else Ct(i[f]), f--;
+		else Ct(i[d]), d++;
 		for (; p <= m;) {
-			let t = U(e, c[m + 1]);
-			W(t, a[p]), c[p++] = t;
+			let t = V(e, c[m + 1]);
+			H(t, a[p]), c[p++] = t;
 		}
 		for (; d <= f;) {
 			let e = i[d++];
-			e !== null && xt(e);
+			e !== null && Ct(e);
 		}
-		return this.ut = o, yt(e, c), N;
+		return this.ut = o, xt(e, c), N;
 	}
-}), Ct = {}, wt = V(class extends H {
+}), Tt = {}, Et = B(class extends ht {
 	constructor() {
-		super(...arguments), this.ot = Ct;
+		super(...arguments), this.ot = Tt;
 	}
 	render(e, t) {
 		return t();
@@ -750,10 +750,10 @@ var B = {
 		} else if (this.ot === t) return N;
 		return this.ot = Array.isArray(t) ? Array.from(t) : t, this.render(t, n);
 	}
-}), K = V(class extends H {
+}), W = B(class extends ht {
 	constructor(e) {
-		if (super(e), e.type !== B.PROPERTY && e.type !== B.ATTRIBUTE && e.type !== B.BOOLEAN_ATTRIBUTE) throw Error("The `live` directive is not allowed on child or event bindings");
-		if (!gt(e)) throw Error("`live` bindings can only contain a single expression");
+		if (super(e), e.type !== z.PROPERTY && e.type !== z.ATTRIBUTE && e.type !== z.BOOLEAN_ATTRIBUTE) throw Error("The `live` directive is not allowed on child or event bindings");
+		if (!vt(e)) throw Error("`live` bindings can only contain a single expression");
 	}
 	render(e) {
 		return e;
@@ -761,55 +761,55 @@ var B = {
 	update(e, [t]) {
 		if (t === N || t === P) return t;
 		let n = e.element, r = e.name;
-		if (e.type === B.PROPERTY) {
+		if (e.type === z.PROPERTY) {
 			if (t === n[r]) return N;
-		} else if (e.type === B.BOOLEAN_ATTRIBUTE) {
+		} else if (e.type === z.BOOLEAN_ATTRIBUTE) {
 			if (!!t === n.hasAttribute(r)) return N;
-		} else if (e.type === B.ATTRIBUTE && n.getAttribute(r) === t + "") return N;
-		return yt(e), t;
+		} else if (e.type === z.ATTRIBUTE && n.getAttribute(r) === t + "") return N;
+		return xt(e), t;
 	}
-}), q = (e, t) => {
+}), G = (e, t) => {
 	let n = e._$AN;
 	if (n === void 0) return !1;
-	for (let e of n) e._$AO?.(t, !1), q(e, t);
+	for (let e of n) e._$AO?.(t, !1), G(e, t);
 	return !0;
-}, Tt = (e) => {
+}, K = (e) => {
 	let t, n;
 	do {
 		if ((t = e._$AM) === void 0) break;
 		n = t._$AN, n.delete(e), e = t;
 	} while (n?.size === 0);
-}, Et = (e) => {
+}, Dt = (e) => {
 	for (let t; t = e._$AM; e = t) {
 		let n = t._$AN;
 		if (n === void 0) t._$AN = n = /* @__PURE__ */ new Set();
 		else if (n.has(e)) break;
-		n.add(e), kt(t);
+		n.add(e), At(t);
 	}
 };
-function Dt(e) {
-	this._$AN === void 0 ? this._$AM = e : (Tt(this), this._$AM = e, Et(this));
+function Ot(e) {
+	this._$AN === void 0 ? this._$AM = e : (K(this), this._$AM = e, Dt(this));
 }
-function Ot(e, t = !1, n = 0) {
+function kt(e, t = !1, n = 0) {
 	let r = this._$AH, i = this._$AN;
-	if (i !== void 0 && i.size !== 0) if (t) if (Array.isArray(r)) for (let e = n; e < r.length; e++) q(r[e], !1), Tt(r[e]);
-	else r != null && (q(r, !1), Tt(r));
-	else q(this, e);
+	if (i !== void 0 && i.size !== 0) if (t) if (Array.isArray(r)) for (let e = n; e < r.length; e++) G(r[e], !1), K(r[e]);
+	else r != null && (G(r, !1), K(r));
+	else G(this, e);
 }
-var kt = (e) => {
-	e.type == B.CHILD && (e._$AP ??= Ot, e._$AQ ??= Dt);
-}, At = class extends H {
+var At = (e) => {
+	e.type == z.CHILD && (e._$AP ??= kt, e._$AQ ??= Ot);
+}, jt = class extends ht {
 	constructor() {
 		super(...arguments), this._$AN = void 0;
 	}
 	_$AT(e, t, n) {
-		super._$AT(e, t, n), Et(this), this.isConnected = e._$AU;
+		super._$AT(e, t, n), Dt(this), this.isConnected = e._$AU;
 	}
 	_$AO(e, t = !0) {
-		e !== this.isConnected && (this.isConnected = e, e ? this.reconnected?.() : this.disconnected?.()), t && (q(this, e), Tt(this));
+		e !== this.isConnected && (this.isConnected = e, e ? this.reconnected?.() : this.disconnected?.()), t && (G(this, e), K(this));
 	}
 	setValue(e) {
-		if (gt(this._$Ct)) this._$Ct._$AI(e, this);
+		if (vt(this._$Ct)) this._$Ct._$AI(e, this);
 		else {
 			let t = [...this._$Ct._$AH];
 			t[this._$Ci] = e, this._$Ct._$AI(t, this, 0);
@@ -820,7 +820,7 @@ var kt = (e) => {
 };
 //#endregion
 //#region ui/web-workflow/action-queue.mjs
-function jt(e = queueMicrotask) {
+function Mt(e = queueMicrotask) {
 	let t = /* @__PURE__ */ new Set(), n = !1, r = () => {
 		n = !1;
 		let r = [...t];
@@ -843,7 +843,7 @@ function jt(e = queueMicrotask) {
 }
 //#endregion
 //#region ui/web-workflow/enabled-action.mjs
-function Mt(e, t = (e) => e.enabled !== !1) {
+function Nt(e, t = (e) => e.enabled !== !1) {
 	return (n, r) => {
 		let i, a = (r) => {
 			t(r) ? i ? i.update?.(r) : i = e(n, r) : (i?.destroy(), i = void 0);
@@ -858,7 +858,7 @@ function Mt(e, t = (e) => e.enabled !== !1) {
 }
 //#endregion
 //#region ui/web-workflow/common.mjs
-var Nt = jt(), J = V(class extends At {
+var Pt = Mt(), q = B(class extends jt {
 	render() {
 		return P;
 	}
@@ -866,13 +866,13 @@ var Nt = jt(), J = V(class extends At {
 		return this.node = e.element, this.factory !== t && (this.clear(), this.factory = t), this.value = n, this.schedule(), P;
 	}
 	schedule() {
-		Nt.add(this);
+		Pt.add(this);
 	}
 	flush() {
 		!this.isConnected || !this.node.isConnected || (this.binding ? this.binding.update?.(this.value) : this.binding = this.factory(this.node, this.value));
 	}
 	clear() {
-		Nt.delete(this), this.binding?.destroy?.(), this.binding?.dispose?.(), this.binding = null;
+		Pt.delete(this), this.binding?.destroy?.(), this.binding?.dispose?.(), this.binding = null;
 	}
 	disconnected() {
 		this.clear();
@@ -880,10 +880,10 @@ var Nt = jt(), J = V(class extends At {
 	reconnected() {
 		this.factory && this.schedule();
 	}
-}), Pt = (e, t = {}) => j`<div ${J(ae, {
+}), Ft = (e, t = {}) => j`<div ${q(oe, {
 	text: e ?? "",
 	...t
-})}></div>`, Ft = (e = !1, t = !1) => M`<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${e ? M`<path d="M3 9c4 7 14 7 18 0M5 12l-2 3m6-1-1 3m7-3 1 3m3-5 2 3" />` : M`<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z" /><circle cx="12" cy="12" r="3" />`}${t ? M`<path d="M3 3l18 18" />` : P}</svg>`, It = (e) => M`<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true">${e === "free" ? M`<path d="M4 5h15M4 10h8M4 15h17M4 20h11" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" />` : M`<path d=${e === "forward" ? "M5 3v18m-3-3 3 3 3-3" : "M5 21V3m-3 3 3-3 3 3"} fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /><path d=${e === "forward" ? "M11 4h10M11 9h8M11 14h6M11 19h3" : "M11 4h3M11 9h6M11 14h8M11 19h10"} fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" />`}</svg>`, Lt = (e) => j`<small class="card-id">(${e})</small>`, Rt = (e, t, n = e) => j`<ui-copy-id class="task-title-copy" .value=${String(e)} .label=${t}>${t}${Lt(n)}</ui-copy-id>`, zt = ({ cells: e = [], form: t = "segmented", ratio: n = 0, label: r = "", extraClass: i = "" } = {}) => t === "segmented" ? j`<div class="progress-bar progress-bar-segmented ${i}" role="img" aria-label=${r}>${e.map((e) => j`<i class="progress-cell progress-tone-${e}"></i>`)}</div>` : j`<progress class="progress-meter ${i}" max="100" .value=${Math.max(0, Math.min(100, n * 100))} aria-label=${r}></progress>`, Bt = class {
+})}></div>`, J = (e = !1, t = !1) => M`<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${e ? M`<path d="M3 9c4 7 14 7 18 0M5 12l-2 3m6-1-1 3m7-3 1 3m3-5 2 3" />` : M`<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z" /><circle cx="12" cy="12" r="3" />`}${t ? M`<path d="M3 3l18 18" />` : P}</svg>`, It = (e) => M`<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true">${e === "free" ? M`<path d="M4 5h15M4 10h8M4 15h17M4 20h11" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" />` : M`<path d=${e === "forward" ? "M5 3v18m-3-3 3 3 3-3" : "M5 21V3m-3 3 3-3 3 3"} fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /><path d=${e === "forward" ? "M11 4h10M11 9h8M11 14h6M11 19h3" : "M11 4h3M11 9h6M11 14h8M11 19h10"} fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" />`}</svg>`, Lt = (e) => j`<small class="card-id">(${e})</small>`, Rt = (e, t, n = e) => j`<ui-copy-id class="task-title-copy" .value=${String(e)} .label=${t}>${t}${Lt(n)}</ui-copy-id>`, zt = ({ cells: e = [], form: t = "segmented", ratio: n = 0, label: r = "", extraClass: i = "" } = {}) => t === "segmented" ? j`<div class="progress-bar progress-bar-segmented ${i}" role="img" aria-label=${r}>${e.map((e) => j`<i class="progress-cell progress-tone-${e}"></i>`)}</div>` : j`<progress class="progress-meter ${i}" max="100" .value=${Math.max(0, Math.min(100, n * 100))} aria-label=${r}></progress>`, Bt = class {
 	constructor(e, t = {}, n) {
 		this.target = e, this.props = { ...t }, this.state = {}, this.renderer = n, this.abort = new AbortController(), this.cleanups = [], this.disposed = !1;
 		let r = /* @__PURE__ */ new Set();
@@ -907,7 +907,7 @@ var Nt = jt(), J = V(class extends At {
 		return Object.assign(this.props, e), this.draw(), this;
 	}
 	draw({ reuseCardContent: e = !1 } = {}) {
-		this.disposed || (e || (this.contentVersion = (this.contentVersion ?? 0) + 1), dt(this.renderer(this.props, this), this.target));
+		this.disposed || (e || (this.contentVersion = (this.contentVersion ?? 0) + 1), ft(this.renderer(this.props, this), this.target));
 	}
 	refresh = () => this.draw();
 	on(e, t, n, r = {}) {
@@ -917,9 +917,9 @@ var Nt = jt(), J = V(class extends At {
 		});
 	}
 	destroy() {
-		this.disposed || (this.disposed = !0, this.abort.abort(), this.cleanups.forEach((e) => typeof e == "function" ? e() : e?.dispose?.()), dt(P, this.target));
+		this.disposed || (this.disposed = !0, this.abort.abort(), this.cleanups.forEach((e) => typeof e == "function" ? e() : e?.dispose?.()), ft(P, this.target));
 	}
-}, Vt = Mt((e, r) => {
+}, Vt = Nt((e, r) => {
 	let i = r, a = !1, o = new AbortController(), s = /* @__PURE__ */ new Map(), c = () => {
 		let t = i.previewClasses ?? {};
 		for (let n of /* @__PURE__ */ new Set([...s.keys(), ...e.children])) {
@@ -999,7 +999,7 @@ var Nt = jt(), J = V(class extends At {
 });
 function Ht(e = [], t = {}) {
 	return j`<div class="horizontal-capsule-strip ${t.className ?? ""}" role="toolbar" aria-label=${t.ariaLabel ?? "模組"}
-    ${J(Vt, {
+    ${q(Vt, {
 		axis: "horizontal",
 		focusAfterMove: !0,
 		previewClasses: {
@@ -1009,14 +1009,14 @@ function Ht(e = [], t = {}) {
 		},
 		onMove: (e) => t.onReorder?.(e.id, e.targetId, e.placement === "after")
 	})}>
-    ${G(e, (e) => e.id, (e) => j`<button type="button" data-capsule-id=${e.id} data-reorder-capsule=${String(e.sortable !== !1)} data-reorder-id=${e.id} data-reorder-handle data-reorder-sortable=${String(e.sortable !== !1)}
+    ${U(e, (e) => e.id, (e) => j`<button type="button" data-capsule-id=${e.id} data-reorder-capsule=${String(e.sortable !== !1)} data-reorder-id=${e.id} data-reorder-handle data-reorder-sortable=${String(e.sortable !== !1)}
       class="capsule-button ${e.className ?? ""} ${e.sortable === !1 ? "" : "capsule-sortable"}" aria-pressed=${e.pressed ?? P}
       aria-label=${e.ariaLabel ?? e.label} aria-keyshortcuts=${e.sortable === !1 ? P : "Alt+ArrowLeft Alt+ArrowRight"} title=${e.title ?? P} ?disabled=${e.disabled} draggable=${e.sortable !== !1}
       @click=${() => t.onActivate?.(e.id)}><span>${e.label}</span>${e.showDot ? j`<span class="time-risk-dot ${e.dotClass ?? ""}"></span>` : P}${e.showChevron ? j`<span class="time-chevron">›</span>` : P}</button>`)}
   </div>`;
 }
 function Ut(e = {}) {
-	let t = new Map((e.categories ?? []).map((e) => [e.id, e])), n = e.order?.length ? e.order : [pe, ...t.keys()], r = n.find((e) => !t.has(e)), i = e.defaultLabel ?? "預設";
+	let t = new Map((e.categories ?? []).map((e) => [e.id, e])), n = e.order?.length ? e.order : [me, ...t.keys()], r = n.find((e) => !t.has(e)), i = e.defaultLabel ?? "預設";
 	return Ht(n.map((n) => n === r ? {
 		id: n,
 		label: i,
@@ -1060,11 +1060,11 @@ function Kt(e, t, n, r, i, a, o = "both") {
 }
 function qt({ id: e, label: t, expanded: n = !0, toggle: r, visibilityEnabled: i = !1, visible: a = !0, onVisibleChange: o }, s, c) {
 	return j`<div class="card-disclosure-heading ${n ? "" : "card-disclosure-collapsed"}">${r ? j`<button type="button" class="card-disclosure-toggle" aria-expanded=${n} aria-controls=${e} aria-label="${n ? "收合" : "展開"} ${t}" @click=${() => r(!n)}><span aria-hidden="true">${n ? "▼" : "▶"}</span></button>` : P}
-  ${i ? j`<button type="button" class="card-visibility-toggle card-toolbar-icon" aria-pressed=${a} aria-label="${a ? "隱藏" : "顯示"} ${t}" @click=${() => o(!a)}>${Ft(!a)}</button>` : P}${s}</div><div id=${e} class="card-disclosure-body" ?hidden=${!n}>${c}</div>`;
+  ${i ? j`<button type="button" class="card-visibility-toggle card-toolbar-icon" aria-pressed=${a} aria-label="${a ? "隱藏" : "顯示"} ${t}" @click=${() => o(!a)}>${J(!a)}</button>` : P}${s}</div><div id=${e} class="card-disclosure-body" ?hidden=${!n}>${c}</div>`;
 }
 var Jt = class {
 	constructor(e) {
-		this.view = e, this.order = [], this.pins = [], this.mode = "forward", this.visibility = "disabled", this.hidden = [], this.selected = null, this.expanded = !0, this.overrides = {}, this.key = null, this.linkSelection = b(x(location.search));
+		this.view = e, this.order = [], this.pins = [], this.mode = "forward", this.visibility = "disabled", this.hidden = [], this.selected = null, this.expanded = !0, this.overrides = {}, this.key = null, this.linkSelection = b(ae(location.search));
 		let t = (t) => {
 			let n = t.target.closest(".arrangeable-card");
 			(!n || !e.target.contains(n)) && this.select(null);
@@ -1080,13 +1080,13 @@ var Jt = class {
 		return this.overrides[e] ?? this.expanded;
 	}
 	orderedIds(e = this.props?.items ?? []) {
-		return oe(e, this.order, this.mode, this.props?.pinEnabled ? this.pins : [], this.props?.nextId, this.props?.completedIds).map((e) => e.id);
+		return se(e, this.order, this.mode, this.props?.pinEnabled ? this.pins : [], this.props?.nextId, this.props?.completedIds).map((e) => e.id);
 	}
 	expand(e, t) {
-		this.overrides[e] = t, fe(this.disclosureKey, this.expanded, this.overrides), this.view.draw();
+		this.overrides[e] = t, pe(this.disclosureKey, this.expanded, this.overrides), this.view.draw();
 	}
 	all(e) {
-		this.expanded = e, this.overrides = {}, fe(this.disclosureKey, this.expanded, this.overrides), this.view.draw();
+		this.expanded = e, this.overrides = {}, pe(this.disclosureKey, this.expanded, this.overrides), this.view.draw();
 	}
 	persist(e = !1) {
 		try {
@@ -1117,25 +1117,25 @@ var Jt = class {
 		let a = e.disclosureKey ?? `taskprogress.disclosure:${i ?? location.href}`;
 		if (this.disclosureKey !== a) {
 			this.disclosureKey = a;
-			let e = de(a);
+			let e = fe(a);
 			this.expanded = e.expanded, this.overrides = e.overrides;
 		}
 		if (e.pinEnabled && e.completionStates) {
 			let t = Object.fromEntries(Object.entries(e.completionStates).flatMap(([e, t]) => {
 				let n = typeof t == "boolean" ? t : this.completionStates?.[e];
 				return typeof n == "boolean" ? [[e, n]] : [];
-			})), n = le(this.pins, this.completionStates, t), r = n.length !== this.pins.length, a = JSON.stringify(t), o = JSON.stringify(this.completionStates);
+			})), n = ue(this.pins, this.completionStates, t), r = n.length !== this.pins.length, a = JSON.stringify(t), o = JSON.stringify(this.completionStates);
 			if (this.pins = n, this.completionStates = t, i) try {
 				r && localStorage.setItem(`${i}:pins`, JSON.stringify(n)), a !== o && localStorage.setItem(`${i}:completion`, a);
 			} catch {}
 		}
 		if (e.requestedPin && e.completionStates !== null && e.completionStates?.[e.requestedPin] !== null && this.lastPin !== e.requestedPin && (e.allIds ?? e.items.map((e) => e.id)).includes(e.requestedPin)) {
-			this.pins = ce(this.pins, e.requestedPin), this.overrides[e.requestedPin] = !0, this.hidden = this.hidden.filter((t) => t !== e.requestedPin), this.visibility === "closed" && (this.visibility = "enabled"), this.lastPin = e.requestedPin;
+			this.pins = le(this.pins, e.requestedPin), this.overrides[e.requestedPin] = !0, this.hidden = this.hidden.filter((t) => t !== e.requestedPin), this.visibility === "closed" && (this.visibility = "enabled"), this.lastPin = e.requestedPin;
 			try {
 				i && localStorage.setItem(`${i}:pins`, JSON.stringify(this.pins));
 			} catch {}
 		}
-		let o = e.referenceParents?.size && !this.showAllCards && !e.searching, s = (t) => ue(t, e.referenceParents, this.pins, e.nextId, e.requestedPin), c = o ? s(e.items) : e.items, l = o ? new Set(s((e.allIds ?? []).map((e) => ({ id: e }))).map((e) => e.id)) : null, u = typeof e.hiddenCount == "function" ? e.hiddenCount(l) : e.hiddenCount, d = oe(c, e.heldOrder ?? this.order, e.heldOrder ? "free" : this.mode, e.pinEnabled ? this.pins : [], e.nextId, e.completedIds), f = this.linkSelection.claim(d.map((e) => e.id));
+		let o = e.referenceParents?.size && !this.showAllCards && !e.searching, s = (t) => de(t, e.referenceParents, this.pins, e.nextId, e.requestedPin), c = o ? s(e.items) : e.items, l = o ? new Set(s((e.allIds ?? []).map((e) => ({ id: e }))).map((e) => e.id)) : null, u = typeof e.hiddenCount == "function" ? e.hiddenCount(l) : e.hiddenCount, d = se(c, e.heldOrder ?? this.order, e.heldOrder ? "free" : this.mode, e.pinEnabled ? this.pins : [], e.nextId, e.completedIds), f = this.linkSelection.claim(d.map((e) => e.id));
 		f && (this.selected = f.id, this.hidden = this.hidden.filter((e) => e !== f.id), this.visibility === "closed" && (this.visibility = "enabled"), queueMicrotask(() => {
 			if (this.view.disposed || this.selected !== f.id) return;
 			e.onSelectionChange?.(f.id), this.view.draw();
@@ -1158,7 +1158,7 @@ var Jt = class {
 					} finally {
 						this.moving = !1, this.view.draw();
 					}
-				} else this.order = se(e.allIds ?? d.map((e) => e.id), this.order, d.filter(g).map((e) => e.id), t.id, t.targetId, t.placement === "after");
+				} else this.order = ce(e.allIds ?? d.map((e) => e.id), this.order, d.filter(g).map((e) => e.id), t.id, t.targetId, t.placement === "after");
 				e.onSelectionChange?.(null), this.selected = t.id, e.onSelectionChange?.(t.id), this.persist(), queueMicrotask(() => {
 					this.view.disposed || [...this.view.target.querySelectorAll("[data-card-id]")].find((e) => e.dataset.cardId === String(t.id))?.focus();
 				});
@@ -1188,17 +1188,17 @@ var Jt = class {
 			{
 				id: "enabled",
 				label: "啟用",
-				icon: Ft()
+				icon: J()
 			},
 			{
 				id: "closed",
 				label: "全體關閉",
-				icon: Ft(!0)
+				icon: J(!0)
 			},
 			{
 				id: "disabled",
 				label: "禁用",
-				icon: Ft(!1, !0)
+				icon: J(!1, !0)
 			},
 			{
 				id: "reset",
@@ -1209,7 +1209,7 @@ var Jt = class {
 		], this.visibility, "可見性", (e) => {
 			e === "reset" ? (this.hidden = [], this.visibility = "enabled") : this.visibility = e, this.persist();
 		}, "picker")}${r}
-    </div></div><div class="arrangeable-cards" ${J(Vt, {
+    </div></div><div class="arrangeable-cards" ${q(Vt, {
 			axis: "vertical",
 			surface: !0,
 			previewClasses: {
@@ -1218,7 +1218,7 @@ var Jt = class {
 			},
 			onMove: _
 		})}>
-    ${G(d, (e) => e.id, (n, r) => j`<div class="arrangeable-card ${this.selected === n.id ? "card-selected" : ""}" role="group" tabindex="0" data-render-window data-card-id=${n.id} data-reorder-id=${n.id} data-reorder-sortable=${String(g(n))} data-reorder-group=${h ? e.reorderGroups?.[n.id] ?? P : P}
+    ${U(d, (e) => e.id, (n, r) => j`<div class="arrangeable-card ${this.selected === n.id ? "card-selected" : ""}" role="group" tabindex="0" data-render-window data-card-id=${n.id} data-reorder-id=${n.id} data-reorder-sortable=${String(g(n))} data-reorder-group=${h ? e.reorderGroups?.[n.id] ?? P : P}
       aria-label=${`${n.title ?? n.question ?? ""}${this.selected === n.id ? "，已選取" : ""}`} aria-keyshortcuts=${g(n) ? "Alt+ArrowUp Alt+ArrowDown" : P} data-link-tone=${this.selected === n.id ? p ?? P : P} ?hidden=${!m(n)}
       @pointerdown=${(e) => {
 			e.button === 0 && this.select(n.id);
@@ -1226,9 +1226,9 @@ var Jt = class {
 			e.target === e.currentTarget && ["Enter", " "].includes(e.key) && (e.preventDefault(), this.select(n.id));
 		}}>
       ${e.pinEnabled ? j`<button type="button" class="card-pin ${this.pins.includes(n.id) ? "is-pinned" : ""} ${n.id === e.nextId ? "is-next" : ""}" aria-label="${this.pins.includes(n.id) ? "取消釘選" : "釘選置頂"}：${n.title}" aria-pressed=${this.pins.includes(n.id)} @click=${() => {
-			this.pins = this.pins.includes(n.id) ? this.pins.filter((e) => e !== n.id) : ce(this.pins, n.id), this.persist();
+			this.pins = this.pins.includes(n.id) ? this.pins.filter((e) => e !== n.id) : le(this.pins, n.id), this.persist();
 		}}><svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M8 3h8l-1 7 4 4v2H5v-2l4-4-1-7Zm4 13v6" fill=${this.pins.includes(n.id) ? "currentColor" : "none"} stroke="currentColor" stroke-width="1.6" /></svg></button>` : P}
-      ${wt([
+      ${Et([
 			this.view.contentVersion,
 			n,
 			n.id === ee,
@@ -1278,7 +1278,7 @@ var Xt = (e, t) => {
 			e.removeEventListener("ui-close", r), e.close();
 		}
 	};
-}, Y = (e, t) => (r(), j`<ui-dialog id=${e.id ?? P} class=${e.className ?? ""} .heading=${e.title ?? ""} .kicker=${e.kicker ?? ""} .closeLabel=${e.closeLabel ?? ""} .dismissDisabled=${!!e.busy} .dismissOnBackdrop=${e.dismissOnBackdrop ?? !0} ${J(Xt, e)}>${e.open ? t : P}</ui-dialog>`), Zt = Mt((e, n) => {
+}, Y = (e, t) => (r(), j`<ui-dialog id=${e.id ?? P} class=${e.className ?? ""} .heading=${e.title ?? ""} .kicker=${e.kicker ?? ""} .closeLabel=${e.closeLabel ?? ""} .dismissDisabled=${!!e.busy} .dismissOnBackdrop=${e.dismissOnBackdrop ?? !0} ${q(Xt, e)}>${e.open ? t : P}</ui-dialog>`), Zt = Nt((e, n) => {
 	let r = n, i = t(e, {
 		capture: !1,
 		accept: (e) => !!r.enabled && !e.target.closest("a,button,input,textarea,select,label,[contenteditable]"),
@@ -1295,7 +1295,7 @@ var Xt = (e, t) => {
 	return e.append(t), { destroy() {
 		t.parentNode === e && t.remove();
 	} };
-}, $t = () => j`<span class="replica-theme" ${J(Qt, null)}></span>`;
+}, $t = () => j`<span class="replica-theme" ${q(Qt, null)}></span>`;
 //#endregion
 //#region ui/web-workflow/time-settings-offset.mjs
 function en() {
@@ -1379,9 +1379,9 @@ function on(e, t) {
 		n.error = "", e.onPendingChange(!0), t.draw();
 	}, i = (e, t) => {
 		n[e] = t, r();
-	}, a = (e, t) => j`<label><span>${t}</span><input type="number" min="0" max="24" step="0.5" .value=${K(String(n[e] ?? ""))} @input=${(t) => i(e, t.currentTarget.value === "" ? void 0 : t.currentTarget.valueAsNumber)}></label>`, o = 24 - Number(n.sleep) - Number(n.life) - Number(n.other);
+	}, a = (e, t) => j`<label><span>${t}</span><input type="number" min="0" max="24" step="0.5" .value=${W(String(n[e] ?? ""))} @input=${(t) => i(e, t.currentTarget.value === "" ? void 0 : t.currentTarget.valueAsNumber)}></label>`, o = 24 - Number(n.sleep) - Number(n.life) - Number(n.other);
 	return j`<section class="spike-time-editor" aria-labelledby="time-settings-title"><div class="spike-time-editor-heading"><p class="spike-editor-kicker">時間設定</p><h2 id="time-settings-title">工作容量與交付日</h2><p>所有欄位先保存在記憶體草稿；重新計算只預覽，全域儲存才寫入。</p><p class="spike-timezone">時區：${e.config.timezone}</p></div>
-    <div class="spike-time-settings-fields"><section class="spike-delivery-settings" aria-labelledby="delivery-settings-title"><h3 id="delivery-settings-title">交付日</h3><div class="spike-delivery-controls"><label><span>排他截止時間</span><input type="datetime-local" .value=${K(n.delivery)} @input=${(e) => i("delivery", e.currentTarget.value)}></label><label class="spike-delivery-reason"><span>修改原因（不填敏感原文）</span><input maxlength="500" .value=${K(n.reason)} @input=${(e) => i("reason", e.currentTarget.value)} placeholder="例如：配合里程碑調整"></label><button class="spike-subtle-button" type="button" @click=${() => i("delivery", "")}>設為未指定</button></div></section>
+    <div class="spike-time-settings-fields"><section class="spike-delivery-settings" aria-labelledby="delivery-settings-title"><h3 id="delivery-settings-title">交付日</h3><div class="spike-delivery-controls"><label><span>排他截止時間</span><input type="datetime-local" .value=${W(n.delivery)} @input=${(e) => i("delivery", e.currentTarget.value)}></label><label class="spike-delivery-reason"><span>修改原因（不填敏感原文）</span><input maxlength="500" .value=${W(n.reason)} @input=${(e) => i("reason", e.currentTarget.value)} placeholder="例如：配合里程碑調整"></label><button class="spike-subtle-button" type="button" @click=${() => i("delivery", "")}>設為未指定</button></div></section>
     <section class="spike-capacity-settings" aria-labelledby="capacity-settings-title"><div class="spike-setting-heading"><h3 id="capacity-settings-title">每日分配</h3><strong class=${o > 0 ? "" : "invalid"}>工作 ${Number.isFinite(o) ? o : "—"} hr</strong></div><div class="spike-allocation-fields">${a("sleep", "睡眠（hr）")}${a("life", "生活（hr）")}${a("other", "其他不可工作（hr）")}</div><fieldset class="spike-weekdays"><legend>工作日</legend>${an.map((e, t) => j`<label><input type="checkbox" .checked=${n.weekdays.includes(t + 1)} @change=${(e) => {
 		n.weekdays = e.currentTarget.checked ? [.../* @__PURE__ */ new Set([...n.weekdays, t + 1])].sort((e, t) => e - t) : n.weekdays.filter((e) => e !== t + 1), r();
 	}}><span>週${e}</span></label>`)}</fieldset></section>
@@ -1394,11 +1394,11 @@ function on(e, t) {
 			publicLabel: ""
 		}), r();
 	}}>＋ 新增例外</button></div>
-    ${n.exceptions.length ? j`<div class="spike-exception-list">${G(n.exceptions, (e) => e.key, (e) => j`<div class="spike-exception-row"><label><span>日期</span><input type="date" .value=${K(e.date)} @input=${(t) => {
+    ${n.exceptions.length ? j`<div class="spike-exception-list">${U(n.exceptions, (e) => e.key, (e) => j`<div class="spike-exception-row"><label><span>日期</span><input type="date" .value=${W(e.date)} @input=${(t) => {
 		e.date = t.currentTarget.value, r();
-	}}></label><label><span>可工作（hr）</span><input type="number" min="0" max="24" step="0.5" .value=${K(String(e.availableHours ?? ""))} @input=${(t) => {
+	}}></label><label><span>可工作（hr）</span><input type="number" min="0" max="24" step="0.5" .value=${W(String(e.availableHours ?? ""))} @input=${(t) => {
 		e.availableHours = t.currentTarget.value, r();
-	}}></label><label><span>請假／例外說明</span><input maxlength="500" .value=${K(e.publicLabel)} placeholder="例如：不可工作" @input=${(t) => {
+	}}></label><label><span>請假／例外說明</span><input maxlength="500" .value=${W(e.publicLabel)} placeholder="例如：不可工作" @input=${(t) => {
 		e.publicLabel = t.currentTarget.value, r();
 	}}></label><button class="spike-delete-exception" type="button" @click=${() => {
 		n.exceptions = n.exceptions.filter((t) => t.key !== e.key), r();
@@ -1434,10 +1434,10 @@ function hn(e, t) {
 			humanConfirmed: a.confirmed
 		})?.error ?? "", t.draw();
 	}}>
-    <section class="spike-estimate-row"><div class="spike-estimate-badges"><span>預估工時</span>${sn(n.sourceBadges)}</div><label class="spike-estimate-hours"><span>人工工時（hr）</span><input type="number" min="0.02" step="0.25" aria-label="「${o}」人工工時（hr）" .value=${K(String(a.hours ?? ""))} @input=${(e) => {
+    <section class="spike-estimate-row"><div class="spike-estimate-badges"><span>預估工時</span>${sn(n.sourceBadges)}</div><label class="spike-estimate-hours"><span>人工工時（hr）</span><input type="number" min="0.02" step="0.25" aria-label="「${o}」人工工時（hr）" .value=${W(String(a.hours ?? ""))} @input=${(e) => {
 		a.hours = e.currentTarget.value === "" ? void 0 : e.currentTarget.valueAsNumber;
 	}}></label></section>
-    <div class="time-item-rationale">${Z("估算依據", j`<label class="spike-estimate-note"><span>人工依據</span><input maxlength="1000" aria-label="「${o}」人工依據" .value=${K(a.note)} @input=${(e) => {
+    <div class="time-item-rationale">${Z("估算依據", j`<label class="spike-estimate-note"><span>人工依據</span><input maxlength="1000" aria-label="「${o}」人工依據" .value=${W(a.note)} @input=${(e) => {
 		a.note = e.currentTarget.value;
 	}} placeholder="例如：已拆解三個步驟"></label>`)}</div>
     <label class="spike-estimate-confirmation"><input type="checkbox" aria-label="確認「${o}」的人工估算" .checked=${a.confirmed} @change=${(e) => {
@@ -1455,7 +1455,7 @@ function gn(e, t) {
     ${e.editing && e.onManualEstimate ? hn(e, t) : j`${cn("預估工時", n.likelyHoursLabel, sn(n.sourceBadges))}<div class="time-item-rationale">${Z("估算依據", j`<p>${n.rationale}</p>`)}</div>`}
     <section class="time-item-technical" ?hidden=${!n.detailsExpanded}>${X(n.technical.metrics)}${n.technical.analysisMethod ? j`<div class="time-source-row"><div><strong>${n.technical.analysisMethod.name}</strong><p>${n.technical.analysisMethod.note}</p></div><span>${n.technical.analysisMethod.version}</span></div>` : P}${n.technical.formula ? Z("固定公式", j`<code class="time-formula">${n.technical.formula}</code>`) : P}${n.technical.reference ? j`<code class="time-reference">${n.technical.reference}</code>` : P}</section></div>` : e.kind === "project" && r ? j`<div><div class="time-detail-toolbar"><span class="time-report-caption">${r.captionLabel}</span><button class="time-small-button" type="button" aria-expanded=${r.detailsExpanded} @click=${e.onToggleDetails}>${r.toggleLabel}</button></div>
     <section class="time-report-overview"><div class="time-report-grid">${r.overview.map((e) => j`<div class="time-report-field"><span>${e.label}</span><strong>${e.urgencyClassName ? j`<span class="time-risk-dot ${e.urgencyClassName}" aria-hidden="true"></span>` : P}${e.value}</strong></div>`)}</div><p class="time-report-updated">${r.updatedLabel}</p></section>
-    <section class="time-project-details" ?hidden=${!r.detailsExpanded}>${e.editing && e.timeSettings ? e.timeSettings.hasConfig ? j`${on(e.timeSettings, t)}${e.deliveryPreview ? Sn(e.deliveryPreview) : P}` : j`<section class="time-missing-config" aria-labelledby="time-missing-config-title"><h3 id="time-missing-config-title">尚未建立工作容量設定</h3><p>建立後採單人、平日 09:00–17:00、睡眠 8h／生活 8h／工作 8h；只是草稿，仍由全域儲存決定是否寫入。</p><button type="button" @click=${e.timeSettings.onInitializeConfig}>建立 8/8/8 預設設定</button></section>` : r.hasDeadline ? j`<div class="time-tab-list" role="tablist" aria-label="進度報告詳細資訊">${G(r.tabs, (e) => e.name, (n, i) => j`<button class="time-tab" id="time-${n.name}-tab" type="button" role="tab" aria-controls="time-${n.name}-panel" aria-selected=${r.activeTab === n.name} tabindex=${r.activeTab === n.name ? 0 : -1} @click=${() => e.onSetTab(n.name)} @keydown=${(n) => {
+    <section class="time-project-details" ?hidden=${!r.detailsExpanded}>${e.editing && e.timeSettings ? e.timeSettings.hasConfig ? j`${on(e.timeSettings, t)}${e.deliveryPreview ? Sn(e.deliveryPreview) : P}` : j`<section class="time-missing-config" aria-labelledby="time-missing-config-title"><h3 id="time-missing-config-title">尚未建立工作容量設定</h3><p>建立後採單人、平日 09:00–17:00、睡眠 8h／生活 8h／工作 8h；只是草稿，仍由全域儲存決定是否寫入。</p><button type="button" @click=${e.timeSettings.onInitializeConfig}>建立 8/8/8 預設設定</button></section>` : r.hasDeadline ? j`<div class="time-tab-list" role="tablist" aria-label="進度報告詳細資訊">${U(r.tabs, (e) => e.name, (n, i) => j`<button class="time-tab" id="time-${n.name}-tab" type="button" role="tab" aria-controls="time-${n.name}-panel" aria-selected=${r.activeTab === n.name} tabindex=${r.activeTab === n.name ? 0 : -1} @click=${() => e.onSetTab(n.name)} @keydown=${(n) => {
 		if (!["ArrowLeft", "ArrowRight"].includes(n.key)) return;
 		n.preventDefault();
 		let a = r.tabs[(i + (n.key === "ArrowRight" ? 1 : -1) + r.tabs.length) % r.tabs.length];
@@ -1543,11 +1543,18 @@ var wn = Object.entries(u).map(([e, t]) => ({
 })), $ = (e) => u[e] ?? {
 	label: e,
 	tone: "muted"
-}, En = (e, t, n, r, i = "") => j`<select class=${i} aria-label=${n} .value=${K(String(t))} @change=${(e) => r(e.currentTarget.value)}>${e.map((e) => j`<option .value=${String(e.value)} ?selected=${String(e.value) === String(t)}>${e.label}</option>`)}</select>`, Dn = (e, t, n, r) => En(e.levels.map((t) => ({
+}, En = (e, t, n, r, i = "") => j`<select class=${i} aria-label=${n} .value=${W(String(t))} @change=${(e) => r(e.currentTarget.value)}>${e.map((e) => j`<option .value=${String(e.value)} ?selected=${String(e.value) === String(t)}>${e.label}</option>`)}</select>`, Dn = (e, t, n, r) => En(e.levels.map((t) => ({
 	value: t.value,
 	label: e.format(t.value)
 })), e.normalize(t, e.fallbackValue), n, (e) => r(Number(e)), "inline-priority-select");
-function On(e, t, n, r, i, a) {
+function On(e) {
+	return j`<span class="item-row-marker item-row-marker-${e}" aria-hidden="true">${e === "done" ? "✓" : "○"}</span>`;
+}
+function kn(e, t, n) {
+	let r = e.metadata(t);
+	return !n && (!r || r.hidden && e.labelsValid) ? P : j`<span class="item-row-priority">${n ?? j`<span class="priority-badge priority-${r.tone}">${e.format(t)}</span>`}</span>`;
+}
+function An(e, t, n, r, i, a) {
 	if (!globalThis.TaskProgressItemStatusPolicy.retired.includes(a)) return e.onCommand({
 		type: "set-item-status",
 		taskId: n.id,
@@ -1572,7 +1579,7 @@ function On(e, t, n, r, i, a) {
 		error: ""
 	}, t.draw();
 }
-function kn(e, t) {
+function jn(e, t) {
 	let n = t.state.retirement, r = () => {
 		t.state.retirement = null, t.draw();
 	};
@@ -1613,7 +1620,7 @@ function kn(e, t) {
 		}
 	}}>
       <p>${i.title}</p>
-      ${i.status === "discontinued" ? j`<label>棄案理由<textarea name="reason" required maxlength="300" rows="3" .value=${K(i.reason)} @input=${(e) => {
+      ${i.status === "discontinued" ? j`<label>棄案理由<textarea name="reason" required maxlength="300" rows="3" .value=${W(i.reason)} @input=${(e) => {
 		i.reason = e.currentTarget.value;
 	}}></textarea></label>` : j`<label>取代對象種類${En([{
 		value: "item",
@@ -1624,17 +1631,17 @@ function kn(e, t) {
 	}], i.kind, "取代對象種類", (e) => {
 		i.kind = e, i.target = "", t.draw();
 	})}</label>
-        <label>${i.kind === "item" ? "取代項目參照" : "取代文件路徑"}<input name="replacement" required maxlength="300" .value=${K(i.target)} placeholder=${i.kind === "item" ? "scope › card › item" : "Documentation/Plan.md#section"} @input=${(e) => {
+        <label>${i.kind === "item" ? "取代項目參照" : "取代文件路徑"}<input name="replacement" required maxlength="300" .value=${W(i.target)} placeholder=${i.kind === "item" ? "scope › card › item" : "Documentation/Plan.md#section"} @input=${(e) => {
 		i.target = e.currentTarget.value;
 	}}></label>
-        <label>補充理由（選填）<textarea name="reason" maxlength="300" rows="2" .value=${K(i.reason)} @input=${(e) => {
+        <label>補充理由（選填）<textarea name="reason" maxlength="300" rows="2" .value=${W(i.reason)} @input=${(e) => {
 		i.reason = e.currentTarget.value;
 	}}></textarea></label>`}
       <p class="spike-field-error" role="alert">${i.error}</p>
       <div class="retirement-actions"><button type="button" class="secondary-button" @click=${r}>取消</button><button type="submit" class="primary-button">套用</button></div>
     </form>` : P);
 }
-function An(e, t, n) {
+function Mn(e, t, n) {
 	return {
 		enabled: !!(e.editing || e.reorderable),
 		axis: "vertical",
@@ -1670,9 +1677,9 @@ function An(e, t, n) {
 		}
 	};
 }
-var jn = (e) => [...e.searchParams].filter(([e]) => e !== "pin" && e !== "link-tone").sort().map((e) => e.join("=")).join("&"), Mn = (e) => !e.defaultPrevented && e.button === 0 && !e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey;
-function Nn(e, t) {
-	if (!Mn(e)) return !1;
+var Nn = (e) => [...e.searchParams].filter(([e]) => e !== "pin" && e !== "link-tone").sort().map((e) => e.join("=")).join("&"), Pn = (e) => !e.defaultPrevented && e.button === 0 && !e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey;
+function Fn(e, t) {
+	if (!Pn(e)) return !1;
 	let n = e.target.closest("a[href]");
 	if (!n || n.hasAttribute("download") || n.target && n.target !== "_self") return !1;
 	let r = new URL(n.href, location.href), i = new URL(location.href);
@@ -1681,11 +1688,11 @@ function Nn(e, t) {
 	if (a.hash = e.currentTarget.id, sessionStorage.setItem("taskprogress-item-arrival", JSON.stringify({
 		destination: r.href,
 		source: a.href
-	})), jn(r) !== jn(i)) return !1;
+	})), Nn(r) !== Nn(i)) return !1;
 	let o = [...t.target.querySelectorAll("[data-item-row]")].find((e) => `#${e.id}` === r.hash && e.getClientRects().length);
-	return !o || o.closest("[data-card-id]") !== e.currentTarget.closest("[data-card-id]") ? !1 : (e.preventDefault(), history.pushState(null, "", r.href), Pn(t, !0), t.lastItemHash = null, t.itemTargetPulse = (t.itemTargetPulse ?? 0) + 1, t.refresh(), !0);
+	return !o || o.closest("[data-card-id]") !== e.currentTarget.closest("[data-card-id]") ? !1 : (e.preventDefault(), history.pushState(null, "", r.href), In(t, !0), t.lastItemHash = null, t.itemTargetPulse = (t.itemTargetPulse ?? 0) + 1, t.refresh(), !0);
 }
-function Pn(e, t = !1) {
+function In(e, t = !1) {
 	let n = location.hash.startsWith("#item-") ? location.hash : null;
 	e.activeItemHash = n && (t || history.state?.itemTargetShown !== n) ? n : null;
 	let r;
@@ -1700,17 +1707,17 @@ function Pn(e, t = !1) {
 		itemTargetShown: n
 	}, "");
 }
-function Fn(e) {
+function Ln(e) {
 	if (!e.itemReturnUrl) return;
 	let t = new URL(e.itemReturnUrl), n = new URL(location.href);
-	if (e.activeCardArrival || t.origin !== n.origin || t.pathname !== n.pathname || jn(t) !== jn(n)) {
+	if (e.activeCardArrival || t.origin !== n.origin || t.pathname !== n.pathname || Nn(t) !== Nn(n)) {
 		e.cardSourceTrail && m(t.href, e.cardSourceTrail), location.assign(t.href);
 		return;
 	}
-	history.pushState(null, "", t.href), Pn(e, !0), e.lastItemHash = null, e.itemTargetPulse = (e.itemTargetPulse ?? 0) + 1, e.refresh();
+	history.pushState(null, "", t.href), In(e, !0), e.lastItemHash = null, e.itemTargetPulse = (e.itemTargetPulse ?? 0) + 1, e.refresh();
 }
-function In(e, t, n, r) {
-	if (!Mn(e)) return;
+function Rn(e, t, n, r) {
+	if (!Pn(e)) return;
 	let i = new URL(location.href), a = new URL(e.currentTarget.href).searchParams.get("scope");
 	a && i.searchParams.set("scope", a), r || i.searchParams.set("pin", t.id), i.hash = `#item-${t.id}--${n.id}`, m(e.currentTarget.href, [...r ?? [t.id], n.task_id]), sessionStorage.setItem("taskprogress-item-arrival", JSON.stringify({
 		destination: e.currentTarget.href,
@@ -1719,7 +1726,7 @@ function In(e, t, n, r) {
 		sourceTrail: r
 	}));
 }
-function Ln(e, t, n, r) {
+function zn(e, t, n, r) {
 	let i = n.cardReferences ?? [];
 	if (!e.editing && !i.length) return P;
 	let a = e.cardReferenceTargets ?? [], o = d(e.cardReferenceParents, n.id), s = a.filter((e) => !o.has(e.id) && e.kind !== "report_pointer" && e.status !== "archive"), c = (e) => s.filter((t) => t.id === e || !i.some((e) => e.task_id === t.id)), l = c();
@@ -1730,82 +1737,88 @@ function Ln(e, t, n, r) {
 	}] : [] : [n])), f = n.referenceProgress;
 	return j`<section class="detail-section report-card-references">
     <h4 class="detail-heading">參照卡片${f && e.progress[n.id]?.total ? ` · ${f.completed} / ${f.total} 張完成` : ""}</h4>
-    ${i.length ? j`<ul class="detail-list">${G(i, (e) => e.id, (r) => {
+    ${i.length ? j`<ul class="detail-list">${U(i, (e) => e.id, (r) => {
 		let i = $(r.status), a = p(location.href, e.scopeId, r.task_id), o = `item-${n.id}--${r.id}`;
-		return j`<li id=${o} data-item-row class="report-reference-row" ?data-item-target=${t.activeItemHash === `#${o}`}>
-        ${e.editing ? j`<select aria-label=${`編輯「${r.title}」的參照`} .value=${K(r.task_id)} @change=${(e) => u(r.id, e.currentTarget.value)}>
-          ${r.error ? j`<option value=${r.task_id}>${r.title}（${r.error}）</option>` : P}
-          ${c(r.task_id).map((e) => j`<option value=${e.id}>${e.title}</option>`)}</select>
-          <button type="button" class="inline-delete-button" @click=${() => u(r.id, null)}>移除參照</button>` : r.error ? j`<span>${r.title} · ${r.error}</span>` : j`<a href=${a.href} @click=${(t) => In(t, n, r, e.cardPage?.trail)}>${r.title} ⮩</a>
-          <span class="report-reference-meta"><span class="status-badge status-${i.tone}">${i.label}</span>
-            <span>${r.progress.completed} / ${r.progress.total}</span></span>`}
+		return j`<li id=${o} data-item-row class="editor-item-row report-reference-row" ?data-item-target=${t.activeItemHash === `#${o}`}>
+        ${On(r.status)}${kn(e.policy, r.priority)}
+        <div class="item-row-description"><div class="item-row-text report-reference-title">
+          <svg class="report-reference-icon" viewBox="0 0 20 20" width="16" height="16" aria-hidden="true">
+            <path fill="currentColor" fill-rule="evenodd" d="M4.5 1h11A2.5 2.5 0 0 1 18 3.5v13a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 2 16.5v-13A2.5 2.5 0 0 1 4.5 1ZM7 11.5a2 2 0 1 0 0 4 2 2 0 0 0 0-4Zm4 1.25a.75.75 0 0 0 0 1.5h4a.75.75 0 0 0 0-1.5Z"/>
+          </svg>
+          ${e.editing ? j`<select aria-label=${`編輯「${r.title}」的參照`} .value=${W(r.task_id)} @change=${(e) => u(r.id, e.currentTarget.value)}>
+            ${r.error ? j`<option value=${r.task_id}>${r.title}（${r.error}）</option>` : P}
+            ${c(r.task_id).map((e) => j`<option value=${e.id}>${e.title}</option>`)}</select>` : r.error ? j`<span title=${r.error}>${r.title} · ${r.error}</span>` : j`<a href=${a.href} title=${r.title} @click=${(t) => Rn(t, n, r, e.cardPage?.trail)}>${r.title} ⮩</a>`}
+        </div></div>
+        <span class="item-row-utility-panel">${e.editing ? j`<button type="button" class="inline-delete-button" @click=${() => u(r.id, null)}>移除參照</button>` : j`<span class="item-status-capsule status-${i.tone}">${i.label}</span>
+            ${r.progress ? j`<span class="report-reference-progress">${r.progress.completed} / ${r.progress.total}</span>` : P}`}
+        </span>
       </li>`;
 	})}</ul>` : P}
-    ${e.editing && l.length ? j`<select aria-label="新增卡片參照" .value=${K("")} @change=${(t) => {
+    ${e.editing && l.length ? j`<select aria-label="新增卡片參照" .value=${W("")} @change=${(t) => {
 		let r = t.currentTarget.value;
 		r && e.onAddCardReference(n.id, r);
 	}}><option value="">新增卡片參照</option>${l.map((e) => j`<option value=${e.id}>${e.title}</option>`)}</select>` : P}
   </section>`;
 }
-function Rn(e, t, n, r, i, a) {
+function Bn(e, t, n, r, i, a) {
 	let o = e.editing, s = i.status ?? (r === "completed_items" ? "done" : "planned"), c = i.derivedState && i.derivedState !== "done" ? {
 		label: i.derivedStateLabel,
 		tone: i.derivedStateTone
-	} : l[s] ?? $(s), u = e.policy.metadata(i.priority), d = o ? null : _({
+	} : l[s] ?? $(s), u = o ? null : _({
 		scopeId: e.scopeId,
 		taskId: n.id,
 		item: i
-	}), f = d && t.state.selection?.keys.has(d), p = i.id === e.nextItemId, m = () => e.onSetNext?.({
+	}), d = u && t.state.selection?.keys.has(u), f = i.id === e.nextItemId, p = () => e.onSetNext?.({
 		taskId: n.id,
 		itemId: i.id,
-		clear: p
-	}), h = (t, a) => e.onCommand({
+		clear: f
+	}), m = (t, a) => e.onCommand({
 		type: t,
 		taskId: n.id,
 		field: r,
 		itemId: i.id,
 		...a
-	}), g = o ? [] : te(i).map((e) => ({
+	}), h = o ? [] : te(i).map((e) => ({
 		...e,
 		href: e.href ? re(ie(e.href, c.tone), n.id, i.id) : null
-	})), y = g.filter((e) => e.href), b = `${n.id}/${i.id}`;
-	y.length || (t.state[`wait:${b}`] = !1);
-	let x = (o || e.reorderable) && r === "pending_items" && !v(s) && i.id && !i.legacy, ae = f ? t.state.selection.keys.size : 1, oe = j`<div class="item-row-text">${p ? j`<span class="item-next-capsule">Next</span>` : P}${f ? j`<span class="item-row-selected-label">已選取</span>` : P}
+	})), g = h.filter((e) => e.href), y = `${n.id}/${i.id}`;
+	g.length || (t.state[`wait:${y}`] = !1);
+	let b = (o || e.reorderable) && r === "pending_items" && !v(s) && i.id && !i.legacy, ae = d ? t.state.selection.keys.size : 1, oe = j`<div class="item-row-text">${f ? j`<span class="item-next-capsule">Next</span>` : P}${d ? j`<span class="item-row-selected-label">已選取</span>` : P}
       ${i.sourceRef ? i.sourceRef.available ? j`<a class="document-source-link" href=${re(ie(i.sourceRef.href, c.tone), n.id, i.id)} title=${i.sourceRef.title}><span class="source-icon" aria-hidden="true">${i.sourceRef.kind === "decision" ? "⚖" : i.sourceRef.manual ? "📋" : "🤖"}</span><span class="source-label">${i.sourceRef.label}</span></a>` : j`<span class="document-source-link source-unavailable" title=${i.sourceRef.error ?? "來源無法讀取"}>⚠️ 來源不可用</span>` : P}
-      ${Pt(i.displayTitle ?? i.title, {
+      ${Ft(i.displayTitle ?? i.title, {
 		lines: 1,
 		expanded: a,
 		linkTone: c.tone
 	})}</div>`;
-	return j`<li id=${!o && d ? `item-${n.id}--${i.id}` : P} ?data-item-target=${!!d && t.activeItemHash === `#item-${n.id}--${i.id}`} data-item-pulse=${d && t.activeItemHash === `#item-${n.id}--${i.id}` ? (t.itemTargetPulse ?? 0) % 2 : P} class="editor-item-row ${o ? "editable-work-item" : x ? "item-row-reorderable" : ""} ${f ? "is-selected" : ""} ${p ? "is-next" : ""}" data-select-key=${d && e.selection ? d : P}
-    data-item-row=${b} data-reorder-id=${i.id} data-reorder-sortable=${String(!!x)} data-reorder-group=${String(e.policy.normalize(i.priority, e.policy.fallbackValue))}
-    tabindex=${d && e.selection ? 0 : P} title=${o ? P : ee(i.activity)}
-    ${J(Zt, {
-		enabled: !!(e.onSetNext && d && !o),
-		onTrigger: m
+	return j`<li id=${!o && u ? `item-${n.id}--${i.id}` : P} ?data-item-target=${!!u && t.activeItemHash === `#item-${n.id}--${i.id}`} data-item-pulse=${u && t.activeItemHash === `#item-${n.id}--${i.id}` ? (t.itemTargetPulse ?? 0) % 2 : P} class="editor-item-row ${o ? "editable-work-item" : b ? "item-row-reorderable" : ""} ${d ? "is-selected" : ""} ${f ? "is-next" : ""}" data-select-key=${u && e.selection ? u : P}
+    data-item-row=${y} data-reorder-id=${i.id} data-reorder-sortable=${String(!!b)} data-reorder-group=${String(e.policy.normalize(i.priority, e.policy.fallbackValue))}
+    tabindex=${u && e.selection ? 0 : P} title=${o ? P : ee(i.activity)}
+    ${q(Zt, {
+		enabled: !!(e.onSetNext && u && !o),
+		onTrigger: p
 	})}
     @click=${(n) => {
-		!Nn(n, t) && d && e.selection?.rowClick(d, n);
-	}} @focus=${() => d && e.selection?.rowFocus(d)}
+		!Fn(n, t) && u && e.selection?.rowClick(u, n);
+	}} @focus=${() => u && e.selection?.rowFocus(u)}
     @keydown=${(t) => {
-		if (!o && t.shiftKey && t.key === "Enter" && e.onSetNext && d && t.target === t.currentTarget) {
-			t.preventDefault(), m();
+		if (!o && t.shiftKey && t.key === "Enter" && e.onSetNext && u && t.target === t.currentTarget) {
+			t.preventDefault(), p();
 			return;
 		}
-		d && e.selection?.rowKeydown(d, t);
+		u && e.selection?.rowKeydown(u, t);
 	}}>
     ${!o && t.itemReturnUrl && t.activeItemHash === `#item-${n.id}--${i.id}` ? j`<span class="item-return-anchor"><button type="button" class="item-return" aria-label="返回來源項目" title="返回來源項目" @pointerdown=${(e) => e.stopPropagation()} @click=${(e) => {
-		e.stopPropagation(), Fn(t);
+		e.stopPropagation(), Ln(t);
 	}}>⮪</button></span>` : P}
-    ${o && x ? j`<button type="button" class="item-row-grip" data-item-ref=${b} data-reorder-handle draggable="true" aria-label="移動「${i.title}」（Alt+↑／↓，限同優先級）">⠿</button>` : j`<span class="item-row-marker item-row-marker-${s}" aria-hidden="true">${s === "done" ? "✓" : "○"}</span>`}
-    ${o || s !== "done" && !v(s) && u && (!u.hidden || !e.policy.labelsValid) ? j`<span class="item-row-priority">${o ? Dn(e.policy, i.priority, `設定「${i.title}」的優先級`, (e) => h("set-item-field", {
+    ${o && b ? j`<button type="button" class="item-row-grip" data-item-ref=${y} data-reorder-handle draggable="true" aria-label="移動「${i.title}」（Alt+↑／↓，限同優先級）">⠿</button>` : On(s)}
+    ${o || s !== "done" && !v(s) ? kn(e.policy, i.priority, o ? Dn(e.policy, i.priority, `設定「${i.title}」的優先級`, (e) => m("set-item-field", {
 		property: "priority",
 		value: e
-	})) : j`<span class="priority-badge priority-${u.tone}">${e.policy.format(i.priority)}</span>`}</span>` : P}
-    <div class="item-row-description" data-reorder-content>${o ? j`<input class="inline-edit-input" aria-label="編輯子項目：${i.title}" title=${i.title} maxlength="500" .value=${K(i.title)} @input=${(e) => h("set-item-field", {
+	})) : void 0) : P}
+    <div class="item-row-description" data-reorder-content>${o ? j`<input class="inline-edit-input" aria-label="編輯子項目：${i.title}" title=${i.title} maxlength="500" .value=${W(i.title)} @input=${(e) => m("set-item-field", {
 		property: "title",
 		value: e.currentTarget.value
-	})}>` : d ? j`<ui-copy-id class="item-row-copy" .value=${d} .label=${ae > 1 ? `已選取的 ${ae} 項參照` : i.title} .prepare=${(t) => {
+	})}>` : u ? j`<ui-copy-id class="item-row-copy" .value=${u} .label=${ae > 1 ? `已選取的 ${ae} 項參照` : i.title} .prepare=${(t) => {
 		let n = e.selection?.references(t) ?? [t];
 		return {
 			text: n.join("\n"),
@@ -1822,17 +1835,17 @@ function Rn(e, t, n, r, i, a) {
 			itemTitle: i.title
 		})
 	})}</span>
-    <span class="item-row-status">${o ? j`${En(Tn, s, `設定「${i.title}」的狀態`, (a) => On(e, t, n, r, i, a), `inline-status-select status-${c.tone}`)}${globalThis.TaskProgressItemStatusPolicy.retired.includes(s) ? j`<button type="button" class="retirement-edit-button" title="編輯退場資訊" aria-label="編輯「${i.title}」的退場資訊" @click=${() => On(e, t, n, r, i, s)}>✎</button>` : P}` : g.length === 1 && y.length === 1 ? j`<a class="item-status-capsule status-${c.tone} is-link" href=${y[0].href} title=${ne(i) ?? y[0].label}>${c.label}</a>` : y.length ? j`<span class="wait-menu" @focusout=${(e) => {
-		e.currentTarget.contains(e.relatedTarget) || (t.state[`wait:${b}`] = !1, t.draw());
+    <span class="item-row-status">${o ? j`${En(Tn, s, `設定「${i.title}」的狀態`, (a) => An(e, t, n, r, i, a), `inline-status-select status-${c.tone}`)}${globalThis.TaskProgressItemStatusPolicy.retired.includes(s) ? j`<button type="button" class="retirement-edit-button" title="編輯退場資訊" aria-label="編輯「${i.title}」的退場資訊" @click=${() => An(e, t, n, r, i, s)}>✎</button>` : P}` : h.length === 1 && g.length === 1 ? j`<a class="item-status-capsule status-${c.tone} is-link" href=${g[0].href} title=${ne(i) ?? g[0].label}>${c.label}</a>` : g.length ? j`<span class="wait-menu" @focusout=${(e) => {
+		e.currentTarget.contains(e.relatedTarget) || (t.state[`wait:${y}`] = !1, t.draw());
 	}} @keydown=${(e) => {
-		e.key === "Escape" && (t.state[`wait:${b}`] = !1, t.draw());
-	}}><button type="button" class="item-status-capsule status-${c.tone} is-link" aria-haspopup="true" aria-expanded=${!!t.state[`wait:${b}`]} @click=${(e) => {
-		e.stopPropagation(), t.state[`wait:${b}`] = !t.state[`wait:${b}`], t.draw();
-	}}>${c.label}</button>${t.state[`wait:${b}`] ? j`<ul class="wait-menu-list">${g.map((e) => j`<li>${e.href ? j`<a href=${e.href} @click=${(e) => e.stopPropagation()}>${e.label}</a>` : j`<span>${e.label}（無法讀取）</span>`}</li>`)}</ul>` : P}</span>` : j`<span class="item-status-capsule status-${c.tone}" title=${ne(i) ?? P}>${c.label}</span>`}</span>
-    ${o ? j`<span class="item-row-action"><button class="inline-delete-button" type="button" aria-label="刪除子項目：${i.title}" @click=${() => h("delete-item", {})}>刪除</button></span>` : P}</span>
+		e.key === "Escape" && (t.state[`wait:${y}`] = !1, t.draw());
+	}}><button type="button" class="item-status-capsule status-${c.tone} is-link" aria-haspopup="true" aria-expanded=${!!t.state[`wait:${y}`]} @click=${(e) => {
+		e.stopPropagation(), t.state[`wait:${y}`] = !t.state[`wait:${y}`], t.draw();
+	}}>${c.label}</button>${t.state[`wait:${y}`] ? j`<ul class="wait-menu-list">${h.map((e) => j`<li>${e.href ? j`<a href=${e.href} @click=${(e) => e.stopPropagation()}>${e.label}</a>` : j`<span>${e.label}（無法讀取）</span>`}</li>`)}</ul>` : P}</span>` : j`<span class="item-status-capsule status-${c.tone}" title=${ne(i) ?? P}>${c.label}</span>`}</span>
+    ${o ? j`<span class="item-row-action"><button class="inline-delete-button" type="button" aria-label="刪除子項目：${i.title}" @click=${() => m("delete-item", {})}>刪除</button></span>` : P}</span>
   </li>`;
 }
-function zn(e, t, n) {
+function Vn(e, t, n) {
 	let r = typeof e?.document == "string" ? e.document : "", i = r.indexOf("#");
 	if (i <= 0 || i === r.length - 1) return P;
 	let a = r.slice(0, i), o = r.slice(i + 1), s = j`<span class="task-goal-path">${a}</span><span class="task-goal-separator" aria-hidden="true"> › </span><span class="task-goal-section">${o}</span>`, c = t ? `/document/?${new URLSearchParams({
@@ -1842,7 +1855,7 @@ function zn(e, t, n) {
 	})}#${encodeURIComponent(o)}` : null;
 	return j`<p class="task-goal" title=${r}><span class="task-goal-label">目標：</span>${c ? j`<a class="task-goal-link" href=${c}>${s}</a>` : s}</p>`;
 }
-function Bn(e) {
+function Hn(e) {
 	if (!e) return P;
 	let t = e.next_step ?? e.next_steps?.[0];
 	return !t && !e.next_steps?.length && !e.blockers?.length && !e.decisions?.length && !e.routes?.length && !e.claim ? P : j`<details class="developer-details"><summary class="developer-summary">${t ? j`<span class="developer-next-label">後續：</span><span class="developer-next-action">${t}</span>` : P}<span class="developer-expand-hint">展開作法與方向</span></summary><div class="developer-body"><h4 class="developer-body-title">作法與方向</h4>
@@ -1852,7 +1865,7 @@ function Bn(e) {
     ${e.claim ? j`<section class="detail-section claim-section"><h4>Claim</h4><p>Agent: ${e.claim.agent}</p><p>${e.claim.worktree ?? ""}</p>${e.claim.source_paths?.map((e) => j`<code class="reference">${e}</code>`)}</section>` : P}
   </div></details>`;
 }
-function Vn(e, t, n, r) {
+function Un(e, t, n, r) {
 	e = {
 		...e,
 		nextItemId: n.id === e.nextTaskId ? e.nextItemId : null
@@ -1885,15 +1898,15 @@ function Vn(e, t, n, r) {
 		id: `task-body-${n.id}`,
 		label: n.title
 	}, j`<header class="task-header ${u ? "report-card-arrival" : ""}">${u && t.itemReturnUrl ? j`<button type="button" class="report-card-return" aria-label="返回來源子項" title="返回來源子項" @pointerdown=${(e) => e.stopPropagation()} @click=${(e) => {
-		e.stopPropagation(), Fn(t);
+		e.stopPropagation(), Ln(t);
 	}}>⮪</button>` : P}<div class="task-title-group">${e.editing ? j`<div class="time-task-status-line">${Dn(e.policy, n.priority, `${n.title} 優先級`, (e) => d("priority", e))}</div>` : P}
-    <div class="time-task-title-line">${e.editing ? j`<input id="task-${n.id}-title" class="task-title-input" aria-label="任務名稱" maxlength="160" .value=${K(n.title)} @input=${(e) => d("title", e.currentTarget.value)}>${Lt(n.id)}` : j`<h3 id="task-${n.id}-title">${Rt([e.scopeId, n.id].filter(Boolean).join(" › "), n.title, n.id)}</h3>`}</div>
+    <div class="time-task-title-line">${e.editing ? j`<input id="task-${n.id}-title" class="task-title-input" aria-label="任務名稱" maxlength="160" .value=${W(n.title)} @input=${(e) => d("title", e.currentTarget.value)}>${Lt(n.id)}` : j`<h3 id="task-${n.id}-title">${Rt([e.scopeId, n.id].filter(Boolean).join(" › "), n.title, n.id)}</h3>`}</div>
     ${e.moduleTotals?.[n.id]?.length ? j`<div class="task-module-totals">${e.moduleTotals[n.id].map((e) => j`<span class="task-module-total task-module-total-${e.id}">${e.label}</span>`)}</div>` : P}</div>
-    <div class="task-header-meta"><strong class="task-fraction" aria-label="${l}完成 ${c.completed}，共 ${c.total}">${c.completed} / ${c.total}</strong>${e.editing && !s ? En(wn, n.status, `${n.title} 狀態`, (e) => d("status", e), "inline-status-select") : j`<span class="status-badge status-${i.tone}">${i.label}</span>`}<code class="task-id">${n.id}</code></div></header>`, j`${e.editing ? j`<textarea class="task-summary-input" aria-label="任務描述" maxlength="1000" rows="3" .value=${K(n.summary ?? "")} @input=${(e) => d("summary", e.currentTarget.value)}></textarea>` : j`<div class="task-summary">${Pt(n.summary, {
+    <div class="task-header-meta"><strong class="task-fraction" aria-label="${l}完成 ${c.completed}，共 ${c.total}">${c.completed} / ${c.total}</strong>${e.editing && !s ? En(wn, n.status, `${n.title} 狀態`, (e) => d("status", e), "inline-status-select") : j`<span class="status-badge status-${i.tone}">${i.label}</span>`}<code class="task-id">${n.id}</code></div></header>`, j`${e.editing ? j`<textarea class="task-summary-input" aria-label="任務描述" maxlength="1000" rows="3" .value=${W(n.summary ?? "")} @input=${(e) => d("summary", e.currentTarget.value)}></textarea>` : j`<div class="task-summary">${Ft(n.summary, {
 		lines: 2,
 		emphasis: !0
-	})}</div>`}${zn(n.goal_ref, e.scopeId, n.id)}${Bn(n.developer)}
-      <div class="work-columns">${Ln(e, t, n, d)}${h.map((i) => i.items.length || e.editing ? j`<section class="detail-section ${i.className}"><h4 class="detail-heading">${i.title}</h4><ul class="detail-list" id="task-${n.id}-${i.field}" ${J(Vt, An(e, t, n))}>${G(i.status === "done" && !e.editing && !e.cardPage && !t.state[`completed:${n.id}`] ? i.items.slice(0, 1) : i.items, (e) => e.item.id, ({ item: a, field: o }, s) => Rn(e, t, n, o, a, r.lead && i.status !== "done" && s === 0 || a.id === e.nextItemId))}</ul>
+	})}</div>`}${Vn(n.goal_ref, e.scopeId, n.id)}${Hn(n.developer)}
+      <div class="work-columns">${zn(e, t, n, d)}${h.map((i) => i.items.length || e.editing ? j`<section class="detail-section ${i.className}"><h4 class="detail-heading">${i.title}</h4><ul class="detail-list" id="task-${n.id}-${i.field}" ${q(Vt, Mn(e, t, n))}>${U(i.status === "done" && !e.editing && !e.cardPage && !t.state[`completed:${n.id}`] ? i.items.slice(0, 1) : i.items, (e) => e.item.id, ({ item: a, field: o }, s) => Bn(e, t, n, o, a, r.lead && i.status !== "done" && s === 0 || a.id === e.nextItemId))}</ul>
       ${i.status === "done" && !e.editing && !e.cardPage && i.items.length > 1 ? j`<button type="button" class="completed-more" aria-expanded=${!!t.state[`completed:${n.id}`]} aria-controls="task-${n.id}-${i.field}" @click=${() => {
 		t.state[`completed:${n.id}`] = !t.state[`completed:${n.id}`], t.draw();
 	}}><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d=${t.state[`completed:${n.id}`] ? "M3 10l5-5 5 5" : "M3 6l5 5 5-5"} fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" /></svg>${t.state[`completed:${n.id}`] ? "收合" : `顯示更多（${i.items.length - 1}項）`}</button>` : P}</section>` : P)}
@@ -1908,18 +1921,18 @@ function Vn(e, t, n, r) {
 	}}>＋</button>`}</div>` : P}</section></div>`)}
   </article>`;
 }
-function Hn(e) {
+function Wn(e) {
 	let t = (e) => j`<a href=${e.href} @click=${(t) => {
-		Mn(t) && m(e.href, e.trail);
+		Pn(t) && m(e.href, e.trail);
 	}}>${e.title}</a>`;
 	return j`<nav class="report-card-path" aria-label="卡片路徑">
     <ol><li><a href=${e.reportHref}>${e.reportTitle}</a></li>${e.breadcrumbs.map((n, r) => j`<li><span aria-hidden="true">›</span>${r === e.breadcrumbs.length - 1 ? j`<span aria-current="page">${n.title}</span>` : t(n)}</li>`)}</ol>
   </nav>${e.parents.length ? j`<nav class="report-card-parents" aria-label="引用這張卡片的上層卡"><span>上層卡片</span><ul>${e.parents.map((e) => j`<li>${t(e)}</li>`)}</ul></nav>` : P}`;
 }
-var Un = {
+var Gn = {
 	"task-list": (e, t) => {
-		if (t.navigationReady || (t.navigationReady = !0, Pn(t), t.on(window, "hashchange", () => {
-			Pn(t), t.lastItemHash = null, t.refresh();
+		if (t.navigationReady || (t.navigationReady = !0, In(t), t.on(window, "hashchange", () => {
+			In(t), t.lastItemHash = null, t.refresh();
 		}), t.on(window, "popstate", () => {
 			t.activeItemHash = null, t.activeCardArrival = null, t.itemReturnUrl = null, t.refresh();
 		})), t.activeItemHash && t.lastItemHash !== t.activeItemHash) {
@@ -1936,10 +1949,10 @@ var Un = {
 		t.selectionSource !== e.selection && (t.unsubscribe?.(), t.selectionSource = e.selection, t.unsubscribe = e.selection?.subscribe((e) => {
 			t.state.selection = e, queueMicrotask(t.refresh);
 		}), t.cleanups.push(() => t.unsubscribe?.()));
-		let n = (n, r) => n.kind === "report_pointer" ? Wn(e, n, r) : Vn(e, t, n, r);
+		let n = (n, r) => n.kind === "report_pointer" ? Kn(e, n, r) : Un(e, t, n, r);
 		if (e.cardPage) {
 			let [r] = e.tasks;
-			return j`${Hn(e.cardPage)}${r ? j`<div data-card-id=${r.id}>${n(r, { lead: !0 })}</div>` : j`<p class="empty-state">${e.emptyLabel}</p>`}${kn(e, t)}`;
+			return j`${Wn(e.cardPage)}${r ? j`<div data-card-id=${r.id}>${n(r, { lead: !0 })}</div>` : j`<p class="empty-state">${e.emptyLabel}</p>`}${jn(e, t)}`;
 		}
 		return t.cards ??= new Jt(t), j`${t.cards.render({
 			items: e.tasks,
@@ -1957,9 +1970,9 @@ var Un = {
 			referenceParents: e.referenceParents,
 			searching: !!e.searchQuery?.trim()
 		}, n, e.filters ? Ut(e.filters) : P, j`${e.onSearch ? j`<ui-search-field class="task-search" label="搜尋任務卡名稱、摘要與子項" placeholder="搜尋名稱、摘要、子項"
-        .query=${e.searchQuery ?? ""} @query-change=${(t) => e.onSearch(t.detail.query)}></ui-search-field>` : P}`)}${e.tasks.length ? P : j`<p class="empty-state">${e.emptyLabel}</p>`}${kn(e, t)}`;
+        .query=${e.searchQuery ?? ""} @query-change=${(t) => e.onSearch(t.detail.query)}></ui-search-field>` : P}`)}${e.tasks.length ? P : j`<p class="empty-state">${e.emptyLabel}</p>`}${jn(e, t)}`;
 	},
-	"report-summary": (e) => e.editable ? j`<textarea class="report-summary-input" aria-label=${e.label ?? "報告摘要"} maxlength="1000" rows="2" placeholder=${e.placeholder ?? ""} .value=${K(e.value ?? "")} @input=${(t) => e.onCommit(t.currentTarget.value)}></textarea>` : j`<p class="hero-summary">${e.text}</p>`,
+	"report-summary": (e) => e.editable ? j`<textarea class="report-summary-input" aria-label=${e.label ?? "報告摘要"} maxlength="1000" rows="2" placeholder=${e.placeholder ?? ""} .value=${W(e.value ?? "")} @input=${(t) => e.onCommit(t.currentTarget.value)}></textarea>` : j`<p class="hero-summary">${e.text}</p>`,
 	"project-progress": (e) => j`<div class="project-progress-label"><strong id="project-progress-value">整體約 ${e.percentage}%</strong></div>${zt({
 		...e,
 		form: "segmented",
@@ -1990,7 +2003,7 @@ var Un = {
 	"time-dialog": gn,
 	"cost-dialog": _n
 };
-function Wn(e, t, n) {
+function Kn(e, t, n) {
 	let r = e.pointerCards?.[t.id] ?? { status: "loading" }, i = r.status === "ready" ? r.card : null, a = (e) => e ? u[e] ?? {
 		label: e,
 		tone: "muted"
@@ -2002,13 +2015,13 @@ function Wn(e, t, n) {
 		...n,
 		id: `task-body-${t.id}`,
 		label: t.title
-	}, j`<header class="task-header"><div class="task-title-group"><div class="time-task-title-line"><h3 id=${`task-${t.id}-title`}>${r.openHref ? j`<a class="pointer-card-title-link" href=${r.openHref}>${t.title}</a>` : t.title}${Lt(t.id)}</h3></div>${r.openHref ? j`<a class="pointer-card-badge" href=${r.openHref}>開啟專案報告 →</a>` : P}</div><div class="task-header-meta">${i ? j`<strong class="task-fraction">${i.progress.completed} / ${i.progress.total}</strong><span class="status-badge status-${a(i.status).tone}">${a(i.status).label}</span>` : P}${r.status === "error" ? j`<span class="pointer-card-error" role="alert">${r.message}</span>` : r.status === "loading" ? j`<span role="status">讀取目標報告中…</span>` : P}</div></header>`, i ? j`<div class="task-summary">${Pt(i.summary, { emphasis: !0 })}</div><p class="pointer-card-progress" aria-label=${`子任務完成 ${i.progress.completed}，共 ${i.progress.total}`}>${i.progress.completed} / ${i.progress.total}（${i.progress.percentage}%）</p><ul class="pointer-card-rows">${i.rows.map((e) => j`<li class="pointer-card-row"><span class="pointer-card-row-title">${e.title}</span><span class="status-badge status-${a(e.status).tone}">${a(e.status).label}</span></li>`)}</ul>` : P)}</article>`;
+	}, j`<header class="task-header"><div class="task-title-group"><div class="time-task-title-line"><h3 id=${`task-${t.id}-title`}>${r.openHref ? j`<a class="pointer-card-title-link" href=${r.openHref}>${t.title}</a>` : t.title}${Lt(t.id)}</h3></div>${r.openHref ? j`<a class="pointer-card-badge" href=${r.openHref}>開啟專案報告 →</a>` : P}</div><div class="task-header-meta">${i ? j`<strong class="task-fraction">${i.progress.completed} / ${i.progress.total}</strong><span class="status-badge status-${a(i.status).tone}">${a(i.status).label}</span>` : P}${r.status === "error" ? j`<span class="pointer-card-error" role="alert">${r.message}</span>` : r.status === "loading" ? j`<span role="status">讀取目標報告中…</span>` : P}</div></header>`, i ? j`<div class="task-summary">${Ft(i.summary, { emphasis: !0 })}</div><p class="pointer-card-progress" aria-label=${`子任務完成 ${i.progress.completed}，共 ${i.progress.total}`}>${i.progress.completed} / ${i.progress.total}（${i.progress.percentage}%）</p><ul class="pointer-card-rows">${i.rows.map((e) => j`<li class="pointer-card-row"><span class="pointer-card-row-title">${e.title}</span><span class="status-badge status-${a(e.status).tone}">${a(e.status).label}</span></li>`)}</ul>` : P)}</article>`;
 }
-var Gn = {
+var qn = {
 	id: "yu5h1-web-ui-workflow",
-	regions: Object.keys(Un),
+	regions: Object.keys(Gn),
 	mount(e, t, n) {
-		let r = new Bt(t, n, Un[e]);
+		let r = new Bt(t, n, Gn[e]);
 		return r.draw(), r;
 	},
 	update(e, t) {
@@ -2018,5 +2031,5 @@ var Gn = {
 		e.destroy();
 	}
 };
-c(Gn), await _e("viewer"), await import("./app.js");
+c(qn), await ve("viewer"), await import("./app.js");
 //#endregion

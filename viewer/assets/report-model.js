@@ -291,6 +291,7 @@ export function projectCardReferences(tasks) {
       return {
         ...reference,
         title: target?.title ?? reference.task_id,
+        priority: target?.priority,
         status: available ? target.status : "blocked",
         progress: available ? (isReferenceOnlyCard(target) ? target.referenceProgress : calculateTaskProgress(target)) : null,
         error: available ? null : target ? "目標卡片已封存" : "找不到目標卡片",

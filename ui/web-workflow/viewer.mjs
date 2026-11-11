@@ -19,6 +19,16 @@ const status = value => STATUS_META[value] ?? { label: value, tone: 'muted' };
 const options = (entries, value, label, onChange, className = '') => html`<select class=${className} aria-label=${label} .value=${live(String(value))} @change=${e => onChange(e.currentTarget.value)}>${entries.map(e => html`<option .value=${String(e.value)} ?selected=${String(e.value) === String(value)}>${e.label}</option>`)}</select>`;
 const prioritySelect = (policy, value, label, onChange) => options(policy.levels.map(e => ({ value: e.value, label: policy.format(e.value) })), policy.normalize(value, policy.fallbackValue), label, v => onChange(Number(v)), 'inline-priority-select');
 
+function rowMarker(status) {
+  return html`<span class="item-row-marker item-row-marker-${status}" aria-hidden="true">${status === 'done' ? '✓' : '○'}</span>`;
+}
+
+function rowPriority(policy, value, editor) {
+  const priority = policy.metadata(value);
+  if (!editor && (!priority || (priority.hidden && policy.labelsValid))) return nothing;
+  return html`<span class="item-row-priority">${editor ?? html`<span class="priority-badge priority-${priority.tone}">${policy.format(value)}</span>`}</span>`;
+}
+
 function changeItemStatus(p, v, task, field, item, value) {
   if (!globalThis.TaskProgressItemStatusPolicy.retired.includes(value)) return p.onCommand({ type:'set-item-status', taskId:task.id, field, itemId:item.id, status:value });
   const replacement = item.retirement?.replaced_by;
@@ -163,15 +173,23 @@ function cardReferenceList(p, v, task, command) {
       const meta = status(ref.status);
       const href = cardPageUrl(location.href, p.scopeId, ref.task_id);
       const id = `item-${task.id}--${ref.id}`;
-      return html`<li id=${id} data-item-row class="report-reference-row" ?data-item-target=${v.activeItemHash === `#${id}`}>
-        ${p.editing ? html`<select aria-label=${`編輯「${ref.title}」的參照`} .value=${live(ref.task_id)} @change=${e => changeReference(ref.id, e.currentTarget.value)}>
-          ${ref.error ? html`<option value=${ref.task_id}>${ref.title}（${ref.error}）</option>` : nothing}
-          ${choices(ref.task_id).map(target => html`<option value=${target.id}>${target.title}</option>`)}</select>
-          <button type="button" class="inline-delete-button" @click=${() => changeReference(ref.id, null)}>移除參照</button>`
-        : ref.error ? html`<span>${ref.title} · ${ref.error}</span>`
-        : html`<a href=${href.href} @click=${event => rememberCardArrival(event, task, ref, p.cardPage?.trail)}>${ref.title} ⮩</a>
-          <span class="report-reference-meta"><span class="status-badge status-${meta.tone}">${meta.label}</span>
-            <span>${ref.progress.completed} / ${ref.progress.total}</span></span>`}
+      return html`<li id=${id} data-item-row class="editor-item-row report-reference-row" ?data-item-target=${v.activeItemHash === `#${id}`}>
+        ${rowMarker(ref.status)}${rowPriority(p.policy, ref.priority)}
+        <div class="item-row-description"><div class="item-row-text report-reference-title">
+          <svg class="report-reference-icon" viewBox="0 0 20 20" width="16" height="16" aria-hidden="true">
+            <path fill="currentColor" fill-rule="evenodd" d="M4.5 1h11A2.5 2.5 0 0 1 18 3.5v13a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 2 16.5v-13A2.5 2.5 0 0 1 4.5 1ZM7 11.5a2 2 0 1 0 0 4 2 2 0 0 0 0-4Zm4 1.25a.75.75 0 0 0 0 1.5h4a.75.75 0 0 0 0-1.5Z"/>
+          </svg>
+          ${p.editing ? html`<select aria-label=${`編輯「${ref.title}」的參照`} .value=${live(ref.task_id)} @change=${e => changeReference(ref.id, e.currentTarget.value)}>
+            ${ref.error ? html`<option value=${ref.task_id}>${ref.title}（${ref.error}）</option>` : nothing}
+            ${choices(ref.task_id).map(target => html`<option value=${target.id}>${target.title}</option>`)}</select>`
+          : ref.error ? html`<span title=${ref.error}>${ref.title} · ${ref.error}</span>`
+          : html`<a href=${href.href} title=${ref.title} @click=${event => rememberCardArrival(event, task, ref, p.cardPage?.trail)}>${ref.title} ⮩</a>`}
+        </div></div>
+        <span class="item-row-utility-panel">${p.editing
+          ? html`<button type="button" class="inline-delete-button" @click=${() => changeReference(ref.id, null)}>移除參照</button>`
+          : html`<span class="item-status-capsule status-${meta.tone}">${meta.label}</span>
+            ${ref.progress ? html`<span class="report-reference-progress">${ref.progress.completed} / ${ref.progress.total}</span>` : nothing}`}
+        </span>
       </li>`;
     })}</ul>` : nothing}
     ${p.editing && availableTargets.length ? html`<select aria-label="新增卡片參照" .value=${live('')} @change=${event => {
@@ -184,7 +202,6 @@ function cardReferenceList(p, v, task, command) {
 function itemRow(p, v, task, field, item, lead) {
   const editing = p.editing, itemStatus = item.status ?? (field === 'completed_items' ? 'done' : 'planned');
   const meta = item.derivedState && item.derivedState !== 'done' ? { label: item.derivedStateLabel, tone: item.derivedStateTone } : ITEM_STATUS_META[itemStatus] ?? status(itemStatus);
-  const priority = p.policy.metadata(item.priority);
   const reference = editing ? null : itemReference({ scopeId: p.scopeId, taskId: task.id, item });
   const selected = reference && v.state.selection?.keys.has(reference);
   const isNext = item.id === p.nextItemId;
@@ -210,8 +227,9 @@ function itemRow(p, v, task, field, item, lead) {
     @click=${e => { if (!navigateVisibleItem(e, v) && reference) p.selection?.rowClick(reference, e); }} @focus=${() => reference && p.selection?.rowFocus(reference)}
     @keydown=${e => { if (!editing && e.shiftKey && e.key === 'Enter' && p.onSetNext && reference && e.target === e.currentTarget) { e.preventDefault(); setNext(); return; } if (reference) p.selection?.rowKeydown(reference, e); }}>
     ${!editing && v.itemReturnUrl && v.activeItemHash === `#item-${task.id}--${item.id}` ? html`<span class="item-return-anchor"><button type="button" class="item-return" aria-label="返回來源項目" title="返回來源項目" @pointerdown=${e => e.stopPropagation()} @click=${e => { e.stopPropagation(); returnToItem(v); }}>⮪</button></span>` : nothing}
-    ${editing && canReorder ? html`<button type="button" class="item-row-grip" data-item-ref=${key} data-reorder-handle draggable="true" aria-label="移動「${item.title}」（Alt+↑／↓，限同優先級）">⠿</button>` : html`<span class="item-row-marker item-row-marker-${itemStatus}" aria-hidden="true">${itemStatus === 'done' ? '✓' : '○'}</span>`}
-    ${editing || (itemStatus !== 'done' && !isRetiredStatus(itemStatus) && priority && (!priority.hidden || !p.policy.labelsValid)) ? html`<span class="item-row-priority">${editing ? prioritySelect(p.policy, item.priority, `設定「${item.title}」的優先級`, value => cmd('set-item-field', { property: 'priority', value })) : html`<span class="priority-badge priority-${priority.tone}">${p.policy.format(item.priority)}</span>`}</span>` : nothing}
+    ${editing && canReorder ? html`<button type="button" class="item-row-grip" data-item-ref=${key} data-reorder-handle draggable="true" aria-label="移動「${item.title}」（Alt+↑／↓，限同優先級）">⠿</button>` : rowMarker(itemStatus)}
+    ${editing || (itemStatus !== 'done' && !isRetiredStatus(itemStatus)) ? rowPriority(p.policy, item.priority,
+      editing ? prioritySelect(p.policy, item.priority, `設定「${item.title}」的優先級`, value => cmd('set-item-field', { property: 'priority', value })) : undefined) : nothing}
     <div class="item-row-description" data-reorder-content>${editing ? html`<input class="inline-edit-input" aria-label="編輯子項目：${item.title}" title=${item.title} maxlength="500" .value=${live(item.title)} @input=${e => cmd('set-item-field', { property: 'title', value: e.currentTarget.value })}>`
       : reference ? html`<ui-copy-id class="item-row-copy" .value=${reference} .label=${copyCount > 1 ? `已選取的 ${copyCount} 項參照` : item.title} .prepare=${prepareCopy}>${title}</ui-copy-id>` : title}</div>
     <span class="item-row-utility-panel"><span class="item-row-modules">${moduleStrip({ capsules: p.itemCapsules?.get(item.id) ?? [], moduleOrder: p.moduleOrder, onReorder: p.onModuleReorder, onActivate: id => p.onModuleActivate?.(id, { taskId: task.id, itemId: item.id, itemTitle: item.title }) })}</span>

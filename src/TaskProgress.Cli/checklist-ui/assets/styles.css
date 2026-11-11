@@ -1311,25 +1311,23 @@ h1 {
   display: block;
 }
 
-.work-columns .detail-list .report-reference-row {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 6px 12px;
-  padding-inline: 8px;
+.report-reference-icon {
+  flex: none;
+  align-self: center;
+  color: var(--color-item-text);
 }
 
-.report-reference-row a, .report-reference-row select {
+.report-reference-title > :is(a, select, span) {
   min-inline-size: 0;
-  max-inline-size: 100%;
-  overflow-wrap: anywhere;
 }
 
-.report-reference-meta {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
+.report-reference-title > :is(a, span) {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.report-reference-progress {
   white-space: nowrap;
 }
 
@@ -1344,7 +1342,7 @@ h1 {
   cursor: pointer;
 }
 
-.task-header.report-card-arrival, .detail-list .report-reference-row[data-item-target] {
+.task-header.report-card-arrival {
   position: relative;
   outline: 3px solid #ffdf00;
   outline-offset: 3px;
