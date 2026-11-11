@@ -22,6 +22,7 @@ import {
   projectProgressCells,
   calculateTaskProgress,
   projectCardReferences,
+  indexCardReferences,
   isSupportedSchemaVersion,
   mergeReports,
   projectPointerCard,
@@ -1047,6 +1048,7 @@ function taskListProps(tasks) {
     itemCapsules,
     pointerCards,
     cardReferenceTargets: state.editor.editing ? state.report.tasks : [],
+    cardReferenceParents: indexCardReferences(state.editor.editing ? state.report.tasks : []).parents,
     onAddCardReference(taskId, targetId) {
       const task = state.report.tasks.find(candidate => candidate.id === taskId);
       const id = state.editor.session.createItemId(taskId, 'card-ref');

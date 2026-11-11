@@ -3,7 +3,7 @@
   "report_id": "task-progress-development",
   "scope_id": "task-progress",
   "title": "TaskProgress 開發進度",
-  "updated_at": "2026-11-11T14:15:16.988616+00:00",
+  "updated_at": "2026-11-11T14:29:45.444228+00:00",
   "tasks": [
     {
       "id": "gemini-workflow-trial",
@@ -4676,6 +4676,35 @@
       "summary": "目標：每個任務以圖形化節點表示，從節點圖直接看出阻塞點，Report 卡片保留作細節說明；資料結構先不改，遞迴節點要先估成本、測可行才替換。見 [問題與目標](https://github.com/Yu5h1/TaskProgress/blob/main/Documentation/NodeProgressViewPlan.md#問題與目標)。",
       "completed_items": [
         {
+          "id": "item-card-ref-chain",
+          "status": "done",
+          "priority": 2,
+          "title": "卡片參照可以串成鏈：寫入時擋環，每張卡只匯總直接引用的卡，scope 總進度與工時不重複計數。[參照鏈設計](/document/?scope=task-progress&path=Documentation%2FNodeProgressViewPlan.md#參照鏈與子項升級)",
+          "activity": [
+            {
+              "event": "created",
+              "actor": "claude",
+              "at": "2026-11-11T14:05:29.468239+00:00",
+              "session": "VCP report 整理",
+              "session_id": "95101c81-3257-4d44-90a2-b1e494306ba0"
+            },
+            {
+              "event": "started",
+              "actor": "codex",
+              "at": "2026-11-11T14:25:31.181946+00:00",
+              "session": "參照鏈與等待佇列",
+              "session_id": "01a1873a-2fef-74c2-a673-a41bb27657dd"
+            },
+            {
+              "event": "done",
+              "actor": "codex",
+              "at": "2026-11-11T14:29:45.444228+00:00",
+              "session": "參照鏈與等待佇列",
+              "session_id": "01a1873a-2fef-74c2-a673-a41bb27657dd"
+            }
+          ]
+        },
+        {
           "id": "item-card-ref-rollup",
           "status": "done",
           "priority": 2,
@@ -4749,21 +4778,6 @@
             },
             {
               "event": "updated",
-              "actor": "claude",
-              "at": "2026-11-11T14:05:29.468239+00:00",
-              "session": "VCP report 整理",
-              "session_id": "95101c81-3257-4d44-90a2-b1e494306ba0"
-            }
-          ]
-        },
-        {
-          "id": "item-card-ref-chain",
-          "status": "planned",
-          "priority": 2,
-          "title": "卡片參照可以串成鏈：寫入時擋環，每張卡只匯總直接引用的卡，scope 總進度與工時不重複計數。[參照鏈設計](/document/?scope=task-progress&path=Documentation%2FNodeProgressViewPlan.md#參照鏈與子項升級)",
-          "activity": [
-            {
-              "event": "created",
               "actor": "claude",
               "at": "2026-11-11T14:05:29.468239+00:00",
               "session": "VCP report 整理",

@@ -10,6 +10,7 @@ import tempfile
 import time
 from dataclasses import dataclass
 from datetime import datetime, timezone as datetime_timezone
+from graphlib import CycleError, TopologicalSorter
 from pathlib import Path
 from typing import Any, Callable, Sequence
 from jsonschema import Draft202012Validator, FormatChecker
@@ -55,6 +56,7 @@ def _cross_validate_report(report: dict[str, Any]) -> list[str]:
     if not isinstance(tasks, list):
         return errors
     by_id = {task["id"]: task for task in tasks if isinstance(task, dict) and isinstance(task.get("id"), str)}
+    references = TopologicalSorter()
     for task_index, task in enumerate(tasks):
         if not isinstance(task, dict):
             continue
@@ -94,10 +96,16 @@ def _cross_validate_report(report: dict[str, Any]) -> list[str]:
                 errors.append(f"{path}.id is duplicated")
             if target_id == task_id or target_id in targets:
                 errors.append(f"{path}.task_id is a self-reference or duplicate target")
-            if target and (target.get("kind") == "report_pointer" or target.get("card_refs")):
-                errors.append(f"{path}.task_id must name a work card without references")
+            if target and target.get("kind") == "report_pointer":
+                errors.append(f"{path}.task_id must name a work card")
+            if target and isinstance(task_id, str) and target_id != task_id:
+                references.add(task_id, target_id)
             item_ids.add(ref["id"])
             targets.add(target_id)
+    try:
+        references.prepare()
+    except CycleError as error:
+        errors.append(f"card_refs contains a reference cycle: {' -> '.join(error.args[1])}")
     return errors
 
 

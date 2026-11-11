@@ -13,16 +13,19 @@ internal static class ReportCardReferences
 
     public static void Project(string scope, JsonObject report, IEnumerable<JsonObject> requested, ItemStateResolver resolver)
     {
-        var sources = requested.Where(task => task["card_refs"] is JsonArray { Count: > 0 }).ToArray();
-        if (sources.Length == 0 || report["tasks"] is not JsonArray tasks) return;
+        var sources = requested.Where(task => task["card_refs"] is JsonArray { Count: > 0 })
+            .ToDictionary(task => task["id"]!.GetValue<string>(), StringComparer.Ordinal);
+        if (sources.Count == 0 || report["tasks"] is not JsonArray tasks) return;
 
         var byId = tasks.OfType<JsonObject>().ToDictionary(task => task["id"]!.GetValue<string>(), StringComparer.Ordinal);
         var projections = new Dictionary<string, (string Status, int Completed, int Total)>(StringComparer.Ordinal);
-        foreach (var task in sources)
+        foreach (var id in TargetFirstOrder(byId))
         {
+            var task = byId[id];
+            if (task["card_refs"] is not JsonArray { Count: > 0 } references) continue;
             var rows = new JsonArray();
             var statuses = new List<string>();
-            foreach (var reference in ((JsonArray)task["card_refs"]!).OfType<JsonObject>())
+            foreach (var reference in references.OfType<JsonObject>())
             {
                 var targetId = reference["task_id"]!.GetValue<string>();
                 var target = byId.GetValueOrDefault(targetId);
@@ -48,10 +51,45 @@ internal static class ReportCardReferences
                 rows.Add(row);
             }
             var completed = statuses.Count(status => status == ItemStates.Done);
-            task["card_references"] = rows;
-            task["reference_progress"] = Progress(completed, rows.Count);
-            if (IsReferenceOnly(task) && task["status"]?.GetValue<string>() != ItemStates.Archived)
-                task["derived_status"] = RollupStatus(statuses, completed);
+            var referenceOnly = IsReferenceOnly(task) && task["status"]?.GetValue<string>() != ItemStates.Archived;
+            if (referenceOnly) projections.Add(id, (RollupStatus(statuses, completed), completed, rows.Count));
+            if (!sources.TryGetValue(id, out var source)) continue;
+            source["card_references"] = rows;
+            source["reference_progress"] = Progress(completed, rows.Count);
+            if (referenceOnly) source["derived_status"] = projections[id].Status;
+        }
+    }
+
+    private static IEnumerable<string> TargetFirstOrder(Dictionary<string, JsonObject> tasks)
+    {
+        var dependents = new Dictionary<string, List<string>>(StringComparer.Ordinal);
+        var outstanding = new Dictionary<string, int>(StringComparer.Ordinal);
+        var ready = new Queue<string>();
+        foreach (var (id, task) in tasks)
+        {
+            var count = 0;
+            if (task["card_refs"] is JsonArray references)
+            {
+                foreach (var reference in references.OfType<JsonObject>())
+                {
+                    var target = reference["task_id"]!.GetValue<string>();
+                    if (!tasks.ContainsKey(target)) continue;
+                    if (!dependents.TryGetValue(target, out var parents))
+                        dependents.Add(target, parents = []);
+                    parents.Add(id);
+                    count++;
+                }
+            }
+            outstanding.Add(id, count);
+            if (count == 0) ready.Enqueue(id);
+        }
+
+        while (ready.TryDequeue(out var id))
+        {
+            yield return id;
+            if (!dependents.TryGetValue(id, out var parents)) continue;
+            foreach (var parent in parents)
+                if (--outstanding[parent] == 0) ready.Enqueue(parent);
         }
     }
 

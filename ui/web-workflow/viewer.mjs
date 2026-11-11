@@ -1,5 +1,5 @@
 import { registerUiAdapter } from '@taskprogress/ui-host.js';
-import { stableSortTaskItemsByPriority, STATUS_META, ITEM_STATUS_META } from '@taskprogress/report-model.js';
+import { cardReferenceAncestors, stableSortTaskItemsByPriority, STATUS_META, ITEM_STATUS_META } from '@taskprogress/report-model.js';
 import { parseReference } from '@taskprogress/task-search.js';
 import { liftNextItem } from '@taskprogress/next-marker.js';
 import { itemReference } from '@taskprogress/item-reference.js';
@@ -139,9 +139,9 @@ function cardReferenceList(p, v, task, command) {
   const references = task.cardReferences ?? [];
   if (!p.editing && !references.length) return nothing;
   const cards = p.cardReferenceTargets ?? [];
-  const incoming = cards.some(candidate => candidate.card_refs?.some(ref => ref.task_id === task.id));
-  const targets = cards.filter(candidate => !incoming && candidate.id !== task.id
-    && candidate.kind !== 'report_pointer' && candidate.status !== 'archive' && !candidate.card_refs?.length);
+  const ancestors = cardReferenceAncestors(p.cardReferenceParents, task.id);
+  const targets = cards.filter(candidate => !ancestors.has(candidate.id)
+    && candidate.kind !== 'report_pointer' && candidate.status !== 'archive');
   const choices = currentId => targets.filter(candidate => candidate.id === currentId || !references.some(ref => ref.task_id === candidate.id));
   const availableTargets = choices();
   if (!references.length && !availableTargets.length) return nothing;

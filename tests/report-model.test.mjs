@@ -7,8 +7,10 @@ import {
   PRIORITY_META,
   PRIORITY_POLICY,
   buildScopeHref,
+  cardReferenceAncestors,
   calculateProjectProgress,
   calculateTaskProgress,
+  indexCardReferences,
   mergeReports,
   projectCardReferences,
   reportPathForScope,
@@ -54,6 +56,27 @@ test("shared targets project by card for each source without inflating scope wor
   assert.equal(unavailable.status, "blocked");
   assert.equal(unavailable.cardReferences[0].error, "目標卡片已封存");
   assert.equal(unavailable.cardReferences[0].progress, null);
+});
+
+test("a chain rolls up only its direct targets and rejects a back edge", async () => {
+  const report = await readJson("reports/example/report.json");
+  const card = (id, targets = [], status = "planned") => ({ id, title: id, summary: id, status,
+    ...(targets.length && { card_refs: targets.map(target => ({ id: `ref-${target}`, task_id: target })) }),
+  });
+  report.tasks = [card("root", ["branch", "other"]), card("outside", ["leaf"]),
+    card("branch", ["leaf"]), card("leaf", [], "done"), card("other", [], "in_progress")];
+  assert.deepEqual(validateReport(report), []);
+  const [root, outside, branch] = projectCardReferences(report.tasks);
+  assert.deepEqual(root.referenceProgress, { completed: 1, total: 2 });
+  assert.deepEqual(root.cardReferences[0].progress, { completed: 1, total: 1 });
+  assert.equal(root.status, "in_progress");
+  assert.equal(branch.status, "done");
+  assert.equal(outside.status, "done");
+  assert.deepEqual(calculateProjectProgress(projectCardReferences(report.tasks)), { completed: 1, total: 2, percentage: 50 });
+  const { parents } = indexCardReferences(report.tasks);
+  assert.deepEqual(cardReferenceAncestors(parents, "leaf"), new Set(["leaf", "outside", "branch", "root"]));
+  report.tasks[3].card_refs = [{ id: "back", task_id: "root" }];
+  assert.ok(validateReport(report).some(error => error.code === "invalid_card_ref"));
 });
 
 test("developer reports accept a one-line next step action", () => {

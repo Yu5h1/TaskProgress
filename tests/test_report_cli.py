@@ -53,6 +53,20 @@ class ReportCliTests(unittest.TestCase):
         execute(self.root, "apply", self.request([{"op": "task.update", "task_id": "one", "unset": ["card_refs"]}]))
         self.assertNotIn("card_refs", execute(self.root, "get", task="one")["task"])
 
+    def test_card_reference_chain_rejects_cycle_without_writing(self):
+        self.report["tasks"].append({"id": "three", "title": "三", "summary": "例", "status": "done"})
+        self.write("report.json", self.report)
+
+        def link(source, target):
+            return {"op": "task.update", "task_id": source,
+                    "set": {"card_refs": [{"id": "ref", "task_id": target}]}}
+
+        execute(self.root, "apply", self.request([link("one", "two"), link("two", "three")]))
+        before = (self.root / "report.json").read_bytes()
+        with self.assertRaisesRegex(ReportError, "reference cycle"):
+            execute(self.root, "apply", self.request([link("three", "one")]))
+        self.assertEqual((self.root / "report.json").read_bytes(), before)
+
     def test_release_frees_the_claim_and_dispute_needs_a_note(self):
         op = lambda **kw: {"op": "item.event", "task_id": "one", "item_id": "item", **kw}
         execute(self.root, "apply", self.request([{"op": "item.update", "task_id": "one", "item_id": "item", "set": {"status": "in_progress"}}], session="s1"))

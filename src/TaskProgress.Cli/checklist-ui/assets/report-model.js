@@ -234,18 +234,65 @@ export function isReferenceOnlyCard(task) {
     && !task.pending_items?.length && !task.completed_items?.length);
 }
 
+export function indexCardReferences(tasks) {
+  const byId = new Map(tasks.filter(isObject).map(task => [task.id, task]));
+  const parents = new Map();
+  const targetsById = new Map();
+  for (const task of byId.values()) {
+    const refs = Array.isArray(task.card_refs) ? task.card_refs : [];
+    const targets = new Set(refs.map(ref => ref?.task_id).filter(id => byId.has(id)));
+    targetsById.set(task.id, targets);
+    for (const target of targets) {
+      if (!parents.has(target)) parents.set(target, []);
+      parents.get(target).push(task.id);
+    }
+  }
+  return { byId, parents, targetsById };
+}
+
+function cardReferenceOrder(tasks) {
+  const { byId, parents, targetsById } = indexCardReferences(tasks);
+  const outstanding = new Map();
+  const order = [];
+  for (const [id, targets] of targetsById) {
+    outstanding.set(id, targets.size);
+    if (!targets.size) order.push(id);
+  }
+  for (let index = 0; index < order.length; index++) {
+    for (const id of parents.get(order[index]) ?? []) {
+      const remaining = outstanding.get(id) - 1;
+      outstanding.set(id, remaining);
+      if (!remaining) order.push(id);
+    }
+  }
+  return { byId, order };
+}
+
+export function cardReferenceAncestors(parents, taskId) {
+  const ancestors = new Set([taskId]);
+  for (const id of ancestors) {
+    for (const parent of parents.get(id) ?? []) ancestors.add(parent);
+  }
+  return ancestors;
+}
+
 export function projectCardReferences(tasks) {
-  const byId = new Map(tasks.map(task => [task.id, task]));
-  return tasks.map(task => {
-    if (!task.card_refs?.length) return task;
+  const { byId, order } = cardReferenceOrder(tasks);
+  const projected = new Map();
+  for (const id of order) {
+    const task = byId.get(id);
+    if (!task.card_refs?.length) {
+      projected.set(id, task);
+      continue;
+    }
     const cardReferences = task.card_refs.map(reference => {
-      const target = byId.get(reference.task_id);
+      const target = projected.get(reference.task_id);
       const available = target && target.status !== "archive";
       return {
         ...reference,
         title: target?.title ?? reference.task_id,
         status: available ? target.status : "blocked",
-        progress: available ? calculateTaskProgress(target) : null,
+        progress: available ? (isReferenceOnlyCard(target) ? target.referenceProgress : calculateTaskProgress(target)) : null,
         error: available ? null : target ? "目標卡片已封存" : "找不到目標卡片",
       };
     });
@@ -255,8 +302,9 @@ export function projectCardReferences(tasks) {
     };
     const status = isReferenceOnlyCard(task) && task.status !== "archive"
       ? deriveReportStatus(cardReferences) : task.status;
-    return { ...task, status, cardReferences, referenceProgress };
-  });
+    projected.set(id, { ...task, status, cardReferences, referenceProgress });
+  }
+  return tasks.map(task => projected.get(task.id) ?? task);
 }
 
 /*
@@ -673,12 +721,14 @@ export function validateReport(report) {
     validateStandardTask(task, path, errors);
     if (Array.isArray(task.card_refs)) task.card_refs.forEach((ref, refIndex) => {
       const target = tasksById.get(ref?.task_id);
-      if (target && (taskKind(target) === "report_pointer" || target.card_refs?.length)) {
+      if (target && taskKind(target) === "report_pointer") {
         const refPath = `${path}.card_refs[${refIndex}].task_id`;
-        errors.push(issue("invalid_card_ref", refPath, "目標必須是未引用其他卡片的普通任務卡。"));
+        errors.push(issue("invalid_card_ref", refPath, "目標必須是普通任務卡。"));
       }
     });
   });
+  const { byId, order } = cardReferenceOrder(report.tasks);
+  if (order.length < byId.size) errors.push(issue("invalid_card_ref", "tasks", "卡片參照不能形成循環。"));
 
   return errors;
 }
