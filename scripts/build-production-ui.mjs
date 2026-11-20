@@ -1,5 +1,5 @@
 import { buildCandidate } from './build-web-ui.mjs';
-import { readdir, mkdir, copyFile, unlink, writeFile } from 'node:fs/promises';
+import { readdir, mkdir, copyFile, readFile, unlink, writeFile } from 'node:fs/promises';
 import { resolve, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -11,7 +11,13 @@ async function copyTree(source, target) {
     const from = resolve(source, entry.name), to = resolve(target, entry.name);
     if (entry.isSymbolicLink()) throw new Error('Unexpected delivery symlink: ' + from);
     if (entry.isDirectory()) await copyTree(from, to);
-    else if (entry.isFile()) await copyFile(from, to);
+    else if (entry.isFile()) {
+      const current = await readFile(to).catch(error => {
+        if (error.code !== 'ENOENT') throw error;
+        return null;
+      });
+      if (current === null || !(await readFile(from)).equals(current)) await copyFile(from, to);
+    }
   }
 }
 await copyTree(resolve(site, 'release/viewer'), resolve(root, 'viewer'));

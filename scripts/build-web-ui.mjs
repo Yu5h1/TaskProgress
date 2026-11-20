@@ -80,7 +80,8 @@ export async function buildCandidate({ production = false } = {}) {
   for (const [file, entry] of Object.entries(entries)) await compile(file, entry, resolve(output, file), '../'.repeat(file.split('/').length + 1), file.includes('/') ? '../assets/' : './assets/');
   for (const page of ['', 'checklist/', 'decisions/', 'document/']) {
     const depth = page ? '../../../' : '../../', local = page ? '../' : './';
-    let html = await readFile(resolve(source, 'shells', (page ? page.slice(0, -1) : 'viewer') + '.html'), 'utf8');
+    let html = (await readFile(resolve(source, 'shells', (page ? page.slice(0, -1) : 'viewer') + '.html'), 'utf8'))
+      .replaceAll('\r\n', '\n');
     html = html.replace(/\s*<script[^>]+src="(?:assets\/(?:theme-bootstrap|viewer-ui|app)\.js|\.\/(?:checklist|decisions|document)-ui\.js)"[^>]*><\/script>/g, '');
     html = html.replace(/\s*<link[^>]+href="\.\/(?:checklist|decisions)-ui\.css"[^>]*>/g, '');
     html = html.replace('</head>', `<link rel="stylesheet" href="${depth}theme/theme.css">\n<link rel="stylesheet" href="${local}assets/styles.css">\n<link rel="stylesheet" href="${local}component-styles.css">\n<link rel="stylesheet" href="${local}product.css">\n<script src="${depth}theme/bootstrap.js"></script>\n<script src="${local}theme-start.js"></script>\n<script type="module" src="${page ? './' + page.slice(0, -1) + '-ui.js' : './demo.js'}"></script>\n</head>`);
@@ -123,7 +124,7 @@ export async function buildCandidate({ production = false } = {}) {
     for (const name of ['component-styles.css', 'product.css']) await put(prefix + name, await readFile(resolve(output, name)));
     await compile(prefix + kind + '-ui.js', kind + '.mjs', resolve(site, prefix, kind + '-ui.js'), './', './assets/');
     await compile(prefix + 'theme-start.js', 'theme-start.js', resolve(site, prefix, 'theme-start.js'), './', './assets/');
-    let html = await readFile(resolve(source, 'shells', kind + '.html'), 'utf8');
+    let html = (await readFile(resolve(source, 'shells', kind + '.html'), 'utf8')).replaceAll('\r\n', '\n');
     html = html.replace(/\s*<link[^>]+href="\.\/(?:checklist|decisions)-ui\.css"[^>]*>/g, '');
     html = html.replace('</head>', '<link rel="stylesheet" href="./theme/theme.css"><link rel="stylesheet" href="./assets/styles.css"><link rel="stylesheet" href="./component-styles.css"><link rel="stylesheet" href="./product.css"><script src="./theme/bootstrap.js"></script><script src="./theme-start.js"></script></head>');
     if (!production) html = html.replace('<body>', '<body><aside class="replica-notice">TaskProgress Web UI Desktop 候選 · 請使用測試副本</aside>');

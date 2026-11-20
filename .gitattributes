@@ -1,2 +1,15 @@
 # Preserve the byte fingerprints of the imported public delivery on Windows.
 /vendor/web-ui/** -text
+
+# Keep the copied Web bundles byte-identical to the vendor delivery.
+/viewer/assets/web/theme/** -text
+/viewer/assets/web/ui/** -text
+/src/TaskProgress.Cli/*-ui/theme/** -text
+/src/TaskProgress.Cli/*-ui/ui/** -text
+
+# These HTML pages and JS bundles are emitted with LF by the UI build.
+/viewer/**/index.html text eol=lf
+/viewer/*/*-ui.js text eol=lf
+/viewer/assets/theme-start.js text eol=lf
+/src/TaskProgress.Cli/*-ui/index.html text eol=lf
+/src/TaskProgress.Cli/*-ui/*.js text eol=lf
