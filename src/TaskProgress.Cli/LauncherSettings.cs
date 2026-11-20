@@ -15,6 +15,14 @@ internal sealed record LauncherSettings(
     public const int DefaultPort = 8001;
     public const string LoopbackHost = "127.0.0.1";
 
+    /// <summary>
+    /// Gets the launcher directory for checkout discovery when the bundle extracts UI assets elsewhere.
+    /// </summary>
+    internal static string LauncherDirectory => string.Equals(
+        Path.GetFileNameWithoutExtension(Environment.ProcessPath), "dotnet", StringComparison.OrdinalIgnoreCase)
+        ? AppContext.BaseDirectory
+        : Path.GetDirectoryName(Environment.ProcessPath) ?? AppContext.BaseDirectory;
+
     public Uri BaseUri => new($"http://{LoopbackHost}:{Port}/");
 
     public string ServiceLogFile => Path.ChangeExtension(StateFile, ".log");
@@ -97,7 +105,7 @@ internal sealed record LauncherSettings(
             return root;
         }
 
-        foreach (var start in new[] { Environment.CurrentDirectory, AppContext.BaseDirectory })
+        foreach (var start in new[] { Environment.CurrentDirectory, LauncherDirectory })
         {
             var root = FindViewerRoot(start);
             if (root is not null)

@@ -380,7 +380,7 @@ internal static class ReportCommand
             }
             throw new InvalidOperationException("TASK_PROGRESS_VIEWER_ROOT parent does not contain service/report_cli.py.");
         }
-        foreach (var start in new[] { Environment.CurrentDirectory, AppContext.BaseDirectory })
+        foreach (var start in new[] { Environment.CurrentDirectory, LauncherSettings.LauncherDirectory })
         {
             for (var directory = new DirectoryInfo(start); directory is not null; directory = directory.Parent)
             {

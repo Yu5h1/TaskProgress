@@ -36,18 +36,13 @@ set "EXIT_CODE=2"
 goto finish
 
 :parsed
-echo Building the Web UI Workflow delivery...
-pushd "%PROJECT_ROOT%"
-call npm run ui:build
-set "EXIT_CODE=%ERRORLEVEL%"
-popd
-if not "%EXIT_CODE%"=="0" goto finish
-
 echo Publishing TaskProgress single-file EXE...
 echo Project: %PROJECT_FILE%
 echo Output : %OUTPUT_DIR%
 echo.
 
+rem A first publish has no executable to close, and TrayHost requires it to load the manifest.
+if not exist "%OUTPUT_EXE%" goto publish
 if not exist "%MANIFEST%" goto publish
 if not exist "%TRAY_HOST%" (
     echo TrayHost not found: %TRAY_HOST%
@@ -69,7 +64,7 @@ set "EXIT_CODE=%ERRORLEVEL%"
 if not "%EXIT_CODE%"=="0" goto finish
 
 :publish
-dotnet publish "%PROJECT_FILE%" -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:PublishTrimmed=false -p:EnableCompressionInSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -o "%OUTPUT_DIR%"
+dotnet publish "%PROJECT_FILE%" -c Release -p:PublishProfile=WinX64 --no-restore --artifacts-path "%PROJECT_ROOT%bin\Publish" -o "%OUTPUT_DIR%"
 set "EXIT_CODE=%ERRORLEVEL%"
 
 echo.

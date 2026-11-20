@@ -156,6 +156,10 @@ Viewer 會優先依 `completed_items` 與 `pending_items` 的實際項目數顯�
 
 ## 驗證
 
+首次建置或相依套件、前端資產、發佈設定更新後，從 TaskProgress 根目錄執行 `.\Initialize.cmd`。初始化會安裝鎖定的 npm 相依套件、建置 UI，並以 Windows x64 發佈設定還原和建置 C# 專案。看到 `TaskProgress is ready to publish.` 後即可執行 `Publish.cmd`。
+
+初始化結束時會暫停，方便查看結果。自動化可使用 `.\Initialize.cmd --nopause` 直接取得退出碼。
+
 ```powershell
 dotnet build .\src\TaskProgress.Cli\TaskProgress.Cli.csproj -c Release
 dotnet run --project .\tests\TaskProgress.Cli.Tests\TaskProgress.Cli.Tests.csproj -c Release
@@ -165,7 +169,7 @@ npm.cmd run ui:build
 
 C# launcher 的原始碼位於 `src\TaskProgress.Cli`。正式本機編輯功能與 Viewer 共用同一頁及同一份 Web UI Workflow（Lit）元件；edit host capability 只授權已精確註冊的 scope，不提供獨立 Editor 或隔離 Spike 入口。
 
-發布 Windows x64 single-file EXE 時使用根目錄 `Publish.cmd`；發布會先建置 Browser 與 Desktop 的共用 Web UI Workflow 產物；也可獨立執行 `npm.cmd run ui:build`，CI 檢查產物是否與來源一致：
+發布 Windows x64 single-file EXE 時使用根目錄 `Publish.cmd`，它會使用初始化已還原的 .NET 發佈環境。CI 另以 `npm.cmd run ui:build` 檢查前端產物是否與來源一致。
 
 ```powershell
 .\Publish.cmd                      # 互動使用：結尾 pause
@@ -174,7 +178,7 @@ C# launcher 的原始碼位於 `src\TaskProgress.Cli`。正式本機編輯功能
 
 腳本先以 Winform TrayHost 的 `exit` 命令關閉執行中的 TaskProgress tray（與 tray 選單 Exit 同一路徑，worker 與 Web 服務正常停止），再 publish；`--restart` 在成功後執行 `task-progress.exe start --no-browser`。Exit code 0 為成功；關閉失敗時請先從 tray 選單 Exit 一次。TrayHost 位置預設為 `..\Winformin\TrayHost\Release\Yu5h1Lib.TrayHost.exe`，可用 `TASK_PROGRESS_TRAY_HOST` 覆寫。
 
-發布後 `Build\win-x64` 仍只包含 `task-progress.exe`；Viewer 與 edit host 由 repository 提供，公開 Pages 只取得 `viewer/` 產物。
+發布產物為 `Build\win-x64\task-progress.exe`，Desktop Checklist 與 Decisions 資產隨 EXE 封裝。Viewer 與 edit host 由 repository 提供，公開 Pages 只取得 `viewer/` 產物。
 
 Launcher 整合測試會啟動真實 LocalWebService、註冊多個 scope 與選用的時間 sidecar、確認共用 process 與授權 shutdown；Viewer 測試涵蓋兩層報告合併、scope 路徑、版本相容、時間重算與本機容量政策。
 

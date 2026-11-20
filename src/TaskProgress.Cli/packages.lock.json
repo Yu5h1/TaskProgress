@@ -4,9 +4,9 @@
     "net9.0-windows7.0": {
       "Microsoft.NET.ILLink.Tasks": {
         "type": "Direct",
-        "requested": "[9.0.20, )",
-        "resolved": "9.0.20",
-        "contentHash": "oPFydtjCgow3DXnL8z5gPbq3R1zGvBpcypgRhW172Hn8asJcI8oy7isudAnAAALIWyK+uRWCDP+/+om3s0PZHA=="
+        "requested": "[9.0.23, )",
+        "resolved": "9.0.23",
+        "contentHash": "6RDVUwowSAnluUb0FGYASoZMcs5cI5Ts1qx1I1NCET4eD6nUAhhw5rbN7jzRY7BYEh8mLiIWR1sZ60mBB9/61w=="
       },
       "Microsoft.Web.WebView2": {
         "type": "Direct",

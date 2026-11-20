@@ -119,7 +119,7 @@ internal static class TrayHostLauncher
             return path;
         }
 
-        foreach (var start in new[] { AppContext.BaseDirectory, Environment.CurrentDirectory })
+        foreach (var start in new[] { LauncherSettings.LauncherDirectory, Environment.CurrentDirectory })
         {
             var found = SearchUpwards(start);
             if (found is not null) return found;
