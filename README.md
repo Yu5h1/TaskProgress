@@ -156,7 +156,9 @@ Viewer 會優先依 `completed_items` 與 `pending_items` 的實際項目數顯�
 
 ## 驗證
 
-首次建置或相依套件、前端資產、發佈設定更新後，從 TaskProgress 根目錄執行 `.\Initialize.cmd`。初始化會安裝鎖定的 npm 相依套件、建置 UI，並以 Windows x64 發佈設定還原和建置 C# 專案。看到 `TaskProgress is ready to publish.` 後即可執行 `Publish.cmd`。
+首次建置或相依套件、前端資產、發佈設定更新後，從 TaskProgress 根目錄執行 `.\Initialize.cmd`。初始化會把 TaskProgress 和 LocalWebService 的 Python 套件裝進同一個環境，接著安裝 npm 套件、建置 UI，再以 Windows x64 發佈設定還原和建置 C# 專案。看到 `TaskProgress is ready to publish.` 後即可執行 `Publish.cmd`。
+
+Windows 初始化使用 Python 3.10–3.13。若有專用 Python 環境，先用 `TASK_PROGRESS_PYTHON` 指定執行檔，安裝和啟動都會使用它。共用清單取自同層的 `LocalWebService\requirements.txt`，或 `TASK_PROGRESS_LOCAL_WEB_SERVICE` 指定的 `localHost.py` 所在目錄。
 
 初始化結束時會暫停，方便查看結果。自動化可使用 `.\Initialize.cmd --nopause` 直接取得退出碼。
 
@@ -197,11 +199,7 @@ Copyright (c) 2026 Yu5h1
 
 頁面只送 scope ID 與 scope 內的相對路徑，由服務依自己登記的 scope 位置找出檔案（`GET /__taskprogress/v1/documents/<scope-id>?path=…`）。服務只接受 `.md`，拒絕 `..`、絕對路徑、隱藏資料夾，以及解析後落在 scope 之外的檔案；原始 HTML 不會執行。文件中指向其他已登記 scope 的 `.md` 相對連結會改成該 scope 的文件頁，其他無法開啟的相對連結顯示為純文字。公開網站沒有這個服務，因此不會有文件頁。
 
-服務的 Python 需要 markdown-it-py：
-
-```powershell
-python -m pip install markdown-it-py==4.2.0
-```
+初始化會安裝本機文件頁所需的 `markdown-it-py`。
 
 ## 決策項目入口
 
